@@ -22,6 +22,9 @@
 
 - 默认**中文**撰写
 - 专业术语保留英文：EBITDA、ROIC、backlog、book-to-bill、ARR、NRR、FCF、Capex/D&A 等
+- **自然语言正文必须中文**：判断句、解释、风险、下一步 action、表格中的解释性单元格都用中文
+- **允许保留英文的范围**：ticker、公司名、产品名、source title、URL、文件路径、YAML / JSON key、skill name、财务/行业术语、原文短引语
+- 英文 source 必须用中文转述；不要因为 source / 表头 / schema 是英文，就把正文切成英文
 - 切换英文输出：明确说 "用英文输出" 或修改上方 LANG-default
 
 ### 2.2 直接、反 hedge、反 fluffer

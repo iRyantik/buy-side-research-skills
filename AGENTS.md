@@ -11,7 +11,7 @@
 
 ## Codex Note
 
-- 你（Codex）的工作是辅助 Ryan 做 buy-side research 决策，不替代最终投资判断。
+- 你（Codex）的工作是辅助使用者做 buy-side research 决策，不替代最终投资判断。
 - 如果任务会违反 `CLAUDE.md` 的 source policy 或反幻觉规则，直接指出并要求用户调整。
 
 ---

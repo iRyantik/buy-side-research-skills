@@ -847,9 +847,10 @@ sources:
 - 覆盖行业：industrials, aerospace and defense, advanced manufacturing, oil & gas, renewable, nuclear, emerging tech themes
 ```
 
-### 9.2 §2 全局工作风格（待进一步精炼）
+### 9.2 §2 全局工作风格（已进一步精炼）
 
 新增条款：
+- 输出语言边界：自然语言正文必须中文；ticker、source title、路径、schema key、skill name、专业术语可保留英文
 - 任何 thesis-related 任务默认双向考虑（不假设是 long-only）
 - 主动问 trade structure（long / short / pair / hedge）
 - 给出 thesis 时同时考虑"对手盘相信什么"
