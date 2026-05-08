@@ -1,0 +1,51 @@
+name: bear-pre-mortem
+version: 1.2.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: 对投资 thesis 做空头压力测试
+description: |
+  用于对一个已成型的多头 thesis 做 steelman 空头压力测试 / pre-mortem。
+  特点：故意单边，目标是让你看完想做空
+  方法：会计红旗、base rate、行为偏差自检、下行路径
+  
+trigger:
+  keywords:
+    - "帮我打这个逻辑"
+    - "帮我找漏洞"
+    - "如果我错了"
+    - "空头压力测试"
+    - "假设这个 thesis 错了"
+    - "帮我反向思考"
+    - "我会不会过于乐观"
+  description: "当用户要压测或反向思考一个 thesis 时触发"
+
+category: research
+tags:
+  - risk-management
+  - thesis-validation
+  - bear-case
+  - buy-side
+  - pre-mortem
+
+capabilities:
+  - generates: "7-section bear case analysis"
+  - output_format: "900-1400 字"
+  - includes: "short pitch、accounting flags、base rate、path of pain"
+  - emphasis: "fact-driven, no hand-waving"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+prerequisites:
+  - "alpha-thesis or coverage/[ticker]/thesis.md (expected input)"
+
+workflow_dependencies:
+  - "consumes": "alpha-thesis output, coverage/[ticker]/thesis.md, or pair thesis"
+  - "before": "ic-memo submission"
+
+special_notes: |
+  本 skill 故意单边——不是"平衡讨论风险"，而是全力攻击 thesis。
+  如果压测后 thesis 还站得住，你的 conviction 是真的。
+  如果发现明显盲点，回去修 thesis 或放弃这单 trade。
+  若输入是 short thesis，反向输出最强多头 / short squeeze / upside catalyst 压测。

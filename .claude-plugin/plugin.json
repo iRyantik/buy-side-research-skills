@@ -1,0 +1,30 @@
+{
+  "name": "buy-side-research-skills",
+  "version": "2.2.0",
+  "description": "Buy-side equity research skill suite for Claude/Cowork and Codex: candidate screening, quickread, thesis, peer deep dive, earnings setup, financial modeling, pre-mortem, decision journal, thesis tracker, pair trade, information impact, and cross-market compare.",
+  "author": {
+    "name": "buy-side-research-system"
+  },
+  "license": "MIT",
+  "keywords": [
+    "buy-side",
+    "research",
+    "equity",
+    "thesis",
+    "investment",
+    "decision-journal",
+    "thesis-tracker",
+    "pair-trade",
+    "information-impact",
+    "cross-market",
+    "financial-model",
+    "revenue-model",
+    "excel-model",
+    "earnings-update",
+    "candidate-screener",
+    "idea-generation",
+    "candidate-screening",
+    "thematic-screening",
+    "quant-screening"
+  ]
+}

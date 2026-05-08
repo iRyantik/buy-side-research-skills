@@ -1,0 +1,20 @@
+{
+  "id": "information-impact",
+  "name": "Information Impact",
+  "version": "2.0.0",
+  "description": "Claim Check + Portfolio Impact 信息过滤器，Unsupported/Contradicted 默认不落盘",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["information-impact", "claim-check", "rumor-verification", "portfolio-impact"],
+  "trigger": {
+    "type": "keyword",
+    "keywords": ["这个消息靠谱吗", "供应链", "有没有 source", "这个 claim 能不能信", "这条新闻影响什么", "portfolio impact"],
+    "description": "当用户要查传闻可信度或判断信息对组合影响时触发"
+  },
+  "capabilities": {
+    "modes": ["Claim Check", "Portfolio Impact"],
+    "verdicts": ["Confirmed", "Likely", "Plausible but unconfirmed", "Unsupported", "Contradicted"],
+    "writes_conditionally": "inbox/information-log.md",
+    "requirements": ["do not log Unsupported/Contradicted by default", "distinguish direct vs indirect exposure"]
+  }
+}

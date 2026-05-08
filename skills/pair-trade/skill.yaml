@@ -1,0 +1,41 @@
+name: pair-trade
+version: 2.0.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: Pair trade builder + monitor
+description: |
+  构建或监控 Long/Short pair，写入 pairs/[LONG_TICKER]-[SHORT_TICKER]/
+  下的 thesis.md 和 spread-log.md。
+
+trigger:
+  keywords:
+    - "pair trade"
+    - "Long / Short"
+    - "Long X Short Y"
+    - "做多 做空"
+    - "spread"
+    - "这两个能不能 pair"
+    - "更新 spread-log"
+    - "pair 还成立吗"
+  description: "当用户要构建或监控 pair trade 时触发"
+
+category: research
+tags:
+  - pair-trade
+  - spread
+  - long-short
+  - market-neutral
+
+capabilities:
+  - mode: "builder"
+  - mode: "monitor"
+  - writes: "pairs/[LONG_TICKER]-[SHORT_TICKER]/spread-log.md"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+workflow_dependencies:
+  - "consumes": "peer-deep-dive pair candidates"
+  - "feeds_into": "decision-journal"
+  - "feeds_into": "thesis-tracker"

@@ -1,0 +1,38 @@
+name: information-impact
+version: 2.0.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: Claim Check + Portfolio Impact 信息过滤器
+description: |
+  先验证消息 / 传闻本身是否靠谱，再判断是否影响 portfolio/watchlist。
+  Unsupported / Contradicted 默认不落盘，避免 inbox 噪音。
+
+trigger:
+  keywords:
+    - "这个消息靠谱吗"
+    - "供应链"
+    - "有没有 source"
+    - "这个 claim 能不能信"
+    - "这条新闻影响什么"
+    - "portfolio impact"
+  description: "当用户要查传闻可信度或判断信息对组合影响时触发"
+
+category: research
+tags:
+  - information-impact
+  - claim-check
+  - rumor-verification
+  - portfolio-impact
+
+capabilities:
+  - mode: "Claim Check"
+  - mode: "Portfolio Impact"
+  - writes_conditionally: "inbox/information-log.md"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+workflow_dependencies:
+  - "can_trigger": "thesis-tracker"
+  - "can_trigger": "decision-journal review entry"

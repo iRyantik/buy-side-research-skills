@@ -1,0 +1,51 @@
+{
+  "id": "stock-quickread",
+  "name": "Stock Quickread",
+  "version": "1.2.0",
+  "description": "30 分钟快速了解一家陌生公司，达到'能问出像样的下一层问题'的状态",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["quickread", "company-analysis", "buy-side", "new-coverage"],
+  
+  "trigger": {
+    "type": "keyword",
+    "keywords": [
+      "帮我看一下",
+      "这家公司是做什么的",
+      "帮我快速过一下",
+      "我对这家不熟",
+      "把这份招股书",
+      "压缩成关键点"
+    ],
+    "description": "当用户想快速了解一家陌生公司时触发"
+  },
+  
+  "capabilities": {
+    "generates": "9-section structured company analysis",
+    "output_format": "1200-1800 字 + 3 张数据表",
+    "time_estimate": "30 minutes",
+    "includes": ["counterparty assumptions / 对手盘需要相信什么"],
+    "requirements": ["source links required", "follow CLAUDE.md source policy"]
+  },
+  
+  "workflow": {
+    "stage": "discovery",
+    "next_steps": ["alpha-thesis"],
+    "decision_point": "值不值得花时间深入研究"
+  },
+  
+  "quality_gates": {
+    "anti_patterns": [
+      "flow_water_account_style",
+      "management_bios",
+      "5_year_historical_financials",
+      "industry_intro_textbooks"
+    ],
+    "data_requirements": [
+      "financial_data_table",
+      "capital_cycle_metrics",
+      "empirical_drivers",
+      "source_links"
+    ]
+  }
+}

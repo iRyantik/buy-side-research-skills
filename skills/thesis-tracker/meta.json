@@ -1,0 +1,19 @@
+{
+  "id": "thesis-tracker",
+  "name": "Thesis Tracker",
+  "version": "2.0.0",
+  "description": "读取 thesis.md 和 decisions.md，维护 thesis health 与 catalyst pipeline",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["thesis-tracker", "catalyst", "portfolio", "health-check"],
+  "trigger": {
+    "type": "keyword",
+    "keywords": ["thesis 还成立吗", "更新 thesis health", "catalyst pipeline", "哪些持仓需要 review"],
+    "description": "当用户要维护已有 thesis 或组合 catalyst pipeline 时触发"
+  },
+  "capabilities": {
+    "reads": ["coverage/[ticker]/thesis.md", "journal/decisions.md", "pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md"],
+    "writes": ["coverage/[ticker]/health-log.md", "portfolio/catalyst-pipeline.md"],
+    "requirements": ["read YAML frontmatter first", "follow CLAUDE.md source policy"]
+  }
+}

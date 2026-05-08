@@ -1,0 +1,53 @@
+name: alpha-thesis
+version: 1.2.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: 构建有 edge 的投资 thesis
+description: |
+  用于买方研究员构建一个有真实 edge 的投资 thesis（多头或空头）。
+  特点：必须有 variant view、catalyst、kill criteria、sizing 逻辑
+  输出是可以拿去 pitch 给 PM 的完整投资逻辑
+  
+trigger:
+  keywords:
+    - "帮我搭一下"
+    - "逻辑"
+    - "帮我把 thesis 整理一下"
+    - "我有个想法"
+    - "帮我成型"
+    - "为什么我看多"
+    - "为什么我看空"
+    - "帮我搭一个 pitch"
+  description: "当用户要建立或整理投资观点时触发"
+
+category: research
+tags:
+  - thesis
+  - ic-memo
+  - conviction
+  - buy-side
+  - investment-decision
+
+capabilities:
+  - generates: "8-section investment thesis with variant view"
+  - output_format: "800-1500 字 完整逻辑"
+  - includes: "catalyst、kill criteria、bull/base/bear scenarios、sizing"
+  - writes_state_contract: "coverage/[ticker]/thesis.md or pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+prerequisites:
+  - "stock-quickread (recommended)"
+
+anti_patterns:
+  - "没有 variant view"
+  - "定性描述，无数字支撑"
+  - "催化剂都是'长期'"
+  - "止损条件过于空泛"
+
+workflow_dependencies:
+  - "after": "stock-quickread"
+  - "before": "bear-pre-mortem"
+  - "feeds_into": "earnings-setup, decision-journal, thesis-tracker"

@@ -1,0 +1,39 @@
+name: cross-market-compare
+version: 2.0.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: 跨市场估值与可比公司差异分析
+description: |
+  处理 A/H、ADR、本地股、跨市场 peer 的价格、估值、币种、会计口径、
+  流动性和可交易性差异。
+
+trigger:
+  keywords:
+    - "A/H"
+    - "ADR"
+    - "跨市场"
+    - "港股和美股"
+    - "A股和港股"
+    - "cross-market"
+    - "估值差"
+  description: "当用户要比较跨市场股票、ADR 或同一资产不同上市地时触发"
+
+category: research
+tags:
+  - cross-market
+  - adr
+  - a-h
+  - valuation
+  - comparables
+
+capabilities:
+  - normalizes: "currency, share count, ADR ratio, valuation"
+  - writes_optional: "cross-market/[group-name]-[YYYY-MM-DD].md"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+workflow_dependencies:
+  - "can_feed": "alpha-thesis"
+  - "can_feed": "pair-trade"

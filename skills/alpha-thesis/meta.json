@@ -1,0 +1,58 @@
+{
+  "id": "alpha-thesis",
+  "name": "Alpha Thesis",
+  "version": "1.2.0",
+  "description": "构建有真实 edge 的投资 thesis（多头或空头），可拿去 pitch 给 PM 的完整逻辑",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["thesis", "ic-memo", "conviction", "buy-side", "investment-decision"],
+  
+  "trigger": {
+    "type": "keyword",
+    "keywords": [
+      "帮我搭一下",
+      "帮我把 thesis 整理一下",
+      "我有个想法",
+      "帮我成型",
+      "为什么我看多",
+      "为什么我看空",
+      "帮我搭一个 pitch"
+    ],
+    "description": "当用户要建立或整理投资观点时触发"
+  },
+  
+  "capabilities": {
+    "generates": "8-section investment thesis with variant view",
+    "output_format": "800-1500 字 完整逻辑",
+    "includes": ["catalyst", "kill-criteria", "bull-base-bear", "sizing"],
+    "requirements": ["source links required", "quantitative support", "follow CLAUDE.md source policy"],
+    "state_contract": "coverage/[ticker]/thesis.md or pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md"
+  },
+  
+  "workflow": {
+    "stage": "analysis",
+    "prerequisites": ["stock-quickread"],
+    "next_steps": ["bear-pre-mortem", "earnings-setup", "decision-journal", "thesis-tracker"],
+    "decision_point": "conviction 是否真实"
+  },
+  
+  "required_sections": [
+    "variant_view_vs_consensus",
+    "why_gap_exists",
+    "specific_catalysts_with_timing",
+    "bull_base_bear_scenarios_with_returns",
+    "kill_criteria_with_observable_signals",
+    "sizing_logic",
+    "key_assumptions_list"
+  ],
+  
+  "quality_gates": {
+    "anti_patterns": [
+      "no_variant_view",
+      "qualitative_without_numbers",
+      "catalysts_are_long_term",
+      "weak_bear_case",
+      "empty_kill_criteria"
+    ]
+  }
+}

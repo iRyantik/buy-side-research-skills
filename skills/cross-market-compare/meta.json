@@ -1,0 +1,19 @@
+{
+  "id": "cross-market-compare",
+  "name": "Cross-Market Compare",
+  "version": "2.0.0",
+  "description": "A/H、ADR、本地股和跨市场 peer 的估值差异分析",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["cross-market", "adr", "a-h", "valuation", "comparables"],
+  "trigger": {
+    "type": "keyword",
+    "keywords": ["A/H", "ADR", "跨市场", "港股和美股", "A股和港股", "cross-market", "估值差"],
+    "description": "当用户要比较跨市场股票、ADR 或同一资产不同上市地时触发"
+  },
+  "capabilities": {
+    "normalizes": ["currency", "share count", "ADR ratio", "valuation multiples", "liquidity"],
+    "writes_optional": "cross-market/[group-name]-[YYYY-MM-DD].md",
+    "requirements": ["as-of timestamps", "source links", "accounting and access adjustments"]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": "financial-model",
+  "name": "Financial Model",
+  "version": "2.1.0",
+  "description": "Build or update buy-side Excel financial models, with first-version focus on revenue split and segment drivers.",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["financial-model", "revenue-model", "excel-model", "earnings-update", "segment-drivers"],
+  "trigger": {
+    "type": "keyword",
+    "keywords": [
+      "搭一个 model",
+      "build a model",
+      "financial model",
+      "Excel model",
+      "拆收入",
+      "revenue model",
+      "更新已有 model",
+      "根据新财报更新模型",
+      "refresh model"
+    ],
+    "description": "当用户要搭新模型、拆收入、或根据财报更新已有 Excel model 时触发"
+  },
+  "capabilities": {
+    "modes": ["Build New Model", "Update Existing Model"],
+    "output_path": "coverage/[ticker]/model.xlsx",
+    "focus": "revenue split and segment drivers",
+    "requirements": [
+      "follow CLAUDE.md source policy",
+      "preserve existing workbook structure when updating",
+      "do not force a standard template",
+      "do not invent undisclosed revenue drivers"
+    ]
+  },
+  "workflow": {
+    "stage": "modeling",
+    "can_follow": ["stock-quickread", "peer-deep-dive"],
+    "feeds_into": ["alpha-thesis", "thesis-tracker"],
+    "can_be_triggered_by": ["earnings-setup post-print"],
+    "can_trigger": ["decision-journal"]
+  }
+}

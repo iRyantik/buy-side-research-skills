@@ -1,0 +1,49 @@
+name: stock-quickread
+version: 1.2.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: 30 分钟快速了解一家陌生公司
+description: |
+  用于买方研究员快速搞清楚一家不熟悉的公司。
+  触发场景：新股票发现、快速筛选、招股书年报压缩
+  目标：从零到"能问出像样的下一层问题"
+  
+trigger:
+  keywords:
+    - "帮我看一下"
+    - "这家公司是做什么的"
+    - "帮我快速过一下"
+    - "我对这家不熟"
+    - "把这份招股书"
+    - "压缩成关键点"
+    - "快速扫一遍"
+  description: "当用户想快速了解一家陌生公司时触发"
+
+category: research
+tags:
+  - quickread
+  - company-analysis
+  - buy-side
+  - new-coverage
+  - equity-research
+
+capabilities:
+  - generates: "9-section structured company analysis"
+  - output_format: "1200-1800 字 + 3 张数据表"
+  - time_estimate: "30 minutes to produce"
+  - includes: "opposing-side assumptions / 对手盘需要相信什么"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+
+anti_patterns:
+  - "流水账式覆盖报告"
+  - "管理层简历"
+  - "5年历史财务"
+  - "行业入门科普"
+
+keywords_to_avoid_triggering_on:
+  - "请问公司历史发展"
+  - "管理层背景"
+  - "详细的行业分析"

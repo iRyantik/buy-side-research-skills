@@ -1,0 +1,70 @@
+name: peer-deep-dive
+version: 1.2.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: 并行深入研究 3-8 家同业，产出共享行业坐标 + cross-cut 信号 + 研究排序
+description: |
+  用于买方研究员同时深入研究一个行业里 3-8 家已经决定都要看的公司。
+  产出不是 N 份 quickread 的拼贴，而是抽出共享行业 lens +
+  找 N 家之间的矛盾/共识/错配信号 + 给出研究排序。
+  
+  当前发布版不包含独立 peer-scan；若公司超过 8 家，先自由对话预筛，
+  或按子行业 / business model 分组后再运行本 skill。
+  
+  和 stock-quickread 的关系：本 skill 前置（产出广度 + cross-cut），
+  随后每家单独跑 stock-quickread 补深度。
+
+trigger:
+  keywords:
+    - "这几家都值得看"
+    - "这几家一起看下"
+    - "这几家拉出来做横向研究"
+    - "这几家并行研究"
+    - "并行覆盖"
+    - "这几家 E&P"
+    - "这几家半导体"
+    - "deep dive 这几家"
+    - "这几家一起处理"
+    - "帮我一起研究这几家"
+  description: "当用户已选定多家公司、要并行深入研究时触发"
+
+category: research
+tags:
+  - peer-deep-dive
+  - cross-cut
+  - horizontal-research
+  - buy-side
+  - equity-research
+  - industry-lens
+
+capabilities:
+  - generates: "structured cross-company analysis: industry lens + KPI matrix + differential profiles + cross-cut insights + research ranking"
+  - output_format: "2500-5000 字 + 2-3 张数据表"
+  - time_estimate: "60-90 minutes to produce"
+  - includes: "pair candidates or explicit no-pair conclusion"
+
+requires:
+  - "CLAUDE.md §3 source policy"
+  - "references/industries/ (行业 KPI 模板)"
+
+prerequisites:
+  - "3-8 selected companies; if >8, pre-filter or split into subgroups"
+
+workflow_dependencies:
+  - "precedes": "stock-quickread (按排序逐个执行)"
+  - "feeds_into": "alpha-thesis (若第5节排序有 high-conviction 候选)"
+  - "feeds_into": "pair-trade (若第5B节有 Long/Short 候选)"
+
+anti_patterns:
+  - "N 份独立 quickread 拼贴"
+  - "行业入门科普"
+  - "管理层简历"
+  - "无 cross-cut 信号"
+  - "表格无 Source 列"
+  - "含糊的排序"
+  - "Thesis 苗头写'看情况'"
+
+keywords_to_avoid_triggering_on:
+  - "公司历史发展"
+  - "单一公司分析"

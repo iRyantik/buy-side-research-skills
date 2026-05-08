@@ -1,0 +1,53 @@
+{
+  "id": "candidate-screener",
+  "name": "Candidate Screener",
+  "version": "2.2.0",
+  "description": "Outbound idea funnel that turns a theme, event, hypothesis, or screening condition into a sourced long/short candidate list.",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": [
+    "candidate-screener",
+    "idea-generation",
+    "candidate-screening",
+    "thematic-screening",
+    "quant-screening",
+    "long-short"
+  ],
+  "trigger": {
+    "type": "keyword",
+    "keywords": [
+      "找受益股",
+      "找受损方",
+      "candidate",
+      "candidates",
+      "idea generation",
+      "screening",
+      "thematic screening",
+      "quant screening",
+      "EV/EBITDA",
+      "FCF yield",
+      "ROIC",
+      "数据中心电力",
+      "关税受损"
+    ],
+    "description": "当用户要从主题、假设、事件或筛选条件生成候选股票列表时触发"
+  },
+  "capabilities": {
+    "modes": [
+      "Thematic",
+      "Quant",
+      "Mixed"
+    ],
+    "writes": "screens/[hypothesis-slug]-[YYYY-MM-DD].md",
+    "feeds_into": [
+      "stock-quickread",
+      "peer-deep-dive",
+      "pair-trade"
+    ],
+    "requirements": [
+      "follow CLAUDE.md source policy",
+      "source every business linkage",
+      "separate outbound screening from inbound claim checking"
+    ]
+  }
+}
