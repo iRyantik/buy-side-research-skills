@@ -33,7 +33,7 @@ capabilities:
   - generates: "8-section investment thesis with variant view"
   - output_format: "800-1500 字 完整逻辑"
   - includes: "catalyst、kill criteria、bull/base/bear scenarios、sizing"
-  - writes_state_contract: "coverage/[ticker]/thesis.md or pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md"
+  - can_feed: "research-journal or next-step"
 
 requires:
   - "CLAUDE.md §3 source policy"
@@ -50,4 +50,4 @@ anti_patterns:
 workflow_dependencies:
   - "after": "stock-quickread"
   - "before": "bear-pre-mortem"
-  - "feeds_into": "earnings-setup, decision-journal, thesis-tracker"
+  - "feeds_into": "earnings-setup, bear-pre-mortem, research-journal, next-step"

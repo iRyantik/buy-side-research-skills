@@ -21,7 +21,7 @@ Use when the user asks to:
 - "帮我拆收入"
 - "给 X 公司做 revenue model"
 
-Output target: `coverage/[ticker]/model.xlsx`.
+Default output target: `topics/[topic_type]/[topic-slug]/model.xlsx`, unless the user gives an existing workbook path.
 
 Principles:
 - Use a light model skeleton, not a rigid 5-sheet template.
@@ -57,14 +57,14 @@ Minimum output in chat:
 - **Update summary**: what changed and why it matters.
 - **Update map**: where the model should change.
 - **Model integrity risks**: formulas, links, or hardcodes that need caution.
-- **Thesis read-through**: whether the model update changes variant view, catalyst, or decision triggers.
+- **Research read-through**: whether the model update changes variant view, model driver understanding, or the next question to research.
 
 ## Handoff
 
 - Feeds `alpha-thesis` by turning revenue drivers into variant-view assumptions.
 - Feeds `earnings-setup` by defining the model lines that matter before a print.
-- Feeds `thesis-tracker` when new actuals change `key_assumptions`, `next_catalyst`, or `health_status`.
-- Can trigger `decision-journal` if the model update changes action.
+- Feeds `research-journal` when the model clarifies a real driver or mechanism.
+- Feeds `next-step` when the model exposes a driver gap or disclosure anomaly.
 
 ## Anti-Patterns
 

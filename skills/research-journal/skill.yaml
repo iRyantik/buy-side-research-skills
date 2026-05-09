@@ -1,0 +1,42 @@
+name: research-journal
+version: 3.0.0
+author: buy-side-research-system
+namespace: research.equity
+summary: Journal-first research memory and Boss Brief generation
+description: |
+  用于阶段性总结研究、沉淀已解决的认知增量、维护 topic journal，
+  或生成给老板 / PM 看的高密度 Boss Brief。
+trigger:
+  keywords:
+    - 总结本轮研究
+    - 总结本轮 LNG 研究
+    - 写进 journal
+    - research journal
+    - 整理这个 topic
+    - 做一版给老板看的
+    - boss brief
+    - 给 PM 的版本
+    - 发给别人看的
+  description: 当用户要沉淀研究结果或生成老板版研究 memo 时触发
+category: research
+tags:
+  - research-journal
+  - topic-journal
+  - boss-brief
+  - research-notes
+  - buy-side
+capabilities:
+  - mode: Private Research Journal
+  - mode: Boss Brief
+  - writes: topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
+  - writes: topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/boss-brief.md
+  - updates: topics/[topic_type]/[topic-slug]/index.md
+requires:
+  - CLAUDE.md §3 source policy
+workflow_dependencies:
+  - consumes: current conversation and prior topic materials
+  - can_follow: candidate-screener
+  - can_follow: stock-quickread
+  - can_follow: peer-deep-dive
+  - can_follow: financial-model
+  - can_follow: next-step

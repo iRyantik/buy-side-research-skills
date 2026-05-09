@@ -17,6 +17,7 @@
     "type": "keyword",
     "keywords": [
       "这几家都值得看",
+      "这几家公司一起看",
       "这几家一起看下",
       "这几家拉出来做横向研究",
       "并行覆盖",
@@ -36,7 +37,7 @@
       "每一条事实声明必须附带可点击的 source link",
       "矩阵必须有 Source 列",
       "Cross-cut 必须有具体引语和数字对比",
-      "必须输出 pair candidates 或明确说明无 pair"
+      "必须输出 cluster / relative mismatch 判断"
     ],
     "company_limit": {
       "min": 3,
@@ -48,7 +49,7 @@
     "stage": "deep-dive",
     "prerequisites": ["3-8 selected companies"],
     "next_steps": ["stock-quickread", "alpha-thesis"],
-    "feeds_into": ["stock-quickread (按排序执行)", "alpha-thesis (高优先级候选)", "pair-trade (若有 Long/Short 候选)"],
+    "feeds_into": ["stock-quickread (按排序执行)", "alpha-thesis (高优先级候选)", "research-journal", "next-step"],
     "decision_point": "哪家公司优先级最高、资源如何分配"
   },
   "required_sections": [
@@ -77,7 +78,7 @@
       "行业特定维度 KPI 矩阵（从模板加载）",
       "各公司 differential profile（只列与同业差异）",
       "cross-cut 矛盾/共识/估值错配/极端值四节",
-      "优先级排序 + 时间分配 + pair trade 建议",
+      "优先级排序 + 时间分配 + 下一步研究问题",
       "所有数据、KPI、引语必须附带 source link"
     ]
   }

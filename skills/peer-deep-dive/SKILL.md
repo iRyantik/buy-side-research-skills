@@ -275,10 +275,10 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 
 #### 5B. Pair / Cluster 建议
 
-- **适合配对的几家**：基于业务重叠 / 估值 spread 错配，哪几家适合一起跟踪（财报后做 cross-check）
-- **Long X / Short Y 候选**：如果做 pair trade，哪一组最 clean？基于什么 spread 论点？
-- 默认必须输出 pair / cluster 判断；如果**没有合适的 pair / cluster**，明确说"无明显 pair 机会——同业同质化高 / 估值已 priced / N 家相关性过高"。
-- 若有 Long X / Short Y 候选，给出 `pairs/[LONG_TICKER]-[SHORT_TICKER]/` 的建议目录名，供后续 `pair-trade` 使用。
+- **适合放在一起继续研究的几家**：基于业务重叠 / 估值错配 / driver 差异，哪几家适合一起跟踪。
+- **相对错配候选**：如果有 Long / Short 的研究苗头，只说明错配逻辑和需要继续验证的问题，不生成交易状态。
+- 默认必须输出 cluster 判断；如果**没有合适的 cluster**，明确说"无明显 cluster 机会——同业同质化高 / 估值已 priced / N 家相关性过高"。
+- 若 cross-cut 暴露业务实质错读、peer mismatch 或 market misread，触发 Senior Analyst Radar，并建议用 `next-step` 继续拆。
 
 ### 6. 跨公司的关键问题
 

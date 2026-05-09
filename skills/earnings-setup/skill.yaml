@@ -33,7 +33,7 @@ capabilities:
   - generates: "Two separate workflows: pre-print setup OR post-print quick read"
   - output_format: "pre: 500-900 字; post: 400-700 字"
   - includes: "consensus vs buy-side bar、decision tree、KPI tracking"
-  - post_print_handoff: "thesis_update + decision_entry_trigger + pair_readthrough"
+  - post_print_handoff: "research_update + model_update + journal_or_next_step"
 
 requires:
   - "CLAUDE.md §3 source policy"
@@ -44,7 +44,9 @@ prerequisites:
 workflow_dependencies:
   - "consumes": "alpha-thesis catalyst and assumptions"
   - "feeds_back_to": "alpha-thesis (thesis health update)"
-  - "can_trigger": "decision-journal (if action changes)"
+  - "can_trigger": "research-journal (if insight is earned)"
+  - "can_trigger": "next-step (if weirdness appears)"
+  - "can_trigger": "financial-model (if drivers change)"
   - "can_trigger": "bear-pre-mortem (if thesis severely undermined)"
 
 critical_notes: |

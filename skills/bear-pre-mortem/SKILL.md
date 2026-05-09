@@ -26,7 +26,7 @@ description: Use when stress-testing a thesis, finding the strongest opposing ca
 
 ## 输入与双向用法
 
-- 默认输入是 `alpha-thesis` 输出，也可以直接读取 `coverage/[ticker]/thesis.md` 或 `pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md`。
+- 默认输入是 `alpha-thesis` 输出、当前对话中的 thesis 草稿，或 topic journal 里已经沉淀的研究结论。
 - 如果输入是多头 thesis，本 skill 输出最强空头 pre-mortem。
 - 如果输入是空头 thesis，本 skill 反向输出"这单 short 为什么会亏钱"：最强多头 / short squeeze / crowded short / upside catalyst 压测。
 - 如果 thesis 文件带 YAML frontmatter，优先读取 `key_assumptions`、`kill_criteria`、`valuation_anchor`、`conviction`、`health_status`，不要只解析自然语言正文。

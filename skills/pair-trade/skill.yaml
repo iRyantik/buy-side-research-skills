@@ -1,41 +1,44 @@
 name: pair-trade
-version: 2.0.0
+version: 3.1.0
 author: buy-side-research-system
 namespace: research.equity
-
-summary: Pair trade builder + monitor
+summary: Journal-first long/short pair research and monitor
 description: |
-  构建或监控 Long/Short pair，写入 pairs/[LONG_TICKER]-[SHORT_TICKER]/
-  下的 thesis.md 和 spread-log.md。
-
+  用于判断 Long/Short pair 是否成立、寻找 hedge candidate、分析 spread 逻辑，
+  或复查已有 pair 的研究逻辑是否仍然有效。默认输出到对话，不维护交易状态文件。
 trigger:
   keywords:
-    - "pair trade"
-    - "Long / Short"
-    - "Long X Short Y"
-    - "做多 做空"
-    - "spread"
-    - "这两个能不能 pair"
-    - "更新 spread-log"
-    - "pair 还成立吗"
-  description: "当用户要构建或监控 pair trade 时触发"
-
+    - pair trade
+    - Long X Short Y
+    - Long / Short
+    - 做多 做空
+    - 这两个能不能 pair
+    - X 用什么对冲
+    - ASML 找 hedge candidate
+    - hedge candidate
+    - spread
+    - pair 还成立吗
+    - review all pairs
+    - review 一下所有 pair
+    - 找对冲
+  description: 当用户要构建、评估、监控 long/short pair 或寻找 hedge candidate 时触发
 category: research
 tags:
   - pair-trade
-  - spread
   - long-short
+  - spread
   - market-neutral
-
+  - hedge-candidate
 capabilities:
-  - mode: "builder"
-  - mode: "monitor"
-  - writes: "pairs/[LONG_TICKER]-[SHORT_TICKER]/spread-log.md"
-
+  - mode: Builder
+  - mode: Monitor
+  - output: pair verdict + spread logic + research next questions
 requires:
-  - "CLAUDE.md §3 source policy"
-
+  - CLAUDE.md §3 source policy
 workflow_dependencies:
-  - "consumes": "peer-deep-dive pair candidates"
-  - "feeds_into": "decision-journal"
-  - "feeds_into": "thesis-tracker"
+  - can_consume: peer-deep-dive pair candidates
+  - can_consume: cross-market-compare hedge ideas
+  - can_trigger: next-step
+  - can_trigger: bear-pre-mortem
+  - can_trigger: earnings-setup
+  - can_feed: research-journal

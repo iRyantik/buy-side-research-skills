@@ -23,7 +23,7 @@
   },
   "capabilities": {
     "modes": ["Build New Model", "Update Existing Model"],
-    "output_path": "coverage/[ticker]/model.xlsx",
+    "output_path": "topics/[topic_type]/[topic-slug]/model.xlsx or user-provided workbook",
     "focus": "revenue split and segment drivers",
     "requirements": [
       "follow CLAUDE.md source policy",
@@ -35,8 +35,8 @@
   "workflow": {
     "stage": "modeling",
     "can_follow": ["stock-quickread", "peer-deep-dive"],
-    "feeds_into": ["alpha-thesis", "thesis-tracker"],
+    "feeds_into": ["alpha-thesis", "research-journal", "next-step"],
     "can_be_triggered_by": ["earnings-setup post-print"],
-    "can_trigger": ["decision-journal"]
+    "can_trigger": ["next-step"]
   }
 }

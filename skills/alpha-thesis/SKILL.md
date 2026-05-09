@@ -195,46 +195,19 @@ Pair 和 hedge trade 尤其重要——你的 long leg 论点 vs 多头 consensu
 
 完整产出 **800-1500 字**。这是要拿去 pitch 的东西，必须密度高、可执行。
 
-## 状态文件契约（v1.2）
+## Journal-First Handoff
 
-当用户要求保存 / 更新 thesis，或本 thesis 被确认为后续 tracker 的 canonical input 时，必须生成或更新：
+本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为 topic session 的研究材料，交给 `research-journal` 沉淀：
 
-- 单标的：`coverage/[ticker]/thesis.md`
-- Pair trade：`pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md`
-
-文件顺序固定为：YAML frontmatter（第一段）→ human-readable 摘要 → 详细 thesis。YAML frontmatter 必须匹配 `FRAMEWORK.md §6.3` 的 `document_type: thesis` schema，至少覆盖：
-
-```yaml
-schema_version: 1
-document_type: thesis
-ticker: XOM
-company_name: Exxon Mobil
-coverage_area: oil_gas
-industry: integrated_oil_gas
-trade_structure: single_name
-direction: long
-created_at: 2026-05-07
-updated_at: 2026-05-07
-conviction: 4
-health_status: active
-time_horizon: 12-18M
-next_catalyst: []
-key_assumptions: []
-kill_criteria: []
-valuation_anchor: ""
-expected_return_base_pct: null
-downside_pct: null
-sources: []
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
 ```
 
-规则：
-- ticker 使用 Bloomberg-style canonical ticker，例如 `XOM`, `700.HK`, `ASML.NA`。
-- `coverage_area` 只用：`industrials`, `aerospace_defense`, `advanced_manufacturing`, `oil_gas`, `renewable`, `nuclear`, `emerging_tech`。
-- 旧 thesis 已存在时，不重写历史判断；只更新 frontmatter 的 `updated_at`、health 字段和新增/变更的假设、catalyst、kill criteria，并在正文说明变更原因。
+如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `CLAUDE.md` 的 Senior Analyst Radar 提醒，并建议用户用 `next-step` 继续拆问题。
 
 ## 衔接关系
 
 - 在 `stock-quickread` 之后用——quickread 帮你判断这家公司值不值得花时间，alpha-thesis 是真正建立观点
 - 写完之后用 `bear-pre-mortem` 做空头压力测试
 - 第 8 节的"假设清单"是 `earnings-setup` 中"thesis 假设核对"的输入
-- 若生成 canonical thesis，后续 `decision-journal`、`thesis-tracker`、`earnings-setup`、`bear-pre-mortem` 都读取上述状态文件。
+- 若本轮研究已经形成可复用认知增量，后续用 `research-journal` 沉淀；若仍有高价值疑点，用 `next-step` 生成下一轮研究问题。

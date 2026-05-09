@@ -1,0 +1,39 @@
+name: next-step
+version: 3.0.0
+author: buy-side-research-system
+namespace: research.equity
+summary: Senior analyst research coach for the next question to ask
+description: |
+  用于用户询问下一步怎么研究、哪里不对劲、怎么继续挖、
+  或阶段性回溯研究缺口时，给出最高价值研究问题和 1-2 个 AI 问法。
+trigger:
+  keywords:
+    - 下一步怎么研究
+    - next step
+    - 这段哪里不对劲
+    - 这段研究哪里不对劲
+    - 帮我回溯一下
+    - 这个问题该怎么问
+    - 怎么继续挖
+    - 我卡住了
+    - 值得深挖
+  description: 当用户需要 senior analyst 式研究方向指导时触发
+category: research
+tags:
+  - next-step
+  - research-coach
+  - senior-analyst
+  - research-audit
+  - edge-radar
+capabilities:
+  - mode: Research Direction Coach
+  - mode: Research Audit
+  - output: highest-value research question plus 1-2 AI questions
+  - writes: none by default
+requires:
+  - CLAUDE.md §3 source policy
+workflow_dependencies:
+  - consumes: current conversation
+  - can_read: topics/[topic_type]/[topic-slug]/index.md
+  - can_read: topics/_meta/edge-radar.md
+  - can_feed: research-journal

@@ -110,17 +110,18 @@ Beat / miss / mixed？股价反应是 confirming / surprising？
 ### 5. 决策（按 pre-print 决策树执行）
 执行设定好的决策。如果 print 给出了**完全没预设到**的信息（真正的 surprise），单独说明并给新决策；同时反思 setup 阶段为什么没考虑到这个分支。
 
-### 6. 状态更新 / 后续触发
+### 6. 研究更新 / 后续触发
 
-Post-print 必须明确是否触发状态更新，而不是只写"继续观察"：
+Post-print 必须明确是否改变研究判断，而不是只写"继续观察"：
 
 | 输出字段 | 允许值 | 说明 |
 |---|---|---|
-| `thesis_update` | `none` / `refresh_required` / `kill_criteria_hit` | 是否需要更新 `coverage/[ticker]/thesis.md` 的 assumptions、catalyst、kill criteria 或 health_status |
-| `decision_entry_trigger` | `no` / `open` / `add` / `trim` / `close` / `review` | 是否需要追加 `journal/decisions.md` 的 `decision_v1` entry |
-| `pair_readthrough` | `none` / `long_leg` / `short_leg` / `spread_review` | 若标的是 pair leg，是否影响 `pairs/[LONG_TICKER]-[SHORT_TICKER]/spread-log.md` |
+| `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | 是否需要更新研究观点或重写相关 thesis |
+| `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `financial-model` |
+| `journal_handoff` | `no` / `research-journal` / `boss-brief` | 是否已经形成值得沉淀或给老板看的判断增量 |
+| `next_step_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `next-step` 继续拆 |
 
-如果动作变成 open/add/trim/close/review，必须列出 `decision_v1` 所需字段的草稿；如果 thesis health 变化，必须说明是哪条 `key_assumptions`、`kill_criteria` 或 `next_catalyst` 被更新。
+如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破，并给 1-2 个后续 AI 问题。
 
 ---
 
@@ -153,4 +154,4 @@ Post-print 必须明确是否触发状态更新，而不是只写"继续观察"�
 - 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）
 - 输出反过来更新 `alpha-thesis`（thesis 是否还成立，假设是否需要修订）
 - 如果 post-print 显示 thesis 严重削弱，触发回到 `bear-pre-mortem` 重新压测
-- 如果 post-print 改变仓位动作，触发 `decision-journal`；如果只改变 thesis health，触发 `thesis-tracker` / thesis 文件更新。
+- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果数字改变 model driver，触发 `financial-model`。

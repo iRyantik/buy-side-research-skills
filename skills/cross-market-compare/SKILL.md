@@ -97,7 +97,7 @@ description: Use when comparing A/H shares, ADRs, local listings, or cross-marke
 
 - **Ignore**：spread 反映合理结构性差异，不可 trade
 - **Monitor**：spread 接近 historical mean，等待错配出现
-- **Pair candidate**：spread 是可交易错配，触发 `pair-trade` Mode A
+- **Research edge**：spread 暴露 market misread、peer mismatch 或 accounting gap，触发 `next-step`
 - **Thesis review**：跨市场比较暴露单一标的 thesis 假设有误，触发 `alpha-thesis` 重审
 - **Cross-market hedge**：用对侧市场对冲单边风险（如 A 股 long + H 股 short）
 

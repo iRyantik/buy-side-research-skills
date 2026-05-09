@@ -38,11 +38,11 @@ requires:
   - "CLAUDE.md §3 source policy"
 
 prerequisites:
-  - "alpha-thesis or coverage/[ticker]/thesis.md (expected input)"
+  - "alpha-thesis output or topic research notes (expected input)"
 
 workflow_dependencies:
-  - "consumes": "alpha-thesis output, coverage/[ticker]/thesis.md, or pair thesis"
-  - "before": "ic-memo submission"
+  - "consumes": "alpha-thesis output or research-journal notes"
+  - "can_feed": "research-journal or next-step"
 
 special_notes: |
   本 skill 故意单边——不是"平衡讨论风险"，而是全力攻击 thesis。

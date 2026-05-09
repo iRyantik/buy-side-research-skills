@@ -1,346 +1,151 @@
 ---
 name: information-impact
-description: Use when checking whether a news item, rumor, supply-chain claim, sell-side note, industry data point, or expert-commentary snippet is credible and portfolio-relevant.
+description: Use when checking whether a news item, rumor, supply-chain claim, sell-side note, data point, or expert comment is credible and worth follow-up research.
 ---
 
 # Information Impact
 
-把信息流过滤成 portfolio-actionable 信号。**绝大部分信息应该被归档而非分析**——这个 skill 的成功标准不是"写了多少分析"，是"过滤掉多少噪音 + 准确识别少数真正重要的"。
+结论先行：这个 skill 在 v3 里只做两件事：判断信息能不能信，以及它是否产生值得继续研究的问题。它不是组合影响工具，不维护状态文件，也不把无关信息落盘。
 
-## 心法
+## Core Principle
 
-研究员一天会看到几十条信息：公司公告、卖方观点、行业数据、市场传闻、推特片段、专家访谈摘要、政策事件、同行 read-through。**信息淹没的本质不是信息多，是不知道哪条 actionable**——所以本能反应是全都看，时间被切碎，单个公司花的时间反而少。
+先验真伪，再判断研究价值。传闻、标题党、卖方转述、社媒截图和专家片段都可能有线索价值，但在找到可靠 source 前不能当作事实。
 
-解决方案是结构化的快速过滤：
+默认遵守 `CLAUDE.md §3`。本 skill 不维护独立 source policy；任何事实、数字、客户关系、订单、合同、数据点、管理层表述都必须有 source / as-of。卖方报告是观点和线索，不是事实锚点。
 
-1. **先验证信息本身**（Mode A）——大部分传闻、推特片段、二手转述靠不住，verify 之前不要分析
-2. **再判断 portfolio 影响**（Mode B）——必须 portfolio-specific，不允许"对行业有影响"这种空话
-3. **绝大部分归档**——80%+ 信息应该是 Low / 无相关性 / 不可信，归档无需行动
-4. **少数 actionable 触发其他 skill**——不在本 skill 内深入分析，而是 trigger thesis-tracker / bear-pre-mortem / decision-journal
+## When To Use
 
-**500 字硬上限**。如果觉得需要更多，应该触发其他 skill 而不是把 information-impact 写长。
-
-## Source 政策
-
-本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
-
-特别强调：
-- **Source quality 直接用 `CLAUDE.md §3.4` 的 4 级分级**（一手原始 / 二手权威 / 三手解读 / 谨慎使用）—— 不在本 skill 重新搞一套
-- **传闻 / 推特 / 论坛 / 聊天记录 / 券商私下转述都属于第 4 级"谨慎使用"**——只能作为线索，不是 verified fact
-- **Sub-agent 返回的 URL 必须按 `CLAUDE.md §3.7` 抽查验证**——信息处理高度依赖 web search，URL 假冒是常见失败 mode
-
-## 触发场景
-
+- "这个消息靠谱吗"
 - "这条新闻怎么看"
-- "这个传闻靠谱吗"
-- "X 是不是进了 Y 的供应链"
-- "Goldman / Morgan Stanley 这份报告关键点 + 我同不同意"
-- "刚出的 EIA / PMI / CPI 怎么影响我"
-- "Twitter 这条说 X 拿到 Y 大单怎么看"
-- "今天早报过一遍"（批量模式）
-- "review inbox 这周的信息"（批量模式）
+- "这个 claim 能不能信"
+- "有没有 source"
+- "X 公司是不是进了 SpaceX 供应链"
+- "这条供应链传闻有没有 source"
+- "Goldman / Morgan Stanley 这份报告关键点是什么，哪些需要验证"
+- "刚出的 EIA / PMI / CPI 数据值得继续看什么"
+- "今天早报过一遍"
 
-## 信息类型 → 处理路径 Map
+不要用于深度 thesis、建模、财报 setup、peer 横向比较或研究总结。若信息已经变成一个值得深挖的问题，交给 `next-step`；若研究后形成认知增量，交给 `research-journal`。
 
-不同类型信息的典型路径不同。先识别类型，再走对应流程：
+## Source Quality
 
-| 信息类型 | 典型 source 等级 | Mode A 是否必要 | 推荐路径 |
-|---|---|---|---|
-| 公司 filing / 交易所公告 | 1 级（一手） | 跳过（已 verified） | 直接 Mode B |
-| 公司新闻稿 / IR 沟通 | 1-2 级 | 简化（marketing 语言可能 spin） | 简化 Mode A → Mode B |
-| 监管 / 政府数据（EIA、PMI、CPI） | 1 级 | 跳过 | 直接 Mode B（但要量化 surprise） |
-| 行业研究机构数据（Wood Mac 等） | 2 级 | 简化（只 verify methodology） | 简化 Mode A → Mode B |
-| 卖方研究报告 | 3 级（**别人的判断**，不是 fact） | 完整（区分 fact vs opinion） | 完整 Mode A → Mode B |
-| 主流媒体（Reuters / FT / WSJ） | 3 级 | 简化（看是否引用一手 source） | 简化 Mode A → Mode B |
-| 行业垂直媒体 | 3 级 | 完整 | 完整 Mode A → Mode B |
-| 推特 / Telegram / 聊天群片段 | 4 级 | **必做完整** | 完整 Mode A，verdict 至少 Plausible 才进 Mode B |
-| 专家访谈摘要（Tegus / GLG 等） | 2 级（但有 selection bias） | 简化（注意专家是不是 self-promoting） | 简化 Mode A → Mode B |
-| 同行公司财报 read-through | 1-2 级 | 跳过（财报是 fact） | 直接 Mode B（重点是推断 read-through 强度） |
+直接使用 `CLAUDE.md §3` 的 1-4 级 source 质量框架：
 
-**关键判断**：卖方研究报告是 **3 级 source**，不是 fact —— 不要把"高盛认为 X"当作"X 是真的"。卖方观点本身需要单独 verify 和挑战，不是 anchor。
-
-## Mode A: Claim Check（验证消息真假）
-
-**何时用**：所有 source 等级 ≥ 3 级的信息（即除了一手 filing / 数据外几乎都要做）。
-
-### Verdict（5 级）
-
-| Verdict | 含义 | 进 Mode B？ |
+| Level | 类型 | 用法 |
 |---|---|---|
-| **Confirmed** | 一手 source 证实 | Yes |
-| **Likely** | 多个二手 source 一致，但缺一手；或单个一手但 marketing 嫌疑 | Yes |
-| **Plausible but unconfirmed** | 单一二手 / 三手 source；或多个但 source 互相 cross-reference 同一原始（伪 corroboration） | Yes（但 strength 默认 ≤ Medium） |
-| **Unsupported** | 仅推特 / 聊天群 / 论坛；找不到 corroborating 1-2 级 source | **Drop**（写极简归档行） |
-| **Contradicted** | 已 sourced 一手数据反 claim | **Drop**（写极简归档行，但记录用于反向 inference） |
+| 1 | Filing、交易所公告、公司 IR、earnings call、监管 / 政府数据、客户官方公告、采购 / 合同文件 | 可以支撑 `Confirmed`，但仍要标日期 / as-of |
+| 2 | Transcript 数据库、Bloomberg / FactSet / CapIQ / Visible Alpha、行业研究机构、专家访谈平台 | 可支撑 `Likely`，注意口径和样本偏差 |
+| 3 | Reuters / Bloomberg News / FT / WSJ、行业媒体、卖方报告、公司新闻稿 | 需要拆分 fact vs opinion；通常不能单独支撑强 claim |
+| 4 | 社媒、论坛、聊天记录、传闻截图、社媒截图、个人博客、券商转述 | 只能作线索，不能作事实依据 |
 
-### Claim 拆解（必填字段）
+## Mode A: Claim Check
 
-把模糊 claim 拆成 atomic 可验证字段：
+目标是把一句模糊消息拆成可验证 claim，并给出 verdict。没有可靠 source 时，宁可说 `[来源待补]`，不要把线索升格成事实。
 
-| 字段 | 含义 | 例 |
+### Verdict
+
+| Verdict | 含义 | 后续 |
 |---|---|---|
-| company | 主语公司 | "拓普集团" |
-| customer / counterparty | 涉及谁 | "Tesla" |
-| product / role | 什么产品或角色 | "Optimus 关节执行器" |
-| relationship_type | 直接 / 间接 / tier-N | "tier-1 supplier (claimed)" |
-| timeframe | 时间窗口 | "2025 H2 量产" |
-| magnitude | 量级 | "占公司 5% 收入 (claimed)" |
+| `Confirmed` | 一手 source 或客户 / 公司 / 监管文件直接证实 | 可进入 Research Relevance |
+| `Likely` | 多个较可靠 source 一致，但缺直接一手证据 | 可进入 Research Relevance |
+| `Plausible but unconfirmed` | 有线索或单一 source，但证据不足 | 只做弱相关性判断，避免外推 |
+| `Unsupported` | 只有低质量来源，找不到可靠佐证 | `Drop` |
+| `Contradicted` | 已有可靠 source 反向证明 | `Drop` |
 
-**关键约束**：必须区分以下 4 类（极易混淆）：
-- ✅ **Direct supplier**（一手合同）
-- ⚠️ **Tier-2 / indirect supplier**（through tier-1，关系弱很多）
-- ⚠️ **Product can be used**（理论可用 ≠ 实际采购）
-- ❌ **Market concept / theme association**（被市场归类到主题但无实际业务关系）
+### Claim Pieces
 
-混淆 = claim 性质完全不同。例："X 进 SpaceX 供应链" 在这 4 类下含义 / 估值含义差几个量级。
+把 claim 拆成这些字段：
 
-### Mode A 输出
+| Field | Meaning |
+|---|---|
+| `company` | 主语公司 |
+| `customer / program` | 客户、项目、平台或 counterparty |
+| `product_or_role` | 产品、服务、部件或角色 |
+| `relationship_type` | 直接、间接、tier-N、技术适配、主题联想 |
+| `timeframe` | 时间窗口 |
+| `magnitude` | 收入、订单、产能、利润、出货量等量级 |
 
-```
+供应链 claim 必须区分：
+
+- **direct supplier**：有一手合同、客户公告或公司确认。
+- **tier-2 / indirect supplier**：通过上游或下游间接暴露，关系强度低很多。
+- **product can be used**：产品理论上可用于某场景，不等于已经采购。
+- **theme association**：市场把公司归进主题，但没有业务关系证据。
+
+这四类不能混用。"X 进 SpaceX 供应链"如果只是 `product can be used` 或 `theme association`，不能写成 direct supplier。
+
+## Mode B: Research Relevance
+
+只有 Mode A verdict 至少达到 `Plausible but unconfirmed`，才判断是否值得继续研究。
+
+判断标准不是"有没有新闻价值"，而是它是否可能改变：
+
+- 业务实质理解
+- revenue / margin / backlog / price-volume-mix driver
+- 市场预期或 consensus framing
+- peer group / valuation framework
+- 研究优先级
+- 一个 `Senior Analyst Radar` 识别出的怪异点
+
+如果有高价值疑点，输出 1-2 个最值得问 AI 的问题，并建议触发 `next-step`。如果只是确认了一个事实但没有研究增量，可以结束，不要强行扩展。
+
+## Single Claim Output
+
+```markdown
 ## Claim Check
 
-**Verdict**: [5 级之一]
-**Bottom line**: [一句话直接说能不能信]
+**Verdict**: Confirmed / Likely / Plausible but unconfirmed / Unsupported / Contradicted
+**Bottom line**: [一句话判断，直接说能不能信]
 
-| Claim piece | Evidence found | Source quality (1-4) | Read-through |
+| Claim piece | Evidence found | Source quality | Read-through |
 |---|---|---|---|
-| [拆分项] | [证据摘要 + URL] | 1 / 2 / 3 / 4 | direct / indirect / not proven |
+| [claim 拆分项] | [证据摘要 + source / as-of] | 1 / 2 / 3 / 4 | direct / indirect / not proven |
 
-**What would make it real** (≤ 3 条):
-- [还缺的关键证据，越具体越好]
+**What not to infer**
+- [不能从该消息外推出什么]
 
-**What not to infer** (≤ 3 条):
-- [不能从该消息外推到什么——防止 weak claim 被外推到 strong thesis]
-
-**Next step**: Drop / 进 Mode B / Ask IR / Search filings / Monitor for further evidence
+**Research relevance**
+- 是否值得继续研究：Yes / No
+- 为什么：[一句话]
+- 可以问 AI：[1-2 个问题]
 ```
 
-如果 Verdict = Unsupported / Contradicted，**到此结束**——只在 `inbox/information-log.md` 写一行归档（见下方状态文件 schema）。
+若 verdict 为 `Unsupported` 或 `Contradicted`，默认短输出：
 
-## Mode B: Portfolio Impact
+```markdown
+**Verdict**: Unsupported / Contradicted
+**Bottom line**: [为什么不能信，或被什么 source 反驳]
+**Action**: Drop
+```
 
-**何时用**：Mode A verdict ≥ Plausible（即 Confirmed / Likely / Plausible），且至少命中一个 portfolio / watchlist 标的。
+## Batch Mode
 
-### B.1 读取 Portfolio
+用于"今天早报过一遍"、"批量看这些新闻"、"这几条信息帮我筛一下"。
 
-读取 `coverage/` 和 `pairs/` 目录的所有 thesis frontmatter，识别哪些标的可能被这条信息影响。Watchlist 也包括（即使未建仓但在跟踪）。
+输出只保留过滤价值，不写状态文件：
 
-### B.2 Portfolio Relevance Table（核心输出）
+```markdown
+## Information Filter
 
-每个相关标的列一行：
-
-| Ticker / Pair | 持仓方向 | 影响方向 | 强度 | 立即行动 |
+| Title | Source quality | Verdict | Research relevance | Action |
 |---|---|---|---|---|
-| XOM | Long (3% gross) | Confirming | Medium | 加入 thesis-tracker monitoring queue |
-| TSLA | Short (2% gross) | Contradicting | High | 触发 thesis 重审 + decision-journal review |
-| ASML-AMAT | Pair (Long ASML) | Confirming long leg | Low | 归档参考 |
-| NVDA | Watchlist | Neutral | Low | 归档 |
-
-### B.3 字段定义（Hard Standards）
-
-#### 影响方向（4 类，必须明确）
-
-| 方向 | 含义 |
-|---|---|
-| **Confirming** | 信息支持现有 thesis（Long 有利好 / Short 有利空 / Pair 论点 strengthen） |
-| **Contradicting** | 信息反 thesis（Long 有利空 / Short 有利好 / Pair 论点 weaken） |
-| **Neutral** | 相关但不显著影响 thesis 方向（如不改变 variant view 或 catalyst） |
-| **Mixed** | 多空分歧（必须说明 mixed 在哪——不允许用 Mixed 偷懒） |
-
-#### 强度（3 级，必须有 hard 标准，不允许凭感觉）
-
-| 强度 | Hard Standard | Action |
-|---|---|---|
-| **Low** | 不影响 thesis 任何关键 assumption；不接近 kill criteria；信息 magnitude 小 | 归档参考，无需后续动作 |
-| **Medium** | 影响 thesis 次要假设；或距 kill criteria 仍有 buffer（> 1σ）；或单点数据不足以触发 kill | 加入 thesis-tracker 监控队列，下次 health check 时复盘 |
-| **High** | 影响 thesis 第 1 节 variant view 核心 assumption；或距 kill criteria < 1σ；或独立可触发调仓 | 当下触发 thesis 重审 / bear-pre-mortem / decision-journal review |
-
-**强度评级必须给具体理由**，例如：
-- ✅ "High because: thesis §5.1 long thesis 第 1 条假设是 'EUV bookings > $5B'，本次数据点 $3.2B 直接反向"
-- ✅ "Medium because: 影响 capital discipline 假设但单季度数据，需后续 Q3 confirm"
-- ❌ "High because: 这是大新闻"——凭感觉，重新评估
-- ❌ "Medium because: 看起来影响中等"——同上
-
-### B.4 Mode B 完整输出
-
-```
-## Portfolio Impact
-
-**Source**: [标题 + URL + 日期 + as-of]
-**Type**: [信息类型 from §信息类型 Map]
-**Mode A Verdict**: [from Mode A]
-
-### Relevance Table
-[B.2 的表格]
-
-### Key takeaway (≤ 50 字)
-[一句话本质——对**我的 portfolio** 意味着什么。不是对行业、不是对宏观，必须 portfolio-specific]
-
-### Open Questions (最多 3 条)
-[每条要具体到"哪份文件 / 哪个数据点 / 哪个人能回答"，不允许"再多了解一下"]
-1. [具体问题]
-2. ...
-
-### Action Queue
-- **Immediate (今天内)**: [具体行动，如有]
-- **This week**: [具体行动，如有]
-- **Monitor**: [长期跟踪点]
+| [标题] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + 一句话] | Drop / Ask 1-2 AI questions / Trigger next-step / Save later via research-journal |
 ```
 
-### B.5 特殊路径：无 Portfolio Relevance
+Action 只能是：
 
-如果信息和所有 portfolio / watchlist 都无关，**不要硬讲影响**。极简归档：
+- `Drop`
+- `Ask 1-2 AI questions`
+- `Trigger next-step`
+- `Save later via research-journal`
 
-```
-## No portfolio relevance — archived
+`Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。
 
-[标题] - [一句话总结] - 归档原因：[XX 行业 not in coverage / 时间窗口太短 / 已知信息 / 与现有持仓无关联]
-```
+## Common Mistakes
 
-依然写入 `inbox/information-log.md`（一行），防止后续发现 retroactively 重要。
-
-## 批量处理模式（早报场景）
-
-**触发**："今天早报过一遍"、"review 这周 inbox"、"批量看一下 [N 条信息]"。
-
-**输出格式**：极简一表多行，不为每条做完整 Mode A/B。
-
-```
-## 批量信息处理 [YYYY-MM-DD]
-
-| # | 信息标题 | Type | Verdict | Portfolio Hit | Strength | Action |
-|---|---|---|---|---|---|---|
-| 1 | EIA Crude inventory -3.5MB | 1级数据 | Confirmed | XOM (Long) | Medium | thesis-tracker queue |
-| 2 | Twitter: NVDA 中国订单暴跌 | 4级传闻 | Unsupported | n/a | n/a | Drop |
-| 3 | ASML Q2 transcript: EUV 加单 | 1级 | Confirmed | ASML-AMAT (long leg) | High | 触发 thesis 重审 |
-| 4 | Goldman 上调 TSLA TP $400 | 3级（卖方观点） | Likely (是观点不是 fact) | TSLA (Short) | Low | 归档（卖方观点本身不是 catalyst） |
-| ... | ... | ... | ... | ... | ... | ... |
-```
-
-**批量模式的关键约束**：
-- 任何标记 **High** 的信息必须 **trigger 单独完整 Mode A/B 处理**——不能只在批量表里一行带过
-- 任何 verdict **Confirmed/Likely 但 Portfolio Hit ≠ n/a 的 Medium 强度** 也建议触发完整处理（用户可选）
-- Verdict Unsupported / Contradicted 的可以批量带过
-
-**批量模式输出篇幅**：1000-1500 字（包含表格），但单条信息平均 < 50 字。
-
-## 状态文件：`inbox/information-log.md`
-
-### 文件级 Frontmatter
-
-```yaml
-schema_version: 1
-document_type: information_log
-append_only: true
-entry_schema: information_v1
-```
-
-### 单条 entry schema（YAML）
-
-每条信息追加一个 block，不改旧 entry：
-
-````markdown
-```information_v1
-log_id: 2026-05-07-001
-date: 2026-05-07
-type: company_news / sellside / industry_data / rumor / regulatory / macro / earnings_readthrough
-source_title: "..."
-source_url: "[link 待补]"
-source_quality: 1   # 1-4 from CLAUDE.md §3.4
-mode_a_verdict: Confirmed / Likely / Plausible / Unsupported / Contradicted
-mode_a_one_liner: "一句话 verdict 解释"
-portfolio_hits:
-  - ticker: XOM
-    direction: Long
-    influence: Confirming
-    strength: Medium
-    rationale: "..."
-  - ticker: TSLA
-    direction: Short
-    influence: Contradicting
-    strength: High
-    rationale: "..."
-key_takeaway: "≤ 50 字"
-action_immediate: "..."
-action_this_week: "..."
-linked_skills_triggered:
-  - thesis-tracker
-  - bear-pre-mortem
-follow_up_questions:
-  - "..."
-```
-````
-
-**No relevance 的极简 entry**（依然记录）：
-
-````markdown
-```information_v1
-log_id: 2026-05-07-002
-date: 2026-05-07
-type: macro
-source_title: "..."
-source_url: "..."
-source_quality: 1
-mode_a_verdict: Confirmed
-portfolio_hits: []
-key_takeaway: "ARCHIVED — no portfolio relevance: [一句话理由]"
-```
-````
-
-**追加规则**：
-- 不允许修改旧 entry（append-only）
-- `log_id` 用 `YYYY-MM-DD-NNN` 格式，便于检索
-- High strength 的 entry 必须有完整 `linked_skills_triggered` 列表（说明触发了哪些下游 skill）
-
-## Workflow 联动
-
-| 场景 | 触发的下游 skill |
-|---|---|
-| Strength = High，影响 thesis | `thesis-tracker`（health check）+ `bear-pre-mortem`（重审） |
-| Strength = High，触发调仓 | `decision-journal`（review / add / trim / close action） |
-| Mode A verdict = Confirmed/Likely 但卖方观点反 thesis | `bear-pre-mortem`（把卖方观点作为对手 view） |
-| 跨市场信息（如 ADR delisting risk）| `cross-market-compare`（评估 spread 影响） |
-| Pair leg 单边 single-name 事件 | `pair-trade` Monitor mode（评估是否解 pair） |
-| 同行 read-through 信号 | `peer-deep-dive` 重做 cross-cut（如果信号涉及多个标的） |
-| 财报相关信息 | `earnings-setup`（Pre-print 或 Post-print） |
-| Strength = Medium，加入监控 | 仅记录到 `inbox/information-log.md`，下次 thesis-tracker 自动 review |
-| Strength = Low / No relevance | 仅归档，无下游 |
-
-## 反模式自查
-
-写完必须自检：
-
-**Source 验证**
-- ❌ 把卖方观点（"高盛认为 X"）当作 fact 直接进 Mode B → 卖方观点是 3 级 source，必须先验证内容
-- ❌ Verdict = Confirmed 但只有推特 / 聊天群 → source 不够，至少 Plausible
-- ❌ Mode A 找不到一手 source 但仍标 Confirmed → 不诚实
-- ❌ 没区分 direct supplier / tier-2 / product can be used / market concept → 4 类含义差几个量级
-- ❌ Sub-agent URL 没抽查就用 → 违反 CLAUDE.md §3.7
-
-**Portfolio Relevance**
-- ❌ 影响判断空话："对行业有影响"、"利好科技股" → 必须 portfolio-specific
-- ❌ 强度 = High 但理由是"这是大新闻" → 必须 link 到具体 thesis assumption / kill distance
-- ❌ 强度全部填 Medium → 没认真区分（绝大部分应该是 Low / No relevance）
-- ❌ Open Questions 写"再多了解一下" → 必须具体到 source / 数据 / 人
-
-**篇幅 / 流程**
-- ❌ 完整 Mode A/B 输出 > 500 字 → 越权，应该触发其他 skill
-- ❌ 批量模式 High strength 的项只在表里带过 → 必须 trigger 完整处理
-- ❌ Mode A verdict = Unsupported 但仍写 Mode B → 错误流程
-- ❌ No relevance 但写了一大段分析 → 应该极简归档
-- ❌ 不写入 `inbox/information-log.md` → 状态丢失，下次 thesis-tracker 看不到
-- ❌ Action Queue 没时间维度（Immediate/This week/Monitor）→ 没法排优先级
-
-## 篇幅基准
-
-| 场景 | 篇幅上限 |
-|---|---|
-| 单条 Mode A only（verdict ≤ Plausible） | 200-300 字 |
-| 单条完整 Mode A + Mode B | 400-500 字（**500 硬上限**） |
-| No portfolio relevance 归档 | < 50 字 |
-| 批量处理（5-15 条） | 1000-1500 字 |
-| 单条触发 High → trigger 其他 skill 时 | 本 skill 仍 ≤ 500 字，深度分析在被触发的 skill 内做 |
-
-**500 字硬上限的意义**：信息处理的核心是 noise reduction，不是 deep analysis。如果觉得需要更多字数，意味着：
-- 该信息真的重要 → 应该触发 thesis-tracker / bear-pre-mortem / decision-journal 的 deep work
-- 或该信息其实不那么重要 → 你在过度分析，回头精简
+- 把卖方观点当作事实：`Goldman thinks X` 只是观点，里面的 fact 需要单独验证。
+- 把单一新闻标题当作 confirmed claim：标题不是 source，必须追到原始材料。
+- 混淆 direct supplier、tier-2、product can be used、theme association。
+- 对 `Plausible but unconfirmed` 的 claim 做强结论外推。
+- 因为一个消息"看起来重要"就写长篇分析。本 skill 只负责过滤；深挖交给 `next-step` 或其他研究 skill。
+- 找不到 source 却不标 `[来源待补]`。

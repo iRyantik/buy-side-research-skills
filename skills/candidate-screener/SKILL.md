@@ -339,7 +339,7 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 
 ## 状态输出契约
 
-默认写入 `screens/[hypothesis-slug]-[YYYY-MM-DD].md`。这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`pair-trade` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
+默认写入 `screens/[hypothesis-slug]-[YYYY-MM-DD].md`。这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`research-journal`、`next-step` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
 
 如果用户只是自由 brainstorm 且明确不需要留痕，可以只在对话中输出；否则默认保存筛选结果，避免下次重新从同一个 hypothesis 开始。
 
@@ -347,10 +347,10 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 |---|---|
 | 推荐 1-2 家 deep research | `stock-quickread` |
 | 推荐 3-8 家批量研究 | `peer-deep-dive` |
-| Long basket + Short basket → 最佳 pair | `pair-trade` Builder |
 | Hypothesis 跨市场（如"中国 vs 美国 类似 names"） | `cross-market-compare` |
 | 推荐结果暴露 hypothesis 弱点 | 重新评估 hypothesis 或触发 `bear-pre-mortem` 反向思考 |
-| 产出后建仓 | `decision-journal` |
+| 筛选暴露高价值怪异点 | `next-step` |
+| 筛选完成后需要沉淀 | `research-journal` |
 
 ## 反模式自查
 
@@ -415,7 +415,7 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 | | candidate-screener | information-impact |
 |---|---|---|
 | 输入 | Hypothesis / 主题 / 条件 | 已知 claim（一条信息） |
-| 任务 | 找候选 names | 验证真伪 + portfolio impact |
+| 任务 | 找候选 names | 验证真伪 + research relevance |
 | 方向 | Outbound（从 hypothesis 出发） | Inbound（信息已到） |
 | 频率 | 每周 2-3 次（中频） | 每天几十次（高频） |
 

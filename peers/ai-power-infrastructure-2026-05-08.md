@@ -43,7 +43,7 @@ companies:
 
 ## 4. Recommended Funnel Outcome
 
-Proceed with **VRT quickread** as the top direct exposure. Keep ETN as the quality comp and GEV/GNRC/CAT as read-through checks. Do not open `pairs/[LONG]-[SHORT]/spread-log.md` until a pair thesis is supported by valuation, exposure normalization, and spread data.
+Proceed with **VRT quickread** as the top direct exposure. Keep ETN as the quality comp and GEV/GNRC/CAT as read-through checks. Do not create pair-state artifacts until a relative-view thesis is supported by valuation, exposure normalization, and spread data.
 
 ## 5. 来源
 

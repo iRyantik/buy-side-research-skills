@@ -27,14 +27,14 @@
     "includes": ["consensus-vs-buy-side-bar", "decision-tree", "KPI-tracking"],
     "time_criticality": "extremely high - consensus/IV/stock data must include timestamp",
     "requirements": ["source links with timestamps", "follow CLAUDE.md source policy"],
-    "post_print_handoff": ["thesis_update", "decision_entry_trigger", "pair_readthrough"]
+    "post_print_handoff": ["research_update", "model_update", "journal_handoff", "next_step_trigger"]
   },
   
   "workflow": {
     "stage": "execution",
     "prerequisites": ["alpha-thesis"],
-    "feeds_back_to": ["alpha-thesis (thesis health update)"],
-    "can_trigger": ["bear-pre-mortem (if thesis severely undermined)", "decision-journal (if action changes)", "thesis-tracker (if thesis health changes)"],
+    "feeds_back_to": ["alpha-thesis (research view update)"],
+    "can_trigger": ["bear-pre-mortem (if thesis severely undermined)", "financial-model (if model drivers change)", "research-journal (if insight is earned)", "next-step (if weirdness appears)"],
     "two_modes": {
       "pre_print": "Setup - assemble before earnings",
       "post_print": "Quick read - fast decision after earnings"

@@ -26,13 +26,13 @@
     "output_format": "800-1500 字 完整逻辑",
     "includes": ["catalyst", "kill-criteria", "bull-base-bear", "sizing"],
     "requirements": ["source links required", "quantitative support", "follow CLAUDE.md source policy"],
-    "state_contract": "coverage/[ticker]/thesis.md or pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md"
+    "journal_first_handoff": "research-journal or next-step"
   },
   
   "workflow": {
     "stage": "analysis",
     "prerequisites": ["stock-quickread"],
-    "next_steps": ["bear-pre-mortem", "earnings-setup", "decision-journal", "thesis-tracker"],
+    "next_steps": ["bear-pre-mortem", "earnings-setup", "research-journal", "next-step"],
     "decision_point": "conviction 是否真实"
   },
   

@@ -32,7 +32,7 @@ tags:
 capabilities:
   - mode: "Build New Model"
   - mode: "Update Existing Model"
-  - output_path: "coverage/[ticker]/model.xlsx"
+  - output_path: "topics/[topic_type]/[topic-slug]/model.xlsx or user-provided workbook"
   - focus: "revenue split and segment drivers"
   - preserves_existing_workbook: true
 
@@ -43,8 +43,8 @@ workflow_dependencies:
   - "can_follow": "stock-quickread"
   - "feeds_into": "alpha-thesis"
   - "can_be_triggered_by": "earnings-setup post-print"
-  - "feeds_into": "thesis-tracker"
-  - "can_trigger": "decision-journal"
+  - "feeds_into": "research-journal"
+  - "can_trigger": "next-step"
 
 anti_patterns:
   - "forcing standard 5-sheet template"

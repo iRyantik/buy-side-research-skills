@@ -18,6 +18,7 @@ description: |
 trigger:
   keywords:
     - "这几家都值得看"
+    - "这几家公司一起看"
     - "这几家一起看下"
     - "这几家拉出来做横向研究"
     - "这几家并行研究"
@@ -42,7 +43,7 @@ capabilities:
   - generates: "structured cross-company analysis: industry lens + KPI matrix + differential profiles + cross-cut insights + research ranking"
   - output_format: "2500-5000 字 + 2-3 张数据表"
   - time_estimate: "60-90 minutes to produce"
-  - includes: "pair candidates or explicit no-pair conclusion"
+  - includes: "cluster / relative mismatch conclusion and research ranking"
 
 requires:
   - "CLAUDE.md §3 source policy"
@@ -54,7 +55,7 @@ prerequisites:
 workflow_dependencies:
   - "precedes": "stock-quickread (按排序逐个执行)"
   - "feeds_into": "alpha-thesis (若第5节排序有 high-conviction 候选)"
-  - "feeds_into": "pair-trade (若第5B节有 Long/Short 候选)"
+  - "feeds_into": "research-journal or next-step (若出现高价值 cross-cut 信号)"
 
 anti_patterns:
   - "N 份独立 quickread 拼贴"

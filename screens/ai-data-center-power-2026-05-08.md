@@ -79,7 +79,7 @@ Claim tested: “Nvidia is working with Constellation, NextEra, and Vistra on mo
 
 Source: [Axios, 2026-03-23](https://www.axios.com/2026/03/23/utilities-nvidia-emerald-ai-data-centers).
 
-**Next action**: Do not write `inbox/information-log.md` by default. Monitor only if one of these utilities enters watchlist/portfolio or if an A-quality source appears.
+**Next action**: Do not log by default. Revisit only if an A-quality source appears or the claim becomes directly relevant to an active research topic.
 
 ## 6. 输出路由检查
 

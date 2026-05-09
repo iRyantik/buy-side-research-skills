@@ -36,4 +36,5 @@ requires:
 
 workflow_dependencies:
   - "can_feed": "alpha-thesis"
-  - "can_feed": "pair-trade"
+  - "can_feed": "research-journal"
+  - "can_feed": "next-step"

@@ -42,7 +42,8 @@
     "feeds_into": [
       "stock-quickread",
       "peer-deep-dive",
-      "pair-trade"
+      "research-journal",
+      "next-step"
     ],
     "requirements": [
       "follow CLAUDE.md source policy",

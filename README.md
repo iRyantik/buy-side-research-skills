@@ -1,160 +1,125 @@
-# Buy-Side Research Skills Plugin
+# Buy-Side Research Skills v3.1.0
 
-Claude/Cowork + Codex 双栈可用的买方研究 workflow 插件。目标不是写 sell-side 风格覆盖报告，而是把信息、数据和 thesis 组织成可追踪的投资判断。
+Journal-first buy-side research skill suite for Claude/Cowork and Codex. v3 的重点不是维护交易状态，而是帮助研究员像 senior analyst 一样发现高价值问题、继续深挖，并把真正想清楚的研究沉淀到 topic journal。
 
-当前版本：`v2.2.0`
-
-## Governance
-
-- `CLAUDE.md` 是唯一 project constitution / source of truth。
-- `AGENTS.md` 只是 Codex entry point，不复制全局规则。
-- `FRAMEWORK.md` 是 skill/system design blueprint，受 `CLAUDE.md` 约束。
-- 各 `SKILL.md` 不再内嵌完整 source policy，只引用 `CLAUDE.md §3`。
-
-## Coverage
-
-Primary coverage:
-
-`industrials, aerospace and defense, advanced manufacturing, oil & gas, renewable, nuclear, emerging tech themes`
-
-Ticker 使用 Bloomberg-style canonical ticker，例如 `XOM`, `700.HK`, `ASML.NA`。
-
-## Skills
-
-### v1.2 Existing Skills
-
-| Skill | 用途 | 关键输出 |
-|---|---|---|
-| `stock-quickread` | 30 分钟快速扫陌生公司 | 9 节 quickread、3 张数据表、对手盘假设 |
-| `peer-deep-dive` | 3-8 家同业横向研究 | 行业 lens、KPI matrix、cross-cut、研究排序、pair/no-pair 判断 |
-| `alpha-thesis` | 建立可 pitch 的多 / 空 thesis | 8 节 thesis，并可写 `coverage/[ticker]/thesis.md` |
-| `bear-pre-mortem` | 压测 thesis | 多头 thesis 的最强空头，或 short thesis 的最强反向压测 |
-| `earnings-setup` | 财报前 setup / 财报后 quick read | pre-print 决策树；post-print thesis update / decision trigger |
-| `financial-model` | 搭新模型 / 更新已有 Excel model | revenue split、segment drivers、`coverage/[ticker]/model.xlsx` |
-
-### v2.2 Discovery Skill
-
-| Skill | 用途 | 关键输出 |
-|---|---|---|
-| `candidate-screener` | 从主题 / hypothesis / 条件筛选候选股票 | `screens/[hypothesis-slug]-[YYYY-MM-DD].md`，推荐进入 quickread / peer work 的 1-2 家 |
-
-### v2.0 State Workflow Skills
-
-| Skill | 用途 | 关键输出 |
-|---|---|---|
-| `decision-journal` | 记录 open/add/trim/close/review | append-only `journal/decisions.md` |
-| `thesis-tracker` | 跟踪 thesis health 和 catalyst pipeline | `coverage/[ticker]/health-log.md`、`portfolio/catalyst-pipeline.md` |
-| `pair-trade` | Pair builder + monitor | `pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md`、`spread-log.md` |
-| `information-impact` | Claim Check + Portfolio Impact | 传闻可信度 verdict；必要时写 `inbox/information-log.md` |
-| `cross-market-compare` | A/H、ADR、跨市场估值差 | `cross-market/[group-name]-[YYYY-MM-DD].md`（可选） |
-
-当前没有独立 `peer-scan` skill。若公司超过 8 家，先自由对话预筛，或按子行业 / business model 分组后再运行 `peer-deep-dive`。
-
-## Workflow
+## Core Idea
 
 ```text
-new idea / peer group
-  ├─ candidate-screener → stock-quickread / peer-deep-dive
-  ├─ peer-deep-dive → stock-quickread → financial-model → alpha-thesis
-  │                                                        ├─ bear-pre-mortem
-  │                                                        ├─ decision-journal
-  │                                                        └─ thesis-tracker
-  ├─ earnings-setup ── post-print ───────┬─ thesis update
-  │                                      ├─ model update
-  │                                      └─ decision entry
-  ├─ pair-trade ───────────────────────── spread-log + monitor
-  ├─ information-impact ───────────────── claim-check → portfolio impact
-  └─ cross-market-compare ─────────────── normalized valuation spread
+Senior Analyst Radar → better AI questions → research → research-journal → Boss Brief
 ```
 
-## Public State Interfaces
+- `Senior Analyst Radar`：发现中高置信的高价值疑点，直接提醒。
+- `next-step`：把疑点变成 1-2 个最值得问 AI 的问题。
+- `research-journal`：只沉淀已研究清楚的认知增量。
+- `boss-brief`：给老板 / PM 的高密度判断输出，不是简略摘要。
 
-These paths are the stable interfaces between skills:
+## Active Skills
+
+| Skill | 用途 |
+|---|---|
+| `candidate-screener` | 从主题、假设或筛选条件找候选股票 |
+| `stock-quickread` | 快速搞清楚一家公司值不值得继续看 |
+| `peer-deep-dive` | 多家公司横向研究，找 cross-cut 信号 |
+| `pair-trade` | 判断 Long / Short pair 是否成立，拆 spread 逻辑和 hedge 候选 |
+| `alpha-thesis` | 构建 long / short thesis 和 variant view |
+| `bear-pre-mortem` | 反向压力测试 thesis |
+| `earnings-setup` | 财报前 setup / 财报后 quick read |
+| `financial-model` | 搭新模型或更新已有模型，重点拆 revenue driver |
+| `information-impact` | 验证消息 / 传闻 / 供应链 claim 是否靠谱 |
+| `cross-market-compare` | A/H、ADR、跨市场估值和可交易性比较 |
+| `research-journal` | 写 topic journal 或 Boss Brief |
+| `next-step` | 指导下一步该怎么研究 |
+
+## Senior Analyst Radar
+
+遇到以下中高置信信号时，系统应主动提醒“这里值得深挖”：
+
+- 业务实质错读
+- 披露口径异常
+- model-driver gap
+- narrative-data mismatch
+- margin / revenue mismatch
+- market misread
+- peer mismatch
+- source conflict
+- know-how gap
+
+提醒只出现在对话中，不自动写入 journal。只有当用户实际研究并形成认知增量后，才由 `research-journal` 沉淀。
+
+## Topic Layout
 
 ```text
-coverage/[ticker]/thesis.md
-coverage/[ticker]/model.xlsx
-screens/[hypothesis-slug]-[YYYY-MM-DD].md
-journal/decisions.md
-pairs/[LONG_TICKER]-[SHORT_TICKER]/spread-log.md
-portfolio/catalyst-pipeline.md
-inbox/information-log.md
+topics/
+  _meta/
+    edge-radar.md
+  [topic_type]/
+    [topic-slug]/
+      index.md
+      [YYYY-MM-DD]-[session-slug]/
+        research-journal.md
+        boss-brief.md
 ```
 
-State files use YAML frontmatter or append-only YAML blocks as specified in `FRAMEWORK.md §6.3`.
+同一个 topic 的不同时间研究都落在同一个 topic folder 下，用日期 session 隔离。`index.md` 是演进式地图，记录研究过的问题、核心结论、重要数据口径和历史 session。
 
-## Source Policy
+## Research Journal
 
-Short version:
+`research-journal.md` 格式要自然，不强制死板标题。它记录的是已经研究过、想清楚的东西：
 
-- Every factual claim, number, KPI, quote, historical event, consensus figure, and third-party judgment needs a source link.
-- Research judgment does not need a source, but the factual premises do.
-- Never invent URLs, page numbers, quotes, numbers, people, or dates.
-- Sub-agent URLs must be manually spot-checked before being treated as verified.
+- 关键结论
+- 关键数据和 source / as-of
+- 机制理解
+- 名词 / know-how
+- 剩余没搞清楚的问题
 
-Full rules live in `CLAUDE.md §3`.
+不要把单纯提醒、未研究的怪异信号、对话流水账写进去。
 
-## File Structure
+## Boss Brief
+
+`boss-brief.md` 是老板 / PM 版高密度研究输出。它不是“简略版”，目标是让读者看到你比市场多理解了什么。
+
+常用标题可以很正常：
+- `Conclusion`
+- `Takeaways`
+- `Key Data`
+- `Debate`
+- `Implications`
+
+生成前必须确认核心结论、关键数据、不能删的争议 / 风险、可以牺牲的细节。
+
+## Archived v2 State Workflow
+
+v2 的状态 workflow 已退出 active skills，归档在：
 
 ```text
-buy-side-research-skills/
-├── .claude-plugin/
-│   └── plugin.json
-├── AGENTS.md
-├── CLAUDE.md
-├── FRAMEWORK.md
-├── skills/
-│   ├── stock-quickread/
-│   ├── candidate-screener/
-│   ├── peer-deep-dive/
-│   ├── alpha-thesis/
-│   ├── bear-pre-mortem/
-│   ├── earnings-setup/
-│   ├── financial-model/
-│   ├── decision-journal/
-│   ├── thesis-tracker/
-│   ├── pair-trade/
-│   ├── information-impact/
-│   └── cross-market-compare/
-└── README.md
+archive/v2-state-skills/
+archive/v2-state-fixtures/
 ```
+
+它们保留历史参考，但不属于 v3 active workflow。
+
+`pair-trade` 已在 v3.1 以 journal-first 研究工具形式恢复：它保留完整 pair builder / monitor 方法论，但不维护 v2 状态日志，只输出 pair research / monitor 判断。
 
 ## Version History
 
-### 2.2.0
+### v3.1.0
+- Restored `pair-trade` as a journal-first active skill.
+- Kept v2 state workflow archived; `pair-trade` no longer depends on state logs.
 
-- Added `candidate-screener` as the 12th skill.
-- Added `screens/[hypothesis-slug]-[YYYY-MM-DD].md` as the candidate funnel state output.
-- Normalized all `SKILL.md` frontmatter descriptions for parser validation and skill discovery.
+### v3.0.0
+- Pivoted to journal-first research system.
+- Added `research-journal` and `next-step`.
+- Added Senior Analyst Radar and global `topics/_meta/edge-radar.md`.
+- Archived v2 state workflow skills and fixtures.
 
-### 2.1.0
+### v2.2.0
+- Added `candidate-screener`.
 
-- Added `financial-model` as the 11th skill.
-- First version is a skeleton for revenue-first Excel models and existing-model earnings updates.
-- Kept `cross-market-compare`; no existing skill was removed.
+### v2.1.0
+- Added `financial-model`.
 
-### 2.0.0
+### v2.0.0
+- Added state workflow scaffolds.
 
-- Added `decision-journal`, `thesis-tracker`, `pair-trade`, `information-impact`, and `cross-market-compare`.
-- Added state interfaces for thesis, decisions, spread logs, catalyst pipeline, and information log.
-- Upgraded plugin metadata and README to the v2 state workflow system.
-
-### 1.2.0
-
-- Aligned existing 5 skills with `CLAUDE.md` / `FRAMEWORK.md`.
-- `alpha-thesis` now defines schema-compatible `coverage/[ticker]/thesis.md` contract.
-- `peer-deep-dive` outputs pair candidates or explicit no-pair conclusion.
-- `earnings-setup` post-print can trigger thesis update or decision entry.
-- Source policy duplicated blocks removed from skill instructions.
-
-### 1.1.0
-
-- Added `peer-deep-dive` and industry KPI templates.
-
-### 1.0.0
-
-- Initial 4 core skills: `stock-quickread`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`.
-
-## Philosophy
-
-买方研究就是和市场分歧打架。这套 skills 强制把分歧定位在具体数据、假设和可复盘决策上，而不是漂亮故事。
+### v1.2.0
+- Aligned original research skills with buy-side workflow.

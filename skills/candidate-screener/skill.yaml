@@ -39,5 +39,6 @@ requires:
 workflow_dependencies:
   - can_feed: stock-quickread
   - can_feed: peer-deep-dive
-  - can_feed: pair-trade
+  - can_feed: research-journal
+  - can_feed: next-step
   - distinct_from: information-impact

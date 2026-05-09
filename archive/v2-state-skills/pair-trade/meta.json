@@ -1,0 +1,20 @@
+{
+  "id": "pair-trade",
+  "name": "Pair Trade",
+  "version": "2.0.0",
+  "description": "Long/Short pair builder and monitor with append-only spread-log.md",
+  "category": "research",
+  "author": "buy-side-research-system",
+  "tags": ["pair-trade", "spread", "long-short", "market-neutral"],
+  "trigger": {
+    "type": "keyword",
+    "keywords": ["pair trade", "Long / Short", "Long X Short Y", "做多 做空", "spread", "这两个能不能 pair", "更新 spread-log", "pair 还成立吗"],
+    "description": "当用户要构建或监控 pair trade 时触发"
+  },
+  "capabilities": {
+    "modes": ["builder", "monitor"],
+    "writes": ["pairs/[LONG_TICKER]-[SHORT_TICKER]/thesis.md", "pairs/[LONG_TICKER]-[SHORT_TICKER]/spread-log.md"],
+    "entry_schema": "spread_observation_v1",
+    "requirements": ["as-of timestamps", "source links", "beta/correlation awareness"]
+  }
+}

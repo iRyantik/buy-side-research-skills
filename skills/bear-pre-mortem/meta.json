@@ -27,13 +27,13 @@
     "includes": ["short-pitch", "accounting-flags", "base-rate", "path-of-pain"],
     "emphasis": "fact-driven, no hand-waving",
     "requirements": ["source links required", "base rate examples", "follow CLAUDE.md source policy"],
-    "inputs": ["alpha-thesis output", "coverage/[ticker]/thesis.md", "pair thesis"]
+    "inputs": ["alpha-thesis output", "current conversation thesis", "research-journal notes"]
   },
   
   "workflow": {
     "stage": "validation",
-    "prerequisites": ["alpha-thesis or thesis.md"],
-    "next_steps": ["ic-memo submission"],
+    "prerequisites": ["alpha-thesis or topic research notes"],
+    "next_steps": ["research-journal", "next-step"],
     "success_criteria": "看完想做空"
   },
   
