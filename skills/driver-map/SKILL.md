@@ -111,7 +111,24 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 | **Medium** | 公司部分披露，需用 peer / industry proxy 补足，但方向可验证 |
 | **Low** | 主要靠推断、卖方拆分或主题关联，必须标 `[来源待补]` / `[需查证]` |
 
-### Step 4: Implications
+### Step 4: Disclosure vs Inference / Proxy Strategy
+
+每个关键 driver claim 都必须标清证据状态。合理推断可以写，但不能写成公司事实；proxy 可以用，但必须说明 proxy 风险和模型处理方式。
+
+Evidence status 只能用：
+- `company disclosed`：公司直接披露该 driver / KPI / bucket。
+- `company implied`：公司语言或披露结构暗示该 driver，但没有完整 KPI。
+- `peer proxy`：用同业或行业 proxy 近似。
+- `researcher assumption`：研究员假设，必须可被后续验证。
+- `unknown`：还不知道，不能进入 base-case model。
+
+| Driver claim | Evidence status | Proxy to use | Risk of proxy | Model treatment |
+|---|---|---|---|---|
+| [driver 判断] | company disclosed / company implied / peer proxy / researcher assumption / unknown | [proxy or none] | [proxy 可能误导之处] | base case / sensitivity / scenario only / exclude |
+
+Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case；只能进入 sensitivity、scenario 或标 `[来源待补]`，直到有更强 source。
+
+### Step 5: Implications
 
 说明这个 driver map 如何影响后续研究：
 - 对 `financial-model`：哪些 line item 应该按 driver 建模。
@@ -141,6 +158,11 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 ## Driver Quality
 
 | Driver | Rating | Why | Source / as-of | What would improve confidence |
+|---|---|---|---|---|
+
+## Disclosure vs Inference / Proxy Strategy
+
+| Driver claim | Evidence status | Proxy to use | Risk of proxy | Model treatment |
 |---|---|---|---|---|
 
 ## Weird Buckets / Senior Analyst Radar
@@ -187,12 +209,14 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 ### Source 类
 - ❌ Reported bucket、segment revenue、orders、backlog、margin 没有 source / as-of。
 - ❌ 用卖方拆分替代公司披露，却没标注为 assumption。
+- ❌ 把合理推断、peer proxy 或 researcher assumption 写成 company disclosed fact。
 - ❌ 多个 source 口径冲突但只挑一个顺手的用。
 - ❌ 把 workbook 里的旧数字当 source。
 
 ### Logic 类
 - ❌ 只复述 segment 名称，没有翻译 business reality。
 - ❌ 只写 revenue driver，不问 margin driver 是否不同。
+- ❌ Low confidence driver 没有进入 sensitivity / scenario，却直接进入 base case。
 - ❌ 把 theme association 写成 direct revenue driver。
 - ❌ 用历史 CAGR 代替 driver。
 - ❌ 看到 `Other / Solutions / Systems / Industrial` 这种 bucket 不追问。

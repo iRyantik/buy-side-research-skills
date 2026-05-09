@@ -121,7 +121,17 @@ DCF/comps 必须从 driver 出发，不允许独立漂浮。
 
 这一表是本 skill 的核心。它回答：哪个 driver 变了，会影响 DCF 哪条线、comps 哪个 metric、市场应该给 premium 还是 discount。
 
-### Step 4: DCF
+### Step 4: Segment / SOTP Valuation Bridge
+
+混合业务公司不能直接套一个 consolidated multiple 或单一 DCF 结论。默认先做 segment thinking：不同 bucket 可以有不同 growth、margin、capital intensity、backlog visibility、multiple 和 risk treatment。
+
+| Segment / bucket | Driver used | Growth / margin logic | Valuation treatment | Source readiness | Risk |
+|---|---|---|---|---|---|
+| [bucket] | [driver-map link] | [growth / margin bridge] | DCF line / comps multiple / SOTP component / option value | ready / partial / weak | [key risk] |
+
+No price target guard：如果缺少 product-line margin、backlog conversion、installed-base economics 或关键 segment source，不给硬 price target；只输出 model outline、SOTP bridge、sensitivity 和需要补的 source。
+
+### Step 5: DCF
 
 DCF 至少说明：
 - Revenue / margin / FCF bridge
@@ -135,7 +145,7 @@ DCF 至少说明：
 - WACC / terminal growth 不得给伪精确小数，除非有明确依据。
 - FCF conversion 要能回到 operating model，不要直接填一个长期 margin。
 
-### Step 5: Comps
+### Step 6: Comps
 
 Comps 至少说明：
 - Peer set 为什么可比 / 不可比
@@ -148,7 +158,7 @@ Comps 至少说明：
 - 不能只列 multiples；必须给 "why this peer set" 和 "why premium/discount"。
 - 跨市场 peer 涉及币种、会计、流动性、准入差异时，联动 `cross-market-compare`。
 
-### Step 6: Reverse DCF
+### Step 7: Reverse DCF
 
 当用户关心 priced-in 或市场预期时，反推当前价格隐含：
 - revenue CAGR
@@ -240,6 +250,11 @@ Action 定义：
 | Driver / assumption | Model line | DCF impact | Comps metric impact | Source / as-of | Confidence |
 |---|---|---|---|---|---|
 
+## Segment / SOTP Bridge
+
+| Segment / bucket | Driver used | Growth / margin logic | Valuation treatment | Source readiness | Risk |
+|---|---|---|---|---|---|
+
 ## DCF
 
 [FCF bridge, WACC, terminal value, sensitivity]
@@ -326,6 +341,8 @@ Action 定义：
 ### Valuation 类
 - ❌ Terminal value > 80% of EV 但没有提示。
 - ❌ WACC / terminal growth 写得过度精确。
+- ❌ 混合业务公司直接套 consolidated multiple 或单一 DCF，不做 segment / SOTP thinking。
+- ❌ 缺 product-line margin、backlog conversion、installed-base economics 或关键 segment source 仍给硬 price target。
 - ❌ 跨市场 peer 未处理币种、会计、流动性或准入差异。
 - ❌ FCF margin 直接填长期目标，不接 operating model。
 

@@ -128,6 +128,14 @@ input / fuel / feedstock -> core equipment/process -> output -> bottleneck / con
 |---|---|---|---|
 | [机制含义] | [revenue / margin / backlog / price-volume-mix] | [后续怎么研究] | High / Medium / Low |
 
+### Step 3: Driver-map handoff
+
+机制解释完后，必须明确交给 `driver-map` 验证什么。不要只说"这个机制可能影响收入"；要指出收入或 margin 假设需要哪类披露、proxy 或后续验证。
+
+| Mechanism conclusion | Possible revenue/margin driver | What driver-map must verify | Evidence status |
+|---|---|---|---|
+| [机制结论] | [可能进入的 revenue / margin / backlog driver] | [下一步必须验证的公司披露 / KPI / proxy] | disclosed / implied / proxy / unknown |
+
 Rating hard standards:
 
 | Rating | Hard standard |
@@ -136,7 +144,7 @@ Rating hard standards:
 | **Medium** | 机制和商业关系合理，但公司层面披露不完整，需要 peer / industry proxy |
 | **Low** | 主要是研究员推断或主题关联，必须标 `[来源待补]` / `[需查证]` |
 
-### Step 3: What not to infer
+### Step 4: What not to infer
 
 列出不能从该机制外推的东西。尤其要区分：
 - `product can be used` vs `customer adopted`
@@ -175,6 +183,11 @@ Rating hard standards:
 ## Research read-through
 
 | Mechanism implication | Driver-map link | Model / thesis / peer implication | Confidence |
+|---|---|---|---|
+
+## Driver-map handoff
+
+| Mechanism conclusion | Possible revenue/margin driver | What driver-map must verify | Evidence status |
 |---|---|---|---|
 
 ## What not to infer
@@ -223,6 +236,7 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
 - ❌ 把技术重要性直接外推成 pricing power。
 - ❌ 没画流程图 / 链条图，导致系统关系不清。
 - ❌ 解释了设备功能，但没说瓶颈、control point 或 service intensity。
+- ❌ 解释完机制，但没有指出 `driver-map` 下一步必须验证什么。
 - ❌ 遇到 BKR IET、LNG Train、燃机-压缩机这类机制型问题，却直接跳到 driver 或 thesis。
 
 ### Workflow 类
