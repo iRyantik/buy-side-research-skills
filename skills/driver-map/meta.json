@@ -29,7 +29,12 @@
       "backlog 怎么进收入",
       "price volume mix",
       "margin driver",
-      "GTE GTS"
+      "weird bucket",
+      "reported bucket",
+      "segment bucket",
+      "披露口径异常",
+      "业务实质",
+      "model-driver gap"
     ],
     "description": "当用户要拆公司或业务的收入、利润率、backlog、price/volume/mix driver，或解释怪异披露口径时触发"
   },

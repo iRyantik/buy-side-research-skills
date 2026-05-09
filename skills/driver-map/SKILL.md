@@ -42,7 +42,8 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 - "帮我拆一下这家公司 revenue driver"
 - "这家公司收入怎么拆"
 - "这个 segment / bucket 到底是什么业务"
-- "BKR IET 的 GTE / GTS / Industrial Products 为什么这么拆"
+- "某业务 bucket 为什么这么拆"
+- "这个 reported bucket 对应什么业务实质"
 - "这家公司靠什么增长"
 - "为什么收入涨了但 margin 没涨"
 - "backlog / orders 怎么进收入"
@@ -52,7 +53,7 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 ### 不应触发
 
 - "帮我搭 model / 做 DCF / comps" → `financial-model`，但它应消费或先产出 driver-map。
-- "LNG Train / MRC Train 是什么、燃机和压缩机怎么连接" → `mechanism-map`，先搞清机制再拆 driver。
+- "这个设备链条 / 工艺流程怎么连接" → `mechanism-map`，先搞清机制再拆 driver。
 - "快速看一家公司值不值得研究" → `stock-quickread`，若 driver 不清再进入本 skill。
 - "几家公司一起看、排序" → `peer-deep-dive`，若 KPI 口径不可比再引用本 skill。
 - "写 long / short thesis" → `alpha-thesis`，若 thesis 依赖未拆清的 driver 再回到本 skill。

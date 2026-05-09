@@ -20,7 +20,8 @@
       "有没有 source",
       "这个 claim 能不能信",
       "供应链传闻",
-      "SpaceX 供应链",
+      "某客户供应链",
+      "customer supply chain claim",
       "direct supplier",
       "tier-2",
       "product can be used",
@@ -29,10 +30,9 @@
       "claim check",
       "research relevance",
       "这条新闻影响什么",
-      "Goldman 这份报告",
-      "刚出的 EIA",
-      "PMI",
-      "CPI",
+      "卖方报告",
+      "刚出的行业数据",
+      "刚出的宏观数据",
       "今天早报过一遍"
     ],
     "description": "当用户要验证一条信息或传闻是否可信、是否值得继续研究时触发"

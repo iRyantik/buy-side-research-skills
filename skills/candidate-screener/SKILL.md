@@ -70,9 +70,9 @@ description: Use when turning a theme, hypothesis, event, or screening condition
 - "类似 [X] 但估值 < [Y]"
 
 ### Mixed Mode 触发（最常见）
-- "受益于 AI 数据中心电力 demand 的股票，PE < 30"
-- "Permian 上游中 capex/CFO < 0.5 + tier-1 inventory > 8 年"
-- "AI 应用层中 ARR 增速 > 30% + Rule of 40 > 50 + 不依赖 OpenAI/Anthropic API"
+- "受益于某主题 demand 的股票，PE < 30"
+- "某行业中 capex/CFO < 0.5 + 高质量资源年限 > 8 年"
+- "某软件子行业中 ARR 增速 > 30% + Rule of 40 > 50 + 不依赖单一平台 API"
 
 混合是常态——不要强行划分 mode。但内部推理要清楚哪些条件是 thematic 派生（mechanism 推导），哪些是 quant 过滤（pattern matching）。
 
@@ -424,7 +424,7 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 | 频率 | 每周 2-3 次（中频） | 每天几十次（高频） |
 
 **不要混淆**：
-- "AI 数据中心电力受益股有哪些" → candidate-screener
+- "某主题受益股有哪些" → candidate-screener
 - "刚听说 X 公司是某 hyperscaler PPA 客户" → information-impact
 
 如果用户问的是混合（"我听说有这个主题，能列 candidates 吗"），先用 information-impact 验证 claim，再用 candidate-screener 探索 candidates。

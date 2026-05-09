@@ -50,7 +50,7 @@ description: Use when checking whether a news item, rumor, supply-chain claim, s
 - "这个消息靠谱吗"
 - "这个 claim 能不能信"
 - "有没有 source"
-- "X 公司是不是进了 SpaceX 供应链"
+- "某公司是不是进了某客户供应链"
 - "这条供应链传闻有没有 source"
 - "这个客户关系是真的吗"
 - "这张截图能不能信"
@@ -59,8 +59,8 @@ description: Use when checking whether a news item, rumor, supply-chain claim, s
 - "这条新闻值得继续看吗"
 - "这件事对研究有什么增量"
 - "这个数据点下一步该问什么"
-- "Goldman / Morgan Stanley 这份报告哪些点需要验证"
-- "刚出的 EIA / PMI / CPI 数据值得继续看什么"
+- "某卖方报告哪些点需要验证"
+- "刚出的行业 / 宏观数据值得继续看什么"
 
 ### Batch Mode 触发
 - "今天早报过一遍"
@@ -82,7 +82,7 @@ description: Use when checking whether a news item, rumor, supply-chain claim, s
 | **Timeframe** | 发生时间 / 生效时间 / source 时间 | 没有就写 `timeframe unknown` |
 | **User intent** | 只查真假 / 判断研究价值 / 批量过滤 | 默认先查真假 |
 
-如果 claim 本身会因为少一个字段而变形，先问清楚。例如"进了 SpaceX 供应链"必须区分是 direct supplier、tier-2、产品可用于航天，还是市场主题联想。
+如果 claim 本身会因为少一个字段而变形，先问清楚。例如"进了某客户供应链"必须区分是 direct supplier、tier-2、产品可用于某应用，还是市场主题联想。
 
 ## Mode A: Claim Check
 
@@ -129,7 +129,7 @@ description: Use when checking whether a news item, rumor, supply-chain claim, s
 - **product can be used**：产品理论上可用于某场景，不等于已经采购。
 - **theme association**：市场把公司归进主题，但没有业务关系证据。
 
-"X 进 SpaceX 供应链"如果只是 `product can be used` 或 `theme association`，不能写成 direct supplier。
+"X 进某客户供应链"如果只是 `product can be used` 或 `theme association`，不能写成 direct supplier。
 
 ### A.3 输出结构
 

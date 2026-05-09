@@ -47,8 +47,8 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 - "这两个能不能 pair"
 - "帮我搭一下 pair trade"
 - "X 用什么对冲"
-- "ASML 找一个 hedge candidate"
-- "我看好 ASML 但担心 macro，怎么 pair"
+- "某公司找一个 hedge candidate"
+- "我看好某公司但担心 macro，怎么 pair"
 
 ### A.2 输出方式
 

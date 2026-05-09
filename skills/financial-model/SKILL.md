@@ -43,7 +43,7 @@ description: Use when building or updating buy-side financial models, DCF, comps
 ## 触发场景
 
 ### Mode A: Build New Model
-- "帮我给 BKR 搭 model，重点拆 IET 收入，再做 DCF/comps"
+- "帮我给某公司搭 model，重点拆某业务 segment 收入，再做 DCF/comps"
 - "给 X 做 financial model"
 - "把 driver-map 转成 operating model"
 - "这个设备链条 / 工程机制讲清楚后，帮我转成 model"

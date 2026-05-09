@@ -38,13 +38,14 @@ description: Use when explaining industry mechanisms, engineering principles, eq
 ## 触发场景
 
 ### Mode A: Mechanism Explainer
-- "LNG Train / MRC Train 是什么"
-- "为什么一台巨型燃气轮机直连两台离心压缩机"
-- "燃机、压缩机、generator、controls 在一个系统里分别干什么"
-- "核燃料循环到底怎么走"
-- "transformer bottleneck 卡在哪个环节"
-- "aero engine aftermarket 为什么值钱"
-- "半导体设备这个 process step 是什么"
+- "这个行业术语到底是什么意思"
+- "这个设备链条是怎么连接的"
+- "这个设备链条为什么这样设计"
+- "这个工艺流程怎么运作"
+- "为什么这个系统要这样设计"
+- "瓶颈 / control point 在哪里"
+- "这个 process step 在系统里做什么"
+- "这个机制为什么重要"
 
 ### Mode B: Mechanism-to-Research Map
 - "这个机制对哪些公司有价值"
@@ -54,9 +55,9 @@ description: Use when explaining industry mechanisms, engineering principles, eq
 - "这个机制能不能解释 peer 估值差"
 
 ### Mixed Mode
-- "BKR IET 的 GTE / GTS / Industrial Products 为什么这么拆"
-- "LNG Train 机制讲清楚，然后告诉我 BKR / GE / Siemens Energy 谁受益"
-- "数据中心电力链条怎么运作，哪些环节最可能赚钱"
+- "这个业务 bucket 背后的机制是什么，为什么这么拆"
+- "先讲清楚这个机制，再告诉我哪些公司类型可能受益"
+- "这个设备链条怎么运作，哪些环节最可能捕获价值"
 
 ### 不应触发
 - "这家公司收入 driver 是什么" → `driver-map`。
@@ -72,7 +73,7 @@ description: Use when explaining industry mechanisms, engineering principles, eq
 | **对象** | 术语 / 设备 / 工艺 / 系统 / value chain | 用户给具体名词时按单一机制；给主题时先缩到最关键机制 |
 | **研究目的** | 理解机制 / feed driver-map / feed model / feed thesis / peer compare | 默认服务后续 driver-map 和 thesis |
 | **技术深度** | 直觉解释 / 工程链条 / 商业约束 | 默认用研究员能建模和问问题的深度，不写教材 |
-| **行业范围** | LNG、oil & gas、nuclear、grid、aerospace、advanced manufacturing 等 | 按用户覆盖行业，不扩展到无关行业 |
+| **行业范围** | 用户指定的行业 / 设备链 / 工艺链 | 按用户覆盖行业，不扩展到无关行业 |
 | **source 要求** | 是否需要 web/source-backed deep dive | 默认关键事实和数字必须 source；纯机制解释可标 `[需查证]` |
 | **保存需求** | 只在对话输出 / 写入 topic session | 默认对话；用户要求保存时写 `mechanism-map.md` |
 

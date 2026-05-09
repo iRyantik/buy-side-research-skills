@@ -17,10 +17,11 @@ Follow `CLAUDE.md §3` for source discipline. Natural-language output should be 
 
 Use when the user says things like:
 - "总结本轮研究"
-- "总结本轮 LNG 研究"
+- "总结本轮行业研究"
+- "总结本轮 topic 研究"
 - "写进 journal"
 - "整理这个 topic"
-- "把这次 LNG / BKR / AI 电力研究沉淀一下"
+- "把这次公司 / 行业 / 主题研究沉淀一下"
 
 Before writing, first show a confirmation table:
 

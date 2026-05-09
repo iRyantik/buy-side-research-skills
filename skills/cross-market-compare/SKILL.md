@@ -54,8 +54,8 @@ description: Use when comparing A/H shares, ADRs, local listings, or cross-marke
 - "0700.HK 和 TCEHY 怎么换算"
 
 ### Mode B 触发（Cross-Market Peer Compare）
-- "ASML.NA 和美股半导体怎么比"
-- "日股设备股和美股设备股估值差怎么解释"
+- "某 ADR / 本地股和海外 peer 怎么比"
+- "某市场设备股和另一市场设备股估值差怎么解释"
 - "A 股和港股同业估值差"
 - "跨市场 comparable"
 - "这家公司该用哪个市场的 peer group"
