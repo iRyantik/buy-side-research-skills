@@ -5,108 +5,288 @@ description: Use when comparing A/H shares, ADRs, local listings, or cross-marke
 
 # Cross-Market Compare
 
-处理 A/H、ADR、本地股、跨市场可比公司的估值和基本面差异。目标不是罗列哪里上市，而是判断价差是否来自可交易错配、流动性 / 会计 /监管差异，还是基本合理。
+处理 A/H、ADR、本地股、跨市场 peer 的估值和可交易差异。**核心价值不是罗列哪里上市**，而是判断价差来自可交易错配、流动性 / 会计 / 监管差异，还是基本合理。
+
+如果输出只比较 P/E 或 EV/EBITDA，没有统一币种、股本、ADR ratio、会计口径和可交易性，本 skill 就失败了。
+
+## 心法
+
+跨市场比较最容易犯的错，是把"价格差"直接理解成"便宜 / 贵"。但 A/H、ADR、本地股和跨市场 peer 的差异常常来自结构性因素：资本管制、投资者结构、流动性、税、会计口径、borrow、指数资金、监管风险。
+
+本 skill 的工作逻辑是 **normalize first, interpret second, trade last**：
+- 先确认比较对象是不是同一经济权益，还是只是相似 peer。
+- 再把币种、share count、ADR ratio、EV、会计口径和流动性调到可比。
+- 最后才判断 spread 是可交易错配、结构性折价，还是需要继续研究的 market misread。
+
+**最重要的纪律**：A/H discount、ADR discount、跨市场估值差都不是天然 alpha。必须先解释为什么存在，以及是否真的能交易。
 
 ## Source 政策
 
-遵守 `CLAUDE.md §3`；若冲突，以 `CLAUDE.md` 为准。价格、FX、market cap、EV、会计口径、股本结构、可转换关系都必须有 source 和 as-of 时间。
+本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
+
+特别强调：
+- **价格、FX、market cap、EV、share count、ADR ratio、borrow、成交量必须有 source / as-of**。
+- **同一公司多地上市必须确认 share class 和经济权益**，不能假设 1 ADR = 1 ordinary。
+- **跨市场 peer 比较必须确认会计口径**：GAAP / IFRS / 中国会计准则、Non-GAAP 调整项、报表频率。
+- **历史 spread / z-score 必须说明计算窗口**（1Y / 3Y / 5Y）和数据源。
+- **可交易性是事实问题**：转换机制、资本管制、short borrow、港股通 / 沪深股通、OTC liquidity 都要 source。
+
+## AI 的局限（必读，前置警告）
+
+跨市场数据比普通单票更容易 stale 或口径错：
+
+| 局限 | 影响 | Mitigation |
+|---|---|---|
+| **ADR ratio / share class 错配** | 市值、EV、价差全部算错 | 必须 source ADR ratio / ordinary equivalence |
+| **FX stale** | USD-eq 估值错 | 所有换算写 FX as-of |
+| **会计口径不一致** | EBITDA、FCF、ROIC 不可比 | 明确 GAAP / IFRS / local accounting 和调整项 |
+| **A/H 不可套利误判** | 把结构性价差当可交易机会 | 明确资本流动限制和转换机制 |
+| **OTC / local liquidity 被忽略** | 理论 spread 无法实际交易 | 列 ADV、bid-ask、borrow availability |
+| **跨市场 peer group 错配** | 把不同业务、不同监管风险硬比 | 先做 comparability check |
 
 ## 触发场景
 
+### Mode A 触发（Same-company Cross-Listing）
 - "A/H 差多少"
 - "ADR 和本地股怎么比"
+- "港股和美股同一家公司哪个便宜"
+- "这个 ADR 折价能不能套利"
+- "0700.HK 和 TCEHY 怎么换算"
+
+### Mode B 触发（Cross-Market Peer Compare）
 - "ASML.NA 和美股半导体怎么比"
-- "港股 / A 股 / 美股估值差怎么解释"
+- "日股设备股和美股设备股估值差怎么解释"
+- "A 股和港股同业估值差"
 - "跨市场 comparable"
+- "这家公司该用哪个市场的 peer group"
 
-## 输出结构
+### Mode C 触发（Cross-Market Hedge / Pair Candidate）
+- "A 股 long 用 H 股怎么 hedge"
+- "这个 ADR 能不能 short against local"
+- "跨市场 pair 怎么看"
+- "这个估值差可以做 market-neutral 吗"
 
-### 1. Instrument Map
+## 输入澄清要求（必填 8 维度）
 
-不只列 ticker，列出可投资性差异：
+如果用户缺关键维度，先澄清或标默认假设：
 
-| Ticker | 交易所 | 币种 | Share class | ADR ratio (如适用) | 流通股数 | 日均成交量 | Borrow availability | Source |
-|---|---|---|---|---|---|---|---|---|
+| 维度 | 含义 | 默认假设（用户没说时） |
+|---|---|---|
+| **比较对象** | 同一公司多地上市 / 跨市场 peer / hedge candidate | 根据 ticker 判断；不确定就问 |
+| **交易市场** | HK / A / US / Europe / Japan / Korea 等 | 用户给的 ticker 所在市场 |
+| **币种** | 本地币和统一展示币种 | 统一为 USD-eq，并保留本地币 |
+| **Share class / ADR ratio** | 经济权益转换关系 | 未验证前不计算强结论 |
+| **会计口径** | GAAP / IFRS / local accounting / Non-GAAP | 明确差异，不能默认可比 |
+| **目的** | 估值解释 / trade / hedge / thesis question | 默认先解释，不直接 trade |
+| **流动性 / borrow** | ADV、bid-ask、short availability | 没有 source 就标 `[来源待补]` |
+| **时间窗口** | 当前价差 / 1Y / 3Y / 5Y spread | 当前 + 3Y 或 5Y 历史（如可得） |
 
-例（某 A/H/ADR 三重上市）：
-- 0700.HK（港股，HKD，普通股）
-- TCEHY（OTC，USD，1 ADR = 1 ord）
-- 注：A 股无（中国大陆未上市）
+如果用户只问"A/H 差多少"，至少确认 ticker、比较的是 price premium 还是 valuation premium，以及是否需要可交易性判断。
 
-### 2. Normalized Valuation Table
+## Mode A: Same-company Cross-Listing
 
-**关键约束**：必须统一币种、统一 share count、统一会计准则（尽可能 reconcile）。所有数值必须给 as-of 时间点。
+### A.1 推理路径
 
-| Metric | Ticker A (本地) | Ticker A (USD-eq) | Ticker B (本地) | Ticker B (USD-eq) | Spread | 5Y mean | Z-score | Source |
-|---|---|---|---|---|---|---|---|---|
-| Market cap | ... | ... | ... | ... | ... | ... | ... | ... |
-| EV/EBITDA NTM | ... | ... | ... | ... | ... | ... | ... | ... |
-| P/E NTM | ... | ... | ... | ... | ... | ... | ... | ... |
-| FCF yield | ... | ... | ... | ... | ... | ... | ... | ... |
-| EV/Sales | ... | ... | ... | ... | ... | ... | ... | ... |
+**Step 1: Instrument map**
 
-注：A/H 同一公司比较时，要明确 H 股 / A 股的 free-float 和投资者结构差异，普通用 ADR ratio 等价的 share count 计算 EV。
+先确认经济权益和交易约束：
 
-### 3. Adjustment Layers（多维差异，关键）
+| Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Source / as-of |
+|---|---|---|---|---|---|---|---|
 
-横向比较的"陷阱"几乎都来自以下 dimension 没 normalize。每个 dimension 都要 quickly assess + 给 magnitude。
+**Step 2: Price / valuation normalization**
 
-#### 3.1 Accounting / Disclosure 差异
-- 会计准则（GAAP / IFRS / 中国会计准则）
-- Reporting frequency（季报 vs 半年报，影响 visibility）
-- Segment disclosure 详尽度（10-K segment data vs A 股年报较粗）
-- Non-GAAP / 调整项口径
+统一币种、share count、EV、cash/debt、ADR ratio：
 
-#### 3.2 Investor Structure（影响估值习惯）
-- 机构 vs 散户占比（A 股散户 main、美股机构 main、港股 mixed）
-- Index inclusion（MSCI、CSI 300、HSCEI、Stoxx 600 etc.）
-- Foreign ownership 限制 / QFII / 港股通额度
-- 主要 marginal buyer / seller 是谁
+| Metric | Listing A | Listing B | Spread | Source / as-of |
+|---|---:|---:|---:|---|
+| Price local | | | | |
+| Price USD-eq | | | | |
+| Market cap USD-eq | | | | |
+| EV USD-eq | | | | |
+| P/E NTM | | | | |
+| EV/EBITDA NTM | | | | |
 
-#### 3.3 Regulatory / Political Risk Premium
-- 中概股 ADR delisting risk（HFCAA 等）
-- A 股 IPO 政策、退市制度
-- VIE 结构风险（中概股 / 港股部分公司）
-- 跨境监管事件（如 DiDi、滴滴）历史 precedent
-- 外资准入限制（日韩外资上限）
+**Step 3: Explain spread**
 
-#### 3.4 流动性 / 套利 Mechanism
-- ADR-Local 套利可行性（是否可双向 convert）
-- 港股通 / 沪股通 / 深股通 资金流向
-- A/H 价差是否可套利（实际上中国大陆资本管制下 A/H 无法套利）
-- Borrow availability + cost
-- Bid-ask spread + 单笔大额交易冲击
+把价差拆成：
+- 经济权益差异
+- 流动性 / access
+- 税收 / dividend withholding
+- 监管 / delisting / capital control
+- 投资者结构
+- 指数 / passive flow
+- true mispricing
 
-#### 3.5 税收差异
-- Withholding tax on dividend（不同上市地不同）
-- Capital gains tax 差异
-- 对个人 vs 机构 投资者的影响
+**Step 4: Action**
 
-每个 dimension 给一句话 takeaway，magnitude 评估（low / medium / high impact），并指明 source。
+给 `Ignore / Monitor / Research edge / Hedge candidate`，不要直接把 spread 写成交易建议。
 
-### 4. Spread Interpretation
+### A.2 输出结构
 
-基于 §2 + §3，判断 spread 是：
-- **可交易错配**：spread 偏离 history 显著 + 没有结构性差异理由 → entry opportunity
-- **结构性差异 priced in**：spread 反映真实差异（流动性、监管、税）→ 不要硬 trade
-- **混合**：部分错配 + 部分结构性 → 需细分
+```markdown
+## Cross-Listing Compare
 
-例："腾讯 ADR vs 港股 spread 当前 -1.5σ。但其中 ~60% 可解释为 ADR delisting risk premium（中概股近 12 个月 widen），剩 40% 是真错配——可作为 pair 候选 long 0700.HK / short TCEHY 套利。"
+**结论先行**
+[一句话说明价差大致是否合理，是否有研究/交易价值]
 
-### 5. Action
+## Instrument Map
 
-- **Ignore**：spread 反映合理结构性差异，不可 trade
-- **Monitor**：spread 接近 historical mean，等待错配出现
-- **Research edge**：spread 暴露 market misread、peer mismatch 或 accounting gap，触发 `next-step`
-- **Thesis review**：跨市场比较暴露单一标的 thesis 假设有误，触发 `alpha-thesis` 重审
-- **Cross-market hedge**：用对侧市场对冲单边风险（如 A 股 long + H 股 short）
+| Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Source / as-of |
+|---|---|---|---|---|---|---|---|
+
+## Normalized Valuation
+
+| Metric | Listing A | Listing B | Spread | Source / as-of |
+|---|---:|---:|---:|---|
+
+## Spread Explanation
+
+| Driver | Impact | Evidence |
+|---|---|---|
+
+## Action
+
+- Ignore / Monitor / Research edge / Hedge candidate
+```
+
+## Mode B: Cross-Market Peer Compare
+
+### B.1 推理路径
+
+**Step 1: Comparability check**
+
+先判断是不是合理 peer：
+
+| Dimension | Company A | Company B | Comparable? |
+|---|---|---|---|
+| Business mix | | | High / Medium / Low |
+| End-market | | | |
+| Margin structure | | | |
+| Growth / cyclicality | | | |
+| Accounting | | | |
+| Capital return | | | |
+
+**Step 2: Normalize valuation**
+
+必须统一：
+- 币种
+- accounting
+- forward period
+- EV adjustments
+- one-offs
+- share count
+- non-GAAP adjustments
+
+**Step 3: Adjustment layers**
+
+逐层解释差异：
+
+| Layer | Question | Typical impact |
+|---|---|---|
+| Accounting / disclosure | 报表口径是否可比 | EBITDA / FCF / ROIC 差异 |
+| Investor structure | marginal buyer 是谁 | 估值习惯和波动 |
+| Regulatory / political risk | 是否有监管折价 | discount / risk premium |
+| Liquidity / access | 是否能交易 / short | 可交易性 |
+| Tax | dividend withholding / capital gains | required return |
+
+**Step 4: Interpret**
+
+判断估值差是：
+- **可交易错配**：spread 偏离 history 显著 + 没有结构性理由。
+- **结构性差异 priced in**：流动性、监管、税、会计差异合理解释。
+- **研究 edge**：价差暴露 market misread、peer mismatch 或 accounting gap。
+
+### B.2 输出结构
+
+```markdown
+## Cross-Market Peer Compare
+
+**结论先行**
+[一句话说明差异是否合理，还是暴露研究问题]
+
+## Comparability Check
+
+| Dimension | A | B | Comparable? | Source |
+|---|---|---|---|---|
+
+## Normalized Valuation Table
+
+| Metric | A local | A USD-eq | B local | B USD-eq | Spread | History / z-score | Source |
+|---|---:|---:|---:|---:|---:|---:|---|
+
+## Adjustment Layers
+
+| Layer | Impact | Evidence | Read-through |
+|---|---|---|---|
+
+## Interpretation
+
+- 可交易错配 / 结构性差异 / 研究 edge
+```
+
+## Mode C: Cross-Market Hedge / Pair Candidate
+
+跨市场 hedge 不是自动套利。先问：共同 factor 是否足够高、经济权益是否一致、borrow / conversion / liquidity 是否支持。
+
+输出必须包含：
+
+| Check | Required answer |
+|---|---|
+| Common factor | 两边是否受同一 business / macro driver 影响 |
+| Idiosyncratic difference | 价差来自什么可研究差异 |
+| Liquidity / borrow | 是否能执行 |
+| Conversion / access | 是否能转换或套利 |
+| Failure mode | 什么情况下 spread 不会回归 |
+
+若 pair 逻辑成立，handoff 到 `pair-trade`；否则只作为 cross-market observation。
+
+## Workflow 联动
+
+| 场景 | 下一步 |
+|---|---|
+| 跨市场价差暴露研究问题 | `next-step` |
+| 差异来自 business / peer mismatch | `peer-deep-dive` |
+| 差异来自 revenue / margin / backlog driver 不同 | `driver-map` |
+| 价差可形成 hedge / pair 候选 | `pair-trade` |
+| 估值差改变单票 thesis | `alpha-thesis` |
+| 研究后形成认知增量 | `research-journal` |
 
 ## 写入
 
-默认输出到对话；如果用户要求保存，写入 `cross-market/[group-name]-[YYYY-MM-DD].md`。
+默认输出到对话。用户明确要求保存时，写入 `cross-market/[group-name]-[YYYY-MM-DD].md`。不要自动维护状态库。
 
-## 反模式
+## 反模式自查
 
-- 只比较 P/E，不统一币种、股本、会计口径。
-- 把 A/H discount 直接当便宜，不解释可交易性和资本流动限制。
-- 忽略 ADR ratio、FX as-of、双重上市 share class 差异。
+### Normalization 类
+- ❌ 只比较 P/E，不统一币种、股本、会计口径。
+- ❌ 忽略 ADR ratio、FX as-of、share class。
+- ❌ 用不同时间点价格 / FX / EV 做 spread。
+- ❌ 把 Non-GAAP EBITDA 和 GAAP EBIT 混用。
+
+### Interpretation 类
+- ❌ 把 A/H discount 直接当便宜。
+- ❌ 把结构性监管 / 流动性折价写成 mispricing。
+- ❌ 没解释 marginal buyer / capital access。
+- ❌ 跨市场 peer 业务差异巨大还硬比。
+
+### Trading 类
+- ❌ 忽略 borrow availability / borrow cost。
+- ❌ 假设 ADR-local 一定可双向 convert。
+- ❌ 把不可套利价差写成套利机会。
+- ❌ 没写 failure mode 就建议 hedge / pair。
+
+## 篇幅基准
+
+- Same-company quick compare：500-900 字 + 2 张表。
+- Cross-market peer compare：900-1600 字 + comparability / valuation / adjustment 表。
+- Hedge / pair candidate：700-1200 字；若进入完整 pair，应 handoff 到 `pair-trade`。
+- 超过 1800 字通常说明需要拆成 `peer-deep-dive` 或 `pair-trade`。
+
+## 与相邻 skill 的边界
+
+- `peer-deep-dive` 做同业横向；本 skill 专注跨市场 normalization 和 access adjustment。
+- `driver-map` 拆业务实质和 model driver；当跨市场价差来自 driver 差异时，先用它统一口径。
+- `pair-trade` 做完整 long/short setup；本 skill 只判断跨市场 spread 是否可能成为 pair。
+- `alpha-thesis` 写投资论点；本 skill 只提供跨市场估值 / access read-through。
+- `next-step` 把价差背后的怪异点变成研究问题。

@@ -169,6 +169,8 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 - 反例："业务可持续性如何？"
 - 正例："Permian 老井 decline rate 从 2023 年的 X% 是否已加速到 Y%？哪份数据可以验证（公司 Q 表 / Enverus / Rystad）？"
 
+如果 quickread 发现收入结构复杂、segment bucket 怪、model driver 不清楚，下一步不要在 quickread 内完整展开。明确推荐 `driver-map`，让它单独拆 `Reported Bucket → Business Reality → Model Driver`。
+
 ## 反模式自查
 
 写完后必须自检以下症状，命中就重写：
@@ -198,6 +200,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 **第 4 节专项**
 - ❌ 输出的变量是"油价 / 产量 / 成本"等教科书答案——回去找当前 regime 特有的变量
 - ❌ 没有具体证据（没引用具体季度的股价反应、没给相关性数据）
+- ❌ 发现 driver / bucket 怪但在 quickread 里硬写完整模型拆分 → 触发错层级，应该交给 `driver-map`
 
 **第 5 节专项**
 - ❌ 只写了"贵 / 便宜"，没做反向工程——a

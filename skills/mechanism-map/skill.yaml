@@ -1,0 +1,78 @@
+name: mechanism-map
+version: 3.3.0
+author: buy-side-research-system
+namespace: research.equity
+
+summary: Map industry mechanisms, engineering principles, process flows, and know-how gaps to investment research implications
+description: |
+  用于解释行业机制、工程原理、设备链条、工艺流程、关键术语和 know-how gap，
+  并把这些机制翻译成 value capture、driver-map、model、thesis 或 peer compare 的投研含义。
+  不做 DCF/comps，不生成 workbook，不写完整 thesis。
+
+trigger:
+  keywords:
+    - "mechanism-map"
+    - "mechanism map"
+    - "行业机制"
+    - "工程原理"
+    - "设备链条"
+    - "工艺流程"
+    - "know-how gap"
+    - "术语解释"
+    - "LNG Train"
+    - "MRC Train"
+    - "燃气轮机"
+    - "离心压缩机"
+    - "核燃料循环"
+    - "transformer bottleneck"
+    - "aero engine aftermarket"
+  description: "当用户要解释行业机制、工程原理、设备链条、术语、工艺流程，或把 know-how gap 转成投研含义时触发"
+
+category: research
+tags:
+  - mechanism-map
+  - industry-mechanism
+  - engineering-principle
+  - equipment-chain
+  - process-flow
+  - know-how-gap
+  - value-capture
+  - senior-analyst-radar
+
+capabilities:
+  - mode: "Mechanism Explainer"
+  - mode: "Mechanism-to-Research Map"
+  - mode: "Mixed Mode"
+  - output_path: "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md when user asks to save"
+  - maps: "term or mechanism to system role"
+  - maps: "mechanism to value capture"
+  - maps: "mechanism implication to driver-map link"
+  - includes_lightweight_flow_map: true
+  - flags_know_how_gap: true
+  - no_dcf_or_comps: true
+  - no_workbook_editing: true
+  - no_full_thesis: true
+
+requires:
+  - "CLAUDE.md §3 source policy"
+  - "META-SKILL.md skill authoring rules"
+
+workflow_dependencies:
+  - "can_follow": "information-impact"
+  - "can_follow": "stock-quickread"
+  - "can_feed": "driver-map"
+  - "can_feed": "financial-model"
+  - "can_feed": "alpha-thesis"
+  - "can_feed": "peer-deep-dive"
+  - "can_feed": "pair-trade"
+  - "can_feed": "research-journal"
+  - "can_trigger": "next-step"
+
+anti_patterns:
+  - "turning the output into generic industry primer"
+  - "explaining a mechanism without value capture or research read-through"
+  - "treating product capability as customer adoption"
+  - "jumping directly to DCF, comps, workbook, or price target"
+  - "omitting a process flow or equipment-chain map for complex systems"
+  - "using unsourced technical or project claims as facts"
+  - "replacing driver-map with mechanism explanation"

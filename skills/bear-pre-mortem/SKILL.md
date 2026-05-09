@@ -128,6 +128,8 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 2. **空头点你想过但低估了 → 调整 sizing，或者把对应的观察点写进 kill criteria**
 3. **所有空头点都已经在原 thesis 里 framed，且你有具体回应 → conviction 是真的，可以推进**
 
+如果最强反方攻击的是收入、margin、backlog、price / volume / mix driver，而原 thesis 没有清楚拆 driver，先触发 `driver-map`。优先攻击 `driver-map` 中 confidence 低、source 弱、披露缺口大的 driver，不要只写宏观或估值风险。
+
 ## 用法说明
 
 本 skill 在 `alpha-thesis` 写完之后、IC memo 提交之前使用。如果压力测试之后原 thesis 还站得住，conviction 是真的；如果发现明显盲点，回去修 thesis、降低 sizing，或者直接放弃这单 trade。

@@ -1,12 +1,14 @@
 name: financial-model
-version: 2.1.0
+version: 3.2.0
 author: buy-side-research-system
 namespace: research.equity
 
-summary: Build or update revenue-first Excel financial models
+summary: Convert mechanism-map and driver-map output into operating models, DCF, comps, reverse DCF, or workbook update maps
 description: |
-  用于搭建新的 buy-side Excel model，或根据新财报更新已有 Excel model。
-  第一版重点是 revenue split / segment drivers，不强制标准模板，不迁移已有模型结构。
+  用于搭建新的 buy-side model，或根据新财报更新各种样式的已有 Excel model。
+  本 skill 可先消费 mechanism-map，再消费 driver-map，将 revenue / margin drivers 转成 operating model、
+  valuation bridge、DCF、comps、reverse DCF 或 update map。
+  不强制标准模板，不重写或迁移已有 workbook 结构。
 
 trigger:
   keywords:
@@ -14,40 +16,69 @@ trigger:
     - "build a model"
     - "financial model"
     - "Excel model"
-    - "拆收入"
-    - "revenue model"
+    - "DCF"
+    - "comps"
+    - "reverse DCF"
+    - "valuation model"
+    - "valuation bridge"
     - "更新已有 model"
+    - "更新 Excel"
     - "根据新财报更新模型"
+    - "actuals refresh"
+    - "model update map"
     - "refresh model"
-  description: "当用户要搭新模型、拆收入、或根据财报更新已有 Excel model 时触发"
+  description: "当用户要搭新模型、做 DCF/comps/reverse DCF、或根据财报更新已有 Excel model 时触发；只拆 driver 时用 driver-map"
 
 category: research
 tags:
   - financial-model
+  - mechanism-map
+  - driver-map
+  - valuation-bridge
+  - DCF
+  - comps
+  - reverse-DCF
   - revenue-model
   - excel-model
   - earnings-update
-  - segment-drivers
+  - model-update-map
 
 capabilities:
   - mode: "Build New Model"
   - mode: "Update Existing Model"
-  - output_path: "topics/[topic_type]/[topic-slug]/model.xlsx or user-provided workbook"
-  - focus: "revenue split and segment drivers"
+  - mode: "Valuation Bridge"
+  - supports: "DCF"
+  - supports: "comps"
+  - supports: "reverse DCF"
+  - consumes: "mechanism-map"
+  - consumes: "driver-map"
+  - output_path: "topics/[topic_type]/[topic-slug]/model.xlsx or user-provided workbook when user asks"
   - preserves_existing_workbook: true
+  - produces_update_map_before_editing: true
+  - flags_model_driver_gap: true
 
 requires:
   - "CLAUDE.md §3 source policy"
+  - "mechanism-map for engineering mechanism / equipment-chain / know-how gaps"
+  - "driver-map for revenue / margin / backlog / price-volume-mix assumptions"
 
 workflow_dependencies:
+  - "can_follow": "mechanism-map"
+  - "can_follow": "driver-map"
   - "can_follow": "stock-quickread"
+  - "can_follow": "peer-deep-dive"
   - "feeds_into": "alpha-thesis"
   - "can_be_triggered_by": "earnings-setup post-print"
   - "feeds_into": "research-journal"
   - "can_trigger": "next-step"
+  - "can_trigger": "cross-market-compare"
 
 anti_patterns:
+  - "doing DCF or comps without a driver-map or explicit driver assumptions"
   - "forcing standard 5-sheet template"
   - "migrating existing model without user request"
   - "overwriting formulas with hardcodes"
   - "inventing undisclosed segment drivers"
+  - "editing workbook before producing an update map"
+  - "treating sell-side model assumptions as facts"
+  - "using stale market data without as-of"

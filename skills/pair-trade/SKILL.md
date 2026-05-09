@@ -7,7 +7,9 @@ description: Use when building or monitoring a long/short pair trade, evaluating
 
 构建或监控 Long X / Short Y pair trade。LS 基金核心工具，但**绝大多数所谓的 "pair trade" 不是真 pair**，只是两个独立单边 trade 装在一起。本 skill 强制把两腿绑成一个研究问题。
 
-v3 journal-first 口径：默认只输出到对话。用户明确要求保存时，写入当前 topic session 的 `pair-note.md`，或交给 `research-journal` 沉淀为本轮研究结论；不维护 v2 交易状态日志。
+v3 journal-first 口径：Builder 和 Monitor 默认保存到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先在对话里建议路径并让用户确认。`pair-note.md` 是研究记录，不是 v2 交易状态日志。
+
+触发边界：任何 Long X + Short Y、hedge candidate、pair trade、"X 用什么对冲"、"这两个能不能 pair" 都归本 skill，不归 `alpha-thesis`。`alpha-thesis` 只处理单股 long-only / short-only thesis。
 
 ## 心法
 
@@ -50,17 +52,18 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 ### A.2 输出方式
 
-默认输出到对话，不自动保存。
+默认保存到当前 topic session 的 `pair-note.md`，同时在对话中给出核心结论。
 
-如果用户明确要求保存：
-- 保存到当前 topic session 的 `pair-note.md`；或
-- 由 `research-journal` 吸收为本轮研究结论。
+如果当前没有明确 topic session：
+- 先建议路径，例如 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md`。
+- 让用户确认 topic / slug 后再保存。
+- 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 
 保存内容可以包含可选 tracking snapshot，但它只是研究记录模板，不是交易状态接口。
 
-### A.3 Optional Pair Snapshot（可选保存模板）
+### A.3 Pair Snapshot（默认保存模板）
 
-如用户要求结构化保存，可在 `pair-note.md` 顶部放一段 snapshot，便于以后复盘。不要把它当成必须维护的状态库。
+默认在 `pair-note.md` 顶部放一段 snapshot，便于以后复盘。不要把它当成必须维护的状态库。
 
 ```yaml
 schema_version: 1
@@ -244,9 +247,9 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 **Pair 总 sizing 原则**：单 pair 不超过 portfolio 5% gross，新建 pair 默认从 2-3% 开始 averaging in。
 
-### A.6 Optional Tracking Table（可选研究记录）
+### A.6 Tracking Table（默认研究记录）
 
-如果用户要保存研究记录，可在 `pair-note.md` 里记录一条 tracking snapshot。它不是自动维护的状态日志。
+在 `pair-note.md` 里记录一条 tracking snapshot。它不是自动维护的状态日志；后续 Monitor 依赖这条 baseline，否则 **No baseline, no monitor**。
 
 | Field | Value |
 |---|---|
@@ -285,11 +288,48 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 ### B.2 工作流
 
-1. 读取用户提供的 prior pair note、research-journal 摘要、历史输出或当前对话上下文。
-2. 如果没有历史记录，先重建 entry baseline：long/short ticker、entry date、entry spread、sizing method、核心 thesis、target / kill。
-3. 拉取或要求补充当前 spread 数据 + as-of 时间戳。
+**No baseline, no monitor.** Mode B 必须读取用户提供的 prior pair note、research-journal 摘要、历史输出或当前对话上下文中的原始 baseline。没有 baseline 就不能假装 monitor。
+
+最低 baseline 必须包含：
+- long / short ticker
+- entry date / as-of
+- entry spread definition + entry value
+- sizing method / weights
+- original long thesis
+- original short thesis
+- target spread / kill spread
+- time horizon
+- key catalysts
+- borrow / carry assumptions（如 relevant）
+
+工作流：
+
+1. 先检查 baseline 是否完整。
+2. 如果 baseline 不完整，不输出 Spread 状态、P/L attribution、Thesis health 或 Action 建议；只输出 `Missing Baseline Checklist`，建议先用 Builder 生成或补齐 `pair-note.md`。
+3. 如果 baseline 完整，拉取或要求补充当前 spread 数据 + as-of 时间戳。
 4. 输出 4 部分：Spread 状态、P/L 来源拆解、Thesis 健康度、Research action。
-5. 默认只在对话输出；用户要求保存时，把本次 review 追加到 topic session 的 `pair-note.md` 或交给 `research-journal`。
+5. 默认把本次 review 追加 / 更新到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先建议路径并让用户确认。
+
+#### Missing Baseline Checklist
+
+```markdown
+**No baseline, no monitor**
+
+当前不能进入 Monitor，因为缺少原始 pair baseline。请先补齐：
+
+- Long / short ticker:
+- Entry date / as-of:
+- Entry spread definition + entry value:
+- Sizing method / weights:
+- Original long thesis:
+- Original short thesis:
+- Target spread / kill spread:
+- Time horizon:
+- Key catalysts:
+- Borrow / carry assumptions:
+
+建议：先用 Mode A Builder 生成 `pair-note.md`，再做后续 Monitor。
+```
 
 ### B.3 Monitor 输出格式
 
@@ -328,13 +368,15 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 #### 4. Action 建议
 
-| 情景 | Research action | 下游 |
+`close / trim / add / monitor` 都是 research action，不是交易指令。最终交易动作由用户决定。
+
+| 情景 | Research action | Follow-up / sink |
 |---|---|---|
-| Spread 已到 target + 两边 thesis played out | **close study / trim study** | 可写入 `research-journal` |
+| Spread 已到 target + 两边 thesis played out | **close study / trim study** | 建议沉淀到 `research-journal` |
 | Spread 接近 target 但有一边 thesis 仍 valid | **trim study**，保留部分 exposure 的研究建议 | 用户决定是否行动 |
-| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / add study** | 可用 `next-step` 继续追问 |
+| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / re-underwrite add case** | 触发 `next-step` |
 | Spread 反向到 kill / 一边 thesis invalidated | **close study / re-underwrite** | 触发 `bear-pre-mortem` |
-| Spread 不动但 carry cost > 30% 预期收益 | **review** | 重新计算 expected return after carry |
+| Spread 不动但 carry cost > 30% 预期收益 | **review expected return after carry** | 更新 `pair-note.md` |
 | 单边 single-name 事件触发 | **close immediately as research recommendation** | 触发 `bear-pre-mortem` 或 `earnings-setup` |
 
 ### B.4 Monitor 输出篇幅
@@ -353,6 +395,8 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 | 来自其他 skill 的 pair 候选 | `peer-deep-dive` 的 Long X / Short Y 建议接入 Builder |
 | 跨市场 pair / hedge | `cross-market-compare` 输出 hedge idea 后接入 Builder |
 | Earnings 后调整 | `earnings-setup` post-print read-through 触发 Monitor |
+| 两腿是否受同一工程机制 / 设备链条驱动不清楚 | `mechanism-map`（比较 mechanism / value-capture 是否同源） |
+| 两腿 driver 是否同源不清楚 | `driver-map`（比较 revenue / margin / backlog driver，判断是真 pair 还是主题相似） |
 
 ---
 
@@ -370,6 +414,8 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 - ❌ "两家都做半导体设备" → 没量化客户重叠 / 终端市场重叠。
 - ❌ Correlation < 0.7 但仍叫 pair → 不是真 pair。
 - ❌ 业务完全相同 → 没有结构性差异点产生 spread。
+- ❌ 两腿看似同主题但工程机制 / 设备链条不同 → 先用 `mechanism-map` 检查 value-capture 是否同源。
+- ❌ 两腿 revenue / margin driver 没拆清楚，只说"同业" → 先用 `driver-map` 检查 driver 是否同源或分化。
 
 **Spread 量化**
 - ❌ "估值有差距" → 没给 z-score / percentile。
@@ -395,6 +441,7 @@ Monitor 必须自检：
 - ❌ P/L 没拆解到 long / short / spread / carry → 看不出 alpha 来源。
 - ❌ Thesis health 默认 "still valid" 没具体复查 → 装作 thesis 不变。
 - ❌ Action 是 "monitor" 但没说下次 review 触发条件 → 没具体下一步。
+- ❌ Pair 失效可能来自 driver divergence，但没有回到 `driver-map` 复查两腿 driver。
 
 ---
 

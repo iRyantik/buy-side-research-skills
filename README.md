@@ -1,4 +1,4 @@
-# Buy-Side Research Skills v3.1.0
+# Buy-Side Research Skills v3.3.0
 
 Journal-first buy-side research skill suite for Claude/Cowork and Codex. v3 的重点不是维护交易状态，而是帮助研究员像 senior analyst 一样发现高价值问题、继续深挖，并把真正想清楚的研究沉淀到 topic journal。
 
@@ -15,6 +15,15 @@ Senior Analyst Radar → better AI questions → research → research-journal �
 
 ## Active Skills
 
+### Skill Layers
+
+| Layer | Skills | 作用 |
+|---|---|---|
+| Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | 过滤信息、找候选、快速判断是否值得继续 |
+| Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | 拆机制和底层变量、标准化比较、提出下一步高价值问题 |
+| Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 横向研究、单股 thesis、反方压测、财报、pair、建模估值 |
+| Synthesis / Memory | `research-journal` | 沉淀本轮研究认知、生成 Boss Brief |
+
 | Skill | 用途 |
 |---|---|
 | `candidate-screener` | 从主题、假设或筛选条件找候选股票 |
@@ -24,7 +33,9 @@ Senior Analyst Radar → better AI questions → research → research-journal �
 | `alpha-thesis` | 构建 long / short thesis 和 variant view |
 | `bear-pre-mortem` | 反向压力测试 thesis |
 | `earnings-setup` | 财报前 setup / 财报后 quick read |
-| `financial-model` | 搭新模型或更新已有模型，重点拆 revenue driver |
+| `mechanism-map` | 解释行业机制、工程原理、设备链条、术语和 know-how gap，并转成投研含义 |
+| `driver-map` | 拆 reported bucket、业务实质、revenue / margin / backlog driver |
+| `financial-model` | 把 driver-map 转成 operating model、DCF、comps、reverse DCF 或 workbook update map |
 | `information-impact` | 验证消息 / 传闻 / 供应链 claim 是否靠谱 |
 | `cross-market-compare` | A/H、ADR、跨市场估值和可交易性比较 |
 | `research-journal` | 写 topic journal 或 Boss Brief |
@@ -42,7 +53,7 @@ Senior Analyst Radar → better AI questions → research → research-journal �
 - market misread
 - peer mismatch
 - source conflict
-- know-how gap
+- know-how gap（需要时触发 `mechanism-map`）
 
 提醒只出现在对话中，不自动写入 journal。只有当用户实际研究并形成认知增量后，才由 `research-journal` 沉淀。
 
@@ -56,6 +67,8 @@ topics/
     [topic-slug]/
       index.md
       [YYYY-MM-DD]-[session-slug]/
+        mechanism-map.md   # optional, only when saved
+        driver-map.md      # optional, only when saved
         research-journal.md
         boss-brief.md
 ```
@@ -101,6 +114,17 @@ archive/v2-state-fixtures/
 `pair-trade` 已在 v3.1 以 journal-first 研究工具形式恢复：它保留完整 pair builder / monitor 方法论，但不维护 v2 状态日志，只输出 pair research / monitor 判断。
 
 ## Version History
+
+### v3.3.0
+- Added `mechanism-map` as the 14th active research primitive.
+- Added a formal boundary between mechanism / know-how explanation and driver / model work.
+- Updated docs and metadata so know-how gaps can route to `mechanism-map` before `driver-map`, `financial-model`, or thesis work.
+
+### v3.2.0
+- Added `driver-map` as the 13th active research primitive.
+- Re-layered active skills into Signal / Funnel, Research Primitives, Deep Research, and Synthesis / Memory.
+- Updated existing skills to consume `driver-map` for revenue, margin, backlog, and price / volume / mix driver questions.
+- Expanded `financial-model` into driver-to-valuation workflow with DCF, comps, reverse DCF, and valuation bridge.
 
 ### v3.1.0
 - Restored `pair-trade` as a journal-first active skill.

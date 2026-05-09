@@ -1,7 +1,7 @@
 {
   "id": "information-impact",
   "name": "Information Impact",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Claim check and research relevance filter for rumors, supply-chain claims, news, and data points.",
   "category": "research",
   "author": "buy-side-research-system",
@@ -21,8 +21,13 @@
       "这个 claim 能不能信",
       "供应链传闻",
       "SpaceX 供应链",
+      "direct supplier",
+      "tier-2",
+      "product can be used",
+      "theme association",
       "是不是进了",
       "claim check",
+      "research relevance",
       "这条新闻影响什么",
       "Goldman 这份报告",
       "刚出的 EIA",
@@ -35,7 +40,8 @@
   "capabilities": {
     "modes": [
       "Claim Check",
-      "Research Relevance"
+      "Research Relevance",
+      "Batch Filter"
     ],
     "can_trigger": [
       "next-step"

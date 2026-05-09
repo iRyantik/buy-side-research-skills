@@ -75,7 +75,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - **market misread**：市场用错误框架理解公司或行业。
 - **peer mismatch**：公司被市场放进错误 peer group。
 - **source conflict**：filing、IR deck、call、新闻、卖方口径冲突。
-- **know-how gap**：关键行业机制、设备、工程原理、术语没搞清楚。
+- **know-how gap**：关键行业机制、设备、工程原理、术语没搞清楚；需要时触发 `mechanism-map` 把机制讲清楚，再进入 driver / model / thesis。
 
 ### 提醒格式
 
@@ -100,6 +100,21 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 ## 6. Active Skill 触发指引
 
+### 6.1 Skill 分层
+
+| Layer | Skills | 作用 |
+|---|---|---|
+| Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | 过滤信息、找候选、快速判断是否值得继续 |
+| Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | 拆机制和底层变量、标准化比较、提出下一步高价值问题 |
+| Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 横向研究、单股 thesis、反方压测、财报、pair、建模估值 |
+| Synthesis / Memory | `research-journal` | 沉淀本轮研究认知、生成 Boss Brief |
+
+`mechanism-map` 是 v3.3 的 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`financial-model`、`alpha-thesis` 或 `peer-deep-dive`。
+
+`driver-map` 是 v3.2 的 research primitive。涉及 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `financial-model`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。
+
+### 6.2 Skill 触发表
+
 | Skill | 触发场景 | 输出形态 |
 |---|---|---|
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
@@ -109,7 +124,9 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 | `alpha-thesis` | 搭 long / short thesis / pitch 逻辑 | variant view + catalyst + kill criteria |
 | `bear-pre-mortem` | 打逻辑 / 找漏洞 / 反向思考 | steelman bear case |
 | `earnings-setup` | 下周财报 / 刚出了财报 / print | pre-print setup / post-print read |
-| `financial-model` | 搭 model / 拆收入 / 更新已有模型 | revenue-first model / update map |
+| `mechanism-map` | 行业机制 / 工程原理 / 设备链条 / know-how gap | mechanism map + value capture + research read-through |
+| `driver-map` | 拆 driver / 收入怎么拆 / bucket 为什么怪 | business reality + model driver map |
+| `financial-model` | 搭 model / DCF / comps / 更新已有模型 | driver-to-valuation model / update map |
 | `information-impact` | 这个消息靠谱吗 / claim check / 供应链传闻 | Claim Check + Research Relevance |
 | `cross-market-compare` | A/H / ADR / 跨市场估值差 | normalized valuation + access adjustment |
 | `research-journal` | 总结本轮研究 / 写进 journal / boss brief | topic journal / Boss Brief |
@@ -132,6 +149,8 @@ v3 是 journal-first 系统，默认围绕 topic 组织：
 │       └── [topic-slug]/
 │           ├── index.md
 │           └── [YYYY-MM-DD]-[session-slug]/
+│               ├── mechanism-map.md        # optional, only when user asks to save
+│               ├── driver-map.md           # optional, only when user asks to save
 │               ├── research-journal.md
 │               └── boss-brief.md
 ├── screens/
@@ -155,5 +174,5 @@ v3 是 journal-first 系统，默认围绕 topic 组织：
 
 ---
 
-**版本**：v3.1.0
+**版本**：v3.3.0
 **最后更新**：2026-05-09

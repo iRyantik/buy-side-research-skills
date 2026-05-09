@@ -348,6 +348,8 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 | 推荐 1-2 家 deep research | `stock-quickread` |
 | 推荐 3-8 家批量研究 | `peer-deep-dive` |
 | Hypothesis 跨市场（如"中国 vs 美国 类似 names"） | `cross-market-compare` |
+| 推荐 candidate 的受益机制依赖复杂工程原理 / 设备链条 / know-how | `mechanism-map` |
+| 推荐 candidate 的受益机制依赖复杂 revenue / margin driver | `driver-map` |
 | 推荐结果暴露 hypothesis 弱点 | 重新评估 hypothesis 或触发 `bear-pre-mortem` 反向思考 |
 | 筛选暴露高价值怪异点 | `next-step` |
 | 筛选完成后需要沉淀 | `research-journal` |
@@ -368,6 +370,8 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 - ❌ Tier 1/2/3 划分没有具体标准（收入占比 % 等） → 无法 verify
 - ❌ Hypothesis 漏洞自检写空话（"thesis 看起来 sound"）→ 必须给具体 challenge
 - ❌ Hypothesis 太 vague 但 AI 没主动澄清就开始 list → 应该 push back
+- ❌ Candidate 的受益机制依赖复杂工程原理 / 设备链条，却没有建议 `mechanism-map` 先讲清楚机制
+- ❌ Candidate 的受益机制依赖复杂 revenue / margin driver，却没有建议 `driver-map` 验证量级
 
 **LS 双向**
 - ❌ 方向 = both 但 short candidates 缺失或硬凑 → 真没就明说"无明显 short"

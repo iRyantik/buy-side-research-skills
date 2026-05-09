@@ -1,5 +1,5 @@
 name: cross-market-compare
-version: 2.0.0
+version: 3.1.0
 author: buy-side-research-system
 namespace: research.equity
 
@@ -16,6 +16,11 @@ trigger:
     - "港股和美股"
     - "A股和港股"
     - "cross-market"
+    - "cross-listing"
+    - "ADR ratio"
+    - "同一公司不同上市地"
+    - "跨市场 pair"
+    - "hedge candidate"
     - "估值差"
   description: "当用户要比较跨市场股票、ADR 或同一资产不同上市地时触发"
 
@@ -28,6 +33,9 @@ tags:
   - comparables
 
 capabilities:
+  - mode: "Same-company Cross-Listing"
+  - mode: "Cross-Market Peer Compare"
+  - mode: "Cross-Market Hedge / Pair Candidate"
   - normalizes: "currency, share count, ADR ratio, valuation"
   - writes_optional: "cross-market/[group-name]-[YYYY-MM-DD].md"
 
@@ -36,5 +44,7 @@ requires:
 
 workflow_dependencies:
   - "can_feed": "alpha-thesis"
+  - "can_feed": "peer-deep-dive"
+  - "can_feed": "pair-trade"
   - "can_feed": "research-journal"
   - "can_feed": "next-step"

@@ -68,6 +68,10 @@ Do not use a rigid template. Write like a human research note:
 
 Research Edge Radar reminders do **not** automatically enter the journal. If the anomaly was only noticed, leave it in the conversation. If the user actually researched it and formed a view, write the resulting insight naturally in the relevant section.
 
+`driver-map` results can be absorbed only after they have been checked and understood. In the journal, record the solved driver conclusion, key source / as-of, and remaining uncertainty. Do not write unverified driver guesses as facts; mark weak items `[来源待补]` or keep them out.
+
+`mechanism-map` results can be absorbed only after the mechanism has been genuinely researched and understood. In the journal, record the mechanism conclusion, the key terms, the flow / value-capture logic, source / as-of, and what remains uncertain. Do not write an unverified mechanism guess as settled know-how.
+
 ## Boss Brief
 
 Use when the user says:
@@ -105,4 +109,6 @@ Do not force all headings into every brief. Preserve the strongest conclusion, 3
 - Calling Boss Brief a "简略版" or "轻量摘要".
 - Turning the journal into a transcript.
 - Recording unsourced numbers as facts.
+- Recording a `driver-map` guess as settled business reality before source verification.
+- Recording a `mechanism-map` guess as settled industry know-how before source verification.
 - Using a rigid template when the research question needs a natural memo.

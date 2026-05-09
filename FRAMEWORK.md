@@ -1,4 +1,4 @@
-# FRAMEWORK.md — Journal-First Buy-Side Research Skills v3.1
+# FRAMEWORK.md — Journal-First Buy-Side Research Skills v3.3
 
 > `CLAUDE.md` 是唯一 constitution。本文件是系统设计蓝图，不覆盖 `CLAUDE.md`。
 
@@ -16,12 +16,10 @@ Research Edge → Better AI Question → Research → Journal → Boss Brief
 
 | Module | Skills |
 |---|---|
-| Discovery | `candidate-screener`, `stock-quickread`, `peer-deep-dive` |
-| Pair Research | `pair-trade` |
-| Thesis / Challenge | `alpha-thesis`, `bear-pre-mortem` |
-| Event / Claim | `earnings-setup`, `information-impact` |
-| Model / Market Structure | `financial-model`, `cross-market-compare` |
-| Journal / Coach | `research-journal`, `next-step` |
+| Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` |
+| Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` |
+| Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` |
+| Synthesis / Memory | `research-journal` |
 
 The v2 state workflow has been archived outside active `skills/`.
 
@@ -76,6 +74,22 @@ Boss Brief is a high-density memo for a boss / PM. It optimizes judgment transfe
 
 Claim Check + Research Relevance. It verifies whether a claim is credible, then decides whether it creates a research question. It does not write portfolio impact or state files.
 
+### `driver-map`
+
+Research primitive for mapping `Reported Bucket → Business Reality → Model Driver`. It handles revenue, margin, backlog, price / volume / mix, weird segment buckets, and model-driver gaps. It does not do DCF/comps, create workbooks, or write full thesis.
+
+Downstream skills consume it:
+- `financial-model` turns driver-map into operating model, DCF, comps, reverse DCF, and update maps.
+- `alpha-thesis` uses it to anchor variant view, scenario, and kill criteria.
+- `peer-deep-dive` uses it to normalize KPI and business reality across peers.
+- `pair-trade` uses it to test whether long / short legs share or diverge on real drivers.
+
+### `mechanism-map`
+
+Research primitive for mapping industry mechanisms, engineering principles, equipment chains, process flows, technical terms, and know-how gaps to investment research implications. It explains how something works, where value is captured, and what not to infer.
+
+It does not do DCF/comps, create workbooks, or write full thesis. When mechanism understanding affects revenue, margin, backlog, price / volume / mix, it should feed `driver-map`; when it affects operating model or valuation, it should feed `financial-model`.
+
 ### `pair-trade`
 
 Journal-first pair research tool. It keeps the full builder / monitor methodology from the original pair workflow: independent long and short theses, spread history, beta / correlation, sizing, risk matrix, and P/L attribution. It does not maintain trade state, append logs, or depend on the archived v2 workflow.
@@ -90,6 +104,8 @@ topics/
     [topic-slug]/
       index.md
       [YYYY-MM-DD]-[session-slug]/
+        mechanism-map.md   # optional, only when saved
+        driver-map.md      # optional, only when saved
         research-journal.md
         boss-brief.md
 screens/
@@ -117,6 +133,7 @@ It is not a state log, status tracker, case library, or hypothesis database.
 When encountering `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, the system should not summarize and move on. It should point out that this may reflect gas turbine system economics, turbine body, adjacent equipment, service, controls, or value-chain layers.
 
 Expected behavior:
+- route the mechanism / equipment-chain question through `mechanism-map` when needed
 - directly say this is worth digging
 - offer 1-2 strong AI questions
 - do not create a state file
@@ -125,11 +142,11 @@ Expected behavior:
 ## 8. Validation
 
 Required checks:
-- active `skills/` count is 12
-- active docs and metadata list the same 12 skills
+- active `skills/` count is 14
+- active docs and metadata list the same 14 skills
 - archived v2 state skills are outside active `skills/`
 - old brief naming, topic-level edge signal files, and standalone next-step files do not appear
-- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, and `next-step` appear in public docs
+- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `mechanism-map`, and `driver-map` appear in public docs
 
-**版本**：v3.1.0
+**版本**：v3.3.0
 **最后更新**：2026-05-09

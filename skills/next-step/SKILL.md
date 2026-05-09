@@ -65,6 +65,10 @@ Look for high-value research dimensions:
 
 Trigger only when confidence is medium/high: the issue may change business understanding, model drivers, market expectation, or research priority.
 
+When the issue is a know-how gap, engineering mechanism, equipment chain, process flow, or technical term confusion, recommend `mechanism-map` as the next research primitive. Keep the output to 1-2 questions that would let `mechanism-map` explain how the system works and why it matters.
+
+When the issue is a model-driver gap, weird segment bucket, revenue / margin mismatch, backlog conversion question, or price / volume / mix uncertainty, recommend `driver-map` as the next research primitive. Keep the output to 1-2 questions that would let `driver-map` answer the issue.
+
 ## BKR IET Behavior Test
 
 If the user mentions BKR IET buckets such as `GTE`, `GTS`, `Industrial Products`, `Industrial Solutions`, or `CTS`, do not skip the odd split. Point out that the split may reflect gas turbine system economics, turbine body, adjacent equipment, service, controls, or value-chain layers rather than normal parallel segments.
@@ -88,3 +92,5 @@ Example:
 - Asking more than 1-2 AI questions by default.
 - Treating every anomaly as worth interrupting for.
 - Saving a standalone next-step file or creating state files.
+- Seeing a driver gap but giving a generic task list instead of a `driver-map` question.
+- Seeing a know-how gap but giving a generic task list instead of a `mechanism-map` question.

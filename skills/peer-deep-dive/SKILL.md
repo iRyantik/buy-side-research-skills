@@ -305,6 +305,8 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 - **第一个进 stock-quickread 的公司**（具体名字 + 为什么是这家）
 - **行业层面要追的具体研究方向**（基于第 6B）
 - **本次 peer-deep-dive 可能需要重做的时机**：例如 N 家集中财报后、行业某个数据节点、政策事件后
+- 如果横向比较暴露行业机制、工程原理、设备链条或术语口径不清，明确先用 `mechanism-map` 统一 mechanism / value-capture 理解，再继续比较。
+- 如果横向比较暴露 revenue / margin / backlog / price-volume-mix 口径不可比，明确先用 `driver-map` 统一业务实质和 driver，再继续比较。
 
 ## 输出篇幅基准（线性 scale）
 
@@ -348,6 +350,8 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 - ❌ 行业特定 KPI 列了通用项但没列对应板块的特定 KPI → 补
 - ❌ 没有 ROIC（除现金）/ Capex 强度 / 估值 vs 自身历史 等关键判断指标
 ❌ 只看标准 ROIC 就说资本效率差 — 可能是现金拖累，必须同时看 ROIC（除现金）
+- ❌ 工程机制 / 设备链条不清楚却硬比较 KPI → 先用 `mechanism-map` 统一 mechanism / value-capture 口径
+- ❌ 各公司 driver 口径明显不同却硬做矩阵 → 先用 `driver-map` 统一 business reality / model driver
 
 **第 3 节（differential profile）专项**
 - ❌ 在写公司业务模式 / 收入构成 / 历史 → 那是 quickread 的活

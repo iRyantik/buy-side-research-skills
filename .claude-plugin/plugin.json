@@ -1,7 +1,7 @@
 {
   "name": "buy-side-research-skills",
-  "version": "3.1.0",
-  "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: senior analyst radar, research journal, boss brief, next-step research coach, candidate screening, quickread, peer deep dive, pair trade, thesis, earnings, financial modeling, claim check, and cross-market compare.",
+  "version": "3.3.0",
+  "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: senior analyst radar, mechanism map, driver map, research journal, boss brief, next-step research coach, candidate screening, quickread, peer deep dive, pair trade, thesis, earnings, financial modeling, claim check, and cross-market compare.",
   "author": {
     "name": "buy-side-research-system"
   },
@@ -21,6 +21,18 @@
     "research-summary",
     "research-notes",
     "candidate-screener",
+    "mechanism-map",
+    "industry-mechanism",
+    "engineering-principle",
+    "equipment-chain",
+    "know-how-gap",
+    "process-flow",
+    "driver-map",
+    "revenue-driver",
+    "margin-driver",
+    "backlog-conversion",
+    "price-volume-mix",
+    "model-driver-gap",
     "stock-quickread",
     "peer-deep-dive",
     "pair-trade",

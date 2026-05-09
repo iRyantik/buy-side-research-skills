@@ -1,5 +1,5 @@
 name: information-impact
-version: 3.0.0
+version: 3.1.0
 author: buy-side-research-system
 namespace: research.equity
 summary: Claim check and research relevance filter
@@ -15,8 +15,13 @@ trigger:
     - 这个 claim 能不能信
     - 供应链传闻
     - SpaceX 供应链
+    - direct supplier
+    - tier-2
+    - product can be used
+    - theme association
     - 是不是进了
     - claim check
+    - research relevance
     - 这条新闻影响什么
     - Goldman 这份报告
     - 刚出的 EIA
@@ -33,7 +38,9 @@ tags:
 capabilities:
   - mode: Claim Check
   - mode: Research Relevance
+  - mode: Batch Filter
   - output: verdict + source quality + research implication
+  - distinguishes: "direct supplier / tier-2 / product can be used / theme association"
 requires:
   - CLAUDE.md §3 source policy
 workflow_dependencies:

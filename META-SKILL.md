@@ -34,7 +34,9 @@
 | 特征 | 设计含义 |
 |---|---|
 | 双向都看 | 任何 thesis-related skill 默认双向考虑（不假设 long-only） |
-| Pair trade 是核心工具（即使当前 v3 没有独立 pair-trade skill） | 触发 long X 思路时，自然带上 short Y 候选 / hedge 选项 |
+| Pair trade 是核心工具（v3.1 已恢复独立 active `pair-trade` skill） | 触发 long X 思路时，自然带上 short Y 候选 / hedge 选项，必要时 handoff 到 `pair-trade` |
+| Mechanism 拆解是复用原语（v3.3 新增 active `mechanism-map` skill） | 涉及行业机制、工程原理、设备链条、工艺流程、关键术语或 know-how gap 时，优先复用 `mechanism-map` |
+| Driver 拆分是复用原语（v3.2 新增 active `driver-map` skill） | 涉及 revenue / margin / backlog / price-volume-mix driver 时，优先复用 `driver-map`，不要各 skill 重写一套拆分 |
 | 跨市场惯性 | 同一公司多重上市、跨市场 peer 比较是常态 |
 | 时区 disadvantage | 美股财报后才工作；post-print 工具必须高效 |
 | 信息淹没 | **核心痛点**：单股时间被切碎；skill 优先服务 noise reduction |
@@ -56,7 +58,10 @@
 v2 走过的弯路 —— 不要重新设计这些东西：
 
 - ❌ **State files for portfolio tracking**（coverage/[ticker]/thesis.md、pairs/[X-Y]/、portfolio/catalyst-pipeline.md）—— 维护成本过重，研究员实际不会回头看
-- ❌ **Thesis-tracker / decision-journal / pair-trade 三件套**已 archive —— 不要在新 skill 里假设这些 state 存在
+- ❌ **Thesis-tracker / decision-journal / v2 pair state logs** 已 archive —— 不要在新 skill 里假设这些 state 存在
+- ✅ **`pair-trade` 是 v3.1 active research skill** —— 可以作为 hedge / LS framing / pair research 工具调用，但不维护 v2 的 `pairs/[X-Y]/spread-log.md` 或 append-only 交易状态
+- ✅ **`mechanism-map` 是 v3.3 active research primitive** —— 可以作为 industry mechanism、engineering principle、equipment chain、process flow、know-how gap 的研究工具，但不做 DCF/comps、不替代 driver-map、不写完整 thesis
+- ✅ **`driver-map` 是 v3.2 active research primitive** —— 可以作为 financial model、thesis、peer、pair、journal 的上游输入，但不做 DCF/comps、不编辑 workbook
 - ❌ **Ticker-centric 组织**（每个 ticker 一个目录）—— 改为 topic-centric
 
 ### 2.2 v3 的核心定位
@@ -96,6 +101,19 @@ topics/
 ```
 
 研究是围绕主题展开的；同一 topic 多个公司、多个 sessions。
+
+### 2.5 复用优先：Research Primitive Layer
+
+新增或大幅修改 skill 时，能复用现有 skill 内容就复用，不要为了新 skill 重写同一套方法论。
+
+| Primitive | 复用场景 | 边界 |
+|---|---|---|
+| `mechanism-map` | 行业机制、工程原理、设备链条、工艺流程、关键术语、know-how gap | 不做 DCF/comps、不替代 `driver-map`、不写完整 thesis |
+| `driver-map` | revenue、margin、backlog、price / volume / mix、披露口径异常、model-driver gap | 不做 DCF/comps、不生成 workbook、不写完整 thesis |
+| `cross-market-compare` | A/H、ADR、跨市场 peer、币种 / 会计 / 流动性 / access normalization | 不替代完整 peer research |
+| `next-step` | 把怪异点变成 1-2 个更好的 AI 问题 | 不生成任务清单、不落盘 |
+
+如果一个 skill 需要解释机制、设备链条或 know-how，应 handoff 或 consume `mechanism-map` 的结果；如果需要拆 driver，应 handoff 或 consume `driver-map` 的结果；如果只是要提出下一步问题，用 `next-step`，不要把每个 skill 都写成小型 coach。
 
 ---
 
@@ -207,6 +225,34 @@ skill 不能是孤岛。每个 skill 明确：
 
 ## 4. SKILL.md 必填结构（template）
 
+复杂研究型 skill 默认参考 `candidate-screener` / `peer-deep-dive` / `pair-trade` 这三个 Claude 原生感最强的 reference。它们的共同特征不是"标题多"，而是把研究员最容易偷懒或 AI 最容易瞎编的地方写成硬约束。
+
+### 4.0 Claude 原生参考模板
+
+| Reference skill | 应学习的东西 |
+|---|---|
+| `candidate-screener` | 机制拆解、AI 局限前置、输入澄清、mode 输出模板、漏斗收口 |
+| `peer-deep-dive` | 结论先行、行业 lens、cross-cut insight、排序和资源分配 |
+| `pair-trade` | 硬判断标准、builder / monitor、risk / sizing、反模式自查 |
+
+复杂研究型 skill 的推荐骨架：
+
+1. Frontmatter（短 trigger-only description）
+2. 开头定义本 skill 的失败标准
+3. `心法`
+4. `Source 政策`
+5. `AI 的局限`
+6. `触发场景`
+7. `输入澄清要求`
+8. `Mode A / Mode B / Mixed Mode`
+9. `输出结构`
+10. `Workflow 联动`
+11. `反模式自查`
+12. `篇幅基准`
+13. `与相邻 skill 的边界`
+
+短 coach 型 skill（如 `next-step`）可以保持短而尖，不必硬拉长；但只要一个 skill 涉及 web search、复杂判断、多 mode、估值、模型、跨市场、供应链 claim，就应尽量使用上述骨架。
+
 每个新 skill 的 SKILL.md 必须包含以下章节（顺序可调，但不能缺）：
 
 ### 4.1 Frontmatter（YAML）
@@ -214,14 +260,15 @@ skill 不能是孤岛。每个 skill 明确：
 ```yaml
 ---
 name: skill-name              # 用 kebab-case
-description: 详尽的触发场景描述（1-3 句）+ 关键功能 + 与其他 skills 的边界。这是 trigger 的核心，不是营销语 —— 写得越具体，trigger 越准。
+description: Use when [具体触发场景和用户症状]。
 ---
 ```
 
 **Frontmatter 写法**：
-- 第一句明确"用于什么场景"
-- 列出 5-8 个具体触发短语（用户实际会说的话）
-- 如果 skill 和别的容易混淆，明确边界（"和 X skill 的区别是..."）
+- 必须短而准，只写触发条件，不总结 workflow。
+- 以 `Use when...` 开头，使用第三人称。
+- 不要把完整流程、输出结构、状态文件、边界说明塞进 description；这些放正文。
+- 具体触发短语写在正文 `触发场景` 里，不放 frontmatter。
 
 ### 4.2 心法（必填）
 
@@ -243,14 +290,28 @@ description: 详尽的触发场景描述（1-3 句）+ 关键功能 + 与其他 
 
 列出具体触发短语（不是抽象描述）。如有多个 mode，按 mode 分组。
 
-### 4.5 Mode 设计（如有）
+### 4.5 AI 的局限（复杂 / 高风险 skill 必填）
+
+凡是依赖 web search、供应链关系、估值数据、Excel workbook、跨市场换算、AI universe recall 或复杂 source 判断的 skill，必须前置说明 AI 会在哪里失败：
+
+- 会漏什么
+- 会编什么
+- 哪些数据可能 stale
+- 哪些关系必须 source corroboration
+- 用户该如何二次验证
+
+### 4.6 输入澄清要求（复杂 / 多 mode skill 必填）
+
+用表格列出关键维度、含义、默认假设。不要在关键输入缺失时硬猜。
+
+### 4.7 Mode 设计（如有）
 
 如果 skill 有多种使用 mode（如 Builder vs Monitor），明确：
 - 每个 mode 的触发场景
 - 每个 mode 的工作流
 - mode 之间的关系（顺序 / 并列 / 互斥）
 
-### 4.6 输出结构（必填）
+### 4.8 输出结构（必填）
 
 具体到章节级别。给出：
 - 章节顺序
@@ -258,7 +319,7 @@ description: 详尽的触发场景描述（1-3 句）+ 关键功能 + 与其他 
 - 数据表格的列定义
 - Hard standards（如评级 / 阈值）
 
-### 4.7 状态文件 schema（如有）
+### 4.9 状态文件 schema（如有）
 
 如果 skill 写 / 读状态文件，明确：
 - 文件路径
@@ -266,15 +327,17 @@ description: 详尽的触发场景描述（1-3 句）+ 关键功能 + 与其他 
 - Entry schema（如果是追加式日志）
 - Append-only / replace-only / hybrid
 
-### 4.8 Workflow 联动（必填）
+v3 journal-first 默认不维护 v2 状态库。除非用户明确要求，否则不要重新引入 `coverage/`、`pairs/[X-Y]/spread-log.md`、`portfolio/` 这类状态闭环。
+
+### 4.10 Workflow 联动（必填）
 
 表格列出"什么场景 → 触发哪个下游 skill"。
 
-### 4.9 反模式自查（必填）
+### 4.11 反模式自查（必填）
 
 按问题类型分组（如 Source 类、Logic 类、流水账类）。每条必须可机械自检。
 
-### 4.10 篇幅基准（必填）
+### 4.12 篇幅基准（必填）
 
 输出篇幅的下限 / 上限 + 超出时的含义。
 
@@ -389,7 +452,7 @@ Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`：
 
 - 简单 skill：200-300 行（如 next-step）
 - 标准 skill：300-450 行（如 information-impact、cross-market-compare）
-- 复杂 skill（多 mode + 多状态文件）：450-550 行（如 pair-trade）
+- 复杂 skill（多 mode + 高判断密度）：300-500 行（如 pair-trade）
 
 超过 600 行通常是 over-engineering —— 拆开或精简。
 
@@ -463,7 +526,7 @@ Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`：
 - [ ] 这个 skill 在 v3 核心循环（Edge → Question → Research → Journal → Brief）的哪一步？
 - [ ] 上游和下游 skills 明确？
 - [ ] 状态文件读 / 写规则清晰？
-- [ ] Trigger keywords 和现有 11 个 skills 不冲突？
+- [ ] Trigger keywords 和现有 active skills 不冲突？
 
 ### 9.5 用户特征匹配检查
 - [ ] 例子 / 场景符合 LS 亚洲研究员的覆盖（不出现消费 / 医药例子）？
@@ -522,7 +585,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 ### Step 2: 阅读 reference（15-20% 时间）
 
 - 必读：CLAUDE.md（项目宪法）+ FRAMEWORK.md（系统设计）+ 本文件
-- 至少读 3 个 reference SKILL.md（建议 information-impact + 一个最相关的现有 skill + pair-trade archived 版本）
+- 至少读 3 个 reference SKILL.md（建议 information-impact + 一个最相关的现有 skill + active pair-trade；只有在用户明确要比较 v2 状态 workflow 时才读 archived pair-trade）
 - 观察这些 skill 的设计模式（§8.2）
 
 ### Step 3: 写 outline（5-10% 时间）
@@ -633,14 +696,15 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 - ❌ **不要把 skill 设计成 sell-side report 模板** —— 我们反流水账
 - ❌ **不要写完就交付** —— 必须按 §11 Step 5 自检 + flag
 - ❌ **不要 silently 做 assumption** —— 不确定就 flag
-- ❌ **不要重新设计 v2 已废弃的东西**（state files、decision-journal、thesis-tracker、pair-trade）—— 除非 user 明确要回退
+- ❌ **不要重新设计 v2 已废弃的东西**（state files、decision-journal、thesis-tracker、v2 pair state logs）—— 除非 user 明确要回退
+- ✅ `pair-trade` 本身是 active research skill；能复用其 LS / hedge / spread 方法论，但不要恢复强制落盘状态系统
 
 ---
 
 ## 14. 文档版本
 
 - **版本**：v1.0
-- **基于**：buy-side-research-skills v3.0.0
+- **基于**：buy-side-research-skills v3.3.0
 - **最后更新**：2026-05-09
 - **维护者**：用户（user）
 
