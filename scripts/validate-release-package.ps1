@@ -87,14 +87,12 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/meta-skill/skill.yaml",
             "skills/new-session/SKILL.md",
             "skills/new-session/skill.yaml",
-            "docs/install.md",
-            "docs/architecture.md",
             "README.md"
         )) {
             Require-Entry $required
         }
 
-        foreach ($prefix in @("skills/", "docs/", "examples/")) {
+        foreach ($prefix in @("skills/")) {
             Require-Prefix $prefix
         }
 
@@ -110,8 +108,7 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "AGENTS.md",
             "CLAUDE.md",
             ("FRAMEWORK" + ".md"),
-            ("META-SKILL" + ".md"),
-            "docs/release.md"
+            ("META-SKILL" + ".md")
         )
         foreach ($forbiddenFile in $forbiddenFiles) {
             if ($entrySet.Contains($forbiddenFile)) {

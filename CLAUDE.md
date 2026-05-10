@@ -89,8 +89,6 @@ Release package 应包含用户安装和 runtime 必需材料：
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `skills/`
-- user docs under `docs/`
-- `examples/`
 - `README.md`
 
 Release package 不包含：

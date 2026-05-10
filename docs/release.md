@@ -11,10 +11,9 @@ Release zip 只包含用户安装和运行时必需材料：
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `skills/`
-- `docs/install.md`
-- `docs/architecture.md`
-- `examples/`
 - `README.md`
+
+`docs/` 和 `examples/` 不进入 release zip——插件运行时不读取这两个目录。
 
 Release zip 不得包含源码仓库维护文件：
 

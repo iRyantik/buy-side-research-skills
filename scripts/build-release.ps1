@@ -15,9 +15,6 @@ $includeItems = @(
     ".claude-plugin",
     ".codex-plugin",
     "skills",
-    "examples",
-    "docs\install.md",
-    "docs\architecture.md",
     "README.md"
 )
 
