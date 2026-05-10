@@ -1,8 +1,8 @@
-# Release
+﻿# Release
 
 This document is for maintainers of the plugin source repo. It is not required for day-to-day plugin use.
 
-The current development line is `3.5.0-dev`. Formal stable releases should be tagged separately.
+The current release version is `3.5.0`. Formal stable releases should be tagged and published through GitHub Releases.
 
 ## Release Package Surface
 
@@ -62,13 +62,13 @@ git diff --check
 ## Build
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0-dev
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0
 ```
 
 The build writes:
 
 ```text
-dist/buy-side-research-skills-3.5.0-dev.zip
+dist/buy-side-research-skills-3.5.0.zip
 ```
 
 The build script calls the release package validator after creating the zip.

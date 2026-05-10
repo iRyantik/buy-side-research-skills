@@ -1,4 +1,4 @@
-# CLAUDE.md - Buy-Side Research Plugin Dev Constitution
+﻿# CLAUDE.md - Buy-Side Research Plugin Dev Constitution
 
 > 本文件只服务这个 plugin source repo。它不是 plugin runtime prompt，也不进入用户安装包。
 > Runtime 行为由各 `SKILL.md`、`skill.yaml`、`skills/_shared/global-rules.md`、research skill capsule 和 workspace templates 承担。
@@ -123,10 +123,10 @@ git diff --check
 如果修改了 release package 规则，必须运行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0-dev
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0
 ```
 
 ## Version
 
-- Version: v3.5.0-dev
+- Version: v3.5.0
 - Last updated: 2026-05-10

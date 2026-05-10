@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$SkillName = "company-primer"
 )
 
@@ -58,7 +58,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "company-primer"
         id = "company-primer"
         version = "1.0.0"
-        system_generation = "3.5.0-dev"
+        system_generation = "3.5.0"
         metadata_schema_version = "1"
     }
 

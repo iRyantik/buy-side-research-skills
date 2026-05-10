@@ -1,4 +1,4 @@
-param(
+﻿param(
     [int]$ExpectedActiveSkillCount = 19
 )
 
@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillsRoot = Join-Path $repoRoot "skills"
-$expectedSystemGeneration = "3.5.0-dev"
+$expectedSystemGeneration = "3.5.0"
 $expectedMetadataSchemaVersion = "1"
 $semverPattern = "^\d+\.\d+\.\d+$"
 $allowedCategories = @("research", "operations")

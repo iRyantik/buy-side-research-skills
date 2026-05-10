@@ -33,7 +33,7 @@ Extract the zip into the plugin location required by Claude or Codex, then confi
 
 ## First Use
 
-Run `init` to create or repair a research workspace scaffold. On the current development line, `init` installs workspace `CLAUDE.md` plus a pointer `AGENTS.md` for Codex / agents.
+Run `init` to create or repair a research workspace scaffold. In `3.5.0`, `init` installs workspace `CLAUDE.md` plus a pointer `AGENTS.md` for Codex / agents.
 
 Use `new-session` after `init` when you want to create or locate a topic session before saving research artifacts. `new-session` resolves paths and lightly updates topic `index.md`; it does not write research conclusions.
 

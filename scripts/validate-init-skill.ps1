@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$SkillName = "init"
 )
 
@@ -109,7 +109,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "workspace_scaffold",
         "workspace scaffold",
         "user-provided research workspace",
-        "3.5.0-dev"
+        "3.5.0"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("init: skill.yaml missing required phrase '$phrase'")
@@ -130,8 +130,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.3.0") {
         $failures.Add("init: expected skill version 1.3.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.5.0-dev") {
-        $failures.Add("init: expected system_generation 3.5.0-dev, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.5.0") {
+        $failures.Add("init: expected system_generation 3.5.0, found '$systemGeneration'")
     }
 }
 

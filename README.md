@@ -1,8 +1,8 @@
-# Buy-Side Research Skills
+﻿# Buy-Side Research Skills
 
 一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化和材料 ingest。
 
-当前开发线：`3.5.0-dev`
+当前版本：`3.5.0`
 
 稳定发布基线：`v3.4.0`
 

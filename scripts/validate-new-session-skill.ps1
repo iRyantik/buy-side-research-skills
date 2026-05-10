@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$SkillName = "new-session"
 )
 
@@ -91,7 +91,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "new-session"
         id = "new-session"
         version = "1.0.0"
-        system_generation = "3.5.0-dev"
+        system_generation = "3.5.0"
         category = "operations"
     }
 
