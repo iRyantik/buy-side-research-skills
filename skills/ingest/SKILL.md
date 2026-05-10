@@ -131,6 +131,31 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 | 英国 | 无成熟工具 | `[gap]`，需 Arelle DIY |
 | 美股 | EdgarTools | 成熟 |
 
+### 图片提取（Vision Pipeline）
+
+默认**零 API 调用**：从 PDF/DOCX/PPTX/XLSX 提取图片 → 去重（SHA256）→ 过滤（<100x100 跳过）→ 写入 `_cache/<category>/_figures/img_NNN.png` → cache markdown 用 `![Figure N](_figures/img_NNN.png)` 嵌入。研究 skill 读取 cache 时，Claude 多模态自动看图。
+
+**可选外部视觉模型**（主模型不支持多模态时）：
+
+```bash
+# 环境变量
+VISION_ENDPOINT=https://your-api.com/v1/chat/completions
+VISION_API_KEY=sk-xxx
+VISION_MODEL_NAME=gpt-4o
+VISION_MAX_TOKENS=1024
+VISION_MAX_IMAGES_PER_DOC=20
+
+# CLI args（覆盖环境变量）
+--vision-endpoint --vision-api-key --vision-model --describe-images
+```
+
+| 图片源 | 提取方法 |
+|---|---|
+| PDF | PyMuPDF (fitz) 逐页提取嵌入图片 |
+| DOCX | python-docx 提取 document part 图片 |
+| PPTX | python-pptx 提取 slide shape 图片 |
+| XLSX | openpyxl 提取 worksheet 内嵌图片 |
+
 ## 文件安全
 
 - 不删除、不重命名 `topics/<topic>/_raw/` 内已有源文件。

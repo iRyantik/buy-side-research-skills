@@ -128,7 +128,13 @@
         │   ├── industry/            #     industry reports
         │   ├── irdecks/             #     IR / investor day presentations
         │   └── datasets/            #     CSV, Excel 结构化数据
-        ├── _cache/                  #   ingest 转换 markdown（operational, not earned memory）
+        ├── _cache/                  #   ingest 转换 markdown（与 _raw/ 分类对齐）
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   └── datasets/
         ├── _models/                 #   财务模型 / workbooks
         ├── <YYYY-MM-DD>-<session>/  #   研究 session
         │   ├── company-primer.md
@@ -144,6 +150,8 @@
 - `topics/<topic>/_models/` 保存 workbook / model files。
 - `_scripts/` 保存 init / ingest helper scripts。
 - `edge-radar.md` 存放跨 topic 研究雷达和待验证 edge。
+- **图片提取**：ingest 自动提取文档内嵌图片到 `_cache/<category>/_figures/`，markdown 用 `![Figure]` 嵌入。研究时 Claude 多模态自动看图。
+- **外部视觉模型**（主模型不支持多模态时）：设环境变量 `VISION_ENDPOINT` + `VISION_API_KEY` + `--describe-images` 可批量预描述图片。
 - 子 topic 用 `integrate` skill 合并到父 topic 下。
 
 ### Topic Session Shape

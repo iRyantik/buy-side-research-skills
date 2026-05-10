@@ -209,7 +209,13 @@ Future research workspace：
         │   ├── industry/
         │   ├── irdecks/
         │   └── datasets/
-        ├── _cache/                  # ingest 转换 markdown
+        ├── _cache/                  # ingest 转换 markdown（与 _raw/ 分类对齐）
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   └── datasets/
         ├── _models/                 # 财务模型
         ├── <YYYY-MM-DD>-<session>/  # 研究 session
         └── <sub-topic>/             # integrate 合并的子 topic

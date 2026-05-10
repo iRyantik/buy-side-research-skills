@@ -43,11 +43,16 @@ capabilities:
     - 'Single File Ingest'
     - 'Inbox / Directory Ingest'
     - 'Cache Reuse Check'
+    - 'Image Extraction'
+    - 'Vision Description (optional)'
   requirements:
     - 'support --check-deps dependency matrix before conversion'
     - 'install dependencies only through explicit opt-in bootstrap script'
     - 'route text-heavy PDFs through PyMuPDF4LLM (fast CPU path); table-heavy PDFs through Docling'
     - 'route SEC filings through EdgarTools readiness plus Docling narrative conversion'
+    - 'extract embedded images from PDF/DOCX/PPTX/XLSX with deduplication and size filtering'
+    - 'embed extracted images in cache markdown with ![](path) for Claude multimodal reading'
+    - 'support optional external vision model API via VISION_ENDPOINT env var or --vision-endpoint'
     - 'scanned PDFs: attempt Docling first, PyMuPDF4LLM fallback; mark precision caveat for Claude Vision review'
     - 'write cache markdown with source metadata header'
     - 'skip existing cache by default unless force is requested'
@@ -62,7 +67,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: '[source-filename].md'
-  canonical_location: 'topics/[topic]/_cache/[source-filename].md'
+  canonical_location: 'topics/[topic]/_cache/[category]/[source-filename].md'
   save_trigger: 'write cache markdown only after a user provides a source file or directory inside a research workspace'
 workflow:
   stage: 'material-ingestion'
