@@ -1,0 +1,17 @@
+.claude/
+RTK.md
+dist/
+*.zip
+*.tar.gz
+*.7z
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+node_modules/
+.DS_Store
+Thumbs.db

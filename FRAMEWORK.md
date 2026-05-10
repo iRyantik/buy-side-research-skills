@@ -9,10 +9,22 @@ v3 的价值不是“多写几个文件”，而是投研 value add：像 senior
 核心链路：
 
 ```text
-Research Edge → Better AI Question → Research → Journal → Boss Brief
+Research Edge -> Better AI Question -> Research -> Journal -> Boss Brief
 ```
 
-## 2. Active Skills
+## 2. Package Model
+
+This repository is a plugin development repo, not the research workspace itself.
+
+```text
+buy-side-research-skills/          # plugin dev repo
+release-package/                   # zip or marketplace payload
+Research-AI-Power/                 # user workspace created later by init
+```
+
+Plugin runtime skills live in `skills/`. Example research artifacts live under `examples/` and must not become runtime dependencies.
+
+## 3. Active Skills
 
 | Module | Skills |
 |---|---|
@@ -23,9 +35,9 @@ Research Edge → Better AI Question → Research → Journal → Boss Brief
 
 The v2 state workflow has been archived outside active `skills/`.
 
-## 3. Senior Analyst Radar
+## 4. Senior Analyst Radar
 
-Global rule lives in `CLAUDE.md`; reusable prompt patterns live in `topics/_meta/edge-radar.md`.
+Global rule lives in `CLAUDE.md`; reusable runtime prompt patterns should live in the user workspace at `topics/_meta/edge-radar.md`. The compact example copy lives under `examples/workspaces/ai-data-center-power/`.
 
 High-value dimensions:
 - business substance misread
@@ -49,7 +61,7 @@ Default reminder:
 - 可以问 AI：[1-2 个最关键问题]
 ```
 
-## 4. Skill Contracts
+## 5. Skill Contracts
 
 ### `next-step`
 
@@ -76,7 +88,7 @@ Claim Check + Research Relevance. It verifies whether a claim is credible, then 
 
 ### `driver-map`
 
-Research primitive for mapping `Reported Bucket → Business Reality → Model Driver`. It handles revenue, margin, backlog, price / volume / mix, weird segment buckets, and model-driver gaps. It does not do DCF/comps, create workbooks, or write full thesis.
+Research primitive for mapping `Reported Bucket -> Business Reality -> Model Driver`. It handles revenue, margin, backlog, price / volume / mix, weird segment buckets, and model-driver gaps. It does not do DCF/comps, create workbooks, or write full thesis.
 
 Downstream skills consume it:
 - `financial-model` turns driver-map into operating model, DCF, comps, reverse DCF, and update maps.
@@ -94,9 +106,27 @@ It does not do DCF/comps, create workbooks, or write full thesis. When mechanism
 
 Journal-first pair research tool. It keeps the full builder / monitor methodology from the original pair workflow: independent long and short theses, spread history, beta / correlation, sizing, risk matrix, and P/L attribution. It does not maintain trade state, append logs, or depend on the archived v2 workflow.
 
-## 5. Files
+## 6. File Model
+
+Plugin dev repo:
 
 ```text
+.claude-plugin/
+.codex-plugin/
+skills/
+scripts/
+docs/
+examples/
+archive/
+```
+
+Future research workspace:
+
+```text
+_inbox/
+_raw/
+_cache/
+_models/
 topics/
   _meta/
     edge-radar.md
@@ -104,29 +134,13 @@ topics/
     [topic-slug]/
       index.md
       [YYYY-MM-DD]-[session-slug]/
-        mechanism-map.md   # optional, only when saved
-        driver-map.md      # optional, only when saved
+        mechanism-map.md
+        driver-map.md
         research-journal.md
         boss-brief.md
-screens/
-peers/
-quickreads/
-cross-market/
-archive/
-  v2-state-skills/
-  v2-state-fixtures/
 ```
 
 No topic-level edge signal file. No standalone next-step file. A weird signal enters the journal only after it has been researched.
-
-## 6. Edge Radar Document
-
-`topics/_meta/edge-radar.md` only contains:
-
-1. **识别信号**
-2. **可以怎么问 AI**
-
-It is not a state log, status tracker, case library, or hypothesis database.
 
 ## 7. BKR IET Behavior Test
 
@@ -145,8 +159,8 @@ Required checks:
 - active `skills/` count is 14
 - active docs and metadata list the same 14 skills
 - archived v2 state skills are outside active `skills/`
-- old brief naming, topic-level edge signal files, and standalone next-step files do not appear
+- example workspaces live under `examples/`, not at repo root
 - `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `mechanism-map`, and `driver-map` appear in public docs
 
 **版本**：v3.3.0
-**最后更新**：2026-05-09
+**最后更新**：2026-05-10

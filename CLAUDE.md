@@ -154,33 +154,48 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 ## 7. 文件组织
 
-v3 是 journal-first 系统，默认围绕 topic 组织：
+本 repo 是 plugin development project，不再兼作日常研究 workspace。研究产物示例放在 `examples/`，真正的用户研究 workspace 后续由 `init` skill 创建。
+
+### 7.1 Plugin dev repo
 
 ```text
-[project-root]/
-├── topics/
-│   ├── _meta/
-│   │   └── edge-radar.md
-│   └── [topic_type]/
-│       └── [topic-slug]/
-│           ├── index.md
-│           └── [YYYY-MM-DD]-[session-slug]/
-│               ├── mechanism-map.md        # optional, only when user asks to save
-│               ├── driver-map.md           # optional, only when user asks to save
-│               ├── research-journal.md
-│               └── boss-brief.md
-├── screens/
-├── peers/
-├── quickreads/
-├── cross-market/
-├── archive/
-│   ├── v2-state-skills/
-│   └── v2-state-fixtures/
-├── skills/
+[plugin-dev-root]/
+├── .claude-plugin/          # Claude plugin manifest
+├── .codex-plugin/           # Codex plugin manifest
+├── skills/                  # active runtime skills and shared rules
+├── scripts/                 # development validators and release scripts
+├── docs/                    # install / architecture / release docs
+├── examples/                # example workspaces; not runtime dependencies
+├── archive/                 # historical v2 reference material
 ├── CLAUDE.md
-├── AGENTS.md
 ├── FRAMEWORK.md
+├── META-SKILL.md
 └── README.md
+```
+
+- Runtime 必需的模板、脚本、references 应放进对应 `skills/[skill]/` 下，不要放在 root `examples/`。
+- Root `scripts/` 只放开发校验、发布打包脚本，不作为具体 skill 的 runtime 依赖入口。
+- `examples/` 可以展示研究产物长什么样，但 skill 不得依赖 example 文件。
+
+### 7.2 Future research workspace
+
+```text
+[research-workspace]/
+├── _inbox/
+├── _raw/
+├── _cache/
+├── _models/
+└── topics/
+    ├── _meta/
+    │   └── edge-radar.md
+    └── [topic_type]/
+        └── [topic-slug]/
+            ├── index.md
+            └── [YYYY-MM-DD]-[session-slug]/
+                ├── mechanism-map.md        # optional, only when user asks to save
+                ├── driver-map.md           # optional, only when user asks to save
+                ├── research-journal.md
+                └── boss-brief.md
 ```
 
 - `research-journal.md` 只沉淀真正研究过、想清楚的认知增量。
