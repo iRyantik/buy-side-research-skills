@@ -1,6 +1,6 @@
 # Release
 
-Release packages should be reproducible from the plugin dev repo and safe to share with colleagues. The first stable shareable baseline is `v3.3.1`. Current `main` may build `3.4.0-dev` packages with `init` and `ingest`; formal `v3.4.0` waits for release hardening.
+Release packages should be reproducible from the plugin dev repo and safe to share with colleagues. The current stable shareable baseline is `v3.4.0`, including `init`, `ingest`, and opt-in ingest dependency bootstrap.
 
 ## Include
 
@@ -42,27 +42,27 @@ Run all validators before producing a zip:
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
 
 ## Build
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
 ```
 
 The build writes:
 
 ```text
-dist/buy-side-research-skills-3.4.0-dev.zip
+dist/buy-side-research-skills-3.4.0.zip
 ```
 
 The build script calls the release package validator after creating the zip.
 
 ## Ingest Runtime Assets
 
-`3.4.0-dev` release packages must include:
+`3.4.0` release packages must include:
 
 ```text
 skills/ingest/assets/requirements-ingest.txt

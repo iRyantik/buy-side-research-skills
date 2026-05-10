@@ -1,4 +1,4 @@
-# Buy-Side Research Skills v3.4.0-dev
+# Buy-Side Research Skills v3.4.0
 
 Journal-first buy-side equity research skill suite for Claude and Codex. The system helps a researcher find high-value questions, route mechanism / driver gaps to the right primitive, and turn researched insight into topic journals or Boss Briefs.
 
@@ -12,7 +12,7 @@ Repository: `iRyantik/buy-side-research-skills`
 4. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
 5. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
-Version `3.3.1` remains the stable colleague-shareable baseline. Current `main` is `3.4.0-dev`: it adds guided workspace creation through `init` and raw material cache conversion through `ingest`; formal `v3.4.0` still waits for release hardening.
+Version `3.4.0` is the current colleague-shareable baseline. It adds guided workspace creation through `init`, raw material cache conversion through `ingest`, and opt-in local dependency bootstrap for the ingest toolchain.
 
 ## Install
 
@@ -91,25 +91,24 @@ Run the standard gates before release:
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
 
 ## Version Notes
 
-### v3.4.0-dev
+### v3.4.0
 
 - Added `init` as the 16th active workspace setup skill.
 - Added standard research workspace scaffold templates and an idempotent init helper script.
 - Added `ingest` as the 17th active raw material cache skill.
 - Added opt-in ingest dependency bootstrap for Docling, EdgarTools, Tesseract OCR, MarkItDown, PDFPlumber, and related parsers.
-- Kept formal `v3.4.0` release hardening out of scope.
 
 ### v3.3.1
 
 - Hardened release packaging for colleague distribution.
 - Added reproducible release zip generation and validation.
-- Kept `init` / `ingest` out of scope for a future v3.4.0 release.
+- Kept `init` / `ingest` out of scope; those shipped in v3.4.0.
 
 ### v3.3.0
 

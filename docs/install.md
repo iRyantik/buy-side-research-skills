@@ -2,7 +2,7 @@
 
 Repository: `iRyantik/buy-side-research-skills`
 
-This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`; current `main` may contain `3.4.0-dev` work such as `init` and `ingest`.
+This plugin is designed for colleague self-installation through GitHub or a release zip. The current colleague-shareable baseline is `v3.4.0`, including `init`, `ingest`, and opt-in ingest dependency bootstrap.
 
 ## Claude
 
@@ -27,17 +27,17 @@ If your Codex environment uses local plugins instead of marketplace install, ext
 
 ## Release Zip
 
-For the stable baseline, download `buy-side-research-skills-3.3.1.zip` from the repo release artifact. For the current dev package, build it locally with:
+For the stable baseline, download `buy-side-research-skills-3.4.0.zip` from the repo release artifact, or build it locally with:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
 ```
 
 Extract the zip into the plugin location required by Claude or Codex, then confirm the plugin exposes the skills in `skills/`.
 
 ## First Use
 
-Version `3.3.1` does not include `init` or `ingest`. In `3.4.0-dev`, users can run `init` to create or repair a research workspace scaffold, then run `ingest` to convert supported raw files into `_cache/` markdown. Formal `v3.4.0` still waits for release hardening.
+In `3.4.0`, users can run `init` to create or repair a research workspace scaffold, then run `ingest` to convert supported raw files into `_cache/` markdown.
 
 ## Ingest Dependencies
 

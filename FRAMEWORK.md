@@ -1,4 +1,4 @@
-# FRAMEWORK.md — Journal-First Buy-Side Research Skills v3.4.0-dev
+# FRAMEWORK.md — Journal-First Buy-Side Research Skills v3.4.0
 
 > `CLAUDE.md` 是唯一 constitution。本文件是系统设计蓝图，不覆盖 `CLAUDE.md`。
 
@@ -203,5 +203,5 @@ Required checks:
 - example workspaces live under `examples/`, not at repo root
 - `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `init`, `ingest`, `company-primer`, `mechanism-map`, and `driver-map` appear in public docs
 
-**版本**：v3.4.0-dev
+**版本**：v3.4.0
 **最后更新**：2026-05-10
