@@ -121,6 +121,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 | Layer | Skills | 作用 |
 |---|---|---|
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | 过滤信息、找候选、快速判断是否值得继续 |
+| Company Foundation | `company-primer` | 打牢公司业务基础、业务演变和披露口径历史 |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | 拆机制和底层变量、标准化比较、提出下一步高价值问题 |
 | Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 横向研究、单股 thesis、反方压测、财报、pair、建模估值 |
 | Synthesis / Memory | `research-journal` | 沉淀本轮研究认知、生成 Boss Brief |
@@ -129,12 +130,15 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 `driver-map` 是 v3.2 的 research primitive。涉及 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `financial-model`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。
 
+`company-primer` 是 company foundation skill。涉及公司到底卖什么、客户是谁、业务边界如何演变、material M&A / divestiture、segment / KPI rename、recast 或披露口径断裂时，先用 `company-primer` 打牢公司地基；若口径断裂已经阻塞 driver 判断，再进入 `driver-map`。
+
 ### 6.2 Skill 触发表
 
 | Skill | 触发场景 | 输出形态 |
 |---|---|---|
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一下 | 快速公司分析 + 对手盘假设 |
+| `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
 | `peer-deep-dive` | 几家公司一起看 / 横向研究 | industry lens + cross-cut 信号 + 研究排序 |
 | `pair-trade` | Long X Short Y / 这两个能不能 pair / hedge candidate | pair verdict + spread logic |
 | `alpha-thesis` | 搭 long / short thesis / pitch 逻辑 | variant view + catalyst + kill criteria |
@@ -193,6 +197,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
             ├── index.md
             └── [YYYY-MM-DD]-[session-slug]/
                 ├── mechanism-map.md        # optional, only when user asks to save
+                ├── company-primer.md       # optional, only when user asks to save
                 ├── driver-map.md           # optional, only when user asks to save
                 ├── research-journal.md
                 └── boss-brief.md
@@ -208,7 +213,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - 新研究产物默认围绕 topic session 保存：`topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
 - `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
 - `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`：默认保存到当前 topic session；若 session 不明确，先建议路径并让用户确认。
-- `mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`：默认对话输出，用户要求保存时进入当前 topic session。
+- `company-primer`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`：默认对话输出，用户要求保存时进入当前 topic session。
 - `information-impact` 和 `next-step` 属于 `none`：不创建 standalone artifact；研究清楚后再 handoff 到 `research-journal`。
 - `financial-model` 属于 `external_workbook`：只在用户要求时写入用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 - `research-journal` 属于 `earned_memory`：只保存通过 Earned Insight Gate 的认知增量、Boss Brief 或 topic index update，不收 raw reminders、未验证灵感或 unresolved driver / mechanism guess。

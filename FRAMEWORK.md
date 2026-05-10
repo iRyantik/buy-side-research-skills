@@ -29,6 +29,7 @@ Plugin runtime skills live in `skills/`. Example research artifacts live under `
 | Module | Skills |
 |---|---|
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` |
+| Company Foundation | `company-primer` |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` |
 | Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` |
 | Synthesis / Memory | `research-journal` |
@@ -86,6 +87,12 @@ Boss Brief is a high-density memo for a boss / PM. It optimizes judgment transfe
 
 Claim Check + Research Relevance. It verifies whether a claim is credible, then decides whether it creates a research question. It does not write portfolio impact or state files.
 
+### `company-primer`
+
+Company foundation skill for mapping what a company sells, who pays, how the business evolved, and how segment / KPI disclosure changed over time. It does not do quick triage, driver modeling, valuation, peer ranking, or thesis writing.
+
+It should feed `driver-map` when disclosure evolution blocks revenue, margin, backlog, price / volume / mix, or model-driver interpretation. It should feed `mechanism-map` when product, equipment-chain, process, or know-how understanding is still missing.
+
 ### `driver-map`
 
 Research primitive for mapping `Reported Bucket -> Business Reality -> Model Driver`. It handles revenue, margin, backlog, price / volume / mix, weird segment buckets, and model-driver gaps. It does not do DCF/comps, create workbooks, or write full thesis.
@@ -134,6 +141,7 @@ topics/
     [topic-slug]/
       index.md
       [YYYY-MM-DD]-[session-slug]/
+        company-primer.md
         mechanism-map.md
         driver-map.md
         research-journal.md
@@ -173,11 +181,11 @@ Expected behavior:
 ## 8. Validation
 
 Required checks:
-- active `skills/` count is 14
-- active docs and metadata list the same 14 skills
+- active `skills/` count is 15
+- active docs and metadata list the same 15 skills
 - archived v2 state skills are outside active `skills/`
 - example workspaces live under `examples/`, not at repo root
-- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `mechanism-map`, and `driver-map` appear in public docs
+- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `company-primer`, `mechanism-map`, and `driver-map` appear in public docs
 
 **版本**：v3.3.0
 **最后更新**：2026-05-10

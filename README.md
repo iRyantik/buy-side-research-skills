@@ -8,7 +8,7 @@ Repository: `iRyantik/buy-side-research-skills`
 
 1. Install the plugin from GitHub or a release zip.
 2. Open a research workspace, not this plugin repo.
-3. Use the active skills to screen, quickread, compare, map mechanisms, map drivers, build theses, and write earned research memory.
+3. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
 4. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
 Batch 1 prepares the plugin package skeleton. Guided workspace creation will arrive in a later `init` skill batch.
@@ -45,6 +45,7 @@ Runtime files needed by a skill should live inside that skill directory. Root `s
 | Layer | Skills | Purpose |
 |---|---|---|
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | Filter information, find candidates, and decide whether to continue. |
+| Company Foundation | `company-primer` | Map what a company sells, how the business evolved, and where disclosure history breaks comparability. |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | Map mechanisms, model drivers, cross-market valuation, and the next highest-value question. |
 | Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | Run peer work, thesis work, pre-mortems, earnings setup, pair research, and model work. |
 | Synthesis / Memory | `research-journal` | Save researched insight and Boss Briefs. |
@@ -56,6 +57,7 @@ Senior Analyst Radar -> better AI questions -> research -> research-journal -> B
 ```
 
 - `Senior Analyst Radar` flags issues that may change business understanding, model drivers, market framing, peer groups, or research priority.
+- `company-primer` handles company foundations, business evolution, segment / KPI rename, recast, and disclosure history before driver or thesis work.
 - `mechanism-map` handles industry mechanisms, engineering principles, equipment chains, process flows, terminology, and know-how gaps.
 - `driver-map` handles revenue, margin, backlog, price / volume / mix, disclosure buckets, KPI oddities, and model-driver gaps.
 - `research-journal` saves only researched, source-backed insight. It is not a transcript or idea dump.
@@ -77,8 +79,10 @@ Run the standard gates before release:
 ```powershell
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
 
@@ -86,6 +90,7 @@ Run the standard gates before release:
 
 ### v3.3.0
 
+- Added `company-primer` as the 15th active company foundation skill.
 - Added `mechanism-map` as the 14th active research primitive.
 - Added formal routing between mechanism / know-how work and driver / model / thesis work.
 - Added runtime global rules capsules and canonical `skill.yaml` metadata.

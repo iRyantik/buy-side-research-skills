@@ -222,6 +222,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 | 场景 | 下一步 |
 |---|---|
 | quickread 判断这家公司值得继续研究，且需要形成 long / short 观点 | `alpha-thesis` |
+| 公司基础、业务演变、segment / KPI 历史口径或 material M&A / divestiture 影响当前理解 | `company-primer` |
 | 收入结构复杂、segment bucket 怪、model driver 不清楚 | `driver-map` |
 | 业务机制、设备链条、工艺流程或术语不清 | `mechanism-map` |
 | 需要和一组 peer 横向比较 | `peer-deep-dive` |
@@ -233,4 +234,4 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 - 标准 quickread：1200-1800 字，必须保留数据表、takeaway、反向工程和下一层问题。
 - 快速 triage：600-900 字，只能用于判断是否值得继续研究；若低于 600 字，通常 source / valuation / driver 不足。
-- 超过 2200 字通常说明已经越界到 `alpha-thesis`、`driver-map` 或 `financial-model`，应拆分。
+- 超过 2200 字通常说明已经越界到 `company-primer`、`alpha-thesis`、`driver-map` 或 `financial-model`，应拆分。

@@ -42,4 +42,6 @@ New research artifacts should live inside topic sessions:
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 ```
 
+Company foundation artifacts such as `company-primer.md` follow the same topic-session rule and are saved only when the user asks to preserve them.
+
 The only exceptions are conversation-only skills (`information-impact`, `next-step`), earned-memory writes (`research-journal`), and external workbooks (`financial-model`). Root folders such as `screens/`, `peers/`, `quickreads/`, and `cross-market/` are legacy/example shapes, not active default save locations.

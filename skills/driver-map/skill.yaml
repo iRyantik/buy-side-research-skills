@@ -2,7 +2,7 @@
 name: 'driver-map'
 id: 'driver-map'
 display_name: 'Driver Map'
-version: '1.0.1'
+version: '1.1.0'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -48,6 +48,7 @@ capabilities:
     - 'map reported buckets to business reality'
     - 'map business reality to model drivers'
     - 'flag model-driver gaps and weird disclosure'
+    - 'hand off company foundation or disclosure evolution history to company-primer'
     - 'do not perform DCF or comps'
     - 'do not create or edit workbooks'
 artifact_policy:
@@ -59,6 +60,7 @@ workflow:
   stage: 'research-primitive'
   can_follow:
     - 'mechanism-map'
+    - 'company-primer'
     - 'stock-quickread'
     - 'information-impact'
   feeds_into:

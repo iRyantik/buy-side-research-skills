@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 14
+    [int]$ExpectedActiveSkillCount = 15
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,6 +36,11 @@ $expectedPolicies = @{
         save_policy = "optional_topic_session"
         default_artifact = "cross-market-compare.md"
         canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md"
+    }
+    "company-primer" = @{
+        save_policy = "optional_topic_session"
+        default_artifact = "company-primer.md"
+        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md"
     }
     "driver-map" = @{
         save_policy = "optional_topic_session"

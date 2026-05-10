@@ -65,6 +65,7 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 ### 不应触发
 
 - "帮我搭 model / 做 DCF / comps" → `financial-model`，但它应消费或先产出 driver-map。
+- "这家公司到底做什么 / 业务怎么演变 / segment 或 KPI 历史口径怎么变" → `company-primer`，先打牢公司基础和 disclosure evolution。
 - "这个设备链条 / 工艺流程怎么连接" → `mechanism-map`，先搞清机制再拆 driver。
 - "快速看一家公司值不值得研究" → `stock-quickread`，若 driver 不清再进入本 skill。
 - "几家公司一起看、排序" → `peer-deep-dive`，若 KPI 口径不可比再引用本 skill。
@@ -208,6 +209,7 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 | 场景 | 下一步 |
 |---|---|
 | 用户要继续搭 operating model / DCF / comps | `financial-model` |
+| driver work 发现公司业务边界、segment rename、KPI recast 或 material M&A 历史不清 | `company-primer` |
 | driver map 暴露 variant view | `alpha-thesis` |
 | 多家公司 driver 需要横向比较 | `peer-deep-dive` |
 | 两家公司是否受同一 driver 驱动 | `pair-trade` |
@@ -248,6 +250,7 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 ## 与相邻 skill 的边界
 
 - `financial-model` 做 operating model、DCF、comps、workbook update；本 skill 只做 driver-map。
+- `company-primer` 处理公司业务基础、业务演变和 disclosure evolution；本 skill 在这些基础清楚后才把 bucket 映射成 model driver。
 - `stock-quickread` 快速判断是否值得继续看；本 skill 深挖 revenue / margin driver。
 - `peer-deep-dive` 做横向排序和 cross-cut insight；本 skill 提供可比较的 driver 口径。
 - `mechanism-map` 处理行业 know-how、工程机制、设备链条、工艺流程和术语；本 skill 只处理公司业务到 model driver 的映射。

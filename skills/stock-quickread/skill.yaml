@@ -2,7 +2,7 @@
 name: 'stock-quickread'
 id: 'stock-quickread'
 display_name: 'Stock Quickread'
-version: '1.0.2'
+version: '1.1.0'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -33,6 +33,7 @@ capabilities:
   requirements:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
+    - 'route company foundation and disclosure evolution gaps to company-primer'
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'stock-quickread.md'
@@ -41,6 +42,7 @@ artifact_policy:
 workflow:
   stage: 'discovery'
   next_steps:
+    - 'company-primer'
     - 'alpha-thesis'
   decision_point: '值不值得花时间深入研究'
 quality_gates:

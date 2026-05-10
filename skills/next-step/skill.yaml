@@ -2,7 +2,7 @@
 name: 'next-step'
 id: 'next-step'
 display_name: 'Next Step'
-version: '1.1.1'
+version: '1.2.0'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -40,6 +40,7 @@ capabilities:
     - 'route mechanism gaps to mechanism-map'
     - 'route driver and KPI gaps to driver-map'
     - 'route source or claim gaps to information-impact'
+    - 'route company foundation or disclosure evolution gaps to company-primer'
     - 'do not create standalone next-step files'
 artifact_policy:
   save_policy: 'none'
