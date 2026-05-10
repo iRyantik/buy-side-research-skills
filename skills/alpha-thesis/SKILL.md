@@ -214,11 +214,13 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 
 ## Journal-First Handoff
 
-本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为 topic session 的研究材料，交给 `research-journal` 沉淀：
+本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前 topic session 的研究材料保存为：
 
 ```text
-topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
 ```
+
+`research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Global Rules Capsule (v1)` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
 

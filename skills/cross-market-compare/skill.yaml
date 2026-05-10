@@ -2,7 +2,7 @@
 name: 'cross-market-compare'
 id: 'cross-market-compare'
 display_name: 'Cross-Market Compare'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -42,7 +42,7 @@ capabilities:
     - 'ADR ratio'
     - 'valuation multiples'
     - 'liquidity'
-  writes_optional: 'cross-market/[group-name]-[YYYY-MM-DD].md'
+  writes_optional: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
   feeds_into:
     - 'alpha-thesis'
     - 'peer-deep-dive'
@@ -53,3 +53,8 @@ capabilities:
     - 'as-of timestamps'
     - 'source links'
     - 'accounting and access adjustments'
+artifact_policy:
+  save_policy: 'optional_topic_session'
+  default_artifact: 'cross-market-compare.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
+  save_trigger: 'save only when user asks to preserve the cross-market comparison as session research material'

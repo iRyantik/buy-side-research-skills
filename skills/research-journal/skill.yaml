@@ -2,7 +2,7 @@
 name: 'research-journal'
 id: 'research-journal'
 display_name: 'Research Journal'
-version: '1.1.0'
+version: '1.1.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -51,3 +51,8 @@ capabilities:
     - 'maintain topic index as an evolutionary map, not a state tracker'
     - 'boss brief is high-density, not simplified'
     - 'follow Global Rules Capsule source policy'
+artifact_policy:
+  save_policy: 'earned_memory'
+  default_artifact: 'research-journal.md | boss-brief.md | index.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md or boss-brief.md; topic index at topics/[topic_type]/[topic-slug]/index.md'
+  save_trigger: 'write only content that passes the Earned Insight Gate; do not store raw reminders or unresolved guesses'

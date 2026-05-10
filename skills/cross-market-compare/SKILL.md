@@ -266,7 +266,13 @@ description: Use when comparing A/H shares, ADRs, local listings, or cross-marke
 
 ## 写入
 
-默认输出到对话。用户明确要求保存时，写入 `cross-market/[group-name]-[YYYY-MM-DD].md`。不要自动维护状态库。
+默认输出到对话。用户明确要求保存时，写入当前 topic session：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md
+```
+
+不要自动维护状态库。
 
 ## 反模式自查
 

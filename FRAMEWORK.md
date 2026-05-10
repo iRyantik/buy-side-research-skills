@@ -142,6 +142,23 @@ topics/
 
 No topic-level edge signal file. No standalone next-step file. A weird signal enters the journal only after it has been researched.
 
+## 6.1 Artifact Save Policy
+
+New research artifacts use topic-session storage by default:
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+```
+
+Legacy root artifact directories such as `screens/`, `peers/`, `quickreads/`, and `cross-market/` may appear in examples or archived material, but active skills should not use them as default save targets.
+
+Policy classes:
+- `none`: conversation-only; no standalone files.
+- `optional_topic_session`: save to current topic session only when user asks.
+- `default_topic_session`: save to current topic session by default; ask for path confirmation if session is unclear.
+- `earned_memory`: write only researched insight that passes the journal gate.
+- `external_workbook`: write to user-provided workbook or workspace `_models/`, not a topic markdown artifact.
+
 ## 7. BKR IET Behavior Test
 
 When encountering `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, the system should not summarize and move on. It should point out that this may reflect gas turbine system economics, turbine body, adjacent equipment, service, controls, or value-chain layers.

@@ -211,7 +211,7 @@ skill 不能是孤岛。每个 skill 明确：
 
 - **上游**（什么 skill 的产出 feed 进来）
 - **下游**（产出 feed 到哪个 skill）
-- **状态文件**（写什么 / 读什么）
+- **Artifact 保存策略**（写什么 / 不写什么 / 何时 handoff）
 
 写一个表格列出"这种场景 → 触发哪个下游 skill"。
 
@@ -276,7 +276,7 @@ description: Use when [具体触发场景和用户症状]。
 每个 active skill 必须维护 `skill.yaml`。`skill.yaml` 是 metadata / index truth；`SKILL.md` 是 runtime truth。两者分工如下：
 
 - `SKILL.md`：写实际行为、workflow、输出结构、source discipline、反模式和篇幅基准。
-- `skill.yaml`：写 name、trigger、capabilities、workflow、quality_gates、outputs、required_sections 等机器可读 metadata。
+- `skill.yaml`：写 name、trigger、capabilities、workflow、quality_gates、outputs、artifact_policy、required_sections 等机器可读 metadata。
 - `meta.json` 已 retired；不要新建、恢复或维护 `meta.json`。
 
 `skill.yaml` 必填字段：
@@ -295,7 +295,24 @@ summary: ...
 description: ...
 trigger: ...
 capabilities: ...
+artifact_policy:
+  save_policy: optional_topic_session
+  default_artifact: skill-name.md
+  canonical_location: topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/skill-name.md
+  save_trigger: save only when user asks
 ```
+
+`artifact_policy` 必填字段：
+- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`。
+- `default_artifact` 是默认文件名；不落盘的 skill 写 `conversation-only`。
+- `canonical_location` 是规范保存位置；topic artifact 必须落在 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
+- `save_trigger` 写清楚何时保存、何时只输出到对话、何时 handoff 给 `research-journal`。
+
+Artifact 保存原则：
+- 新研究产物默认进入 topic session，不再写 root `screens/`、`peers/`、`quickreads/`、`cross-market/`。
+- `research-journal` 只写 earned insight / Boss Brief / topic index update；不要把它当所有 skill 的普通保存目标。
+- `information-impact`、`next-step` 不创建 standalone artifact。
+- `financial-model` 写用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 
 版本策略：
 - `version` 是单个 skill 自身的 semver，不再表示系统代际。
@@ -363,13 +380,19 @@ capabilities: ...
 - 数据表格的列定义
 - Hard standards（如评级 / 阈值）
 
-### 4.10 状态文件 schema（如有）
+### 4.10 Artifact / 保存策略（必填）
 
-如果 skill 写 / 读状态文件，明确：
-- 文件路径
-- Frontmatter schema（YAML）
-- Entry schema（如果是追加式日志）
-- Append-only / replace-only / hybrid
+每个 skill 必须在正文说明 runtime 保存行为，并与 `skill.yaml.artifact_policy` 一致：
+- 是否默认保存、可选保存、永不保存、earned-memory 保存、或外部 workbook 保存。
+- 如果保存，写入哪个 canonical artifact，例如 `alpha-thesis.md`、`driver-map.md`、`pair-note.md`。
+- 如果当前 topic session 不明确，先建议路径并让用户确认，不自行发明复杂目录树。
+- 如果只是 research material，不要直接写进 `research-journal`；只有通过 Earned Insight Gate 后才进入 journal。
+
+Topic-session artifact 默认路径：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+```
 
 v3 journal-first 默认不维护 v2 状态库。除非用户明确要求，否则不要重新引入 `coverage/`、`pairs/[X-Y]/spread-log.md`、`portfolio/` 这类状态闭环。
 
@@ -483,7 +506,9 @@ Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`：
 
 ### 6.6 Workflow 孤岛反模式
 
-- ❌ 不读 / 不写状态文件的新 skill（孤岛）
+- ❌ 不声明 `artifact_policy`，导致用户不知道产物保存在哪里
+- ❌ 把 research material 直接写进 `research-journal`，跳过 Earned Insight Gate
+- ❌ 新产物继续默认写 root `screens/`、`peers/`、`quickreads/`、`cross-market/`
 - ❌ 没说明触发哪个下游 skill
 - ❌ 输出膨胀（默认 < 500 字的 skill 写到 2000 字）
 - ❌ Trigger keywords 和现有 skill 冲突
@@ -570,7 +595,7 @@ Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`：
 ### 9.4 Workflow 集成检查
 - [ ] 这个 skill 在 v3 核心循环（Edge → Question → Research → Journal → Brief）的哪一步？
 - [ ] 上游和下游 skills 明确？
-- [ ] 状态文件读 / 写规则清晰？
+- [ ] `artifact_policy` 和正文保存规则清晰？
 - [ ] Trigger keywords 和现有 active skills 不冲突？
 
 ### 9.5 用户特征匹配检查
@@ -706,7 +731,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 - 信息类型 → 处理路径 Map
 - Mode A: Claim Check
 - Mode B: Research Relevance（v3 简化后没有 Portfolio Impact）
-- 状态文件 schema
+- Artifact / 保存策略
 - Workflow 联动
 - 反模式自查
 - 篇幅基准
@@ -725,7 +750,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 我最不确定的 3 个地方：
 1. 是否保留 Mode A claim verdict 的 5 级（Confirmed/Likely/Plausible/Unsupported/Contradicted），还是简化到 3 级？
 2. "卖方观点本身不是 catalyst" 这条结论是否过强？
-3. 状态文件 schema 是否还需要（v3 不强调状态）？
+3. 这个 skill 应该 `none`、`optional_topic_session` 还是 `earned_memory`？
 ```
 
 ---
@@ -792,7 +817,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 - [ ] Source 政策只写 skill-specific 增量
 - [ ] 触发场景具体短语
 - [ ] 输出结构章节级 + 字段级
-- [ ] 状态文件 schema（如有）
+- [ ] Artifact / 保存策略
 - [ ] Workflow 联动表格
 - [ ] 反模式自查 ≥ 10 条
 - [ ] 篇幅基准明确
@@ -812,7 +837,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 **集成（4 条）**
 - [ ] 在 v3 核心循环位置明确
 - [ ] 上下游 skills 明确
-- [ ] 状态文件规则清晰
+- [ ] `artifact_policy` 和 runtime 保存规则清晰
 - [ ] Trigger 不冲突
 
 **用户特征（3 条）**

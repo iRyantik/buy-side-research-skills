@@ -33,3 +33,13 @@ A release package should include the plugin manifests, skills, docs, examples, a
 ## Research Workspace
 
 Research workspaces are user-owned folders. They will be created by the future `init` skill and should contain `_inbox/`, `_raw/`, `_cache/`, `_models/`, and `topics/`. They are not the same thing as this plugin dev repo.
+
+## Artifact Save Policy
+
+New research artifacts should live inside topic sessions:
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+```
+
+The only exceptions are conversation-only skills (`information-impact`, `next-step`), earned-memory writes (`research-journal`), and external workbooks (`financial-model`). Root folders such as `screens/`, `peers/`, `quickreads/`, and `cross-market/` are legacy/example shapes, not active default save locations.

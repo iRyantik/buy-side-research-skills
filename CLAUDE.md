@@ -203,7 +203,17 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `topics/_meta/edge-radar.md` 是识别信号和 AI 问法手册，不是状态库。
 - 不维护 topic-level edge signal 文件，也不生成 standalone next-step 文件。
 
+### 7.3 Artifact Save Policy
+
+- 新研究产物默认围绕 topic session 保存：`topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
+- `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
+- `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`：默认保存到当前 topic session；若 session 不明确，先建议路径并让用户确认。
+- `mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`：默认对话输出，用户要求保存时进入当前 topic session。
+- `information-impact` 和 `next-step` 属于 `none`：不创建 standalone artifact；研究清楚后再 handoff 到 `research-journal`。
+- `financial-model` 属于 `external_workbook`：只在用户要求时写入用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
+- `research-journal` 属于 `earned_memory`：只保存通过 Earned Insight Gate 的认知增量、Boss Brief 或 topic index update，不收 raw reminders、未验证灵感或 unresolved driver / mechanism guess。
+
 ---
 
 **版本**：v3.3.0
-**最后更新**：2026-05-09
+**最后更新**：2026-05-10

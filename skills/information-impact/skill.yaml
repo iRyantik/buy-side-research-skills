@@ -2,7 +2,7 @@
 name: 'information-impact'
 id: 'information-impact'
 display_name: 'Information Impact'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -51,3 +51,8 @@ capabilities:
     - 'distinguish direct supplier, indirect supplier, product applicability, and theme association'
     - 'do not treat rumors as verified facts'
     - 'follow CLAUDE.md source policy'
+artifact_policy:
+  save_policy: 'none'
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'do not save by default; hand off researched insights to research-journal after source and claim work is complete'

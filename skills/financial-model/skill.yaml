@@ -2,7 +2,7 @@
 name: 'financial-model'
 id: 'financial-model'
 display_name: 'Financial Model'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -45,7 +45,7 @@ capabilities:
     - 'Build New Model'
     - 'Update Existing Model'
     - 'Valuation Bridge'
-  output_path: 'topics/[topic_type]/[topic-slug]/model.xlsx or user-provided workbook when user asks'
+  output_path: 'user-provided workbook or _models/[ticker]/model.xlsx when user asks'
   consumes:
     - 'mechanism-map'
     - 'driver-map'
@@ -65,6 +65,11 @@ capabilities:
     - 'produce an update map before editing existing workbooks'
     - 'connect valuation assumptions back to drivers'
     - 'do not invent undisclosed revenue drivers'
+artifact_policy:
+  save_policy: 'external_workbook'
+  default_artifact: 'model.xlsx'
+  canonical_location: 'user-provided workbook or _models/[ticker]/model.xlsx'
+  save_trigger: 'write or update workbooks only when user asks; otherwise output model/update map in conversation'
 workflow:
   stage: 'deep-research'
   can_follow:

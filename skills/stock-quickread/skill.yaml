@@ -2,7 +2,7 @@
 name: 'stock-quickread'
 id: 'stock-quickread'
 display_name: 'Stock Quickread'
-version: '1.0.1'
+version: '1.0.2'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -33,6 +33,11 @@ capabilities:
   requirements:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
+artifact_policy:
+  save_policy: 'optional_topic_session'
+  default_artifact: 'stock-quickread.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md'
+  save_trigger: 'save only when user asks to preserve the quickread as session research material'
 workflow:
   stage: 'discovery'
   next_steps:

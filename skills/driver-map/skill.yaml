@@ -2,7 +2,7 @@
 name: 'driver-map'
 id: 'driver-map'
 display_name: 'Driver Map'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -50,6 +50,11 @@ capabilities:
     - 'flag model-driver gaps and weird disclosure'
     - 'do not perform DCF or comps'
     - 'do not create or edit workbooks'
+artifact_policy:
+  save_policy: 'optional_topic_session'
+  default_artifact: 'driver-map.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md'
+  save_trigger: 'save only when user asks to preserve driver mapping as session research material'
 workflow:
   stage: 'research-primitive'
   can_follow:

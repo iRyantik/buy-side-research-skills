@@ -91,7 +91,7 @@ description: Use when the user asks what to research next, says a research threa
 | **用户目标** | 继续挖 / audit / 改写 AI 问题 / 选择 skill route | 默认输出一个最高价值问题 |
 | **事实质量** | sourced / unsourced / mixed / stale | unsourced 事实只作假设，不写成事实 |
 | **疑点类型** | mechanism / driver / source / peer / market framing / catalyst | 先分类，再决定是否 handoff |
-| **保存需求** | 对话输出 / 写入 journal | 默认不保存、不创建文件 |
+| **保存需求** | 对话输出 / handoff `research-journal` | 默认不保存、不创建文件 |
 
 如果缺少的信息不会改变下一步判断，不要追问；直接给出最小 next-step，并把不确定处标出。
 

@@ -371,6 +371,12 @@ Action 定义：
 - Existing workbook update map：700-1400 字，按 workbook 复杂度放大。
 - 如果只需要 400-700 字 driver 拆分，应改用 `driver-map`。
 
+## Artifact 输出契约
+
+本 skill 不把 workbook 当成普通 topic markdown 保存。默认先在对话中输出 model / valuation / update map；只有用户明确要求写文件或更新文件时，才写入用户提供的 workbook，或未来 workspace 的 `_models/[ticker]/model.xlsx`。
+
+若模型工作形成已经研究清楚的 driver、机制或估值认知，再交给 `research-journal` 沉淀文字结论；不要把未验证模型假设直接写成 memory。
+
 ## 与相邻 skill 的边界
 
 - `mechanism-map` 拆行业机制、工程原理、设备链条和 know-how；本 skill 只消费这些结论，不在模型里重写科普。

@@ -2,7 +2,7 @@
 name: 'next-step'
 id: 'next-step'
 display_name: 'Next Step'
-version: '1.1.0'
+version: '1.1.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -33,7 +33,7 @@ capabilities:
     - 'Research Direction Coach'
     - 'Research Audit'
     - 'Question Rewriter'
-  writes: 'none by default'
+  writes: 'conversation-only'
   requirements:
     - 'give the highest-value research question'
     - 'ask only 1-2 AI questions by default'
@@ -41,3 +41,8 @@ capabilities:
     - 'route driver and KPI gaps to driver-map'
     - 'route source or claim gaps to information-impact'
     - 'do not create standalone next-step files'
+artifact_policy:
+  save_policy: 'none'
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'never create standalone next-step files; hand off earned insights to research-journal'

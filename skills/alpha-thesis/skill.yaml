@@ -2,7 +2,7 @@
 name: 'alpha-thesis'
 id: 'alpha-thesis'
 display_name: 'Alpha Thesis'
-version: '1.0.1'
+version: '1.0.2'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -45,6 +45,11 @@ capabilities:
     - 'follow CLAUDE.md source policy'
     - 'use pair-trade for Long X Short Y, hedge candidates, and hedged structures'
   journal_first_handoff: 'research-journal or next-step'
+artifact_policy:
+  save_policy: 'optional_topic_session'
+  default_artifact: 'alpha-thesis.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md'
+  save_trigger: 'save only when user asks to preserve the thesis as session research material; use research-journal only after insight is earned'
 workflow:
   stage: 'analysis'
   prerequisites:
