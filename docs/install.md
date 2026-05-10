@@ -2,7 +2,7 @@
 
 Repository: `iRyantik/buy-side-research-skills`
 
-This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`; current `main` may contain `3.4.0-dev` work such as `init`.
+This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`; current `main` may contain `3.4.0-dev` work such as `init` and `ingest`.
 
 ## Claude
 
@@ -37,4 +37,4 @@ Extract the zip into the plugin location required by Claude or Codex, then confi
 
 ## First Use
 
-Version `3.3.1` does not include `init` or `ingest`. In `3.4.0-dev`, users can run `init` to create or repair a research workspace scaffold. Raw material ingestion is still not included; put files in `_inbox/` or `_raw/` until the future `ingest` batch lands.
+Version `3.3.1` does not include `init` or `ingest`. In `3.4.0-dev`, users can run `init` to create or repair a research workspace scaffold, then run `ingest` to convert supported raw files into `_cache/` markdown. Formal `v3.4.0` still waits for release hardening.

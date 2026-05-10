@@ -27,7 +27,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 这个 skill 的核心不是多建目录，而是防止污染：不要把用户研究 workspace 和 plugin dev repo 混用；不要把 raw PDF、Excel model、缓存 markdown 和可沉淀的 research memory 混用；不要让 workspace 一开始就背上 v2 state tracking 的维护负担。
 
-默认行为必须保守、幂等、可重复运行。已有文件不覆盖，缺什么补什么；不主动 `git init`；不把 `ingest` 的职责提前做掉。
+默认行为必须保守、幂等、可重复运行。已有文件不覆盖，缺什么补什么；不主动 `git init`；可以复制 `ingest` helper scripts 到 `_scripts/`，但不执行 ingest。
 
 ## Source 政策
 
@@ -45,7 +45,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 |---|---|---|
 | **路径误判** | 可能把当前 plugin repo 当成 research workspace | 脚本检测 `.claude-plugin/`、`.codex-plugin/`、`skills/`、`META-SKILL.md`，命中即退出 |
 | **覆盖用户文件** | 可能破坏已有 workspace 规则 | 已存在的 `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md` 一律不覆盖 |
-| **越界做 ingest** | 可能提前处理 PDF / Excel / PPTX | 本 batch 明确不 ingest；只创建 `_inbox/`、`_raw/` 和 `_cache/` |
+| **越界做 ingest** | 可能提前处理 PDF / Excel / PPTX | 只复制 ingest scripts；不执行转换 |
 | **误开 git** | 研究 workspace 默认不启用 git | 不 git init，只写 `.gitignore` 供用户未来自行决定 |
 | **把 scaffold 当 artifact** | 可能写入 topic session | `init` 的 artifact 是 workspace scaffold，不是 research artifact |
 
@@ -75,7 +75,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 | **Workspace name** | 可选 | 由路径 basename 推断 |
 | **是否已有内容** | 可选 | 脚本幂等补齐，不覆盖已有核心文件 |
 | **是否启用 git** | 不支持 | 本 batch 不 git init，只写 `.gitignore` |
-| **是否 ingest 材料** | 不支持 | 本 batch 不 ingest，只创建 `_inbox/` 和 `_raw/` |
+| **是否 ingest 材料** | 不支持 | `init` 不 ingest，只创建 `_inbox/`、`_raw/`、`_cache/` 并复制 helper scripts |
 
 如果用户给的是当前 plugin repo、`.claude/plugins/...` 插件安装目录或任何包含 plugin manifest 的目录，必须拒绝初始化并要求换一个 research workspace 路径。
 
@@ -88,7 +88,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 动作：
 - 创建固定 workspace scaffold。
 - 写入 workspace `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md`。
-- 创建 `_scripts/` 并复制 `init-research-workspace.ps1`，方便用户以后自检 / 修复。
+- 创建 `_scripts/` 并复制 `init-research-workspace.ps1`、`init-assets/` 与 ingest helper scripts，方便用户以后自检 / 转换材料。
 - 返回 created / skipped summary 和下一步建议。
 
 ### Mode B: Repair Existing Workspace
@@ -145,7 +145,8 @@ description: Use when setting up or repairing a buy-side research workspace fold
 ## 下一步
 1. 把待处理材料放进 `_inbox/` 或 `_raw/`。
 2. 如果要研究公司基础，用 `company-primer`。
-3. 如果只是想开始问下一步研究问题，用 `next-step`。
+3. 如果要转换材料，用 `ingest`。
+4. 如果只是想开始问下一步研究问题，用 `next-step`。
 ````
 
 ### 被阻止时
@@ -167,7 +168,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 |---|---|
 | 用户刚装好插件，不知道从哪开始 | `init` 创建 workspace scaffold |
 | 用户已有 workspace，但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init` repair missing scaffold |
-| 用户把材料放入 `_inbox/` 后想转换 | 等未来 `ingest`；当前只提醒 batch 尚未包含 |
+| 用户把材料放入 `_inbox/` 后想转换 | `ingest` |
 | 用户开始研究某家公司 | `company-primer` 或 `stock-quickread` |
 | 用户已经研究清楚并想保存认知 | `research-journal` |
 | 用户问下一步怎么研究 | `next-step` |
@@ -183,7 +184,7 @@ Artifact policy：
 - ❌ 在 plugin repo 内初始化 workspace → 立刻停止。
 - ❌ 覆盖已有 `CLAUDE.md`、`.gitignore` 或 `edge-radar.md` → 违反幂等原则。
 - ❌ 自动 `git init` → 本 batch 禁止。
-- ❌ 自动 ingest PDF / XLSX / PPTX / DOCX → 本 batch 禁止。
+- ❌ 自动 ingest PDF / XLSX / PPTX / DOCX → `init` 只复制脚本，不执行转换。
 - ❌ 创建 `research-journal.md` 或 topic session artifact → 越界。
 - ❌ 把 `_raw/`、`_cache/`、`_models/` 当成可提交研究成果 → 边界错误。
 - ❌ 生成 v2 state folders，如 `coverage/`、`portfolio/`、`pairs/` → 架构倒退。
@@ -195,11 +196,11 @@ Artifact policy：
 - Dry explanation：200-350 字，展示目录树和边界即可。
 - 被阻止：80-150 字，直接说明原因和替代路径。
 
-超过 400 字通常说明开始解释研究方法或文档消化，应该 handoff 到相邻 skill 或等待未来 `ingest`。
+超过 400 字通常说明开始解释研究方法或文档消化，应该 handoff 到相邻 skill 或 `ingest`。
 
 ## 边界
 
-- `init` vs `ingest`：`init` 建 workspace，`ingest` 未来负责把 raw 文件转成 LLM-friendly markdown；当前不 ingest。
+- `init` vs `ingest`：`init` 建 workspace 并复制 helper scripts；`ingest` 才负责把 raw 文件转成 LLM-friendly markdown。
 - `init` vs `research-journal`：`init` 创建空 workspace scaffold，`research-journal` 只沉淀 earned insight。
 - `init` vs `company-primer`：`init` 不研究公司；公司基础研究交给 `company-primer`。
 - `init` vs plugin release scripts：`init` 面向用户 research workspace；root `scripts/` 面向 plugin dev / release validation。

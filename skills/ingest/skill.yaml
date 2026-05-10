@@ -1,0 +1,78 @@
+metadata_schema_version: 1
+name: 'ingest'
+id: 'ingest'
+display_name: 'Ingest Raw Material'
+version: '1.0.0'
+system_generation: '3.4.0-dev'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Convert raw research materials into source-tracked workspace _cache markdown before analysis.'
+description: 'Convert raw research materials into source-tracked workspace _cache markdown before analysis.'
+tags:
+  - 'ingest'
+  - 'raw-material'
+  - 'document-conversion'
+  - 'markdown-cache'
+  - 'pdf'
+  - 'xlsx'
+  - 'pptx'
+  - 'docx'
+  - 'csv'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'ingest'
+    - 'ingest this'
+    - '消化这个文件'
+    - '处理这份材料'
+    - '转成 markdown'
+    - '转换到 cache'
+    - '处理 _inbox'
+  description: '当用户要把 raw research material 转换成 workspace _cache markdown 时触发'
+capabilities:
+  modes:
+    - 'Single File Ingest'
+    - 'Inbox / Directory Ingest'
+    - 'Cache Reuse Check'
+  requirements:
+    - 'write cache markdown with source metadata header'
+    - 'skip existing cache by default unless force is requested'
+    - 'do not move, delete, or rewrite raw source files'
+    - 'do not produce investment conclusions'
+    - 'fail honestly when optional parser dependencies are missing'
+artifact_policy:
+  save_policy: 'cache_artifact'
+  default_artifact: '[source-filename].md'
+  canonical_location: '_cache/[bucket]/[source-filename].md'
+  save_trigger: 'write cache markdown only after a user provides a source file or directory inside a research workspace'
+workflow:
+  stage: 'material-ingestion'
+  can_follow:
+    - 'init'
+  feeds_into:
+    - 'information-impact'
+    - 'company-primer'
+    - 'mechanism-map'
+    - 'driver-map'
+    - 'financial-model'
+    - 'research-journal'
+  can_trigger:
+    - 'information-impact'
+    - 'company-primer'
+    - 'mechanism-map'
+    - 'driver-map'
+quality_gates:
+  anti_patterns:
+    - 'claiming_conversion_success_when_dependency_missing'
+    - 'treating_cache_as_original_source'
+    - 'writing_investment_conclusion_during_ingest'
+    - 'moving_or_deleting_raw_files'
+    - 'recursive_workspace_ingest_without_explicit_request'
+  required_metadata:
+    - 'source_path'
+    - 'source_sha256'
+    - 'source_modified_utc'
+    - 'converter'
+    - 'converted_at_utc'
+    - 'precision'

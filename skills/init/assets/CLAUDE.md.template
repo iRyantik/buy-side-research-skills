@@ -54,7 +54,7 @@ topics/[topic_type]/[topic-slug]/
 ## Raw Material Rule
 
 - Put new PDFs, XLSX files, PPTX decks, DOCX files, transcripts, and datasets in `_inbox/` or `_raw/`.
-- This workspace was initialized before the `ingest` skill is available; do not pretend raw materials have been converted unless a later tool actually does it.
+- Use `ingest` to convert supported raw files into `_cache/` markdown. Do not pretend raw materials have been converted unless the tool actually succeeds.
 - Any converted cache output should preserve source path, tool, and conversion date metadata.
 
 ---

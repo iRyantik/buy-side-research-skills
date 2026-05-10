@@ -7,7 +7,14 @@ $ErrorActionPreference = "Stop"
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $skillRoot = Resolve-Path (Join-Path $scriptRoot "..")
-$assetsRoot = Join-Path $skillRoot "assets"
+$skillsRoot = Split-Path -Parent $skillRoot
+$pluginAssetsRoot = Join-Path $skillRoot "assets"
+$localAssetsRoot = Join-Path $scriptRoot "init-assets"
+$assetsRoot = if (Test-Path -LiteralPath $pluginAssetsRoot) { $pluginAssetsRoot } else { $localAssetsRoot }
+$ingestScriptsRoot = Join-Path $skillsRoot "ingest\scripts"
+if (-not (Test-Path -LiteralPath $ingestScriptsRoot)) {
+    $ingestScriptsRoot = $scriptRoot
+}
 
 function Convert-ToFullPath {
     param([string]$Path)
@@ -115,19 +122,53 @@ Write-TemplateIfMissing `
     -TargetPath (Join-Path $fullWorkspacePath "topics\_meta\edge-radar.md") `
     -RelativeName "topics/_meta/edge-radar.md"
 
-$copiedScriptTarget = Join-Path $fullWorkspacePath "_scripts\init-research-workspace.ps1"
-if (Test-Path -LiteralPath $copiedScriptTarget) {
-    Add-Result $skipped "_scripts/init-research-workspace.ps1"
-} else {
-    Copy-Item -LiteralPath $MyInvocation.MyCommand.Path -Destination $copiedScriptTarget
-    Add-Result $created "_scripts/init-research-workspace.ps1"
+function Copy-ScriptIfMissing {
+    param(
+        [string]$SourcePath,
+        [string]$RelativeTarget
+    )
+
+    $targetPath = Join-Path $fullWorkspacePath $RelativeTarget
+    if (Test-Path -LiteralPath $targetPath) {
+        Add-Result $script:skipped ($RelativeTarget.Replace("\", "/"))
+        return
+    }
+
+    $targetParent = Split-Path -Parent $targetPath
+    if (-not (Test-Path -LiteralPath $targetParent)) {
+        New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+    }
+    Copy-Item -LiteralPath $SourcePath -Destination $targetPath
+    Add-Result $script:created ($RelativeTarget.Replace("\", "/"))
+}
+
+Copy-ScriptIfMissing `
+    -SourcePath $MyInvocation.MyCommand.Path `
+    -RelativeTarget "_scripts\init-research-workspace.ps1"
+
+foreach ($assetName in @("CLAUDE.md.template", "gitignore.template", "edge-radar.md")) {
+    $sourceAsset = Join-Path $assetsRoot $assetName
+    if (Test-Path -LiteralPath $sourceAsset) {
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceAsset `
+            -RelativeTarget (Join-Path "_scripts\init-assets" $assetName)
+    }
+}
+
+foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosscheck.py")) {
+    $sourceScript = Join-Path $ingestScriptsRoot $scriptName
+    if (Test-Path -LiteralPath $sourceScript) {
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceScript `
+            -RelativeTarget (Join-Path "_scripts" $scriptName)
+    }
 }
 
 $result = [ordered]@{
     workspace_path = $fullWorkspacePath
     created = @($created)
     skipped = @($skipped)
-    note = "No git init and no ingest were performed."
+    note = "No git init and no ingest execution were performed."
 }
 
 $result | ConvertTo-Json -Depth 4

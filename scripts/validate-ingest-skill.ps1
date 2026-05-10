@@ -1,5 +1,5 @@
 param(
-    [string]$SkillName = "init"
+    [string]$SkillName = "ingest"
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,11 +8,10 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillRoot = Join-Path $repoRoot "skills\$SkillName"
 $skillPath = Join-Path $skillRoot "SKILL.md"
 $yamlPath = Join-Path $skillRoot "skill.yaml"
-$scriptPath = Join-Path $skillRoot "scripts\init-research-workspace.ps1"
-$assetPaths = @(
-    "assets\CLAUDE.md.template",
-    "assets\gitignore.template",
-    "assets\edge-radar.md"
+$scriptPaths = @(
+    "scripts\ingest.py",
+    "scripts\ingest_xlsx.py",
+    "scripts\ingest_table_crosscheck.py"
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
@@ -47,12 +46,10 @@ function Get-YamlScalar {
     return $null
 }
 
-Require-Path $skillPath "Missing init SKILL.md"
-Require-Path $yamlPath "Missing init skill.yaml"
-Require-Path $scriptPath "Missing init helper script"
-
-foreach ($asset in $assetPaths) {
-    Require-Path (Join-Path $skillRoot $asset) "Missing init asset: $asset"
+Require-Path $skillPath "Missing ingest SKILL.md"
+Require-Path $yamlPath "Missing ingest skill.yaml"
+foreach ($script in $scriptPaths) {
+    Require-Path (Join-Path $skillRoot $script) "Missing ingest script: $script"
 }
 
 if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath)) {
@@ -61,7 +58,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
 
     $capsuleCount = ([regex]::Matches($skillText, "## Global Rules Capsule \(v1\)")).Count
     if ($capsuleCount -ne 1) {
-        $failures.Add("init: expected exactly one Global Rules Capsule, found $capsuleCount")
+        $failures.Add("ingest: expected exactly one Global Rules Capsule, found $capsuleCount")
     }
 
     $requiredSections = @(
@@ -74,34 +71,36 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
 
     foreach ($section in $requiredSections) {
         if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section.Text))") {
-            $failures.Add("init: missing required section '$($section.Label)'")
+            $failures.Add("ingest: missing required section '$($section.Label)'")
         }
     }
 
-    $notText = New-UnicodeText @(0x4E0D)
     foreach ($phrase in @(
-        "workspace scaffold",
-        "_inbox",
-        "_raw",
-        "_cache",
-        "_models",
-        "topics/_meta/edge-radar.md",
-        ($notText + " git init"),
-        ($notText + " ingest")
+        "_cache/",
+        "source_sha256",
+        "source_modified_utc",
+        "converted_at_utc",
+        "precision",
+        "ingest.py",
+        "ingest_xlsx.py",
+        "ingest_table_crosscheck.py",
+        "information-impact",
+        "company-primer",
+        "research-journal"
     )) {
         if (-not $skillText.Contains($phrase)) {
-            $failures.Add("init: SKILL.md missing required phrase '$phrase'")
+            $failures.Add("ingest: SKILL.md missing required phrase '$phrase'")
         }
     }
 
     foreach ($phrase in @(
-        "workspace_scaffold",
-        "workspace scaffold",
-        "user-provided research workspace",
+        "cache_artifact",
+        "[source-filename].md",
+        "_cache/[bucket]/[source-filename].md",
         "3.4.0-dev"
     )) {
         if (-not $yamlText.Contains($phrase)) {
-            $failures.Add("init: skill.yaml missing required phrase '$phrase'")
+            $failures.Add("ingest: skill.yaml missing required phrase '$phrase'")
         }
     }
 
@@ -109,42 +108,42 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     $yamlVersion = Get-YamlScalar $yamlText "version"
     $systemGeneration = Get-YamlScalar $yamlText "system_generation"
 
-    if ($yamlName -ne "init") {
-        $failures.Add("init: skill.yaml name '$yamlName' does not match init")
+    if ($yamlName -ne "ingest") {
+        $failures.Add("ingest: skill.yaml name '$yamlName' does not match ingest")
     }
-    if ($yamlVersion -ne "1.1.0") {
-        $failures.Add("init: expected skill version 1.1.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.0.0") {
+        $failures.Add("ingest: expected skill version 1.0.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.4.0-dev") {
-        $failures.Add("init: expected system_generation 3.4.0-dev, found '$systemGeneration'")
+        $failures.Add("ingest: expected system_generation 3.4.0-dev, found '$systemGeneration'")
     }
 }
 
-if (Test-Path -LiteralPath $scriptPath) {
-    $scriptText = Get-Content -Raw -Encoding UTF8 -LiteralPath $scriptPath
+$ingestScript = Join-Path $skillRoot "scripts\ingest.py"
+if (Test-Path -LiteralPath $ingestScript) {
+    $scriptText = Get-Content -Raw -Encoding UTF8 -LiteralPath $ingestScript
     foreach ($phrase in @(
-        "WorkspacePath",
-        "Refusing to initialize research workspace inside a plugin repo",
-        ".claude-plugin\plugin.json",
-        ".codex-plugin\plugin.json",
-        "ingest.py",
-        "ingest_xlsx.py",
-        "ingest_table_crosscheck.py",
-        "init-assets",
-        "No git init and no ingest execution were performed."
+        "source_sha256",
+        "source_modified_utc",
+        "converted_at_utc",
+        "precision",
+        "Could not discover research workspace",
+        "Missing optional dependency",
+        "--recursive",
+        "--force"
     )) {
         if (-not $scriptText.Contains($phrase)) {
-            $failures.Add("init helper script missing required phrase '$phrase'")
+            $failures.Add("ingest.py missing required phrase '$phrase'")
         }
     }
 }
 
 if ($failures.Count -gt 0) {
-    Write-Host "Init skill validation failed:" -ForegroundColor Red
+    Write-Host "Ingest skill validation failed:" -ForegroundColor Red
     foreach ($failure in $failures) {
         Write-Host " - $failure" -ForegroundColor Red
     }
     exit 1
 }
 
-Write-Host "Init skill validation passed." -ForegroundColor Green
+Write-Host "Ingest skill validation passed." -ForegroundColor Green

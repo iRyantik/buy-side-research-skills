@@ -28,7 +28,7 @@ Plugin runtime skills live in `skills/`. Example research artifacts live under `
 
 | Module | Skills |
 |---|---|
-| Workspace Ops | `init` |
+| Workspace Ops | `init`, `ingest` |
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` |
 | Company Foundation | `company-primer` |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` |
@@ -79,6 +79,12 @@ It does not save files by default.
 Workspace setup skill. It creates or repairs the standard research workspace scaffold, writes workspace `CLAUDE.md`, `.gitignore`, and `topics/_meta/edge-radar.md`, and copies the helper script into `_scripts/`.
 
 It does not ingest files, run `git init`, research companies, create topic artifacts, or initialize inside the plugin dev repo.
+
+### `ingest`
+
+Raw material cache skill. It converts supported files into `_cache/[bucket]/[source-filename].md` with source path, hash, modified time, converter, conversion time, and precision caveat.
+
+It does not move raw files, produce investment conclusions, or treat cache markdown as original source. Missing parser dependencies must fail honestly.
 
 ### `research-journal`
 
@@ -175,6 +181,7 @@ Policy classes:
 - `earned_memory`: write only researched insight that passes the journal gate.
 - `external_workbook`: write to user-provided workbook or workspace `_models/`, not a topic markdown artifact.
 - `workspace_scaffold`: create or repair the user-provided research workspace, not a topic artifact.
+- `cache_artifact`: write source-tracked operational cache under `_cache/`, not a topic artifact or earned memory.
 
 ## 7. BKR IET Behavior Test
 
@@ -190,11 +197,11 @@ Expected behavior:
 ## 8. Validation
 
 Required checks:
-- active `skills/` count is 16
-- active docs and metadata list the same 16 skills
+- active `skills/` count is 17
+- active docs and metadata list the same 17 skills
 - archived v2 state skills are outside active `skills/`
 - example workspaces live under `examples/`, not at repo root
-- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `init`, `company-primer`, `mechanism-map`, and `driver-map` appear in public docs
+- `Senior Analyst Radar`, `edge-radar.md`, `boss-brief`, `next-step`, `init`, `ingest`, `company-primer`, `mechanism-map`, and `driver-map` appear in public docs
 
 **版本**：v3.4.0-dev
 **最后更新**：2026-05-10

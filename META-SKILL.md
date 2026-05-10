@@ -303,7 +303,7 @@ artifact_policy:
 ```
 
 `artifact_policy` 必填字段：
-- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`、`workspace_scaffold`。
+- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`。
 - `default_artifact` 是默认文件名；不落盘的 skill 写 `conversation-only`。
 - `canonical_location` 是规范保存位置；topic artifact 必须落在 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
 - `save_trigger` 写清楚何时保存、何时只输出到对话、何时 handoff 给 `research-journal`。
@@ -314,6 +314,7 @@ Artifact 保存原则：
 - `information-impact`、`next-step` 不创建 standalone artifact。
 - `financial-model` 写用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 - `init` 这类 operational skill 使用 `workspace_scaffold`，只创建 / 补齐用户指定 research workspace，不写 topic artifact。
+- `ingest` 这类 material-processing skill 使用 `cache_artifact`，只写 `_cache/` operational markdown，不写 topic artifact 或 earned memory。
 
 版本策略：
 - `version` 是单个 skill 自身的 semver，不再表示系统代际。

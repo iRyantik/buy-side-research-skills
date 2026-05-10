@@ -120,7 +120,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 | Layer | Skills | 作用 |
 |---|---|---|
-| Workspace Ops | `init` | 创建 / 补齐标准 research workspace scaffold |
+| Workspace Ops | `init`, `ingest` | 创建 / 补齐标准 research workspace scaffold，并把 raw material 转成 `_cache/` markdown |
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | 过滤信息、找候选、快速判断是否值得继续 |
 | Company Foundation | `company-primer` | 打牢公司业务基础、业务演变和披露口径历史 |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | 拆机制和底层变量、标准化比较、提出下一步高价值问题 |
@@ -138,6 +138,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 | Skill | 触发场景 | 输出形态 |
 |---|---|---|
 | `init` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
+| `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一下 | 快速公司分析 + 对手盘假设 |
 | `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
@@ -215,6 +216,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `financial-model` 属于 `external_workbook`：只在用户要求时写入用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 - `research-journal` 属于 `earned_memory`：只保存通过 Earned Insight Gate 的认知增量、Boss Brief 或 topic index update，不收 raw reminders、未验证灵感或 unresolved driver / mechanism guess。
 - `init` 属于 `workspace_scaffold`：只创建 / 补齐用户指定 research workspace，不创建 topic artifact，不执行 `git init`，不 ingest 原始材料。
+- `ingest` 属于 `cache_artifact`：只把 raw material 转成 `_cache/[bucket]/[source-filename].md`，不生成研究结论，不写 topic session，不替代 source verification。
 
 ---
 

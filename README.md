@@ -11,7 +11,7 @@ Repository: `iRyantik/buy-side-research-skills`
 3. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
 4. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
-Version `3.3.1` remains the stable colleague-shareable baseline. Current `main` is `3.4.0-dev`: it adds guided workspace creation through `init`, while raw material ingestion remains a later `ingest` batch before formal `v3.4.0`.
+Version `3.3.1` remains the stable colleague-shareable baseline. Current `main` is `3.4.0-dev`: it adds guided workspace creation through `init` and raw material cache conversion through `ingest`; formal `v3.4.0` still waits for release hardening.
 
 ## Install
 
@@ -44,7 +44,7 @@ Runtime files needed by a skill should live inside that skill directory. Root `s
 
 | Layer | Skills | Purpose |
 |---|---|---|
-| Workspace Ops | `init` | Create or repair a standard research workspace scaffold before research starts. |
+| Workspace Ops | `init`, `ingest` | Create or repair a standard research workspace scaffold, then convert raw materials into `_cache/` markdown. |
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | Filter information, find candidates, and decide whether to continue. |
 | Company Foundation | `company-primer` | Map what a company sells, how the business evolved, and where disclosure history breaks comparability. |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | Map mechanisms, model drivers, cross-market valuation, and the next highest-value question. |
@@ -59,6 +59,7 @@ Senior Analyst Radar -> better AI questions -> research -> research-journal -> B
 
 - `Senior Analyst Radar` flags issues that may change business understanding, model drivers, market framing, peer groups, or research priority.
 - `init` creates the standard research workspace scaffold; it does not ingest raw files, run git, or create research artifacts.
+- `ingest` converts raw files into source-tracked `_cache/` markdown; it does not generate research conclusions.
 - `company-primer` handles company foundations, business evolution, segment / KPI rename, recast, and disclosure history before driver or thesis work.
 - `mechanism-map` handles industry mechanisms, engineering principles, equipment chains, process flows, terminology, and know-how gaps.
 - `driver-map` handles revenue, margin, backlog, price / volume / mix, disclosure buckets, KPI oddities, and model-driver gaps.
@@ -87,6 +88,7 @@ Run the standard gates before release:
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
@@ -97,7 +99,8 @@ Run the standard gates before release:
 
 - Added `init` as the 16th active workspace setup skill.
 - Added standard research workspace scaffold templates and an idempotent init helper script.
-- Kept `ingest` out of scope until the formal `v3.4.0` release.
+- Added `ingest` as the 17th active raw material cache skill.
+- Kept formal `v3.4.0` release hardening out of scope.
 
 ### v3.3.1
 

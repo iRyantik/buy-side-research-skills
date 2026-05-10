@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 16
+    [int]$ExpectedActiveSkillCount = 17
 )
 
 $ErrorActionPreference = "Stop"

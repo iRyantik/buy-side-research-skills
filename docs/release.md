@@ -1,6 +1,6 @@
 # Release
 
-Release packages should be reproducible from the plugin dev repo and safe to share with colleagues. The first stable shareable baseline is `v3.3.1`. Current `main` may build `3.4.0-dev` packages; formal `v3.4.0` waits for `ingest`.
+Release packages should be reproducible from the plugin dev repo and safe to share with colleagues. The first stable shareable baseline is `v3.3.1`. Current `main` may build `3.4.0-dev` packages with `init` and `ingest`; formal `v3.4.0` waits for release hardening.
 
 ## Include
 
@@ -41,6 +41,7 @@ Run all validators before producing a zip:
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
