@@ -12,7 +12,7 @@
 ## Boundary
 
 - 本文件只服务 plugin source repo。
-- 用户 research workspace 由 `init` 安装自己的 `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
+- 用户 research workspace 由 `init-workspace` 安装自己的 `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
 - plugin release package 不应包含 root `AGENTS.md`。
 
 **Version**: v3.5.0

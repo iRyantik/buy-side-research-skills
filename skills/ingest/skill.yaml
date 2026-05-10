@@ -1,4 +1,4 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'ingest'
 id: 'ingest'
 display_name: 'Ingest Raw Material'
@@ -60,7 +60,7 @@ artifact_policy:
 workflow:
   stage: 'material-ingestion'
   can_follow:
-    - 'init'
+    - 'init-workspace'
   feeds_into:
     - 'information-impact'
     - 'company-primer'

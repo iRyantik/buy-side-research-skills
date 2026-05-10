@@ -184,7 +184,7 @@ Research:
 
 ## 8. Ingest And Dependency Rules
 
-- `init` 不安装依赖、不 ingest 文件、不运行 `git init`。
+- `init-workspace` 不安装依赖、不 ingest 文件、不运行 `git init`。
 - 首次完整 ingest 前运行：
 
 ```powershell

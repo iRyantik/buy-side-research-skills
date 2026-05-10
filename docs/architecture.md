@@ -23,7 +23,7 @@ docs/                              # 用户和维护者文档
 examples/                          # 示例 workspace，非运行时依赖
 ```
 
-skill 需要调用的运行时资源放在该 skill 目录内部，例如 `skills/ingest/scripts/` 或 `skills/init/assets/`。root `scripts/` 仅用于源码仓库验证和 release 打包。
+skill 需要调用的运行时资源放在该 skill 目录内部，例如 `skills/ingest/scripts/` 或 `skills/init-workspace/assets/`。root `scripts/` 仅用于源码仓库验证和 release 打包。
 
 ## Skill 分类
 
@@ -58,11 +58,11 @@ new-session
 
 Release 包应包含插件清单、skills、用户文档、示例和 README。不得包含本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。
 
-插件本身没有运行时 CLAUDE / AGENTS 文件。源码仓库有 root `CLAUDE.md` + `AGENTS.md` 仅供维护使用；`init` 将 workspace `CLAUDE.md` + pointer 版 `AGENTS.md` 安装到用户 research workspace。
+插件本身没有运行时 CLAUDE / AGENTS 文件。源码仓库有 root `CLAUDE.md` + `AGENTS.md` 仅供维护使用；`init-workspace` 将 workspace `CLAUDE.md` + pointer 版 `AGENTS.md` 安装到用户 research workspace。
 
 ## Research Workspace
 
-Research workspace 是用户拥有的文件夹，由 `init` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/` 和 `topics/`。原始材料由 `ingest` 转换为 `_cache/` markdown。Workspace 不等于本插件源码仓库。
+Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/` 和 `topics/`。原始材料由 `ingest` 转换为 `_cache/` markdown。Workspace 不等于本插件源码仓库。
 
 ```text
 [research-workspace]/
@@ -87,7 +87,7 @@ Research workspace 是用户拥有的文件夹，由 `init` skill 创建或修�
     └── event/
 ```
 
-`init` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 只写操作类缓存文件，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
+`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 只写操作类缓存文件，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
 
 ## Artifact 保存策略
 

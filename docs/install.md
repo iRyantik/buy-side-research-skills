@@ -33,13 +33,13 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 ## 第一次使用
 
-运行 `init` 创建或修复 research workspace scaffold。`3.5.0` 中 `init` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
+运行 `init-workspace` 创建或修复 research workspace scaffold。`3.5.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
 
-`init` 之后，如需创建或定位 topic session 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
+`init-workspace` 之后，如需创建或定位 topic session 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
 
 ## Ingest 依赖
 
-`init` 将 ingest 辅助脚本复制到 research workspace 的 `_scripts/` 目录。先检查依赖：
+`init-workspace` 将 ingest 辅助脚本复制到 research workspace 的 `_scripts/` 目录。先检查依赖：
 
 ```powershell
 python _scripts/ingest.py --check-deps
@@ -52,4 +52,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-de
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
-Python 包默认安装到当前用户。Tesseract 是系统二进制文件；安装脚本优先尝试 `winget`，否则打印 Chocolatey / UB Mannheim 替代安装指引。此脚本不会在 `init` 期间自动运行。
+Python 包默认安装到当前用户。Tesseract 是系统二进制文件；安装脚本优先尝试 `winget`，否则打印 Chocolatey / UB Mannheim 替代安装指引。此脚本不会在 `init-workspace` 期间自动运行。

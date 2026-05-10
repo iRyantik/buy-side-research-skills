@@ -130,7 +130,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 - 缺 dependency：输出缺什么、如何 `-CheckOnly` / `-Yes`，不写 cache。
 - source path 不存在：直接 failed。
-- workspace 无法发现：要求传 `--workspace` 或先运行 `init`。
+- workspace 无法发现：要求传 `--workspace` 或先运行 `init-workspace`。
 - 扫描 PDF 缺 Tesseract：failed，不写 `[no extractable text]` cache。
 - SEC filing 缺 `EDGAR_IDENTITY`：标记 SEC route 不完整；不要声称 XBRL route 已完成。
 - Docling 失败且没有安全 fallback：failed，不写假 markdown。
@@ -139,7 +139,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 | 场景 | 处理 |
 |---|---|
-| workspace 还没有 `_cache/` / `_raw/` | 先用 `init` |
+| workspace 还没有 `_cache/` / `_raw/` | 先用 `init-workspace` |
 | dependency 缺失 | `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后 `-Yes` |
 | cache 生成后要判断 claim 可信度 | `information-impact` |
 | cache 是 annual report / 10-K / 20-F | `company-primer` 或 `driver-map` |

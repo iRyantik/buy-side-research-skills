@@ -1,4 +1,4 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'new-session'
 id: 'new-session'
 display_name: 'New Session'
@@ -48,7 +48,7 @@ artifact_policy:
 workflow:
   stage: 'topic-session-setup'
   can_follow:
-    - 'init'
+    - 'init-workspace'
     - 'user-save-request'
     - 'research-artifact-save-request'
   feeds_into:

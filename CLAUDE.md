@@ -130,7 +130,7 @@ Operations skills：
 
 | Skill | 作用 |
 |---|---|
-| `init` | 创建 / 修复 research workspace scaffold |
+| `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 
@@ -144,7 +144,7 @@ Operations skills：
 
 | Skill | 触发场景 | 输出形态 |
 |---|---|---|
-| `init` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
+| `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
@@ -167,7 +167,7 @@ Operations skills：
 
 ## 7. 文件组织
 
-本 repo 是 plugin development project，不兼作日常研究 workspace。研究产物示例放在 `examples/`；真正的用户 research workspace 由 `init` skill 创建或补齐。
+本 repo 是 plugin development project，不兼作日常研究 workspace。研究产物示例放在 `examples/`；真正的用户 research workspace 由 `init-workspace` skill 创建或补齐。
 
 Plugin dev repo：
 
@@ -213,7 +213,7 @@ Future research workspace：
 - `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
 - `financial-model` 属于 `external_workbook`。
 - `research-journal` 属于 `earned_memory`。
-- `init` 属于 `workspace_scaffold`。
+- `init-workspace` 属于 `workspace_scaffold`。
 - `ingest` 属于 `cache_artifact`。
 
 ---

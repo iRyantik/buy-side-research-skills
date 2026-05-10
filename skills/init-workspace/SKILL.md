@@ -1,17 +1,17 @@
 ---
-name: init
+name: init-workspace
 description: Use when setting up or repairing a buy-side research workspace folder before research begins, especially when the user asks to initialize, scaffold, bootstrap, or create the standard workspace layout.
 ---
 
 # Init
 
-`init` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `topics/_meta/edge-radar.md`，并复制 ingest helper scripts，帮助用户在正确位置开始研究。
+`init-workspace` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `topics/_meta/edge-radar.md`，并复制 ingest helper scripts，帮助用户在正确位置开始研究。
 
 它是 operations skill，不是研究 skill。它不研究公司、不 ingest 文件、不安装依赖、不运行 `git init`、不创建 topic artifact，也不应该把 workspace scaffold 写进当前 plugin repo。
 
 ## 心法
 
-`init` 的核心 invariant 是防止 workspace 污染：plugin dev repo、raw material、cache、models 和可沉淀的 research memory 必须分开。一个干净 workspace 比一份更长说明文档更有用。
+`init-workspace` 的核心 invariant 是防止 workspace 污染：plugin dev repo、raw material、cache、models 和可沉淀的 research memory 必须分开。一个干净 workspace 比一份更长说明文档更有用。
 
 默认行为必须保守、幂等、可重复运行。已有核心文件不覆盖，缺什么补什么；复制 helper scripts 可以，但执行 ingest 或安装依赖不可以。
 
@@ -61,11 +61,11 @@ description: Use when setting up or repairing a buy-side research workspace fold
 ## 工具资源
 
 本 skill 使用：
-- `skills/init/scripts/init-research-workspace.ps1`
-- `skills/init/assets/CLAUDE.md.template`
-- `skills/init/assets/AGENTS.md.template`
-- `skills/init/assets/gitignore.template`
-- `skills/init/assets/edge-radar.md`
+- `skills/init-workspace/scripts/init-research-workspace.ps1`
+- `skills/init-workspace/assets/CLAUDE.md.template`
+- `skills/init-workspace/assets/AGENTS.md.template`
+- `skills/init-workspace/assets/gitignore.template`
+- `skills/init-workspace/assets/edge-radar.md`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
@@ -125,8 +125,8 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 | 场景 | 处理 |
 |---|---|
-| 用户刚装好插件，不知道从哪里开始 | `init` 创建 workspace scaffold |
-| 用户已有 workspace 但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init` repair missing scaffold |
+| 用户刚装好插件，不知道从哪里开始 | `init-workspace` 创建 workspace scaffold |
+| 用户已有 workspace 但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init-workspace` repair missing scaffold |
 | workspace 已建好，用户要开始某个 company / theme / event research | handoff 到 `new-session` 创建 topic session |
 | 用户把材料放进 `_inbox/` 后想转换 | handoff 到 `ingest` |
 | 用户缺 Docling / EdgarTools / Tesseract / MarkItDown | 提示 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |

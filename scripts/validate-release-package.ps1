@@ -69,13 +69,13 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             ".codex-plugin/plugin.json",
             "skills/company-primer/SKILL.md",
             "skills/company-primer/skill.yaml",
-            "skills/init/SKILL.md",
-            "skills/init/skill.yaml",
-            "skills/init/assets/CLAUDE.md.template",
-            "skills/init/assets/AGENTS.md.template",
-            "skills/init/assets/gitignore.template",
-            "skills/init/assets/edge-radar.md",
-            "skills/init/scripts/init-research-workspace.ps1",
+            "skills/init-workspace/SKILL.md",
+            "skills/init-workspace/skill.yaml",
+            "skills/init-workspace/assets/CLAUDE.md.template",
+            "skills/init-workspace/assets/AGENTS.md.template",
+            "skills/init-workspace/assets/gitignore.template",
+            "skills/init-workspace/assets/edge-radar.md",
+            "skills/init-workspace/scripts/init-research-workspace.ps1",
             "skills/ingest/SKILL.md",
             "skills/ingest/skill.yaml",
             "skills/ingest/assets/requirements-ingest.txt",
@@ -132,8 +132,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             $failures.Add("Release zip is missing active skill: company-primer")
         }
 
-        if (-not $activeSkillNames.Contains("init")) {
-            $failures.Add("Release zip is missing active skill: init")
+        if (-not $activeSkillNames.Contains("init-workspace")) {
+            $failures.Add("Release zip is missing active skill: init-workspace")
         }
 
         if (-not $activeSkillNames.Contains("ingest")) {

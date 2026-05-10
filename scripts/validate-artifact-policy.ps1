@@ -65,7 +65,7 @@ $expectedPolicies = @{
         default_artifact = "conversation-only"
         canonical_location = "conversation-only"
     }
-    "init" = @{
+    "init-workspace" = @{
         save_policy = "workspace_scaffold"
         default_artifact = "workspace scaffold"
         canonical_location = "user-provided research workspace"

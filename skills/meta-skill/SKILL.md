@@ -1,4 +1,4 @@
-﻿---
+---
 name: meta-skill
 description: Use when creating, rewriting, reviewing, or validating buy-side-research-skills plugin skills, skill.yaml metadata, artifact policy, runtime category, validators, or skill governance.
 ---
@@ -217,7 +217,7 @@ Operations skills：
 
 | Skill | 用途 |
 |---|---|
-| `init` | 创建 / 修复 research workspace scaffold |
+| `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 | `new-session` | 创建 / 定位 topic session、解析 artifact save path、轻量更新 topic `index.md` |
@@ -340,7 +340,7 @@ Artifact policy：
 - 不落盘的 skill 写 `conversation-only`。
 - Topic artifact 必须落在 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
-- `init` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
+- `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
 - `new-session` 使用 `topic_session_scaffold`，只创建 / 定位 topic session 和轻量更新 `index.md`，不写研究结论。
 

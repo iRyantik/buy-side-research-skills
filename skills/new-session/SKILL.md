@@ -108,7 +108,7 @@ topics/[company|theme|event]/[topic-slug]/index.md
 参考：
 
 - workspace `CLAUDE.md`
-- `skills/init/assets/CLAUDE.md.template`
+- `skills/init-workspace/assets/CLAUDE.md.template`
 - `research-journal` 的 Topic Index Update 行为
 - `skill.yaml.artifact_policy` 中的 canonical paths
 
@@ -170,7 +170,7 @@ topics/[company|theme|event]/[topic-slug]/index.md
 
 | 场景 | 处理 |
 |---|---|
-| `init` 完成后用户要开始研究某个 topic | 用 `new-session` 创建 topic session |
+| `init-workspace` 完成后用户要开始研究某个 topic | 用 `new-session` 创建 topic session |
 | 研究 skill 要保存 artifact 但 session 不明确 | 用 `new-session` resolve save path |
 | `research-journal` 要写 journal / Boss Brief 但路径不明确 | 先用 `new-session` 确认 session |
 | 用户只想把本次 session 加进 topic map | 用 `Index Touch`，不写 earned insight |

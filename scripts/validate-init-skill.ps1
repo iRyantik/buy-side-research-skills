@@ -1,5 +1,5 @@
-﻿param(
-    [string]$SkillName = "init"
+param(
+    [string]$"
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,7 +8,7 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillRoot = Join-Path $repoRoot "skills\$SkillName"
 $skillPath = Join-Path $skillRoot "SKILL.md"
 $yamlPath = Join-Path $skillRoot "skill.yaml"
-$scriptPath = Join-Path $skillRoot "scripts\init-research-workspace.ps1"
+$scriptPath = Join-Path $.ps1"
 $assetPaths = @(
     "assets\CLAUDE.md.template",
     "assets\AGENTS.md.template",
@@ -79,7 +79,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         (New-UnicodeText @(0x5B89, 0x5168, 0x81EA, 0x67E5))
     )) {
         if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section))") {
-            $failures.Add("init: missing operations section '$section'")
+            $failures.Add("init-workspace: missing operations section '$section'")
         }
     }
 
@@ -100,7 +100,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "ingest"
     )) {
         if (-not $skillText.Contains($phrase)) {
-            $failures.Add("init: SKILL.md missing required phrase '$phrase'")
+            $failures.Add("init-workspace: SKILL.md missing required phrase '$phrase'")
         }
     }
 
@@ -112,26 +112,26 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "3.5.0"
     )) {
         if (-not $yamlText.Contains($phrase)) {
-            $failures.Add("init: skill.yaml missing required phrase '$phrase'")
+            $failures.Add("init-workspace: skill.yaml missing required phrase '$phrase'")
         }
     }
 
     if ($yamlText -match "(?m)^research_layer:") {
-        $failures.Add("init: operations skill must not define research_layer")
+        $failures.Add("init-workspace: operations skill must not define research_layer")
     }
 
     $yamlName = Get-YamlScalar $yamlText "name"
     $yamlVersion = Get-YamlScalar $yamlText "version"
     $systemGeneration = Get-YamlScalar $yamlText "system_generation"
 
-    if ($yamlName -ne "init") {
-        $failures.Add("init: skill.yaml name '$yamlName' does not match init")
+    if ($yamlName -ne "init-workspace") {
+        $failures.Add("init-workspace: skill.yaml name does not match init-workspace")
     }
     if ($yamlVersion -ne "1.3.0") {
-        $failures.Add("init: expected skill version 1.3.0, found '$yamlVersion'")
+        $failures.Add("init-workspace: expected skill version 1.3.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.5.0") {
-        $failures.Add("init: expected system_generation 3.5.0, found '$systemGeneration'")
+        $failures.Add("init-workspace: expected system_generation 3.5.0, found '$systemGeneration'")
     }
 }
 

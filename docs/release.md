@@ -29,9 +29,9 @@ Release zip 不得包含源码仓库维护文件：
 Release zip 必须包含 skill 内置的运行时资源，尤其是：
 
 ```text
-skills/init/assets/CLAUDE.md.template
-skills/init/assets/AGENTS.md.template
-skills/init/scripts/init-research-workspace.ps1
+skills/init-workspace/assets/CLAUDE.md.template
+skills/init-workspace/assets/AGENTS.md.template
+skills/init-workspace/scripts/init-research-workspace.ps1
 skills/ingest/assets/requirements-ingest.txt
 skills/ingest/scripts/bootstrap-ingest-deps.ps1
 skills/ingest/scripts/ingest.py

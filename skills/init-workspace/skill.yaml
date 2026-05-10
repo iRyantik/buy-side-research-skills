@@ -1,6 +1,6 @@
-﻿metadata_schema_version: 1
-name: 'init'
-id: 'init'
+metadata_schema_version: 1
+name: 'init-workspace'
+id: 'init-workspace'
 display_name: 'Init Research Workspace'
 version: '1.3.0'
 system_generation: '3.5.0'
@@ -10,7 +10,7 @@ category: 'operations'
 summary: 'Initialize or repair a standard buy-side research workspace scaffold without ingesting files or touching the plugin repo.'
 description: 'Initialize or repair a standard buy-side research workspace scaffold without ingesting files or touching the plugin repo.'
 tags:
-  - 'init'
+  - 'init-workspace'
   - 'workspace'
   - 'workspace-scaffold'
   - 'research-workspace'

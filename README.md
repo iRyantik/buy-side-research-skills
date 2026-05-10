@@ -1,4 +1,4 @@
-﻿# Buy-Side Research Skills
+# Buy-Side Research Skills
 
 一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化和材料 ingest。
 
@@ -37,7 +37,7 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 ## 第一次使用
 
 1. 新建一个普通文件夹作为 research workspace，不要直接在本插件仓库里做研究。
-2. 使用 `init` 初始化 workspace。它会创建 `_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/`、`topics/`，并写入 workspace `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
+2. 使用 `init-workspace` 初始化 workspace。它会创建 `_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/`、`topics/`，并写入 workspace `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
 3. 如需转换本地材料，先在 workspace 中运行 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly` 查看依赖状态，再按需显式运行 `-Yes` 安装 ingest 依赖。
 4. 使用 `new-session` 创建或定位 topic session，再让研究类 skill 保存 artifact。
 5. 把 raw materials 放入 `_raw/` 或 `_inbox/`，用 `ingest` 转成 `_cache/` markdown；`_cache/` 是中间材料，不是研究结论。
@@ -73,7 +73,7 @@ Operations skills：
 
 | Skill | 用途 |
 |---|---|
-| `init` | 创建或修复 research workspace scaffold |
+| `init-workspace` | 创建或修复 research workspace scaffold |
 | `ingest` | 把 raw materials 转成 source-tracked `_cache/` markdown |
 | `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 topic `index.md` |
 | `meta-skill` | 维护本插件的 skills、metadata、validators 和 governance |
@@ -111,7 +111,7 @@ examples/workspaces/ai-data-center-power/
 ## 重要边界
 
 - 插件不会替你做最终投资决策。
-- `init` 不会运行 `git init`、不会安装依赖、不会 ingest 文件、不会写研究结论。
+- `init-workspace` 不会运行 `git init`、不会安装依赖、不会 ingest 文件、不会写研究结论。
 - `ingest` 只写 `_cache/` 中间材料，不写 thesis 或 journal。
 - `research-journal` 只写已经研究清楚、关键事实有 source、会改变判断的认知增量。
-- root `CLAUDE.md` / `AGENTS.md` 只服务本源码仓库维护；用户 workspace 会由 `init` 生成自己的 `CLAUDE.md` / `AGENTS.md`。
+- root `CLAUDE.md` / `AGENTS.md` 只服务本源码仓库维护；用户 workspace 会由 `init-workspace` 生成自己的 `CLAUDE.md` / `AGENTS.md`。

@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$SkillName = "new-session"
 )
 
@@ -73,7 +73,7 @@ if (Test-Path -LiteralPath $skillPath) {
         "company-primer.md",
         "driver-map.md",
         "research-journal",
-        "init",
+        "init-workspace",
         "earned insight",
         "Next Step"
     )) {
