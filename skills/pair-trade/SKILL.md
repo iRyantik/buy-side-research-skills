@@ -19,7 +19,7 @@ description: Use when building or monitoring a long/short pair trade, evaluating
 
 构建或监控 Long X / Short Y pair trade。LS 基金核心工具，但**绝大多数所谓的 "pair trade" 不是真 pair**，只是两个独立单边 trade 装在一起。本 skill 强制把两腿绑成一个研究问题。
 
-v3 journal-first 口径：Builder 和 Monitor 默认保存到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先在对话里建议路径并让用户确认。`pair-note.md` 是研究记录，不是 v2 交易状态日志。
+v3 journal-first 口径：Builder 和 Monitor 默认保存到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先 handoff 到 `new-session` 创建 / 解析路径并让用户确认。`pair-note.md` 是研究记录，不是 v2 交易状态日志。
 
 触发边界：任何 Long X + Short Y、hedge candidate、pair trade、"X 用什么对冲"、"这两个能不能 pair" 都归本 skill，不归 `alpha-thesis`。`alpha-thesis` 只处理单股 long-only / short-only thesis。
 
@@ -67,7 +67,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 默认保存到当前 topic session 的 `pair-note.md`，同时在对话中给出核心结论。
 
 如果当前没有明确 topic session：
-- 先建议路径，例如 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md`。
+- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md`。
 - 让用户确认 topic / slug 后再保存。
 - 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 
@@ -320,7 +320,7 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 2. 如果 baseline 不完整，不输出 Spread 状态、P/L attribution、Thesis health 或 Action 建议；只输出 `Missing Baseline Checklist`，建议先用 Builder 生成或补齐 `pair-note.md`。
 3. 如果 baseline 完整，拉取或要求补充当前 spread 数据 + as-of 时间戳。
 4. 输出 4 部分：Spread 状态、P/L 来源拆解、Thesis 健康度、Research action。
-5. 默认把本次 review 追加 / 更新到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先建议路径并让用户确认。
+5. 默认把本次 review 追加 / 更新到当前 topic session 的 `pair-note.md`；如果当前没有明确 topic session，先 handoff 到 `new-session` 创建 / 解析路径并让用户确认。
 
 #### Missing Baseline Checklist
 

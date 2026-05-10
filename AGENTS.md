@@ -1,20 +1,19 @@
-# AGENTS.md — Codex Entry Point
+# AGENTS.md - Codex Dev Entry Point
 
-> 本文件只是 Codex / agents 的兼容入口，不是独立宪法。
-> 本目录唯一 project constitution / source of truth 是 [`CLAUDE.md`](CLAUDE.md)。
+> 本文件只是 Codex / agents 在 plugin source repo 的兼容入口，不是独立宪法，也不进入用户安装包。
+> 本目录的开发维护 source of truth 是 [`CLAUDE.md`](CLAUDE.md)。
 
 ## Required Workflow
 
-- 在本目录或子目录工作前，必须先读取并遵守 `CLAUDE.md`。
-- 若 `AGENTS.md`、`CLAUDE.md`、任何 `SKILL.md` 或其他局部指令冲突，以 `CLAUDE.md` 为准。
-- 不要在本文件复制 source policy、反流水账规则、skill 触发规则或文件组织约定；这些规则只维护在 `CLAUDE.md`。
+- 在本目录或子目录工作前，先读取并遵守 root `CLAUDE.md`。
+- 若 `AGENTS.md`、`CLAUDE.md`、任何 `SKILL.md` 或其他局部指令冲突，以 root `CLAUDE.md` 为准。
+- 不要在本文件复制 source policy、反流水账规则、skill trigger 表或文件组织细节；这些规则分别维护在 root `CLAUDE.md`、`skills/_shared/global-rules.md`、各 `SKILL.md` 和 workspace `CLAUDE.md.template`。
 
-## Codex Note
+## Boundary
 
-- 你（Codex）的工作是辅助使用者做 buy-side research 决策，不替代最终投资判断。
-- 如果任务会违反 `CLAUDE.md` 的 source policy 或反幻觉规则，直接指出并要求用户调整。
+- 本文件只服务 plugin source repo。
+- 用户 research workspace 由 `init` 安装自己的 `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
+- plugin release package 不应包含 root `AGENTS.md`。
 
----
-
-**版本**：v3.3.0
-**最后更新**：2026-05-09
+**Version**: v3.5.0-dev
+**Last updated**: 2026-05-10

@@ -1,14 +1,16 @@
 param(
-    [int]$ExpectedActiveSkillCount = 17
+    [int]$ExpectedActiveSkillCount = 19
 )
 
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillsRoot = Join-Path $repoRoot "skills"
-$expectedSystemGeneration = "3.4.0"
+$expectedSystemGeneration = "3.5.0-dev"
 $expectedMetadataSchemaVersion = "1"
 $semverPattern = "^\d+\.\d+\.\d+$"
+$allowedCategories = @("research", "operations")
+$allowedResearchLayers = @("triage", "foundation", "deep-work", "memory")
 
 $failures = New-Object System.Collections.Generic.List[string]
 
@@ -71,6 +73,8 @@ foreach ($dir in $activeSkillDirs) {
     $yamlVersion = Get-YamlScalar $yamlText "version"
     $systemGeneration = Get-YamlScalar $yamlText "system_generation"
     $metadataSchemaVersion = Get-YamlScalar $yamlText "metadata_schema_version"
+    $category = Get-YamlScalar $yamlText "category"
+    $researchLayer = Get-YamlScalar $yamlText "research_layer"
 
     if ($frontmatterName -ne $skillName) {
         $failures.Add("${skillName}: SKILL.md frontmatter name '$frontmatterName' does not match directory name")
@@ -102,6 +106,18 @@ foreach ($dir in $activeSkillDirs) {
 
     if ($yamlVersion -eq $systemGeneration) {
         $failures.Add("${skillName}: version must be skill semver, not system_generation")
+    }
+
+    if ($allowedCategories -notcontains $category) {
+        $failures.Add("${skillName}: category '$category' must be one of: $($allowedCategories -join ', ')")
+    } elseif ($category -eq "research") {
+        if ($allowedResearchLayers -notcontains $researchLayer) {
+            $failures.Add("${skillName}: research skill must set research_layer to one of: $($allowedResearchLayers -join ', '); found '$researchLayer'")
+        }
+    } elseif ($category -eq "operations") {
+        if (-not [string]::IsNullOrWhiteSpace($researchLayer)) {
+            $failures.Add("${skillName}: operations skill must not set research_layer; found '$researchLayer'")
+        }
     }
 
     foreach ($requiredField in @("id", "display_name", "author", "namespace", "category", "summary", "description", "trigger", "capabilities")) {

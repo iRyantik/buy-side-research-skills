@@ -19,9 +19,15 @@ $scriptPaths = @(
 $failures = New-Object System.Collections.Generic.List[string]
 
 function New-UnicodeText {
-    param([int[]]$CodePoints)
+    param([object[]]$CodePoints)
 
-    return -join ($CodePoints | ForEach-Object { [char]$_ })
+    return -join ($CodePoints | ForEach-Object {
+        if ($_ -is [System.Array]) {
+            $_ | ForEach-Object { [char][int]$_ }
+        } else {
+            [char][int]$_
+        }
+    })
 }
 
 function Require-Path {
@@ -58,22 +64,20 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     $skillText = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillPath
     $yamlText = Get-Content -Raw -Encoding UTF8 -LiteralPath $yamlPath
 
-    $capsuleCount = ([regex]::Matches($skillText, "## Global Rules Capsule \(v1\)")).Count
-    if ($capsuleCount -ne 1) {
-        $failures.Add("ingest: expected exactly one Global Rules Capsule, found $capsuleCount")
-    }
-
-    $requiredSections = @(
-        @{ Label = "Mindset"; Text = New-UnicodeText @(0x5FC3, 0x6CD5) },
-        @{ Label = "Source Policy"; Text = "Source " + (New-UnicodeText @(0x653F, 0x7B56)) },
-        @{ Label = "Workflow Linkage"; Text = "Workflow " + (New-UnicodeText @(0x8054, 0x52A8)) },
-        @{ Label = "Anti-pattern Self-check"; Text = New-UnicodeText @(0x53CD, 0x6A21, 0x5F0F, 0x81EA, 0x67E5) },
-        @{ Label = "Length Benchmark"; Text = New-UnicodeText @(0x7BC7, 0x5E45, 0x57FA, 0x51C6) }
-    )
-
-    foreach ($section in $requiredSections) {
-        if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section.Text))") {
-            $failures.Add("ingest: missing required section '$($section.Label)'")
+    foreach ($section in @(
+        (New-UnicodeText @(0x5FC3, 0x6CD5)),
+        (New-UnicodeText @(0x804C, 0x8D23, 0x8FB9, 0x754C)),
+        (New-UnicodeText @(0x89E6, 0x53D1, 0x4E0E, 0x8F93, 0x5165)),
+        (New-UnicodeText @(0x6267, 0x884C, 0x6A21, 0x5F0F)),
+        (New-UnicodeText @(0x5DE5, 0x5177, 0x8D44, 0x6E90)),
+        (New-UnicodeText @(0x6587, 0x4EF6, 0x5B89, 0x5168)),
+        (New-UnicodeText @(0x8FD0, 0x884C, 0x8F93, 0x51FA, 0x5951, 0x7EA6)),
+        (New-UnicodeText @(0x5931, 0x8D25, 0x5904, 0x7406)),
+        ("Workflow " + (New-UnicodeText @(0x8054, 0x52A8))),
+        (New-UnicodeText @(0x5B89, 0x5168, 0x81EA, 0x67E5))
+    )) {
+        if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section))") {
+            $failures.Add("ingest: missing operations section '$section'")
         }
     }
 
@@ -83,6 +87,9 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "source_modified_utc",
         "converted_at_utc",
         "precision",
+        "precision_level",
+        "document_type",
+        "route",
         "ingest.py",
         "ingest_xlsx.py",
         "ingest_table_crosscheck.py",
@@ -105,6 +112,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     }
 
     foreach ($phrase in @(
+        "category: 'operations'",
         "cache_artifact",
         "[source-filename].md",
         "_cache/[bucket]/[source-filename].md",
@@ -112,11 +120,15 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "precision_level",
         "document_type",
         "route",
-        "3.4.0"
+        "3.5.0-dev"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("ingest: skill.yaml missing required phrase '$phrase'")
         }
+    }
+
+    if ($yamlText -match "(?m)^research_layer:") {
+        $failures.Add("ingest: operations skill must not define research_layer")
     }
 
     $yamlName = Get-YamlScalar $yamlText "name"
@@ -129,8 +141,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.1.0") {
         $failures.Add("ingest: expected skill version 1.1.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.4.0") {
-        $failures.Add("ingest: expected system_generation 3.4.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.5.0-dev") {
+        $failures.Add("ingest: expected system_generation 3.5.0-dev, found '$systemGeneration'")
     }
 }
 

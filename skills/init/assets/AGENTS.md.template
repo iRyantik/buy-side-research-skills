@@ -1,0 +1,15 @@
+# AGENTS.md - Research Workspace Agent Entry Point
+
+> 本文件只是 Codex / agents 在当前 research workspace 的兼容入口，不是独立宪法。
+> 本 workspace 的 source of truth 是同目录 [`CLAUDE.md`](CLAUDE.md)。
+
+## Required Workflow
+
+- 在本目录或子目录工作前，先读取并遵守 `CLAUDE.md`。
+- 若 `AGENTS.md`、`CLAUDE.md`、任何 skill 指令或其他局部说明冲突，以 workspace `CLAUDE.md` 为准。
+- 不要在本文件复制 source policy、反流水账规则、skill trigger 表或文件组织细节；这些规则只维护在 workspace `CLAUDE.md`。
+
+## Boundary
+
+- 本文件服务用户 research workspace，不服务 plugin dev repo。
+- 插件开发规则不在这里维护；如果要改 plugin skills 或 validators，请回到 plugin dev repo。

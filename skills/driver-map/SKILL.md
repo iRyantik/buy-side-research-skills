@@ -202,7 +202,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 ```
 
-如果当前没有 topic session，先建议路径，不要自行发明大量目录。
+如果当前没有 topic session，先 handoff 到 `new-session` 创建 / 解析路径，不要自行发明大量目录。
 
 ## Workflow 联动
 

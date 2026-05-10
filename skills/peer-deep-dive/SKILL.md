@@ -353,6 +353,16 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 | 已经形成可复用行业 lens、peer map 或研究排序 | `research-journal` |
 | 仍不知道下一轮最值得追哪个问题 | `next-step` |
 
+## 可选保存
+
+默认输出到对话。用户明确要求保存时，写入当前 topic session：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md
+```
+
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 ## 输出篇幅基准（线性 scale）
 
 | N | 目标字数 | 矩阵表数量 | Cross-cut 字数 |

@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'information-impact'
 id: 'information-impact'
 display_name: 'Information Impact'
 version: '1.0.1'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'triage'
 summary: 'Claim check and research relevance filter for rumors, supply-chain claims, news, and data points.'
 description: 'Claim check and research relevance filter for rumors, supply-chain claims, news, and data points.'
 tags:

@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'research-journal'
 id: 'research-journal'
 display_name: 'Research Journal'
 version: '1.2.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'memory'
 summary: 'Journal-first research memory skill with an earned-insight gate, topic index updates, and high-density Boss Briefs.'
 description: 'Journal-first research memory skill for preserving solved insights, rejecting raw reminders, updating topic maps, and generating high-density Boss Briefs.'
 tags:

@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 17
+    [int]$ExpectedActiveSkillCount = 19
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,6 +32,19 @@ $forbiddenSharedTerms = @(
 
 $failures = New-Object System.Collections.Generic.List[string]
 
+function Get-YamlScalar {
+    param(
+        [string]$Text,
+        [string]$Key
+    )
+
+    $match = [regex]::Match($Text, "(?m)^$([regex]::Escape($Key)):\s*['""]?([^'""\r\n]+)['""]?\s*$")
+    if ($match.Success) {
+        return $match.Groups[1].Value.Trim()
+    }
+    return $null
+}
+
 if (-not (Test-Path -LiteralPath $sharedRulesPath)) {
     $failures.Add("Missing shared runtime rules file: $sharedRulesPath")
 } else {
@@ -51,20 +64,39 @@ if ($activeSkillDirs.Count -ne $ExpectedActiveSkillCount) {
     $failures.Add("Expected $ExpectedActiveSkillCount active skills with SKILL.md, found $($activeSkillDirs.Count): $($activeSkillDirs.Name -join ', ')")
 }
 
+$researchSkillCount = 0
 foreach ($dir in $activeSkillDirs) {
     $skillPath = Join-Path $dir.FullName "SKILL.md"
-    $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillPath
-    $markerCount = ([regex]::Matches($text, [regex]::Escape($marker))).Count
+    $yamlPath = Join-Path $dir.FullName "skill.yaml"
 
-    if ($markerCount -ne 1) {
-        $failures.Add("$($dir.Name): expected exactly one '$marker', found $markerCount")
+    if (-not (Test-Path -LiteralPath $yamlPath)) {
+        $failures.Add("$($dir.Name): missing skill.yaml; cannot decide whether Global Rules Capsule is required")
         continue
     }
 
-    foreach ($phrase in $requiredPhrases) {
-        if (-not $text.Contains($phrase)) {
-            $failures.Add("$($dir.Name): capsule is missing required phrase '$phrase'")
+    $yamlText = Get-Content -Raw -Encoding UTF8 -LiteralPath $yamlPath
+    $category = Get-YamlScalar $yamlText "category"
+    $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillPath
+    $markerCount = ([regex]::Matches($text, [regex]::Escape($marker))).Count
+
+    if ($category -eq "research") {
+        $researchSkillCount += 1
+        if ($markerCount -ne 1) {
+            $failures.Add("$($dir.Name): research skill expected exactly one '$marker', found $markerCount")
+            continue
         }
+
+        foreach ($phrase in $requiredPhrases) {
+            if (-not $text.Contains($phrase)) {
+                $failures.Add("$($dir.Name): capsule is missing required phrase '$phrase'")
+            }
+        }
+    } elseif ($category -eq "operations") {
+        if ($markerCount -gt 1) {
+            $failures.Add("$($dir.Name): operations skill has duplicate '$marker' sections")
+        }
+    } else {
+        $failures.Add("$($dir.Name): unknown category '$category'; expected research or operations")
     }
 }
 
@@ -81,4 +113,4 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "Global rules validation passed for $($activeSkillDirs.Count) active skills." -ForegroundColor Green
+Write-Host "Global rules validation passed for $researchSkillCount research skills across $($activeSkillDirs.Count) active skills." -ForegroundColor Green

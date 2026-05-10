@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'company-primer'
 id: 'company-primer'
 display_name: 'Company Primer'
 version: '1.0.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'foundation'
 summary: 'Build source-backed company foundations, business evolution maps, and disclosure evolution audits before driver, thesis, peer, or model work.'
 description: 'Build source-backed company foundations, business evolution maps, and disclosure evolution audits before driver, thesis, peer, or model work.'
 tags:

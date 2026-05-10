@@ -1,9 +1,9 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'ingest'
 id: 'ingest'
 display_name: 'Ingest Raw Material'
 version: '1.1.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'

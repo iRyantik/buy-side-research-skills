@@ -230,6 +230,16 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 | 只是不知道下一层问题怎么问 | `next-step` |
 | 已经形成可复用认知增量 | `research-journal` |
 
+## 可选保存
+
+默认输出到对话。用户明确要求保存时，写入当前 topic session：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md
+```
+
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 ## 篇幅基准
 
 - 标准 quickread：1200-1800 字，必须保留数据表、takeaway、反向工程和下一层问题。

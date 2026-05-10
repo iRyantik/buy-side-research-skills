@@ -1,0 +1,79 @@
+metadata_schema_version: 1
+name: 'new-session'
+id: 'new-session'
+display_name: 'New Session'
+version: '1.0.0'
+system_generation: '3.5.0-dev'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Create or locate topic research sessions, resolve canonical artifact save paths, and lightly update topic indexes.'
+description: 'Create or locate topic research sessions, resolve canonical artifact save paths, and lightly update topic indexes without doing research or recommending a next research skill.'
+tags:
+  - 'new-session'
+  - 'topic-session'
+  - 'save-path'
+  - 'index-touch'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'new session'
+    - 'create topic session'
+    - 'new topic session'
+    - 'open session'
+    - 'resolve save path'
+    - 'where should this artifact be saved'
+    - 'update topic index'
+    - 'index touch'
+  description: 'Trigger when the user wants to create or locate a topic session, resolve an artifact save path, or lightly update a topic index.'
+capabilities:
+  modes:
+    - 'New Topic Session'
+    - 'Resolve Save Path'
+    - 'Index Touch'
+  requirements:
+    - 'create or locate topics/[company|theme|event]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+    - 'ensure topic index.md exists without overwriting existing content'
+    - 'resolve canonical save paths for topic-session artifacts'
+    - 'update only session links, current question, open questions, and related artifacts in index.md'
+    - 'do not write research conclusions or earned insight'
+    - 'do not recommend next research skill'
+    - 'do not create v2 state folders'
+artifact_policy:
+  save_policy: 'topic_session_scaffold'
+  default_artifact: 'topic session folder + index.md'
+  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+  save_trigger: 'create or locate a topic session only when the user asks to open a session, resolve a save path, or touch a topic index'
+workflow:
+  stage: 'topic-session-setup'
+  can_follow:
+    - 'init'
+    - 'user-save-request'
+    - 'research-artifact-save-request'
+  feeds_into:
+    - 'company-primer'
+    - 'mechanism-map'
+    - 'driver-map'
+    - 'stock-quickread'
+    - 'peer-deep-dive'
+    - 'alpha-thesis'
+    - 'bear-pre-mortem'
+    - 'earnings-setup'
+    - 'cross-market-compare'
+    - 'pair-trade'
+    - 'candidate-screener'
+    - 'research-journal'
+  can_trigger:
+    - 'research-journal'
+quality_gates:
+  anti_patterns:
+    - 'writing_research_conclusions'
+    - 'recommending_next_research_skill'
+    - 'overwriting_existing_index'
+    - 'creating_v2_state_folders'
+    - 'writing_cache_as_topic_artifact'
+    - 'inventing_complex_directory_tree'
+  required_paths:
+    - 'topics/[company|theme|event]/[topic-slug]/index.md'
+    - 'topics/[company|theme|event]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'

@@ -47,8 +47,7 @@ if (Test-Path -LiteralPath $fullWorkspacePath) {
     $existingMarkers = @(
         ".claude-plugin\plugin.json",
         ".codex-plugin\plugin.json",
-        "skills",
-        "META-SKILL.md"
+        "skills"
     )
 
     $pluginMarkerHits = @()
@@ -117,6 +116,11 @@ Write-TemplateIfMissing `
     -RelativeName "CLAUDE.md"
 
 Write-TemplateIfMissing `
+    -TemplatePath (Join-Path $assetsRoot "AGENTS.md.template") `
+    -TargetPath (Join-Path $fullWorkspacePath "AGENTS.md") `
+    -RelativeName "AGENTS.md"
+
+Write-TemplateIfMissing `
     -TemplatePath (Join-Path $assetsRoot "gitignore.template") `
     -TargetPath (Join-Path $fullWorkspacePath ".gitignore") `
     -RelativeName ".gitignore"
@@ -150,7 +154,7 @@ Copy-ScriptIfMissing `
     -SourcePath $MyInvocation.MyCommand.Path `
     -RelativeTarget "_scripts\init-research-workspace.ps1"
 
-foreach ($assetName in @("CLAUDE.md.template", "gitignore.template", "edge-radar.md")) {
+foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.template", "edge-radar.md")) {
     $sourceAsset = Join-Path $assetsRoot $assetName
     if (Test-Path -LiteralPath $sourceAsset) {
         Copy-ScriptIfMissing `

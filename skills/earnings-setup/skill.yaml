@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'earnings-setup'
 id: 'earnings-setup'
 display_name: 'Earnings Setup'
 version: '1.0.2'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: '财报前后的 setup 和快速决策，关注预期差和事件交易'
 description: '财报前后的 setup 和快速决策，关注预期差和事件交易'
 tags:

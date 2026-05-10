@@ -272,6 +272,8 @@ description: Use when comparing A/H shares, ADRs, local listings, or cross-marke
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md
 ```
 
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 不要自动维护状态库。
 
 ## 反模式自查

@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'financial-model'
 id: 'financial-model'
 display_name: 'Financial Model'
 version: '1.0.1'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: 'Convert mechanism-map and driver-map output into operating models, DCF, comps, reverse DCF, valuation bridge, or update maps for existing Excel workbooks.'
 description: 'Convert mechanism-map and driver-map output into operating models, DCF, comps, reverse DCF, valuation bridge, or update maps for existing Excel workbooks.'
 tags:

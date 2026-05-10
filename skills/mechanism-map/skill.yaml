@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'mechanism-map'
 id: 'mechanism-map'
 display_name: 'Mechanism Map'
 version: '1.0.1'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'foundation'
 summary: 'Explain industry mechanisms, engineering principles, equipment chains, process flows, technical terms, and know-how gaps, then map them to investment research implications.'
 description: 'Explain industry mechanisms, engineering principles, equipment chains, process flows, technical terms, and know-how gaps, then map them to investment research implications.'
 tags:

@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 17
+    [int]$ExpectedActiveSkillCount = 19
 )
 
 $ErrorActionPreference = "Stop"
@@ -58,7 +58,7 @@ if (Test-Path -LiteralPath $installDoc) {
 $releaseDoc = Join-Path $repoRoot "docs\release.md"
 if (Test-Path -LiteralPath $releaseDoc) {
     $releaseText = Get-Content -Raw -Encoding UTF8 -LiteralPath $releaseDoc
-    foreach ($excluded in @(".claude/", "RTK.md", ".git/")) {
+    foreach ($excluded in @('.claude/', 'RTK.md', '.git/', 'root `CLAUDE.md`', 'root `AGENTS.md`', 'root `scripts/`')) {
         if (-not $releaseText.Contains($excluded)) {
             $failures.Add("docs/release.md must document release exclusion: $excluded")
         }

@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'stock-quickread'
 id: 'stock-quickread'
 display_name: 'Stock Quickread'
 version: '1.1.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'triage'
 summary: '30 分钟快速了解一家陌生公司，达到''能问出像样的下一层问题''的状态'
 description: '30 分钟快速了解一家陌生公司，达到''能问出像样的下一层问题''的状态'
 tags:

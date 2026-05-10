@@ -195,6 +195,16 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 超长就是抓不住重点。
 
+## 可选保存
+
+默认输出到对话。用户明确要求保存时，写入当前 topic session：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md
+```
+
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 ## Workflow 联动
 
 - 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）

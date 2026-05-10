@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 17
+    [int]$ExpectedActiveSkillCount = 19
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,7 +15,8 @@ $allowedSavePolicies = @(
     "earned_memory",
     "external_workbook",
     "workspace_scaffold",
-    "cache_artifact"
+    "cache_artifact",
+    "topic_session_scaffold"
 )
 
 $expectedPolicies = @{
@@ -78,6 +79,16 @@ $expectedPolicies = @{
         save_policy = "optional_topic_session"
         default_artifact = "mechanism-map.md"
         canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md"
+    }
+    "meta-skill" = @{
+        save_policy = "none"
+        default_artifact = "conversation-only"
+        canonical_location = "conversation-only"
+    }
+    "new-session" = @{
+        save_policy = "topic_session_scaffold"
+        default_artifact = "topic session folder + index.md"
+        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/"
     }
     "next-step" = @{
         save_policy = "none"

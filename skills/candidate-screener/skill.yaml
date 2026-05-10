@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'candidate-screener'
 id: 'candidate-screener'
 display_name: 'Candidate Screener'
 version: '1.0.1'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'triage'
 summary: 'Outbound idea funnel that turns a theme, event, hypothesis, or screening condition into a sourced long/short candidate list.'
 description: 'Outbound idea funnel that turns a theme, event, hypothesis, or screening condition into a sourced long/short candidate list.'
 tags:

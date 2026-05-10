@@ -220,6 +220,8 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
 ```
 
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Global Rules Capsule (v1)` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。

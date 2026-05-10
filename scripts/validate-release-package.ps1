@@ -72,6 +72,7 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/init/SKILL.md",
             "skills/init/skill.yaml",
             "skills/init/assets/CLAUDE.md.template",
+            "skills/init/assets/AGENTS.md.template",
             "skills/init/assets/gitignore.template",
             "skills/init/assets/edge-radar.md",
             "skills/init/scripts/init-research-workspace.ps1",
@@ -82,29 +83,37 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/ingest/scripts/ingest_xlsx.py",
             "skills/ingest/scripts/ingest_table_crosscheck.py",
             "skills/ingest/scripts/bootstrap-ingest-deps.ps1",
-            "scripts/build-release.ps1",
-            "scripts/validate-release-package.ps1",
+            "skills/meta-skill/SKILL.md",
+            "skills/meta-skill/skill.yaml",
+            "skills/new-session/SKILL.md",
+            "skills/new-session/skill.yaml",
             "docs/install.md",
-            "docs/release.md",
-            "README.md",
-            "CLAUDE.md",
-            "FRAMEWORK.md",
-            "META-SKILL.md"
+            "docs/architecture.md",
+            "README.md"
         )) {
             Require-Entry $required
         }
 
-        foreach ($prefix in @("skills/", "docs/", "examples/", "archive/")) {
+        foreach ($prefix in @("skills/", "docs/", "examples/")) {
             Require-Prefix $prefix
         }
 
-        foreach ($forbidden in @(".git/", ".claude/", "dist/")) {
+        $forbiddenPrefixes = @(".git/", ".claude/", "dist/", "scripts/", ("archive" + "/"))
+        foreach ($forbidden in $forbiddenPrefixes) {
             if ($entryNames | Where-Object { $_.StartsWith($forbidden) } | Select-Object -First 1) {
                 $failures.Add("Release zip includes forbidden prefix: $forbidden")
             }
         }
 
-        foreach ($forbiddenFile in @("RTK.md", "AGENTS.md")) {
+        $forbiddenFiles = @(
+            "RTK.md",
+            "AGENTS.md",
+            "CLAUDE.md",
+            ("FRAMEWORK" + ".md"),
+            ("META-SKILL" + ".md"),
+            "docs/release.md"
+        )
+        foreach ($forbiddenFile in $forbiddenFiles) {
             if ($entrySet.Contains($forbiddenFile)) {
                 $failures.Add("Release zip includes forbidden file: $forbiddenFile")
             }
@@ -118,8 +127,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             }
         }
 
-        if ($activeSkillNames.Count -ne 17) {
-            $failures.Add("Expected 17 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
+        if ($activeSkillNames.Count -ne 19) {
+            $failures.Add("Expected 19 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
         }
 
         if (-not $activeSkillNames.Contains("company-primer")) {
@@ -132,6 +141,14 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
 
         if (-not $activeSkillNames.Contains("ingest")) {
             $failures.Add("Release zip is missing active skill: ingest")
+        }
+
+        if (-not $activeSkillNames.Contains("meta-skill")) {
+            $failures.Add("Release zip is missing active skill: meta-skill")
+        }
+
+        if (-not $activeSkillNames.Contains("new-session")) {
+            $failures.Add("Release zip is missing active skill: new-session")
         }
 
         $claudeManifestText = Get-ZipEntryText ".claude-plugin/plugin.json"

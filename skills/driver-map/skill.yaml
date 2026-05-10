@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'driver-map'
 id: 'driver-map'
 display_name: 'Driver Map'
 version: '1.1.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'foundation'
 summary: 'Map reported business buckets to business reality and revenue, margin, backlog, price/volume/mix drivers before modeling, thesis, peer, or pair work.'
 description: 'Map reported business buckets to business reality and revenue, margin, backlog, price/volume/mix drivers before modeling, thesis, peer, or pair work.'
 tags:

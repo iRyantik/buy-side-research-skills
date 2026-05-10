@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'peer-deep-dive'
 id: 'peer-deep-dive'
 display_name: 'Peer Deep Dive'
 version: '1.0.2'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: '并行深入研究 3-8 家同业公司，产出共享行业 lens + cross-cut 矛盾/共识/错配信号 + 研究排序'
 description: '并行深入研究 3-8 家同业公司，产出共享行业 lens + cross-cut 矛盾/共识/错配信号 + 研究排序'
 tags:

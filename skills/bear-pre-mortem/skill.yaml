@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'bear-pre-mortem'
 id: 'bear-pre-mortem'
 display_name: 'Bear Pre-Mortem'
 version: '1.0.2'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: '对多头 thesis 做 steelman 空头压力测试，故意单边全力攻击'
 description: '对多头 thesis 做 steelman 空头压力测试，故意单边全力攻击'
 tags:

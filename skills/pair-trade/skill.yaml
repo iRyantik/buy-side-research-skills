@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'pair-trade'
 id: 'pair-trade'
 display_name: 'Pair Trade'
 version: '1.0.1'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: 'Journal-first long/short pair research and monitor for pair validity, spread logic, and hedge candidates.'
 description: 'Journal-first long/short pair research and monitor for pair validity, spread logic, and hedge candidates.'
 tags:

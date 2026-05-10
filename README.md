@@ -1,134 +1,119 @@
-# Buy-Side Research Skills v3.4.0
+# Buy-Side Research Skills
 
-Journal-first buy-side equity research skill suite for Claude and Codex. The system helps a researcher find high-value questions, route mechanism / driver gaps to the right primitive, and turn researched insight into topic journals or Boss Briefs.
+一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化和材料 ingest。
 
-Repository: `iRyantik/buy-side-research-skills`
+当前开发线：`3.5.0-dev`
 
-## Quick Start
+稳定发布基线：`v3.4.0`
 
-1. Install the plugin from GitHub or a release zip.
-2. Open or initialize a research workspace with `init`; do not use this plugin repo as the workspace.
-3. If you need full raw-material conversion, run `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly` in the workspace, then opt in with `-Yes`.
-4. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
-5. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
+仓库地址：`iRyantik/buy-side-research-skills`
 
-Version `3.4.0` is the current colleague-shareable baseline. It adds guided workspace creation through `init`, raw material cache conversion through `ingest`, and opt-in local dependency bootstrap for the ingest toolchain.
+## 适合做什么
 
-## Install
+- 快速判断一家公司或一条信息是否值得继续研究。
+- 把公司历史、业务构成、segment / KPI 口径变化梳理清楚。
+- 遇到行业机制、工程原理、工艺流程或设备链条不清时，触发 `mechanism-map`。
+- 遇到 revenue、margin、backlog、price-volume-mix、KPI 披露口径不清时，触发 `driver-map`。
+- 做 peer deep dive、alpha thesis、bear pre-mortem、earnings setup、pair trade 和 financial model。
+- 把已经研究过、source-backed、会改变判断的认知增量沉淀成 `research-journal` 或 Boss Brief。
 
-Claude and Codex installation notes live in [docs/install.md](docs/install.md).
+## 安装
 
-The repo includes both plugin manifests:
+Claude 插件市场可用时：
 
-```text
-.claude-plugin/plugin.json
-.codex-plugin/plugin.json
+```powershell
+/plugin marketplace add iRyantik/buy-side-research-skills
+/plugin install buy-side-research-skills
 ```
 
-## Project Layout
+Codex 插件市场可用时：
 
-This repository is the plugin development project. It is managed with git and should not be used as the day-to-day research workspace.
-
-```text
-.claude-plugin/                    # Claude plugin manifest
-.codex-plugin/                     # Codex plugin manifest
-skills/                            # active runtime skills and shared rules
-scripts/                           # development validators and release scripts
-docs/                              # install, architecture, release docs
-examples/                          # example workspaces, not runtime dependencies
-archive/                           # historical v2 reference material
+```powershell
+codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-Runtime files needed by a skill should live inside that skill directory. Root `scripts/` is for development and release validation only.
+如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.4.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
 
-## Active Skills
+更多安装说明见 [docs/install.md](docs/install.md)。
 
-| Layer | Skills | Purpose |
+## 第一次使用
+
+1. 新建一个普通文件夹作为 research workspace，不要直接在本插件仓库里做研究。
+2. 使用 `init` 初始化 workspace。它会创建 `_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/`、`topics/`，并写入 workspace `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
+3. 如需转换本地材料，先在 workspace 中运行 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly` 查看依赖状态，再按需显式运行 `-Yes` 安装 ingest 依赖。
+4. 使用 `new-session` 创建或定位 topic session，再让研究类 skill 保存 artifact。
+5. 把 raw materials 放入 `_raw/` 或 `_inbox/`，用 `ingest` 转成 `_cache/` markdown；`_cache/` 是中间材料，不是研究结论。
+
+标准 workspace 形状：
+
+```text
+[research-workspace]/
+├── CLAUDE.md
+├── AGENTS.md
+├── _inbox/
+├── _raw/
+├── _cache/
+├── _models/
+├── _scripts/
+└── topics/
+    ├── _meta/
+    │   └── edge-radar.md
+    ├── company/
+    ├── theme/
+    └── event/
+```
+
+topic session 形状：
+
+```text
+topics/[company|theme|event]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/
+```
+
+## Skill 分类
+
+Operations skills：
+
+| Skill | 用途 |
+|---|---|
+| `init` | 创建或修复 research workspace scaffold |
+| `ingest` | 把 raw materials 转成 source-tracked `_cache/` markdown |
+| `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 topic `index.md` |
+| `meta-skill` | 维护本插件的 skills、metadata、validators 和 governance |
+
+Research skills：
+
+| 层级 | Skills | 用途 |
 |---|---|---|
-| Workspace Ops | `init`, `ingest` | Create or repair a standard research workspace scaffold, then convert raw materials into `_cache/` markdown. |
-| Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | Filter information, find candidates, and decide whether to continue. |
-| Company Foundation | `company-primer` | Map what a company sells, how the business evolved, and where disclosure history breaks comparability. |
-| Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | Map mechanisms, model drivers, cross-market valuation, and the next highest-value question. |
-| Deep Research | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | Run peer work, thesis work, pre-mortems, earnings setup, pair research, and model work. |
-| Synthesis / Memory | `research-journal` | Save researched insight and Boss Briefs. |
+| `triage` | `information-impact`, `candidate-screener`, `stock-quickread`, `next-step` | 过滤信息、找候选、快速判断、识别最高杠杆下一问 |
+| `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` | 公司基础、行业机制、model drivers、跨市场比较 |
+| `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、thesis、pre-mortem、财报、pair、建模 |
+| `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
-## Core Loop
+## 推荐研究流
 
 ```text
-Senior Analyst Radar -> better AI questions -> research -> research-journal -> Boss Brief
+init -> ingest -> new-session -> stock-quickread / company-primer
+     -> mechanism-map / driver-map
+     -> peer-deep-dive / alpha-thesis / bear-pre-mortem / earnings-setup
+     -> research-journal / Boss Brief
 ```
 
-- `Senior Analyst Radar` flags issues that may change business understanding, model drivers, market framing, peer groups, or research priority.
-- `init` creates the standard research workspace scaffold; it does not ingest raw files, install dependencies, run git, or create research artifacts.
-- `ingest` converts raw files into source-tracked `_cache/` markdown; it does not generate research conclusions. Use `python _scripts/ingest.py --check-deps` before first use.
-- `bootstrap-ingest-deps.ps1` is opt-in only: Python packages install to the current user by default, while Tesseract uses local package-manager / manual fallback.
-- `company-primer` handles company foundations, business evolution, segment / KPI rename, recast, and disclosure history before driver or thesis work.
-- `mechanism-map` handles industry mechanisms, engineering principles, equipment chains, process flows, terminology, and know-how gaps.
-- `driver-map` handles revenue, margin, backlog, price / volume / mix, disclosure buckets, KPI oddities, and model-driver gaps.
-- `research-journal` saves only researched, source-backed insight. It is not a transcript or idea dump.
+遇到保存路径不清，先用 `new-session`。遇到机制不清，先用 `mechanism-map`。遇到 driver 或披露口径不清，先用 `driver-map`。不要把未经验证的疑点直接写进 `research-journal`。
 
-## Examples
+## 示例
 
-Examples are stored under [examples/](examples/) and are safe to inspect or copy. They are not loaded by the plugin at runtime.
-
-Current example workspace:
+示例 workspace 位于：
 
 ```text
 examples/workspaces/ai-data-center-power/
 ```
 
-## Validation
+示例只用于参考 artifact 形状，不是插件运行时依赖。
 
-Run the standard gates before release:
+## 重要边界
 
-```powershell
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
-& 'C:\Users\M\.claude\rtk.exe' git diff --check
-```
-
-## Version Notes
-
-### v3.4.0
-
-- Added `init` as the 16th active workspace setup skill.
-- Added standard research workspace scaffold templates and an idempotent init helper script.
-- Added `ingest` as the 17th active raw material cache skill.
-- Added opt-in ingest dependency bootstrap for Docling, EdgarTools, Tesseract OCR, MarkItDown, PDFPlumber, and related parsers.
-
-### v3.3.1
-
-- Hardened release packaging for colleague distribution.
-- Added reproducible release zip generation and validation.
-- Kept `init` / `ingest` out of scope; those shipped in v3.4.0.
-
-### v3.3.0
-
-- Added `company-primer` as the 15th active company foundation skill.
-- Added `mechanism-map` as the 14th active research primitive.
-- Added formal routing between mechanism / know-how work and driver / model / thesis work.
-- Added runtime global rules capsules and canonical `skill.yaml` metadata.
-
-### v3.2.0
-
-- Added `driver-map`.
-- Re-layered active skills into Signal / Funnel, Research Primitives, Deep Research, and Synthesis / Memory.
-- Expanded `financial-model` into driver-to-valuation workflow.
-
-### v3.1.0
-
-- Restored `pair-trade` as a journal-first active skill.
-
-### v3.0.0
-
-- Pivoted to journal-first research.
-- Added `research-journal`, `next-step`, and Senior Analyst Radar.
-- Archived v2 state workflow skills and fixtures.
+- 插件不会替你做最终投资决策。
+- `init` 不会运行 `git init`、不会安装依赖、不会 ingest 文件、不会写研究结论。
+- `ingest` 只写 `_cache/` 中间材料，不写 thesis 或 journal。
+- `research-journal` 只写已经研究清楚、关键事实有 source、会改变判断的认知增量。
+- root `CLAUDE.md` / `AGENTS.md` 只服务本源码仓库维护；用户 workspace 会由 `init` 生成自己的 `CLAUDE.md` / `AGENTS.md`。

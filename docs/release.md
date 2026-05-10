@@ -1,72 +1,78 @@
 # Release
 
-Release packages should be reproducible from the plugin dev repo and safe to share with colleagues. The current stable shareable baseline is `v3.4.0`, including `init`, `ingest`, and opt-in ingest dependency bootstrap.
+This document is for maintainers of the plugin source repo. It is not required for day-to-day plugin use.
 
-## Include
+The current development line is `3.5.0-dev`. Formal stable releases should be tagged separately.
+
+## Release Package Surface
+
+The release zip should include only user installation and runtime material:
 
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `skills/`
-- `scripts/`
-- `docs/`
+- `docs/install.md`
+- `docs/architecture.md`
 - `examples/`
-- `archive/`
-- `CLAUDE.md`
-- `FRAMEWORK.md`
-- `META-SKILL.md`
 - `README.md`
 
-The release builder intentionally excludes `AGENTS.md`; it is a local agent compatibility entry point, not part of the colleague-facing plugin package.
+The release zip must exclude source-repo maintenance files:
 
-## Exclude
-
+- root `CLAUDE.md`
+- root `AGENTS.md`
+- root `scripts/`
 - `.git/`
 - `.claude/`
 - `RTK.md`
-- local editor state
-- caches
 - `dist/`
-- release archives
+- local editor or agent state
+
+The release zip must still include skill-local runtime resources, especially:
+
+```text
+skills/init/assets/CLAUDE.md.template
+skills/init/assets/AGENTS.md.template
+skills/init/scripts/init-research-workspace.ps1
+skills/ingest/assets/requirements-ingest.txt
+skills/ingest/scripts/bootstrap-ingest-deps.ps1
+skills/ingest/scripts/ingest.py
+skills/ingest/scripts/ingest_xlsx.py
+skills/ingest/scripts/ingest_table_crosscheck.py
+```
 
 ## Pre-Release Gates
 
 Run all validators before producing a zip:
 
 ```powershell
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
-& 'C:\Users\M\.claude\rtk.exe' git diff --check
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-meta-skill.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session-skill.ps1
+git diff --check
 ```
 
 ## Build
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0-dev
 ```
 
 The build writes:
 
 ```text
-dist/buy-side-research-skills-3.4.0.zip
+dist/buy-side-research-skills-3.5.0-dev.zip
 ```
 
 The build script calls the release package validator after creating the zip.
 
-## Ingest Runtime Assets
-
-`3.4.0` release packages must include:
-
-```text
-skills/ingest/assets/requirements-ingest.txt
-skills/ingest/scripts/bootstrap-ingest-deps.ps1
-```
+## Dependency Policy
 
 The package should not preinstall Docling, EdgarTools, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1`.

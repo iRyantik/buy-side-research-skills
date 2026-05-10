@@ -11,6 +11,7 @@ $yamlPath = Join-Path $skillRoot "skill.yaml"
 $scriptPath = Join-Path $skillRoot "scripts\init-research-workspace.ps1"
 $assetPaths = @(
     "assets\CLAUDE.md.template",
+    "assets\AGENTS.md.template",
     "assets\gitignore.template",
     "assets\edge-radar.md"
 )
@@ -18,9 +19,15 @@ $assetPaths = @(
 $failures = New-Object System.Collections.Generic.List[string]
 
 function New-UnicodeText {
-    param([int[]]$CodePoints)
+    param([object[]]$CodePoints)
 
-    return -join ($CodePoints | ForEach-Object { [char]$_ })
+    return -join ($CodePoints | ForEach-Object {
+        if ($_ -is [System.Array]) {
+            $_ | ForEach-Object { [char][int]$_ }
+        } else {
+            [char][int]$_
+        }
+    })
 }
 
 function Require-Path {
@@ -59,28 +66,27 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     $skillText = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillPath
     $yamlText = Get-Content -Raw -Encoding UTF8 -LiteralPath $yamlPath
 
-    $capsuleCount = ([regex]::Matches($skillText, "## Global Rules Capsule \(v1\)")).Count
-    if ($capsuleCount -ne 1) {
-        $failures.Add("init: expected exactly one Global Rules Capsule, found $capsuleCount")
-    }
-
-    $requiredSections = @(
-        @{ Label = "Mindset"; Text = New-UnicodeText @(0x5FC3, 0x6CD5) },
-        @{ Label = "Source Policy"; Text = "Source " + (New-UnicodeText @(0x653F, 0x7B56)) },
-        @{ Label = "Workflow Linkage"; Text = "Workflow " + (New-UnicodeText @(0x8054, 0x52A8)) },
-        @{ Label = "Anti-pattern Self-check"; Text = New-UnicodeText @(0x53CD, 0x6A21, 0x5F0F, 0x81EA, 0x67E5) },
-        @{ Label = "Length Benchmark"; Text = New-UnicodeText @(0x7BC7, 0x5E45, 0x57FA, 0x51C6) }
-    )
-
-    foreach ($section in $requiredSections) {
-        if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section.Text))") {
-            $failures.Add("init: missing required section '$($section.Label)'")
+    foreach ($section in @(
+        (New-UnicodeText @(0x5FC3, 0x6CD5)),
+        (New-UnicodeText @(0x804C, 0x8D23, 0x8FB9, 0x754C)),
+        (New-UnicodeText @(0x89E6, 0x53D1, 0x4E0E, 0x8F93, 0x5165)),
+        (New-UnicodeText @(0x6267, 0x884C, 0x6A21, 0x5F0F)),
+        (New-UnicodeText @(0x5DE5, 0x5177, 0x8D44, 0x6E90)),
+        (New-UnicodeText @(0x6587, 0x4EF6, 0x5B89, 0x5168)),
+        (New-UnicodeText @(0x8FD0, 0x884C, 0x8F93, 0x51FA, 0x5951, 0x7EA6)),
+        (New-UnicodeText @(0x5931, 0x8D25, 0x5904, 0x7406)),
+        ("Workflow " + (New-UnicodeText @(0x8054, 0x52A8))),
+        (New-UnicodeText @(0x5B89, 0x5168, 0x81EA, 0x67E5))
+    )) {
+        if ($skillText -notmatch "(?m)^##\s*$([regex]::Escape($section))") {
+            $failures.Add("init: missing operations section '$section'")
         }
     }
 
-    $notText = New-UnicodeText @(0x4E0D)
     foreach ($phrase in @(
         "workspace scaffold",
+        "AGENTS.md",
+        "AGENTS.md.template",
         "_inbox",
         "_raw",
         "_cache",
@@ -90,8 +96,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "requirements-ingest.txt",
         "Docling",
         "Tesseract",
-        ($notText + " git init"),
-        ($notText + " ingest")
+        "git init",
+        "ingest"
     )) {
         if (-not $skillText.Contains($phrase)) {
             $failures.Add("init: SKILL.md missing required phrase '$phrase'")
@@ -99,14 +105,19 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     }
 
     foreach ($phrase in @(
+        "category: 'operations'",
         "workspace_scaffold",
         "workspace scaffold",
         "user-provided research workspace",
-        "3.4.0"
+        "3.5.0-dev"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("init: skill.yaml missing required phrase '$phrase'")
         }
+    }
+
+    if ($yamlText -match "(?m)^research_layer:") {
+        $failures.Add("init: operations skill must not define research_layer")
     }
 
     $yamlName = Get-YamlScalar $yamlText "name"
@@ -116,11 +127,11 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "init") {
         $failures.Add("init: skill.yaml name '$yamlName' does not match init")
     }
-    if ($yamlVersion -ne "1.2.0") {
-        $failures.Add("init: expected skill version 1.2.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.3.0") {
+        $failures.Add("init: expected skill version 1.3.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.4.0") {
-        $failures.Add("init: expected system_generation 3.4.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.5.0-dev") {
+        $failures.Add("init: expected system_generation 3.5.0-dev, found '$systemGeneration'")
     }
 }
 
@@ -128,6 +139,8 @@ if (Test-Path -LiteralPath $scriptPath) {
     $scriptText = Get-Content -Raw -Encoding UTF8 -LiteralPath $scriptPath
     foreach ($phrase in @(
         "WorkspacePath",
+        "AGENTS.md.template",
+        "AGENTS.md",
         "Refusing to initialize research workspace inside a plugin repo",
         ".claude-plugin\plugin.json",
         ".codex-plugin\plugin.json",
@@ -141,6 +154,59 @@ if (Test-Path -LiteralPath $scriptPath) {
     )) {
         if (-not $scriptText.Contains($phrase)) {
             $failures.Add("init helper script missing required phrase '$phrase'")
+        }
+    }
+}
+
+$claudeTemplatePath = Join-Path $skillRoot "assets\CLAUDE.md.template"
+if (Test-Path -LiteralPath $claudeTemplatePath) {
+    $claudeTemplate = Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeTemplatePath
+    foreach ($phrase in @(
+        "Buy-Side Research Workspace Constitution",
+        "Buy-side equity researcher",
+        "LANG-default = zh",
+        "Source Policy",
+        "Anti-Hallucination",
+        "Anti Sell-Side Rules",
+        "Cross-Cut Bias",
+        "new-session",
+        "ingest",
+        "research-journal.md",
+        "topics/[company|theme|event]",
+        "_cache/",
+        "AGENTS.md"
+    )) {
+        if (-not $claudeTemplate.Contains($phrase)) {
+            $failures.Add("workspace CLAUDE.md.template missing required phrase '$phrase'")
+        }
+    }
+
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/")) {
+        if ($claudeTemplate.Contains($forbidden)) {
+            $failures.Add("workspace CLAUDE.md.template contains forbidden stale phrase '$forbidden'")
+        }
+    }
+}
+
+$agentsTemplatePath = Join-Path $skillRoot "assets\AGENTS.md.template"
+if (Test-Path -LiteralPath $agentsTemplatePath) {
+    $agentsTemplate = Get-Content -Raw -Encoding UTF8 -LiteralPath $agentsTemplatePath
+    foreach ($phrase in @(
+        "Research Workspace Agent Entry Point",
+        "CLAUDE.md",
+        "AGENTS.md",
+        "source of truth",
+        "Required Workflow",
+        "source policy"
+    )) {
+        if (-not $agentsTemplate.Contains($phrase)) {
+            $failures.Add("workspace AGENTS.md.template missing required phrase '$phrase'")
+        }
+    }
+
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/")) {
+        if ($agentsTemplate.Contains($forbidden)) {
+            $failures.Add("workspace AGENTS.md.template contains forbidden stale phrase '$forbidden'")
         }
     }
 }

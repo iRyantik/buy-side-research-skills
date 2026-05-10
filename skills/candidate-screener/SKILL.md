@@ -357,6 +357,8 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md
 ```
 
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`research-journal`、`next-step` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
 
 如果用户只是自由 brainstorm 且明确不需要留痕，可以只在对话中输出；否则默认保存筛选结果，避免下次重新从同一个 hypothesis 开始。

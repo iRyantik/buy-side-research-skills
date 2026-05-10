@@ -219,7 +219,7 @@ Rating hard standards:
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
 ```
 
-如果当前没有 topic session，先建议路径，不要自行创建一堆目录。
+如果当前没有 topic session，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
 
 ## Workflow 联动
 

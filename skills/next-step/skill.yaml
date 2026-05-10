@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'next-step'
 id: 'next-step'
 display_name: 'Next Step'
 version: '1.2.0'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'triage'
 summary: 'Senior analyst research bottleneck router that identifies the highest-value next question and hands off primitive gaps.'
 description: 'Senior analyst research bottleneck router that identifies the highest-value next question, rewrites AI prompts, audits research threads, and routes mechanism, driver, or source gaps.'
 tags:

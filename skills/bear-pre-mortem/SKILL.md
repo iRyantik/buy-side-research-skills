@@ -166,6 +166,16 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 如果最强反方攻击的是收入、margin、backlog、price / volume / mix driver，而原 thesis 没有清楚拆 driver，先触发 `driver-map`。优先攻击 `driver-map` 中 confidence 低、source 弱、披露缺口大的 driver，不要只写宏观或估值风险。
 
+## 可选保存
+
+默认输出到对话。用户明确要求保存时，写入当前 topic session：
+
+```text
+topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/bear-pre-mortem.md
+```
+
+如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+
 ## 篇幅基准
 
 - Quick pre-mortem：600-900 字，适合快速检查一个 thesis 是否有明显盲点。

@@ -2,7 +2,7 @@
 
 Repository: `iRyantik/buy-side-research-skills`
 
-This plugin is designed for colleague self-installation through GitHub or a release zip. The current colleague-shareable baseline is `v3.4.0`, including `init`, `ingest`, and opt-in ingest dependency bootstrap.
+This plugin can be installed through a plugin marketplace flow when available, or from a release zip.
 
 ## Claude
 
@@ -27,17 +27,15 @@ If your Codex environment uses local plugins instead of marketplace install, ext
 
 ## Release Zip
 
-For the stable baseline, download `buy-side-research-skills-3.4.0.zip` from the repo release artifact, or build it locally with:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0
-```
+For the stable baseline, download `buy-side-research-skills-3.4.0.zip` from the GitHub Release artifact.
 
 Extract the zip into the plugin location required by Claude or Codex, then confirm the plugin exposes the skills in `skills/`.
 
 ## First Use
 
-In `3.4.0`, users can run `init` to create or repair a research workspace scaffold, then run `ingest` to convert supported raw files into `_cache/` markdown.
+Run `init` to create or repair a research workspace scaffold. On the current development line, `init` installs workspace `CLAUDE.md` plus a pointer `AGENTS.md` for Codex / agents.
+
+Use `new-session` after `init` when you want to create or locate a topic session before saving research artifacts. `new-session` resolves paths and lightly updates topic `index.md`; it does not write research conclusions.
 
 ## Ingest Dependencies
 

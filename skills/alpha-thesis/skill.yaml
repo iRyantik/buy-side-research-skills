@@ -1,12 +1,13 @@
-metadata_schema_version: 1
+﻿metadata_schema_version: 1
 name: 'alpha-thesis'
 id: 'alpha-thesis'
 display_name: 'Alpha Thesis'
 version: '1.0.2'
-system_generation: '3.4.0'
+system_generation: '3.5.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
+research_layer: 'deep-work'
 summary: '构建有真实 edge 的单股 investment thesis（long-only 或 short-only），可拿去 pitch 给 PM 的完整逻辑；pair / hedge candidate 使用 pair-trade'
 description: '构建有真实 edge 的单股 investment thesis（long-only 或 short-only），可拿去 pitch 给 PM 的完整逻辑；pair / hedge candidate 使用 pair-trade'
 tags:
