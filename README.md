@@ -2,7 +2,7 @@
 
 一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化和材料 ingest。
 
-当前版本：`3.5.0`
+当前版本：`3.6.0`
 
 仓库地址：`iRyantik/buy-side-research-skills`
 
@@ -30,7 +30,7 @@ Codex 插件市场可用时：
 codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.5.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
+如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.6.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
 
 更多安装说明见 [docs/install.md](docs/install.md)。
 
@@ -82,6 +82,7 @@ Operations skills：
 | `init-workspace` | 创建或修复 research workspace scaffold |
 | `ingest` | 把 raw materials 转成 source-tracked markdown 到 `topics/<topic>/_cache/` |
 | `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 topic `index.md` |
+| `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
 | `meta-skill` | 维护本插件的 skills、metadata、validators 和 governance |
 
 Research skills：
@@ -96,10 +97,10 @@ Research skills：
 ## 推荐研究流
 
 ```text
-init -> ingest -> new-session -> stock-quickread / company-primer
+init -> new-session -> ingest -> stock-quickread / company-primer
      -> mechanism-map / driver-map
      -> peer-deep-dive / alpha-thesis / bear-pre-mortem / earnings-setup
-     -> research-journal / Boss Brief
+     -> integrate -> research-journal / Boss Brief
 ```
 
 遇到保存路径不清，先用 `new-session`。遇到机制不清，先用 `mechanism-map`。遇到 driver 或披露口径不清，先用 `driver-map`。不要把未经验证的疑点直接写进 `research-journal`。
@@ -117,7 +118,7 @@ examples/workspaces/ai-data-center-power/
 ## 重要边界
 
 - 插件不会替你做最终投资决策。
-- `init-workspace` 不会运行 `git init`、不会安装依赖、不会 ingest 文件、不会写研究结论。
-- `ingest` 只写 `topics/<topic>/_cache/` 中间材料，不写 thesis 或 journal。
+- `init-workspace` 只创建 workspace 根级 scaffold；topic 完整骨架由 `new-session` 创建。
+- `ingest` 前必须 `new-session` 创建 topic；文件放入 `topics/<topic>/_inbox/`，ingest 后归类到 `_raw/<category>/`。
 - `research-journal` 只写已经研究清楚、关键事实有 source、会改变判断的认知增量。
 - root `CLAUDE.md` / `AGENTS.md` 只服务本源码仓库维护；用户 workspace 会由 `init-workspace` 生成自己的 `CLAUDE.md` / `AGENTS.md`。

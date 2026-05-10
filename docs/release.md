@@ -2,7 +2,7 @@
 
 本文件面向插件源码仓库的维护者。日常使用插件不需要阅读本文件。
 
-当前发布版本：`3.5.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
+当前发布版本：`3.6.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
 
 ## Release 包结构
 
@@ -61,13 +61,13 @@ git diff --check
 ## 构建
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.6.0
 ```
 
 构建产物：
 
 ```text
-dist/buy-side-research-skills-3.5.0.zip
+dist/buy-side-research-skills-3.6.0.zip
 ```
 
 构建脚本会在生成 zip 后调用 release package validator 验证。
