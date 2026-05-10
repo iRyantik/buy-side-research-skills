@@ -2,7 +2,7 @@
 
 Repository: `iRyantik/buy-side-research-skills`
 
-This plugin is designed for colleague self-installation through GitHub or a release zip.
+This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`.
 
 ## Claude
 
@@ -25,6 +25,16 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 If your Codex environment uses local plugins instead of marketplace install, extract the release zip into the configured plugin location and confirm the plugin exposes the skills in this repo.
 
+## Release Zip
+
+Download `buy-side-research-skills-3.3.1.zip` from the repo release artifact or build it locally with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.3.1
+```
+
+Extract the zip into the plugin location required by Claude or Codex, then confirm the plugin exposes the skills in `skills/`.
+
 ## First Use
 
-Batch 1 only prepares the plugin package skeleton. The later `init` batch will add a guided workspace setup skill. Until then, users can inspect `examples/workspaces/ai-data-center-power/` to see the intended research workspace shape.
+Version `3.3.1` does not include `init` or `ingest`. Users should open their own research workspace, install the plugin, and use `examples/workspaces/ai-data-center-power/` to see the intended artifact shape until the guided workspace setup batch lands.

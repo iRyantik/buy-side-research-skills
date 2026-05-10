@@ -1,4 +1,4 @@
-# Buy-Side Research Skills v3.3.0
+# Buy-Side Research Skills v3.3.1
 
 Journal-first buy-side equity research skill suite for Claude and Codex. The system helps a researcher find high-value questions, route mechanism / driver gaps to the right primitive, and turn researched insight into topic journals or Boss Briefs.
 
@@ -11,7 +11,7 @@ Repository: `iRyantik/buy-side-research-skills`
 3. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
 4. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
-Batch 1 prepares the plugin package skeleton. Guided workspace creation will arrive in a later `init` skill batch.
+Version `3.3.1` is the first colleague-shareable baseline. Guided workspace creation and raw material ingestion will arrive in later `init` / `ingest` batches.
 
 ## Install
 
@@ -83,10 +83,17 @@ Run the standard gates before release:
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.3.1
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
 
 ## Version Notes
+
+### v3.3.1
+
+- Hardened release packaging for colleague distribution.
+- Added reproducible release zip generation and validation.
+- Kept `init` / `ingest` out of scope for a future v3.4.0 release.
 
 ### v3.3.0
 
