@@ -1,0 +1,64 @@
+# CLAUDE.md — Research Workspace Configuration
+
+> 本文件是当前 research workspace 的本地工作规则。插件源码和 skill 维护规则不在这里修改；本 workspace 只存放研究材料、缓存、模型和 topic research artifacts。
+
+---
+
+## Workspace Context
+
+- Workspace path: `{{WORKSPACE_PATH}}`
+- Created by: `buy-side-research-skills init`
+- Created date: `{{DATE}}`
+- Stable plugin baseline: `v3.3.1`
+- Current dev generation: `3.4.0-dev`
+
+---
+
+## Directory Boundaries
+
+```text
+[research-workspace]/
+├── _inbox/          # newly downloaded files waiting for future ingest
+├── _raw/            # original source materials; do not edit in place
+├── _cache/          # converted / temporary working outputs
+├── _models/         # Excel or model files
+├── _scripts/        # copied helper scripts
+└── topics/          # durable research memory and topic sessions
+```
+
+- `_inbox/`, `_raw/`, `_cache/`, `_models/`, and `_scripts/` are operational folders, not polished research output.
+- `topics/` is where durable research artifacts should live.
+- Keep research topic organization topic-centric, not ticker-centric.
+
+---
+
+## Topic Artifact Shape
+
+```text
+topics/[topic_type]/[topic-slug]/
+├── index.md
+└── [YYYY-MM-DD]-[session-slug]/
+    ├── company-primer.md
+    ├── mechanism-map.md
+    ├── driver-map.md
+    ├── research-journal.md
+    └── boss-brief.md
+```
+
+- `research-journal.md` is for researched, source-backed insight only.
+- `boss-brief.md` is a high-density PM / boss transfer, not a simplified summary.
+- `topics/_meta/edge-radar.md` is a research question / signal handbook, not a state tracker.
+
+---
+
+## Raw Material Rule
+
+- Put new PDFs, XLSX files, PPTX decks, DOCX files, transcripts, and datasets in `_inbox/` or `_raw/`.
+- This workspace was initialized before the `ingest` skill is available; do not pretend raw materials have been converted unless a later tool actually does it.
+- Any converted cache output should preserve source path, tool, and conversion date metadata.
+
+---
+
+## Git Rule
+
+This init flow does not run `git init`. If you later decide to version-control this workspace, keep raw materials, caches, models, inbox files, and copied scripts out of git by default.

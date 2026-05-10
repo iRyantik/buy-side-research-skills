@@ -120,6 +120,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 | Layer | Skills | 作用 |
 |---|---|---|
+| Workspace Ops | `init` | 创建 / 补齐标准 research workspace scaffold |
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | 过滤信息、找候选、快速判断是否值得继续 |
 | Company Foundation | `company-primer` | 打牢公司业务基础、业务演变和披露口径历史 |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | 拆机制和底层变量、标准化比较、提出下一步高价值问题 |
@@ -136,6 +137,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 | Skill | 触发场景 | 输出形态 |
 |---|---|---|
+| `init` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一下 | 快速公司分析 + 对手盘假设 |
 | `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
@@ -158,7 +160,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 ## 7. 文件组织
 
-本 repo 是 plugin development project，不再兼作日常研究 workspace。研究产物示例放在 `examples/`，真正的用户研究 workspace 后续由 `init` skill 创建。
+本 repo 是 plugin development project，不再兼作日常研究 workspace。研究产物示例放在 `examples/`，真正的用户 research workspace 由 `init` skill 创建或补齐。
 
 ### 7.1 Plugin dev repo
 
@@ -189,18 +191,13 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 ├── _raw/
 ├── _cache/
 ├── _models/
+├── _scripts/
 └── topics/
     ├── _meta/
     │   └── edge-radar.md
-    └── [topic_type]/
-        └── [topic-slug]/
-            ├── index.md
-            └── [YYYY-MM-DD]-[session-slug]/
-                ├── mechanism-map.md        # optional, only when user asks to save
-                ├── company-primer.md       # optional, only when user asks to save
-                ├── driver-map.md           # optional, only when user asks to save
-                ├── research-journal.md
-                └── boss-brief.md
+    ├── company/
+    ├── theme/
+    └── event/
 ```
 
 - `research-journal.md` 只沉淀真正研究过、想清楚的认知增量。
@@ -217,8 +214,9 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `information-impact` 和 `next-step` 属于 `none`：不创建 standalone artifact；研究清楚后再 handoff 到 `research-journal`。
 - `financial-model` 属于 `external_workbook`：只在用户要求时写入用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 - `research-journal` 属于 `earned_memory`：只保存通过 Earned Insight Gate 的认知增量、Boss Brief 或 topic index update，不收 raw reminders、未验证灵感或 unresolved driver / mechanism guess。
+- `init` 属于 `workspace_scaffold`：只创建 / 补齐用户指定 research workspace，不创建 topic artifact，不执行 `git init`，不 ingest 原始材料。
 
 ---
 
-**版本**：v3.3.1
+**版本**：v3.4.0-dev
 **最后更新**：2026-05-10

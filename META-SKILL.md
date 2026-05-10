@@ -287,7 +287,7 @@ name: skill-name
 id: skill-name
 display_name: Skill Name
 version: 1.0.0
-system_generation: 3.3.0
+system_generation: 3.4.0-dev
 author: buy-side-research-system
 namespace: research.equity
 category: research
@@ -303,7 +303,7 @@ artifact_policy:
 ```
 
 `artifact_policy` 必填字段：
-- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`。
+- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`、`workspace_scaffold`。
 - `default_artifact` 是默认文件名；不落盘的 skill 写 `conversation-only`。
 - `canonical_location` 是规范保存位置；topic artifact 必须落在 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
 - `save_trigger` 写清楚何时保存、何时只输出到对话、何时 handoff 给 `research-journal`。
@@ -313,6 +313,7 @@ Artifact 保存原则：
 - `research-journal` 只写 earned insight / Boss Brief / topic index update；不要把它当所有 skill 的普通保存目标。
 - `information-impact`、`next-step` 不创建 standalone artifact。
 - `financial-model` 写用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
+- `init` 这类 operational skill 使用 `workspace_scaffold`，只创建 / 补齐用户指定 research workspace，不写 topic artifact。
 
 版本策略：
 - `version` 是单个 skill 自身的 semver，不再表示系统代际。
@@ -774,8 +775,8 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 ## 14. 文档版本
 
 - **版本**：v1.0
-- **基于**：buy-side-research-skills v3.3.0
-- **最后更新**：2026-05-09
+- **基于**：buy-side-research-skills v3.4.0-dev
+- **最后更新**：2026-05-10
 - **维护者**：用户（user）
 
 如果用户的 plugin 版本号变化（如 v4.0、v5.0），本文件需要同步更新核心循环、active skills 列表、archive 状态。

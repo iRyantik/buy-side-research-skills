@@ -7,7 +7,7 @@ This repository is the development home for the buy-side research plugin. It is 
 ```text
 buy-side-research-skills/          # plugin dev repo, managed with git
 release-package/                   # generated zip or marketplace payload
-Research-AI-Power/                 # user research workspace, created later by init
+Research-AI-Power/                 # user research workspace, created by init
 ```
 
 ## Plugin Dev Repo
@@ -32,7 +32,30 @@ A release package should include the plugin manifests, skills, docs, examples, a
 
 ## Research Workspace
 
-Research workspaces are user-owned folders. They will be created by the future `init` skill and should contain `_inbox/`, `_raw/`, `_cache/`, `_models/`, and `topics/`. They are not the same thing as this plugin dev repo.
+Research workspaces are user-owned folders. They are created or repaired by the `init` skill and should contain `_inbox/`, `_raw/`, `_cache/`, `_models/`, `_scripts/`, and `topics/`. They are not the same thing as this plugin dev repo.
+
+```text
+[research-workspace]/
+├── _inbox/
+├── _raw/
+│   ├── filings/
+│   ├── transcripts/
+│   ├── sellside/
+│   ├── industry/
+│   ├── irdecks/
+│   └── datasets/
+├── _cache/
+├── _models/
+├── _scripts/
+└── topics/
+    ├── _meta/
+    │   └── edge-radar.md
+    ├── company/
+    ├── theme/
+    └── event/
+```
+
+`init` does not run `git init`, ingest raw files, or create topic research artifacts.
 
 ## Artifact Save Policy
 

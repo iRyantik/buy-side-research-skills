@@ -2,7 +2,7 @@
 
 Repository: `iRyantik/buy-side-research-skills`
 
-This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`.
+This plugin is designed for colleague self-installation through GitHub or a release zip. The first colleague-shareable baseline is `v3.3.1`; current `main` may contain `3.4.0-dev` work such as `init`.
 
 ## Claude
 
@@ -27,14 +27,14 @@ If your Codex environment uses local plugins instead of marketplace install, ext
 
 ## Release Zip
 
-Download `buy-side-research-skills-3.3.1.zip` from the repo release artifact or build it locally with:
+For the stable baseline, download `buy-side-research-skills-3.3.1.zip` from the repo release artifact. For the current dev package, build it locally with:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.3.1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
 ```
 
 Extract the zip into the plugin location required by Claude or Codex, then confirm the plugin exposes the skills in `skills/`.
 
 ## First Use
 
-Version `3.3.1` does not include `init` or `ingest`. Users should open their own research workspace, install the plugin, and use `examples/workspaces/ai-data-center-power/` to see the intended artifact shape until the guided workspace setup batch lands.
+Version `3.3.1` does not include `init` or `ingest`. In `3.4.0-dev`, users can run `init` to create or repair a research workspace scaffold. Raw material ingestion is still not included; put files in `_inbox/` or `_raw/` until the future `ingest` batch lands.

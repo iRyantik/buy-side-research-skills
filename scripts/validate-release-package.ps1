@@ -69,6 +69,12 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             ".codex-plugin/plugin.json",
             "skills/company-primer/SKILL.md",
             "skills/company-primer/skill.yaml",
+            "skills/init/SKILL.md",
+            "skills/init/skill.yaml",
+            "skills/init/assets/CLAUDE.md.template",
+            "skills/init/assets/gitignore.template",
+            "skills/init/assets/edge-radar.md",
+            "skills/init/scripts/init-research-workspace.ps1",
             "scripts/build-release.ps1",
             "scripts/validate-release-package.ps1",
             "docs/install.md",
@@ -105,12 +111,16 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             }
         }
 
-        if ($activeSkillNames.Count -ne 15) {
-            $failures.Add("Expected 15 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
+        if ($activeSkillNames.Count -ne 16) {
+            $failures.Add("Expected 16 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
         }
 
         if (-not $activeSkillNames.Contains("company-primer")) {
             $failures.Add("Release zip is missing active skill: company-primer")
+        }
+
+        if (-not $activeSkillNames.Contains("init")) {
+            $failures.Add("Release zip is missing active skill: init")
         }
 
         $claudeManifestText = Get-ZipEntryText ".claude-plugin/plugin.json"

@@ -1,4 +1,4 @@
-# Buy-Side Research Skills v3.3.1
+# Buy-Side Research Skills v3.4.0-dev
 
 Journal-first buy-side equity research skill suite for Claude and Codex. The system helps a researcher find high-value questions, route mechanism / driver gaps to the right primitive, and turn researched insight into topic journals or Boss Briefs.
 
@@ -7,11 +7,11 @@ Repository: `iRyantik/buy-side-research-skills`
 ## Quick Start
 
 1. Install the plugin from GitHub or a release zip.
-2. Open a research workspace, not this plugin repo.
+2. Open or initialize a research workspace with `init`; do not use this plugin repo as the workspace.
 3. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
 4. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
-Version `3.3.1` is the first colleague-shareable baseline. Guided workspace creation and raw material ingestion will arrive in later `init` / `ingest` batches.
+Version `3.3.1` remains the stable colleague-shareable baseline. Current `main` is `3.4.0-dev`: it adds guided workspace creation through `init`, while raw material ingestion remains a later `ingest` batch before formal `v3.4.0`.
 
 ## Install
 
@@ -44,6 +44,7 @@ Runtime files needed by a skill should live inside that skill directory. Root `s
 
 | Layer | Skills | Purpose |
 |---|---|---|
+| Workspace Ops | `init` | Create or repair a standard research workspace scaffold before research starts. |
 | Signal / Funnel | `information-impact`, `candidate-screener`, `stock-quickread` | Filter information, find candidates, and decide whether to continue. |
 | Company Foundation | `company-primer` | Map what a company sells, how the business evolved, and where disclosure history breaks comparability. |
 | Research Primitives | `mechanism-map`, `driver-map`, `cross-market-compare`, `next-step` | Map mechanisms, model drivers, cross-market valuation, and the next highest-value question. |
@@ -57,6 +58,7 @@ Senior Analyst Radar -> better AI questions -> research -> research-journal -> B
 ```
 
 - `Senior Analyst Radar` flags issues that may change business understanding, model drivers, market framing, peer groups, or research priority.
+- `init` creates the standard research workspace scaffold; it does not ingest raw files, run git, or create research artifacts.
 - `company-primer` handles company foundations, business evolution, segment / KPI rename, recast, and disclosure history before driver or thesis work.
 - `mechanism-map` handles industry mechanisms, engineering principles, equipment chains, process flows, terminology, and know-how gaps.
 - `driver-map` handles revenue, margin, backlog, price / volume / mix, disclosure buckets, KPI oddities, and model-driver gaps.
@@ -78,16 +80,24 @@ Run the standard gates before release:
 
 ```powershell
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
 & 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
-& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.3.1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
+& 'C:\Users\M\.claude\rtk.exe' powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.4.0-dev
 & 'C:\Users\M\.claude\rtk.exe' git diff --check
 ```
 
 ## Version Notes
+
+### v3.4.0-dev
+
+- Added `init` as the 16th active workspace setup skill.
+- Added standard research workspace scaffold templates and an idempotent init helper script.
+- Kept `ingest` out of scope until the formal `v3.4.0` release.
 
 ### v3.3.1
 

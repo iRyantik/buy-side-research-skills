@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'earnings-setup'
 id: 'earnings-setup'
 display_name: 'Earnings Setup'
 version: '1.0.2'
-system_generation: '3.3.0'
+system_generation: '3.4.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

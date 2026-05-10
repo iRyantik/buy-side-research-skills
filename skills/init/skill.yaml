@@ -1,0 +1,83 @@
+metadata_schema_version: 1
+name: 'init'
+id: 'init'
+display_name: 'Init Research Workspace'
+version: '1.0.0'
+system_generation: '3.4.0-dev'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Initialize or repair a standard buy-side research workspace scaffold without ingesting files or touching the plugin repo.'
+description: 'Initialize or repair a standard buy-side research workspace scaffold without ingesting files or touching the plugin repo.'
+tags:
+  - 'init'
+  - 'workspace'
+  - 'workspace-scaffold'
+  - 'research-workspace'
+  - 'bootstrap'
+  - 'setup'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'init research workspace'
+    - '初始化研究工作区'
+    - '创建研究文件夹'
+    - 'setup research'
+    - 'bootstrap workspace'
+    - '初始化 workspace'
+    - '补齐 research workspace'
+  description: '当用户要创建或修复标准 research workspace 目录结构时触发'
+capabilities:
+  modes:
+    - 'New Workspace Scaffold'
+    - 'Repair Existing Workspace'
+    - 'Dry Explanation'
+  requirements:
+    - 'require an explicit WorkspacePath before mutating files'
+    - 'create only workspace scaffold directories and template files'
+    - 'never initialize inside the plugin development repo or plugin install directory'
+    - 'never overwrite existing CLAUDE.md, .gitignore, or topics/_meta/edge-radar.md'
+    - 'do not git init'
+    - 'do not ingest raw materials'
+artifact_policy:
+  save_policy: 'workspace_scaffold'
+  default_artifact: 'workspace scaffold'
+  canonical_location: 'user-provided research workspace'
+  save_trigger: 'create or repair the workspace scaffold only after the user provides an explicit research workspace path'
+workflow:
+  stage: 'workspace-setup'
+  can_follow:
+    - 'install'
+    - 'user-setup-request'
+  feeds_into:
+    - 'company-primer'
+    - 'stock-quickread'
+    - 'next-step'
+    - 'research-journal'
+  can_trigger:
+    - 'company-primer'
+    - 'stock-quickread'
+    - 'next-step'
+quality_gates:
+  anti_patterns:
+    - 'initializing_inside_plugin_repo'
+    - 'overwriting_existing_workspace_files'
+    - 'git_init'
+    - 'ingesting_files'
+    - 'creating_topic_artifacts'
+    - 'creating_v2_state_folders'
+  required_scaffold:
+    - '_inbox'
+    - '_raw/filings'
+    - '_raw/transcripts'
+    - '_raw/sellside'
+    - '_raw/industry'
+    - '_raw/irdecks'
+    - '_raw/datasets'
+    - '_cache'
+    - '_models'
+    - '_scripts'
+    - 'topics/_meta/edge-radar.md'
+    - 'topics/company'
+    - 'topics/theme'
+    - 'topics/event'
