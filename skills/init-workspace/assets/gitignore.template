@@ -1,8 +1,9 @@
 _inbox/
-_raw/
-_cache/
-_models/
 _scripts/
+topics/*/_inbox/
+topics/*/_raw/
+topics/*/_cache/
+topics/*/_models/
 
 .claude/
 RTK.md

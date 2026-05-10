@@ -50,6 +50,7 @@ init
 ingest
 meta-skill
 new-session
+integrate
 ```
 
 `meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`new-session` 创建或定位 topic session，解析标准保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
@@ -62,39 +63,39 @@ Release 包应包含插件清单、skills、用户文档、示例和 README。�
 
 ## Research Workspace
 
-Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/` 和 `topics/`。原始材料由 `ingest` 转换为 `_cache/` markdown。Workspace 不等于本插件源码仓库。
+Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_scripts/`、`edge-radar.md` 和 `topics/`。`_raw/`、`_cache/`、`_models/` 现在属于 `topics/<topic-slug>/` 内部，不再作为 workspace root 目录。原始材料由 `ingest` 转换为 `topics/<topic>/_cache/` markdown。Workspace 不等于本插件源码仓库。
 
 ```text
 [research-workspace]/
 ├── CLAUDE.md
 ├── AGENTS.md
-├── _inbox/                          # 待 ingest 文件暂存区
-├── _raw/                            # 原始文件（按 topic 再按文件类型组织）
-│   └── <topic-slug>/                #   支持层级：aerospace/ge-aerospace
-│       ├── pdf/
-│       ├── xlsx/
-│       ├── docx/
-│       └── pptx/
-├── _cache/                          # ingest 产出 markdown（按 topic 组织）
-│   └── <topic-slug>/
-├── _models/
-├── _scripts/
+├── _inbox/                          # 暂存区（支持 <topic>/ 子目录）
+├── _scripts/                        # 辅助脚本
+├── edge-radar.md                    # 跨主题雷达
 └── topics/
-    ├── _meta/
-    │   └── edge-radar.md
-    ├── company/
-    ├── theme/
-    └── event/
+    └── <topic-slug>/                # 主题聚合
+        ├── index.md
+        ├── _inbox/                  # topic 专属暂存
+        ├── _raw/                    # 原始源文件
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   └── datasets/
+        ├── _cache/                  # 转换后 markdown
+        ├── _models/                 # 财务模型
+        └── <YYYY-MM-DD>-<session>/  # 研究 session
 ```
 
-`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 将 `_inbox/` 内文件转换后自动移至 `_raw/<topic>/<ext>/`，按 topic 和文件类型组织，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
+`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
 
 ## Artifact 保存策略
 
 新研究产物应保存在 topic session 内：
 
 ```text
-topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 ```
 
 公司基础类产物如 `company-primer.md` 遵循相同规则，仅在用户要求保存时创建。
@@ -106,7 +107,7 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 材料缓存产物位于：
 
 ```text
-_cache/[bucket]/[source-filename].md
+topics/<topic-slug>/_cache/[source-filename].md
 ```
 
 缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 topic session 输出。

@@ -67,7 +67,7 @@ if (Test-Path -LiteralPath $skillPath) {
         "Resolve Save Path",
         "Index Touch",
         "topic_session_scaffold",
-        "topics/[company|theme|event]",
+        "topics/[topic-slug]",
         "index.md",
         "Canonical Save Paths",
         "company-primer.md",
@@ -75,7 +75,10 @@ if (Test-Path -LiteralPath $skillPath) {
         "research-journal",
         "init-workspace",
         "earned insight",
-        "Next Step"
+        "Next Step",
+        "_raw/",
+        "topic scaffold",
+        "_inbox/"
     )) {
         if (-not $skillText.Contains($phrase)) {
             $failures.Add("new-session: SKILL.md missing required phrase '$phrase'")
@@ -109,12 +112,13 @@ if (Test-Path -LiteralPath $yamlPath) {
     foreach ($phrase in @(
         "topic_session_scaffold",
         "topic session folder + index.md",
-        "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
+        "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
         "New Topic Session",
         "Resolve Save Path",
         "Index Touch",
         "do not write research conclusions or earned insight",
-        "do not recommend next research skill"
+        "do not recommend next research skill",
+        "create full topic scaffold"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("new-session: skill.yaml missing required phrase '$phrase'")

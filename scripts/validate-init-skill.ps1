@@ -88,10 +88,15 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "AGENTS.md",
         "AGENTS.md.template",
         "_inbox",
-        "_raw",
-        "_cache",
-        "_models",
-        "topics/_meta/edge-radar.md",
+        "_inbox/",
+        "edge-radar.md",
+        "topics/_inbox/",
+        "topics/_raw",
+        "topics/_raw/",
+        "topics/_cache",
+        "topics/_cache/",
+        "topics/_models",
+        "topics/_models/",
         "bootstrap-ingest-deps.ps1",
         "requirements-ingest.txt",
         "Docling",
@@ -172,8 +177,8 @@ if (Test-Path -LiteralPath $claudeTemplatePath) {
         "new-session",
         "ingest",
         "research-journal.md",
-        "topics/[company|theme|event]",
-        "_cache/",
+        "topics/",
+        "topics/<topic-slug>/_cache/",
         "AGENTS.md"
     )) {
         if (-not $claudeTemplate.Contains($phrase)) {
@@ -181,7 +186,7 @@ if (Test-Path -LiteralPath $claudeTemplatePath) {
         }
     }
 
-    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/")) {
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/company/", "topics/theme/", "topics/event/")) {
         if ($claudeTemplate.Contains($forbidden)) {
             $failures.Add("workspace CLAUDE.md.template contains forbidden stale phrase '$forbidden'")
         }
@@ -204,7 +209,7 @@ if (Test-Path -LiteralPath $agentsTemplatePath) {
         }
     }
 
-    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/")) {
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/company/", "topics/theme/", "topics/event/")) {
         if ($agentsTemplate.Contains($forbidden)) {
             $failures.Add("workspace AGENTS.md.template contains forbidden stale phrase '$forbidden'")
         }

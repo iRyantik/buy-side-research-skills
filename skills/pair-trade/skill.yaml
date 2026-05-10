@@ -52,5 +52,5 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_session'
   default_artifact: 'pair-note.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md'
   save_trigger: 'save builder or monitor output to the current topic session by default; ask for path confirmation if no session is clear'

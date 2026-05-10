@@ -43,7 +43,7 @@ capabilities:
     - 'ADR ratio'
     - 'valuation multiples'
     - 'liquidity'
-  writes_optional: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
+  writes_optional: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
   feeds_into:
     - 'alpha-thesis'
     - 'peer-deep-dive'
@@ -57,5 +57,5 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'cross-market-compare.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md'
   save_trigger: 'save only when user asks to preserve the cross-market comparison as session research material'

@@ -23,42 +23,42 @@ $expectedPolicies = @{
     "alpha-thesis" = @{
         save_policy = "optional_topic_session"
         default_artifact = "alpha-thesis.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md"
     }
     "bear-pre-mortem" = @{
         save_policy = "optional_topic_session"
         default_artifact = "bear-pre-mortem.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/bear-pre-mortem.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/bear-pre-mortem.md"
     }
     "candidate-screener" = @{
         save_policy = "default_topic_session"
         default_artifact = "candidate-screener.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md"
     }
     "cross-market-compare" = @{
         save_policy = "optional_topic_session"
         default_artifact = "cross-market-compare.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/cross-market-compare.md"
     }
     "company-primer" = @{
         save_policy = "optional_topic_session"
         default_artifact = "company-primer.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md"
     }
     "driver-map" = @{
         save_policy = "optional_topic_session"
         default_artifact = "driver-map.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md"
     }
     "earnings-setup" = @{
         save_policy = "optional_topic_session"
         default_artifact = "earnings-setup.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md"
     }
     "financial-model" = @{
         save_policy = "external_workbook"
         default_artifact = "model.xlsx"
-        canonical_location = "user-provided workbook or _models/[ticker]/model.xlsx"
+        canonical_location = "user-provided workbook or topics/[topic]/_models/model.xlsx"
     }
     "information-impact" = @{
         save_policy = "none"
@@ -73,12 +73,17 @@ $expectedPolicies = @{
     "ingest" = @{
         save_policy = "cache_artifact"
         default_artifact = "[source-filename].md"
-        canonical_location = "_cache/[bucket]/[source-filename].md"
+        canonical_location = "topics/[topic]/_cache/[source-filename].md"
+    }
+    "integrate" = @{
+        save_policy = "none"
+        default_artifact = "conversation-only"
+        canonical_location = "conversation-only"
     }
     "mechanism-map" = @{
         save_policy = "optional_topic_session"
         default_artifact = "mechanism-map.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md"
     }
     "meta-skill" = @{
         save_policy = "none"
@@ -88,7 +93,7 @@ $expectedPolicies = @{
     "new-session" = @{
         save_policy = "topic_session_scaffold"
         default_artifact = "topic session folder + index.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/"
     }
     "next-step" = @{
         save_policy = "none"
@@ -98,22 +103,22 @@ $expectedPolicies = @{
     "pair-trade" = @{
         save_policy = "default_topic_session"
         default_artifact = "pair-note.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md"
     }
     "peer-deep-dive" = @{
         save_policy = "optional_topic_session"
         default_artifact = "peer-deep-dive.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md"
     }
     "research-journal" = @{
         save_policy = "earned_memory"
         default_artifact = "research-journal.md | boss-brief.md | index.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md or boss-brief.md; topic index at topics/[topic_type]/[topic-slug]/index.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md or boss-brief.md; topic index at topics/[topic-slug]/index.md"
     }
     "stock-quickread" = @{
         save_policy = "optional_topic_session"
         default_artifact = "stock-quickread.md"
-        canonical_location = "topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md"
     }
 }
 

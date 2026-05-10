@@ -131,7 +131,9 @@ Operations skills：
 | Skill | 作用 |
 |---|---|
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
-| `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
+| `ingest` | 把 raw material 转成 source-tracked `topics/<topic>/_cache/` markdown |
+| `new-session` | 创建 topic session + 完整 scaffold，解析 artifact 保存路径 |
+| `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 
 `mechanism-map` 是 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`financial-model`、`alpha-thesis` 或 `peer-deep-dive`。
@@ -146,6 +148,8 @@ Operations skills：
 |---|---|---|
 | `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
+| `new-session` | 新建 topic session / 解析 artifact 保存路径 / 轻量更新 index | topic session scaffold + canonical paths |
+| `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一个 | 快速公司分析 + 对手盘假设 |
@@ -191,28 +195,29 @@ Future research workspace：
 
 ```text
 [research-workspace]/
-├── _inbox/                          # 待 ingest 文件暂存区
-├── _raw/                            # 原始文件（按 topic 再按文件类型组织）
-│   └── <topic-slug>/                #   支持层级：aerospace/ge-aerospace
-│       ├── pdf/
-│       ├── xlsx/
-│       ├── docx/
-│       └── pptx/
-├── _cache/                          # ingest 产出 markdown（按 topic 组织）
-│   └── <topic-slug>/
-├── _models/
-├── _scripts/
+├── _inbox/                          # 全局暂存（仅未分类文件）
+├── _scripts/                        # 辅助脚本
+├── edge-radar.md                    # 跨 topic 研究雷达
 └── topics/
-    ├── _meta/
-    │   └── edge-radar.md
-    ├── company/
-    ├── theme/
-    └── event/
+    └── <topic-slug>/                # 层级：aerospace 行业 > aerospace/ge-aerospace 公司
+        ├── index.md                 # topic 地图
+        ├── _inbox/                  # 该 topic 待处理文件
+        ├── _raw/                    # 原始文件（按文档类别）
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   └── datasets/
+        ├── _cache/                  # ingest 转换 markdown
+        ├── _models/                 # 财务模型
+        ├── <YYYY-MM-DD>-<session>/  # 研究 session
+        └── <sub-topic>/             # integrate 合并的子 topic
 ```
 
 ### Artifact Save Policy
 
-- 新研究产物默认围绕 topic session 保存：`topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
+- 新研究产物默认围绕 topic session 保存：`topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
 - `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
 - `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`。
 - `company-primer`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`。

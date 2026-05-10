@@ -18,8 +18,8 @@ description: Use when setting up or repairing a buy-side research workspace fold
 ## 职责边界
 
 负责：
-- 创建 `_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/`、`topics/` scaffold。
-- 写入缺失的 workspace `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md`。
+- 创建 `_inbox/`、`_scripts/`、`topics/` scaffold。
+- 写入缺失的 workspace `CLAUDE.md`、`.gitignore`、`edge-radar.md`。
 - 复制 `init-research-workspace.ps1`、init assets、ingest scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt` 到 `_scripts/`。
 
 不负责：

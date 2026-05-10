@@ -5,7 +5,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 # Ingest
 
-`ingest` 把 research workspace 里的 raw material 转成 `_cache/` 下的 LLM-friendly markdown，并写清 source path、hash、modified time、converter、converted time、document type、route 和 precision caveat。
+`ingest` 把 research workspace 里的 raw material 转成 `topics/<topic>/_cache/` 下的 LLM-friendly markdown，并写清 source path、hash、modified time、converter、converted time、document type、route 和 precision caveat。
 
 它是 operations skill，不是研究 skill。它不生成投资结论，不把 `_cache/` 当 original source，不写 `research-journal`，不静默安装依赖。转换失败时必须 fail honestly，不写假 cache。
 
@@ -20,13 +20,13 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 负责：
 - 检测 TXT / Markdown / CSV / PDF / DOCX / PPTX / XLSX / XLSM / XLS 格式。
 - 调用 `ingest.py`、`ingest_xlsx.py`、`ingest_table_crosscheck.py`。
-- 写入 `_cache/<topic>/[source-filename].md`。
+- 写入 `topics/<topic>/_cache/[source-filename].md`。
 - 输出 converted / skipped / failed summary。
 - 报告 dependency gap 和 precision caveat。
-- **ingest 成功后自动将源文件从 `_inbox/` 移至 `_raw/<topic>/<ext>/`。**
+- **ingest 成功后自动将源文件从 `_inbox/` 移至 `topics/<topic>/_raw/<ext>/`。**
 
 不负责：
-- 不移动、删除、重命名已在 `_raw/` 下的源文件。
+- 不移动、删除、重命名已在 `topics/<topic>/_raw/` 下的源文件。
 - 不验证 claim 是否真实；claim check 交给 `information-impact`。
 - 不解释公司业务；公司基础交给 `company-primer`。
 - 不拆 driver；driver gap 交给 `driver-map`。
@@ -42,18 +42,37 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 - “处理 `_inbox/`”
 - “把 PDF / XLSX / PPTX / DOCX 放进 `_cache/`”
 
+### Pre-condition
+
+**ingest 前 topic 必须已存在。** 若 `topics/<topic>/index.md` 不存在 → block，提示先运行 `new-session` 创建 topic scaffold。例外：workspace root `_inbox/` 的未分类文件不 block（topic = `unclassified`）。
+
 输入确认：
-- `source_path`：文件或目录路径；除非用户要求 `--recursive`，目录默认只处理第一层。
-- `workspace`：默认从 source path 向上寻找含 `_cache/` 且含 `_raw/` 或 `_inbox/` 的 workspace；找不到时要求 `--workspace`。
-- `topic`：Topic slug，用于组织 `_raw/` 和 `_cache/`（如 `aerospace` 或 `aerospace/ge-aerospace`）。默认从 active session 推断，推断不出则用 `unclassified`。
+- `source_path`：文件或目录路径。**优先使用 `topics/<topic>/_inbox/`**（将文件放入对应 topic 的 inbox）；workspace root `_inbox/` 仅用于未分类文件。
+- `workspace`：默认从 source path 向上寻找含 `topics/` 且含 `_inbox/` 的 workspace；找不到时要求 `--workspace`。
+- `topic`：Topic slug，用于组织 `topics/<topic>/_raw/` 和 `topics/<topic>/_cache/`（如 `aerospace`）。从 `topics/<topic>/_inbox/` 路径自动推断，或用 `--topic` 显式传入。
+- `category`：文档类别（`filings`、`transcripts`、`sellside`、`industry`、`irdecks`、`datasets`）。默认自动推断（文件名 + 内容检测），也可显式传入 `--category`。
 - `force`：默认已有 cache 且 hash 一致就 skip；只有用户要求重跑才 overwrite。
 
 ### Topic 分类
 
 1. 用户显式传入 `--topic` → 直接使用。
-2. 当前有活跃 topic session → 自动推断 topic slug。
-3. 从文件名 / 内容推断 → 提议 topic，用户确认后使用。
+2. `source_path` 在 `topics/<topic>/_inbox/` 下 → 自动推断 topic slug。
+3. 当前有活跃 topic session → 自动推断。
 4. 以上都不可用 → 使用 `"unclassified"` 作为 fallback。
+
+### 文档类别推断
+
+| 优先级 | 逻辑 |
+|---|---|
+| 1 | 用户显式传 `--category filings` |
+| 2 | 文件名含 `10-K/10-Q/20-F/8-K/annual` → `filings` |
+| 3 | 文件名含 `transcript/call/earnings` → `transcripts` |
+| 4 | 文件名含 `deck/presentation/investor` → `irdecks` |
+| 5 | 文件名含 `initiation/rating/target` → `sellside` |
+| 6 | 文件名含 `industry/market report/outlook` → `industry` |
+| 7 | 扩展名 `.xlsx/.xls/.csv` → `datasets` |
+| 8 | SEC filing header 检测 → `filings` |
+| 9 | fallback → `unclassified` |
 
 ## 执行模式
 
@@ -74,7 +93,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 ### Directory Ingest
 
-处理 `_inbox/` 或 `_raw/` 目录。单个文件失败不阻塞其他文件，但最后必须列出 failed files。
+处理 `_inbox/` 或 `topics/<topic>/_raw/` 目录。单个文件失败不阻塞其他文件，但最后必须列出 failed files。
 
 ### Cache Reuse Check
 
@@ -114,8 +133,8 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 ## 文件安全
 
-- 不删除、不重命名 `_raw/` 内已有源文件。
-- ingest 成功后将 `_inbox/` 内的源文件自动移至 `_raw/<topic>/<ext>/`。
+- 不删除、不重命名 `topics/<topic>/_raw/` 内已有源文件。
+- ingest 成功后将 `_inbox/` 内的源文件自动移至 `topics/<topic>/_raw/<ext>/`。
 - 不写空 cache 或假 cache。
 - 不把 `_cache/` 写进 topic session。
 - 不把 `_cache/` 当 original source。
@@ -169,19 +188,19 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 | 场景 | 处理 |
 |---|---|
-| workspace 还没有 `_cache/` / `_raw/` | 先用 `init-workspace` |
+| workspace 还没有 `topics/` | 先用 `init-workspace` |
 | dependency 缺失 | `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后 `-Yes` |
 | cache 生成后要判断 claim 可信度 | `information-impact` |
 | cache 是 annual report / 10-K / 20-F | `company-primer` 或 `driver-map` |
 | cache 是 industry report / technical paper | `mechanism-map` |
 | cache 是 financial model workbook | `financial-model` |
 | 研究已经想清楚 | `research-journal` |
-| 研究 skill 需要发现已 ingest 材料 | 检查 `_cache/<topic-slug>/` |
+| 研究 skill 需要发现已 ingest 材料 | 检查 `topics/<topic-slug>/_cache/` |
 
 Artifact policy：
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `[source-filename].md`
-- `canonical_location`: `_cache/[topic]/[source-filename].md`
+- `canonical_location`: `topics/[topic]/_cache/[source-filename].md`
 
 ## 安全自查
 
@@ -189,7 +208,7 @@ Artifact policy：
 - ❌ 自动静默安装依赖。
 - ❌ 把 cache markdown 当原始 source。
 - ❌ 在 ingest 阶段总结投资结论。
-- ❌ 移动、删除、改名 `_raw/` 下已有文件。
+- ❌ 移动、删除、改名 `topics/<topic>/_raw/` 下已有文件。
 - ❌ 默认递归整个 workspace。
 - ❌ 把 `_cache/` 内容写进 `research-journal`。
 - ❌ PDF / Excel 数字不写 precision caveat。

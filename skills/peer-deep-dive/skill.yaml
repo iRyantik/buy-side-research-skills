@@ -47,7 +47,7 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'peer-deep-dive.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md'
   save_trigger: 'save only when user asks to preserve the peer work as session research material'
 workflow:
   stage: 'deep-dive'

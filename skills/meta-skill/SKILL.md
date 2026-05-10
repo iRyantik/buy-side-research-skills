@@ -189,9 +189,8 @@ Topic-centric 组织：
 
 ```text
 topics/
-  [topic_type]/
-    [topic-slug]/
-      index.md
+  [topic-slug]/
+    index.md
       [YYYY-MM-DD]-[session-slug]/
         research-journal.md
         boss-brief.md
@@ -321,7 +320,7 @@ capabilities: ...
 artifact_policy:
   save_policy: optional_topic_session
   default_artifact: skill-name.md
-  canonical_location: topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/skill-name.md
+  canonical_location: topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/skill-name.md
   save_trigger: save only when user asks
 ```
 
@@ -338,7 +337,7 @@ Artifact policy：
 
 - `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_session_scaffold`。
 - 不落盘的 skill 写 `conversation-only`。
-- Topic artifact 必须落在 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
+- Topic artifact 必须落在 `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。

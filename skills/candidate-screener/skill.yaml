@@ -40,7 +40,7 @@ capabilities:
     - 'Thematic'
     - 'Quant'
     - 'Mixed'
-  writes: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
+  writes: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
   feeds_into:
     - 'stock-quickread'
     - 'peer-deep-dive'
@@ -53,5 +53,5 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_session'
   default_artifact: 'candidate-screener.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
   save_trigger: 'save sourced candidate funnels by default unless user explicitly asks for conversation-only brainstorming'

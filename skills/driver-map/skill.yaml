@@ -43,7 +43,7 @@ trigger:
 capabilities:
   modes:
     - 'Driver Map'
-  output_path: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md when user asks to save'
+  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md when user asks to save'
   requirements:
     - 'follow CLAUDE.md source policy'
     - 'map reported buckets to business reality'
@@ -55,7 +55,7 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'driver-map.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md'
   save_trigger: 'save only when user asks to preserve driver mapping as session research material'
 workflow:
   stage: 'research-primitive'

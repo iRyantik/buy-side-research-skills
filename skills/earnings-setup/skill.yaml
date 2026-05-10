@@ -46,7 +46,7 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'earnings-setup.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md'
   save_trigger: 'save only when user asks to preserve the pre-print setup or post-print read as session research material'
 workflow:
   stage: 'execution'

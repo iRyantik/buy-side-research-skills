@@ -49,7 +49,7 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'alpha-thesis.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md'
   save_trigger: 'save only when user asks to preserve the thesis as session research material; use research-journal only after insight is earned'
 workflow:
   stage: 'analysis'

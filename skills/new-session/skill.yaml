@@ -33,17 +33,18 @@ capabilities:
     - 'Resolve Save Path'
     - 'Index Touch'
   requirements:
-    - 'create or locate topics/[company|theme|event]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+    - 'create or locate topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
     - 'ensure topic index.md exists without overwriting existing content'
     - 'resolve canonical save paths for topic-session artifacts'
     - 'update only session links, current question, open questions, and related artifacts in index.md'
+    - 'create full topic scaffold: _inbox/, _raw/{filings,transcripts,sellside,industry,irdecks,datasets}/, _cache/, _models/'
     - 'do not write research conclusions or earned insight'
     - 'do not recommend next research skill'
     - 'do not create v2 state folders'
 artifact_policy:
   save_policy: 'topic_session_scaffold'
   default_artifact: 'topic session folder + index.md'
-  canonical_location: 'topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
   save_trigger: 'create or locate a topic session only when the user asks to open a session, resolve a save path, or touch a topic index'
 workflow:
   stage: 'topic-session-setup'
@@ -74,6 +75,7 @@ quality_gates:
     - 'creating_v2_state_folders'
     - 'writing_cache_as_topic_artifact'
     - 'inventing_complex_directory_tree'
+    - 'failing_to_create_topic_scaffold'
   required_paths:
-    - 'topics/[company|theme|event]/[topic-slug]/index.md'
-    - 'topics/[company|theme|event]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+    - 'topics/[topic-slug]/index.md'
+    - 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'

@@ -14,7 +14,7 @@ description: Use when building or refining a buy-side long-only or short-only si
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `_cache/<topic-slug>/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
 
 # Alpha Thesis
 
@@ -218,7 +218,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前 topic session 的研究材料保存为：
 
 ```text
-topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
+topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
 ```
 
 如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。

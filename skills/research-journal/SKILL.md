@@ -14,7 +14,7 @@ description: Use when summarizing a completed research session, writing topic re
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `_cache/<topic-slug>/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
 
 # Research Journal
 
@@ -90,7 +90,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 
 | 维度 | 含义 | 默认处理 |
 |---|---|---|
-| **topic path** | `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/` | 用户未给路径时，先 handoff 到 `new-session` 创建 / 解析路径，不擅自创建复杂目录 |
+| **topic path** | `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/` | 用户未给路径时，先 handoff 到 `new-session` 创建 / 解析路径，不擅自创建复杂目录 |
 | **研究对象** | 主题 / 公司 / 事件 / peer set / thesis | 从上下文推断；不清楚时问 1 个澄清问题 |
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
@@ -163,7 +163,7 @@ Value tags：
 写入路径：
 
 ```text
-topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
+topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
 ```
 
 Journal 不用 rigid template，但必须包含：
@@ -180,7 +180,7 @@ Boss Brief 是给 PM / boss 的高密度 transfer，不是简略版。
 写入路径：
 
 ```text
-topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/boss-brief.md
+topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/boss-brief.md
 ```
 
 写前先确认或从材料中提取：
@@ -210,7 +210,7 @@ Topic `index.md` 是演进式地图，不是状态库。只维护当前 topic �
 写入路径：
 
 ```text
-topics/[topic_type]/[topic-slug]/index.md
+topics/[topic-slug]/index.md
 ```
 
 不要补历史，不要强行重构所有旧 session；只更新本次 session 对 topic 地图的增量。

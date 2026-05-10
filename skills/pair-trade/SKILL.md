@@ -14,7 +14,7 @@ description: Use when building or monitoring a long/short pair trade, evaluating
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `_cache/<topic-slug>/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
 
 # Pair Trade
 
@@ -68,7 +68,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 默认保存到当前 topic session 的 `pair-note.md`，同时在对话中给出核心结论。
 
 如果当前没有明确 topic session：
-- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md`。
+- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md`。
 - 让用户确认 topic / slug 后再保存。
 - 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 

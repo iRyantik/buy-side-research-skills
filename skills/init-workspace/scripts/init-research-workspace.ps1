@@ -64,15 +64,8 @@ if (Test-Path -LiteralPath $fullWorkspacePath) {
 
 $directories = @(
     "_inbox",
-    "_raw",
-    "_cache",
-    "_models",
     "_scripts",
-    "topics",
-    "topics\_meta",
-    "topics\company",
-    "topics\theme",
-    "topics\event"
+    "topics"
 )
 
 foreach ($relativeDir in $directories) {
@@ -121,8 +114,8 @@ Write-TemplateIfMissing `
 
 Write-TemplateIfMissing `
     -TemplatePath (Join-Path $assetsRoot "edge-radar.md") `
-    -TargetPath (Join-Path $fullWorkspacePath "topics\_meta\edge-radar.md") `
-    -RelativeName "topics/_meta/edge-radar.md"
+    -TargetPath (Join-Path $fullWorkspacePath "edge-radar.md") `
+    -RelativeName "edge-radar.md"
 
 function Copy-ScriptIfMissing {
     param(

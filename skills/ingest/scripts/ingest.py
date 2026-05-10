@@ -613,11 +613,37 @@ def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
     raise IngestError(f"Unsupported file extension: {profile.extension}")
 
 
+RAW_CATEGORIES = ("filings", "transcripts", "sellside", "industry", "irdecks", "datasets")
+
+CATEGORY_FILENAME_HINTS = {
+    "filings": (r"\b(10[-_]?K|10[-_]?Q|8[-_]?K|20[-_]?F|40[-_]?F|annual.report|proxy|prospectus)\b",),
+    "transcripts": (r"\b(transcript|earnings.call|conference.call|investor.call)\b",),
+    "sellside": (r"\b(initiat|rating|target.price|research.report|upgrade|downgrade)\b",),
+    "irdecks": (r"\b(deck|presentation|investor.day|ir.deck|roadshow)\b",),
+    "industry": (r"\b(industry|market.report|outlook|forecast|white.paper)\b",),
+    "datasets": (),
+}
+
+
+def infer_category(path: Path, profile) -> str:
+    fname = path.name.lower()
+    for cat, patterns in CATEGORY_FILENAME_HINTS.items():
+        for pat in patterns:
+            if re.search(pat, fname):
+                return cat
+    ext = path.suffix.lower()
+    if ext in (".xlsx", ".xlsm", ".xls", ".csv"):
+        return "datasets"
+    if getattr(profile, "sec_filing", False):
+        return "filings"
+    return "unclassified"
+
+
 def discover_workspace(source: Path) -> Path:
     candidates = [source if source.is_dir() else source.parent, Path.cwd()]
     for candidate in candidates:
         for parent in [candidate, *candidate.parents]:
-            if (parent / "_cache").is_dir() and ((parent / "_raw").exists() or (parent / "_inbox").exists()):
+            if (parent / "topics").is_dir() and (parent / "_inbox").exists():
                 return parent
     raise IngestError("Could not discover research workspace. Pass --workspace or run init first.")
 
@@ -630,7 +656,9 @@ def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> 
     except ValueError:
         return "unclassified"
     parts = rel.parts
-    if len(parts) >= 3 and parts[0] == "_raw":
+    if len(parts) >= 4 and parts[0] == "topics" and parts[2] in ("_raw", "_inbox", "_cache"):
+        return parts[1]
+    if len(parts) >= 3 and parts[0] == "_inbox" and parts[1] not in ("", "."):
         return parts[1]
     if len(parts) >= 2 and parts[0] == "_inbox":
         return "unclassified"
@@ -638,9 +666,10 @@ def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> 
 
 
 def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topic: str | None) -> Path:
-    root = cache_root if cache_root else workspace / "_cache"
     resolved = resolve_topic(source, workspace, topic)
-    return root / resolved / f"{source.stem}.md"
+    if cache_root:
+        return cache_root / resolved / f"{source.stem}.md"
+    return workspace / "topics" / resolved / "_cache" / f"{source.stem}.md"
 
 
 def read_cache_metadata(path: Path) -> dict[str, str]:
@@ -674,25 +703,44 @@ def candidate_files(source: Path, recursive: bool) -> list[Path]:
 
 def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
     try:
-        rel = source.resolve().relative_to((workspace / "_inbox").resolve())
+        source.resolve().relative_to((workspace / "_inbox").resolve())
         return True
     except ValueError:
-        return False
+        pass
+    try:
+        rel = source.resolve().relative_to(workspace.resolve())
+        if len(rel.parts) >= 3 and rel.parts[0] == "topics" and rel.parts[2] == "_inbox":
+            return True
+    except ValueError:
+        pass
+    return False
 
 
-def _move_to_raw(source: Path, workspace: Path, topic: str) -> Path:
-    ext = source.suffix.lower().lstrip(".") or "file"
-    raw_dir = workspace / "_raw" / topic / ext
+def _check_topic_exists(workspace: Path, topic: str) -> None:
+    if topic == "unclassified":
+        return
+    index_path = workspace / "topics" / topic / "index.md"
+    if not index_path.exists():
+        raise IngestError(
+            f"Topic '{topic}' does not exist. Run new-session first to create topics/{topic}/.\n"
+            f"Missing: {index_path}"
+        )
+
+
+def _move_to_raw(source: Path, workspace: Path, topic: str, category: str) -> Path:
+    raw_dir = workspace / "topics" / topic / "_raw" / category
     raw_dir.mkdir(parents=True, exist_ok=True)
     dest = raw_dir / source.name
     shutil.move(str(source), str(dest))
     return dest
 
 
-def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, force: bool) -> dict[str, Any]:
+def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, category: str | None, force: bool) -> dict[str, Any]:
     profile = detect_format(source)
     target = output_path_for(source, workspace, cache_root, topic)
     resolved_topic = resolve_topic(source, workspace, topic)
+    _check_topic_exists(workspace, resolved_topic)
+    resolved_category = category or infer_category(source, profile)
     if target.exists() and not force:
         current_hash = sha256_file(source)
         metadata = read_cache_metadata(target)
@@ -707,7 +755,7 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
                 raw_dest = None
                 moved = False
                 if _source_is_in_inbox(source, workspace):
-                    raw_dest = str(_move_to_raw(source, workspace, resolved_topic))
+                    raw_dest = str(_move_to_raw(source, workspace, resolved_topic, resolved_category))
                     moved = True
                 entry: dict[str, Any] = {
                     "source": str(source),
@@ -722,6 +770,7 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
                     "table_count": result.table_count,
                     "ocr_required": result.ocr_required,
                     "dependency_status": result.dependency_status,
+                    "category": resolved_category,
                 }
                 if moved:
                     entry["moved_to_raw"] = raw_dest
@@ -741,7 +790,7 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
             "ocr_required": profile.ocr_required,
         }
         if _source_is_in_inbox(source, workspace):
-            entry["moved_to_raw"] = str(_move_to_raw(source, workspace, resolved_topic))
+            entry["moved_to_raw"] = str(_move_to_raw(source, workspace, resolved_topic, resolved_category))
         return entry
 
     result = route_converter(source, profile)
@@ -750,7 +799,7 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
     raw_dest = None
     moved = False
     if _source_is_in_inbox(source, workspace):
-        raw_dest = str(_move_to_raw(source, workspace, resolved_topic))
+        raw_dest = str(_move_to_raw(source, workspace, resolved_topic, resolved_category))
         moved = True
     entry = {
         "source": str(source),
@@ -765,6 +814,7 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
         "table_count": result.table_count,
         "ocr_required": result.ocr_required,
         "dependency_status": result.dependency_status,
+        "category": resolved_category,
     }
     if moved:
         entry["moved_to_raw"] = raw_dest
@@ -772,11 +822,12 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Ingest raw research materials into workspace _cache markdown.")
+    parser = argparse.ArgumentParser(description="Ingest raw research materials into topics/<topic>/_cache/ markdown.")
     parser.add_argument("source_path", nargs="?", help="Source file or directory to ingest.")
     parser.add_argument("--workspace", help="Research workspace root. If omitted, discover from source path.")
     parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/_cache.")
-    parser.add_argument("--topic", help="Topic slug for organizing _raw/ and _cache/ (e.g. 'aerospace' or 'aerospace/ge-aerospace').")
+    parser.add_argument("--topic", help="Topic slug for organizing raw/cache under topics/ (e.g. 'aerospace' or 'aerospace/ge-aerospace').")
+    parser.add_argument("--category", help="Document category: filings, transcripts, sellside, industry, irdecks, datasets. Auto-inferred if omitted.")
     parser.add_argument("--bucket", help="Deprecated. Use --topic instead.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing cache files.")
     parser.add_argument("--recursive", action="store_true", help="Recursively ingest supported files in a directory.")
@@ -811,7 +862,7 @@ def main() -> int:
         failed = []
         for file_path in files:
             try:
-                results.append(cache(file_path.resolve(), workspace, cache_root, topic, args.force))
+                results.append(cache(file_path.resolve(), workspace, cache_root, topic, args.category, args.force))
             except Exception as exc:
                 profile: dict[str, Any] = {}
                 try:

@@ -82,7 +82,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     }
 
     foreach ($phrase in @(
-        "_cache/",
+        "topics/_cache/",
         "source_sha256",
         "source_modified_utc",
         "converted_at_utc",
@@ -104,7 +104,15 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "EDGAR_IDENTITY",
         "information-impact",
         "company-primer",
-        "research-journal"
+        "research-journal",
+        "--category",
+        "filings",
+        "transcripts",
+        "sellside",
+        "industry",
+        "irdecks",
+        "datasets",
+        "document category"
     )) {
         if (-not $skillText.Contains($phrase)) {
             $failures.Add("ingest: SKILL.md missing required phrase '$phrase'")
@@ -115,12 +123,15 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "category: 'operations'",
         "cache_artifact",
         "[source-filename].md",
-        "_cache/[bucket]/[source-filename].md",
+        "topics/[topic]/_cache/[source-filename].md",
         "Dependency Bootstrap / Check",
         "precision_level",
         "document_type",
         "route",
-        "3.5.0"
+        "3.5.0",
+        "--category",
+        "auto-infer document category",
+        "strict topic check"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("ingest: skill.yaml missing required phrase '$phrase'")

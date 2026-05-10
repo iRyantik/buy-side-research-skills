@@ -114,42 +114,51 @@
 
 ```text
 [research-workspace]/
-├── _inbox/          # newly downloaded files waiting for ingest
-├── _raw/            # original source materials, organized by topic then file type; do not edit in place
-│   └── <topic>/     #   topic slug (supports hierarchy: aerospace/ge-aerospace)
-│       ├── pdf/
-│       ├── xlsx/
-│       ├── docx/
-│       └── pptx/
-├── _cache/          # converted markdown, organized by topic
-│   └── <topic>/
-├── _models/         # Excel or model files
-├── _scripts/        # copied helper scripts
-└── topics/          # durable research memory and topic sessions
+├── _inbox/                          # 全局暂存（仅未分类文件；已分 topic 的文件放 topics/<topic>/_inbox/）
+├── _scripts/                        # copied helper scripts
+├── edge-radar.md                    # cross-topic research radar
+└── topics/                          # all materials organized by topic
+    └── <topic-slug>/                #   topic（层级：aerospace 行业, aerospace/ge-aerospace 公司）
+        ├── index.md                 #   topic 地图
+        ├── _inbox/                  #   该 topic 的待处理文件
+        ├── _raw/                    #   原始文件，按文档类别组织；不要改写
+        │   ├── filings/             #     10-K, 10-Q, 20-F, annual report
+        │   ├── transcripts/         #     earnings call, conference transcript
+        │   ├── sellside/            #     sell-side research reports
+        │   ├── industry/            #     industry reports
+        │   ├── irdecks/             #     IR / investor day presentations
+        │   └── datasets/            #     CSV, Excel 结构化数据
+        ├── _cache/                  #   ingest 转换 markdown（operational, not earned memory）
+        ├── _models/                 #   财务模型 / workbooks
+        ├── <YYYY-MM-DD>-<session>/  #   研究 session
+        │   ├── company-primer.md
+        │   ├── driver-map.md
+        │   ├── research-journal.md
+        │   └── boss-brief.md
+        └── <sub-topic>/             #   integrate 后的子 topic
 ```
 
-- `_inbox/` 暂存刚下载的文件；ingest 后自动移到 `_raw/<topic>/<ext>/`。
-- `_raw/` 保存原始材料，按 topic 再按文件类型组织，不要改写。
-- `_cache/` 是 ingest 产生的中间 markdown，按 topic 组织，不是 original source，不是 earned memory。
-- `_models/` 保存 workbook / model files。
+- 研究流：`new-session` 创建 topic 完整骨架 → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
+- `topics/<topic>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
+- `topics/<topic>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
+- `topics/<topic>/_models/` 保存 workbook / model files。
 - `_scripts/` 保存 init / ingest helper scripts。
-- `topics/` 保存 durable research artifacts。
+- `edge-radar.md` 存放跨 topic 研究雷达和待验证 edge。
+- 子 topic 用 `integrate` skill 合并到父 topic 下。
 
 ### Topic Session Shape
 
 ```text
-topics/[company|theme|event]/[topic-slug]/
-├── index.md
-└── [YYYY-MM-DD]-[session-slug]/
-    ├── company-primer.md
-    ├── mechanism-map.md
-    ├── driver-map.md
-    ├── research-journal.md
-    └── boss-brief.md
+topics/<topic-slug>/<YYYY-MM-DD>-<session-slug>/
+├── company-primer.md
+├── mechanism-map.md
+├── driver-map.md
+├── research-journal.md
+└── boss-brief.md
 ```
 
 - 保存路径不明确时，先用 `new-session` 创建或解析 topic session。
-- `index.md` 是演进式地图：current question、session links、current map、open questions、related artifacts。
+- `index.md` 是演进式地图：current question、session links、current map、open questions、cached materials、sub-topics、related artifacts。
 - `index.md` 不是 checklist、transcript 或状态数据库。
 - `research-journal.md` 只写已经研究清楚、source-backed、能改变判断或后续研究优先级的 insight。
 - `boss-brief.md` 是高密度 PM / boss transfer，不是简略摘要。
@@ -162,7 +171,7 @@ Operations:
 
 | Skill | When to use | Output |
 |---|---|---|
-| `ingest` | 转换 `_inbox/` / `_raw/` 文件为 markdown cache | source-tracked `_cache/` markdown |
+| `ingest` | 转换 `_inbox/` 文件为 markdown cache，自动移至 `topics/<topic>/_raw/` | source-tracked `topics/<topic>/_cache/` markdown |
 | `new-session` | 新建 / 定位 topic session；解析 artifact 保存路径；轻量更新 `index.md` | topic session scaffold + canonical save paths |
 
 Research:
@@ -205,7 +214,7 @@ _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
 - `ingest` 失败时必须 fail honestly；不能写假 cache。
-- `_cache/` 内容可帮助阅读，但引用事实仍应回到 original source 或明确标注 cache provenance。
+- `topics/<topic>/_cache/` 内容可帮助阅读，但引用事实仍应回到 original source 或明确标注 cache provenance。
 
 ---
 
