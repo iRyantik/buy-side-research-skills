@@ -188,14 +188,14 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - ❌ 出现具体数字 / 引语但无 source link → 标记 `[需查证]` 或删
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
 
-## 篇幅
+## 篇幅基准
 
 - Pre-print setup：500-900 字
 - Post-print read：400-700 字
 
 超长就是抓不住重点。
 
-## 衔接关系
+## Workflow 联动
 
 - 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）
 - 输出反过来更新 `alpha-thesis`（thesis 是否还成立，假设是否需要修订）

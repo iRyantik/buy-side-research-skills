@@ -2,7 +2,7 @@
 name: 'stock-quickread'
 id: 'stock-quickread'
 display_name: 'Stock Quickread'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'

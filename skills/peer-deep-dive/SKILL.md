@@ -342,6 +342,17 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 - 如果横向比较暴露行业机制、工程原理、设备链条或术语口径不清，明确先用 `mechanism-map` 统一 mechanism / value-capture 理解，再继续比较。
 - 如果横向比较暴露 revenue / margin / backlog / price-volume-mix 口径不可比，明确先用 `driver-map` 统一业务实质和 driver，再继续比较。
 
+## Workflow 联动
+
+| 场景 | 下一步 |
+|---|---|
+| peer group 机制、value-capture 或 KPI 口径不可比 | 先 `mechanism-map` 或 `driver-map`，再回到本 skill |
+| 横向比较暴露单一公司的 variant view | `alpha-thesis` |
+| 横向比较暴露 long / short cluster 或 hedge candidate | `pair-trade` |
+| 需要把 peer 差异量化进 operating model 或 valuation | `financial-model` |
+| 已经形成可复用行业 lens、peer map 或研究排序 | `research-journal` |
+| 仍不知道下一轮最值得追哪个问题 | `next-step` |
+
 ## 输出篇幅基准（线性 scale）
 
 | N | 目标字数 | 矩阵表数量 | Cross-cut 字数 |

@@ -215,4 +215,22 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 - ❌ 发现 driver / bucket 怪但在 quickread 里硬写完整模型拆分 → 触发错层级，应该交给 `driver-map`
 
 **第 5 节专项**
-- ❌ 只写了"贵 / 便宜"，没做反向工程——a
+- ❌ 只写了"贵 / 便宜"，没做反向工程——无法定位市场到底在 pricing 哪个假设，必须重写。
+
+## Workflow 联动
+
+| 场景 | 下一步 |
+|---|---|
+| quickread 判断这家公司值得继续研究，且需要形成 long / short 观点 | `alpha-thesis` |
+| 收入结构复杂、segment bucket 怪、model driver 不清楚 | `driver-map` |
+| 业务机制、设备链条、工艺流程或术语不清 | `mechanism-map` |
+| 需要和一组 peer 横向比较 | `peer-deep-dive` |
+| 需要把估值隐含假设量化成 model / reverse DCF | `financial-model` |
+| 只是不知道下一层问题怎么问 | `next-step` |
+| 已经形成可复用认知增量 | `research-journal` |
+
+## 篇幅基准
+
+- 标准 quickread：1200-1800 字，必须保留数据表、takeaway、反向工程和下一层问题。
+- 快速 triage：600-900 字，只能用于判断是否值得继续研究；若低于 600 字，通常 source / valuation / driver 不足。
+- 超过 2200 字通常说明已经越界到 `alpha-thesis`、`driver-map` 或 `financial-model`，应拆分。

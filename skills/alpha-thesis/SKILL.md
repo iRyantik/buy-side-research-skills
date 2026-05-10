@@ -208,7 +208,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 - ❌ Source 是"据报道""有传言""有人说" → 不是 source，找出处或删。
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装。
 
-## 篇幅
+## 篇幅基准
 
 完整产出 **800-1500 字**。这是要拿去 pitch 的东西，必须密度高、可执行。
 
@@ -222,7 +222,7 @@ topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Global Rules Capsule (v1)` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
 
-## 衔接关系
+## Workflow 联动
 
 - 在 `stock-quickread` 之后用——quickread 帮你判断这家公司值不值得花时间，alpha-thesis 是真正建立单股观点。
 - 如果 variant view、scenario 或 kill criteria 依赖某个 revenue / margin driver，但该 driver 尚未拆清楚，先触发 `driver-map`，再继续写 thesis。

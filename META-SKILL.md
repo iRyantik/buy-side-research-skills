@@ -252,7 +252,7 @@ skill 不能是孤岛。每个 skill 明确：
 13. `篇幅基准`
 14. `与相邻 skill 的边界`
 
-短 coach 型 skill（如 `next-step`）可以保持短而尖，不必硬拉长；但只要一个 skill 涉及 web search、复杂判断、多 mode、估值、模型、跨市场、供应链 claim，就应尽量使用上述骨架。
+短 coach 型 skill（如 `next-step`）的**用户可见输出**可以保持短而尖，但 runtime 结构不能省：`心法`、`Source 政策`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。复杂 skill 可在这些必填节上展开更多 hard standards 和 mode 细节。
 
 每个新 skill 的 SKILL.md 必须包含以下章节（顺序可调，但不能缺）：
 

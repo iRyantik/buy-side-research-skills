@@ -2,7 +2,7 @@
 name: 'earnings-setup'
 id: 'earnings-setup'
 display_name: 'Earnings Setup'
-version: '1.0.0'
+version: '1.0.1'
 system_generation: '3.3.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
