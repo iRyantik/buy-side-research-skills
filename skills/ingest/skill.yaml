@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'ingest'
 id: 'ingest'
 display_name: 'Ingest Raw Material'
-version: '1.0.0'
+version: '1.1.0'
 system_generation: '3.4.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -19,6 +19,10 @@ tags:
   - 'pptx'
   - 'docx'
   - 'csv'
+  - 'docling'
+  - 'edgartools'
+  - 'tesseract'
+  - 'markitdown'
 trigger:
   type: 'keyword'
   keywords:
@@ -32,10 +36,17 @@ trigger:
   description: '当用户要把 raw research material 转换成 workspace _cache markdown 时触发'
 capabilities:
   modes:
+    - 'Dependency Bootstrap / Check'
     - 'Single File Ingest'
     - 'Inbox / Directory Ingest'
     - 'Cache Reuse Check'
   requirements:
+    - 'support --check-deps dependency matrix before conversion'
+    - 'install dependencies only through explicit opt-in bootstrap script'
+    - 'route PDF through Docling first, with pypdf degraded fallback only for text-layer PDFs'
+    - 'route SEC filings through EdgarTools readiness plus Docling narrative conversion'
+    - 'require Tesseract OCR for scanned PDFs and fail without cache when OCR is unavailable'
+    - 'use MarkItDown only as degraded fallback for legacy or unsupported formats'
     - 'write cache markdown with source metadata header'
     - 'skip existing cache by default unless force is requested'
     - 'do not move, delete, or rewrite raw source files'
@@ -65,6 +76,9 @@ workflow:
 quality_gates:
   anti_patterns:
     - 'claiming_conversion_success_when_dependency_missing'
+    - 'silent_dependency_install'
+    - 'writing_fake_cache_for_scanned_pdf_without_ocr'
+    - 'claiming_sec_xbrl_route_without_edgar_identity'
     - 'treating_cache_as_original_source'
     - 'writing_investment_conclusion_during_ingest'
     - 'moving_or_deleting_raw_files'
@@ -76,3 +90,14 @@ quality_gates:
     - 'converter'
     - 'converted_at_utc'
     - 'precision'
+    - 'precision_level'
+    - 'document_type'
+    - 'route'
+    - 'page_count'
+    - 'table_count'
+  runtime_assets:
+    - 'scripts/ingest.py'
+    - 'scripts/ingest_xlsx.py'
+    - 'scripts/ingest_table_crosscheck.py'
+    - 'scripts/bootstrap-ingest-deps.ps1'
+    - 'assets/requirements-ingest.txt'

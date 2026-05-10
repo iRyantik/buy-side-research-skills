@@ -17,7 +17,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 # Ingest
 
-`ingest` 负责把 research workspace 里的 raw material 转成 `_cache/` 下的 LLM-friendly markdown，并写清 source path、hash、转换工具、转换时间和精度 caveat。它是研究前的材料消化入口，不是研究结论生成器。
+`ingest` 负责把 research workspace 里的 raw material 转成 `_cache/` 下的 LLM-friendly markdown，并写清 source path、hash、转换工具、转换时间、文档类型、路由和精度 caveat。它是研究前的材料消化入口，不是研究结论生成器。
 
 如果本 skill 在没有转换成功的情况下开始总结文件内容、把 OCR / PDF 表格当成 verified facts、把 `_cache/` 产物写进 `research-journal`，或在缺依赖时假装已经处理完成，它就失败了。
 
@@ -25,7 +25,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 `ingest` 的价值是把“材料能不能被 AI 安全读取”这件事从研究判断里拆出来。很多幻觉不是发生在 thesis 阶段，而是发生在最前面：PDF 表格没读准、Excel 公式和值混在一起、PPT speaker notes 丢了、扫描件被当成文本层。
 
-本 skill 不追求一次性完美解析所有格式，而追求诚实、可复查、可缓存。能转的就转；不能转的要明确说缺哪个 dependency 或 precision risk；任何 `_cache/` 结果都只是中间材料，关键数字仍然必须回查原始 source。
+本 skill 不追求一次性完美解析所有格式，而追求诚实、可复查、可缓存。能转的就转；不该转的就失败，不写假 cache；缺依赖时先引导用户运行 opt-in bootstrap，而不是偷偷安装。任何 `_cache/` 结果都只是中间材料，关键数字仍然必须回查原始 source。
 
 ## Source 政策
 
@@ -33,18 +33,20 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 特别强调：
 - `_cache/` markdown 不是事实 source；事实 source 仍然是 `_raw/` 或用户提供的原始文件。
-- 每个 cache 文件头部必须记录 `source_path`、`source_sha256`、`source_modified_utc`、`converter`、`converted_at_utc` 和 `precision`。
+- 每个 cache 文件头部必须记录 `source_path`、`source_sha256`、`source_modified_utc`、`converter`、`converted_at_utc`、`precision`、`precision_level`、`document_type` 和 `route`。
 - PDF / OCR / spreadsheet 转换结果必须带 precision caveat，不得把转换文本当成 verified financial data。
 - 对财务表格、KPI、页码、管理层原话等关键 claim，后续研究必须回到原始文件核对。
+- `Docling` / `EdgarTools` / `MarkItDown` / `Tesseract` 缺失时，必须输出 dependency gap；只有用户明确运行 `bootstrap-ingest-deps.ps1` 才安装依赖。
 
 ## AI 的局限
 
 | 局限 | 影响 | Mitigation |
 |---|---|---|
-| **PDF 表格错读** | 数字、列名、单位可能错位 | 标记 precision caveat；必要时用 `ingest_table_crosscheck.py` |
-| **扫描件无文本层** | 直接提取会失败或漏字 | 明确标记 dependency / OCR gap，不假装完成 |
+| **PDF 表格错读** | 数字、列名、单位可能错位 | `Docling` 主转换；必要时用 `PDFPlumber` 的 `ingest_table_crosscheck.py` |
+| **SEC filing 数字污染** | PDF narrative 与 XBRL financials 混用 | 10-K / 10-Q / 8-K / 20-F 触发 `EdgarTools` readiness；财务数仍需回查 XBRL / filing |
+| **扫描件无文本层** | 直接提取会失败或漏字 | 触发 `Docling` + `TesseractCliOcrOptions`；缺 Tesseract 时失败，不写 cache |
 | **Excel 公式误读** | 公式和值、hidden sheet、单位可能混乱 | 用 `ingest_xlsx.py` 输出 sheet map、非空区域和 formula topology |
-| **PPT notes 丢失** | 只读 slide text 会漏 speaker notes | 有 `python-pptx` 时提取 notes；否则标 dependency gap |
+| **PPT notes 丢失** | 只读 slide text 会漏 speaker notes | `Docling` 主转换，`python-pptx` 补 notes；否则标 dependency gap |
 | **缓存污染** | 旧 cache 被当成最新材料 | cache header 记录 hash 和 modified time；重复运行默认 skip |
 
 ## 触发场景
@@ -76,7 +78,17 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 ## 模式设计
 
-运行入口：优先调用 `skills/ingest/scripts/ingest.py`；Excel 结构化由 `ingest_xlsx.py` 辅助，表格数值抽查由 `ingest_table_crosscheck.py` 辅助。
+运行入口：优先调用 `skills/ingest/scripts/ingest.py`；Excel 结构化由 `ingest_xlsx.py` 辅助，表格数值抽查由 `ingest_table_crosscheck.py` 辅助，依赖清单是 `requirements-ingest.txt`，依赖安装由用户显式运行 `bootstrap-ingest-deps.ps1`。
+
+### Mode 0: Dependency Bootstrap / Check
+
+用于用户刚初始化 workspace 或 ingest 失败提示缺依赖。
+
+要求：
+- 先运行 `python _scripts/ingest.py --check-deps` 或 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`。
+- 用户明确同意后才运行 `_scripts/bootstrap-ingest-deps.ps1 -Yes`。
+- Python 包默认安装到 user site；Tesseract 走 winget / Chocolatey / UB Mannheim fallback；不要求管理员权限。
+- 未提供 `EDGAR_IDENTITY` 时，只提示 SEC route 不完整，不阻塞非 SEC 文件。
 
 ### Mode A: Single File Ingest
 
@@ -84,6 +96,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 要求：
 - 检测扩展名并选择 converter。
+- 路由顺序：PDF 用 `Docling` 主转换；SEC filing 要检查 `EdgarTools` 和 `EDGAR_IDENTITY`；扫描 PDF 需要 `Tesseract` OCR；DOCX / PPTX 用 `Docling` 主转换并允许 lightweight fallback；XLSX / XLSM 用 `openpyxl` 双加载；`.xls` 用 `MarkItDown` fallback。
 - 写 `_cache/[bucket]/[source-filename].md`。
 - 输出 converted / skipped / failed summary。
 - 若 dependency 缺失，输出 install hint，不写空 cache。
@@ -119,6 +132,13 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 |---|---|---|---|---|
 | [...] | [...] | [...] | [...] | [...] |
 
+## Route / Dependency
+- document_type: [...]
+- route: [...]
+- precision_level: [...]
+- page_count / table_count: [...]
+- dependency_status: [...]
+
 ## Caveats
 - [...]
 
@@ -133,6 +153,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 | 场景 | 下一步 |
 |---|---|
 | workspace 还没有 `_cache/` / `_raw/` | `init` |
+| dependency 缺失或同事首次使用 | `bootstrap-ingest-deps.ps1 -CheckOnly`，再由用户 opt-in `-Yes` |
 | cache 生成后要判断 claim 靠不靠谱 | `information-impact` |
 | cache 是公司 annual report / 10-K / 20-F | `company-primer` 或 `driver-map` |
 | cache 是 industry report / technical paper | `mechanism-map` |
@@ -149,19 +170,23 @@ Artifact policy：
 ## 反模式自查
 
 - ❌ 缺 dependency 还说转换完成 → 必须失败并提示缺什么。
+- ❌ 自动静默安装依赖 → 必须由用户显式运行 bootstrap，且默认 user-scope。
 - ❌ 把 cache markdown 当成原始 source → 必须回查 `_raw/`。
 - ❌ 在 ingest 阶段总结投资结论 → 越界。
 - ❌ 自动删除、移动、改名 raw 文件 → 禁止。
 - ❌ 默认递归整个 workspace → 太危险，必须用户明确要求 recursive。
 - ❌ 把 `_cache/` 内容写进 `research-journal` → 未通过 Earned Insight Gate。
 - ❌ 对 PDF / Excel 数字不写 precision caveat → 可能污染后续研究。
+- ❌ 扫描 PDF 缺 OCR 还写 `[no extractable text]` cache → 必须失败并说明需要 Tesseract。
+- ❌ SEC filing 缺 `EDGAR_IDENTITY` 还声称 XBRL route 完整 → 必须失败或明确标 dependency gap。
 
 ## 篇幅基准
 
-- 单文件成功：100-180 字 + 1 行结果表。
+- 单文件成功：120-220 字 + 1 行结果表 + route / precision caveat。
 - 目录批量：150-300 字 + converted / skipped / failed 表。
 - dependency 缺失：80-150 字，直接说明缺哪个包和未生成 cache。
-- 超过 350 字通常说明开始研究内容，应 handoff 到相邻 research skill。
+- dependency bootstrap：80-180 字，给 `-CheckOnly` / `-Yes` 命令和 SEC identity caveat。
+- 超过 400 字通常说明开始研究内容，应 handoff 到相邻 research skill。
 
 ## 边界
 

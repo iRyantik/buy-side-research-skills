@@ -8,8 +8,9 @@ Repository: `iRyantik/buy-side-research-skills`
 
 1. Install the plugin from GitHub or a release zip.
 2. Open or initialize a research workspace with `init`; do not use this plugin repo as the workspace.
-3. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
-4. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
+3. If you need full raw-material conversion, run `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly` in the workspace, then opt in with `-Yes`.
+4. Use the active skills to screen, quickread, build company foundations, compare, map mechanisms, map drivers, build theses, and write earned research memory.
+5. Use `examples/workspaces/ai-data-center-power/` as a compact reference for how research artifacts should look.
 
 Version `3.3.1` remains the stable colleague-shareable baseline. Current `main` is `3.4.0-dev`: it adds guided workspace creation through `init` and raw material cache conversion through `ingest`; formal `v3.4.0` still waits for release hardening.
 
@@ -58,8 +59,9 @@ Senior Analyst Radar -> better AI questions -> research -> research-journal -> B
 ```
 
 - `Senior Analyst Radar` flags issues that may change business understanding, model drivers, market framing, peer groups, or research priority.
-- `init` creates the standard research workspace scaffold; it does not ingest raw files, run git, or create research artifacts.
-- `ingest` converts raw files into source-tracked `_cache/` markdown; it does not generate research conclusions.
+- `init` creates the standard research workspace scaffold; it does not ingest raw files, install dependencies, run git, or create research artifacts.
+- `ingest` converts raw files into source-tracked `_cache/` markdown; it does not generate research conclusions. Use `python _scripts/ingest.py --check-deps` before first use.
+- `bootstrap-ingest-deps.ps1` is opt-in only: Python packages install to the current user by default, while Tesseract uses local package-manager / manual fallback.
 - `company-primer` handles company foundations, business evolution, segment / KPI rename, recast, and disclosure history before driver or thesis work.
 - `mechanism-map` handles industry mechanisms, engineering principles, equipment chains, process flows, terminology, and know-how gaps.
 - `driver-map` handles revenue, margin, backlog, price / volume / mix, disclosure buckets, KPI oddities, and model-driver gaps.
@@ -100,6 +102,7 @@ Run the standard gates before release:
 - Added `init` as the 16th active workspace setup skill.
 - Added standard research workspace scaffold templates and an idempotent init helper script.
 - Added `ingest` as the 17th active raw material cache skill.
+- Added opt-in ingest dependency bootstrap for Docling, EdgarTools, Tesseract OCR, MarkItDown, PDFPlumber, and related parsers.
 - Kept formal `v3.4.0` release hardening out of scope.
 
 ### v3.3.1

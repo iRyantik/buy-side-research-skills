@@ -1,0 +1,10 @@
+docling
+edgartools
+markitdown[all]
+openpyxl
+python-pptx
+python-docx
+pdfplumber
+pypdf
+pytesseract
+Pillow

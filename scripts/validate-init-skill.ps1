@@ -86,6 +86,10 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "_cache",
         "_models",
         "topics/_meta/edge-radar.md",
+        "bootstrap-ingest-deps.ps1",
+        "requirements-ingest.txt",
+        "Docling",
+        "Tesseract",
         ($notText + " git init"),
         ($notText + " ingest")
     )) {
@@ -112,8 +116,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "init") {
         $failures.Add("init: skill.yaml name '$yamlName' does not match init")
     }
-    if ($yamlVersion -ne "1.1.0") {
-        $failures.Add("init: expected skill version 1.1.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.2.0") {
+        $failures.Add("init: expected skill version 1.2.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.4.0-dev") {
         $failures.Add("init: expected system_generation 3.4.0-dev, found '$systemGeneration'")
@@ -130,8 +134,10 @@ if (Test-Path -LiteralPath $scriptPath) {
         "ingest.py",
         "ingest_xlsx.py",
         "ingest_table_crosscheck.py",
+        "bootstrap-ingest-deps.ps1",
+        "requirements-ingest.txt",
         "init-assets",
-        "No git init and no ingest execution were performed."
+        "No git init, no dependency install, and no ingest execution were performed."
     )) {
         if (-not $scriptText.Contains($phrase)) {
             $failures.Add("init helper script missing required phrase '$phrase'")

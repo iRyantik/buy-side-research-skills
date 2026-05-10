@@ -215,8 +215,8 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `information-impact` 和 `next-step` 属于 `none`：不创建 standalone artifact；研究清楚后再 handoff 到 `research-journal`。
 - `financial-model` 属于 `external_workbook`：只在用户要求时写入用户 workbook 或 workspace `_models/`，不是普通 topic markdown。
 - `research-journal` 属于 `earned_memory`：只保存通过 Earned Insight Gate 的认知增量、Boss Brief 或 topic index update，不收 raw reminders、未验证灵感或 unresolved driver / mechanism guess。
-- `init` 属于 `workspace_scaffold`：只创建 / 补齐用户指定 research workspace，不创建 topic artifact，不执行 `git init`，不 ingest 原始材料。
-- `ingest` 属于 `cache_artifact`：只把 raw material 转成 `_cache/[bucket]/[source-filename].md`，不生成研究结论，不写 topic session，不替代 source verification。
+- `init` 属于 `workspace_scaffold`：只创建 / 补齐用户指定 research workspace，不创建 topic artifact，不执行 `git init`，不 ingest 原始材料，也不自动安装依赖；可以复制 ingest helper scripts 和 opt-in bootstrap 到 `_scripts/`。
+- `ingest` 属于 `cache_artifact`：只把 raw material 转成 `_cache/[bucket]/[source-filename].md`，不生成研究结论，不写 topic session，不替代 source verification。完整工具链依赖必须由用户显式运行 `_scripts/bootstrap-ingest-deps.ps1` 安装；缺 Docling / EdgarTools / Tesseract / MarkItDown 等依赖时必须 fail honestly，不写假 cache。
 
 ---
 

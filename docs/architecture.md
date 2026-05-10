@@ -55,7 +55,7 @@ Research workspaces are user-owned folders. They are created or repaired by the 
     └── event/
 ```
 
-`init` does not run `git init`, ingest raw files, or create topic research artifacts. `ingest` writes operational cache files only; it does not create earned research memory.
+`init` does not run `git init`, install dependencies, ingest raw files, or create topic research artifacts. It copies `_scripts/bootstrap-ingest-deps.ps1`, `_scripts/requirements-ingest.txt`, and ingest helper scripts so the user can explicitly opt in later. `ingest` writes operational cache files only; it does not create earned research memory.
 
 ## Artifact Save Policy
 
@@ -76,3 +76,16 @@ _cache/[bucket]/[source-filename].md
 ```
 
 Cache files are source-tracked intermediate material, not original source and not topic-session output.
+
+## Ingest Toolchain
+
+The full material conversion stack is local-first: Docling is the primary PDF / DOCX / PPTX converter, EdgarTools is required for SEC filing readiness, openpyxl handles workbook structure, python-pptx / python-docx are fallback extractors, PDFPlumber cross-checks PDF table numerics, Tesseract supports scanned PDF OCR, and MarkItDown is a degraded fallback for legacy formats.
+
+Dependency installation is explicit:
+
+```powershell
+_scripts/bootstrap-ingest-deps.ps1 -CheckOnly
+_scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
+```
+
+No skill should silently install global dependencies.

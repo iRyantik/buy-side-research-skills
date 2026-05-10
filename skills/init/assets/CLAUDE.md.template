@@ -55,6 +55,7 @@ topics/[topic_type]/[topic-slug]/
 
 - Put new PDFs, XLSX files, PPTX decks, DOCX files, transcripts, and datasets in `_inbox/` or `_raw/`.
 - Use `ingest` to convert supported raw files into `_cache/` markdown. Do not pretend raw materials have been converted unless the tool actually succeeds.
+- Before first full ingest, run `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; only run `-Yes` if you want to install Docling, EdgarTools, Tesseract / OCR, MarkItDown, and parser dependencies on this machine.
 - Any converted cache output should preserve source path, tool, and conversion date metadata.
 
 ---

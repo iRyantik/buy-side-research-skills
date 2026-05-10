@@ -11,7 +11,9 @@ $yamlPath = Join-Path $skillRoot "skill.yaml"
 $scriptPaths = @(
     "scripts\ingest.py",
     "scripts\ingest_xlsx.py",
-    "scripts\ingest_table_crosscheck.py"
+    "scripts\ingest_table_crosscheck.py",
+    "scripts\bootstrap-ingest-deps.ps1",
+    "assets\requirements-ingest.txt"
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
@@ -84,6 +86,15 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "ingest.py",
         "ingest_xlsx.py",
         "ingest_table_crosscheck.py",
+        "bootstrap-ingest-deps.ps1",
+        "requirements-ingest.txt",
+        "Docling",
+        "EdgarTools",
+        "Tesseract",
+        "MarkItDown",
+        "PDFPlumber",
+        "--check-deps",
+        "EDGAR_IDENTITY",
         "information-impact",
         "company-primer",
         "research-journal"
@@ -97,6 +108,10 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "cache_artifact",
         "[source-filename].md",
         "_cache/[bucket]/[source-filename].md",
+        "Dependency Bootstrap / Check",
+        "precision_level",
+        "document_type",
+        "route",
         "3.4.0-dev"
     )) {
         if (-not $yamlText.Contains($phrase)) {
@@ -111,8 +126,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "ingest") {
         $failures.Add("ingest: skill.yaml name '$yamlName' does not match ingest")
     }
-    if ($yamlVersion -ne "1.0.0") {
-        $failures.Add("ingest: expected skill version 1.0.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.1.0") {
+        $failures.Add("ingest: expected skill version 1.1.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.4.0-dev") {
         $failures.Add("ingest: expected system_generation 3.4.0-dev, found '$systemGeneration'")
@@ -127,6 +142,21 @@ if (Test-Path -LiteralPath $ingestScript) {
         "source_modified_utc",
         "converted_at_utc",
         "precision",
+        "precision_level",
+        "document_type",
+        "route",
+        "page_count",
+        "table_count",
+        "ocr_required",
+        "dependency_status",
+        "detect_format",
+        "route_converter",
+        "def cache",
+        "--check-deps",
+        "Docling",
+        "EdgarTools",
+        "TesseractCliOcrOptions",
+        "MarkItDown",
         "Could not discover research workspace",
         "Missing optional dependency",
         "--recursive",
@@ -134,6 +164,48 @@ if (Test-Path -LiteralPath $ingestScript) {
     )) {
         if (-not $scriptText.Contains($phrase)) {
             $failures.Add("ingest.py missing required phrase '$phrase'")
+        }
+    }
+}
+
+$bootstrapScript = Join-Path $skillRoot "scripts\bootstrap-ingest-deps.ps1"
+if (Test-Path -LiteralPath $bootstrapScript) {
+    $bootstrapText = Get-Content -Raw -Encoding UTF8 -LiteralPath $bootstrapScript
+    foreach ($phrase in @(
+        "CheckOnly",
+        "Yes",
+        "PythonScope",
+        "EdgarIdentity",
+        "requirements-ingest.txt",
+        "python -m pip",
+        "EDGAR_IDENTITY",
+        "winget",
+        "UB-Mannheim",
+        "Tesseract"
+    )) {
+        if (-not $bootstrapText.Contains($phrase)) {
+            $failures.Add("bootstrap-ingest-deps.ps1 missing required phrase '$phrase'")
+        }
+    }
+}
+
+$requirementsPath = Join-Path $skillRoot "assets\requirements-ingest.txt"
+if (Test-Path -LiteralPath $requirementsPath) {
+    $requirementsText = Get-Content -Raw -Encoding UTF8 -LiteralPath $requirementsPath
+    foreach ($package in @(
+        "docling",
+        "edgartools",
+        "markitdown[all]",
+        "openpyxl",
+        "python-pptx",
+        "python-docx",
+        "pdfplumber",
+        "pypdf",
+        "pytesseract",
+        "Pillow"
+    )) {
+        if (-not $requirementsText.Contains($package)) {
+            $failures.Add("requirements-ingest.txt missing package '$package'")
         }
     }
 }

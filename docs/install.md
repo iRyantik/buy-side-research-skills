@@ -38,3 +38,20 @@ Extract the zip into the plugin location required by Claude or Codex, then confi
 ## First Use
 
 Version `3.3.1` does not include `init` or `ingest`. In `3.4.0-dev`, users can run `init` to create or repair a research workspace scaffold, then run `ingest` to convert supported raw files into `_cache/` markdown. Formal `v3.4.0` still waits for release hardening.
+
+## Ingest Dependencies
+
+`init` copies ingest helpers into the research workspace `_scripts/` folder. First check dependencies:
+
+```powershell
+python _scripts/ingest.py --check-deps
+powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
+```
+
+If the output looks right, opt in to installation:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
+```
+
+Python packages install to the current user by default. Tesseract is a system binary; the bootstrap tries `winget` first and otherwise prints Chocolatey / UB Mannheim fallback instructions. The script does not run during `init`.

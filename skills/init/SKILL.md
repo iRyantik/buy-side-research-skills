@@ -27,7 +27,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 这个 skill 的核心不是多建目录，而是防止污染：不要把用户研究 workspace 和 plugin dev repo 混用；不要把 raw PDF、Excel model、缓存 markdown 和可沉淀的 research memory 混用；不要让 workspace 一开始就背上 v2 state tracking 的维护负担。
 
-默认行为必须保守、幂等、可重复运行。已有文件不覆盖，缺什么补什么；不主动 `git init`；可以复制 `ingest` helper scripts 到 `_scripts/`，但不执行 ingest。
+默认行为必须保守、幂等、可重复运行。已有文件不覆盖，缺什么补什么；不主动 `git init`；可以复制 `ingest` helper scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt` 到 `_scripts/`，但不执行 ingest，也不自动安装依赖。
 
 ## Source 政策
 
@@ -45,7 +45,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 |---|---|---|
 | **路径误判** | 可能把当前 plugin repo 当成 research workspace | 脚本检测 `.claude-plugin/`、`.codex-plugin/`、`skills/`、`META-SKILL.md`，命中即退出 |
 | **覆盖用户文件** | 可能破坏已有 workspace 规则 | 已存在的 `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md` 一律不覆盖 |
-| **越界做 ingest** | 可能提前处理 PDF / Excel / PPTX | 只复制 ingest scripts；不执行转换 |
+| **越界做 ingest / install** | 可能提前处理 PDF / Excel / PPTX 或改用户环境 | 只复制 ingest scripts 和 bootstrap；不执行转换、不安装依赖 |
 | **误开 git** | 研究 workspace 默认不启用 git | 不 git init，只写 `.gitignore` 供用户未来自行决定 |
 | **把 scaffold 当 artifact** | 可能写入 topic session | `init` 的 artifact 是 workspace scaffold，不是 research artifact |
 
@@ -62,7 +62,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 ### 不应触发
 
-- 用户要处理 PDF、Excel、PPTX、DOCX 或 `_inbox/` 材料 → 等未来 `ingest`，当前只建议先放入 `_inbox/`。
+- 用户要处理 PDF、Excel、PPTX、DOCX 或 `_inbox/` 材料 → 先完成 workspace，再 handoff 到 `ingest`；如缺依赖，运行 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`。
 - 用户要研究公司业务基础 → `company-primer`。
 - 用户要写研究笔记 / Boss Brief → `research-journal`。
 - 用户要保存某个 skill 产物 → 按该 skill 的 `artifact_policy` 进入 topic session。
@@ -76,6 +76,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 | **是否已有内容** | 可选 | 脚本幂等补齐，不覆盖已有核心文件 |
 | **是否启用 git** | 不支持 | 本 batch 不 git init，只写 `.gitignore` |
 | **是否 ingest 材料** | 不支持 | `init` 不 ingest，只创建 `_inbox/`、`_raw/`、`_cache/` 并复制 helper scripts |
+| **是否安装 ingest 依赖** | 不支持 | `init` 只复制 `bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt`；安装必须由用户显式 opt-in |
 
 如果用户给的是当前 plugin repo、`.claude/plugins/...` 插件安装目录或任何包含 plugin manifest 的目录，必须拒绝初始化并要求换一个 research workspace 路径。
 
@@ -88,7 +89,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 动作：
 - 创建固定 workspace scaffold。
 - 写入 workspace `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md`。
-- 创建 `_scripts/` 并复制 `init-research-workspace.ps1`、`init-assets/` 与 ingest helper scripts，方便用户以后自检 / 转换材料。
+- 创建 `_scripts/` 并复制 `init-research-workspace.ps1`、`init-assets/`、ingest helper scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt`，方便用户以后自检 / 转换材料。
 - 返回 created / skipped summary 和下一步建议。
 
 ### Mode B: Repair Existing Workspace
@@ -145,8 +146,9 @@ description: Use when setting up or repairing a buy-side research workspace fold
 ## 下一步
 1. 把待处理材料放进 `_inbox/` 或 `_raw/`。
 2. 如果要研究公司基础，用 `company-primer`。
-3. 如果要转换材料，用 `ingest`。
-4. 如果只是想开始问下一步研究问题，用 `next-step`。
+3. 如果要启用完整 ingest 工具链，先运行 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`；确认后再运行 `-Yes`。
+4. 如果要转换材料，用 `ingest`。
+5. 如果只是想开始问下一步研究问题，用 `next-step`。
 ````
 
 ### 被阻止时
@@ -169,6 +171,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 | 用户刚装好插件，不知道从哪开始 | `init` 创建 workspace scaffold |
 | 用户已有 workspace，但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init` repair missing scaffold |
 | 用户把材料放入 `_inbox/` 后想转换 | `ingest` |
+| 用户缺 Docling / EdgarTools / Tesseract / MarkItDown | `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后 `-Yes` |
 | 用户开始研究某家公司 | `company-primer` 或 `stock-quickread` |
 | 用户已经研究清楚并想保存认知 | `research-journal` |
 | 用户问下一步怎么研究 | `next-step` |
@@ -185,6 +188,7 @@ Artifact policy：
 - ❌ 覆盖已有 `CLAUDE.md`、`.gitignore` 或 `edge-radar.md` → 违反幂等原则。
 - ❌ 自动 `git init` → 本 batch 禁止。
 - ❌ 自动 ingest PDF / XLSX / PPTX / DOCX → `init` 只复制脚本，不执行转换。
+- ❌ 自动安装 Docling / EdgarTools / Tesseract / MarkItDown → `init` 只复制 bootstrap，不执行安装。
 - ❌ 创建 `research-journal.md` 或 topic session artifact → 越界。
 - ❌ 把 `_raw/`、`_cache/`、`_models/` 当成可提交研究成果 → 边界错误。
 - ❌ 生成 v2 state folders，如 `coverage/`、`portfolio/`、`pairs/` → 架构倒退。
@@ -200,7 +204,7 @@ Artifact policy：
 
 ## 边界
 
-- `init` vs `ingest`：`init` 建 workspace 并复制 helper scripts；`ingest` 才负责把 raw 文件转成 LLM-friendly markdown。
+- `init` vs `ingest`：`init` 建 workspace 并复制 helper scripts / bootstrap；`ingest` 才负责把 raw 文件转成 LLM-friendly markdown。
 - `init` vs `research-journal`：`init` 创建空 workspace scaffold，`research-journal` 只沉淀 earned insight。
 - `init` vs `company-primer`：`init` 不研究公司；公司基础研究交给 `company-primer`。
 - `init` vs plugin release scripts：`init` 面向用户 research workspace；root `scripts/` 面向 plugin dev / release validation。

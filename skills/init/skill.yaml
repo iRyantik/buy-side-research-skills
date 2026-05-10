@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'init'
 id: 'init'
 display_name: 'Init Research Workspace'
-version: '1.1.0'
+version: '1.2.0'
 system_generation: '3.4.0-dev'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -38,7 +38,7 @@ capabilities:
     - 'never initialize inside the plugin development repo or plugin install directory'
     - 'never overwrite existing CLAUDE.md, .gitignore, or topics/_meta/edge-radar.md'
     - 'do not git init'
-    - 'copy ingest helper scripts when available but do not execute ingest'
+    - 'copy ingest helper scripts and dependency bootstrap when available but do not execute ingest or install dependencies'
 artifact_policy:
   save_policy: 'workspace_scaffold'
   default_artifact: 'workspace scaffold'
@@ -50,11 +50,13 @@ workflow:
     - 'install'
     - 'user-setup-request'
   feeds_into:
+    - 'ingest'
     - 'company-primer'
     - 'stock-quickread'
     - 'next-step'
     - 'research-journal'
   can_trigger:
+    - 'ingest'
     - 'company-primer'
     - 'stock-quickread'
     - 'next-step'
@@ -64,6 +66,7 @@ quality_gates:
     - 'overwriting_existing_workspace_files'
     - 'git_init'
     - 'ingesting_files'
+    - 'installing_dependencies'
     - 'creating_topic_artifacts'
     - 'creating_v2_state_folders'
   required_scaffold:
@@ -83,6 +86,8 @@ quality_gates:
     - '_scripts/ingest.py'
     - '_scripts/ingest_xlsx.py'
     - '_scripts/ingest_table_crosscheck.py'
+    - '_scripts/bootstrap-ingest-deps.ps1'
+    - '_scripts/requirements-ingest.txt'
     - 'topics/_meta/edge-radar.md'
     - 'topics/company'
     - 'topics/theme'

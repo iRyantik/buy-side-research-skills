@@ -12,8 +12,12 @@ $pluginAssetsRoot = Join-Path $skillRoot "assets"
 $localAssetsRoot = Join-Path $scriptRoot "init-assets"
 $assetsRoot = if (Test-Path -LiteralPath $pluginAssetsRoot) { $pluginAssetsRoot } else { $localAssetsRoot }
 $ingestScriptsRoot = Join-Path $skillsRoot "ingest\scripts"
+$ingestAssetsRoot = Join-Path $skillsRoot "ingest\assets"
 if (-not (Test-Path -LiteralPath $ingestScriptsRoot)) {
     $ingestScriptsRoot = $scriptRoot
+}
+if (-not (Test-Path -LiteralPath $ingestAssetsRoot)) {
+    $ingestAssetsRoot = $scriptRoot
 }
 
 function Convert-ToFullPath {
@@ -155,7 +159,7 @@ foreach ($assetName in @("CLAUDE.md.template", "gitignore.template", "edge-radar
     }
 }
 
-foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosscheck.py")) {
+foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosscheck.py", "bootstrap-ingest-deps.ps1")) {
     $sourceScript = Join-Path $ingestScriptsRoot $scriptName
     if (Test-Path -LiteralPath $sourceScript) {
         Copy-ScriptIfMissing `
@@ -164,11 +168,18 @@ foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosschec
     }
 }
 
+$requirementsPath = Join-Path $ingestAssetsRoot "requirements-ingest.txt"
+if (Test-Path -LiteralPath $requirementsPath) {
+    Copy-ScriptIfMissing `
+        -SourcePath $requirementsPath `
+        -RelativeTarget "_scripts\requirements-ingest.txt"
+}
+
 $result = [ordered]@{
     workspace_path = $fullWorkspacePath
     created = @($created)
     skipped = @($skipped)
-    note = "No git init and no ingest execution were performed."
+    note = "No git init, no dependency install, and no ingest execution were performed. To enable the full ingest toolchain, run _scripts/bootstrap-ingest-deps.ps1 -CheckOnly first, then rerun with -Yes."
 }
 
 $result | ConvertTo-Json -Depth 4

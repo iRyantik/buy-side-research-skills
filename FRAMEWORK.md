@@ -78,13 +78,13 @@ It does not save files by default.
 
 Workspace setup skill. It creates or repairs the standard research workspace scaffold, writes workspace `CLAUDE.md`, `.gitignore`, and `topics/_meta/edge-radar.md`, and copies the helper script into `_scripts/`.
 
-It does not ingest files, run `git init`, research companies, create topic artifacts, or initialize inside the plugin dev repo.
+It does not ingest files, install dependencies, run `git init`, research companies, create topic artifacts, or initialize inside the plugin dev repo. It may copy ingest helper scripts plus the opt-in dependency bootstrap into `_scripts/`.
 
 ### `ingest`
 
-Raw material cache skill. It converts supported files into `_cache/[bucket]/[source-filename].md` with source path, hash, modified time, converter, conversion time, and precision caveat.
+Raw material cache skill. It converts supported files into `_cache/[bucket]/[source-filename].md` with source path, hash, modified time, converter, conversion time, document type, route, and precision caveat.
 
-It does not move raw files, produce investment conclusions, or treat cache markdown as original source. Missing parser dependencies must fail honestly.
+It does not move raw files, produce investment conclusions, or treat cache markdown as original source. Missing parser dependencies must fail honestly. Dependency installation is opt-in via `_scripts/bootstrap-ingest-deps.ps1`; `python _scripts/ingest.py --check-deps` reports Docling, EdgarTools, Tesseract, MarkItDown, PDFPlumber, and fallback parser status.
 
 ### `research-journal`
 

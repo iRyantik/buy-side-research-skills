@@ -59,3 +59,14 @@ dist/buy-side-research-skills-3.4.0-dev.zip
 ```
 
 The build script calls the release package validator after creating the zip.
+
+## Ingest Runtime Assets
+
+`3.4.0-dev` release packages must include:
+
+```text
+skills/ingest/assets/requirements-ingest.txt
+skills/ingest/scripts/bootstrap-ingest-deps.ps1
+```
+
+The package should not preinstall Docling, EdgarTools, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1`.
