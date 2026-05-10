@@ -191,9 +191,15 @@ Future research workspace：
 
 ```text
 [research-workspace]/
-├── _inbox/
-├── _raw/
-├── _cache/
+├── _inbox/                          # 待 ingest 文件暂存区
+├── _raw/                            # 原始文件（按 topic 再按文件类型组织）
+│   └── <topic-slug>/                #   支持层级：aerospace/ge-aerospace
+│       ├── pdf/
+│       ├── xlsx/
+│       ├── docx/
+│       └── pptx/
+├── _cache/                          # ingest 产出 markdown（按 topic 组织）
+│   └── <topic-slug>/
 ├── _models/
 ├── _scripts/
 └── topics/

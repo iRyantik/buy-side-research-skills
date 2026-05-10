@@ -1,10 +1,13 @@
 docling
 edgartools
-markitdown[all]
+pymupdf4llm
+akshare
+edinet-tools
+dart-fss
+openesef
 openpyxl
 python-pptx
 python-docx
 pdfplumber
 pypdf
-pytesseract
 Pillow

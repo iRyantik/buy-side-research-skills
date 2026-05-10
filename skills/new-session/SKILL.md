@@ -27,7 +27,8 @@ description: Use when creating or locating a topic research session, resolving w
 - 不做公司研究、行业研究、driver-map、mechanism-map、thesis 或 financial model。
 - 不写 `research-journal.md`、`boss-brief.md` 或 earned insight。
 - 不推荐下一步 research skill。
-- 不 ingest raw material，不修改 `_raw/`、`_cache/`、`_models/`。
+- 不 ingest raw material，不写入 `_raw/`、`_cache/`、`_models/`。
+- 可扫描 `_cache/<topic-slug>/` 列出已有材料，供后续研究 skill 使用。
 - 不创建 v2 state folders，例如 `coverage/`、`pairs/`、`portfolio/`。
 
 ## 触发与输入
@@ -70,6 +71,8 @@ topics/[company|theme|event]/[topic-slug]/index.md
 ```
 
 如果目录已存在，不覆盖已有文件；只报告 located / already exists。
+
+创建 session 后，扫描 `_cache/<topic-slug>/` 列出该 topic 下已 ingest 的 markdown 材料。
 
 ### Resolve Save Path
 
@@ -136,6 +139,11 @@ topics/[company|theme|event]/[topic-slug]/index.md
 - mechanism-map: [...]
 - driver-map: [...]
 - research-journal: [...]
+
+## Cached Materials
+- topic: [...]
+- path: `_cache/<topic-slug>/`
+- files found: [... or "none"]
 
 ## Index Touch
 - index path: [...]

@@ -68,15 +68,15 @@ Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创�
 [research-workspace]/
 ├── CLAUDE.md
 ├── AGENTS.md
-├── _inbox/
-├── _raw/
-│   ├── filings/
-│   ├── transcripts/
-│   ├── sellside/
-│   ├── industry/
-│   ├── irdecks/
-│   └── datasets/
-├── _cache/
+├── _inbox/                          # 待 ingest 文件暂存区
+├── _raw/                            # 原始文件（按 topic 再按文件类型组织）
+│   └── <topic-slug>/                #   支持层级：aerospace/ge-aerospace
+│       ├── pdf/
+│       ├── xlsx/
+│       ├── docx/
+│       └── pptx/
+├── _cache/                          # ingest 产出 markdown（按 topic 组织）
+│   └── <topic-slug>/
 ├── _models/
 ├── _scripts/
 └── topics/
@@ -87,7 +87,7 @@ Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创�
     └── event/
 ```
 
-`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 只写操作类缓存文件，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
+`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 将 `_inbox/` 内文件转换后自动移至 `_raw/<topic>/<ext>/`，按 topic 和文件类型组织，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
 
 ## Artifact 保存策略
 
@@ -113,7 +113,11 @@ _cache/[bucket]/[source-filename].md
 
 ## Ingest 工具链
 
-完整材料转换栈是本地方案：Docling 是主要 PDF / DOCX / PPTX 转换器，EdgarTools 用于 SEC filing 读取准备，openpyxl 处理 workbook 结构，python-pptx / python-docx 为备选提取器，PDFPlumber 交叉检查 PDF 表格数值，Tesseract 支持扫描件 OCR，MarkItDown 为旧格式的降级备选。
+PDF 双层路由：**PyMuPDF4LLM**（CPU 即可，10-50x 速度，适合文字为主文档）和 **docling**（258M VLM，MIT 许可证，适合表格密集型文档）。SEC filing 走 EdgarTools + docling。扫描件走 docling → PyMuPDF4LLM fallback，标注 Claude Vision review caveat。Excel 用 openpyxl 双加载。PPTX / DOCX 优先 docling，python-pptx / python-docx 为备选提取器。PDFPlumber 交叉检查 PDF 表格数值。旧格式 .xls 需用户先转为 .xlsx。
+
+按市场结构化数据：AKShare（A股+港股）、edinet-tools（日本）、dart-fss（韩国）、openesef（欧洲）。台湾和英国仍为 gap。
+
+已移除：Tesseract（OCR 由 Claude Vision 覆盖）、MarkItDown[all]（太重，无价值 extras）。
 
 依赖安装是显式的：
 

@@ -65,12 +65,6 @@ if (Test-Path -LiteralPath $fullWorkspacePath) {
 $directories = @(
     "_inbox",
     "_raw",
-    "_raw\filings",
-    "_raw\transcripts",
-    "_raw\sellside",
-    "_raw\industry",
-    "_raw\irdecks",
-    "_raw\datasets",
     "_cache",
     "_models",
     "_scripts",

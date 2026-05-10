@@ -20,17 +20,18 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 负责：
 - 检测 TXT / Markdown / CSV / PDF / DOCX / PPTX / XLSX / XLSM / XLS 格式。
 - 调用 `ingest.py`、`ingest_xlsx.py`、`ingest_table_crosscheck.py`。
-- 写入 `_cache/[bucket]/[source-filename].md`。
+- 写入 `_cache/<topic>/[source-filename].md`。
 - 输出 converted / skipped / failed summary。
 - 报告 dependency gap 和 precision caveat。
+- **ingest 成功后自动将源文件从 `_inbox/` 移至 `_raw/<topic>/<ext>/`。**
 
 不负责：
-- 不移动、删除、重命名 raw source。
+- 不移动、删除、重命名已在 `_raw/` 下的源文件。
 - 不验证 claim 是否真实；claim check 交给 `information-impact`。
 - 不解释公司业务；公司基础交给 `company-primer`。
 - 不拆 driver；driver gap 交给 `driver-map`。
 - 不沉淀 earned insight；memory 交给 `research-journal`。
-- 不自动安装 Docling、EdgarTools、Tesseract、MarkItDown 或 Python packages。
+- 不自动安装 Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef 或 Python packages。
 
 ## 触发与输入
 
@@ -44,8 +45,15 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 输入确认：
 - `source_path`：文件或目录路径；除非用户要求 `--recursive`，目录默认只处理第一层。
 - `workspace`：默认从 source path 向上寻找含 `_cache/` 且含 `_raw/` 或 `_inbox/` 的 workspace；找不到时要求 `--workspace`。
-- `bucket`：默认从 `_raw/[category]/[bucket]/...` 推断，否则用 `inbox` 或 `unclassified`。
+- `topic`：Topic slug，用于组织 `_raw/` 和 `_cache/`（如 `aerospace` 或 `aerospace/ge-aerospace`）。默认从 active session 推断，推断不出则用 `unclassified`。
 - `force`：默认已有 cache 且 hash 一致就 skip；只有用户要求重跑才 overwrite。
+
+### Topic 分类
+
+1. 用户显式传入 `--topic` → 直接使用。
+2. 当前有活跃 topic session → 自动推断 topic slug。
+3. 从文件名 / 内容推断 → 提议 topic，用户确认后使用。
+4. 以上都不可用 → 使用 `"unclassified"` 作为 fallback。
 
 ## 执行模式
 
@@ -62,7 +70,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 
 ### Single File Ingest
 
-单文件转换。PDF 用 Docling primary；SEC filing 检查 EdgarTools / EDGAR_IDENTITY readiness；扫描 PDF 需要 Tesseract OCR；XLSX / XLSM 用 openpyxl；legacy `.xls` 可用 MarkItDown fallback。
+单文件转换。PDF 文字为主用 PyMuPDF4LLM，表格密集用 docling；SEC filing 检查 EdgarTools / EDGAR_IDENTITY readiness；扫描 PDF 尝试 docling → PyMuPDF4LLM fallback，标注 Claude Vision review caveat；XLSX / XLSM 用 openpyxl；legacy `.xls` 需先转为 `.xlsx`。
 
 ### Directory Ingest
 
@@ -81,16 +89,38 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - `skills/ingest/scripts/bootstrap-ingest-deps.ps1`
 - `skills/ingest/assets/requirements-ingest.txt`
 
-核心依赖包括 Docling、EdgarTools、MarkItDown、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、pytesseract 和 Pillow。依赖安装必须由用户显式 opt in。
+核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。依赖安装必须由用户显式 opt in。
+
+### PDF 双层路由
+
+| 文档特征 | 工具 | 说明 |
+|---|---|---|
+| 文字为主（transcripts、IR deck 文本页） | **PyMuPDF4LLM** | CPU 即可，10-50x 速度优势 |
+| 表格密集（10-K、招股书、含并格表格） | **docling** | 258M VLM，MIT 许可证 |
+| SEC filing | **docling + EdgarTools** | EdgarTools XBRL 就绪后走 docling narrative |
+| 扫描件（OCR required） | **docling → PyMuPDF4LLM fallback** | 标注 precision caveat，关键文件建议 Claude Vision review |
+
+### 按市场结构化数据
+
+| 市场 | 工具 | 状态 |
+|---|---|---|
+| A股 + 港股 | AKShare | 19.1k stars，活跃 |
+| 日本 | edinet-tools | EDINET 公司财务数据 |
+| 韩国 | dart-fss | DART 披露系统 |
+| 欧洲 | Arelle + openesef | ESMA 使用，ESEF XBRL |
+| 台湾 | mops-financial-api | 原型，iXBRL only `[gap]` |
+| 英国 | 无成熟工具 | `[gap]`，需 Arelle DIY |
+| 美股 | EdgarTools | 成熟 |
 
 ## 文件安全
 
-- 不删除、不移动、不重命名 raw source。
+- 不删除、不重命名 `_raw/` 内已有源文件。
+- ingest 成功后将 `_inbox/` 内的源文件自动移至 `_raw/<topic>/<ext>/`。
 - 不写空 cache 或假 cache。
 - 不把 `_cache/` 写进 topic session。
 - 不把 `_cache/` 当 original source。
 - 默认不 recursive；用户明确要求时才递归。
-- 缺 OCR、Docling、EdgarTools、MarkItDown 或 parser dependency 时，必须报告 dependency gap。
+- 缺 Docling、PyMuPDF4LLM、EdgarTools、openpyxl 等 parser dependency 时，必须报告 dependency gap。
 
 每个 cache header 必须包含：
 - `source_path`
@@ -131,9 +161,9 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - 缺 dependency：输出缺什么、如何 `-CheckOnly` / `-Yes`，不写 cache。
 - source path 不存在：直接 failed。
 - workspace 无法发现：要求传 `--workspace` 或先运行 `init-workspace`。
-- 扫描 PDF 缺 Tesseract：failed，不写 `[no extractable text]` cache。
+- 扫描 PDF 缺 docling 和 pymupdf4llm：failed，标注建议 Claude Vision review。
 - SEC filing 缺 `EDGAR_IDENTITY`：标记 SEC route 不完整；不要声称 XBRL route 已完成。
-- Docling 失败且没有安全 fallback：failed，不写假 markdown。
+- Docling 和 PyMuPDF4LLM 均失败且无 pypdf fallback：failed，不写假 markdown。
 
 ## Workflow 联动
 
@@ -146,11 +176,12 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 | cache 是 industry report / technical paper | `mechanism-map` |
 | cache 是 financial model workbook | `financial-model` |
 | 研究已经想清楚 | `research-journal` |
+| 研究 skill 需要发现已 ingest 材料 | 检查 `_cache/<topic-slug>/` |
 
 Artifact policy：
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `[source-filename].md`
-- `canonical_location`: `_cache/[bucket]/[source-filename].md`
+- `canonical_location`: `_cache/[topic]/[source-filename].md`
 
 ## 安全自查
 
@@ -158,9 +189,10 @@ Artifact policy：
 - ❌ 自动静默安装依赖。
 - ❌ 把 cache markdown 当原始 source。
 - ❌ 在 ingest 阶段总结投资结论。
-- ❌ 自动删除、移动、改名 raw 文件。
+- ❌ 移动、删除、改名 `_raw/` 下已有文件。
 - ❌ 默认递归整个 workspace。
 - ❌ 把 `_cache/` 内容写进 `research-journal`。
 - ❌ PDF / Excel 数字不写 precision caveat。
-- ❌ 扫描 PDF 缺 OCR 还写假 cache。
+- ❌ 扫描 PDF 缺 converter 还写假 cache。
 - ❌ SEC filing 缺 `EDGAR_IDENTITY` 还声称 XBRL route 完整。
+- ❌ 不传 `--topic` 且无法推断时静默使用 `unclassified`，应提示用户确认。

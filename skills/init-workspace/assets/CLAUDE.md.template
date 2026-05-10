@@ -115,15 +115,22 @@
 ```text
 [research-workspace]/
 ├── _inbox/          # newly downloaded files waiting for ingest
-├── _raw/            # original source materials; do not edit in place
-├── _cache/          # converted / temporary working outputs
+├── _raw/            # original source materials, organized by topic then file type; do not edit in place
+│   └── <topic>/     #   topic slug (supports hierarchy: aerospace/ge-aerospace)
+│       ├── pdf/
+│       ├── xlsx/
+│       ├── docx/
+│       └── pptx/
+├── _cache/          # converted markdown, organized by topic
+│   └── <topic>/
 ├── _models/         # Excel or model files
 ├── _scripts/        # copied helper scripts
 └── topics/          # durable research memory and topic sessions
 ```
 
-- `_raw/` 保存原始材料，不要改写。
-- `_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
+- `_inbox/` 暂存刚下载的文件；ingest 后自动移到 `_raw/<topic>/<ext>/`。
+- `_raw/` 保存原始材料，按 topic 再按文件类型组织，不要改写。
+- `_cache/` 是 ingest 产生的中间 markdown，按 topic 组织，不是 original source，不是 earned memory。
 - `_models/` 保存 workbook / model files。
 - `_scripts/` 保存 init / ingest helper scripts。
 - `topics/` 保存 durable research artifacts。

@@ -42,13 +42,16 @@ function Get-DependencyStatus {
     $packages = [ordered]@{
         docling = Test-PythonModule "docling"
         edgartools = Test-PythonModule "edgar"
-        markitdown = Test-PythonModule "markitdown"
+        pymupdf4llm = Test-PythonModule "pymupdf4llm"
+        akshare = Test-PythonModule "akshare"
+        "edinet-tools" = Test-PythonModule "edinet_tools"
+        "dart-fss" = Test-PythonModule "dart_fss"
+        openesef = Test-PythonModule "openesef"
         openpyxl = Test-PythonModule "openpyxl"
         "python-pptx" = Test-PythonModule "pptx"
         "python-docx" = Test-PythonModule "docx"
         pdfplumber = Test-PythonModule "pdfplumber"
         pypdf = Test-PythonModule "pypdf"
-        pytesseract = Test-PythonModule "pytesseract"
         Pillow = Test-PythonModule "PIL"
     }
 
@@ -63,10 +66,6 @@ function Get-DependencyStatus {
         }
         packages = $packages
         binaries = [ordered]@{
-            tesseract = [ordered]@{
-                available = Test-CommandAvailable "tesseract"
-                path = if (Test-CommandAvailable "tesseract") { (Get-Command tesseract).Source } else { $null }
-            }
             winget = [ordered]@{
                 available = Test-CommandAvailable "winget"
                 path = if (Test-CommandAvailable "winget") { (Get-Command winget).Source } else { $null }
@@ -136,25 +135,9 @@ if (-not [string]::IsNullOrWhiteSpace($EdgarIdentity)) {
     & setx EDGAR_IDENTITY "$EdgarIdentity" | Out-Null
 }
 
-$tesseractInstallNote = $null
-if (-not (Test-CommandAvailable "tesseract")) {
-    if (Test-CommandAvailable "winget") {
-        Write-Host "tesseract.exe not found. Trying winget install UB-Mannheim.TesseractOCR..." -ForegroundColor Yellow
-        & winget install --id UB-Mannheim.TesseractOCR -e --accept-source-agreements --accept-package-agreements
-        if ($LASTEXITCODE -ne 0) {
-            $tesseractInstallNote = "winget install failed. Try Chocolatey (`choco install tesseract`) or UB Mannheim installer: https://ub-mannheim.github.io/Tesseract_Dokumentation/Tesseract_Doku_Windows.html"
-        }
-    } else {
-        $tesseractInstallNote = "winget is unavailable. Try Chocolatey (`choco install tesseract`) or UB Mannheim installer: https://ub-mannheim.github.io/Tesseract_Dokumentation/Tesseract_Doku_Windows.html"
-    }
-}
-
 $warnings = New-Object System.Collections.Generic.List[string]
 if ([string]::IsNullOrWhiteSpace($env:EDGAR_IDENTITY)) {
     [void]$warnings.Add("EDGAR_IDENTITY is not configured. Non-SEC ingest still works; SEC / EdgarTools routes need -EdgarIdentity `"Name email@domain.com`".")
-}
-if ($tesseractInstallNote) {
-    [void]$warnings.Add($tesseractInstallNote)
 }
 
 Write-StatusJson @{

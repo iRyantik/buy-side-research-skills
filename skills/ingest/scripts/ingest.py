@@ -112,10 +112,30 @@ def dependency_matrix() -> dict[str, Any]:
             "module": "edgar",
             "install_hint": "pip install edgartools",
         },
-        "markitdown": {
-            "available": module_available("markitdown"),
-            "module": "markitdown",
-            "install_hint": "pip install 'markitdown[all]'",
+        "pymupdf4llm": {
+            "available": module_available("pymupdf4llm"),
+            "module": "pymupdf4llm",
+            "install_hint": "pip install pymupdf4llm",
+        },
+        "akshare": {
+            "available": module_available("akshare"),
+            "module": "akshare",
+            "install_hint": "pip install akshare",
+        },
+        "edinet-tools": {
+            "available": module_available("edinet_tools"),
+            "module": "edinet_tools",
+            "install_hint": "pip install edinet-tools",
+        },
+        "dart-fss": {
+            "available": module_available("dart_fss"),
+            "module": "dart_fss",
+            "install_hint": "pip install dart-fss",
+        },
+        "openesef": {
+            "available": module_available("openesef"),
+            "module": "openesef",
+            "install_hint": "pip install openesef",
         },
         "openpyxl": {
             "available": module_available("openpyxl"),
@@ -142,11 +162,6 @@ def dependency_matrix() -> dict[str, Any]:
             "module": "pypdf",
             "install_hint": "pip install pypdf",
         },
-        "pytesseract": {
-            "available": module_available("pytesseract"),
-            "module": "pytesseract",
-            "install_hint": "pip install pytesseract",
-        },
         "Pillow": {
             "available": module_available("PIL"),
             "module": "PIL",
@@ -159,13 +174,7 @@ def dependency_matrix() -> dict[str, Any]:
             "executable": sys.executable,
         },
         "packages": packages,
-        "binaries": {
-            "tesseract": {
-                "available": shutil.which("tesseract") is not None,
-                "path": shutil.which("tesseract"),
-                "install_hint": "Install Tesseract via winget/choco or UB Mannheim Windows installer.",
-            }
-        },
+        "binaries": {},
         "env": {
             "EDGAR_IDENTITY": {
                 "configured": bool(os.getenv("EDGAR_IDENTITY")),
@@ -368,75 +377,43 @@ def convert_xlsx(path: Path, profile: DocumentProfile) -> ConversionResult:
     )
 
 
-def convert_markitdown(path: Path, profile: DocumentProfile, route: str, precision: str) -> ConversionResult:
-    require_package("markitdown", "markitdown")
-    from markitdown import MarkItDown  # type: ignore
-
-    converter = MarkItDown(enable_plugins=False)
-    if hasattr(converter, "convert_local"):
-        converted = converter.convert_local(str(path))
-    else:
-        converted = converter.convert(str(path))
-    text = getattr(converted, "text_content", str(converted))
-    return ConversionResult(
-        markdown=f"# {path.name}\n\n{text}",
-        converter="markitdown",
-        precision=precision,
-        precision_level="degraded",
-        document_type=profile.document_type,
-        route=route,
-        page_count=profile.page_count,
-        table_count=profile.table_count,
-        ocr_required=profile.ocr_required,
-        dependency_status=dependency_snapshot(["markitdown"]),
-    )
-
-
-def convert_docling(path: Path, profile: DocumentProfile, route: str, use_ocr: bool = False) -> ConversionResult:
+def convert_docling(path: Path, profile: DocumentProfile, route: str) -> ConversionResult:
     require_package("docling", "docling")
+    from docling.document_converter import DocumentConverter  # type: ignore
 
-    if use_ocr and shutil.which("tesseract") is None:
-        raise IngestError(
-            "OCR required but tesseract.exe is not on PATH. Run bootstrap-ingest-deps.ps1 or install Tesseract via winget/choco/UB Mannheim."
-        )
-
-    if use_ocr:
-        from docling.datamodel.base_models import InputFormat  # type: ignore
-        from docling.datamodel.pipeline_options import PdfPipelineOptions, TableStructureOptions, TesseractCliOcrOptions  # type: ignore
-        from docling.document_converter import DocumentConverter, PdfFormatOption  # type: ignore
-
-        pipeline_options = PdfPipelineOptions()
-        pipeline_options.do_ocr = True
-        pipeline_options.do_table_structure = True
-        pipeline_options.table_structure_options = TableStructureOptions(do_cell_matching=True)
-        pipeline_options.ocr_options = TesseractCliOcrOptions(force_full_page_ocr=True)
-        converter = DocumentConverter(
-            format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
-        )
-        converter_name = "docling-tesseract-cli-ocr"
-        precision = "Docling OCR via Tesseract CLI; verify OCR text, tables, units, and page references against original scan"
-        precision_level = "ocr"
-    else:
-        from docling.document_converter import DocumentConverter  # type: ignore
-
-        converter = DocumentConverter()
-        converter_name = "docling"
-        precision = "Docling markdown conversion; verify financial tables and layout-sensitive content against original"
-        precision_level = "structured"
-
+    converter = DocumentConverter()
     result = converter.convert(str(path))
     markdown = result.document.export_to_markdown()
     return ConversionResult(
         markdown=markdown,
-        converter=converter_name,
-        precision=precision,
-        precision_level=precision_level,
+        converter="docling",
+        precision="Docling markdown conversion; verify financial tables and layout-sensitive content against original",
+        precision_level="structured",
         document_type=profile.document_type,
         route=route,
         page_count=profile.page_count,
         table_count=profile.table_count,
         ocr_required=profile.ocr_required,
         dependency_status=dependency_snapshot(["docling", "pypdf", "pdfplumber", "edgartools"]),
+    )
+
+
+def convert_pymupdf4llm(path: Path, profile: DocumentProfile, route: str) -> ConversionResult:
+    require_package("pymupdf4llm", "pymupdf4llm")
+    import pymupdf4llm  # type: ignore
+
+    markdown = pymupdf4llm.to_markdown(str(path))
+    return ConversionResult(
+        markdown=markdown,
+        converter="pymupdf4llm",
+        precision="PyMuPDF4LLM text extraction; fast CPU path suitable for text-heavy documents, verify tables against original",
+        precision_level="structured",
+        document_type=profile.document_type,
+        route=route,
+        page_count=profile.page_count,
+        table_count=profile.table_count,
+        ocr_required=profile.ocr_required,
+        dependency_status=dependency_snapshot(["pymupdf4llm", "pypdf", "pdfplumber"]),
     )
 
 
@@ -536,18 +513,18 @@ def ensure_sec_route_ready(profile: DocumentProfile) -> None:
 
 def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
     if profile.ocr_required:
-        missing = []
-        if not module_available("docling"):
-            missing.append("docling")
-        if shutil.which("tesseract") is None:
-            missing.append("tesseract.exe")
-        if missing:
-            raise IngestError(
-                "OCR required for scanned PDF but dependencies are missing: "
-                + ", ".join(missing)
-                + ". Run bootstrap-ingest-deps.ps1; no cache was written."
-            )
-        return convert_docling(path, profile, route="pdf-docling-tesseract-cli-ocr", use_ocr=True)
+        if module_available("docling"):
+            result = convert_docling(path, profile, route="pdf-docling-scanned")
+            result.precision = "Scanned PDF via Docling; text may contain OCR errors, verify key numbers and tables against original scan. For critical scanned documents, prefer Claude Vision review."
+            return result
+        if module_available("pymupdf4llm"):
+            result = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-scanned-fallback")
+            result.precision = "Scanned PDF via PyMuPDF4LLM fallback; text may contain OCR errors, verify key numbers against original. For critical scanned documents, prefer Claude Vision review."
+            return result
+        raise IngestError(
+            "Scanned PDF detected but neither docling nor pymupdf4llm is available. "
+            "Run bootstrap-ingest-deps.ps1; no cache was written."
+        )
 
     if profile.sec_filing:
         ensure_sec_route_ready(profile)
@@ -565,20 +542,35 @@ def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
         except Exception as exc:
             raise IngestError(f"SEC filing route failed before cache write: {exc}") from exc
 
-    if module_available("docling"):
+    table_heavy = bool(profile.table_count and profile.table_count >= 15)
+
+    if table_heavy and module_available("docling"):
         try:
-            return convert_docling(path, profile, route="pdf-docling")
+            return convert_docling(path, profile, route="pdf-docling-table-heavy")
         except Exception as exc:
-            if profile.text_chars and profile.text_chars >= 20 and module_available("pypdf"):
-                fallback = convert_pdf_pypdf_fallback(path, profile, route="pdf-pypdf-fallback-after-docling-error")
+            if module_available("pymupdf4llm"):
+                fallback = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-fallback-after-docling-error")
                 fallback.precision = f"{fallback.precision}; Docling failed: {exc}"
                 return fallback
-            raise IngestError(f"Docling PDF conversion failed and no safe fallback is available: {exc}") from exc
+            raise IngestError(f"Docling PDF conversion failed for table-heavy document: {exc}") from exc
 
-    if profile.text_chars and profile.text_chars >= 20:
-        return convert_pdf_pypdf_fallback(path, profile, route="pdf-pypdf-fallback-docling-missing")
+    if module_available("pymupdf4llm"):
+        try:
+            return convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-text")
+        except Exception as exc:
+            if module_available("docling"):
+                fallback = convert_docling(path, profile, route="pdf-docling-fallback-after-pymupdf4llm-error")
+                fallback.precision = f"{fallback.precision}; PyMuPDF4LLM failed: {exc}"
+                return fallback
+            raise IngestError(f"PyMuPDF4LLM conversion failed: {exc}") from exc
 
-    raise IngestError("PDF conversion requires Docling. Run bootstrap-ingest-deps.ps1; no cache was written.")
+    if module_available("docling"):
+        return convert_docling(path, profile, route="pdf-docling")
+
+    if profile.text_chars and profile.text_chars >= 20 and module_available("pypdf"):
+        return convert_pdf_pypdf_fallback(path, profile, route="pdf-pypdf-fallback-no-docling-no-pymupdf4llm")
+
+    raise IngestError("PDF conversion requires Docling or PyMuPDF4LLM. Run bootstrap-ingest-deps.ps1; no cache was written.")
 
 
 def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
@@ -591,12 +583,12 @@ def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
     if profile.extension in {".xlsx", ".xlsm"}:
         return convert_xlsx(path, profile)
     if profile.extension == ".xls":
-        return convert_markitdown(
-            path,
-            profile,
-            route="legacy-xls-markitdown-fallback",
-            precision="Legacy XLS via MarkItDown fallback; verify formulas, formats, and key numbers in Excel",
-        )
+        try:
+            return convert_xlsx(path, profile)
+        except Exception:
+            raise IngestError(
+                "Legacy .xls format is not supported. Convert the file to .xlsx in Excel and re-ingest."
+            )
     if profile.extension == ".docx":
         if module_available("docling"):
             return convert_docling(path, profile, route="docx-docling")
@@ -630,24 +622,25 @@ def discover_workspace(source: Path) -> Path:
     raise IngestError("Could not discover research workspace. Pass --workspace or run init first.")
 
 
-def infer_bucket(source: Path, workspace: Path, explicit_bucket: str | None) -> str:
-    if explicit_bucket:
-        return explicit_bucket
+def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> str:
+    if explicit_topic:
+        return explicit_topic
     try:
         rel = source.relative_to(workspace)
     except ValueError:
         return "unclassified"
     parts = rel.parts
     if len(parts) >= 3 and parts[0] == "_raw":
-        return parts[2]
+        return parts[1]
     if len(parts) >= 2 and parts[0] == "_inbox":
-        return "inbox"
+        return "unclassified"
     return "unclassified"
 
 
-def output_path_for(source: Path, workspace: Path, cache_root: Path | None, bucket: str | None) -> Path:
+def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topic: str | None) -> Path:
     root = cache_root if cache_root else workspace / "_cache"
-    return root / infer_bucket(source, workspace, bucket) / f"{source.stem}.md"
+    resolved = resolve_topic(source, workspace, topic)
+    return root / resolved / f"{source.stem}.md"
 
 
 def read_cache_metadata(path: Path) -> dict[str, str]:
@@ -679,9 +672,27 @@ def candidate_files(source: Path, recursive: bool) -> list[Path]:
     return sorted(path for path in source.glob(pattern) if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS)
 
 
-def cache(source: Path, workspace: Path, cache_root: Path | None, bucket: str | None, force: bool) -> dict[str, Any]:
+def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
+    try:
+        rel = source.resolve().relative_to((workspace / "_inbox").resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def _move_to_raw(source: Path, workspace: Path, topic: str) -> Path:
+    ext = source.suffix.lower().lstrip(".") or "file"
+    raw_dir = workspace / "_raw" / topic / ext
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    dest = raw_dir / source.name
+    shutil.move(str(source), str(dest))
+    return dest
+
+
+def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, force: bool) -> dict[str, Any]:
     profile = detect_format(source)
-    target = output_path_for(source, workspace, cache_root, bucket)
+    target = output_path_for(source, workspace, cache_root, topic)
+    resolved_topic = resolve_topic(source, workspace, topic)
     if target.exists() and not force:
         current_hash = sha256_file(source)
         metadata = read_cache_metadata(target)
@@ -693,7 +704,12 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, bucket: str | 
                 result = route_converter(source, profile)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(markdown_header(source, result) + result.markdown.rstrip() + "\n", encoding="utf-8")
-                return {
+                raw_dest = None
+                moved = False
+                if _source_is_in_inbox(source, workspace):
+                    raw_dest = str(_move_to_raw(source, workspace, resolved_topic))
+                    moved = True
+                entry: dict[str, Any] = {
                     "source": str(source),
                     "cache": str(target),
                     "status": "converted",
@@ -707,8 +723,11 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, bucket: str | 
                     "ocr_required": result.ocr_required,
                     "dependency_status": result.dependency_status,
                 }
+                if moved:
+                    entry["moved_to_raw"] = raw_dest
+                return entry
 
-        return {
+        entry = {
             "source": str(source),
             "cache": str(target),
             "status": "skipped",
@@ -721,11 +740,19 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, bucket: str | 
             "table_count": profile.table_count,
             "ocr_required": profile.ocr_required,
         }
+        if _source_is_in_inbox(source, workspace):
+            entry["moved_to_raw"] = str(_move_to_raw(source, workspace, resolved_topic))
+        return entry
 
     result = route_converter(source, profile)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(markdown_header(source, result) + result.markdown.rstrip() + "\n", encoding="utf-8")
-    return {
+    raw_dest = None
+    moved = False
+    if _source_is_in_inbox(source, workspace):
+        raw_dest = str(_move_to_raw(source, workspace, resolved_topic))
+        moved = True
+    entry = {
         "source": str(source),
         "cache": str(target),
         "status": "converted",
@@ -739,6 +766,9 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, bucket: str | 
         "ocr_required": result.ocr_required,
         "dependency_status": result.dependency_status,
     }
+    if moved:
+        entry["moved_to_raw"] = raw_dest
+    return entry
 
 
 def parse_args() -> argparse.Namespace:
@@ -746,7 +776,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("source_path", nargs="?", help="Source file or directory to ingest.")
     parser.add_argument("--workspace", help="Research workspace root. If omitted, discover from source path.")
     parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/_cache.")
-    parser.add_argument("--bucket", help="Override cache bucket under _cache.")
+    parser.add_argument("--topic", help="Topic slug for organizing _raw/ and _cache/ (e.g. 'aerospace' or 'aerospace/ge-aerospace').")
+    parser.add_argument("--bucket", help="Deprecated. Use --topic instead.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing cache files.")
     parser.add_argument("--recursive", action="store_true", help="Recursively ingest supported files in a directory.")
     parser.add_argument("--check-deps", action="store_true", help="Print ingest dependency matrix as JSON and exit.")
@@ -771,6 +802,7 @@ def main() -> int:
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace(source)
         cache_root = Path(args.cache_root).expanduser().resolve() if args.cache_root else None
+        topic = args.topic or args.bucket
         files = candidate_files(source, args.recursive)
         if not files:
             raise IngestError("No supported files found to ingest.")
@@ -779,7 +811,7 @@ def main() -> int:
         failed = []
         for file_path in files:
             try:
-                results.append(cache(file_path.resolve(), workspace, cache_root, args.bucket, args.force))
+                results.append(cache(file_path.resolve(), workspace, cache_root, topic, args.force))
             except Exception as exc:
                 profile: dict[str, Any] = {}
                 try:
