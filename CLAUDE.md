@@ -98,6 +98,22 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - 新 skill 或重大改写完成前，必须按 `META-SKILL.md §9` 自检；若有不确定设计决策，必须主动 flag 给用户 review。
 - 若 `META-SKILL.md` 与本文件冲突，以本文件为准；若具体 skill 指令与 `META-SKILL.md` 冲突，先按本文件和 `META-SKILL.md` 修正 skill。
 
+### Runtime Rule Distribution
+
+- 插件运行时可能只识别具体 `SKILL.md`，不一定读取本文件；因此本文件是 project constitution / 维护源，不应被当作唯一 runtime prompt。
+- 全局 runtime research rules 必须同步维护在 `skills/_shared/global-rules.md`；该文件尽量使用本文件原文，只收研究运行时规则，不收开发流程、迁移历史或文件组织细节。
+- 每个 active `skills/*/SKILL.md` 必须内嵌同版本 `Global Rules Capsule`，使单个 skill 被独立加载时也能遵守中文输出、source discipline、反幻觉、反流水账、Senior Analyst Radar 和 primitive routing。
+- 修改 `CLAUDE.md` 中会影响 runtime research behavior 的规则时，必须同步检查 `skills/_shared/global-rules.md` 和各 active skill 的 capsule，并运行对应 validation script。
+
+### Metadata and Version Policy
+
+- `SKILL.md` 是 runtime truth：负责触发后实际行为、source discipline、workflow 和输出约束。
+- `skill.yaml` 是 metadata / index truth：负责 name、trigger、capabilities、workflow、quality gates 和索引信息。
+- `meta.json` 已 retired；active `skills/*/` 下不得新建或维护 `meta.json`。若需要新增 metadata 字段，写入 `skill.yaml` 并更新 metadata validation script。
+- `skill.yaml.version` 是单个 skill 自身的语义版本，不再表示系统代际；当前 P2 baseline 为 `1.0.0`。
+- 系统代际写入 `skill.yaml.system_generation`；metadata schema 写入 `skill.yaml.metadata_schema_version`。
+- Skill semver 规则：MAJOR 表示输出契约或触发边界不兼容；MINOR 表示新增 mode / routing / workflow 能力；PATCH 表示措辞、source policy、反模式或 metadata 修正。
+
 ## 6. Active Skill 触发指引
 
 ### 6.1 Skill 分层

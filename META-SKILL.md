@@ -240,16 +240,17 @@ skill 不能是孤岛。每个 skill 明确：
 1. Frontmatter（短 trigger-only description）
 2. 开头定义本 skill 的失败标准
 3. `心法`
-4. `Source 政策`
-5. `AI 的局限`
-6. `触发场景`
-7. `输入澄清要求`
-8. `Mode A / Mode B / Mixed Mode`
-9. `输出结构`
-10. `Workflow 联动`
-11. `反模式自查`
-12. `篇幅基准`
-13. `与相邻 skill 的边界`
+4. `Global Rules Capsule`
+5. `Source 政策`
+6. `AI 的局限`
+7. `触发场景`
+8. `输入澄清要求`
+9. `Mode A / Mode B / Mixed Mode`
+10. `输出结构`
+11. `Workflow 联动`
+12. `反模式自查`
+13. `篇幅基准`
+14. `与相邻 skill 的边界`
 
 短 coach 型 skill（如 `next-step`）可以保持短而尖，不必硬拉长；但只要一个 skill 涉及 web search、复杂判断、多 mode、估值、模型、跨市场、供应链 claim，就应尽量使用上述骨架。
 
@@ -270,27 +271,70 @@ description: Use when [具体触发场景和用户症状]。
 - 不要把完整流程、输出结构、状态文件、边界说明塞进 description；这些放正文。
 - 具体触发短语写在正文 `触发场景` 里，不放 frontmatter。
 
+### 4.1A Metadata（skill.yaml，必填）
+
+每个 active skill 必须维护 `skill.yaml`。`skill.yaml` 是 metadata / index truth；`SKILL.md` 是 runtime truth。两者分工如下：
+
+- `SKILL.md`：写实际行为、workflow、输出结构、source discipline、反模式和篇幅基准。
+- `skill.yaml`：写 name、trigger、capabilities、workflow、quality_gates、outputs、required_sections 等机器可读 metadata。
+- `meta.json` 已 retired；不要新建、恢复或维护 `meta.json`。
+
+`skill.yaml` 必填字段：
+
+```yaml
+metadata_schema_version: 1
+name: skill-name
+id: skill-name
+display_name: Skill Name
+version: 1.0.0
+system_generation: 3.3.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+summary: ...
+description: ...
+trigger: ...
+capabilities: ...
+```
+
+版本策略：
+- `version` 是单个 skill 自身的 semver，不再表示系统代际。
+- `system_generation` 记录该 skill 当前对齐的系统代际。
+- MAJOR：输出契约或触发边界不兼容。
+- MINOR：新增 mode / routing / workflow 能力。
+- PATCH：措辞、source policy、反模式或 metadata 修正。
+- 修改 metadata 后必须运行 `scripts/validate-skill-metadata.ps1`。
+
 ### 4.2 心法（必填）
 
 1-3 段，传递设计意图。直击这个 skill 真正解决什么、最容易失败的地方。
 
-### 4.3 Source 政策（必填，引用 CLAUDE.md）
+### 4.3 Global Rules Capsule（必填）
+
+插件运行时可能只加载具体 `SKILL.md`，不读取 `CLAUDE.md`。因此每个 active skill 必须在 frontmatter 后、正文主要内容前内嵌当前版本的 `Global Rules Capsule`。
+
+维护规则：
+- `skills/_shared/global-rules.md` 是 capsule 的维护源，尽量使用 `CLAUDE.md` 原文。
+- capsule 只放 runtime research rules：中文输出、结论先行、source discipline、反幻觉、反流水账、Senior Analyst Radar、`mechanism-map` / `driver-map` routing。
+- 不要把开发流程、历史迁移规则、文件组织树、BKR IET 具体测试放进通用 capsule。
+- 修改全局 runtime research behavior 后，必须同步更新 shared rule、所有 active skill capsule，并运行 validation script。
+
+### 4.4 Source 政策（必填，只写增量）
 
 ```markdown
-本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；
-若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 [skill-name]-specific 要求。
 
 特别强调：
 - [skill-specific 的 source 注意事项]
 ```
 
-不要在 skill 里复制完整 source policy —— 引用 CLAUDE.md。
+不要在每个 skill 里复制完整 source policy；通用规则放在 capsule，Source 政策节只写本 skill 的增量要求。
 
-### 4.4 触发场景（必填）
+### 4.5 触发场景（必填）
 
 列出具体触发短语（不是抽象描述）。如有多个 mode，按 mode 分组。
 
-### 4.5 AI 的局限（复杂 / 高风险 skill 必填）
+### 4.6 AI 的局限（复杂 / 高风险 skill 必填）
 
 凡是依赖 web search、供应链关系、估值数据、Excel workbook、跨市场换算、AI universe recall 或复杂 source 判断的 skill，必须前置说明 AI 会在哪里失败：
 
@@ -300,18 +344,18 @@ description: Use when [具体触发场景和用户症状]。
 - 哪些关系必须 source corroboration
 - 用户该如何二次验证
 
-### 4.6 输入澄清要求（复杂 / 多 mode skill 必填）
+### 4.7 输入澄清要求（复杂 / 多 mode skill 必填）
 
 用表格列出关键维度、含义、默认假设。不要在关键输入缺失时硬猜。
 
-### 4.7 Mode 设计（如有）
+### 4.8 Mode 设计（如有）
 
 如果 skill 有多种使用 mode（如 Builder vs Monitor），明确：
 - 每个 mode 的触发场景
 - 每个 mode 的工作流
 - mode 之间的关系（顺序 / 并列 / 互斥）
 
-### 4.8 输出结构（必填）
+### 4.9 输出结构（必填）
 
 具体到章节级别。给出：
 - 章节顺序
@@ -319,7 +363,7 @@ description: Use when [具体触发场景和用户症状]。
 - 数据表格的列定义
 - Hard standards（如评级 / 阈值）
 
-### 4.9 状态文件 schema（如有）
+### 4.10 状态文件 schema（如有）
 
 如果 skill 写 / 读状态文件，明确：
 - 文件路径
@@ -329,21 +373,21 @@ description: Use when [具体触发场景和用户症状]。
 
 v3 journal-first 默认不维护 v2 状态库。除非用户明确要求，否则不要重新引入 `coverage/`、`pairs/[X-Y]/spread-log.md`、`portfolio/` 这类状态闭环。
 
-### 4.10 Workflow 联动（必填）
+### 4.11 Workflow 联动（必填）
 
 表格列出"什么场景 → 触发哪个下游 skill"。
 
-### 4.11 反模式自查（必填）
+### 4.12 反模式自查（必填）
 
 按问题类型分组（如 Source 类、Logic 类、流水账类）。每条必须可机械自检。
 
-### 4.12 篇幅基准（必填）
+### 4.13 篇幅基准（必填）
 
 输出篇幅的下限 / 上限 + 超出时的含义。
 
 ---
 
-## 5. Source 政策（必读，CLAUDE.md §3 摘要）
+## 5. Source 政策（必读，runtime shared rules 摘要）
 
 ### 5.1 必须有 source 的内容
 
@@ -503,7 +547,8 @@ Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`：
 - [ ] Frontmatter 有 name + description？
 - [ ] description 包含 5-8 个触发短语？
 - [ ] 心法节有 1-3 段传递设计意图？
-- [ ] Source 政策节引用 CLAUDE.md（不重复全文）？
+- [ ] 包含当前版本 `Global Rules Capsule`？
+- [ ] Source 政策节只写本 skill 增量要求？
 - [ ] 触发场景列出具体短语？
 - [ ] 输出结构明确到章节级 + 字段级？
 - [ ] Workflow 联动表格存在？
@@ -648,7 +693,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 - 在 v3 核心循环哪步？—— 事件 / 信号响应（不是 Edge → Question 这条主线）
 
 **Step 2（reference）**：
-- 读 CLAUDE.md §3（source 政策）+ §4（senior analyst radar）
+- 读 `skills/_shared/global-rules.md`（runtime 全局规则）+ `CLAUDE.md §4`（senior analyst radar）
 - 读现有 information-impact SKILL.md（如果有 v3 版本）
 - 读 alpha-thesis 看它如何处理"对 thesis 的影响"
 
@@ -674,7 +719,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 ```
 我做的关键设计决策：
 1. Mode B 是 "Research Relevance" 不是 "Portfolio Impact" —— v3 已不维护 portfolio 状态
-2. Source quality 直接引用 CLAUDE.md 4 级，不重新搞 A/B/C/D
+2. Source quality 直接沿用 `Global Rules Capsule` / shared rule 的 4 级，不重新搞 A/B/C/D
 3. 500 字硬上限保留 —— 这是 skill 灵魂
 
 我最不确定的 3 个地方：
@@ -689,7 +734,7 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 
 最后强调几条**绝对不要做**的事：
 
-- ❌ **不要复制 CLAUDE.md 内容到 skill 里** —— 引用即可
+- ❌ **不要让 skill 只引用 CLAUDE.md** —— 插件运行时可能不读 CLAUDE；必须内嵌 capsule，并只在 Source 政策节写增量规则
 - ❌ **不要给所有 skill 都加 LS 改造** —— bear-pre-mortem 本身已是 LS 思维（设想错了 + 对手是聪明的）
 - ❌ **不要为消费 / 医药行业设计任何 example** —— 用户不看
 - ❌ **不要默认 long-only** —— LS 工作要求双向
@@ -743,7 +788,8 @@ AI 在以下任务上不可靠（必须在 SKILL.md 里明确承认）：
 - [ ] Frontmatter name + description
 - [ ] description 含 5-8 个触发短语
 - [ ] 心法节 1-3 段
-- [ ] Source 政策引用 CLAUDE.md
+- [ ] 包含当前版本 `Global Rules Capsule`
+- [ ] Source 政策只写 skill-specific 增量
 - [ ] 触发场景具体短语
 - [ ] 输出结构章节级 + 字段级
 - [ ] 状态文件 schema（如有）

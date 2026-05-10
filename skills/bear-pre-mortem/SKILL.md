@@ -3,6 +3,18 @@ name: bear-pre-mortem
 description: Use when stress-testing a thesis, finding the strongest opposing case, looking for holes, or reversing a long or short investment argument.
 ---
 
+## Global Rules Capsule (v1)
+
+本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+
+- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
+- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
+- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
+- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
+
 # Bear Pre-Mortem
 
 这个 skill **故意**单边。它不是"全面风险分析"——那是卖方风险章节的活儿。它是模拟 short side 的最强大脑，对一个多头 thesis 做最大化压力测试。
@@ -17,7 +29,7 @@ description: Use when stress-testing a thesis, finding the strongest opposing ca
 
 ## Source 政策
 
-本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 pre-mortem-specific 要求。
 
 空头压力测试对 source 真实性要求更高。快速提醒：
 - 每个红旗、历史 base rate、内部人交易、会计变化都必须能链到 filing / 权威数据；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
@@ -30,6 +42,28 @@ description: Use when stress-testing a thesis, finding the strongest opposing ca
 - 如果输入是多头 thesis，本 skill 输出最强空头 pre-mortem。
 - 如果输入是空头 thesis，本 skill 反向输出"这单 short 为什么会亏钱"：最强多头 / short squeeze / crowded short / upside catalyst 压测。
 - 如果 thesis 文件带 YAML frontmatter，优先读取 `key_assumptions`、`kill_criteria`、`valuation_anchor`、`conviction`、`health_status`，不要只解析自然语言正文。
+
+## Mechanism Assumption Audit
+
+在写最强反方之前，先把 thesis 的隐含机制假设挑出来压测。Pre-mortem 不能只攻击估值和宏观，也要问"这个业务到底是不是按 thesis 说的方式运作"。
+
+| 假设类型 | 要压测的问题 | 不清楚时动作 |
+|---|---|---|
+| 工程 / 设备链条 | 关键设备、工艺流程、产能单位是否真的支持 thesis 的产量 / 成本假设 | 先 handoff 到 `mechanism-map` |
+| Unit economics | 单台设备、单桶油、单项目、单客户的经济性是否成立 | 机制不清先 `mechanism-map`；财务 driver 不清先 `driver-map` |
+| Value capture | 价值到底被 OEM、供应商、服务商、渠道还是客户捕获 | 先 handoff 到 `mechanism-map` |
+| Driver linkage | 机制变化如何传到 revenue、margin、backlog、price-volume-mix | 先 handoff 到 `driver-map` |
+
+若机制假设不清，不要假装已经完成压力测试。先输出最小 handoff block：
+
+```markdown
+## Primitive Handoff Required
+
+- Blocker: [哪个 mechanism assumption / driver assumption 不成立或不清楚]
+- Why it blocks pre-mortem: [它会影响空头 pitch / unit economics / path of pain 的哪一节]
+- Handoff: `mechanism-map` / `driver-map`
+- Inputs needed: [需要补的技术资料 / filing / call / KPI / segment data]
+```
 
 ## 输出结构
 
@@ -111,6 +145,8 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ 第 5 节没有具体可比案例，只有"很多公司这样" → 拉具体例子
 - ❌ 整篇没有具体数字、具体时间、具体事件 → 太空洞，重写
 - ❌ 每个空头点都立刻被一个对应的多头反驳"挽回"了 → 这不是 pre-mortem 是辩论赛，重写
+- ❌ thesis 依赖工程机制、设备链条、产能单位或 value capture，但没有先做 Mechanism Assumption Audit → 先触发 `mechanism-map`。
+- ❌ 最强反方攻击的是 revenue / margin / backlog / price-volume-mix，但原 thesis 没拆 driver → 先触发 `driver-map`。
 
 **Source 专项（空头压测对 source 真实性要求最高）**
 - ❌ 第 3 节红旗项有数字但无 filing source / 页码 → 补

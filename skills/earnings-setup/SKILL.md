@@ -3,6 +3,18 @@ name: earnings-setup
 description: Use when preparing for an upcoming earnings print, reacting to newly reported results, or deciding whether earnings should trigger thesis, model, or decision updates.
 ---
 
+## Global Rules Capsule (v1)
+
+本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+
+- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
+- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
+- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
+- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
+
 # Earnings Setup
 
 处理两个相关但不同的任务：
@@ -19,7 +31,7 @@ description: Use when preparing for an upcoming earnings print, reacting to newl
 
 ## Source 政策
 
-本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 earnings-specific 要求。
 
 Earnings setup 对 source 时效性要求极高。快速提醒：
 - Consensus、隐含 move、IV skew、SI、borrow、股价数据必须标注 provider 和获取时点。
@@ -29,6 +41,28 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 ---
 
 ## A. 财报前 Setup（如果用户问的是 preview）
+
+### 0. Primitive Readiness（先确认这次 print 看什么）
+
+财报前不能只列 consensus。先确认这次 print 的关键观察点是否需要先拆机制或 driver。
+
+| 检查项 | 通过标准 | 不通过时动作 |
+|---|---|---|
+| KPI 机制含义 | 要看的 KPI 背后的行业机制、设备链条、产能单位或工艺流程已清楚 | 先 handoff 到 `mechanism-map` |
+| KPI / segment 口径 | KPI、segment、backlog、orders、book-to-bill 的定义和收入确认关系清楚 | 先 handoff 到 `driver-map` |
+| Buy-side bar | buy-side 实际期待能映射到 revenue / margin / backlog / price-volume-mix driver | 先 handoff 到 `driver-map` |
+| Thesis linkage | 这次 print 的 3 个观察点能对应 `alpha-thesis` 的假设或 catalyst | 若问题是研究方向不清，触发 `next-step` |
+
+若不通过，先输出最小 handoff block：
+
+```markdown
+## Primitive Handoff Required
+
+- Blocker: [哪个 KPI / mechanism / driver 没拆清]
+- Why it blocks earnings setup: [它会影响 buy-side bar / 关键阈值 / 决策树的哪一节]
+- Handoff: `mechanism-map` / `driver-map`
+- Inputs needed: [需要补的 filing / call / KPI definition / segment data]
+```
 
 ### 1. 当前 Setup（市场怎么定价这次 print）
 
@@ -85,6 +119,14 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 
 ## B. 财报后 Quick Read（如果用户问的是后视）
 
+### 0. Primitive Readiness（先判断 surprise 属于哪类）
+
+财报后先判断 surprise 是普通 beat / miss，还是暴露了机制或 driver 口径问题。不要在口径没拆清时直接给 thesis health。
+
+- 若公司绕开关键 KPI、改披露口径、重分 segment、backlog / orders 与收入脱钩，先触发 `driver-map`。
+- 若新信息涉及设备链条、工程约束、产能单位、工艺流程或 know-how gap，先触发 `mechanism-map`。
+- 若只是实际数 vs 预设阈值的普通偏差，继续执行 post-print quick read。
+
 ### 1. 一句话定性
 Beat / miss / mixed？股价反应是 confirming / surprising？
 
@@ -120,9 +162,10 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 | `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `financial-model` |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | 是否已经形成值得沉淀或给老板看的判断增量 |
 | `next_step_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `next-step` 继续拆 |
-| `driver_map_trigger` | `no` / `yes` | 是否因为 segment、backlog、margin、price / volume / mix 变化需要触发 `driver-map` |
+| `mechanism_map_trigger` | `no` / `yes` | 是否因为设备链条、工程约束、产能单位、工艺流程或 know-how gap 需要触发 `mechanism-map` |
+| `driver_map_trigger` | `no` / `yes` | 是否因为 segment、KPI 口径、backlog、orders、margin、price / volume / mix 变化需要触发 `driver-map` |
 
-如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `financial-model`。
+如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若 surprise 是机制 / know-how 问题，先触发 `mechanism-map`；若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `financial-model`。
 
 ---
 
@@ -134,6 +177,8 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - ❌ Post-print 是逐行数字复盘 → 这是卖方流水账，重写
 - ❌ Post-print 没回到 thesis 的具体假设 → 没接上前面的工作
 - ❌ Post-print 没有给出明确仓位决策 → 只是叙述了财报，没产生决策
+- ❌ KPI 背后的机制 / 设备链条没搞清楚却硬设阈值 → 先触发 `mechanism-map`
+- ❌ segment、backlog、orders、price / volume / mix 口径变化却直接更新 thesis → 先触发 `driver-map`
 
 **Source 专项**
 - ❌ Consensus 数字无 provider（Visible Alpha / Bloomberg）和获取时点 → 数据可能已过期，必须补
@@ -155,4 +200,4 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）
 - 输出反过来更新 `alpha-thesis`（thesis 是否还成立，假设是否需要修订）
 - 如果 post-print 显示 thesis 严重削弱，触发回到 `bear-pre-mortem` 重新压测
-- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果数字改变 model driver，先触发 `driver-map`，再按需要触发 `financial-model`。
+- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果暴露机制 / know-how gap，先触发 `mechanism-map`；如果数字改变 model driver，先触发 `driver-map`，再按需要触发 `financial-model`。

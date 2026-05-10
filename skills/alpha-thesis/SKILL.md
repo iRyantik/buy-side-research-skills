@@ -3,6 +3,18 @@ name: alpha-thesis
 description: Use when building or refining a buy-side long-only or short-only single-name investment thesis that needs a variant view, catalysts, kill criteria, scenarios, and sizing logic. Use pair-trade for Long X + Short Y, hedge candidates, or pair/hedged structures.
 ---
 
+## Global Rules Capsule (v1)
+
+本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+
+- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
+- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
+- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
+- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
+
 # Alpha Thesis
 
 产出**不是**股票研究报告，而是一份**可以拿去 pitch 给 PM、能让 PM 判断要不要建仓**的单股投资逻辑。
@@ -17,7 +29,7 @@ description: Use when building or refining a buy-side long-only or short-only si
 
 ## Source 政策
 
-本 skill 不维护独立 source policy。执行时必须遵守 `CLAUDE.md §3`；若局部说明与 `CLAUDE.md` 冲突，以 `CLAUDE.md` 为准。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 thesis-specific 要求。
 
 快速提醒：
 - 每条事实、数字、引语、consensus 数字必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
@@ -25,6 +37,28 @@ description: Use when building or refining a buy-side long-only or short-only si
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
 
 ## 必填章节（缺一不可，缺一项就重写）
+
+### Primitive Preflight（先判断能不能直接写 thesis）
+
+在写 Variant View、Bull / Base / Bear、Kill Criteria 之前，先判断 thesis 依赖的关键 driver 是否已经拆清楚。不要因为用户要求"写 thesis"就跳过这个检查。
+
+| 检查项 | 通过标准 | 不通过时动作 |
+|---|---|---|
+| Revenue driver | 收入增长能拆到 price / volume / mix、backlog conversion、segment mix 或可观察 KPI | 先 handoff 到 `driver-map` |
+| Margin driver | gross / EBITDA margin 的变化来源能拆到成本、mix、利用率、pricing 或 operating leverage | 先 handoff 到 `driver-map` |
+| Backlog / orders | backlog、orders、book-to-bill 与收入确认的关系清楚 | 先 handoff 到 `driver-map` |
+| Disclosure bucket | reported segment / revenue bucket 能对应真实业务和 model line | 先 handoff 到 `driver-map` |
+
+若任一项不通过，不要硬写完整 thesis。先输出最小 handoff block：
+
+```markdown
+## Primitive Handoff Required
+
+- Blocker: [哪个 driver / 披露口径没拆清]
+- Why it blocks thesis: [它会影响 variant view / scenario / kill criteria 的哪一节]
+- Handoff: `driver-map`
+- Inputs needed: [需要补的 filing / call / KPI / segment data]
+```
 
 ### 0. Trade Structure（决定后续所有节的视角）
 
@@ -155,6 +189,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 - ❌ 第 0 节没明确 trade structure → 整个 thesis 模糊，重写。
 - ❌ 用户说 Long X / Short Y 还继续写 alpha-thesis → 触发错 skill，改用 `pair-trade`。
 - ❌ 用户问 "X 用什么对冲" 还继续写 alpha-thesis → 触发错 skill，改用 `pair-trade`。
+- ❌ Variant view、scenario 或 kill criteria 依赖 revenue / margin / backlog / price-volume-mix driver，但没有先做 Primitive Preflight → 先触发 `driver-map`。
 - ❌ Variant view 只 vs long consensus，没 vs short consensus → LS 视角缺失。
 - ❌ Short-only 但 kill criteria 写法和 long 一样 → 没考虑 squeeze 风险。
 - ❌ 第 2 节是定性的、没有具体数字 → variant view 不存在，重写。
@@ -185,7 +220,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
 ```
 
-如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `CLAUDE.md` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
+如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Global Rules Capsule (v1)` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
 
 ## 衔接关系
 
