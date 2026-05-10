@@ -92,7 +92,7 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             Require-Entry $required
         }
 
-        foreach ($prefix in @("commands/", "skills/")) {
+        foreach ($prefix in @("skills/")) {
             Require-Prefix $prefix
         }
 

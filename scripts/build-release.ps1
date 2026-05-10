@@ -14,7 +14,6 @@ $zipPath = Join-Path $distRoot "$packageName.zip"
 $includeItems = @(
     ".claude-plugin",
     ".codex-plugin",
-    "commands",
     "skills",
     "README.md"
 )
