@@ -1,55 +1,55 @@
-# Install
+# 安装
 
-Repository: `iRyantik/buy-side-research-skills`
+仓库：`iRyantik/buy-side-research-skills`
 
-This plugin can be installed through a plugin marketplace flow when available, or from a release zip.
+插件可通过市场流程安装，也可从 release zip 安装。
 
 ## Claude
 
-Preferred path after marketplace setup:
+市场可用时推荐方式：
 
 ```powershell
 /plugin marketplace add iRyantik/buy-side-research-skills
 /plugin install buy-side-research-skills
 ```
 
-If marketplace setup is not available, download the release zip, extract it, and install it through Claude Code's local plugin flow.
+若市场不可用，从 GitHub Release 下载 zip，解压后通过 Claude Code 本地插件流程安装。
 
 ## Codex
 
-Codex support is provided through `.codex-plugin/plugin.json` and the same `skills/` directory.
+Codex 支持通过 `.codex-plugin/plugin.json` 和同一套 `skills/` 目录提供。
 
 ```powershell
 codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-If your Codex environment uses local plugins instead of marketplace install, extract the release zip into the configured plugin location and confirm the plugin exposes the skills in this repo.
+如果你的 Codex 环境使用本地插件而非市场安装，将 release zip 解压到 Codex 指定插件目录并确认 skills 已正确暴露。
 
 ## Release Zip
 
-For the stable baseline, download `buy-side-research-skills-3.4.0.zip` from the GitHub Release artifact.
+稳定基线从 GitHub Release 下载 `buy-side-research-skills-3.4.0.zip`。
 
-Extract the zip into the plugin location required by Claude or Codex, then confirm the plugin exposes the skills in `skills/`.
+解压到 Claude 或 Codex 要求的插件位置，确认 `skills/` 目录下的 skills 已正确暴露。
 
-## First Use
+## 第一次使用
 
-Run `init` to create or repair a research workspace scaffold. In `3.5.0`, `init` installs workspace `CLAUDE.md` plus a pointer `AGENTS.md` for Codex / agents.
+运行 `init` 创建或修复 research workspace scaffold。`3.5.0` 中 `init` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
 
-Use `new-session` after `init` when you want to create or locate a topic session before saving research artifacts. `new-session` resolves paths and lightly updates topic `index.md`; it does not write research conclusions.
+`init` 之后，如需创建或定位 topic session 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
 
-## Ingest Dependencies
+## Ingest 依赖
 
-`init` copies ingest helpers into the research workspace `_scripts/` folder. First check dependencies:
+`init` 将 ingest 辅助脚本复制到 research workspace 的 `_scripts/` 目录。先检查依赖：
 
 ```powershell
 python _scripts/ingest.py --check-deps
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 ```
 
-If the output looks right, opt in to installation:
+确认无误后再显式安装：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
-Python packages install to the current user by default. Tesseract is a system binary; the bootstrap tries `winget` first and otherwise prints Chocolatey / UB Mannheim fallback instructions. The script does not run during `init`.
+Python 包默认安装到当前用户。Tesseract 是系统二进制文件；安装脚本优先尝试 `winget`，否则打印 Chocolatey / UB Mannheim 替代安装指引。此脚本不会在 `init` 期间自动运行。

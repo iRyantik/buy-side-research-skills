@@ -1,12 +1,12 @@
-﻿# Release
+# 发布
 
-This document is for maintainers of the plugin source repo. It is not required for day-to-day plugin use.
+本文件面向插件源码仓库的维护者。日常使用插件不需要阅读本文件。
 
-The current release version is `3.5.0`. Formal stable releases should be tagged and published through GitHub Releases.
+当前发布版本：`3.5.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
 
-## Release Package Surface
+## Release 包结构
 
-The release zip should include only user installation and runtime material:
+Release zip 只包含用户安装和运行时必需材料：
 
 - `.claude-plugin/`
 - `.codex-plugin/`
@@ -16,7 +16,7 @@ The release zip should include only user installation and runtime material:
 - `examples/`
 - `README.md`
 
-The release zip must exclude source-repo maintenance files:
+Release zip 不得包含源码仓库维护文件：
 
 - root `CLAUDE.md`
 - root `AGENTS.md`
@@ -25,9 +25,9 @@ The release zip must exclude source-repo maintenance files:
 - `.claude/`
 - `RTK.md`
 - `dist/`
-- local editor or agent state
+- 本地编辑器或 agent 状态
 
-The release zip must still include skill-local runtime resources, especially:
+Release zip 必须包含 skill 内置的运行时资源，尤其是：
 
 ```text
 skills/init/assets/CLAUDE.md.template
@@ -40,9 +40,9 @@ skills/ingest/scripts/ingest_xlsx.py
 skills/ingest/scripts/ingest_table_crosscheck.py
 ```
 
-## Pre-Release Gates
+## 发布前检查
 
-Run all validators before producing a zip:
+生成 zip 前必须运行全部 validator：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
@@ -59,20 +59,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session
 git diff --check
 ```
 
-## Build
+## 构建
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.5.0
 ```
 
-The build writes:
+构建产物：
 
 ```text
 dist/buy-side-research-skills-3.5.0.zip
 ```
 
-The build script calls the release package validator after creating the zip.
+构建脚本会在生成 zip 后调用 release package validator 验证。
 
-## Dependency Policy
+## 依赖策略
 
-The package should not preinstall Docling, EdgarTools, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1`.
+包不应预装 Docling、EdgarTools、Tesseract、MarkItDown 或其他解析器。用户在 research workspace 中通过运行 `_scripts/bootstrap-ingest-deps.ps1` 显式选择安装。

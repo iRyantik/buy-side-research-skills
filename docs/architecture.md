@@ -1,49 +1,49 @@
-# Architecture
+# 架构
 
-This repository is the source home for the buy-side research plugin. It is not a research workspace.
+本仓库是 buy-side research 插件的源码目录，不是 research workspace。
 
-## Three Trees
-
-```text
-buy-side-research-skills/          # plugin source repo
-release-package/                   # generated zip or marketplace payload
-Research-AI-Power/                 # user research workspace, created by init
-```
-
-## Source Repo
-
-The repo contains source files needed to build and validate the plugin:
+## 三棵树
 
 ```text
-.claude-plugin/                    # Claude plugin manifest
-.codex-plugin/                     # Codex plugin manifest
-skills/                            # active runtime skills and shared rules
-scripts/                           # maintainer validators and release build scripts
-docs/                              # user and maintainer documentation
-examples/                          # example workspaces, not runtime dependencies
+buy-side-research-skills/          # 插件源码仓库
+release-package/                   # 生成的 zip 或市场分发包
+Research-AI-Power/                 # 用户 research workspace，由 init 创建
 ```
 
-Runtime resources that a skill must call live inside that skill directory, for example `skills/ingest/scripts/` or `skills/init/assets/`. Root `scripts/` is for source-repo validation and release packaging only.
+## 源码仓库
 
-## Skill Taxonomy
+仓库包含构建和验证插件所需的源文件：
 
-Active skills stay flat under `skills/[skill-name]/SKILL.md`; the repo does not physically nest skills by category.
+```text
+.claude-plugin/                    # Claude 插件清单
+.codex-plugin/                     # Codex 插件清单
+skills/                            # active 运行时 skills 和共享规则
+scripts/                           # 维护者 validator 和 release 构建脚本
+docs/                              # 用户和维护者文档
+examples/                          # 示例 workspace，非运行时依赖
+```
 
-Top-level categories:
+skill 需要调用的运行时资源放在该 skill 目录内部，例如 `skills/ingest/scripts/` 或 `skills/init/assets/`。root `scripts/` 仅用于源码仓库验证和 release 打包。
 
-- `research`: investment research skills that must carry the Global Rules Capsule and a `research_layer`.
-- `operations`: workspace, cache, path, or skill-governance tools that use a lighter execution structure.
+## Skill 分类
 
-Research layers:
+Active skills 平铺在 `skills/[skill-name]/SKILL.md` 下，不按 category 物理嵌套。
 
-| Layer | Skills |
+顶层分类：
+
+- `research`：投研类 skill，必须携带 Global Rules Capsule 并设置 `research_layer`。
+- `operations`：workspace、缓存、路径或 skill governance 工具，使用更轻量的执行结构。
+
+Research 层级：
+
+| 层级 | Skills |
 |---|---|
-| `triage` | `information-impact`, `candidate-screener`, `stock-quickread`, `next-step` |
-| `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` |
-| `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` |
+| `triage` | `information-impact`、`candidate-screener`、`stock-quickread`、`next-step` |
+| `foundation` | `company-primer`、`mechanism-map`、`driver-map`、`cross-market-compare` |
+| `deep-work` | `peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`financial-model` |
 | `memory` | `research-journal` |
 
-Operations skills:
+Operations skills：
 
 ```text
 init
@@ -52,17 +52,17 @@ meta-skill
 new-session
 ```
 
-`meta-skill` is the active guide for creating, rewriting, reviewing, and validating plugin skills. `new-session` creates or locates topic sessions, resolves canonical save paths, and lightly updates topic `index.md`; it does not do research or recommend the next research skill.
+`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`new-session` 创建或定位 topic session，解析标准保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
 
-## Release Package
+## Release 包
 
-A release package should include plugin manifests, skills, user docs, examples, and README. It must not include local agent state, private machine config, `.git/`, root `CLAUDE.md`, root `AGENTS.md`, or root `scripts/`.
+Release 包应包含插件清单、skills、用户文档、示例和 README。不得包含本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。
 
-There is no plugin-level CLAUDE / AGENTS runtime file. The source repo has root `CLAUDE.md` + `AGENTS.md` for maintenance only; `init` installs workspace `CLAUDE.md` + pointer `AGENTS.md` into user research workspaces.
+插件本身没有运行时 CLAUDE / AGENTS 文件。源码仓库有 root `CLAUDE.md` + `AGENTS.md` 仅供维护使用；`init` 将 workspace `CLAUDE.md` + pointer 版 `AGENTS.md` 安装到用户 research workspace。
 
 ## Research Workspace
 
-Research workspaces are user-owned folders. They are created or repaired by the `init` skill and should contain workspace `CLAUDE.md`, pointer `AGENTS.md`, `_inbox/`, `_raw/`, `_cache/`, `_models/`, `_scripts/`, and `topics/`. Raw materials are converted by `ingest` into `_cache/` markdown. Workspaces are not the same thing as this plugin source repo.
+Research workspace 是用户拥有的文件夹，由 `init` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_raw/`、`_cache/`、`_models/`、`_scripts/` 和 `topics/`。原始材料由 `ingest` 转换为 `_cache/` markdown。Workspace 不等于本插件源码仓库。
 
 ```text
 [research-workspace]/
@@ -87,39 +87,39 @@ Research workspaces are user-owned folders. They are created or repaired by the 
     └── event/
 ```
 
-`init` does not run `git init`, install dependencies, ingest raw files, or create topic research artifacts. It copies `_scripts/bootstrap-ingest-deps.ps1`, `_scripts/requirements-ingest.txt`, and ingest helper scripts so the user can explicitly opt in later. `ingest` writes operational cache files only; it does not create earned research memory. Use `new-session` when the user is ready to create a topic session or resolve where an artifact should be saved.
+`init` 不会运行 `git init`、安装依赖、ingest 原始文件或创建 topic 研究产物。它会复制 `_scripts/bootstrap-ingest-deps.ps1`、`_scripts/requirements-ingest.txt` 和 ingest 辅助脚本，让用户之后显式选择安装。`ingest` 只写操作类缓存文件，不创建 earned research memory。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
 
-## Artifact Save Policy
+## Artifact 保存策略
 
-New research artifacts should live inside topic sessions:
+新研究产物应保存在 topic session 内：
 
 ```text
 topics/[topic_type]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 ```
 
-Company foundation artifacts such as `company-primer.md` follow the same topic-session rule and are saved only when the user asks to preserve them.
+公司基础类产物如 `company-primer.md` 遵循相同规则，仅在用户要求保存时创建。
 
-If the current topic session is unclear, route to `new-session` before writing the artifact. `new-session` may create the session folder and lightly touch topic `index.md`, but it must not write research conclusions.
+若当前 topic session 不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 session 文件夹并轻量更新 topic `index.md`，但不得写研究结论。
 
-The only exceptions are conversation-only skills (`information-impact`, `next-step`), earned-memory writes (`research-journal`), and external workbooks (`financial-model`). Root folders such as `screens/`, `peers/`, `quickreads/`, and `cross-market/` are legacy/example shapes, not active default save locations.
+仅以下情况例外：仅对话类 skill（`information-impact`、`next-step`）、earned-memory 写入（`research-journal`）、外部 workbook（`financial-model`）。root 下的 `screens/`、`peers/`、`quickreads/`、`cross-market/` 为历史 / 示例目录，非 active 默认保存位置。
 
-Material cache artifacts live under:
+材料缓存产物位于：
 
 ```text
 _cache/[bucket]/[source-filename].md
 ```
 
-Cache files are source-tracked intermediate material, not original source and not topic-session output.
+缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 topic session 输出。
 
-## Ingest Toolchain
+## Ingest 工具链
 
-The full material conversion stack is local-first: Docling is the primary PDF / DOCX / PPTX converter, EdgarTools is required for SEC filing readiness, openpyxl handles workbook structure, python-pptx / python-docx are fallback extractors, PDFPlumber cross-checks PDF table numerics, Tesseract supports scanned PDF OCR, and MarkItDown is a degraded fallback for legacy formats.
+完整材料转换栈是本地方案：Docling 是主要 PDF / DOCX / PPTX 转换器，EdgarTools 用于 SEC filing 读取准备，openpyxl 处理 workbook 结构，python-pptx / python-docx 为备选提取器，PDFPlumber 交叉检查 PDF 表格数值，Tesseract 支持扫描件 OCR，MarkItDown 为旧格式的降级备选。
 
-Dependency installation is explicit:
+依赖安装是显式的：
 
 ```powershell
 _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
-No skill should silently install global dependencies.
+任何 skill 不得静默安装全局依赖。
