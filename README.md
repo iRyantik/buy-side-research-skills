@@ -4,8 +4,6 @@
 
 当前版本：`3.5.0`
 
-稳定发布基线：`v3.4.0`
-
 仓库地址：`iRyantik/buy-side-research-skills`
 
 ## 适合做什么
@@ -32,7 +30,7 @@ Codex 插件市场可用时：
 codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.4.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
+如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.5.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
 
 更多安装说明见 [docs/install.md](docs/install.md)。
 

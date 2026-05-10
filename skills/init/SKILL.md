@@ -5,8 +5,6 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 # Init
 
-Batch 9E scaffold contract: `init` writes missing workspace `CLAUDE.md`, pointer `AGENTS.md`, `.gitignore`, and `topics/_meta/edge-radar.md`; existing files are always skipped, never overwritten.
-
 `init` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `topics/_meta/edge-radar.md`，并复制 ingest helper scripts，帮助用户在正确位置开始研究。
 
 它是 operations skill，不是研究 skill。它不研究公司、不 ingest 文件、不安装依赖、不运行 `git init`、不创建 topic artifact，也不应该把 workspace scaffold 写进当前 plugin repo。

@@ -27,7 +27,7 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 ## Release Zip
 
-稳定基线从 GitHub Release 下载 `buy-side-research-skills-3.4.0.zip`。
+从 GitHub Release 下载最新版本 zip。
 
 解压到 Claude 或 Codex 要求的插件位置，确认 `skills/` 目录下的 skills 已正确暴露。
 
