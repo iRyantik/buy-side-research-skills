@@ -128,11 +128,16 @@ Write-Host "--- 升级 pip ---"
 & $pythonExe -m pip install --user --upgrade pip --quiet 2>$null
 if ($LASTEXITCODE -ne 0) { Write-Host "[!] pip 升级失败，继续使用当前版本" -ForegroundColor Yellow }
 
+# ---------- install torch CPU (avoid CUDA DLL error on Windows) ----------
+Write-Host "--- 安装 PyTorch CPU ---"
+& $pythonExe -m pip install --user torch --index-url https://download.pytorch.org/whl/cpu --quiet 2>$null
+if ($LASTEXITCODE -ne 0) { Write-Host "[!] PyTorch CPU 安装失败，继续尝试" -ForegroundColor Yellow }
+
 # ---------- install ----------
 Write-Host "--- 安装依赖 ---"
-$pipArgs = @("-m", "pip", "install", "--user", "--only-binary", ":all:", "-r", "$requirementsPath")
+$pipArgs = @("-m", "pip", "install", "--user", "-r", "$requirementsPath")
 if ($China) {
-    $pipArgs = @("-m", "pip", "install", "--user", "--only-binary", ":all:", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple", "-r", "$requirementsPath")
+    $pipArgs = @("-m", "pip", "install", "--user", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple", "-r", "$requirementsPath")
     $env:HF_ENDPOINT = "https://hf-mirror.com"
     Write-Host "[China Mirror] PyPI: tsinghua, HuggingFace: hf-mirror.com"
 }

@@ -126,13 +126,18 @@ echo ""
 echo "--- 升级 pip ---"
 "$PYTHON" -m pip install --user --upgrade pip --quiet 2>/dev/null || true
 
+# ---------- install torch CPU (avoid CUDA DLL error on Windows, smaller on Mac) ----------
+echo ""
+echo "--- 安装 PyTorch CPU ---"
+"$PYTHON" -m pip install --user torch --index-url https://download.pytorch.org/whl/cpu --quiet 2>/dev/null || echo "[!] PyTorch CPU install failed, continuing"
+
 # ---------- install ----------
 echo ""
 echo "--- 安装依赖 ---"
 
-PIP_ARGS=(-m pip install --user --only-binary :all: -r "$REQ_PATH")
+PIP_ARGS=(-m pip install --user -r "$REQ_PATH")
 if [ "$CHINA_MIRROR" = true ]; then
-    PIP_ARGS=(-m pip install --user --only-binary :all: -i https://pypi.tuna.tsinghua.edu.cn/simple -r "$REQ_PATH")
+    PIP_ARGS=(-m pip install --user -i https://pypi.tuna.tsinghua.edu.cn/simple -r "$REQ_PATH")
     export HF_ENDPOINT="https://hf-mirror.com"
     echo "[China Mirror] PyPI: tsinghua, HuggingFace: hf-mirror.com"
 fi
