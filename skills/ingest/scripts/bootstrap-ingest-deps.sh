@@ -127,9 +127,10 @@ echo "--- 升级 pip ---"
 "$PYTHON" -m pip install --user --upgrade pip --quiet 2>/dev/null || true
 
 # ---------- install torch CPU (avoid CUDA DLL error on Windows, smaller on Mac) ----------
+# torch >=2.6 has DLL issues on some Windows configs; pin 2.5.1 which is stable
 echo ""
 echo "--- 安装 PyTorch CPU ---"
-"$PYTHON" -m pip install --user torch --index-url https://download.pytorch.org/whl/cpu --quiet 2>/dev/null || echo "[!] PyTorch CPU install failed, continuing"
+"$PYTHON" -m pip install --user torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu --quiet 2>/dev/null || echo "[!] PyTorch CPU install failed, continuing"
 
 # ---------- install ----------
 echo ""

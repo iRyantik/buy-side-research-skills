@@ -129,8 +129,9 @@ Write-Host "--- 升级 pip ---"
 if ($LASTEXITCODE -ne 0) { Write-Host "[!] pip 升级失败，继续使用当前版本" -ForegroundColor Yellow }
 
 # ---------- install torch CPU (avoid CUDA DLL error on Windows) ----------
+# torch >=2.6 has DLL issues on some Windows configs; pin 2.5.1 which is stable
 Write-Host "--- 安装 PyTorch CPU ---"
-& $pythonExe -m pip install --user torch --index-url https://download.pytorch.org/whl/cpu --quiet 2>$null
+& $pythonExe -m pip install --user torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu --quiet 2>$null
 if ($LASTEXITCODE -ne 0) { Write-Host "[!] PyTorch CPU 安装失败，继续尝试" -ForegroundColor Yellow }
 
 # ---------- install ----------

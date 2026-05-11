@@ -110,7 +110,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - `skills/ingest/scripts/bootstrap-ingest-deps.sh`
 - `skills/ingest/assets/requirements-ingest.txt`
 
-核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。一键安装：
+核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。`openesef`（欧洲 ESEF XBRL）为可选，中文 Windows 可能需手动 `set PYTHONUTF8=1 && pip install openesef`。一键安装：
 
 ```powershell
 # Windows

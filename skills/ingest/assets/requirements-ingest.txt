@@ -4,7 +4,6 @@ pymupdf4llm
 akshare
 edinet-tools
 dart-fss
-openesef
 openpyxl
 python-pptx
 python-docx
