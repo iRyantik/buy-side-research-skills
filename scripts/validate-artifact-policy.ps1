@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 19
+    [int]$ExpectedActiveSkillCount = 21
 )
 
 $ErrorActionPreference = "Stop"
@@ -74,6 +74,11 @@ $expectedPolicies = @{
         save_policy = "cache_artifact"
         default_artifact = "[source-filename].md"
         canonical_location = "topics/[topic]/_cache/[source-filename].md"
+    }
+    "industry-quickread" = @{
+        save_policy = "optional_topic_session"
+        default_artifact = "industry-quickread.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md"
     }
     "integrate" = @{
         save_policy = "none"

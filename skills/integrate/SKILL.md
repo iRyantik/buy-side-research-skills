@@ -74,6 +74,13 @@ description: Use when merging a child topic into a parent topic (e.g. merging a 
 - child: `topics/<parent>/<child>/index.md` (+parent reference)
 ```
 
+## 工具资源
+
+- 使用文件系统检查确认 parent / child topic 是否存在。
+- 使用安全移动操作把 child topic 移入 parent topic 下。
+- 使用文本编辑更新 parent 和 child 的 `index.md` 链接。
+- 不依赖外部网络、模型、数据库或 research source。
+
 ## 文件安全
 
 - 不删除 child 原路径（是移动，不是复制后删除）
@@ -98,7 +105,8 @@ description: Use when merging a child topic into a parent topic (e.g. merging a 
 
 Artifact policy：
 - `save_policy`: `none`
-- `default_artifact`: 无（只做文件系统操作）
+- `default_artifact`: `conversation-only`（只做文件系统操作）
+- `canonical_location`: `conversation-only`
 
 ## 安全自查
 

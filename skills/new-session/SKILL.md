@@ -5,7 +5,7 @@ description: Use when creating or locating a topic research session, resolving w
 
 # New Session
 
-本 skill 的目标是让所有 topic-session artifact 有一个明确落点：先有 session，再保存 `company-primer.md`、`driver-map.md`、`research-journal.md` 等研究产物。它解决的是“东西应该存到哪里”，不是“应该研究什么”。
+本 skill 的目标是让所有 topic-session artifact 有一个明确落点：先有 topic scaffold 和 session，再保存 `company-primer.md`、`driver-map.md`、`research-journal.md` 等研究产物。它解决的是“东西应该存到哪里”，不是“应该研究什么”。
 
 ## 心法
 

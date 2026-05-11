@@ -9,9 +9,10 @@
 ## 适合做什么
 
 - 快速判断一家公司或一条信息是否值得继续研究。
+- 快速判断一个行业 / 主题 / value chain 是否值得继续研究，并找到下一步研究入口。
 - 把公司历史、业务构成、segment / KPI 口径变化梳理清楚。
 - 遇到行业机制、工程原理、工艺流程或设备链条不清时，触发 `mechanism-map`。
-- 遇到 revenue、margin、backlog、price-volume-mix、KPI 披露口径不清时，触发 `driver-map`。
+- 遇到公司 / segment / 产品线 / 披露 bucket 的 revenue、margin、backlog、price-volume-mix、KPI 口径不清时，触发 `driver-map`。
 - 做 peer deep dive、alpha thesis、bear pre-mortem、earnings setup、pair trade 和 financial model。
 - 把已经研究过、source-backed、会改变判断的认知增量沉淀成 `research-journal` 或 Boss Brief。
 
@@ -107,21 +108,33 @@ Research skills：
 
 | 层级 | Skills | 用途 |
 |---|---|---|
-| `triage` | `information-impact`, `candidate-screener`, `stock-quickread`, `next-step` | 过滤信息、找候选、快速判断、识别最高杠杆下一问 |
+| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别最高杠杆下一问 |
 | `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` | 公司基础、行业机制、model drivers、跨市场比较 |
 | `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、thesis、pre-mortem、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
 ## 推荐研究流
 
+行业 / 主题 first-pass：
+
 ```text
-init -> new-session -> ingest -> stock-quickread / company-primer
-     -> mechanism-map / driver-map
-     -> peer-deep-dive / alpha-thesis / bear-pre-mortem / earnings-setup
-     -> integrate -> research-journal / Boss Brief
+new-session -> ingest -> industry-quickread -> mechanism-map
+     -> candidate-screener / peer-deep-dive
+     -> stock-quickread -> driver-map
+     -> alpha-thesis / financial-model -> research-journal / Boss Brief
 ```
 
-遇到保存路径不清，先用 `new-session`。遇到机制不清，先用 `mechanism-map`。遇到 driver 或披露口径不清，先用 `driver-map`。不要把未经验证的疑点直接写进 `research-journal`。
+新股 / 单公司 first-pass：
+
+```text
+new-session -> ingest -> stock-quickread
+     -> company-primer / mechanism-map / driver-map
+     -> peer-deep-dive
+     -> alpha-thesis / financial-model / bear-pre-mortem / earnings-setup
+     -> research-journal / Boss Brief
+```
+
+遇到保存路径不清，先用 `new-session`。遇到行业 / 主题 first-pass，先用 `industry-quickread`。遇到机制不清，先用 `mechanism-map`。遇到公司、segment、产品线或披露 bucket 到 model driver 的映射不清，才用 `driver-map`；`driver-map` 不是泛行业 driver skill。不要把未经验证的疑点直接写进 `research-journal`。
 
 ## 示例
 

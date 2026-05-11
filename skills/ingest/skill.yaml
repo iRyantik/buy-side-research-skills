@@ -67,7 +67,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: '[source-filename].md'
-  canonical_location: 'topics/[topic]/_cache/[category]/[source-filename].md'
+  canonical_location: 'topics/[topic]/_cache/[source-filename].md'
   save_trigger: 'write cache markdown only after a user provides a source file or directory inside a research workspace'
 workflow:
   stage: 'material-ingestion'

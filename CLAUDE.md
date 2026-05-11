@@ -121,7 +121,7 @@ Research layers：
 
 | Layer | Skills | 作用 |
 |---|---|---|
-| `triage` | `information-impact`, `candidate-screener`, `stock-quickread`, `next-step` | 过滤信息、找候选、快速判断、识别下一步最高杠杆问题 |
+| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别下一步最高杠杆问题 |
 | `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、行业机制、model driver、跨市场比较 |
 | `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
@@ -136,9 +136,11 @@ Operations skills：
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 
+`industry-quickread` 是 industry triage skill。涉及陌生行业、主题、value chain、需求口袋、利润池或行业周期 first-pass 时，先用 `industry-quickread` 判断 current regime、value capture、KPI/source map、anchor names 和下一步研究路由。
+
 `mechanism-map` 是 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`financial-model`、`alpha-thesis` 或 `peer-deep-dive`。
 
-`driver-map` 是 research primitive。涉及 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `financial-model`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。
+`driver-map` 是 company / segment model-driver primitive。涉及公司、segment、产品线或披露 bucket 的 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `financial-model`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。不要把泛行业 driver 拆解交给 `driver-map`；行业层 first-pass 先用 `industry-quickread`，机制不清再用 `mechanism-map`。
 
 `company-primer` 是 company foundation skill。涉及公司到底卖什么、客户是谁、业务边界如何演变、material M&A / divestiture、segment / KPI rename、recast 或披露口径断裂时，先用 `company-primer` 打地基；若口径断裂已经阻塞 driver 判断，再进入 `driver-map`。
 
@@ -152,6 +154,7 @@ Operations skills：
 | `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
+| `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一个 | 快速公司分析 + 对手盘假设 |
 | `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
 | `peer-deep-dive` | 几家公司一起看 / 横向研究 | industry lens + cross-cut 信号 + 研究排序 |
@@ -226,7 +229,7 @@ Future research workspace：
 - 新研究产物默认围绕 topic session 保存：`topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
 - `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
 - `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`。
-- `company-primer`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`。
+- `company-primer`、`industry-quickread`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`。
 - `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
 - `financial-model` 属于 `external_workbook`。
 - `research-journal` 属于 `earned_memory`。

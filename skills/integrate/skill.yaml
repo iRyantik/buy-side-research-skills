@@ -32,8 +32,9 @@ capabilities:
     - 'report merge summary'
 artifact_policy:
   save_policy: 'none'
-  default_artifact: null
-  canonical_location: null
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'do not create standalone research artifacts; only move topic directories and update index links when explicitly requested'
 workflow:
   stage: 'topic-organization'
   can_follow:
