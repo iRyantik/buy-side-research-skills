@@ -33,7 +33,7 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 ## 第一次使用
 
-运行 `init-workspace` 创建或修复 research workspace scaffold。`3.6.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
+运行 `init-workspace` 创建或修复 research workspace scaffold。`3.7.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
 
 `init-workspace` 之后，如需创建或定位 topic session 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
 

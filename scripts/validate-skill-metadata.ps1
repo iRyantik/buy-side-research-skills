@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillsRoot = Join-Path $repoRoot "skills"
-$expectedSystemGeneration = "3.6.0"
+$expectedSystemGeneration = "3.7.0"
 $expectedMetadataSchemaVersion = "1"
 $semverPattern = "^\d+\.\d+\.\d+$"
 $allowedCategories = @("research", "operations")

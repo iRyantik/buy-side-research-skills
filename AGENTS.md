@@ -15,5 +15,5 @@
 - 用户 research workspace 由 `init-workspace` 安装自己的 `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
 - plugin release package 不应包含 root `AGENTS.md`。
 
-**Version**: v3.6.0
+**Version**: v3.7.0
 **Last updated**: 2026-05-10

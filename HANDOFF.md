@@ -1,15 +1,22 @@
-# HANDOFF — Ingest 工具链替换 (DONE)
+# HANDOFF — v3.7.0 Release Prep
 
-## Status: Complete
+## Status: In Progress
 
-所有改动已合并到 v3.6.0 release。
+本轮目标是把已完成的 `industry-quickread`、`consensus-map`、`primary-research-plan` 三个 workflow 作为 `v3.7.0` 稳定版发布。
 
-## What was done
+## What changed for this release
 
-- `ingest.py` + `describe-figures.py` 已移入 `skills/ingest/scripts/`
-- `requirements-ingest.txt` 已更新（去 markitdown[all]/pytesseract，加 pymupdf4llm + 按市场工具）
-- `bootstrap-ingest-deps.ps1` 重写（Windows，跨平台零故障逻辑）
-- `bootstrap-ingest-deps.sh` 新建（macOS）
-- 版本 3.5.0 → 3.6.0 已同步到所有文件
-- Validators 已更新（skill count 19→20, system_generation 3.6.0）
-- Release zip 已重建并发布到 GitHub Releases v3.6.0
+- README、install / release docs、plugin manifests 已切到 `3.7.0`
+- 所有 active `skill.yaml` 的 `system_generation` 已同步到 `3.7.0`
+- validators 的 expected `system_generation` 已同步到 `3.7.0`
+- README workflow 已明确 `industry-quickread`、`consensus-map`、`primary-research-plan` 的路由入口
+- `docs/architecture.md` 已修正 release 包只包含 `.claude-plugin/`、`.codex-plugin/`、`skills/`、`README.md`
+
+## Publish checklist
+
+- 运行全部 validators 和 `git diff --check`
+- 构建 `dist/buy-side-research-skills-3.7.0.zip`
+- 提交 `Prepare v3.7.0 release`
+- `git push origin main`
+- 打 `v3.7.0` tag 并 push
+- 创建 GitHub Release 并上传 zip

@@ -2,7 +2,7 @@
 
 一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化和材料 ingest。
 
-当前版本：`3.6.0`
+当前版本：`3.7.0`
 
 仓库地址：`iRyantik/buy-side-research-skills`
 
@@ -10,6 +10,8 @@
 
 - 快速判断一家公司或一条信息是否值得继续研究。
 - 快速判断一个行业 / 主题 / value chain 是否值得继续研究，并找到下一步研究入口。
+- 把 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap 摊开，判断市场到底在信什么。
+- 把 thesis / driver gap 变成合规的 expert call、channel check、survey 和 fieldwork 计划。
 - 把公司历史、业务构成、segment / KPI 口径变化梳理清楚。
 - 遇到行业机制、工程原理、工艺流程或设备链条不清时，触发 `mechanism-map`。
 - 遇到公司 / segment / 产品线 / 披露 bucket 的 revenue、margin、backlog、price-volume-mix、KPI 口径不清时，触发 `driver-map`。
@@ -31,7 +33,7 @@ Codex 插件市场可用时：
 codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.6.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
+如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.7.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
 
 更多安装说明见 [docs/install.md](docs/install.md)。
 

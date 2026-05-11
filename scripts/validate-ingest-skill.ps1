@@ -82,7 +82,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     }
 
     foreach ($phrase in @(
-        "topics/_cache/",
+        "topics/<topic>/_cache/",
         "source_sha256",
         "source_modified_utc",
         "converted_at_utc",
@@ -97,8 +97,10 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "requirements-ingest.txt",
         "Docling",
         "EdgarTools",
-        "Tesseract",
-        "MarkItDown",
+        "PyMuPDF4LLM",
+        "AKShare",
+        "dart-fss",
+        "openesef",
         "PDFPlumber",
         "--check-deps",
         "EDGAR_IDENTITY",
@@ -112,7 +114,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "industry",
         "irdecks",
         "datasets",
-        "document category"
+        "unclassified"
     )) {
         if (-not $skillText.Contains($phrase)) {
             $failures.Add("ingest: SKILL.md missing required phrase '$phrase'")
@@ -128,7 +130,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "precision_level",
         "document_type",
         "route",
-        "3.6.0",
+        "3.7.0",
         "--category",
         "auto-infer document category",
         "strict topic check"
@@ -149,11 +151,11 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "ingest") {
         $failures.Add("ingest: skill.yaml name '$yamlName' does not match ingest")
     }
-    if ($yamlVersion -ne "1.1.0") {
-        $failures.Add("ingest: expected skill version 1.1.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.2.0") {
+        $failures.Add("ingest: expected skill version 1.2.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.6.0") {
-        $failures.Add("ingest: expected system_generation 3.5.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.7.0") {
+        $failures.Add("ingest: expected system_generation 3.7.0, found '$systemGeneration'")
     }
 }
 
@@ -178,8 +180,10 @@ if (Test-Path -LiteralPath $ingestScript) {
         "--check-deps",
         "Docling",
         "EdgarTools",
-        "TesseractCliOcrOptions",
-        "MarkItDown",
+        "PyMuPDF4LLM",
+        "akshare",
+        "dart-fss",
+        "openesef",
         "Could not discover research workspace",
         "Missing optional dependency",
         "--recursive",
@@ -197,14 +201,15 @@ if (Test-Path -LiteralPath $bootstrapScript) {
     foreach ($phrase in @(
         "CheckOnly",
         "Yes",
+        "China",
         "PythonScope",
         "EdgarIdentity",
         "requirements-ingest.txt",
-        "python -m pip",
         "EDGAR_IDENTITY",
         "winget",
-        "UB-Mannheim",
-        "Tesseract"
+        "docling",
+        "pymupdf4llm",
+        "hf-mirror"
     )) {
         if (-not $bootstrapText.Contains($phrase)) {
             $failures.Add("bootstrap-ingest-deps.ps1 missing required phrase '$phrase'")
@@ -218,13 +223,16 @@ if (Test-Path -LiteralPath $requirementsPath) {
     foreach ($package in @(
         "docling",
         "edgartools",
-        "markitdown[all]",
+        "pymupdf4llm",
+        "openesef",
+        "akshare",
+        "edinet-tools",
+        "dart-fss",
         "openpyxl",
         "python-pptx",
         "python-docx",
         "pdfplumber",
         "pypdf",
-        "pytesseract",
         "Pillow"
     )) {
         if (-not $requirementsText.Contains($package)) {

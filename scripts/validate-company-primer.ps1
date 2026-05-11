@@ -58,7 +58,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "company-primer"
         id = "company-primer"
         version = "1.0.0"
-        system_generation = "3.6.0"
+        system_generation = "3.7.0"
         metadata_schema_version = "1"
     }
 

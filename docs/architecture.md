@@ -57,7 +57,7 @@ integrate
 
 ## Release 包
 
-Release 包应包含插件清单、skills、用户文档、示例和 README。不得包含本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。
+Release 包实际只包含 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。不得包含 `docs/`、`examples/`、本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。
 
 插件本身没有运行时 CLAUDE / AGENTS 文件。源码仓库有 root `CLAUDE.md` + `AGENTS.md` 仅供维护使用；`init-workspace` 将 workspace `CLAUDE.md` + pointer 版 `AGENTS.md` 安装到用户 research workspace。
 

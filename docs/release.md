@@ -2,7 +2,7 @@
 
 本文件面向插件源码仓库的维护者。日常使用插件不需要阅读本文件。
 
-当前发布版本：`3.6.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
+当前发布版本：`3.7.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
 
 ## Release 包结构
 
@@ -44,30 +44,30 @@ skills/ingest/scripts/ingest_table_crosscheck.py
 生成 zip 前必须运行全部 validator：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-meta-skill.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session-skill.ps1
-git diff --check
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-meta-skill.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session-skill.ps1
+rtk git diff --check
 ```
 
 ## 构建
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.6.0
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.7.0
 ```
 
 构建产物：
 
 ```text
-dist/buy-side-research-skills-3.6.0.zip
+dist/buy-side-research-skills-3.7.0.zip
 ```
 
 构建脚本会在生成 zip 后调用 release package validator 验证。
