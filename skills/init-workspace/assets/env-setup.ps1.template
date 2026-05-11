@@ -5,6 +5,11 @@
 # 格式: "Name email@domain.com"
 $env:EDGAR_IDENTITY = ""
 
+# --- EdgarTools 数据目录（避免 edgar/ 文件夹散落在当前目录）---
+$edgarDir = Join-Path $PSScriptRoot "edgar_data"
+New-Item -ItemType Directory -Force -Path $edgarDir | Out-Null
+$env:EDGAR_LOCAL_DATA_DIR = $edgarDir
+
 # --- 中国用户 HuggingFace 镜像（可选）---
 # $env:HF_ENDPOINT = "https://hf-mirror.com"
 
@@ -20,5 +25,7 @@ if ($env:EDGAR_IDENTITY) {
 } else {
     Write-Host "[!] EDGAR_IDENTITY 未设置，美股 SEC 路由不可用"
 }
+[Environment]::SetEnvironmentVariable("EDGAR_LOCAL_DATA_DIR", $edgarDir, "User")
+Write-Host "[OK] Edgar 数据目录: $edgarDir"
 
 Write-Host "环境配置完成。运行 _scripts/bootstrap-ingest-deps.ps1 -CheckOnly 检查状态"
