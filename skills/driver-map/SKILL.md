@@ -26,7 +26,7 @@ description: Use when decomposing revenue drivers, segment buckets, margin drive
 
 很多投研错误不是发生在 DCF、comps 或 thesis 结论，而是发生在更前面：你以为你知道这家公司靠什么增长，但其实只是接受了公司给的 bucket 名称。`driver-map` 的工作是把披露口径拆成业务实质，再把业务实质压缩成少数可验证、可跟踪、可建模的 driver。
 
-本 skill 复用 `financial-model` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Global Rules Capsule (v1)` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `financial-model`、`alpha-thesis`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis。
+本 skill 复用 `financial-model` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Global Rules Capsule (v1)` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `financial-model`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
@@ -147,6 +147,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 说明这个 driver map 如何影响后续研究：
 - 对 `financial-model`：哪些 line item 应该按 driver 建模。
 - 对 `alpha-thesis`：variant view 应该落在哪个 driver。
+- 对 `primary-research-plan`：哪些 driver 假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证。
 - 对 `peer-deep-dive`：哪些 KPI 才可比，哪些不可比。
 - 对 `pair-trade`：两腿是否受同一 driver 驱动，还是只是主题相似。
 - 对 `research-journal`：哪些认知已经想清楚、值得沉淀。
@@ -212,6 +213,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 | 用户要继续搭 operating model / DCF / comps | `financial-model` |
 | driver work 发现公司业务边界、segment rename、KPI recast 或 material M&A 历史不清 | `company-primer` |
 | driver map 暴露 variant view | `alpha-thesis` |
+| driver 假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 多家公司 driver 需要横向比较 | `peer-deep-dive` |
 | 两家公司是否受同一 driver 驱动 | `pair-trade` |
 | driver 质量低或 bucket 怪，需要更好问题 | `next-step` |
@@ -251,6 +253,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md
 ## 与相邻 skill 的边界
 
 - `financial-model` 做 operating model、DCF、comps、workbook update；本 skill 只做 driver-map。
+- `primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只指出哪些 driver assumption 需要 field evidence。
 - `company-primer` 处理公司业务基础、业务演变和 disclosure evolution；本 skill 在这些基础清楚后才把 bucket 映射成 model driver。
 - `stock-quickread` 快速判断是否值得继续看；本 skill 深挖 revenue / margin driver。
 - `peer-deep-dive` 做横向排序和 cross-cut insight；本 skill 提供可比较的 driver 口径。

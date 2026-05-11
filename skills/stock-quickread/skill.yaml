@@ -35,6 +35,7 @@ capabilities:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
     - 'route company foundation and disclosure evolution gaps to company-primer'
+    - 'route systematic consensus and priced-in analysis to consensus-map'
 artifact_policy:
   save_policy: 'optional_topic_session'
   default_artifact: 'stock-quickread.md'
@@ -43,6 +44,7 @@ artifact_policy:
 workflow:
   stage: 'discovery'
   next_steps:
+    - 'consensus-map'
     - 'company-primer'
     - 'alpha-thesis'
   decision_point: '值不值得花时间深入研究'

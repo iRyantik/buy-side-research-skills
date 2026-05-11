@@ -80,6 +80,9 @@ topics/[topic-slug]/index.md
 
 | Skill | Artifact |
 |---|---|
+| `industry-quickread` | `industry-quickread.md` |
+| `consensus-map` | `consensus-map.md` |
+| `primary-research-plan` | `primary-research-plan.md` |
 | `company-primer` | `company-primer.md` |
 | `mechanism-map` | `mechanism-map.md` |
 | `driver-map` | `driver-map.md` |
@@ -135,6 +138,9 @@ topics/[topic-slug]/index.md
 已创建 / 已定位 topic session: [path]
 
 ## Canonical Save Paths
+- industry-quickread: [...]
+- consensus-map: [...]
+- primary-research-plan: [...]
 - company-primer: [...]
 - mechanism-map: [...]
 - driver-map: [...]

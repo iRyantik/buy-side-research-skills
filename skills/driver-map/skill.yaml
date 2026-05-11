@@ -50,6 +50,7 @@ capabilities:
     - 'map business reality to model drivers'
     - 'flag model-driver gaps and weird disclosure'
     - 'hand off company foundation or disclosure evolution history to company-primer'
+    - 'hand off field evidence gaps to primary-research-plan'
     - 'do not perform DCF or comps'
     - 'do not create or edit workbooks'
 artifact_policy:
@@ -67,6 +68,7 @@ workflow:
   feeds_into:
     - 'financial-model'
     - 'alpha-thesis'
+    - 'primary-research-plan'
     - 'peer-deep-dive'
     - 'pair-trade'
     - 'research-journal'

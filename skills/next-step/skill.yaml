@@ -41,6 +41,7 @@ capabilities:
     - 'route mechanism gaps to mechanism-map'
     - 'route driver and KPI gaps to driver-map'
     - 'route source or claim gaps to information-impact'
+    - 'route field evidence or channel validation gaps to primary-research-plan'
     - 'route company foundation or disclosure evolution gaps to company-primer'
     - 'do not create standalone next-step files'
 artifact_policy:

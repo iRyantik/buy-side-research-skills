@@ -100,6 +100,8 @@ description: Use when creating, rewriting, reviewing, or validating buy-side-res
 | `information-impact` | 强纪律、500 字硬上限、双 mode、source 判断 |
 | `candidate-screener` | AI 局限承认、反编造、Tier 分组、漏斗收口 |
 | `industry-quickread` | 行业 first-pass、value pool、KPI/source map、routing 边界 |
+| `consensus-map` | sell-side consensus、buy-side bar、priced-in assumptions、variant-view gap |
+| `primary-research-plan` | 合规 primary research、expert call、channel check、survey、decision gates |
 | `stock-quickread` | 数据先行、反向工程、强制结构 |
 | `peer-deep-dive` | 行业 lens、cross-cut insight、排序和资源分配 |
 | `pair-trade` | LS / hedge / spread 方法论、hard standards、risk / sizing |
@@ -164,6 +166,8 @@ LS 工作特征：
 | Pair trade 是核心工具 | 触发 long X 思路时，自然带上 short Y 候选 / hedge 选项，必要时 handoff 到 `pair-trade` |
 | Mechanism 拆解是复用原语 | 涉及行业机制、工程原理、设备链条、工艺流程、关键术语或 know-how gap 时，优先复用 `mechanism-map` |
 | Driver 拆分是复用原语 | 涉及公司 / segment / 产品线 / 披露 bucket 的 revenue / margin / backlog / price-volume-mix driver 时，优先复用 `driver-map`，不要各 skill 重写一套拆分；泛行业 first-pass 用 `industry-quickread`，机制不清用 `mechanism-map` |
+| Consensus framing 是 foundation 原语 | 涉及 sell-side consensus、buy-side bar、priced-in assumptions、market-implied expectations 或 variant-view gap 时，优先复用 `consensus-map`，不要在 thesis 或 quickread 里临时重写 |
+| Primary evidence 需要合规计划 | 涉及 expert call、customer / supplier channel check、survey、fieldwork 或 ex-employee interview 验证关键假设时，优先复用 `primary-research-plan`，不要生成假访谈结果 |
 | 跨市场惯性 | 同一公司多重上市、跨市场 peer 比较是常态 |
 | 时区 disadvantage | 美股财报后才工作；post-print 工具必须高效 |
 | 信息淹没 | 核心痛点是单股时间被切碎；skill 优先服务 noise reduction |
@@ -209,8 +213,8 @@ Research layers：
 | Layer | Skills | 用途 |
 |---|---|---|
 | `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别下一步最高杠杆问题 |
-| `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、行业机制、model driver、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、thesis、财报、pair、建模 |
+| `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
+| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、primary research、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
 Operations skills：

@@ -230,7 +230,9 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
 ## Workflow 联动
 
 - 在 `stock-quickread` 之后用——quickread 帮你判断这家公司值不值得花时间，alpha-thesis 是真正建立单股观点。
+- 如果 sell-side consensus、buy-side bar、priced-in assumptions 或 variant-view gap 还没有拆清，先用 `consensus-map`，不要在 thesis 里临时补一张粗糙预期表。
 - 如果 variant view、scenario 或 kill criteria 依赖某个 revenue / margin driver，但该 driver 尚未拆清楚，先触发 `driver-map`，再继续写 thesis。
+- 如果关键假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证，先用 `primary-research-plan` 设计合规验证计划；不要把未执行访谈写成 evidence。
 - 写完之后用 `bear-pre-mortem` 做空头压力测试。
 - 第 8 节的假设清单是 `earnings-setup` 中 thesis 假设核对的输入。
 - 如果用户要求 Long X + Short Y、hedge candidate、pair monitor，改用 `pair-trade`。

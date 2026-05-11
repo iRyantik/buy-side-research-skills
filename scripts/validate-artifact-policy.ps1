@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 21
+    [int]$ExpectedActiveSkillCount = 23
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,6 +44,11 @@ $expectedPolicies = @{
         save_policy = "optional_topic_session"
         default_artifact = "company-primer.md"
         canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md"
+    }
+    "consensus-map" = @{
+        save_policy = "optional_topic_session"
+        default_artifact = "consensus-map.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md"
     }
     "driver-map" = @{
         save_policy = "optional_topic_session"
@@ -114,6 +119,11 @@ $expectedPolicies = @{
         save_policy = "optional_topic_session"
         default_artifact = "peer-deep-dive.md"
         canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/peer-deep-dive.md"
+    }
+    "primary-research-plan" = @{
+        save_policy = "optional_topic_session"
+        default_artifact = "primary-research-plan.md"
+        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md"
     }
     "research-journal" = @{
         save_policy = "earned_memory"

@@ -109,8 +109,8 @@ Research skills：
 | 层级 | Skills | 用途 |
 |---|---|---|
 | `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别最高杠杆下一问 |
-| `foundation` | `company-primer`, `mechanism-map`, `driver-map`, `cross-market-compare` | 公司基础、行业机制、model drivers、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、thesis、pre-mortem、财报、pair、建模 |
+| `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 公司基础、预期地图、行业机制、model drivers、跨市场比较 |
+| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、primary research、thesis、pre-mortem、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
 ## 推荐研究流
@@ -118,23 +118,23 @@ Research skills：
 行业 / 主题 first-pass：
 
 ```text
-new-session -> ingest -> industry-quickread -> mechanism-map
+new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
      -> candidate-screener / peer-deep-dive
-     -> stock-quickread -> driver-map
+     -> stock-quickread -> driver-map -> primary-research-plan
      -> alpha-thesis / financial-model -> research-journal / Boss Brief
 ```
 
 新股 / 单公司 first-pass：
 
 ```text
-new-session -> ingest -> stock-quickread
+new-session -> ingest -> stock-quickread -> consensus-map
      -> company-primer / mechanism-map / driver-map
-     -> peer-deep-dive
+     -> peer-deep-dive / primary-research-plan
      -> alpha-thesis / financial-model / bear-pre-mortem / earnings-setup
      -> research-journal / Boss Brief
 ```
 
-遇到保存路径不清，先用 `new-session`。遇到行业 / 主题 first-pass，先用 `industry-quickread`。遇到机制不清，先用 `mechanism-map`。遇到公司、segment、产品线或披露 bucket 到 model driver 的映射不清，才用 `driver-map`；`driver-map` 不是泛行业 driver skill。不要把未经验证的疑点直接写进 `research-journal`。
+遇到保存路径不清，先用 `new-session`。遇到行业 / 主题 first-pass，先用 `industry-quickread`。遇到市场预期、buy-side bar、priced-in assumptions 或 variant-view gap 不清，先用 `consensus-map`。遇到机制不清，先用 `mechanism-map`。遇到公司、segment、产品线或披露 bucket 到 model driver 的映射不清，才用 `driver-map`；`driver-map` 不是泛行业 driver skill。遇到需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证关键假设，用 `primary-research-plan`。不要把未经验证的疑点直接写进 `research-journal`。
 
 ## 示例
 

@@ -127,8 +127,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             }
         }
 
-        if ($activeSkillNames.Count -ne 21) {
-            $failures.Add("Expected 21 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
+        if ($activeSkillNames.Count -ne 23) {
+            $failures.Add("Expected 23 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
         }
 
         if (-not $activeSkillNames.Contains("company-primer")) {

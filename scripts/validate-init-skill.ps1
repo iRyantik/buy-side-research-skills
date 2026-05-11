@@ -1,5 +1,5 @@
 param(
-    [string]$"
+    [string]$SkillName = "init-workspace"
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,7 +8,7 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillRoot = Join-Path $repoRoot "skills\$SkillName"
 $skillPath = Join-Path $skillRoot "SKILL.md"
 $yamlPath = Join-Path $skillRoot "skill.yaml"
-$scriptPath = Join-Path $.ps1"
+$scriptPath = Join-Path $skillRoot "scripts\init-research-workspace.ps1"
 $assetPaths = @(
     "assets\CLAUDE.md.template",
     "assets\AGENTS.md.template",
@@ -90,13 +90,9 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "_inbox",
         "_inbox/",
         "edge-radar.md",
-        "topics/_inbox/",
-        "topics/_raw",
-        "topics/_raw/",
-        "topics/_cache",
-        "topics/_cache/",
-        "topics/_models",
-        "topics/_models/",
+        "topics",
+        "topics/",
+        "new-session",
         "bootstrap-ingest-deps.ps1",
         "requirements-ingest.txt",
         "Docling",
@@ -136,7 +132,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         $failures.Add("init-workspace: expected skill version 1.3.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.6.0") {
-        $failures.Add("init-workspace: expected system_generation 3.5.0, found '$systemGeneration'")
+        $failures.Add("init-workspace: expected system_generation 3.6.0, found '$systemGeneration'")
     }
 }
 
@@ -178,7 +174,7 @@ if (Test-Path -LiteralPath $claudeTemplatePath) {
         "ingest",
         "research-journal.md",
         "topics/",
-        "topics/<topic-slug>/_cache/",
+        "topics/<topic>/_cache/",
         "AGENTS.md"
     )) {
         if (-not $claudeTemplate.Contains($phrase)) {

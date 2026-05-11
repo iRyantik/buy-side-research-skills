@@ -55,7 +55,9 @@ workflow:
   stage: 'analysis'
   prerequisites:
     - 'stock-quickread'
+    - 'consensus-map when variant-view gap is not yet explicit'
   next_steps:
+    - 'primary-research-plan'
     - 'bear-pre-mortem'
     - 'earnings-setup'
     - 'research-journal'

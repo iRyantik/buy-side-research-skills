@@ -106,6 +106,7 @@ description: Use when the user asks what to research next, says a research threa
 | **driver / disclosure gap** | revenue、margin、backlog、price-volume-mix、KPI 定义、reported bucket、披露口径不清 | 先 handoff `driver-map` |
 | **company foundation / disclosure evolution gap** | 公司到底卖什么、业务边界如何演变、segment / KPI rename 或 recast 历史不清 | 先 handoff `company-primer` |
 | **source / claim gap** | 关键事实、客户关系、新闻、卖方观点、专家说法未验证 | 先 handoff `information-impact` |
+| **field evidence / channel validation gap** | 关键假设需要 expert call、客户 / 供应商 channel check、survey 或 fieldwork 验证 | 先 handoff `primary-research-plan` |
 | **peer comparability gap** | peer group、KPI 口径、业务机制或 value-capture 不可比 | 先 handoff `peer-deep-dive`，必要时先 `mechanism-map` / `driver-map` |
 | **thesis assembly gap** | driver 已拆清，variant view、catalyst、kill criteria 需要成稿 | handoff `alpha-thesis` |
 | **journal-ready insight** | 已研究过、想清楚、能改变后续判断 | handoff `research-journal` |
@@ -233,6 +234,7 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 | 高价值疑点是 revenue / margin / backlog / price-volume-mix 或 KPI 口径 | `driver-map` |
 | 高价值疑点是公司业务基础、业务演变、segment / KPI rename 或 disclosure evolution | `company-primer` |
 | 高价值疑点依赖一条 claim、新闻、供应链关系或卖方观点真假 | `information-impact` |
+| 高价值疑点需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 下一步是横向比较多家公司，且需要比较机制或 KPI 可比性 | `peer-deep-dive` |
 | driver 已清楚，下一步要写 variant view、catalyst、kill criteria | `alpha-thesis` |
 | 要压测现有 thesis 的隐含假设 | `bear-pre-mortem` |
@@ -281,6 +283,7 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 - `driver-map` 拆 revenue、margin、backlog、price-volume-mix、KPI 和披露口径；本 skill 只识别 driver gap。
 - `company-primer` 打牢公司业务基础、业务演变和披露口径历史；本 skill 只识别是否需要先补公司地基。
 - `information-impact` 验证 claim 可信度；本 skill 不做 source hunting。
+- `primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只识别是否需要 primary evidence。
 - `peer-deep-dive` 做横向研究和排序；本 skill 不替代 peer compare。
 - `alpha-thesis` 写 variant view、catalyst、kill criteria；本 skill 不写完整 thesis。
 - `research-journal` 沉淀已经研究清楚的认知；本 skill 不默认落盘。

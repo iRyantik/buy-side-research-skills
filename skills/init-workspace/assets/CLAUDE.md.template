@@ -138,6 +138,8 @@
         ├── _models/                 #   财务模型 / workbooks
         ├── <YYYY-MM-DD>-<session>/  #   研究 session
         │   ├── industry-quickread.md
+        │   ├── consensus-map.md
+        │   ├── primary-research-plan.md
         │   ├── company-primer.md
         │   ├── mechanism-map.md
         │   ├── driver-map.md
@@ -161,6 +163,8 @@
 ```text
 topics/<topic-slug>/<YYYY-MM-DD>-<session-slug>/
 ├── industry-quickread.md
+├── consensus-map.md
+├── primary-research-plan.md
 ├── company-primer.md
 ├── mechanism-map.md
 ├── driver-map.md
@@ -194,6 +198,8 @@ Research:
 | `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
 | `stock-quickread` | 快速看一家公司 / 30 分钟过一下 | quickread + data tables + opponent assumptions |
 | `next-step` | 下一步怎么研究 / 最高杠杆问题是什么 | one highest-value question + prompts |
+| `consensus-map` | 市场预期 / priced-in / buy-side bar / variant-view gap | consensus stack + debate map + routing |
+| `primary-research-plan` | expert call / channel check / survey / fieldwork 验证关键假设 | compliant primary research plan |
 | `company-primer` | 公司业务基础、历史演变、segment / KPI 变化 | company foundation + disclosure evolution |
 | `mechanism-map` | 行业机制、工程原理、设备链、工艺、know-how gap | mechanism map + value capture |
 | `driver-map` | 公司 / segment / 产品线 / 披露 bucket 的 revenue / margin / backlog / price-volume-mix / model-driver gap | reported bucket -> business reality -> model driver |
@@ -206,7 +212,7 @@ Research:
 | `financial-model` | 搭 model / 更新模型 / 拆收入 | model update map / workbook |
 | `research-journal` | 沉淀已研究清楚的认知 / Boss Brief | research-journal / boss-brief / topic index update |
 
-行业 / 主题 first-pass 先用 `industry-quickread`；行业机制、工程原理、设备链、工艺或术语不清再用 `mechanism-map`；只有落到公司 / segment / 产品线 / 披露 bucket 到 model driver 的映射时，才用 `driver-map`。如果不确定用哪个 skill，先说明候选和差异，再让用户选；不要猜。
+行业 / 主题 first-pass 先用 `industry-quickread`；市场预期、buy-side bar、priced-in assumptions 或 variant-view gap 不清用 `consensus-map`；需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证关键假设时，用 `primary-research-plan`；行业机制、工程原理、设备链、工艺或术语不清再用 `mechanism-map`；只有落到公司 / segment / 产品线 / 披露 bucket 到 model driver 的映射时，才用 `driver-map`。如果不确定用哪个 skill，先说明候选和差异，再让用户选；不要猜。
 
 ---
 

@@ -53,6 +53,9 @@ workflow:
     - 'user-save-request'
     - 'research-artifact-save-request'
   feeds_into:
+    - 'industry-quickread'
+    - 'consensus-map'
+    - 'primary-research-plan'
     - 'company-primer'
     - 'mechanism-map'
     - 'driver-map'

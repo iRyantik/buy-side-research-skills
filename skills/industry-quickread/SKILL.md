@@ -152,6 +152,7 @@ description: Use when quickly assessing an unfamiliar industry, theme, value cha
 | 需要系统找 long / short names | `candidate-screener` |
 | 已有 3-8 个核心公司要横向比较 | `peer-deep-dive` |
 | 某个 anchor name 值得单独看 | `stock-quickread` |
+| 行业 / 主题的 priced-in、buy-side bar 或 consensus debate 不清 | `consensus-map` |
 | 某家公司 / segment / bucket 到 model driver 不清 | `driver-map` |
 
 ## 9. 下一步 5 个具体问题
@@ -202,18 +203,21 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md
 | 需要从行业逻辑找 long / short candidates | `candidate-screener` |
 | 已有一组 anchor companies，需要横向比较 | `peer-deep-dive` |
 | 单个公司值得快速判断 | `stock-quickread` |
+| 行业 / 主题 market expectations、priced-in assumptions 或 variant gap 不清 | `consensus-map` |
 | 公司业务基础、segment / KPI 演变不清 | `company-primer` |
 | 公司 / segment / 产品线 / 披露 bucket 到 model driver 不清 | `driver-map` |
 | 行业判断已经形成 thesis 差异 | `alpha-thesis` |
 | 行业判断需要量化进模型 | `financial-model` |
+| 行业 / 主题关键假设需要 expert call、channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 形成可复用认知增量 | `research-journal` |
 
 推荐行业路径：
 
 ```text
-new-session -> ingest -> industry-quickread -> mechanism-map
+new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
 -> candidate-screener / peer-deep-dive -> stock-quickread
--> driver-map -> alpha-thesis / financial-model -> research-journal
+-> driver-map -> primary-research-plan
+-> alpha-thesis / financial-model -> research-journal
 ```
 
 ## 反模式自查
@@ -252,5 +256,7 @@ new-session -> ingest -> industry-quickread -> mechanism-map
 | `candidate-screener` | 从 hypothesis / industry logic 系统找 long / short candidates；本 skill 只给 3-5 个 anchor names。 |
 | `peer-deep-dive` | 对 3-8 家公司做横向深研、排序和 cross-cut insight；本 skill 不做完整 peer comparison。 |
 | `stock-quickread` | 快速看单家公司；本 skill 只判断行业和 anchor。 |
+| `consensus-map` | 系统拆行业 / 主题的 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；本 skill 只给 clue。 |
 | `company-primer` | 梳理单家公司业务基础、历史演变和 disclosure evolution；本 skill 不写公司基础研究。 |
 | `alpha-thesis` | 写 variant view、catalyst、kill criteria；本 skill 只提供 thesis 起点。 |
+| `primary-research-plan` | 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只识别需要 primary evidence 的假设。 |

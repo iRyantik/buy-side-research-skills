@@ -39,8 +39,8 @@ Research 层级：
 | 层级 | Skills |
 |---|---|
 | `triage` | `information-impact`、`candidate-screener`、`industry-quickread`、`stock-quickread`、`next-step` |
-| `foundation` | `company-primer`、`mechanism-map`、`driver-map`、`cross-market-compare` |
-| `deep-work` | `peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`financial-model` |
+| `foundation` | `company-primer`、`consensus-map`、`mechanism-map`、`driver-map`、`cross-market-compare` |
+| `deep-work` | `peer-deep-dive`、`primary-research-plan`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`financial-model` |
 | `memory` | `research-journal` |
 
 Operations skills：
@@ -53,7 +53,7 @@ new-session
 integrate
 ```
 
-`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`new-session` 创建或定位 topic session，解析标准保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
+`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`consensus-map` 是 expectations foundation，用来拆 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；不替代 `alpha-thesis`、`financial-model` 或 `earnings-setup`。`primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；不执行访谈、不生成假反馈、不替代 compliance 流程。`new-session` 创建或定位 topic session，解析标准保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
 
 ## Release 包
 
@@ -98,7 +98,7 @@ Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创�
 topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 ```
 
-行业和公司 first-pass 产物如 `industry-quickread.md`、`company-primer.md` 遵循相同规则，仅在用户要求保存时创建。
+行业、公司、预期地图和 primary research 计划产物如 `industry-quickread.md`、`company-primer.md`、`consensus-map.md`、`primary-research-plan.md` 遵循相同规则，仅在用户要求保存时创建。
 
 若当前 topic session 不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 session 文件夹并轻量更新 topic `index.md`，但不得写研究结论。
 
