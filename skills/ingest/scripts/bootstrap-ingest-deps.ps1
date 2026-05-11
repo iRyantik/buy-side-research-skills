@@ -123,6 +123,21 @@ if (-not $Yes) {
     if ($answer -notin @("y", "Y", "yes", "YES")) { Write-StatusJson @{ status = "cancelled" }; exit 1 }
 }
 
+# ---------- VC++ Redistributable check (Windows) ----------
+$vcredist = Test-Path "C:\Windows\System32\vcruntime140_1.dll"
+if (-not $vcredist) {
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host "  缺少 Visual C++ Redistributable" -ForegroundColor Red
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "PyTorch 需要 VC++ 运行时。请下载安装："
+    Write-Host "  https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    Write-Host ""
+    Write-Host "下载后双击安装，然后重新运行本脚本。"
+    exit 1
+}
+Write-Host "[OK] VC++ Redistributable: $vcredist" -ForegroundColor Green
+
 # ---------- upgrade pip ----------
 Write-Host "--- 升级 pip ---"
 & $pythonExe -m pip install --user --upgrade pip --quiet 2>$null
