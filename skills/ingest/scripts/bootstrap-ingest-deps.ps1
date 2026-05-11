@@ -1,6 +1,7 @@
 param(
     [switch]$CheckOnly,
     [switch]$Yes,
+    [switch]$China,
     [ValidateSet("User", "System")]
     [string]$PythonScope = "User",
     [string]$EdgarIdentity
@@ -21,18 +22,26 @@ foreach ($candidate in $requirementCandidates) {
     }
 }
 
-function Test-CommandAvailable {
-    param([string]$Name)
-    return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
+function Test-CommandAvailable { param([string]$Name); return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue) }
+
+function Find-Python {
+    foreach ($name in @("python3.12", "python3.11", "python3.10", "python3", "python")) {
+        if (-not (Test-CommandAvailable $name)) { continue }
+        try {
+            $ver = & $name -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                $parts = $ver -split '\.'
+                if ([int]$parts[0] -gt 3 -or ([int]$parts[0] -eq 3 -and [int]$parts[1] -ge 10)) {
+                    return (Get-Command $name).Source
+                }
+            }
+        } catch { }
+    }
+    return $null
 }
 
-function Test-PythonModule {
-    param([string]$ModuleName)
-
-    if (-not (Test-CommandAvailable "python")) {
-        return $false
-    }
-
+function Test-PythonModule { param([string]$ModuleName)
+    if (-not (Test-CommandAvailable "python")) { return $false }
     $code = "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('$ModuleName') else 1)"
     & python -c $code *> $null
     return $LASTEXITCODE -eq 0
@@ -40,107 +49,132 @@ function Test-PythonModule {
 
 function Get-DependencyStatus {
     $packages = [ordered]@{
-        docling = Test-PythonModule "docling"
-        edgartools = Test-PythonModule "edgar"
-        pymupdf4llm = Test-PythonModule "pymupdf4llm"
-        akshare = Test-PythonModule "akshare"
+        docling       = Test-PythonModule "docling"
+        edgartools    = Test-PythonModule "edgar"
+        pymupdf4llm   = Test-PythonModule "pymupdf4llm"
+        akshare       = Test-PythonModule "akshare"
         "edinet-tools" = Test-PythonModule "edinet_tools"
-        "dart-fss" = Test-PythonModule "dart_fss"
-        openesef = Test-PythonModule "openesef"
-        openpyxl = Test-PythonModule "openpyxl"
+        "dart-fss"    = Test-PythonModule "dart_fss"
+        openesef      = Test-PythonModule "openesef"
+        openpyxl      = Test-PythonModule "openpyxl"
         "python-pptx" = Test-PythonModule "pptx"
         "python-docx" = Test-PythonModule "docx"
-        pdfplumber = Test-PythonModule "pdfplumber"
-        pypdf = Test-PythonModule "pypdf"
-        Pillow = Test-PythonModule "PIL"
+        pdfplumber    = Test-PythonModule "pdfplumber"
+        pypdf         = Test-PythonModule "pypdf"
+        Pillow        = Test-PythonModule "PIL"
     }
-
+    $pythonPath = Find-Python
     return [ordered]@{
-        python = [ordered]@{
-            available = Test-CommandAvailable "python"
-            path = if (Test-CommandAvailable "python") { (Get-Command python).Source } else { $null }
-        }
-        pip = [ordered]@{
-            available = Test-CommandAvailable "python"
-            install_scope = $PythonScope
-        }
+        python = [ordered]@{ available = $null -ne $pythonPath; path = $pythonPath }
         packages = $packages
-        binaries = [ordered]@{
-            winget = [ordered]@{
-                available = Test-CommandAvailable "winget"
-                path = if (Test-CommandAvailable "winget") { (Get-Command winget).Source } else { $null }
-            }
-            choco = [ordered]@{
-                available = Test-CommandAvailable "choco"
-                path = if (Test-CommandAvailable "choco") { (Get-Command choco).Source } else { $null }
-            }
-        }
-        env = [ordered]@{
-            EDGAR_IDENTITY = [ordered]@{
-                configured = -not [string]::IsNullOrWhiteSpace($env:EDGAR_IDENTITY)
-                value = if ([string]::IsNullOrWhiteSpace($env:EDGAR_IDENTITY)) { $null } else { $env:EDGAR_IDENTITY }
-            }
-        }
         requirements_path = if ($requirementsPath) { "$requirementsPath" } else { $null }
     }
 }
 
-function Write-StatusJson {
-    param([hashtable]$Extra)
-
+function Write-StatusJson { param([hashtable]$Extra)
     $status = Get-DependencyStatus
-    if ($Extra) {
-        foreach ($key in $Extra.Keys) {
-            $status[$key] = $Extra[$key]
-        }
-    }
+    if ($Extra) { foreach ($key in $Extra.Keys) { $status[$key] = $Extra[$key] } }
     $status | ConvertTo-Json -Depth 8
 }
 
-if ($CheckOnly) {
-    Write-StatusJson
-    exit 0
+if ($CheckOnly) { Write-StatusJson; exit 0 }
+
+# ---------- find python ----------
+$pythonExe = Find-Python
+if (-not $pythonExe) {
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host "  Python 3.10+ 未找到" -ForegroundColor Red
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "请先安装 Python，然后重新运行本脚本："
+    Write-Host ""
+    Write-Host "  winget install Python.Python.3.12" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "或从 https://www.python.org/downloads/ 下载"
+    Write-Host ""
+    Write-Host "注意: 不要使用 Microsoft Store 版本的 Python（路径权限问题）"
+    exit 1
+}
+$pyVer = & $pythonExe --version 2>&1
+Write-Host "[OK] Python: $pyVer ($pythonExe)" -ForegroundColor Green
+
+# ---------- Microsoft Store check ----------
+if ($pythonExe -match "WindowsApps") {
+    Write-Host "[!] 检测到 Microsoft Store 版本 Python，可能导致权限问题。" -ForegroundColor Yellow
+    Write-Host "    建议从 https://www.python.org/downloads/ 下载安装" -ForegroundColor Yellow
 }
 
-if (-not $requirementsPath) {
-    throw "Cannot find requirements-ingest.txt next to this script or under ../assets."
+# ---------- conda check ----------
+$condaCheck = & $pythonExe -c "import sys; print('conda' in sys.version or 'Continuum' in sys.version)" 2>$null
+if ($condaCheck -eq "True") {
+    Write-Host "[!] 检测到 Anaconda Python。建议在 conda 环境中安装。" -ForegroundColor Yellow
 }
 
-if (-not (Test-CommandAvailable "python")) {
-    throw "python is required before ingest dependencies can be installed."
-}
+# ---------- requirements ----------
+if (-not $requirementsPath) { throw "找不到 requirements-ingest.txt" }
+Write-Host "[OK] 依赖文件: $requirementsPath"
 
+# ---------- confirm ----------
 if (-not $Yes) {
-    Write-Host "This will install Python ingest dependencies from $requirementsPath using python -m pip." -ForegroundColor Yellow
-    Write-Host "Default scope is current user only. Pass -Yes to skip this confirmation." -ForegroundColor Yellow
-    $answer = Read-Host "Proceed? [y/N]"
-    if ($answer -notin @("y", "Y", "yes", "YES")) {
-        Write-StatusJson @{ status = "cancelled" }
-        exit 1
-    }
+    Write-Host "将要从 $requirementsPath 安装 Python ingest 依赖。" -ForegroundColor Yellow
+    Write-Host "--user 安装范围: $PythonScope" -ForegroundColor Yellow
+    if ($China) { Write-Host "使用中国镜像 (PyPI: tsinghua, HuggingFace: hf-mirror)" -ForegroundColor Yellow }
+    $answer = Read-Host "继续? [y/N]"
+    if ($answer -notin @("y", "Y", "yes", "YES")) { Write-StatusJson @{ status = "cancelled" }; exit 1 }
 }
 
-$pipArgs = @("-m", "pip", "install", "--upgrade", "-r", "$requirementsPath")
-if ($PythonScope -eq "User") {
-    $pipArgs = @("-m", "pip", "install", "--user", "--upgrade", "-r", "$requirementsPath")
+# ---------- upgrade pip ----------
+Write-Host "--- 升级 pip ---"
+& $pythonExe -m pip install --user --upgrade pip --quiet 2>$null
+if ($LASTEXITCODE -ne 0) { Write-Host "[!] pip 升级失败，继续使用当前版本" -ForegroundColor Yellow }
+
+# ---------- install ----------
+Write-Host "--- 安装依赖 ---"
+$pipArgs = @("-m", "pip", "install", "--user", "--only-binary", ":all:", "-r", "$requirementsPath")
+if ($China) {
+    $pipArgs = @("-m", "pip", "install", "--user", "--only-binary", ":all:", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple", "-r", "$requirementsPath")
+    $env:HF_ENDPOINT = "https://hf-mirror.com"
+    Write-Host "[China Mirror] PyPI: tsinghua, HuggingFace: hf-mirror.com"
 }
 
-& python @pipArgs
+Write-Host "Running: $pythonExe $($pipArgs -join ' ')"
+& $pythonExe @pipArgs
 if ($LASTEXITCODE -ne 0) {
-    throw "pip install failed with exit code $LASTEXITCODE"
+    Write-Host ""; Write-Host "==============================================" -ForegroundColor Red
+    Write-Host "  pip install 失败" -ForegroundColor Red
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host ""; Write-Host "常见原因:"
+    Write-Host "  1. 网络问题 → 重试: bootstrap-ingest-deps.ps1 -Yes -China"
+    Write-Host "  2. 磁盘空间不足"
+    Write-Host "  3. Python 版本问题 → 确保使用 python.org 版本 (不是 Microsoft Store)"
+    exit 1
 }
 
-if (-not [string]::IsNullOrWhiteSpace($EdgarIdentity)) {
-    $env:EDGAR_IDENTITY = $EdgarIdentity
-    & setx EDGAR_IDENTITY "$EdgarIdentity" | Out-Null
-}
+# ---------- vet ----------
+if ($EdgarIdentity) { $env:EDGAR_IDENTITY = $EdgarIdentity; & setx EDGAR_IDENTITY "$EdgarIdentity" | Out-Null }
 
-$warnings = New-Object System.Collections.Generic.List[string]
-if ([string]::IsNullOrWhiteSpace($env:EDGAR_IDENTITY)) {
-    [void]$warnings.Add("EDGAR_IDENTITY is not configured. Non-SEC ingest still works; SEC / EdgarTools routes need -EdgarIdentity `"Name email@domain.com`".")
-}
-
-Write-StatusJson @{
-    status = "completed"
-    warnings = @($warnings)
+# ---------- verify docling ----------
+Write-Host "--- 验证 docling (首次运行下载模型 ~1GB) ---"
+if ($China) { $env:HF_ENDPOINT = "https://hf-mirror.com" }
+$verifyCode = @"
+from docling.document_converter import DocumentConverter
+print('下载模型中...')
+converter = DocumentConverter()
+print('OK - docling 就绪')
+"@
+$verifyResult = & $pythonExe -c $verifyCode 2>&1
+if ($LASTEXITCODE -eq 0) {
+    Write-Host ""; Write-Host "==============================================" -ForegroundColor Green
+    Write-Host "  Ingest 环境安装完成" -ForegroundColor Green
+    Write-Host "==============================================" -ForegroundColor Green
+} else {
+    Write-Host ""; Write-Host "==============================================" -ForegroundColor Red
+    Write-Host "  pip 安装成功，但 docling 模型下载失败" -ForegroundColor Red
+    Write-Host "==============================================" -ForegroundColor Red
+    Write-Host ""; Write-Host "可能原因:"
+    Write-Host "  1. 无法访问 huggingface.co → 重试: bootstrap-ingest-deps.ps1 -Yes -China"
+    Write-Host "  2. 磁盘空间不足"
+    Write-Host "  3. 网络代理/防火墙拦截"
+    Write-Host ""; Write-Host "错误详情: $verifyResult"
+    exit 1
 }

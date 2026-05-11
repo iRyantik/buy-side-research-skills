@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'meta-skill'
 id: 'meta-skill'
 display_name: 'Meta Skill'
 version: '1.1.1'
-system_generation: '3.5.0'
+system_generation: '3.6.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'

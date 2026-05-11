@@ -105,10 +105,26 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
+- `skills/ingest/scripts/describe-figures.py`
 - `skills/ingest/scripts/bootstrap-ingest-deps.ps1`
+- `skills/ingest/scripts/bootstrap-ingest-deps.sh`
 - `skills/ingest/assets/requirements-ingest.txt`
 
-核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。依赖安装必须由用户显式 opt in。
+核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。一键安装：
+
+```powershell
+# Windows
+_scripts/bootstrap-ingest-deps.ps1 -Yes
+_scripts/bootstrap-ingest-deps.ps1 -CheckOnly   # 仅检查
+
+# macOS
+chmod +x _scripts/bootstrap-ingest-deps.sh
+./_scripts/bootstrap-ingest-deps.sh --yes
+
+# 中国用户（使用镜像）
+_scripts/bootstrap-ingest-deps.ps1 -Yes -China
+./_scripts/bootstrap-ingest-deps.sh --yes --china
+```
 
 ### PDF 双层路由
 

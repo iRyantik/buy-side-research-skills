@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$SkillName = "ingest"
 )
 
@@ -128,7 +128,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "precision_level",
         "document_type",
         "route",
-        "3.5.0",
+        "3.6.0",
         "--category",
         "auto-infer document category",
         "strict topic check"
@@ -152,7 +152,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.1.0") {
         $failures.Add("ingest: expected skill version 1.1.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.5.0") {
+    if ($systemGeneration -ne "3.6.0") {
         $failures.Add("ingest: expected system_generation 3.5.0, found '$systemGeneration'")
     }
 }

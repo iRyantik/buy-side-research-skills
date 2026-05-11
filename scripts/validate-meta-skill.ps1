@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$SkillName = "meta-skill"
 )
 
@@ -111,7 +111,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "meta-skill"
         id = "meta-skill"
         version = "1.1.1"
-        system_generation = "3.5.0"
+        system_generation = "3.6.0"
         metadata_schema_version = "1"
         category = "operations"
     }

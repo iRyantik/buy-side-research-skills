@@ -4,22 +4,21 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import csv
 import datetime as dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import hashlib
 import html
 import importlib.util
-import io
 import json
 import os
 from pathlib import Path
 import re
 import shutil
 import sys
-import tempfile
 from typing import Any
+
+from PIL import Image
 
 
 SUPPORTED_EXTENSIONS = {
@@ -64,6 +63,29 @@ class DocumentProfile:
 
 
 @dataclass
+class FigureEntry:
+    """Metadata for one extracted figure/chart."""
+    figure_id: str
+    page: int | None = None
+    bbox: tuple[float, float, float, float] | None = None
+    caption: str | None = None
+    classification: str | None = None
+    classification_confidence: float | None = None
+    image_rel_path: str | None = None
+    width_px: int | None = None
+    height_px: int | None = None
+    description: str | None = None
+
+
+@dataclass
+class FigureManifest:
+    """Manifest of all figures extracted from one source document."""
+    source_stem: str
+    figures: list[FigureEntry]
+    images_dir: str
+
+
+@dataclass
 class ConversionResult:
     markdown: str
     converter: str
@@ -74,6 +96,7 @@ class ConversionResult:
     page_count: int | None = None
     table_count: int | None = None
     ocr_required: bool = False
+    figure_manifest: FigureManifest | None = None
     dependency_status: dict[str, Any] | None = None
 
 
@@ -306,9 +329,26 @@ def markdown_header(source: Path, result: ConversionResult) -> str:
         "page_count": result.page_count if result.page_count is not None else "unknown",
         "table_count": result.table_count if result.table_count is not None else "unknown",
         "ocr_required": str(result.ocr_required).lower(),
+        "figures_extracted": str(len(result.figure_manifest.figures)) if result.figure_manifest else "0",
+        "figures_described": str(sum(1 for f in result.figure_manifest.figures if f.description)) if result.figure_manifest else "0",
     }
     body = "\n".join(f"{key}: {value}" for key, value in metadata.items())
     return f"<!--\n{body}\n-->\n\n"
+
+
+def render_figure_block(fig: FigureEntry, source_stem: str) -> str:
+    """Generate a structured markdown figure block."""
+    parts = [
+        f"<!-- FIGURE {fig.figure_id} | page: {fig.page or '?'} | classification: {fig.classification or 'unknown'} | confidence: {fig.classification_confidence or '0'} -->",
+        f"![Figure: {fig.caption or 'Uncaptioned figure'}]({fig.image_rel_path})",
+        f"*Page {fig.page or '?'} -- {fig.classification or 'unknown'} ({fig.classification_confidence or 0})*",
+    ]
+    if fig.description:
+        parts.append(f"> **Figure Description:** {fig.description}")
+    else:
+        parts.append("> [Figure description pending]")
+    parts.append("<!-- /FIGURE -->")
+    return "\n\n" + "\n".join(parts) + "\n"
 
 
 def convert_markdown(path: Path, profile: DocumentProfile) -> ConversionResult:
@@ -380,13 +420,41 @@ def convert_xlsx(path: Path, profile: DocumentProfile) -> ConversionResult:
     )
 
 
-def convert_docling(path: Path, profile: DocumentProfile, route: str) -> ConversionResult:
+def convert_docling(
+    path: Path,
+    profile: DocumentProfile,
+    route: str,
+    cache_parent: Path | None = None,
+    extract_figures: bool = True,
+) -> ConversionResult:
     require_package("docling", "docling")
     from docling.document_converter import DocumentConverter  # type: ignore
 
     converter = DocumentConverter()
+    try:
+        pdf_opt = converter.format_to_options.get("pdf")
+        if pdf_opt and hasattr(pdf_opt, "pipeline_options"):
+            pdf_opt.pipeline_options.generate_picture_images = True
+            pdf_opt.pipeline_options.images_scale = 1.5
+    except Exception:
+        pass
+
     result = converter.convert(str(path))
     markdown = result.document.export_to_markdown()
+
+    figure_manifest = None
+    if extract_figures and cache_parent is not None:
+        try:
+            source_stem = re.sub(r'[^\w\-]', '_', path.stem)[:80]
+            figure_manifest = extract_docling_figures(result, source_stem, path, cache_parent)
+            if figure_manifest and figure_manifest.figures:
+                # Append figure blocks to markdown
+                markdown += "\n\n## Extracted Figures\n\n"
+                for fig in figure_manifest.figures:
+                    markdown += render_figure_block(fig, source_stem)
+        except Exception:
+            pass
+
     return ConversionResult(
         markdown=markdown,
         converter="docling",
@@ -397,15 +465,35 @@ def convert_docling(path: Path, profile: DocumentProfile, route: str) -> Convers
         page_count=profile.page_count,
         table_count=profile.table_count,
         ocr_required=profile.ocr_required,
+        figure_manifest=figure_manifest,
         dependency_status=dependency_snapshot(["docling", "pypdf", "pdfplumber", "edgartools"]),
     )
 
 
-def convert_pymupdf4llm(path: Path, profile: DocumentProfile, route: str) -> ConversionResult:
+def convert_pymupdf4llm(
+    path: Path,
+    profile: DocumentProfile,
+    route: str,
+    cache_parent: Path | None = None,
+    extract_figures: bool = True,
+) -> ConversionResult:
     require_package("pymupdf4llm", "pymupdf4llm")
     import pymupdf4llm  # type: ignore
 
     markdown = pymupdf4llm.to_markdown(str(path))
+
+    figure_manifest = None
+    if extract_figures and cache_parent is not None:
+        try:
+            source_stem = re.sub(r'[^\w\-]', '_', path.stem)[:80]
+            figure_manifest = extract_pymupdf_figures(path, source_stem, cache_parent)
+            if figure_manifest and figure_manifest.figures:
+                markdown += "\n\n## Extracted Figures\n\n"
+                for fig in figure_manifest.figures:
+                    markdown += render_figure_block(fig, source_stem)
+        except Exception:
+            pass
+
     return ConversionResult(
         markdown=markdown,
         converter="pymupdf4llm",
@@ -416,6 +504,7 @@ def convert_pymupdf4llm(path: Path, profile: DocumentProfile, route: str) -> Con
         page_count=profile.page_count,
         table_count=profile.table_count,
         ocr_required=profile.ocr_required,
+        figure_manifest=figure_manifest,
         dependency_status=dependency_snapshot(["pymupdf4llm", "pypdf", "pdfplumber"]),
     )
 
@@ -449,7 +538,12 @@ def convert_docx_fallback(path: Path, profile: DocumentProfile) -> ConversionRes
     )
 
 
-def convert_pptx_fallback(path: Path, profile: DocumentProfile) -> ConversionResult:
+def convert_pptx_fallback(
+    path: Path,
+    profile: DocumentProfile,
+    cache_parent: Path | None = None,
+    extract_figures: bool = True,
+) -> ConversionResult:
     require_package("python-pptx", "pptx")
     from pptx import Presentation  # type: ignore
 
@@ -469,6 +563,19 @@ def convert_pptx_fallback(path: Path, profile: DocumentProfile) -> ConversionRes
         except Exception:
             pass
         parts.append("")
+
+    figure_manifest = None
+    if extract_figures and cache_parent is not None:
+        try:
+            source_stem = re.sub(r'[^\w\-]', '_', path.stem)[:80]
+            figure_manifest = extract_pptx_figures(path, source_stem, cache_parent)
+            if figure_manifest and figure_manifest.figures:
+                parts.append("\n\n## Extracted Figures\n\n")
+                for fig in figure_manifest.figures:
+                    parts.append(render_figure_block(fig, source_stem))
+        except Exception:
+            pass
+
     return ConversionResult(
         markdown="\n".join(parts),
         converter="python-pptx",
@@ -477,6 +584,7 @@ def convert_pptx_fallback(path: Path, profile: DocumentProfile) -> ConversionRes
         document_type=profile.document_type,
         route="pptx-python-pptx-fallback",
         page_count=len(deck.slides),
+        figure_manifest=figure_manifest,
         dependency_status=dependency_snapshot(["python-pptx"]),
     )
 
@@ -514,14 +622,19 @@ def ensure_sec_route_ready(profile: DocumentProfile) -> None:
         )
 
 
-def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
+def convert_pdf(
+    path: Path,
+    profile: DocumentProfile,
+    cache_parent: Path | None = None,
+    extract_figures: bool = True,
+) -> ConversionResult:
     if profile.ocr_required:
         if module_available("docling"):
-            result = convert_docling(path, profile, route="pdf-docling-scanned")
+            result = convert_docling(path, profile, route="pdf-docling-scanned", cache_parent=cache_parent, extract_figures=extract_figures)
             result.precision = "Scanned PDF via Docling; text may contain OCR errors, verify key numbers and tables against original scan. For critical scanned documents, prefer Claude Vision review."
             return result
         if module_available("pymupdf4llm"):
-            result = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-scanned-fallback")
+            result = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-scanned-fallback", cache_parent=cache_parent, extract_figures=extract_figures)
             result.precision = "Scanned PDF via PyMuPDF4LLM fallback; text may contain OCR errors, verify key numbers against original. For critical scanned documents, prefer Claude Vision review."
             return result
         raise IngestError(
@@ -532,7 +645,7 @@ def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
     if profile.sec_filing:
         ensure_sec_route_ready(profile)
         try:
-            result = convert_docling(path, profile, route="sec-filing-edgartools-xbrl-docling-narrative")
+            result = convert_docling(path, profile, route="sec-filing-edgartools-xbrl-docling-narrative", cache_parent=cache_parent, extract_figures=extract_figures)
             note = (
                 "\n\n## SEC XBRL Route Note\n\n"
                 "EdgarTools dependency and EDGAR_IDENTITY are available. This cache converts the local filing narrative; "
@@ -549,26 +662,26 @@ def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
 
     if table_heavy and module_available("docling"):
         try:
-            return convert_docling(path, profile, route="pdf-docling-table-heavy")
+            return convert_docling(path, profile, route="pdf-docling-table-heavy", cache_parent=cache_parent, extract_figures=extract_figures)
         except Exception as exc:
             if module_available("pymupdf4llm"):
-                fallback = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-fallback-after-docling-error")
+                fallback = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-fallback-after-docling-error", cache_parent=cache_parent, extract_figures=extract_figures)
                 fallback.precision = f"{fallback.precision}; Docling failed: {exc}"
                 return fallback
             raise IngestError(f"Docling PDF conversion failed for table-heavy document: {exc}") from exc
 
     if module_available("pymupdf4llm"):
         try:
-            return convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-text")
+            return convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-text", cache_parent=cache_parent, extract_figures=extract_figures)
         except Exception as exc:
             if module_available("docling"):
-                fallback = convert_docling(path, profile, route="pdf-docling-fallback-after-pymupdf4llm-error")
+                fallback = convert_docling(path, profile, route="pdf-docling-fallback-after-pymupdf4llm-error", cache_parent=cache_parent, extract_figures=extract_figures)
                 fallback.precision = f"{fallback.precision}; PyMuPDF4LLM failed: {exc}"
                 return fallback
             raise IngestError(f"PyMuPDF4LLM conversion failed: {exc}") from exc
 
     if module_available("docling"):
-        return convert_docling(path, profile, route="pdf-docling")
+        return convert_docling(path, profile, route="pdf-docling", cache_parent=cache_parent, extract_figures=extract_figures)
 
     if profile.text_chars and profile.text_chars >= 20 and module_available("pypdf"):
         return convert_pdf_pypdf_fallback(path, profile, route="pdf-pypdf-fallback-no-docling-no-pymupdf4llm")
@@ -576,7 +689,289 @@ def convert_pdf(path: Path, profile: DocumentProfile) -> ConversionResult:
     raise IngestError("PDF conversion requires Docling or PyMuPDF4LLM. Run bootstrap-ingest-deps.ps1; no cache was written.")
 
 
-def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
+def extract_docling_figures(
+    docling_result,
+    source_stem: str,
+    source_path: Path,
+    cache_parent: Path,
+) -> FigureManifest:
+    """Extract embedded picture items from a Docling conversion result."""
+    images_dir = f"_images/{source_stem}/"
+    abs_images_dir = cache_parent / "_images" / source_stem
+    abs_images_dir.mkdir(parents=True, exist_ok=True)
+
+    figures: list[FigureEntry] = []
+    content_hashes: set[str] = set()
+    fig_counter = 0
+
+    try:
+        from docling.datamodel.base_models import Size
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+    except ImportError:
+        pass
+
+    for item, _depth in docling_result.document.iterate_items():
+        if type(item).__name__ != 'PictureItem':
+            continue
+        page = item.prov[0].page_no if item.prov else None
+        bbox = None
+        try:
+            if item.prov and item.prov[0].bbox:
+                b = item.prov[0].bbox
+                bbox = (b.l, b.t, b.r, b.b)
+        except Exception:
+            pass
+
+        # Try to get image from the picture item
+        img = None
+        if hasattr(item, "image") and item.image is not None:
+            try:
+                img = item.image
+            except Exception:
+                pass
+
+        if img is None:
+            continue
+
+        # Convert to PIL Image
+        try:
+            import io
+            import hashlib
+            from docling_core.types.doc.document import ImageRef
+
+            if isinstance(img, ImageRef):
+                pil_img = img.pil_image
+                if pil_img is None:
+                    continue
+            elif isinstance(img, (bytes, bytearray)):
+                pil_img = Image.open(io.BytesIO(img))
+            elif hasattr(img, 'pil_image'):
+                pil_img = img.pil_image
+                if pil_img is None:
+                    continue
+            else:
+                pil_img = img
+
+            if pil_img is None:
+                continue
+        except Exception:
+            continue
+
+        w, h = pil_img.size
+        # Filter out tiny images (icons, bullets, decorative elements)
+        if max(w, h) < 200:
+            continue
+
+        # Deduplicate by image content hash
+        import io as _io
+        buf = _io.BytesIO()
+        pil_img.save(buf, format="PNG")
+        content_hash = hashlib.sha256(buf.getvalue()).hexdigest()
+        if content_hash in content_hashes:
+            continue
+        content_hashes.add(content_hash)
+
+        fig_counter += 1
+        figure_id = f"fig-{fig_counter:03d}"
+        safe_stem = re.sub(r'[^\w\-]', '_', source_stem)[:80]
+        filename = f"{figure_id}-p{page or 0}.png"
+        filepath = abs_images_dir / filename
+        # Resize to max 2048px on longest side
+        if max(w, h) > 2048:
+            ratio = 2048 / max(w, h)
+            pil_img = pil_img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+        pil_img.save(filepath, "PNG", optimize=True)
+        rel_path = f"{images_dir}{filename}"
+
+        # Try to get caption
+        caption = None
+        try:
+            if hasattr(item, "captions") and item.captions:
+                caption = " ".join(c.text for c in item.captions if hasattr(c, "text"))
+        except Exception:
+            pass
+
+        # Try to get classification
+        classification = None
+        confidence = None
+        try:
+            if hasattr(item, "annotations") and item.annotations:
+                for ann in item.annotations:
+                    cls_name = getattr(ann, "name", None) or getattr(ann, "label", None)
+                    if cls_name:
+                        classification = str(cls_name)
+                        confidence = getattr(ann, "confidence", None)
+                        break
+        except Exception:
+            pass
+
+        figures.append(FigureEntry(
+            figure_id=figure_id,
+            page=page,
+            bbox=bbox,
+            caption=caption,
+            classification=classification,
+            classification_confidence=confidence,
+            image_rel_path=rel_path,
+            width_px=pil_img.width,
+            height_px=pil_img.height,
+            description=None,
+        ))
+
+    return FigureManifest(source_stem=source_stem, figures=figures, images_dir=images_dir)
+
+
+def extract_pymupdf_figures(
+    source_path: Path,
+    source_stem: str,
+    cache_parent: Path,
+) -> FigureManifest:
+    """Extract images from PDF using PyMuPDF (fitz) for pymupdf4llm route."""
+    images_dir = f"_images/{source_stem}/"
+    abs_images_dir = cache_parent / "_images" / source_stem
+    abs_images_dir.mkdir(parents=True, exist_ok=True)
+
+    figures: list[FigureEntry] = []
+    content_hashes: set[str] = set()
+    fig_counter = 0
+
+    try:
+        import fitz
+    except ImportError:
+        return FigureManifest(source_stem=source_stem, figures=[], images_dir=images_dir)
+
+    try:
+        doc = fitz.open(str(source_path))
+    except Exception:
+        return FigureManifest(source_stem=source_stem, figures=[], images_dir=images_dir)
+
+    import hashlib
+
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        image_list = page.get_images(full=True)
+        for img_info in image_list:
+            xref = img_info[0]
+            try:
+                base = doc.extract_image(xref)
+            except Exception:
+                continue
+            img_bytes = base.get("image")
+            if not img_bytes:
+                continue
+            try:
+                import io
+                pil_img = Image.open(io.BytesIO(img_bytes))
+            except Exception:
+                continue
+            w, h = pil_img.size
+            # Stricter filter: fitz catches all layout images including header/footer
+            if max(w, h) < 400:
+                continue
+
+            # Deduplicate by content hash
+            content_hash = hashlib.sha256(img_bytes).hexdigest()
+            if content_hash in content_hashes:
+                continue
+            content_hashes.add(content_hash)
+
+            fig_counter += 1
+            figure_id = f"fig-{fig_counter:03d}"
+            safe_stem = re.sub(r'[^\w\-]', '_', source_stem)[:80]
+            filename = f"{figure_id}-p{page_num + 1}.png"
+            filepath = abs_images_dir / filename
+            if max(w, h) > 2048:
+                ratio = 2048 / max(w, h)
+                pil_img = pil_img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+            pil_img.save(filepath, "PNG", optimize=True)
+            rel_path = f"{images_dir}{filename}"
+
+            figures.append(FigureEntry(
+                figure_id=figure_id,
+                page=page_num + 1,
+                image_rel_path=rel_path,
+                width_px=pil_img.width,
+                height_px=pil_img.height,
+                description=None,
+            ))
+
+    doc.close()
+    return FigureManifest(source_stem=source_stem, figures=figures, images_dir=images_dir)
+
+
+def extract_pptx_figures(
+    source_path: Path,
+    source_stem: str,
+    cache_parent: Path,
+) -> FigureManifest:
+    """Extract embedded images from PPTX slides."""
+    images_dir = f"_images/{source_stem}/"
+    abs_images_dir = cache_parent / "_images" / source_stem
+    abs_images_dir.mkdir(parents=True, exist_ok=True)
+
+    figures: list[FigureEntry] = []
+    fig_counter = 0
+
+    try:
+        from pptx import Presentation
+    except ImportError:
+        return FigureManifest(source_stem=source_stem, figures=[], images_dir=images_dir)
+
+    try:
+        deck = Presentation(str(source_path))
+    except Exception:
+        return FigureManifest(source_stem=source_stem, figures=[], images_dir=images_dir)
+
+    for slide_idx, slide in enumerate(deck.slides, start=1):
+        for shape in slide.shapes:
+            img_blob = None
+            try:
+                if shape.shape_type == 13:  # MSO_SHAPE_TYPE.PICTURE
+                    img_blob = shape.image.blob
+                elif hasattr(shape, "image"):
+                    img_blob = shape.image.blob
+            except Exception:
+                continue
+            if not img_blob:
+                continue
+            try:
+                import io
+                pil_img = Image.open(io.BytesIO(img_blob))
+            except Exception:
+                continue
+            w, h = pil_img.size
+            if max(w, h) < 200:
+                continue
+
+            fig_counter += 1
+            figure_id = f"fig-{fig_counter:03d}"
+            safe_stem = re.sub(r'[^\w\-]', '_', source_stem)[:80]
+            filename = f"{figure_id}-p{slide_idx}.png"
+            filepath = abs_images_dir / filename
+            if max(w, h) > 2048:
+                ratio = 2048 / max(w, h)
+                pil_img = pil_img.resize((int(w * ratio), int(h * ratio)), Image.LANCZOS)
+            pil_img.save(filepath, "PNG", optimize=True)
+            rel_path = f"{images_dir}{filename}"
+
+            figures.append(FigureEntry(
+                figure_id=figure_id,
+                page=slide_idx,
+                image_rel_path=rel_path,
+                width_px=pil_img.width,
+                height_px=pil_img.height,
+                description=None,
+            ))
+
+    return FigureManifest(source_stem=source_stem, figures=figures, images_dir=images_dir)
+
+
+def route_converter(
+    path: Path,
+    profile: DocumentProfile,
+    cache_parent: Path | None = None,
+    extract_figures: bool = True,
+) -> ConversionResult:
     if profile.extension in {".md", ".markdown"}:
         return convert_markdown(path, profile)
     if profile.extension == ".txt":
@@ -594,14 +989,14 @@ def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
             )
     if profile.extension == ".docx":
         if module_available("docling"):
-            return convert_docling(path, profile, route="docx-docling")
+            return convert_docling(path, profile, route="docx-docling", cache_parent=cache_parent, extract_figures=extract_figures)
         return convert_docx_fallback(path, profile)
     if profile.extension == ".pptx":
         if module_available("docling"):
             try:
-                docling_result = convert_docling(path, profile, route="pptx-docling")
+                docling_result = convert_docling(path, profile, route="pptx-docling", cache_parent=cache_parent, extract_figures=extract_figures)
                 if module_available("pptx"):
-                    notes_result = convert_pptx_fallback(path, profile)
+                    notes_result = convert_pptx_fallback(path, profile, cache_parent=cache_parent, extract_figures=extract_figures)
                     docling_result.markdown = (
                         docling_result.markdown.rstrip()
                         + "\n\n## python-pptx Speaker Notes Fallback\n\n"
@@ -609,10 +1004,10 @@ def route_converter(path: Path, profile: DocumentProfile) -> ConversionResult:
                     )
                 return docling_result
             except Exception:
-                return convert_pptx_fallback(path, profile)
-        return convert_pptx_fallback(path, profile)
+                return convert_pptx_fallback(path, profile, cache_parent=cache_parent, extract_figures=extract_figures)
+        return convert_pptx_fallback(path, profile, cache_parent=cache_parent, extract_figures=extract_figures)
     if profile.extension == ".pdf":
-        return convert_pdf(path, profile)
+        return convert_pdf(path, profile, cache_parent=cache_parent, extract_figures=extract_figures)
     raise IngestError(f"Unsupported file extension: {profile.extension}")
 
 
@@ -668,11 +1063,11 @@ def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> 
     return "unclassified"
 
 
-def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, category: str) -> Path:
+def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topic: str | None) -> Path:
     resolved = resolve_topic(source, workspace, topic)
     if cache_root:
-        return cache_root / resolved / category / f"{source.stem}.md"
-    return workspace / "topics" / resolved / "_cache" / category / f"{source.stem}.md"
+        return cache_root / resolved / f"{source.stem}.md"
+    return workspace / "topics" / resolved / "_cache" / f"{source.stem}.md"
 
 
 def read_cache_metadata(path: Path) -> dict[str, str]:
@@ -702,281 +1097,6 @@ def candidate_files(source: Path, recursive: bool) -> list[Path]:
         return [source]
     pattern = "**/*" if recursive else "*"
     return sorted(path for path in source.glob(pattern) if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS)
-
-
-# ── Image extraction ────────────────────────────────────────────
-
-@dataclass
-class ExtractedImage:
-    data: bytes
-    page: int
-    width: int
-    height: int
-    content_hash: str
-
-
-def _img_hash(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()[:16]
-
-
-def _significant_image(img: ExtractedImage) -> bool:
-    return img.width >= 100 and img.height >= 100
-
-
-def _deduplicate_images(images: list[ExtractedImage]) -> list[ExtractedImage]:
-    seen: set[str] = set()
-    result: list[ExtractedImage] = []
-    for img in images:
-        if img.content_hash not in seen:
-            seen.add(img.content_hash)
-            result.append(img)
-    return result
-
-
-def extract_images_from_pdf(path: Path) -> list[ExtractedImage]:
-    images: list[ExtractedImage] = []
-    try:
-        import fitz  # type: ignore
-    except ImportError:
-        return images
-    doc = fitz.open(str(path))
-    for page_idx in range(min(len(doc), 50)):
-        page = doc[page_idx]
-        for img_info in page.get_images(full=True):
-            try:
-                xref = img_info[0]
-                base_image = doc.extract_image(xref)
-                img_bytes = base_image.get("image")
-                if not img_bytes:
-                    continue
-                w = base_image.get("width", 0)
-                h = base_image.get("height", 0)
-                images.append(ExtractedImage(
-                    data=img_bytes,
-                    page=page_idx + 1,
-                    width=w,
-                    height=h,
-                    content_hash=_img_hash(img_bytes),
-                ))
-            except Exception:
-                continue
-    doc.close()
-    return images
-
-
-def extract_images_from_docx(path: Path) -> list[ExtractedImage]:
-    images: list[ExtractedImage] = []
-    try:
-        from docx import Document  # type: ignore
-        from docx.opc.constants import RELATIONSHIP_TYPE as RT  # type: ignore
-    except ImportError:
-        return images
-    try:
-        doc = Document(str(path))
-        for rel in doc.part.rels.values():
-            if "image" not in rel.reltype:
-                continue
-            try:
-                img_bytes = rel.target_part.blob
-                pil_img = _pil_open(img_bytes)
-                if pil_img:
-                    w, h = pil_img.size
-                    images.append(ExtractedImage(
-                        data=img_bytes,
-                        page=0,
-                        width=w,
-                        height=h,
-                        content_hash=_img_hash(img_bytes),
-                    ))
-            except Exception:
-                continue
-    except Exception:
-        pass
-    return images
-
-
-def extract_images_from_pptx(path: Path) -> list[ExtractedImage]:
-    images: list[ExtractedImage] = []
-    try:
-        from pptx import Presentation  # type: ignore
-    except ImportError:
-        return images
-    try:
-        deck = Presentation(str(path))
-        for slide_idx, slide in enumerate(deck.slides, start=1):
-            for shape in slide.shapes:
-                if shape.shape_type != 13:  # MSO_SHAPE_TYPE.PICTURE
-                    continue
-                try:
-                    img_bytes = shape.image.blob
-                    pil_img = _pil_open(img_bytes)
-                    if pil_img:
-                        w, h = pil_img.size
-                        images.append(ExtractedImage(
-                            data=img_bytes,
-                            page=slide_idx,
-                            width=w,
-                            height=h,
-                            content_hash=_img_hash(img_bytes),
-                        ))
-                except Exception:
-                    continue
-    except Exception:
-        pass
-    return images
-
-
-def extract_images_from_xlsx(path: Path) -> list[ExtractedImage]:
-    images: list[ExtractedImage] = []
-    try:
-        from openpyxl import load_workbook  # type: ignore
-    except ImportError:
-        return images
-    try:
-        wb = load_workbook(str(path), data_only=True)
-        for ws in wb.worksheets:
-            for img in ws._images:
-                try:
-                    img_bytes = img.ref
-                    pil_img = _pil_open(img_bytes)
-                    if pil_img:
-                        w, h = pil_img.size
-                        images.append(ExtractedImage(
-                            data=img_bytes,
-                            page=0,
-                            width=w,
-                            height=h,
-                            content_hash=_img_hash(img_bytes),
-                        ))
-                except Exception:
-                    continue
-    except Exception:
-        pass
-    return images
-
-
-def _pil_open(data: bytes):
-    try:
-        from PIL import Image  # type: ignore
-        return Image.open(io.BytesIO(data))
-    except Exception:
-        return None
-
-
-def extract_images(path: Path, profile: DocumentProfile) -> list[ExtractedImage]:
-    ext = path.suffix.lower()
-    if ext == ".pdf":
-        return extract_images_from_pdf(path)
-    if ext == ".docx":
-        return extract_images_from_docx(path)
-    if ext == ".pptx":
-        return extract_images_from_pptx(path)
-    if ext in (".xlsx", ".xlsm"):
-        return extract_images_from_xlsx(path)
-    return []
-
-
-def write_figures(images: list[ExtractedImage], cache_dir: Path) -> list[str]:
-    figures_dir = cache_dir / "_figures"
-    figures_dir.mkdir(parents=True, exist_ok=True)
-    refs: list[str] = []
-    for i, img in enumerate(images, start=1):
-        filename = f"img_{i:03d}.png"
-        filepath = figures_dir / filename
-        filepath.write_bytes(img.data)
-        refs.append(f"_figures/{filename}")
-    return refs
-
-
-def build_figures_section(figure_refs: list[str], images: list[ExtractedImage], descriptions: list[str] | None = None) -> str:
-    if not figure_refs:
-        return ""
-    lines = ["", "## Figures & Charts", ""]
-    for i, ref in enumerate(figure_refs, start=1):
-        img = images[i - 1]
-        meta = f"page: {img.page}, dims: {img.width}x{img.height}"
-        lines.append(f"### Figure {i}")
-        if descriptions and i <= len(descriptions) and descriptions[i - 1]:
-            lines.append(f"<!-- {meta} -->")
-            lines.append(descriptions[i - 1])
-        else:
-            lines.append(f"![Figure {i}]({ref})")
-            lines.append(f"<!-- {meta} -->")
-        lines.append("")
-    return "\n".join(lines)
-
-
-def load_vision_config() -> dict[str, Any]:
-    return {
-        "endpoint": os.getenv("VISION_ENDPOINT", ""),
-        "api_key": os.getenv("VISION_API_KEY", ""),
-        "model": os.getenv("VISION_MODEL_NAME", "gpt-4o"),
-        "max_tokens": int(os.getenv("VISION_MAX_TOKENS", "1024")),
-        "max_images": int(os.getenv("VISION_MAX_IMAGES_PER_DOC", "20")),
-    }
-
-
-def call_vision_api(image_path: str, config: dict[str, Any]) -> str:
-    try:
-        import urllib.request
-    except ImportError:
-        return ""
-    with open(image_path, "rb") as fh:
-        img_b64 = base64.b64encode(fh.read()).decode("utf-8")
-    body = json.dumps({
-        "model": config["model"],
-        "messages": [{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": "Describe this chart, table, or diagram from a financial document. Extract key numbers, labels, trends, and units. Be specific and quantitative."},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}},
-            ]
-        }],
-        "max_tokens": config["max_tokens"],
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        config["endpoint"],
-        data=body,
-        headers={
-            "Authorization": f"Bearer {config['api_key']}",
-            "Content-Type": "application/json",
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data.get("choices", [{}])[0].get("message", {}).get("content", "")
-    except Exception as exc:
-        return f"[Vision API error: {exc}]"
-
-
-def describe_figures(figure_refs: list[str], cache_dir: Path, config: dict[str, Any]) -> list[str]:
-    if not config["endpoint"] or not config["api_key"]:
-        return []
-    max_n = config["max_images"]
-    descriptions: list[str] = []
-    for i, ref in enumerate(figure_refs[:max_n], start=1):
-        img_path = cache_dir / ref
-        desc = call_vision_api(str(img_path), config)
-        descriptions.append(desc)
-    return descriptions
-
-
-def _inject_figures(source: Path, profile: DocumentProfile, result: ConversionResult, cache_dir: Path) -> tuple[str, int]:
-    images = extract_images(source, profile)
-    images = _deduplicate_images(images)
-    images = [img for img in images if _significant_image(img)]
-    if not images:
-        return "", 0
-    max_n = load_vision_config()["max_images"]
-    images = images[:max_n]
-    figure_refs = write_figures(images, cache_dir)
-    vision = load_vision_config()
-    descriptions = None
-    if vision["endpoint"] and vision["api_key"]:
-        descriptions = describe_figures(figure_refs, cache_dir, vision)
-    figures_md = build_figures_section(figure_refs, images, descriptions)
-    return figures_md, len(images)
 
 
 def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
@@ -1013,12 +1133,13 @@ def _move_to_raw(source: Path, workspace: Path, topic: str, category: str) -> Pa
     return dest
 
 
-def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, category: str | None, force: bool) -> dict[str, Any]:
+def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, category: str | None, force: bool, extract_figures: bool = True) -> dict[str, Any]:
     profile = detect_format(source)
+    target = output_path_for(source, workspace, cache_root, topic)
     resolved_topic = resolve_topic(source, workspace, topic)
     _check_topic_exists(workspace, resolved_topic)
     resolved_category = category or infer_category(source, profile)
-    target = output_path_for(source, workspace, cache_root, topic, resolved_category)
+    cache_parent = target.parent if not cache_root else None
     if target.exists() and not force:
         current_hash = sha256_file(source)
         metadata = read_cache_metadata(target)
@@ -1027,10 +1148,9 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
         if cached_source_path != str(source) or cached_hash != current_hash:
             target = collision_safe_output_path(target, source)
             if not target.exists():
-                result = route_converter(source, profile)
+                result = route_converter(source, profile, cache_parent=cache_parent, extract_figures=extract_figures)
                 target.parent.mkdir(parents=True, exist_ok=True)
-                figs_md, image_count = _inject_figures(source, profile, result, target.parent)
-                target.write_text(markdown_header(source, result) + result.markdown.rstrip() + figs_md + "\n", encoding="utf-8")
+                target.write_text(markdown_header(source, result) + result.markdown.rstrip() + "\n", encoding="utf-8")
                 raw_dest = None
                 moved = False
                 if _source_is_in_inbox(source, workspace):
@@ -1050,7 +1170,6 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
                     "ocr_required": result.ocr_required,
                     "dependency_status": result.dependency_status,
                     "category": resolved_category,
-                    "image_count": image_count,
                 }
                 if moved:
                     entry["moved_to_raw"] = raw_dest
@@ -1073,10 +1192,9 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
             entry["moved_to_raw"] = str(_move_to_raw(source, workspace, resolved_topic, resolved_category))
         return entry
 
-    result = route_converter(source, profile)
+    result = route_converter(source, profile, cache_parent=cache_parent, extract_figures=extract_figures)
     target.parent.mkdir(parents=True, exist_ok=True)
-    figs_md_final, image_count_final = _inject_figures(source, profile, result, target.parent)
-    target.write_text(markdown_header(source, result) + result.markdown.rstrip() + figs_md_final + "\n", encoding="utf-8")
+    target.write_text(markdown_header(source, result) + result.markdown.rstrip() + "\n", encoding="utf-8")
     raw_dest = None
     moved = False
     if _source_is_in_inbox(source, workspace):
@@ -1096,7 +1214,6 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
         "ocr_required": result.ocr_required,
         "dependency_status": result.dependency_status,
         "category": resolved_category,
-        "image_count": image_count_final,
     }
     if moved:
         entry["moved_to_raw"] = raw_dest
@@ -1113,11 +1230,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bucket", help="Deprecated. Use --topic instead.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing cache files.")
     parser.add_argument("--recursive", action="store_true", help="Recursively ingest supported files in a directory.")
-    parser.add_argument("--vision-endpoint", help="External vision model API endpoint for image description.")
-    parser.add_argument("--vision-api-key", help="API key for external vision model.")
-    parser.add_argument("--vision-model", help="Vision model name (e.g. gpt-4o, gemini-2.0-flash).")
-    parser.add_argument("--describe-images", action="store_true", help="Call vision API to describe extracted images (requires VISION_ENDPOINT).")
     parser.add_argument("--check-deps", action="store_true", help="Print ingest dependency matrix as JSON and exit.")
+    parser.add_argument("--extract-figures", action="store_true", default=True, dest="extract_figures",
+                        help="Extract figures/charts from documents during ingest (default: True)")
+    parser.add_argument("--no-extract-figures", action="store_false", dest="extract_figures",
+                        help="Skip figure extraction")
     return parser.parse_args()
 
 
@@ -1148,7 +1265,7 @@ def main() -> int:
         failed = []
         for file_path in files:
             try:
-                results.append(cache(file_path.resolve(), workspace, cache_root, topic, args.category, args.force))
+                results.append(cache(file_path.resolve(), workspace, cache_root, topic, args.category, args.force, extract_figures=args.extract_figures))
             except Exception as exc:
                 profile: dict[str, Any] = {}
                 try:

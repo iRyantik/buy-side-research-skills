@@ -1,4 +1,4 @@
-﻿# CLAUDE.md - Buy-Side Research Workspace Constitution
+# CLAUDE.md - Buy-Side Research Workspace Constitution
 
 > 本文件是当前 research workspace 的本地宪法。任何在此目录或子目录工作的 Claude / Codex / agent，都必须遵守以下规则。
 > 如果本文件与某个 skill 的局部指令冲突，采用更严格的 source、反幻觉、文件安全和 workspace 边界规则。
@@ -11,7 +11,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `3.5.0`
+- Current system generation: `3.6.0`
 
 本 workspace 用于 buy-side equity research。目标不是“了解公司”，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
 

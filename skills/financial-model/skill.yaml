@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'financial-model'
 id: 'financial-model'
 display_name: 'Financial Model'
 version: '1.0.1'
-system_generation: '3.5.0'
+system_generation: '3.6.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

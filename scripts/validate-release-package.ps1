@@ -83,6 +83,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/ingest/scripts/ingest_xlsx.py",
             "skills/ingest/scripts/ingest_table_crosscheck.py",
             "skills/ingest/scripts/bootstrap-ingest-deps.ps1",
+            "skills/ingest/scripts/bootstrap-ingest-deps.sh",
+            "skills/ingest/scripts/describe-figures.py",
             "skills/meta-skill/SKILL.md",
             "skills/meta-skill/skill.yaml",
             "skills/new-session/SKILL.md",
