@@ -46,7 +46,9 @@ copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
 .\_scripts\env-setup.ps1
 ```
 
-**只需要填 `EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。其他市场零配置。
+**`EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。其他市场零配置。
+
+如需外部视觉模型自动描述图表（Claude 多模态已覆盖），取消 `env-setup.ps1` 中 `VLM_API_KEY` 等注释。
 
 检查当前状态：`_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
 
