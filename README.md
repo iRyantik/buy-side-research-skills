@@ -49,9 +49,11 @@ copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
 .\_scripts\env-setup.ps1
 ```
 
-**`EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。其他市场零配置。
+**`EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。
 
-如需外部视觉模型自动描述图表（Claude 多模态已覆盖），取消 `env-setup.ps1` 中 `VLM_API_KEY` 等注释。
+如果需要韩国市场财报，还需配置 **`DART_API_KEY`**（免费注册 https://opendart.fss.or.kr/）。
+
+其他市场零配置。如需外部视觉模型，取消 `env-setup.ps1` 中 `VLM_API_KEY` 等注释。
 
 检查当前状态：`_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
 
