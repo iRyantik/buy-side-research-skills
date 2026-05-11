@@ -52,4 +52,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-de
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
-Python 包默认安装到当前用户。Tesseract 是系统二进制文件；安装脚本优先尝试 `winget`，否则打印 Chocolatey / UB Mannheim 替代安装指引。此脚本不会在 `init-workspace` 期间自动运行。
+Python 包默认安装到当前用户。此脚本不会在 `init-workspace` 期间自动运行。
+
+## 环境变量
+
+`init-workspace` 会在 workspace 的 `_scripts/` 下生成 `env-setup.ps1.template`。复制为 `env-setup.ps1`，填入你的信息后运行一次：
+
+```powershell
+copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
+notepad _scripts\env-setup.ps1    # 填入 API 信息
+.\_scripts\env-setup.ps1          # 持久化到系统环境变量
+```
+
+或者直接把信息告诉 Claude，让它来配。

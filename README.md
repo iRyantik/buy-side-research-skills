@@ -39,23 +39,17 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 ## 环境配置
 
-研究类 skill 走 Claude 自身能力，**零配置**。只有 `ingest` 转换原始文件时需要 Python 依赖和可选的 API 信息。
+研究类 skill 走 Claude 自身能力，**零配置**。
 
-`init-workspace` 会在 workspace 的 `_scripts/` 下放入 `env-setup.ps1.template`——复制为 `env-setup.ps1`，填入你的信息后运行一次即可：
+只有 `ingest` 转换美股 SEC filing 时需要提供 **EDGAR_IDENTITY**（格式 `"姓名 email@domain.com"`，无需注册账号，SEC 只是要求访问者自报身份）。
 
-```powershell
-copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
-# 编辑 _scripts\env-setup.ps1，填入 EDGAR_IDENTITY 等
-.\_scripts\env-setup.ps1
-```
+**按需获取**：
 
-**`EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。
+| 市场 | 需要什么 | 在哪获取 |
+|---|---|---|
+| 韩国 | DART API Key（免费） | https://opendart.fss.or.kr/ 注册即可 |
 
-如果需要韩国市场财报，还需配置 **`DART_API_KEY`**（免费注册 https://opendart.fss.or.kr/）。
-
-其他市场零配置。如需外部视觉模型，取消 `env-setup.ps1` 中 `VLM_API_KEY` 等注释。
-
-检查当前状态：`_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
+把上面的信息告诉 Claude，让它帮忙配。更多细节见 [docs/install.md](docs/install.md)。
 
 ## 第一次使用
 
