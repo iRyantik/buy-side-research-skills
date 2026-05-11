@@ -66,6 +66,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 - `skills/init-workspace/assets/AGENTS.md.template`
 - `skills/init-workspace/assets/gitignore.template`
 - `skills/init-workspace/assets/edge-radar.md`
+- `skills/init-workspace/assets/env-setup.ps1.template`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`

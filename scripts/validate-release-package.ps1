@@ -75,6 +75,7 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/init-workspace/assets/AGENTS.md.template",
             "skills/init-workspace/assets/gitignore.template",
             "skills/init-workspace/assets/edge-radar.md",
+            "skills/init-workspace/assets/env-setup.ps1.template",
             "skills/init-workspace/scripts/init-research-workspace.ps1",
             "skills/ingest/SKILL.md",
             "skills/ingest/skill.yaml",

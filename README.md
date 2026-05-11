@@ -34,6 +34,26 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 更多安装说明见 [docs/install.md](docs/install.md)。
 
+## 环境配置
+
+研究类 skill 走 Claude 自身能力，**零配置**。只有 `ingest` 转换原始文件时需要 Python 依赖和可选的 API 信息。
+
+`init-workspace` 会在 workspace 的 `_scripts/` 下放入 `env-setup.ps1.template`——复制为 `env-setup.ps1`，填入你的信息后运行一次即可：
+
+```powershell
+copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
+# 编辑 _scripts\env-setup.ps1，填入 EDGAR_IDENTITY 等
+.\_scripts\env-setup.ps1
+```
+
+| 变量 | 用途 | 必填 |
+|---|---|---|
+| `EDGAR_IDENTITY` | 美股 SEC filing（格式 `"Name email@domain.com"`） | 仅美股 |
+| `HF_ENDPOINT` | HuggingFace 镜像，国内设 `https://hf-mirror.com` | 仅中国 |
+| `VLM_API_URL/KEY/MODEL` | describe-figures 视觉模型 | 可选 |
+
+检查当前状态：`_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
+
 ## 第一次使用
 
 1. 新建一个普通文件夹作为 research workspace，不要直接在本插件仓库里做研究。
