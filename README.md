@@ -46,11 +46,7 @@ copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
 .\_scripts\env-setup.ps1
 ```
 
-| 变量 | 用途 | 必填 |
-|---|---|---|
-| `EDGAR_IDENTITY` | 美股 SEC filing（格式 `"Name email@domain.com"`） | 仅美股 |
-| `HF_ENDPOINT` | HuggingFace 镜像，国内设 `https://hf-mirror.com` | 仅中国 |
-| `VLM_API_URL/KEY/MODEL` | describe-figures 视觉模型 | 可选 |
+**只需要填 `EDGAR_IDENTITY`**（格式 `"Name email@domain.com"`），用于美股 SEC filing。其他市场零配置。
 
 检查当前状态：`_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
 
