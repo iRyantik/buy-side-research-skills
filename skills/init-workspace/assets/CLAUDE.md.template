@@ -134,25 +134,28 @@
         │   ├── sellside/
         │   ├── industry/
         │   ├── irdecks/
-        │   └── datasets/            #     includes financial-data evidence packs
+        │   ├── datasets/
+        │   ├── financial-data/      #     stable financial-data summary and internal evidence
+        │   └── driver-map/          #     driver-map markdown and machine JSON
         ├── _models/                 #   财务模型 / workbooks
-        ├── <YYYY-MM-DD>-<session>/  #   研究 session
-        │   ├── industry-quickread.md
-        │   ├── consensus-map.md
-        │   ├── primary-research-plan.md
-        │   ├── company-primer.md
-        │   ├── mechanism-map.md
+        ├── 2026-05-13-launch-economics/
         │   ├── driver-map.md
-        │   ├── research-journal.md
-        │   └── boss-brief.md
+        │   └── alpha-thesis.md
+        ├── 2026-06-02-q1-earnings-update/
+        │   ├── earnings-setup.md
+        │   └── model-update.md
+        └── 2026-09-10-capital-raise/
+            ├── stock-quickread.md
+            └── bear-pre-mortem.md
         └── <sub-topic>/             #   integrate 后的子 topic
 ```
 
-- 研究流：`new-session` 创建 topic 完整骨架 → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
+- 研究流：`new-session` 创建 topic 完整骨架和本次 dated session → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
 - Topic namespace 标准为 `company/`、`industry/`、`theme/`、`pair/`。单公司 canonical data 默认放在 `topics/company/<company-slug>/`。
+- Topic 是长期容器；同一个 topic 可以在不同时间有多个 dated session。Session slug 来自本次研究问题，不来自 skill 名。
 - `topics/<topic>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
 - `topics/<topic>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
-- `financial-data` 输出到 `topics/company/<company-slug>/_cache/datasets/financial-data/`；theme / industry 只保存 snapshot 或 links。
+- `financial-data` 稳定入口输出到 `topics/company/<company-slug>/_cache/financial-data/`；theme / industry 只保存 snapshot 或 links。
 - `topics/<topic>/_models/` 保存 workbook / model files。
 - `_scripts/` 保存 init / ingest / financial-data helper scripts。
 - `edge-radar.md` 存放跨 topic 研究雷达和待验证 edge。
@@ -163,22 +166,20 @@
 ### Topic Session Shape
 
 ```text
-topics/<topic-slug>/<YYYY-MM-DD>-<session-slug>/
-├── industry-quickread.md
-├── consensus-map.md
-├── primary-research-plan.md
-├── company-primer.md
-├── mechanism-map.md
-├── driver-map.md
-├── research-journal.md
-└── boss-brief.md
+topics/<namespace>/<topic-slug>/
+  2026-05-13-launch-economics/
+    driver-map.md
+    alpha-thesis.md
+  2026-06-02-q1-earnings-update/
+    earnings-setup.md
+    model-update.md
 ```
 
 - 保存路径不明确时，先用 `new-session` 创建或解析 topic session。
+- 如果用户说“继续上次”，优先定位最近 session 并报告 located；如果用户明确说“新开一轮研究”，即使 topic 相同，也创建新的 dated session。
 - `index.md` 是演进式地图：current question、session links、current map、open questions、cached materials、sub-topics、related artifacts。
 - `index.md` 不是 checklist、transcript 或状态数据库。
-- `research-journal.md` 只写已经研究清楚、source-backed、能改变判断或后续研究优先级的 insight。
-- `boss-brief.md` 是高密度 PM / boss transfer，不是简略摘要。
+- Session 内只保存实际产出的 research Markdown；不要预创建全套 skill 文件，不要按 research skill 名创建 session。
 
 ### Company Modeling Inputs
 

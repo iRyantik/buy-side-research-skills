@@ -5,11 +5,11 @@ description: Use when creating or locating a topic research session, resolving w
 
 # New Session
 
-本 skill 的目标是让所有 topic-session artifact 有一个明确落点：先有 namespaced topic scaffold 和 session，再保存 `company-primer.md`、`driver-map.md`、`research-journal.md` 等研究产物。它解决的是“东西应该存到哪里”，不是“应该研究什么”。
+本 skill 的目标是把 topic 和 session 分清楚：topic 是长期容器，session 是某一天 / 某次研究问题。它解决的是“这次研究应该落到哪个 dated session”，不是“应该研究什么”。
 
 ## 心法
 
-研究文件夹最容易乱，不是因为研究员不知道怎么研究，而是因为每次保存时临时造路径。`new-session` 的核心价值是把保存位置变成可复用的确定动作：topic、session、artifact path 三件事一次说清。
+研究文件夹最容易乱，不是因为研究员不知道怎么研究，而是因为每次保存时临时造路径。`new-session` 的核心价值是把保存位置变成可复用的确定动作：先定位长期 topic，再定位本次 dated session，最后只解析用户明确需要的 artifact path。
 
 `index.md` 是演进式地图，不是 journal、不是 checklist、不是状态数据库。它只记录当前 topic 的研究问题、session links、当前结论占位和 open questions；真正的 earned insight 仍然必须交给 `research-journal`。
 
@@ -17,11 +17,11 @@ description: Use when creating or locating a topic research session, resolving w
 
 负责：
 
-- 创建或定位 `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
+- 创建或定位 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
 - 支持并记录 topic namespace：`company`、`industry`、`theme`、`pair`。
 - 创建 topic 完整 scaffold：`_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`。
 - 确保 topic-level `index.md` 存在。
-- 为常见 topic artifacts 输出 canonical save path。
+- 只为用户明确请求的 artifact 输出 save path。
 - 轻量更新 `index.md` 的 session link、current question、open questions。
 
 不负责：
@@ -30,7 +30,9 @@ description: Use when creating or locating a topic research session, resolving w
 - 不写 `research-journal.md`、`boss-brief.md` 或 earned insight。
 - 不推荐下一步 research skill。
 - 不 ingest raw material（只创建空 `_inbox/` 和 `_raw/` 目录，不往里写文件）。
-- 可扫描 `topics/<topic-slug>/_cache/` 列出已有材料，供后续研究 skill 使用。
+- 不预创建 research output markdown；session 内只保存实际产出的文件。
+- 不按 research skill 名创建 session；`session_slug` 必须来自本次研究问题。
+- 可扫描 `topics/<topic-namespace>/<topic-slug>/_cache/` 列出已有材料，供后续研究 skill 使用。
 - 不创建 v2 state folders，例如 `coverage/`、`pairs/`、`portfolio/`。
 
 ## 触发与输入
@@ -51,10 +53,10 @@ description: Use when creating or locating a topic research session, resolving w
 |---|---|---|
 | `topic_slug` | topic 目录名 | 从公司 / 主题名生成 kebab-case slug |
 | `topic_namespace` | `company` / `industry` / `theme` / `pair` | 公司默认 `company`；行业默认 `industry`；主题默认 `theme`；pair 默认 `pair` |
-| `session_slug` | session 目录名 | 从本次研究问题生成 kebab-case slug |
+| `session_slug` | session 目录名 | 从本次研究问题生成 kebab-case slug，不使用 skill 名 |
 | `date` | session 日期 | 默认使用当前日期 `YYYY-MM-DD` |
 | `workspace_path` | research workspace 根目录 | 不明确时只输出相对路径，不写文件 |
-| `artifact_name` | 需要 resolve 的 artifact | 缺失时输出常见 artifact paths |
+| `artifact_name` | 需要 resolve 的 artifact | 缺失时只输出 session path，不列全套 artifact paths |
 
 ## 执行模式
 
@@ -72,31 +74,29 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/
 topics/[topic-namespace]/[topic-slug]/index.md
 ```
 
-如果目录已存在，不覆盖已有文件；只报告 located / already exists。
+如果 topic 已存在，只追加或定位 dated session，不重建 topic scaffold。若同一天同 topic 有不同问题，使用不同 `session_slug`，例如：
+
+```text
+topics/company/rklb/2026-05-13-launch-economics/
+topics/company/rklb/2026-05-13-backlog-quality/
+```
+
+如果用户说“继续上次”，优先定位最近 session，并报告 located，不新建。若用户明确说“新开一轮研究”，即使 topic 相同，也创建新的 dated session。Session 目录只保存实际产出的 research Markdown，不预创建全套文件。
 
 创建 session 后，扫描 `topics/<topic-namespace>/<topic-slug>/_cache/` 列出该 topic 下已 ingest 的 markdown 材料。对 company topic，同时列出 `financial-data` evidence pack 路径（如存在）。
 
 ### Resolve Save Path
 
-当其他 skill 要保存 artifact 但当前 session 不明确时，输出 canonical path。常见 artifact：
+当其他 skill 要保存 artifact 但当前 session 不明确时，只输出用户明确请求的 canonical path，不要一次性列出所有可能 artifact。
 
-| Skill | Artifact |
-|---|---|
-| `industry-quickread` | `industry-quickread.md` |
-| `consensus-map` | `consensus-map.md` |
-| `primary-research-plan` | `primary-research-plan.md` |
-| `company-primer` | `company-primer.md` |
-| `mechanism-map` | `mechanism-map.md` |
-| `driver-map` | `driver-map.md` |
-| `stock-quickread` | `stock-quickread.md` |
-| `peer-deep-dive` | `peer-deep-dive.md` |
-| `alpha-thesis` | `alpha-thesis.md` |
-| `bear-pre-mortem` | `bear-pre-mortem.md` |
-| `earnings-setup` | `earnings-setup.md` |
-| `cross-market-compare` | `cross-market-compare.md` |
-| `pair-trade` | `pair-note.md` |
-| `candidate-screener` | `candidate-screener.md` |
-| `research-journal` | `research-journal.md` / `boss-brief.md` |
+示例：
+
+```text
+topics/company/rklb/2026-05-13-launch-economics/driver-map.md
+topics/company/rklb/2026-05-13-launch-economics/alpha-thesis.md
+```
+
+如果用户没有指定 artifact，只输出 session path 和“artifact name needed”，不要猜文件名。
 
 ### Index Touch
 
@@ -139,18 +139,19 @@ topics/[topic-namespace]/[topic-slug]/index.md
 **结论先行**
 已创建 / 已定位 topic session: [path]
 
-## Canonical Save Paths
-- industry-quickread: [...]
-- consensus-map: [...]
-- primary-research-plan: [...]
-- company-primer: [...]
-- mechanism-map: [...]
-- driver-map: [...]
-- research-journal: [...]
+## Topic / Session
+- topic root: [...]
+- topic index: [...]
+- session path: [...]
+- session mode: created / located / reused recent session
+
+## Requested Save Path
+- requested artifact: [... or "not provided"]
+- path: [... or "artifact name needed"]
 
 ## Cached Materials
 - topic: [...]
-- path: `topics/<topic-slug>/_cache/`
+- path: `topics/<topic-namespace>/<topic-slug>/_cache/`
 - files found: [... or "none"]
 
 ## Index Touch
@@ -179,6 +180,8 @@ topics/[topic-namespace]/[topic-slug]/index.md
 - `topic_slug` 不清：只给候选 slug，不写文件。
 - workspace path 不清：输出相对路径，不创建目录。
 - session 已存在：报告 located，不覆盖文件。
+- 用户说“继续上次”：定位最近 session 并报告 located，不新建。
+- 用户明确说“新开一轮研究”：即使 topic 相同，也创建新的 dated session。
 - `index.md` 已存在但结构不同：只追加 session link，不重写整个 index。
 - 用户要求写研究结论：拒绝在本 skill 内写，说明应交给 `research-journal`。
 
@@ -190,13 +193,15 @@ topics/[topic-namespace]/[topic-slug]/index.md
 | 研究 skill 要保存 artifact 但 session 不明确 | 用 `new-session` resolve save path |
 | `research-journal` 要写 journal / Boss Brief 但路径不明确 | 先用 `new-session` 确认 session |
 | 用户只想把本次 session 加进 topic map | 用 `Index Touch`，不写 earned insight |
+| 用户说“继续上次” | 定位最近 dated session，不新建 |
+| 用户说“新开一轮研究” | 在同一 topic 下创建新的 dated session |
 | 用户问下一步研究什么 | 不是本 skill，交给 `next-step` |
 
 Artifact policy：
 
 - `save_policy`: `topic_session_scaffold`
-- `default_artifact`: `topic session folder + index.md`
-- `canonical_location`: `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`
+- `default_artifact`: `dated topic session folder + index.md`
+- `canonical_location`: `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`
 
 Topic namespace convention：
 
@@ -212,5 +217,7 @@ Topic namespace convention：
 - ❌ 把 `index.md` 写成 checklist、transcript 或 v2 state file。
 - ❌ 覆盖已有 `index.md` 或 session 文件。
 - ❌ session 不明确时擅自发明复杂目录树并写入。
+- ❌ 预创建全套 research output markdown。
+- ❌ 按 research skill 名创建 session，而不是按本次研究问题命名。
 - ❌ 把 `_cache/` markdown 文件当作 topic artifact（cache 是研究辅助，不是 earned memory）。
 - ❌ 创建 `coverage/`、`pairs/`、`portfolio/` 等 v2 state folders。

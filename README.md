@@ -88,26 +88,27 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
         │   ├── irdecks/
         │   └── datasets/
         ├── _cache/
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   ├── datasets/
+        │   ├── financial-data/
+        │   └── driver-map/
         ├── _models/
-        └── <YYYY-MM-DD>-<session>/   # research skill Markdown outputs
+        ├── 2026-05-13-launch-economics/
+        │   ├── driver-map.md
+        │   └── alpha-thesis.md
+        ├── 2026-06-02-q1-earnings-update/
+        │   ├── earnings-setup.md
+        │   └── model-update.md
+        └── 2026-09-10-capital-raise/
             ├── stock-quickread.md
-            ├── industry-quickread.md
-            ├── consensus-map.md
-            ├── company-primer.md
-            ├── mechanism-map.md
-            ├── driver-map.md
-            ├── peer-deep-dive.md
-            ├── primary-research-plan.md
-            ├── alpha-thesis.md
-            ├── bear-pre-mortem.md
-            ├── earnings-setup.md
-            ├── pair-trade.md
-            ├── cross-market-compare.md
-            ├── research-journal.md
-            └── boss-brief.md
+            └── bear-pre-mortem.md
 ```
 
-Session 目录保存 research skill 的 Markdown 结果；不是每个 session 都会有全部文件，只创建实际跑过或明确保存的 skill 输出。`_cache/` 仍放 ingest / financial-data 中间材料，`_models/` 仍放 workbook / model artifacts。
+Topic 是长期容器；同一个 topic 可以在不同时间有多次 dated session。`_inbox/`、`_raw/`、`_cache/`、`_models/` 留在 topic root；session 目录只保存那一次研究实际产出的 Markdown，不按 skill 名预创建全套文件。
 
 Company topic 的 data / driver / model 输出收口：
 

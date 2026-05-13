@@ -67,15 +67,17 @@ if (Test-Path -LiteralPath $skillPath) {
         "Resolve Save Path",
         "Index Touch",
         "topic_session_scaffold",
-        "topics/[topic-slug]",
+        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
         "topic namespace",
         "company",
         "financial-data",
         "index.md",
-        "Canonical Save Paths",
-        "company-primer.md",
-        "driver-map.md",
-        "research-journal",
+        "Requested Save Path",
+        "recent session",
+        "dated session",
+        "research output markdown",
+        "session_slug",
+        "requested artifact",
         "init-workspace",
         "earned insight",
         "Next Step",
@@ -88,6 +90,14 @@ if (Test-Path -LiteralPath $skillPath) {
         }
     }
 
+    foreach ($forbiddenPhrase in @(
+        "## Canonical Save Paths",
+        "| Skill | Artifact |"
+    )) {
+        if ($skillText.Contains($forbiddenPhrase)) {
+            $failures.Add("new-session: SKILL.md still contains deprecated phrase '$forbiddenPhrase'")
+        }
+    }
 }
 
 if (Test-Path -LiteralPath $yamlPath) {
@@ -96,7 +106,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         metadata_schema_version = "1"
         name = "new-session"
         id = "new-session"
-        version = "1.1.0"
+        version = "1.2.0"
         system_generation = "3.7.0"
         category = "operations"
     }
@@ -114,11 +124,15 @@ if (Test-Path -LiteralPath $yamlPath) {
 
     foreach ($phrase in @(
         "topic_session_scaffold",
-        "topic session folder + index.md",
-        "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
+        "dated topic session folder + index.md",
+        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
         "New Topic Session",
         "Resolve Save Path",
         "Index Touch",
+        "long-lived container",
+        "resolve only the requested artifact save path",
+        "do not precreate research output markdown files",
+        "do not name sessions after research skills",
         "do not write research conclusions or earned insight",
         "do not recommend next research skill",
         "create full topic scaffold"

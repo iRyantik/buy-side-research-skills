@@ -122,8 +122,8 @@ $expectedPolicies = @{
     }
     "new-session" = @{
         save_policy = "topic_session_scaffold"
-        default_artifact = "topic session folder + index.md"
-        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/"
+        default_artifact = "dated topic session folder + index.md"
+        canonical_location = "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/"
     }
     "next-step" = @{
         save_policy = "none"

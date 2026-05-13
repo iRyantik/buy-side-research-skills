@@ -84,12 +84,28 @@ Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创�
         │   ├── industry/
         │   ├── irdecks/
         │   └── datasets/
-        ├── _cache/                  # 转换后 markdown / financial-data evidence packs
+        ├── _cache/                  # 转换后 markdown / financial-data / driver-map cache
+        │   ├── filings/
+        │   ├── transcripts/
+        │   ├── sellside/
+        │   ├── industry/
+        │   ├── irdecks/
+        │   ├── datasets/
+        │   ├── financial-data/
+        │   └── driver-map/
         ├── _models/                 # 财务模型
-        └── <YYYY-MM-DD>-<session>/  # 研究 session
+        ├── 2026-05-13-launch-economics/
+        │   ├── driver-map.md
+        │   └── alpha-thesis.md
+        ├── 2026-06-02-q1-earnings-update/
+        │   ├── earnings-setup.md
+        │   └── model-update.md
+        └── 2026-09-10-capital-raise/
+            ├── stock-quickread.md
+            └── bear-pre-mortem.md
 ```
 
-`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件、拉取 financial-data 或创建 topic 研究产物。它会复制 ingest 和 financial-data 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。`financial-data` 默认写入 `topics/company/<company-slug>/_cache/datasets/financial-data/`，theme / industry topic 只保存 snapshot 或 links。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
+`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件、拉取 financial-data 或创建 topic 研究产物。它会复制 ingest 和 financial-data 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。同一个 topic 是长期容器，可以在不同时间拥有多个 dated session；session slug 来自本次研究问题，不来自 skill 名。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。`financial-data` 稳定入口默认写入 `topics/company/<company-slug>/_cache/financial-data/`，theme / industry topic 只保存 snapshot 或 links。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
 
 Company topic 的 modeling input 收口为：
 
@@ -120,10 +136,10 @@ Non-company topic 不保存 company canonical financial-data，只保存 snapsho
 新研究产物应保存在 topic session 内：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 ```
 
-行业、公司、预期地图和 primary research 计划产物如 `industry-quickread.md`、`company-primer.md`、`consensus-map.md`、`primary-research-plan.md` 遵循相同规则，仅在用户要求保存时创建。
+同一 topic 可以有多个不同日期或同日不同 slug 的 session，例如 `2026-05-13-launch-economics/` 和 `2026-05-13-backlog-quality/`。Session 内只保存实际产出的 Markdown；不要预创建全套 research skill 文件，也不要按 research skill 名创建 session。
 
 若当前 topic session 不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 session 文件夹并轻量更新 topic `index.md`，但不得写研究结论。
 
@@ -132,7 +148,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 材料缓存产物位于：
 
 ```text
-topics/<topic-slug>/_cache/[source-filename].md
+topics/<topic-namespace>/<topic-slug>/_cache/[source-filename].md
 ```
 
 缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 topic session 输出。
