@@ -69,7 +69,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/boot
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
-US SEC route 需要 `EDGAR_IDENTITY`；韩国 DART route 需要 `DART_API_KEY`。欧洲 ESEF route 使用 `openesef`，V1 可靠输入是 filing URL 或 local ESEF package，ticker-only discovery 仍是 experimental。
+US SEC route 需要 `EDGAR_IDENTITY`；韩国 DART route 需要 `DART_API_KEY`；日本 EDINET route 需要 `EDINET_API_KEY`。欧洲 ESEF route 使用 `openesef`，V1 可靠输入是 filing URL 或 local ESEF package，ticker-only discovery 仍是 experimental。
 
 ## 环境变量
 

@@ -1,23 +1,46 @@
-﻿# Buy-Side Research Skills
+# Buy-Side Research Skills
 
-一个面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：快速判断、公司基础研究、行业机制拆解、model driver 拆解、同业比较、thesis / pre-mortem / earnings 工作、研究记忆沉淀，以及 workspace 初始化、材料 ingest 和结构化财务数据 evidence pack。
+面向买方股票研究的 Claude / Codex 插件。它把常见研究动作拆成可复用的 skills：材料 ingest、结构化财务数据拉取、driver 拆解、三表 / DCF / comps / model update、公司和行业研究、thesis、earnings、pair、research memory。
 
 当前版本：`3.7.0`
 
 仓库地址：`iRyantik/buy-side-research-skills`
 
+## 核心工作流
+
+现在的公司建模主线是：
+
+```text
+financial-data -> driver-map -> 3-statement-model / dcf-model / comps-analysis / model-update
+```
+
+三个外显产物类别：
+
+```text
+financial-data-summary.md
+driver-map.md
+<model-artifact>.xlsx
+```
+
+`<model-artifact>.xlsx` 可以是：
+
+- `<ticker>-3statement-model.xlsx`
+- `<ticker>-3statement-dcf-model.xlsx`
+- `<ticker>-comps-analysis.xlsx`
+- `<ticker>-model-update.xlsx`
+
+JSON、full filing、source-map、completeness、raw evidence、debug 文件默认都放在 `internal/`，不作为用户和 LLM 的默认阅读入口。
+
 ## 适合做什么
 
-- 快速判断一家公司或一条信息是否值得继续研究。
-- 快速判断一个行业 / 主题 / value chain 是否值得继续研究，并找到下一步研究入口。
-- 把 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap 摊开，判断市场到底在信什么。
-- 把 thesis / driver gap 变成合规的 expert call、channel check、survey 和 fieldwork 计划。
-- 把公司历史、业务构成、segment / KPI 口径变化梳理清楚。
-- 遇到行业机制、工程原理、工艺流程或设备链条不清时，触发 `mechanism-map`。
-- 遇到公司 / segment / 产品线 / 披露 bucket 的 revenue、margin、backlog、price-volume-mix、KPI 口径不清时，触发 `driver-map`。
-- 按 market + identifier 拉取或解析结构化财务数据时，用 `financial-data` 生成 completeness/source map。
-- 做 peer deep dive、alpha thesis、bear pre-mortem、earnings setup、pair trade 和 financial model。
-- 把已经研究过、source-backed、会改变判断的认知增量沉淀成 `research-journal` 或 Boss Brief。
+- 快速判断一家公司、行业、主题或消息是否值得继续研究。
+- 把 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap 摊开。
+- 把公司业务、segment、KPI 口径、并购 / recast / disclosure evolution 梳理清楚。
+- 遇到行业机制、工程原理、工艺流程或设备链条不清时，用 `mechanism-map`。
+- 遇到 revenue、margin、backlog、price-volume-mix、KPI 口径不清时，用 `driver-map`。
+- 按 market + identifier 拉取结构化财务数据时，用 `financial-data`。
+- 搭三表、DCF、comps，或更新已有 model。
+- 把 source-backed、会改变判断的认知增量沉淀成 `research-journal` 或 Boss Brief。
 
 ## 安装
 
@@ -34,34 +57,42 @@ Codex 插件市场可用时：
 codex plugin marketplace add iRyantik/buy-side-research-skills
 ```
 
-如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.7.0.zip`，解压到 Claude 或 Codex 指定的插件位置。
+如果你的环境使用本地插件目录，也可以从 GitHub Release 下载 `buy-side-research-skills-3.7.0.zip`，解压到 Claude 或 Codex 指定插件位置。
 
 更多安装说明见 [docs/install.md](docs/install.md)。
 
 ## 环境配置
 
-研究类 skill 走 Claude 自身能力，**零配置**。
+研究类 skill 走 Claude / Codex 自身能力，通常零配置。需要本地工具链的是 `ingest` 和 `financial-data`。
 
-`ingest` 转换美股 SEC filing、`financial-data` 走 SEC route 时需要提供 **EDGAR_IDENTITY**（格式 `"姓名 email@domain.com"`，无需注册账号，SEC 只是要求访问者自报身份）。
+基础要求：
 
-**按需获取**：
+- 美股 SEC / EdgarTools 需要 `EDGAR_IDENTITY`，格式为 `"姓名 email@domain.com"`，无需注册账号，SEC 只是要求访问者自报身份。
+- 结构化财务数据依赖需要在 workspace 里显式安装：`_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly` 后再按需 `-Yes`。
 
-| 市场 | 需要什么 | 在哪获取 |
-|---|---|---|
-| 韩国 | DART API Key（免费） | https://opendart.fss.or.kr/ 注册即可 |
+按需获取 API key：
 
-把上面的信息告诉 Claude，让它帮忙配。更多细节见 [docs/install.md](docs/install.md)。
+| 市场 | Provider / route | 需要什么 | 获取方式 | 默认可信度 |
+|---|---|---|---|---|
+| US | SEC / EdgarTools | `EDGAR_IDENTITY` | 自己填写姓名 + 邮箱 | 官方源，三表可 model-ready |
+| CN | AKShare | 无 key | 免费 Python 包 | 第三方 normalized，默认 review |
+| HK | AKShare | 无 key | 免费 Python 包 | 第三方 normalized，默认 review |
+| JP | EDINET | `EDINET_API_KEY` | https://disclosure2.edinet-fsa.go.jp/ 注册 / 申请 | 官方源，字段覆盖可能 partial |
+| KR | OpenDART / dart-fss | `DART_API_KEY` | https://opendart.fss.or.kr/ 注册即可 | 官方源，缺 key hard fail |
+| EU | openesef | 通常无 key | filing URL 或 local ESEF package | 官方 filing parser；ticker-only experimental |
+
+把这些信息告诉 Claude / Codex，让它帮你写入 workspace 的 `_scripts/env-setup.ps1`。更多细节见 [docs/install.md](docs/install.md)。
 
 ## 第一次使用
 
-1. 新建一个普通文件夹作为 research workspace，不要直接在本插件仓库里做研究。
-2. 使用 `init-workspace` 初始化 workspace。它会创建 `_inbox/`、`_scripts/`、`topics/` 和 `edge-radar.md`，并写入 workspace `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
-3. 如需转换本地材料，先在 workspace 中运行 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly` 查看依赖状态，再按需显式运行 `-Yes` 安装 ingest 依赖。
-4. 如需拉取结构化财务数据，先运行 `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly` 查看依赖状态，再按需显式运行 `-Yes`。
-5. 使用 `new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`），再让研究类 skill 保存 artifact。
-6. 把 raw materials 放入 `topics/<topic>/_inbox/`，用 `ingest` 转成 `topics/<topic>/_cache/` markdown；`_cache/` 是中间材料，不是研究结论。单公司 financial-data 默认落 `topics/company/<company-slug>/_cache/datasets/financial-data/`。
+1. 新建一个普通文件夹作为 research workspace，不要直接在本插件仓库里做日常研究。
+2. 使用 `init-workspace` 初始化 workspace。它会创建 `_inbox/`、`_scripts/`、`topics/`、`edge-radar.md`，并写入 workspace `CLAUDE.md` 和 pointer 版 `AGENTS.md`。
+3. 使用 `new-session` 创建 company / industry / theme / pair topic scaffold。
+4. 本地 PDF、XLSX、PPTX、DOCX、CSV 等材料放入 `topics/<topic>/_inbox/`，再用 `ingest` 转成 source-tracked markdown cache。
+5. 需要结构化财务数据时，用 `financial-data` 按 market + identifier 拉取。
+6. 需要建模时，先用 `driver-map` 拆业务 driver，再进入 `3-statement-model`、`dcf-model`、`comps-analysis` 或 `model-update`。
 
-标准 workspace 形状：
+## Workspace 结构
 
 ```text
 [research-workspace]/
@@ -86,7 +117,7 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
         └── <YYYY-MM-DD>-<session>/
 ```
 
-Company topic 的建模输入收口：
+Company topic 的 data / driver / model 输出收口：
 
 ```text
 topics/company/<company-slug>/
@@ -96,7 +127,9 @@ topics/company/<company-slug>/
 │   │   └── internal/
 │   │       ├── evidence-pack.json
 │   │       ├── actuals-resolved.json
-│   │       └── full-filing.md
+│   │       ├── full-filing.md
+│   │       ├── completeness.json
+│   │       └── source-map.json
 │   └── driver-map/
 │       ├── driver-map.md
 │       └── internal/
@@ -110,24 +143,18 @@ topics/company/<company-slug>/
 
 Non-company topic 不保存 company canonical financial-data，只保存 snapshot、links 或 aggregation。
 
-topic session 形状：
-
-```text
-topics/[namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/
-```
-
-## Skill 分类
+## Skills
 
 Operations skills：
 
 | Skill | 用途 |
 |---|---|
 | `init-workspace` | 创建或修复 research workspace scaffold |
-| `ingest` | 把 raw materials 转成 source-tracked markdown 到 `topics/<topic>/_cache/` |
+| `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 `index.md` |
+| `ingest` | 把 raw materials 转成 source-tracked markdown cache |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
-| `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 topic `index.md` |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
-| `meta-skill` | 维护本插件的 skills、metadata、validators 和 governance |
+| `meta-skill` | 维护本插件 skills、metadata、validators 和 governance |
 
 Research skills：
 
@@ -146,38 +173,63 @@ Research skills：
 new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
      -> candidate-screener / peer-deep-dive
      -> stock-quickread -> driver-map -> primary-research-plan
-     -> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update
-     -> research-journal / Boss Brief
+     -> alpha-thesis / model work
+     -> research-journal
 ```
 
-新股 / 单公司 first-pass：
+公司建模：
+
+```text
+new-session -> financial-data -> driver-map
+     -> 3-statement-model
+     -> dcf-model / comps-analysis
+     -> model-update
+```
+
+单公司研究：
 
 ```text
 new-session -> ingest / financial-data -> stock-quickread -> consensus-map
      -> company-primer / mechanism-map / driver-map
      -> peer-deep-dive / primary-research-plan
-     -> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update
+     -> alpha-thesis / model work
      -> bear-pre-mortem / earnings-setup
-     -> research-journal / Boss Brief
+     -> research-journal
 ```
-
-遇到保存路径不清，先用 `new-session`。遇到行业 / 主题 first-pass，先用 `industry-quickread`。遇到市场预期、buy-side bar、priced-in assumptions 或 variant-view gap 不清，先用 `consensus-map`。遇到机制不清，先用 `mechanism-map`。遇到公司、segment、产品线或披露 bucket 到 model driver 的映射不清，才用 `driver-map`；`driver-map` 不是泛行业 driver skill。遇到需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证关键假设，用 `primary-research-plan`。不要把未经验证的疑点直接写进 `research-journal`。
 
 ## 示例
 
-示例 workspace 位于：
+示例文件位于：
 
 ```text
-examples/workspaces/ai-data-center-power/
+examples/
+```
+
+RKLB example 展示当前 data / driver / model 三类外显产物：
+
+```text
+examples/financial-data-pull/us/rklb/
+  financial-data-summary.md
+  driver-map.md
+  rklb-3statement-dcf-model.xlsx
+  internal/
 ```
 
 示例只用于参考 artifact 形状，不是插件运行时依赖。
 
+## 维护者说明
+
+- Release packaging 不再默认跑全量 validators。
+- 只有新增、重写或重大修改 skill 时，才跑本次相关 targeted validator。
+- 用户明确说“不跑 validator”时，不跑 validator。
+- `build-release.ps1` 只负责打包，不自动调用 release validator。
+
 ## 重要边界
 
 - 插件不会替你做最终投资决策。
-- `init-workspace` 只创建 workspace 根级 scaffold；topic 完整骨架由 `new-session` 创建。
-- `ingest` 前必须 `new-session` 创建 topic；文件放入 `topics/<topic>/_inbox/`，ingest 后归类到 `_raw/<category>/`。
-- `financial-data` 是 cache/evidence pack，不是研究结论；默认先看 `financial-data-summary.md`，需要机器输入或审计时再看 `internal/actuals-resolved.json`、`internal/evidence-pack.json`、`internal/source-map.json`。
+- `financial-data` 是 data evidence pack，不是研究结论；默认先看 `financial-data-summary.md`。
+- `driver-map` 是业务 driver / model treatment，不做估值结论。
+- `3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 是独立 modeling skills；不再使用旧 `financial-model`。
+- JSON / full filing / source-map / completeness 默认放 `internal/`，不作为外显阅读入口。
 - `research-journal` 只写已经研究清楚、关键事实有 source、会改变判断的认知增量。
 - root `CLAUDE.md` / `AGENTS.md` 只服务本源码仓库维护；用户 workspace 会由 `init-workspace` 生成自己的 `CLAUDE.md` / `AGENTS.md`。

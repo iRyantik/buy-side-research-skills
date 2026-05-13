@@ -9,6 +9,10 @@ $env:EDGAR_IDENTITY = ""
 # 免费注册获取: https://opendart.fss.or.kr/
 # $env:DART_API_KEY = ""
 
+# --- 日本 EDINET API Key（financial-data 可选，拉取日本上市公司财报需要）---
+# 免费注册 / 申请: https://disclosure2.edinet-fsa.go.jp/
+# $env:EDINET_API_KEY = ""
+
 # --- EdgarTools 数据目录（避免 edgar/ 文件夹散落在当前目录）---
 $edgarDir = Join-Path $PSScriptRoot "edgar_data"
 New-Item -ItemType Directory -Force -Path $edgarDir | Out-Null
@@ -32,6 +36,10 @@ if ($env:EDGAR_IDENTITY) {
 if ($env:DART_API_KEY) {
     [Environment]::SetEnvironmentVariable("DART_API_KEY", $env:DART_API_KEY, "User")
     Write-Host "[OK] DART_API_KEY 已持久化到用户环境变量"
+}
+if ($env:EDINET_API_KEY) {
+    [Environment]::SetEnvironmentVariable("EDINET_API_KEY", $env:EDINET_API_KEY, "User")
+    Write-Host "[OK] EDINET_API_KEY 已持久化到用户环境变量"
 }
 [Environment]::SetEnvironmentVariable("EDGAR_LOCAL_DATA_DIR", $edgarDir, "User")
 Write-Host "[OK] Edgar 数据目录: $edgarDir"
