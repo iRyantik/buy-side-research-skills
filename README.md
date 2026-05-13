@@ -6,31 +6,6 @@
 
 仓库地址：`iRyantik/buy-side-research-skills`
 
-## 核心工作流
-
-现在的公司建模主线是：
-
-```text
-financial-data -> driver-map -> 3-statement-model / dcf-model / comps-analysis / model-update
-```
-
-三个外显产物类别：
-
-```text
-financial-data-summary.md
-driver-map.md
-<model-artifact>.xlsx
-```
-
-`<model-artifact>.xlsx` 可以是：
-
-- `<ticker>-3statement-model.xlsx`
-- `<ticker>-3statement-dcf-model.xlsx`
-- `<ticker>-comps-analysis.xlsx`
-- `<ticker>-model-update.xlsx`
-
-JSON、full filing、source-map、completeness、raw evidence、debug 文件默认都放在 `internal/`，不作为用户和 LLM 的默认阅读入口。
-
 ## 适合做什么
 
 - 快速判断一家公司、行业、主题或消息是否值得继续研究。
@@ -114,8 +89,25 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
         │   └── datasets/
         ├── _cache/
         ├── _models/
-        └── <YYYY-MM-DD>-<session>/
+        └── <YYYY-MM-DD>-<session>/   # research skill Markdown outputs
+            ├── stock-quickread.md
+            ├── industry-quickread.md
+            ├── consensus-map.md
+            ├── company-primer.md
+            ├── mechanism-map.md
+            ├── driver-map.md
+            ├── peer-deep-dive.md
+            ├── primary-research-plan.md
+            ├── alpha-thesis.md
+            ├── bear-pre-mortem.md
+            ├── earnings-setup.md
+            ├── pair-trade.md
+            ├── cross-market-compare.md
+            ├── research-journal.md
+            └── boss-brief.md
 ```
+
+Session 目录保存 research skill 的 Markdown 结果；不是每个 session 都会有全部文件，只创建实际跑过或明确保存的 skill 输出。`_cache/` 仍放 ingest / financial-data 中间材料，`_models/` 仍放 workbook / model artifacts。
 
 Company topic 的 data / driver / model 输出收口：
 
