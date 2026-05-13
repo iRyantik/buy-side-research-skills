@@ -1,4 +1,4 @@
----
+﻿---
 name: peer-deep-dive
 description: Use when comparing multiple companies in the same industry, running horizontal peer research, building a KPI matrix, or ranking candidates for deeper work.
 ---
@@ -14,7 +14,7 @@ description: Use when comparing multiple companies in the same industry, running
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 # Peer Deep Dive
 
@@ -350,7 +350,7 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 | peer group 机制、value-capture 或 KPI 口径不可比 | 先 `mechanism-map` 或 `driver-map`，再回到本 skill |
 | 横向比较暴露单一公司的 variant view | `alpha-thesis` |
 | 横向比较暴露 long / short cluster 或 hedge candidate | `pair-trade` |
-| 需要把 peer 差异量化进 operating model 或 valuation | `financial-model` |
+| 需要把 peer 差异量化进 operating model 或 valuation | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 已经形成可复用行业 lens、peer map 或研究排序 | `research-journal` |
 | 仍不知道下一轮最值得追哪个问题 | `next-step` |
 

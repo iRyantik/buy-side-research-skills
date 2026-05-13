@@ -5,7 +5,7 @@ description: Use when creating or locating a topic research session, resolving w
 
 # New Session
 
-本 skill 的目标是让所有 topic-session artifact 有一个明确落点：先有 topic scaffold 和 session，再保存 `company-primer.md`、`driver-map.md`、`research-journal.md` 等研究产物。它解决的是“东西应该存到哪里”，不是“应该研究什么”。
+本 skill 的目标是让所有 topic-session artifact 有一个明确落点：先有 namespaced topic scaffold 和 session，再保存 `company-primer.md`、`driver-map.md`、`research-journal.md` 等研究产物。它解决的是“东西应该存到哪里”，不是“应该研究什么”。
 
 ## 心法
 
@@ -18,6 +18,7 @@ description: Use when creating or locating a topic research session, resolving w
 负责：
 
 - 创建或定位 `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
+- 支持并记录 topic namespace：`company`、`industry`、`theme`、`pair`。
 - 创建 topic 完整 scaffold：`_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`。
 - 确保 topic-level `index.md` 存在。
 - 为常见 topic artifacts 输出 canonical save path。
@@ -49,6 +50,7 @@ description: Use when creating or locating a topic research session, resolving w
 | 输入 | 用途 | 默认 / 缺失处理 |
 |---|---|---|
 | `topic_slug` | topic 目录名 | 从公司 / 主题名生成 kebab-case slug |
+| `topic_namespace` | `company` / `industry` / `theme` / `pair` | 公司默认 `company`；行业默认 `industry`；主题默认 `theme`；pair 默认 `pair` |
 | `session_slug` | session 目录名 | 从本次研究问题生成 kebab-case slug |
 | `date` | session 日期 | 默认使用当前日期 `YYYY-MM-DD` |
 | `workspace_path` | research workspace 根目录 | 不明确时只输出相对路径，不写文件 |
@@ -61,18 +63,18 @@ description: Use when creating or locating a topic research session, resolving w
 创建或定位：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/
 ```
 
 同时确保：
 
 ```text
-topics/[topic-slug]/index.md
+topics/[topic-namespace]/[topic-slug]/index.md
 ```
 
 如果目录已存在，不覆盖已有文件；只报告 located / already exists。
 
-创建 session 后，扫描 `topics/<topic-slug>/_cache/` 列出该 topic 下已 ingest 的 markdown 材料。
+创建 session 后，扫描 `topics/<topic-namespace>/<topic-slug>/_cache/` 列出该 topic 下已 ingest 的 markdown 材料。对 company topic，同时列出 `financial-data` evidence pack 路径（如存在）。
 
 ### Resolve Save Path
 
@@ -195,6 +197,13 @@ Artifact policy：
 - `save_policy`: `topic_session_scaffold`
 - `default_artifact`: `topic session folder + index.md`
 - `canonical_location`: `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`
+
+Topic namespace convention：
+
+- company: `topics/company/<company-slug>/`
+- industry: `topics/industry/<industry-slug>/`
+- theme: `topics/theme/<theme-slug>/`
+- pair: `topics/pair/<pair-slug>/`
 
 ## 安全自查
 

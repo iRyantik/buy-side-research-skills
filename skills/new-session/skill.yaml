@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'new-session'
 id: 'new-session'
 display_name: 'New Session'
-version: '1.0.0'
+version: '1.1.0'
 system_generation: '3.7.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -34,6 +34,7 @@ capabilities:
     - 'Index Touch'
   requirements:
     - 'create or locate topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/'
+    - 'support topic namespace convention: company, industry, theme, pair'
     - 'ensure topic index.md exists without overwriting existing content'
     - 'resolve canonical save paths for topic-session artifacts'
     - 'update only session links, current question, open questions, and related artifacts in index.md'

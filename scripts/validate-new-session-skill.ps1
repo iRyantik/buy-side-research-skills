@@ -68,6 +68,9 @@ if (Test-Path -LiteralPath $skillPath) {
         "Index Touch",
         "topic_session_scaffold",
         "topics/[topic-slug]",
+        "topic namespace",
+        "company",
+        "financial-data",
         "index.md",
         "Canonical Save Paths",
         "company-primer.md",
@@ -93,7 +96,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         metadata_schema_version = "1"
         name = "new-session"
         id = "new-session"
-        version = "1.0.0"
+        version = "1.1.0"
         system_generation = "3.7.0"
         category = "operations"
     }

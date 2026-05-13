@@ -52,7 +52,10 @@ capabilities:
     - 'driver-map'
     - 'primary-research-plan'
     - 'alpha-thesis'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'research-journal'
   requirements:
     - 'follow CLAUDE.md source policy'
@@ -82,7 +85,10 @@ workflow:
     - 'driver-map'
     - 'primary-research-plan'
     - 'alpha-thesis'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'research-journal'
   decision_point: '行业或主题是否值得继续研究，以及下一步应该先补机制、找票、横向比较还是看单家公司'
 quality_gates:

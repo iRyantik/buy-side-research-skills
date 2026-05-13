@@ -1,4 +1,4 @@
----
+﻿---
 name: primary-research-plan
 description: Use when designing a compliant primary research, expert call, channel check, fieldwork, survey, customer, supplier, competitor, or ex-employee interview plan to validate thesis, consensus, model-driver, or industry assumptions.
 ---
@@ -101,7 +101,7 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 一句话说明：
 - 要验证的核心问题：[...]
-- 会改变的决策：[alpha-thesis / financial-model / sizing / abandon / candidate ranking]
+- 会改变的决策：[alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update / sizing / abandon / candidate ranking]
 - 不做 primary research 的风险：[...]
 
 ## 2. Hypothesis Register
@@ -166,7 +166,7 @@ Red-line questions:
 | Finding | Next step |
 |---|---|
 | Primary evidence confirms variant gap | `alpha-thesis` |
-| Evidence changes revenue / margin / KPI assumptions | `financial-model` / `driver-map` |
+| Evidence changes revenue / margin / KPI assumptions | `3-statement-model / dcf-model / comps-analysis / model-update` / `driver-map` |
 | Evidence says market bar was misread | `consensus-map` |
 | Evidence is a claim needing verification | `information-impact` |
 | Evidence becomes earned insight | `research-journal` |
@@ -220,7 +220,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md
 | 用户只有一条未经验证的 claim | 先 `information-impact` |
 | 调研问题实际是机制 / 工程 / 设备链不清 | 先 `mechanism-map` |
 | 调研问题实际是 model-driver mapping 不清 | 先 `driver-map` |
-| 计划执行后需要更新数字 | `financial-model` |
+| 计划执行后需要更新数字 | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 计划执行后证据足以形成 thesis | `alpha-thesis` |
 | 形成 earned insight | `research-journal` |
 
@@ -229,7 +229,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md
 ```text
 stock-quickread / industry-quickread -> consensus-map
 -> mechanism-map / driver-map -> primary-research-plan
--> alpha-thesis / financial-model -> research-journal
+-> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
 ```
 
 ## 反模式自查
@@ -268,5 +268,5 @@ stock-quickread / industry-quickread -> consensus-map
 | `alpha-thesis` | 写投资观点；本 skill 不写 thesis，只验证 thesis 关键假设。 |
 | `information-impact` | 先验证单条 claim 可信度；本 skill 不做 source hunting。 |
 | `mechanism-map` | 解释机制和设备链；本 skill 不替代机制学习。 |
-| `financial-model` | 更新模型数字；本 skill 只定义什么证据会改变模型。 |
+| `3-statement-model / dcf-model / comps-analysis / model-update` | 更新模型数字；本 skill 只定义什么证据会改变模型。 |
 | `research-journal` | 沉淀已验证 insight；本 skill 的计划不是 earned memory。 |

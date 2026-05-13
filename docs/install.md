@@ -54,6 +54,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-de
 
 Python 包默认安装到当前用户。此脚本不会在 `init-workspace` 期间自动运行。
 
+## Financial Data 依赖
+
+`init-workspace` 也会把 `financial-data` 辅助脚本复制到 `_scripts/financial-data/`。先检查 provider 和 credential 状态：
+
+```powershell
+python _scripts/financial-data/financial_data.py --check-deps
+powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+```
+
+确认需要后再显式安装：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+```
+
+US SEC route 需要 `EDGAR_IDENTITY`；韩国 DART route 需要 `DART_API_KEY`。欧洲 ESEF route 使用 `openesef`，V1 可靠输入是 filing URL 或 local ESEF package，ticker-only discovery 仍是 experimental。
+
 ## 环境变量
 
 `init-workspace` 会在 workspace 的 `_scripts/` 下生成 `env-setup.ps1.template`。复制为 `env-setup.ps1`，填入你的信息后运行一次：

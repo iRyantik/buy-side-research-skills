@@ -56,7 +56,7 @@ workflow:
     - 'alpha-thesis (research view update)'
   can_trigger:
     - 'bear-pre-mortem (if thesis severely undermined)'
-    - 'financial-model (if model drivers change)'
+    - 'model-update (if model drivers change)'
     - 'research-journal (if insight is earned)'
     - 'next-step (if weirdness appears)'
   two_modes:

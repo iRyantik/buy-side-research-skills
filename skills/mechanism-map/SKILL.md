@@ -1,4 +1,4 @@
----
+﻿---
 name: mechanism-map
 description: Use when explaining industry mechanisms, engineering principles, equipment chains, process flows, technical terms, or know-how gaps that affect investment research.
 ---
@@ -74,7 +74,7 @@ description: Use when explaining industry mechanisms, engineering principles, eq
 
 ### 不应触发
 - "这家公司收入 driver 是什么" → `driver-map`。
-- "帮我搭 model / DCF / comps" → `financial-model`，必要时先消费本 skill。
+- "帮我搭 model / DCF / comps" → `3-statement-model / dcf-model / comps-analysis / model-update`，必要时先消费本 skill。
 - "这个公司是不是进了某客户供应链" → `information-impact`。
 - "下一步怎么研究这个问题" → `next-step`。
 - "写 long / short thesis" → `alpha-thesis`。
@@ -227,7 +227,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
 | 场景 | 下一步 |
 |---|---|
 | 机制已经讲清，需要拆收入 / margin / backlog driver | `driver-map` |
-| 机制影响 operating model、DCF、comps 或 workbook update | `financial-model` |
+| 机制影响 operating model、DCF、comps 或 workbook update | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 机制暴露高价值疑点但还不知道怎么问 | `next-step` |
 | 机制解释了 peer 差异或 KPI 不可比 | `peer-deep-dive` |
 | 两家公司是否受同一机制驱动 | `pair-trade` |
@@ -254,7 +254,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
 
 ### Workflow 类
 - ❌ 用户只是问机制，却输出 DCF / comps / price target。
-- ❌ 机制已经解释清楚，却没有 handoff 到 `driver-map` 或 `financial-model`。
+- ❌ 机制已经解释清楚，却没有 handoff 到 `driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - ❌ 机制仍是 Low confidence，却被后续 thesis 当作核心事实。
 - ❌ 形成清楚认知后没有建议 `research-journal` 沉淀。
 
@@ -262,12 +262,12 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
 
 - Quick mechanism check：500-900 字 + 1 张流程图 / 表。
 - Full mechanism map：1000-1800 字 + 2-4 张表。
-- 超过 2000 字通常说明范围过大，应拆成多个机制，或转入 `peer-deep-dive` / `financial-model`。
+- 超过 2000 字通常说明范围过大，应拆成多个机制，或转入 `peer-deep-dive` / `3-statement-model / dcf-model / comps-analysis / model-update`。
 
 ## 与相邻 skill 的边界
 
 - `driver-map` 处理 `Business Reality → Model Driver`；本 skill 处理机制、设备链条、术语和 know-how。
-- `financial-model` 做 operating model、DCF、comps、reverse DCF 和 workbook update；本 skill只提供机制到模型变量的桥。
+- `3-statement-model / dcf-model / comps-analysis / model-update` 做 operating model、DCF、comps、reverse DCF 和 workbook update；本 skill只提供机制到模型变量的桥。
 - `information-impact` 验证 claim 真假；本 skill解释 claim 若成立会如何进入技术链条或商业机制。
 - `next-step` 提出 1-2 个下一步问题；本 skill可以给问题，但不生成完整研究任务清单。
 - `research-journal` 沉淀已研究清楚的机制认知；本 skill不默认落盘。

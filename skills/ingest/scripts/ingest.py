@@ -143,26 +143,6 @@ def dependency_matrix() -> dict[str, Any]:
             "module": "pymupdf4llm",
             "install_hint": "pip install pymupdf4llm",
         },
-        "akshare": {
-            "available": module_available("akshare"),
-            "module": "akshare",
-            "install_hint": "pip install akshare",
-        },
-        "edinet-tools": {
-            "available": module_available("edinet_tools"),
-            "module": "edinet_tools",
-            "install_hint": "pip install edinet-tools",
-        },
-        "dart-fss": {
-            "available": module_available("dart_fss"),
-            "module": "dart_fss",
-            "install_hint": "pip install dart-fss",
-        },
-        "openesef": {
-            "available": module_available("openesef"),
-            "module": "openesef",
-            "install_hint": "pip install openesef",
-        },
         "openpyxl": {
             "available": module_available("openpyxl"),
             "module": "openpyxl",

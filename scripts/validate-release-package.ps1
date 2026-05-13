@@ -86,6 +86,26 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/ingest/scripts/bootstrap-ingest-deps.ps1",
             "skills/ingest/scripts/bootstrap-ingest-deps.sh",
             "skills/ingest/scripts/describe-figures.py",
+            "skills/financial-data/SKILL.md",
+            "skills/financial-data/skill.yaml",
+            "skills/financial-data/assets/requirements-financial-data.txt",
+            "skills/financial-data/scripts/financial_data.py",
+            "skills/financial-data/scripts/bootstrap-financial-data-deps.ps1",
+            "skills/financial-data/scripts/providers/sec_provider.py",
+            "skills/financial-data/scripts/providers/akshare_provider.py",
+            "skills/financial-data/scripts/providers/edinet_provider.py",
+            "skills/financial-data/scripts/providers/dart_provider.py",
+            "skills/financial-data/scripts/providers/openesef_provider.py",
+            "skills/3-statement-model/SKILL.md",
+            "skills/3-statement-model/skill.yaml",
+            "skills/dcf-model/SKILL.md",
+            "skills/dcf-model/skill.yaml",
+            "skills/dcf-model/requirements.txt",
+            "skills/dcf-model/TROUBLESHOOTING.md",
+            "skills/comps-analysis/SKILL.md",
+            "skills/comps-analysis/skill.yaml",
+            "skills/model-update/SKILL.md",
+            "skills/model-update/skill.yaml",
             "skills/meta-skill/SKILL.md",
             "skills/meta-skill/skill.yaml",
             "skills/new-session/SKILL.md",
@@ -127,8 +147,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             }
         }
 
-        if ($activeSkillNames.Count -ne 23) {
-            $failures.Add("Expected 23 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
+        if ($activeSkillNames.Count -ne 27) {
+            $failures.Add("Expected 27 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
         }
 
         if (-not $activeSkillNames.Contains("company-primer")) {
@@ -141,6 +161,16 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
 
         if (-not $activeSkillNames.Contains("ingest")) {
             $failures.Add("Release zip is missing active skill: ingest")
+        }
+
+        if (-not $activeSkillNames.Contains("financial-data")) {
+            $failures.Add("Release zip is missing active skill: financial-data")
+        }
+
+        foreach ($modelingSkill in @("3-statement-model", "dcf-model", "comps-analysis", "model-update")) {
+            if (-not $activeSkillNames.Contains($modelingSkill)) {
+                $failures.Add("Release zip is missing active modeling skill: $modelingSkill")
+            }
         }
 
         if (-not $activeSkillNames.Contains("meta-skill")) {

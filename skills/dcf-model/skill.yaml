@@ -1,0 +1,74 @@
+metadata_schema_version: 1
+name: 'dcf-model'
+id: 'dcf-model'
+display_name: 'DCF Model'
+version: '1.0.0'
+system_generation: '3.7.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'research'
+research_layer: 'deep-work'
+summary: 'Build DCF valuation models with projections, WACC, terminal value, sensitivities, and valuation output.'
+description: 'Build DCF valuation workbooks using source-tracked historical actuals, driver-map assumptions, operating forecasts, WACC, terminal value, and sensitivity analysis.'
+tags:
+  - dcf
+  - valuation
+  - intrinsic-value
+  - xlsx
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'DCF'
+    - 'dcf model'
+    - 'reverse DCF'
+    - 'intrinsic value'
+    - '估值模型'
+    - '内在价值'
+  description: 'Use when the user wants intrinsic value, DCF valuation, reverse DCF, or cash-flow based valuation work.'
+capabilities:
+  modes:
+    - 'DCF build'
+    - 'reverse DCF'
+    - 'sensitivity analysis'
+    - 'valuation summary'
+  consumes:
+    - 'financial-data'
+    - 'driver-map'
+    - '3-statement-model'
+  preferred_inputs:
+    - '_cache/financial-data/financial-data-summary.md'
+    - '_cache/financial-data/internal/actuals-resolved.json'
+    - '_cache/financial-data/internal/evidence-pack.json'
+    - '_cache/driver-map/driver-map.md'
+    - '_cache/driver-map/internal/driver-map.json'
+    - '_models/<ticker>-3statement-model.xlsx'
+  output_path: 'topics/[topic]/_models/[ticker]-3statement-dcf-model.xlsx'
+  requirements:
+    - 'Prefer source-tracked financial-data and driver-map assumptions before external or manual data.'
+    - 'Use 3-statement-model outputs when available for forecast base statements.'
+    - 'Do not use incomplete actuals as complete model inputs without explicit review flags.'
+artifact_policy:
+  save_policy: 'external_workbook'
+  default_artifact: '<ticker>-3statement-dcf-model.xlsx'
+  canonical_location: 'topics/[topic]/_models/[ticker]-3statement-dcf-model.xlsx'
+  save_trigger: 'write workbook only when the user asks for DCF output or provides a workbook target'
+workflow:
+  stage: 'valuation'
+  can_follow:
+    - 'financial-data'
+    - 'driver-map'
+    - '3-statement-model'
+    - 'consensus-map'
+  feeds_into:
+    - 'comps-analysis'
+    - 'model-update'
+    - 'alpha-thesis'
+    - 'research-journal'
+  can_trigger:
+    - 'comps-analysis'
+    - 'model-update'
+quality_gates:
+  anti_patterns:
+    - 'Do not present a price target when historical actuals or key drivers are unresolved.'
+    - 'Do not compute derived workbook values outside Excel formulas when workbook flexibility is required.'
+    - 'Do not hide sensitivity to WACC, terminal value, or long-term margin assumptions.'

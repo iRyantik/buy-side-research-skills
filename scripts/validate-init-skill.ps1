@@ -13,7 +13,8 @@ $assetPaths = @(
     "assets\CLAUDE.md.template",
     "assets\AGENTS.md.template",
     "assets\gitignore.template",
-    "assets\edge-radar.md"
+    "assets\edge-radar.md",
+    "assets\env-setup.ps1.template"
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
@@ -87,6 +88,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "workspace scaffold",
         "AGENTS.md",
         "AGENTS.md.template",
+        "env-setup.ps1.template",
         "_inbox",
         "_inbox/",
         "edge-radar.md",
@@ -95,6 +97,9 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "new-session",
         "bootstrap-ingest-deps.ps1",
         "requirements-ingest.txt",
+        "financial-data",
+        "bootstrap-financial-data-deps.ps1",
+        "requirements-financial-data.txt",
         "Docling",
         "Tesseract",
         "git init",
@@ -128,8 +133,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "init-workspace") {
         $failures.Add("init-workspace: skill.yaml name does not match init-workspace")
     }
-    if ($yamlVersion -ne "1.3.0") {
-        $failures.Add("init-workspace: expected skill version 1.3.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.4.0") {
+        $failures.Add("init-workspace: expected skill version 1.4.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.7.0") {
         $failures.Add("init-workspace: expected system_generation 3.7.0, found '$systemGeneration'")
@@ -150,8 +155,14 @@ if (Test-Path -LiteralPath $scriptPath) {
         "ingest_table_crosscheck.py",
         "bootstrap-ingest-deps.ps1",
         "requirements-ingest.txt",
+        "financial_data.py",
+        "bootstrap-financial-data-deps.ps1",
+        "requirements-financial-data.txt",
+        "sec_provider.py",
+        "openesef_provider.py",
         "init-assets",
-        "No git init, no dependency install, and no ingest execution were performed."
+        "No git init, no dependency install, and no ingest execution were performed.",
+        "No financial-data execution was performed."
     )) {
         if (-not $scriptText.Contains($phrase)) {
             $failures.Add("init helper script missing required phrase '$phrase'")
@@ -172,6 +183,7 @@ if (Test-Path -LiteralPath $claudeTemplatePath) {
         "Cross-Cut Bias",
         "new-session",
         "ingest",
+        "financial-data",
         "research-journal.md",
         "topics/",
         "topics/<topic>/_cache/",
@@ -182,7 +194,7 @@ if (Test-Path -LiteralPath $claudeTemplatePath) {
         }
     }
 
-    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/company/", "topics/theme/", "topics/event/")) {
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/event/")) {
         if ($claudeTemplate.Contains($forbidden)) {
             $failures.Add("workspace CLAUDE.md.template contains forbidden stale phrase '$forbidden'")
         }
@@ -205,7 +217,7 @@ if (Test-Path -LiteralPath $agentsTemplatePath) {
         }
     }
 
-    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/company/", "topics/theme/", "topics/event/")) {
+    foreach ($forbidden in @("decision-journal", "thesis-tracker", "coverage/", "portfolio/", "pairs/", "topics/event/")) {
         if ($agentsTemplate.Contains($forbidden)) {
             $failures.Add("workspace AGENTS.md.template contains forbidden stale phrase '$forbidden'")
         }

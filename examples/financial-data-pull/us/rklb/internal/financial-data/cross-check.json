@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "provider_status": "success",
+  "errors": [],
+  "items_extracted": [
+    "identity",
+    "filing_index",
+    "latest_full_filing",
+    "income_statement",
+    "balance_sheet",
+    "cash_flow"
+  ]
+}

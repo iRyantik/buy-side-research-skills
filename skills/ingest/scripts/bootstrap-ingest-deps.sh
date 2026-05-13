@@ -53,11 +53,9 @@ check_module() {
 
 get_deps_json() {
     local pkgs='{}'
-    for pkg in docling edgartools pymupdf4llm akshare edinet_tools dart_fss openesef openpyxl pptx docx pdfplumber pypdf PIL; do
+    for pkg in docling edgartools pymupdf4llm openpyxl pptx docx pdfplumber pypdf PIL; do
         local name="$pkg"
         if [ "$pkg" = "edgartools" ]; then name="edgar"; fi
-        if [ "$pkg" = "edinet_tools" ]; then name="edinet_tools"; fi
-        if [ "$pkg" = "dart_fss" ]; then name="dart_fss"; fi
         local avail="false"
         check_module "$name" 2>/dev/null && avail="true"
         pkgs=$(echo "$pkgs" | python3 -c "import json,sys; d=json.load(sys.stdin); d['$pkg']={'available':$avail}; print(json.dumps(d))" 2>/dev/null || echo "$pkgs")

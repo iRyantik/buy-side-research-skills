@@ -68,7 +68,10 @@ workflow:
     - 'stock-quickread'
   feeds_into:
     - 'driver-map'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'alpha-thesis'
     - 'peer-deep-dive'
     - 'pair-trade'

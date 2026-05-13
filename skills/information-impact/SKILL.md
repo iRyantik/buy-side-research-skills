@@ -1,4 +1,4 @@
----
+﻿---
 name: information-impact
 description: Use when checking whether a news item, rumor, supply-chain claim, sell-side note, data point, or expert comment is credible and worth follow-up research.
 ---
@@ -216,7 +216,7 @@ Action 只能是：
 | Claim 本身不可信 | Drop |
 | Claim 可信但没有研究增量 | 结束，不强行扩展 |
 | Claim 暴露高价值疑点 | `next-step` |
-| Claim 需要建模验证影响量级 | `financial-model` |
+| Claim 需要建模验证影响量级 | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | Claim 可信且可能改变收入 / margin / backlog driver | `driver-map` |
 | Claim 可信但首先需要理解技术链条、设备关系或行业机制 | `mechanism-map` |
 | Claim 涉及一组潜在受益 / 受损公司 | `candidate-screener` |
@@ -255,4 +255,4 @@ Action 只能是：
 - `mechanism-map` 研究可信 claim 背后的技术链条、设备关系或行业机制；本 skill 不替代机制解释。
 - `next-step` 负责把可信疑点变成更好的问题；本 skill 只判断是否值得问。
 - `research-journal` 只沉淀研究过、想清楚的认知增量；本 skill 不负责沉淀。
-- `financial-model` 处理量级和 driver；本 skill 只判断信息是否可信及是否值得建模验证。
+- `3-statement-model / dcf-model / comps-analysis / model-update` 处理量级和 driver；本 skill 只判断信息是否可信及是否值得建模验证。

@@ -98,9 +98,6 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "Docling",
         "EdgarTools",
         "PyMuPDF4LLM",
-        "AKShare",
-        "dart-fss",
-        "openesef",
         "PDFPlumber",
         "--check-deps",
         "EDGAR_IDENTITY",
@@ -151,8 +148,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlName -ne "ingest") {
         $failures.Add("ingest: skill.yaml name '$yamlName' does not match ingest")
     }
-    if ($yamlVersion -ne "1.2.0") {
-        $failures.Add("ingest: expected skill version 1.2.0, found '$yamlVersion'")
+    if ($yamlVersion -ne "1.3.0") {
+        $failures.Add("ingest: expected skill version 1.3.0, found '$yamlVersion'")
     }
     if ($systemGeneration -ne "3.7.0") {
         $failures.Add("ingest: expected system_generation 3.7.0, found '$systemGeneration'")
@@ -181,9 +178,6 @@ if (Test-Path -LiteralPath $ingestScript) {
         "Docling",
         "EdgarTools",
         "PyMuPDF4LLM",
-        "akshare",
-        "dart-fss",
-        "openesef",
         "Could not discover research workspace",
         "Missing optional dependency",
         "--recursive",
@@ -224,10 +218,6 @@ if (Test-Path -LiteralPath $requirementsPath) {
         "docling",
         "edgartools",
         "pymupdf4llm",
-        "openesef",
-        "akshare",
-        "edinet-tools",
-        "dart-fss",
         "openpyxl",
         "python-pptx",
         "python-docx",

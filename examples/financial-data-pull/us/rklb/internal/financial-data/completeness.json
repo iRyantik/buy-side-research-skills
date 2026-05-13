@@ -1,0 +1,47 @@
+{
+  "items": [
+    {
+      "data_item": "identity",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "filing_index",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "latest_full_filing",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "income_statement",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    },
+    {
+      "data_item": "balance_sheet",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    },
+    {
+      "data_item": "cash_flow",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    }
+  ],
+  "status": "success"
+}

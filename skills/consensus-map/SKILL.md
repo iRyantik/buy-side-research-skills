@@ -1,4 +1,4 @@
----
+﻿---
 name: consensus-map
 description: Use when mapping sell-side consensus, buy-side bar, priced-in assumptions, market-implied expectations, revision direction, or variant-view gaps for a single stock, peer set, industry, or theme before thesis or model work.
 ---
@@ -28,7 +28,7 @@ description: Use when mapping sell-side consensus, buy-side bar, priced-in assum
 
 Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：可见的 sell-side consensus、不可见但可推断的 buy-side bar、以及价格 / 估值 / 仓位已经隐含的 assumptions。三者不一致时，机会或风险通常就在缝里。
 
-本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-quickread` 的 first-pass，不替代 `financial-model` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
+本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-quickread` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
 
 ## Source 政策
 
@@ -38,7 +38,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 - **consensus 数字必须写 provider / as-of / metric definition**：例如 Visible Alpha、FactSet、Bloomberg、CapIQ、company-collected consensus；没有可靠 provider 时写 `[需查证]`，不要估。
 - **broker notes 只能证明 narrative，不等于 consensus dataset**：可以引用为"某类多空论点"，但不能用 2-3 篇报告冒充市场一致预期。
 - **buy-side bar 必须标为推断**：用 price reaction、revision breadth、multiple expansion、options implied move、short interest、crowding、call transcript Q&A 等推断时，必须写"推断依据"和不确定性。
-- **market-implied assumptions 必须说明方法**：倍数反推、reverse DCF、required CAGR、implied margin、bear-implied downside 不能只给结论；如果没有模型支撑，写成 clue 并 handoff 到 `financial-model`。
+- **market-implied assumptions 必须说明方法**：倍数反推、reverse DCF、required CAGR、implied margin、bear-implied downside 不能只给结论；如果没有模型支撑，写成 clue 并 handoff 到 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - **revision direction 要有时间窗**：3M / 6M / since last print / since investor day，不要写"最近上修"却没有 as-of。
 - **没有数据时不要假装完整**：表格允许出现 `[需查证]`、`[来源待补]`、`not disclosed`，但不能填 AI 猜测。
 
@@ -48,7 +48,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 |---|---|---|
 | 最新 consensus 可能不可得 | VA / FactSet / Bloomberg 数据变化快，AI 记忆滞后 | 所有 consensus 数字标 provider 和 as-of；缺失写 `[需查证]` |
 | buy-side bar 不可直接观测 | 容易把 sell-side consensus 当真实市场预期 | 明确区分 observed consensus 和 inferred bar |
-| 价格隐含假设需要模型 | AI 容易凭倍数喊 expensive / cheap | 只做轻量反推；详细量化交给 `financial-model` |
+| 价格隐含假设需要模型 | AI 容易凭倍数喊 expensive / cheap | 只做轻量反推；详细量化交给 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 行业 / 主题 consensus 分散 | 没有统一 EPS consensus，容易写成叙事汇总 | 用 KPI、anchor names、basket / peer multiple 和 debate map 代替伪精确 |
 | Narrative 容易受热门主题污染 | 市场热词不代表真正 priced-in | 必须回到 KPI、revision、multiple、price reaction 和 source |
 | Consensus 和 thesis 容易混在一起 | 输出会过早站队 | 只定位 gap，不写完整投资结论 |
@@ -69,7 +69,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 - 只是陌生行业 / 主题 first-pass：先用 `industry-quickread`。
 - 要写完整 long / short thesis、catalyst、kill criteria：用 `alpha-thesis`。
 - 要做财报前后 print bar、implied move、beat / miss setup：用 `earnings-setup`。
-- 要量化 reverse DCF、三表、comps、scenario valuation：用 `financial-model`。
+- 要量化 reverse DCF、三表、comps、scenario valuation：用 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - 要拆公司 / segment / disclosed KPI 到 revenue / margin driver：用 `driver-map`。
 
 ## 输入澄清要求
@@ -141,7 +141,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 |---|---|---|---|---|
 | Revenue | [growth / orders / conversion] | [KPI] | [source] | `driver-map` if mapping unclear |
 | Margin | [mix / pricing / utilization] | [KPI] | [source] | `driver-map` |
-| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [source] | `financial-model` |
+| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [source] | `3-statement-model / dcf-model / comps-analysis / model-update` |
 
 ## 6. Where Consensus Could Be Wrong
 
@@ -161,7 +161,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Finding | Next step |
 |---|---|
 | Variant gap is clear and driver support exists | `alpha-thesis` |
-| Price-implied assumptions need quantification | `financial-model` |
+| Price-implied assumptions need quantification | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | Next print bar / implied move matters | `earnings-setup` |
 | Revenue / margin / KPI mapping unclear | `driver-map` |
 | Mechanism / value-capture premise unclear | `mechanism-map` |
@@ -230,7 +230,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md
 | 需要快速判断陌生公司是否值得看 | `stock-quickread` |
 | 需要快速判断行业 / 主题是否值得看 | `industry-quickread` |
 | consensus gap 已清楚且 driver 已拆清 | `alpha-thesis` |
-| market-implied assumptions 需要模型量化 | `financial-model` |
+| market-implied assumptions 需要模型量化 | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | print-specific bar、implied move 或 post-print read-through 是核心问题 | `earnings-setup` |
 | company / segment / disclosed KPI 到 model driver 不清 | `driver-map` |
 | 行业机制、工程原理、设备链、工艺或 value-capture 机制不清 | `mechanism-map` |
@@ -243,7 +243,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md
 new-session -> ingest -> stock-quickread -> consensus-map
 -> company-primer / mechanism-map / driver-map
 -> primary-research-plan / peer-deep-dive
--> alpha-thesis / financial-model -> research-journal
+-> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
 ```
 
 推荐行业 / 主题路径：
@@ -252,7 +252,7 @@ new-session -> ingest -> stock-quickread -> consensus-map
 new-session -> ingest -> industry-quickread -> consensus-map
 -> mechanism-map / candidate-screener / peer-deep-dive
 -> stock-quickread -> driver-map -> primary-research-plan
--> alpha-thesis / financial-model
+-> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update
 -> research-journal
 ```
 
@@ -270,7 +270,7 @@ new-session -> ingest -> industry-quickread -> consensus-map
 - Debate map 是通用 SWOT，不是当前市场实际争论的 KPI / event / assumption。
 - 直接写成完整 `alpha-thesis`，包含 position sizing、kill criteria 或 scenario returns。
 - print-specific bar 明显是核心问题却不路由 `earnings-setup`。
-- reverse DCF / implied CAGR 需要模型却硬算成精确结论；应 handoff `financial-model`。
+- reverse DCF / implied CAGR 需要模型却硬算成精确结论；应 handoff `3-statement-model / dcf-model / comps-analysis / model-update`。
 - revenue / margin / backlog / KPI 到 model driver 不清，却不 handoff `driver-map`。
 - 表格没有 takeaway，或 takeaway 复述表格。
 - 下一步问题空泛，不能被具体 source / dataset / filing 回答。
@@ -283,7 +283,7 @@ new-session -> ingest -> industry-quickread -> consensus-map
 | Industry / Theme Consensus Map | 1300-2000 字 | 4-6 张 |
 | Tight Expectations Check | 600-900 字 | 1-2 张 |
 
-低于 600 字通常 source、bar、debate 或 routing 不足；超过 2200 字通常已经越界到 `alpha-thesis`、`financial-model`、`earnings-setup` 或 `peer-deep-dive`。
+低于 600 字通常 source、bar、debate 或 routing 不足；超过 2200 字通常已经越界到 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update`、`earnings-setup` 或 `peer-deep-dive`。
 
 ## 与相邻 skill 的边界
 
@@ -292,7 +292,7 @@ new-session -> ingest -> industry-quickread -> consensus-map
 | `stock-quickread` | 给单家公司 first-pass 和简版 consensus clue；本 skill 系统拆 expectations stack。 |
 | `industry-quickread` | 给行业 first-pass 和 priced-in clue；本 skill 深拆行业 / 主题 consensus、bar 和 debate。 |
 | `alpha-thesis` | 形成 long / short variant view、catalyst、scenario、kill criteria；本 skill 只定位 gap 和 proof burden。 |
-| `financial-model` | 量化 reverse DCF、三表、scenario valuation 和 sensitivity；本 skill 只做轻量 market-implied framing。 |
+| `3-statement-model / dcf-model / comps-analysis / model-update` | 量化 reverse DCF、三表、scenario valuation 和 sensitivity；本 skill 只做轻量 market-implied framing。 |
 | `earnings-setup` | 处理 next print / post-print 的 bar、implied move 和 setup；本 skill 处理非 print-specific 的共识地图。 |
 | `driver-map` | 处理公司 / segment / 产品线 / 披露 bucket 到 revenue、margin、backlog、price/volume/mix model driver；本 skill 不重写 driver 拆解。 |
 | `mechanism-map` | 解释行业机制、工程原理、设备链条、工艺流程和 value-capture 机制；本 skill 只标出机制 gap。 |

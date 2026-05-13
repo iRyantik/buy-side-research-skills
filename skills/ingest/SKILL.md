@@ -1,4 +1,4 @@
----
+﻿---
 name: ingest
 description: Use when converting raw research materials such as PDF, XLSX, PPTX, DOCX, TXT, CSV, or markdown files into workspace _cache markdown before analysis.
 ---
@@ -31,7 +31,8 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 - 不解释公司业务；公司基础交给 `company-primer`。
 - 不拆 driver；driver gap 交给 `driver-map`。
 - 不沉淀 earned insight；memory 交给 `research-journal`。
-- 不自动安装 Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openesef 或 Python packages。
+- 不自动安装 Docling、PyMuPDF4LLM、EdgarTools 或 Python packages。
+- 不按 ticker 拉取结构化财报；结构化财务数据拉取交给 `financial-data`。
 
 ## 触发与输入
 
@@ -110,7 +111,7 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - `skills/ingest/scripts/bootstrap-ingest-deps.sh`
 - `skills/ingest/assets/requirements-ingest.txt`
 
-核心依赖：Docling、PyMuPDF4LLM、EdgarTools、AKShare、edinet-tools、dart-fss、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。`openesef`（欧洲 ESEF XBRL）为可选，中文 Windows 可能需手动 `set PYTHONUTF8=1 && pip install openesef`。一键安装：
+核心依赖：Docling、PyMuPDF4LLM、EdgarTools、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。按 ticker / filing package 拉取结构化财报交给 `financial-data`。一键安装：
 
 ```powershell
 # Windows
@@ -135,17 +136,9 @@ _scripts/bootstrap-ingest-deps.ps1 -Yes -China
 | SEC filing | **docling + EdgarTools** | EdgarTools XBRL 就绪后走 docling narrative |
 | 扫描件（OCR required） | **docling → PyMuPDF4LLM fallback** | 标注 precision caveat，关键文件建议 Claude Vision review |
 
-### 按市场结构化数据
+### 结构化财务数据边界
 
-| 市场 | 工具 | 状态 |
-|---|---|---|
-| A股 + 港股 | AKShare | 19.1k stars，活跃 |
-| 日本 | edinet-tools | EDINET 公司财务数据 |
-| 韩国 | dart-fss | DART 披露系统 |
-| 欧洲 | Arelle + openesef | ESMA 使用，ESEF XBRL |
-| 台湾 | mops-financial-api | 原型，iXBRL only `[gap]` |
-| 英国 | 无成熟工具 | `[gap]`，需 Arelle DIY |
-| 美股 | EdgarTools | 成熟 |
+`ingest` 只转换用户已经放入 workspace 的本地 raw material。按 `market + identifier` 拉取三表、segment revenue、ESEF/iXBRL 或 DART/EDINET/AKShare 数据时，用 `financial-data`；不要把 provider 拉数逻辑塞回 ingest。
 
 ### 图片提取（Vision Pipeline）
 
@@ -234,7 +227,8 @@ VISION_MAX_IMAGES_PER_DOC=20
 | cache 生成后要判断 claim 可信度 | `information-impact` |
 | cache 是 annual report / 10-K / 20-F | `company-primer` 或 `driver-map` |
 | cache 是 industry report / technical paper | `mechanism-map` |
-| cache 是 financial model workbook | `financial-model` |
+| 需要按 ticker / filing package 拉取结构化财报 | `financial-data` |
+| cache 是 financial model workbook | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 研究已经想清楚 | `research-journal` |
 | 研究 skill 需要发现已 ingest 材料 | 检查 `topics/<topic-slug>/_cache/` |
 

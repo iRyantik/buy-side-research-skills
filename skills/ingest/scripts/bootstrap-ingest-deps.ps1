@@ -52,10 +52,6 @@ function Get-DependencyStatus {
         docling       = Test-PythonModule "docling"
         edgartools    = Test-PythonModule "edgar"
         pymupdf4llm   = Test-PythonModule "pymupdf4llm"
-        akshare       = Test-PythonModule "akshare"
-        "edinet-tools" = Test-PythonModule "edinet_tools"
-        "dart-fss"    = Test-PythonModule "dart_fss"
-        openesef      = Test-PythonModule "openesef"
         openpyxl      = Test-PythonModule "openpyxl"
         "python-pptx" = Test-PythonModule "pptx"
         "python-docx" = Test-PythonModule "docx"
@@ -137,20 +133,6 @@ if (-not $vcredist) {
     exit 1
 }
 Write-Host "[OK] VC++ Redistributable" -ForegroundColor Green
-
-# ---------- C++ compiler check (needed for openesef on Windows) ----------
-$env:PYTHONUTF8 = 1  # prevent GBK decode errors in openesef build
-$hasCompiler = $false
-try {
-    $null = & cl.exe 2>$null
-    $hasCompiler = $true
-} catch { }
-if (-not $hasCompiler) {
-    Write-Host "[!] 未检测到 C++ 编译器。openesef（欧洲 ESEF XBRL）可能安装失败。" -ForegroundColor Yellow
-    Write-Host "    如需欧洲财报数据支持，运行: vs_BuildTools.exe --add Microsoft.VisualStudio.Workload.VCTools"
-    Write-Host "    下载: https://aka.ms/vs/17/release/vs_BuildTools.exe"
-    Write-Host ""
-}
 
 # ---------- upgrade pip ----------
 Write-Host "--- 升级 pip ---"

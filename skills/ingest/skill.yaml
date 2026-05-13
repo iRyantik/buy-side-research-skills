@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'ingest'
 id: 'ingest'
 display_name: 'Ingest Raw Material'
-version: '1.2.0'
+version: '1.3.0'
 system_generation: '3.7.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -22,10 +22,6 @@ tags:
   - 'docling'
   - 'pymupdf4llm'
   - 'edgartools'
-  - 'akshare'
-  - 'edinet-tools'
-  - 'dart-fss'
-  - 'openesef'
 trigger:
   type: 'keyword'
   keywords:
@@ -63,6 +59,7 @@ capabilities:
     - 'organize topics/<topic>/_raw/ by document category'
     - 'never move files already under topics/<topic>/_raw/; only move from _inbox/'
     - 'do not produce investment conclusions'
+    - 'do not fetch ticker-level structured financial data; route that work to financial-data'
     - 'fail honestly when optional parser dependencies are missing'
 artifact_policy:
   save_policy: 'cache_artifact'
@@ -78,7 +75,11 @@ workflow:
     - 'company-primer'
     - 'mechanism-map'
     - 'driver-map'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
+    - 'financial-data'
     - 'research-journal'
   can_trigger:
     - 'information-impact'

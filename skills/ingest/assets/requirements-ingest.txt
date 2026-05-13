@@ -1,10 +1,6 @@
 docling
 edgartools
 pymupdf4llm
-openesef
-akshare
-edinet-tools
-dart-fss
 openpyxl
 python-pptx
 python-docx

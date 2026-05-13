@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 23
+    [int]$ExpectedActiveSkillCount = 27
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,6 +28,13 @@ $forbiddenSharedTerms = @(
     "health_status",
     "decision-journal",
     "thesis-tracker"
+)
+
+$importedModelingSkills = @(
+    "3-statement-model",
+    "dcf-model",
+    "comps-analysis",
+    "model-update"
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
@@ -81,6 +88,12 @@ foreach ($dir in $activeSkillDirs) {
 
     if ($category -eq "research") {
         $researchSkillCount += 1
+        if ($importedModelingSkills -contains $dir.Name) {
+            if ($text -notmatch "(?m)^##\s*Research Workspace Adapter") {
+                $failures.Add("$($dir.Name): imported modeling skill must include Research Workspace Adapter")
+            }
+            continue
+        }
         if ($markerCount -ne 1) {
             $failures.Add("$($dir.Name): research skill expected exactly one '$marker', found $markerCount")
             continue

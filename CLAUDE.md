@@ -1,4 +1,4 @@
-# CLAUDE.md - Buy-Side Research Project Configuration
+﻿# CLAUDE.md - Buy-Side Research Project Configuration
 
 > 本文件是这个工作目录的唯一 project constitution / source of truth。任何 skill、README 或局部说明与本文冲突时，以本文为准。
 
@@ -123,7 +123,7 @@ Research layers：
 |---|---|---|
 | `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别下一步最高杠杆问题 |
 | `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、primary research、thesis、财报、pair、建模 |
+| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
 Operations skills：
@@ -132,6 +132,7 @@ Operations skills：
 |---|---|
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `topics/<topic>/_cache/` markdown |
+| `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
 | `new-session` | 创建 topic session + 完整 scaffold，解析 artifact 保存路径 |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
@@ -142,9 +143,9 @@ Operations skills：
 
 `primary-research-plan` 是 compliant primary research planning skill。涉及 expert call、customer / supplier / competitor channel check、survey、fieldwork、ex-employee interview 或需要把关键 thesis / consensus / driver 假设拿到现实世界验证时，用 `primary-research-plan` 设计合规计划；它不执行访谈、不生成假反馈、不提供法律意见。
 
-`mechanism-map` 是 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`financial-model`、`alpha-thesis` 或 `peer-deep-dive`。
+`mechanism-map` 是 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis` 或 `peer-deep-dive`。
 
-`driver-map` 是 company / segment model-driver primitive。涉及公司、segment、产品线或披露 bucket 的 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `financial-model`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。不要把泛行业 driver 拆解交给 `driver-map`；行业层 first-pass 先用 `industry-quickread`，机制不清再用 `mechanism-map`。
+`driver-map` 是 company / segment model-driver primitive。涉及公司、segment、产品线或披露 bucket 的 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。不要把泛行业 driver 拆解交给 `driver-map`；行业层 first-pass 先用 `industry-quickread`，机制不清再用 `mechanism-map`。
 
 `company-primer` 是 company foundation skill。涉及公司到底卖什么、客户是谁、业务边界如何演变、material M&A / divestiture、segment / KPI rename、recast 或披露口径断裂时，先用 `company-primer` 打地基；若口径断裂已经阻塞 driver 判断，再进入 `driver-map`。
 
@@ -154,6 +155,7 @@ Operations skills：
 |---|---|---|
 | `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
+| `financial-data` | 拉结构化财报 / 按 ticker 拉三表 / openesef / DART / EDINET / AKShare | source-tracked financial evidence pack |
 | `new-session` | 新建 topic session / 解析 artifact 保存路径 / 轻量更新 index | topic session scaffold + canonical paths |
 | `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
@@ -170,7 +172,10 @@ Operations skills：
 | `earnings-setup` | 下周财报 / 刚出了财报 / print | pre-print setup / post-print read |
 | `mechanism-map` | 行业机制 / 工程原理 / 设备链条 / know-how gap | mechanism map + value capture + research read-through |
 | `driver-map` | 拆 driver / 收入怎么拆 / bucket 为什么怪 | business reality + model driver map |
-| `financial-model` | 搭 model / DCF / comps / 更新已有模型 | driver-to-valuation model / update map |
+| `3-statement-model` | 搭 operating model / 三表模型 | 3-statement workbook |
+| `dcf-model` | DCF / reverse DCF / intrinsic value | DCF workbook |
+| `comps-analysis` | comps / peer multiples / relative valuation | comps workbook |
+| `model-update` | 更新已有模型 / plug earnings / refresh estimates | update map / updated workbook |
 | `information-impact` | 这个消息靠谱吗 / claim check / 供应链传闻 | Claim Check + Research Relevance |
 | `cross-market-compare` | A/H / ADR / 跨市场估值差 | normalized valuation + access adjustment |
 | `research-journal` | 总结本轮研究 / 写进 journal / boss brief | topic journal / Boss Brief |
@@ -218,7 +223,7 @@ Future research workspace：
         │   ├── industry/
         │   ├── irdecks/
         │   └── datasets/
-        ├── _cache/                  # ingest 转换 markdown（与 _raw/ 分类对齐）
+        ├── _cache/                  # ingest 转换 markdown（与 _raw/ 分类对齐）；financial-data evidence packs
         │   ├── filings/
         │   ├── transcripts/
         │   ├── sellside/
@@ -237,10 +242,11 @@ Future research workspace：
 - `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`。
 - `company-primer`、`industry-quickread`、`consensus-map`、`primary-research-plan`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`。
 - `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
-- `financial-model` 属于 `external_workbook`。
+- `3-statement-model / dcf-model / comps-analysis / model-update` 属于 `external_workbook`。
 - `research-journal` 属于 `earned_memory`。
 - `init-workspace` 属于 `workspace_scaffold`。
 - `ingest` 属于 `cache_artifact`。
+- `financial-data` 属于 `cache_artifact`。
 
 ---
 

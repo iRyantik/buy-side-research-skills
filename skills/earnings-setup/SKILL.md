@@ -1,4 +1,4 @@
----
+﻿---
 name: earnings-setup
 description: Use when preparing for an upcoming earnings print, reacting to newly reported results, or deciding whether earnings should trigger thesis, model, or decision updates.
 ---
@@ -14,7 +14,7 @@ description: Use when preparing for an upcoming earnings print, reacting to newl
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 # Earnings Setup
 
@@ -160,13 +160,13 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 | 输出字段 | 允许值 | 说明 |
 |---|---|---|
 | `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | 是否需要更新研究观点或重写相关 thesis |
-| `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `financial-model` |
+| `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | 是否已经形成值得沉淀或给老板看的判断增量 |
 | `next_step_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `next-step` 继续拆 |
 | `mechanism_map_trigger` | `no` / `yes` | 是否因为设备链条、工程约束、产能单位、工艺流程或 know-how gap 需要触发 `mechanism-map` |
 | `driver_map_trigger` | `no` / `yes` | 是否因为 segment、KPI 口径、backlog、orders、margin、price / volume / mix 变化需要触发 `driver-map` |
 
-如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若 surprise 是机制 / know-how 问题，先触发 `mechanism-map`；若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `financial-model`。
+如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若 surprise 是机制 / know-how 问题，先触发 `mechanism-map`；若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `3-statement-model / dcf-model / comps-analysis / model-update`。
 
 ---
 
@@ -211,4 +211,4 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md
 - 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）
 - 输出反过来更新 `alpha-thesis`（thesis 是否还成立，假设是否需要修订）
 - 如果 post-print 显示 thesis 严重削弱，触发回到 `bear-pre-mortem` 重新压测
-- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果暴露机制 / know-how gap，先触发 `mechanism-map`；如果数字改变 model driver，先触发 `driver-map`，再按需要触发 `financial-model`。
+- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果暴露机制 / know-how gap，先触发 `mechanism-map`；如果数字改变 model driver，先触发 `driver-map`，再按需要触发 `3-statement-model / dcf-model / comps-analysis / model-update`。

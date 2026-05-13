@@ -118,7 +118,7 @@
 ├── _scripts/                        # copied helper scripts
 ├── edge-radar.md                    # cross-topic research radar
 └── topics/                          # all materials organized by topic
-    └── <topic-slug>/                #   topic（层级：aerospace 行业, aerospace/ge-aerospace 公司）
+    └── <namespace>/<topic-slug>/    #   namespace: company / industry / theme / pair
         ├── index.md                 #   topic 地图
         ├── _inbox/                  #   该 topic 的待处理文件
         ├── _raw/                    #   原始文件，按文档类别组织；不要改写
@@ -127,14 +127,14 @@
         │   ├── sellside/            #     sell-side research reports
         │   ├── industry/            #     industry reports
         │   ├── irdecks/             #     IR / investor day presentations
-        │   └── datasets/            #     CSV, Excel 结构化数据
+        │   └── datasets/            #     CSV, Excel, provider payloads
         ├── _cache/                  #   ingest 转换 markdown（与 _raw/ 分类对齐）
         │   ├── filings/
         │   ├── transcripts/
         │   ├── sellside/
         │   ├── industry/
         │   ├── irdecks/
-        │   └── datasets/
+        │   └── datasets/            #     includes financial-data evidence packs
         ├── _models/                 #   财务模型 / workbooks
         ├── <YYYY-MM-DD>-<session>/  #   研究 session
         │   ├── industry-quickread.md
@@ -149,10 +149,12 @@
 ```
 
 - 研究流：`new-session` 创建 topic 完整骨架 → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
+- Topic namespace 标准为 `company/`、`industry/`、`theme/`、`pair/`。单公司 canonical data 默认放在 `topics/company/<company-slug>/`。
 - `topics/<topic>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
 - `topics/<topic>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
+- `financial-data` 输出到 `topics/company/<company-slug>/_cache/datasets/financial-data/`；theme / industry 只保存 snapshot 或 links。
 - `topics/<topic>/_models/` 保存 workbook / model files。
-- `_scripts/` 保存 init / ingest helper scripts。
+- `_scripts/` 保存 init / ingest / financial-data helper scripts。
 - `edge-radar.md` 存放跨 topic 研究雷达和待验证 edge。
 - **图片提取**：ingest 自动提取文档内嵌图片到 `_cache/<category>/_figures/`，markdown 用 `![Figure]` 嵌入。研究时 Claude 多模态自动看图。
 - **外部视觉模型**（主模型不支持多模态时）：设环境变量 `VISION_ENDPOINT` + `VISION_API_KEY` + `--describe-images` 可批量预描述图片。
@@ -178,6 +180,30 @@ topics/<topic-slug>/<YYYY-MM-DD>-<session-slug>/
 - `research-journal.md` 只写已经研究清楚、source-backed、能改变判断或后续研究优先级的 insight。
 - `boss-brief.md` 是高密度 PM / boss transfer，不是简略摘要。
 
+### Company Modeling Inputs
+
+```text
+topics/company/<company-slug>/
+  _cache/
+    financial-data/
+      financial-data-summary.md
+      internal/
+        evidence-pack.json
+        actuals-resolved.json
+      full-filing.md
+    driver-map/
+      driver-map.md
+      internal/
+        driver-map.json
+  _models/
+    <ticker>-3statement-model.xlsx
+    <ticker>-3statement-dcf-model.xlsx
+    <ticker>-comps-analysis.xlsx
+    <ticker>-model-update.xlsx / <ticker>-update-map.md
+```
+
+Non-company topics keep only snapshot, links, or aggregation for company financial data.
+
 ---
 
 ## 7. Skill Routing
@@ -187,6 +213,7 @@ Operations:
 | Skill | When to use | Output |
 |---|---|---|
 | `ingest` | 转换 `_inbox/` 文件为 markdown cache，自动移至 `topics/<topic>/_raw/` | source-tracked `topics/<topic>/_cache/` markdown |
+| `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 | source-tracked financial evidence pack |
 | `new-session` | 新建 / 定位 topic session；解析 artifact 保存路径；轻量更新 `index.md` | topic session scaffold + canonical save paths |
 
 Research:
@@ -209,14 +236,17 @@ Research:
 | `alpha-thesis` | 搭 long / short thesis | variant view + catalyst + kill criteria |
 | `bear-pre-mortem` | 找漏洞 / 反向压测 thesis | steelman bear case |
 | `earnings-setup` | 财报前 setup / 财报后 quick read | pre-print setup / post-print read |
-| `financial-model` | 搭 model / 更新模型 / 拆收入 | model update map / workbook |
+| `3-statement-model` | 搭 operating model / 三表模型 | 3-statement workbook |
+| `dcf-model` | DCF / reverse DCF / intrinsic value | DCF workbook |
+| `comps-analysis` | comps / peer multiples / relative valuation | comps workbook |
+| `model-update` | 更新模型 / plug earnings / refresh estimates | update map / updated workbook |
 | `research-journal` | 沉淀已研究清楚的认知 / Boss Brief | research-journal / boss-brief / topic index update |
 
 行业 / 主题 first-pass 先用 `industry-quickread`；市场预期、buy-side bar、priced-in assumptions 或 variant-view gap 不清用 `consensus-map`；需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证关键假设时，用 `primary-research-plan`；行业机制、工程原理、设备链、工艺或术语不清再用 `mechanism-map`；只有落到公司 / segment / 产品线 / 披露 bucket 到 model driver 的映射时，才用 `driver-map`。如果不确定用哪个 skill，先说明候选和差异，再让用户选；不要猜。
 
 ---
 
-## 8. Ingest And Dependency Rules
+## 8. Ingest / Financial Data And Dependency Rules
 
 - `init-workspace` 不安装依赖、不 ingest 文件、不运行 `git init`。
 - 首次完整 ingest 前运行：
@@ -231,7 +261,20 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
 ```
 
+- 首次使用结构化财务数据拉取前运行：
+
+```powershell
+_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+```
+
+- 只有用户明确 opt in 时才运行：
+
+```powershell
+_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+```
+
 - `ingest` 失败时必须 fail honestly；不能写假 cache。
+- `financial-data` 失败时必须 fail honestly；不能因为 provider 返回 partial 就声称 model-ready。
 - `topics/<topic>/_cache/` 内容可帮助阅读，但引用事实仍应回到 original source 或明确标注 cache provenance。
 
 ---

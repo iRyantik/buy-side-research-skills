@@ -37,6 +37,10 @@ skills/ingest/scripts/bootstrap-ingest-deps.ps1
 skills/ingest/scripts/ingest.py
 skills/ingest/scripts/ingest_xlsx.py
 skills/ingest/scripts/ingest_table_crosscheck.py
+skills/financial-data/assets/requirements-financial-data.txt
+skills/financial-data/scripts/financial_data.py
+skills/financial-data/scripts/bootstrap-financial-data-deps.ps1
+skills/financial-data/scripts/providers/*.py
 ```
 
 ## 发布前检查
@@ -53,6 +57,7 @@ rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifac
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-financial-data-skill.ps1
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-meta-skill.ps1
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session-skill.ps1
 rtk git diff --check
@@ -74,4 +79,4 @@ dist/buy-side-research-skills-3.7.0.zip
 
 ## 依赖策略
 
-包不应预装 Docling、EdgarTools、Tesseract、MarkItDown 或其他解析器。用户在 research workspace 中通过运行 `_scripts/bootstrap-ingest-deps.ps1` 显式选择安装。
+包不应预装 Docling、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、Tesseract、MarkItDown 或其他解析器。用户在 research workspace 中通过运行 `_scripts/bootstrap-ingest-deps.ps1` 或 `_scripts/financial-data/bootstrap-financial-data-deps.ps1` 显式选择安装。

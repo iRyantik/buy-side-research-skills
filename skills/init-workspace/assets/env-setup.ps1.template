@@ -1,11 +1,11 @@
-# Ingest 环境配置
+# Ingest / Financial Data 环境配置
 # 复制本文件为 env-setup.ps1，填入你的信息后运行：  .\env-setup.ps1
 
 # --- 美股 SEC Filing（必填，否则 EdgarTools 不可用）---
 # 格式: "Name email@domain.com"
 $env:EDGAR_IDENTITY = ""
 
-# --- 韩国 DART API Key（可选，拉取韩国上市公司财报需要）---
+# --- 韩国 DART API Key（financial-data 可选，拉取韩国上市公司财报需要）---
 # 免费注册获取: https://opendart.fss.or.kr/
 # $env:DART_API_KEY = ""
 

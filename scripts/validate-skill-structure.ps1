@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 23
+    [int]$ExpectedActiveSkillCount = 27
 )
 
 $ErrorActionPreference = "Stop"
@@ -65,6 +65,13 @@ $operationsSections = @(
     @{ Label = "Safety Self-check"; Pattern = "(?m)^##\s*" + [regex]::Escape($safetyCheck) }
 )
 
+$importedModelingSkills = @(
+    "3-statement-model",
+    "dcf-model",
+    "comps-analysis",
+    "model-update"
+)
+
 $activeSkillDirs = Get-ChildItem -LiteralPath $skillsRoot -Directory |
     Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") } |
     Sort-Object Name
@@ -94,6 +101,25 @@ foreach ($dir in $activeSkillDirs) {
 
     # Only inspect content from the first H1 onward so the shared capsule cannot satisfy structure checks.
     $body = $text.Substring($h1.Index)
+
+    if ($importedModelingSkills -contains $dir.Name) {
+        if ($text -notmatch "(?m)^##\s*Research Workspace Adapter") {
+            $failures.Add("$($dir.Name): imported modeling skill must include a short Research Workspace Adapter section")
+        }
+        foreach ($requiredInput in @(
+            "_cache/financial-data/financial-data-summary.md",
+            "_cache/financial-data/internal/actuals-resolved.json",
+            "_cache/financial-data/internal/evidence-pack.json",
+            "_cache/driver-map/driver-map.md",
+            "_cache/driver-map/internal/driver-map.json"
+        )) {
+            if (-not $text.Contains($requiredInput)) {
+                $failures.Add("$($dir.Name): Research Workspace Adapter missing preferred input '$requiredInput'")
+            }
+        }
+        continue
+    }
+
     $requiredSections = $null
     if ($category -eq "research") {
         $requiredSections = $researchSections

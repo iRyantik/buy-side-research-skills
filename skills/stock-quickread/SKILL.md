@@ -1,4 +1,4 @@
----
+﻿---
 name: stock-quickread
 description: Use when quickly assessing an unfamiliar company, getting a 30-minute first pass, or deciding whether a stock deserves deeper research.
 ---
@@ -14,7 +14,7 @@ description: Use when quickly assessing an unfamiliar company, getting a 30-minu
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 # Stock Quickread
 
@@ -228,7 +228,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 | 收入结构复杂、segment bucket 怪、model driver 不清楚 | `driver-map` |
 | 业务机制、设备链条、工艺流程或术语不清 | `mechanism-map` |
 | 需要和一组 peer 横向比较 | `peer-deep-dive` |
-| 需要把估值隐含假设量化成 model / reverse DCF | `financial-model` |
+| 需要把估值隐含假设量化成 model / reverse DCF | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 只是不知道下一层问题怎么问 | `next-step` |
 | 已经形成可复用认知增量 | `research-journal` |
 
@@ -246,4 +246,4 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md
 
 - 标准 quickread：1200-1800 字，必须保留数据表、takeaway、反向工程和下一层问题。
 - 快速 triage：600-900 字，只能用于判断是否值得继续研究；若低于 600 字，通常 source / valuation / driver 不足。
-- 超过 2200 字通常说明已经越界到 `company-primer`、`consensus-map`、`alpha-thesis`、`driver-map` 或 `financial-model`，应拆分。
+- 超过 2200 字通常说明已经越界到 `company-primer`、`consensus-map`、`alpha-thesis`、`driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`，应拆分。

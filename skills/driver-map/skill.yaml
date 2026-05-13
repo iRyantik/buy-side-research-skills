@@ -43,21 +43,22 @@ trigger:
 capabilities:
   modes:
     - 'Driver Map'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md when user asks to save'
+  output_path: 'topics/company/[company-slug]/_cache/driver-map/driver-map.md plus internal/driver-map.json when user asks to save model-readable driver inputs'
   requirements:
     - 'follow CLAUDE.md source policy'
     - 'map reported buckets to business reality'
     - 'map business reality to model drivers'
     - 'flag model-driver gaps and weird disclosure'
+    - 'write public driver-map.md and internal/driver-map.json with segment/geography treatment, revenue drivers, margin drivers, valuation methods, model type recommendation, and confidence/source status when saving for modeling'
     - 'hand off company foundation or disclosure evolution history to company-primer'
     - 'hand off field evidence gaps to primary-research-plan'
     - 'do not perform DCF or comps'
     - 'do not create or edit workbooks'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'cache_artifact'
   default_artifact: 'driver-map.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md'
-  save_trigger: 'save only when user asks to preserve driver mapping as session research material'
+  canonical_location: 'topics/company/[company-slug]/_cache/driver-map/driver-map.md and internal/driver-map.json'
+  save_trigger: 'save only when user asks to preserve driver mapping as model-readable company cache'
 workflow:
   stage: 'research-primitive'
   can_follow:
@@ -66,7 +67,10 @@ workflow:
     - 'stock-quickread'
     - 'information-impact'
   feeds_into:
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'alpha-thesis'
     - 'primary-research-plan'
     - 'peer-deep-dive'

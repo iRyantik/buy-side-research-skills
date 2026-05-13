@@ -5,7 +5,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 
 # Init
 
-`init-workspace` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `topics/_meta/edge-radar.md`，并复制 ingest helper scripts，帮助用户在正确位置开始研究。
+`init-workspace` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `edge-radar.md`，并复制 ingest / financial-data helper scripts，帮助用户在正确位置开始研究。
 
 它是 operations skill，不是研究 skill。它不研究公司、不 ingest 文件、不安装依赖、不运行 `git init`、不创建 topic artifact，也不应该把 workspace scaffold 写进当前 plugin repo。
 
@@ -20,7 +20,8 @@ description: Use when setting up or repairing a buy-side research workspace fold
 负责：
 - 创建 `_inbox/`、`_scripts/`、`topics/` scaffold。
 - 写入缺失的 workspace `CLAUDE.md`、`.gitignore`、`edge-radar.md`。
-- 复制 `init-research-workspace.ps1`、init assets、ingest scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt` 到 `_scripts/`。
+- 复制 `init-research-workspace.ps1`、init assets（含 `env-setup.ps1.template`）、ingest scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt` 到 `_scripts/`。
+- 复制 `financial-data` helper scripts、providers、`bootstrap-financial-data-deps.ps1` 和 `requirements-financial-data.txt` 到 `_scripts/financial-data/`。
 
 不负责：
 - 不 ingest PDF / Excel / PPTX / DOCX。
@@ -72,6 +73,10 @@ description: Use when setting up or repairing a buy-side research workspace fold
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
 - `skills/ingest/scripts/bootstrap-ingest-deps.ps1`
 - `skills/ingest/assets/requirements-ingest.txt`
+- `skills/financial-data/scripts/financial_data.py`
+- `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
+- `skills/financial-data/scripts/providers/*.py`
+- `skills/financial-data/assets/requirements-financial-data.txt`
 
 优先调用 helper script，不要手写复制逻辑。
 
@@ -131,6 +136,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 | workspace 已建好，用户要开始某个 company / theme / event research | handoff 到 `new-session` 创建 topic session |
 | 用户把材料放进 `_inbox/` 后想转换 | handoff 到 `ingest` |
 | 用户缺 Docling / EdgarTools / Tesseract / MarkItDown | 提示 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |
+| 用户缺 SEC / AKShare / EDINET / DART / openesef 财务数据依赖 | 提示 `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |
 | 用户要研究公司 | handoff 到 `company-primer` 或 `stock-quickread` |
 
 Artifact policy：
@@ -144,6 +150,7 @@ Artifact policy：
 - ❌ 覆盖已有 `CLAUDE.md`、`.gitignore` 或 `edge-radar.md`。
 - ❌ 自动 `git init`。
 - ❌ 自动 ingest raw materials。
+- ❌ 自动拉取 financial-data 或安装 financial-data dependencies。
 - ❌ 自动安装 dependencies。
 - ❌ 创建 topic artifact、`research-journal.md` 或 `boss-brief.md`。
 - ❌ 生成 v2 state folders，如 `coverage/`、`portfolio/`、`pairs/`。

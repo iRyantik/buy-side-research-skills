@@ -1,0 +1,1008 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-05-13T10:24:46+00:00",
+  "latest_run_cache_path": "internal/financial-data",
+  "status": "success",
+  "resolution_policy": {
+    "missing_or_unmapped": "leave_blank_and_flag_review",
+    "never_fill_missing_with_zero": true,
+    "model_input_gate": "use completeness/source_map before workbook population"
+  },
+  "statements": {
+    "income_statement": [
+      {
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "label": "Total Revenue",
+        "values": {
+          "FY 2025": 601799000.0,
+          "FY 2024": 436214000.0,
+          "FY 2023": 244592000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "CostOfRevenue",
+        "label": "Cost of Revenue",
+        "values": {
+          "FY 2025": 394618000.0,
+          "FY 2024": 320065000.0,
+          "FY 2023": 193183000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GrossProfit",
+        "label": "Gross Profit",
+        "values": {
+          "FY 2025": 207181000.0,
+          "FY 2024": 116149000.0,
+          "FY 2023": 51409000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "ResearchAndDevelopmentExpense",
+        "label": "Research and Development Expense",
+        "values": {
+          "FY 2025": 270716000.0,
+          "FY 2024": 174394000.0,
+          "FY 2023": 119054000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "OperatingExpenses",
+        "label": "Operating Expenses",
+        "values": {
+          "FY 2025": 436019000.0,
+          "FY 2024": 305950000.0,
+          "FY 2023": 229327000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "SellingGeneralAndAdministrativeExpense",
+        "label": "Selling, General and Administrative Expense",
+        "values": {
+          "FY 2025": 165303000.0,
+          "FY 2024": 131556000.0,
+          "FY 2023": 110273000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "OperatingIncomeLoss",
+        "label": "Operating Income (Loss)",
+        "values": {
+          "FY 2025": -228838000.0,
+          "FY 2024": -189801000.0,
+          "FY 2023": -177918000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "OtherNonoperatingIncomeExpense",
+        "label": "Other Nonoperating Income (Expense)",
+        "values": {
+          "FY 2025": 4381000.0,
+          "FY 2024": 4431000.0,
+          "FY 2023": 3715000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "NonoperatingIncomeExpense",
+        "label": "Nonoperating Income (Expense)",
+        "values": {
+          "FY 2025": 2941000.0,
+          "FY 2024": 390000.0,
+          "FY 2023": -1003000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+        "label": "Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest",
+        "values": {
+          "FY 2025": -225897000.0,
+          "FY 2024": -189411000.0,
+          "FY 2023": -178921000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "IncomeTaxExpenseBenefit",
+        "label": "Income Tax Expense (Benefit)",
+        "values": {
+          "FY 2025": -27688000.0,
+          "FY 2024": 764000.0,
+          "FY 2023": 3650000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "NetIncomeLoss",
+        "label": "Net Income (Loss) Attributable to Parent",
+        "values": {
+          "FY 2025": -198209000.0,
+          "FY 2024": -190175000.0,
+          "FY 2023": -182571000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "EarningsPerShareBasic",
+        "label": "Earnings Per Share, Basic",
+        "values": {
+          "FY 2025": -0.37,
+          "FY 2024": -0.38,
+          "FY 2023": -0.38
+        },
+        "depth": 1
+      },
+      {
+        "concept": "EarningsPerShareDiluted",
+        "label": "Earnings Per Share, Diluted",
+        "values": {
+          "FY 2025": -0.37,
+          "FY 2024": -0.38,
+          "FY 2023": -0.38
+        },
+        "depth": 1
+      },
+      {
+        "concept": "InterestIncomeExpenseNonoperatingNet",
+        "label": "Interest Income (Expense), Nonoperating, Net",
+        "values": {
+          "FY 2024": -3954000.0,
+          "FY 2023": -4248000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "WeightedAverageNumberOfSharesOutstandingBasic",
+        "label": "Weighted Average Number of Shares Outstanding, Basic",
+        "values": {
+          "FY 2025": 530664781.0,
+          "FY 2024": 495929861.0,
+          "FY 2023": 481768060.0
+        },
+        "depth": 0
+      },
+      {
+        "concept": "WeightedAverageNumberOfDilutedSharesOutstanding",
+        "label": "Weighted Average Number of Shares Outstanding, Diluted",
+        "values": {
+          "FY 2025": 530664781.0,
+          "FY 2024": 495929861.0,
+          "FY 2023": 481768060.0
+        },
+        "depth": 0
+      },
+      {
+        "concept": "InterestExpenseNonoperating",
+        "label": "Interest Expense (non-operating)",
+        "values": {
+          "FY 2025": 26489000.0
+        },
+        "depth": 0
+      },
+      {
+        "concept": "AmortizationOfIntangibleAssets",
+        "label": "Amortization of Intangible Assets",
+        "values": {
+          "FY 2025": 17956000.0,
+          "FY 2024": 12068000.0,
+          "FY 2023": 13100000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "CurrentIncomeTaxExpenseBenefit",
+        "label": "Current Income Tax Expense (Benefit)",
+        "values": {
+          "FY 2025": 2718000.0,
+          "FY 2024": -285000.0,
+          "FY 2023": 3252000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "DepreciationAndAmortization",
+        "label": "Depreciation, Depletion and Amortization, Nonproduction",
+        "values": {
+          "FY 2025": 43935000.0,
+          "FY 2024": 33655000.0,
+          "FY 2023": 29744000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "ForeignCurrencyTransactionGainLossBeforeTax",
+        "label": "Foreign Currency Transaction Gain (Loss), before Tax",
+        "values": {
+          "FY 2025": -463000.0,
+          "FY 2024": -87000.0,
+          "FY 2023": -470000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GoodwillImpairmentLoss",
+        "label": "Goodwill, Impairment Loss",
+        "values": {
+          "FY 2025": 0.0,
+          "FY 2024": 0.0,
+          "FY 2023": 0.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic",
+        "label": "Income (Loss) from Continuing Operations before Income Taxes, Domestic",
+        "values": {
+          "FY 2025": -346045000.0,
+          "FY 2024": -257752000.0,
+          "FY 2023": -205334000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "RevenueFromContractWithCustomerIncludingAssessedTax",
+        "label": "Revenue from Contract with Customer, Including Assessed Tax",
+        "values": {
+          "FY 2023": 244592000.0
+        },
+        "depth": 1
+      }
+    ],
+    "balance_sheet": [
+      {
+        "concept": "Assets",
+        "label": "Assets",
+        "values": {
+          "FY 2025": 2324478000.0,
+          "FY 2024": 1184342000.0,
+          "FY 2023": 941211000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "PropertyPlantAndEquipmentNet",
+        "label": "Property, Plant and Equipment, Net",
+        "values": {
+          "FY 2025": 319473000.0,
+          "FY 2024": 194838000.0,
+          "FY 2023": 145409000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "Goodwill",
+        "label": "Goodwill",
+        "values": {
+          "FY 2025": 205750000.0,
+          "FY 2024": 71020000.0,
+          "FY 2023": 71020000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "IntangibleAssetsNetExcludingGoodwill",
+        "label": "Intangible Assets, Net (Excluding Goodwill)",
+        "values": {
+          "FY 2025": 224746000.0,
+          "FY 2024": 58637000.0,
+          "FY 2023": 68094000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "CashAndCashEquivalentsAtCarryingValue",
+        "label": "Cash and Cash Equivalents, at Carrying Value",
+        "values": {
+          "FY 2025": 828660000.0,
+          "FY 2024": 271042000.0,
+          "FY 2023": 162518000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AccountsReceivableNetCurrent",
+        "label": "Accounts Receivable, after Allowance for Credit Loss, Current",
+        "values": {
+          "FY 2025": 39001000.0,
+          "FY 2024": 36440000.0,
+          "FY 2023": 35176000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "InventoryNet",
+        "label": "Inventory, Net",
+        "values": {
+          "FY 2025": 158407000.0,
+          "FY 2024": 119074000.0,
+          "FY 2023": 107857000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AssetsCurrent",
+        "label": "Assets, Current",
+        "values": {
+          "FY 2025": 1365544000.0,
+          "FY 2024": 692621000.0,
+          "FY 2023": 476722000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "PrepaidExpenseAndOtherAssetsCurrent",
+        "label": "Prepaid Expense and Other Assets, Current",
+        "values": {
+          "FY 2025": 89953000.0,
+          "FY 2024": 55009000.0,
+          "FY 2023": 66949000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "OperatingLeaseRightOfUseAsset",
+        "label": "Operating Lease, Right-of-Use Asset",
+        "values": {
+          "FY 2025": 90371000.0,
+          "FY 2024": 53664000.0,
+          "FY 2023": 59401000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "OtherAssetsNoncurrent",
+        "label": "Other Assets, Noncurrent",
+        "values": {
+          "FY 2025": 15672000.0,
+          "FY 2024": 31210000.0,
+          "FY 2023": 18914000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "Liabilities",
+        "label": "Liabilities",
+        "values": {
+          "FY 2025": 602624000.0,
+          "FY 2024": 801889000.0,
+          "FY 2023": 386667000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "PreferredStockValue",
+        "label": "Preferred Stock, Value, Issued",
+        "values": {
+          "FY 2025": 5000.0,
+          "FY 2024": 0.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "CommonStockValue",
+        "label": "Common Stock, Value, Issued",
+        "values": {
+          "FY 2025": 54000.0,
+          "FY 2024": 50000.0,
+          "FY 2023": 49000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AdditionalPaidInCapital",
+        "label": "Additional Paid in Capital",
+        "values": {
+          "FY 2025": 2735669000.0,
+          "FY 2024": 1198909000.0,
+          "FY 2023": 1176484000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "RetainedEarningsAccumulatedDeficit",
+        "label": "Retained Earnings (Accumulated Deficit)",
+        "values": {
+          "FY 2025": -1011910000.0,
+          "FY 2024": -813701000.0,
+          "FY 2023": -623526000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AccumulatedOtherComprehensiveIncomeLossNetOfTax",
+        "label": "Accumulated Other Comprehensive Income (Loss), Net of Tax",
+        "values": {
+          "FY 2025": -1964000.0,
+          "FY 2024": -2805000.0,
+          "FY 2023": 1537000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "StockholdersEquity",
+        "label": "Stockholders' Equity Attributable to Parent",
+        "values": {
+          "FY 2025": 1721854000.0,
+          "FY 2024": 382453000.0,
+          "FY 2023": 554544000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "LiabilitiesAndStockholdersEquity",
+        "label": "Liabilities and Equity",
+        "values": {
+          "FY 2025": 2324478000.0,
+          "FY 2024": 1184342000.0,
+          "FY 2023": 941211000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "LiabilitiesCurrent",
+        "label": "Liabilities, Current",
+        "values": {
+          "FY 2025": 334476000.0,
+          "FY 2024": 339525000.0,
+          "FY 2023": 223373000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "OperatingLeaseLiabilityCurrent",
+        "label": "Operating Lease, Liability, Current",
+        "values": {
+          "FY 2025": 10816000.0,
+          "FY 2024": 6170000.0,
+          "FY 2023": 5276000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AccountsPayableCurrent",
+        "label": "Accounts Payable, Current",
+        "values": {
+          "FY 2025": 72699000.0,
+          "FY 2024": 53059000.0,
+          "FY 2023": 29303000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "LongTermDebtCurrent",
+        "label": "Long-term Debt, Current Maturities",
+        "values": {
+          "FY 2025": 0.0,
+          "FY 2024": 12045000.0,
+          "FY 2023": 17764000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "AccruedLiabilitiesCurrent",
+        "label": "Accrued Liabilities, Current",
+        "values": {
+          "FY 2025": 19299000.0,
+          "FY 2024": 19460000.0,
+          "FY 2023": 5590000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "OperatingLeaseLiabilityNoncurrent",
+        "label": "Operating Lease, Liability, Noncurrent",
+        "values": {
+          "FY 2025": 85191000.0,
+          "FY 2024": 51965000.0,
+          "FY 2023": 56099000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "DeferredIncomeTaxLiabilitiesNet",
+        "label": "Deferred Income Tax Liabilities, Net",
+        "values": {
+          "FY 2025": 1241000.0,
+          "FY 2024": 891000.0,
+          "FY 2023": 426000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "OtherLiabilitiesNoncurrent",
+        "label": "Other Liabilities, Noncurrent",
+        "values": {
+          "FY 2025": 12952000.0,
+          "FY 2024": 5097000.0,
+          "FY 2023": 3944000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "LongTermDebtNoncurrent",
+        "label": "Long-term Debt, Excluding Current Maturities",
+        "values": {
+          "FY 2025": 1716000.0,
+          "FY 2024": 44049000.0,
+          "FY 2023": 87587000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "LongTermDebtAndCapitalLeaseObligations",
+        "label": "Long Term Debt",
+        "values": {
+          "FY 2025": 152395000.0,
+          "FY 2024": 345392000.0,
+          "FY 2023": 110000000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "LongTermDebt",
+        "label": "Long-term Debt",
+        "values": {
+          "FY 2025": 152395000.0,
+          "FY 2024": 345392000.0,
+          "FY 2023": 110000000.0
+        },
+        "depth": 1
+      }
+    ],
+    "cash_flow": [
+      {
+        "concept": "ProfitLoss",
+        "label": "Net Income (Loss), Including Portion Attributable to Noncontrolling Interest",
+        "values": {
+          "FY 2025": -198209000.0,
+          "FY 2024": -190175000.0,
+          "FY 2023": -182571000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "DepreciationDepletionAndAmortization",
+        "label": "Depreciation and amortization",
+        "values": {
+          "FY 2025": 43935000.0,
+          "FY 2024": 33655000.0,
+          "FY 2023": 29744000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "ShareBasedCompensation",
+        "label": "Share-based Payment Arrangement, Noncash Expense",
+        "values": {
+          "FY 2025": 71099000.0,
+          "FY 2024": 56816000.0,
+          "FY 2023": 53461000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "IncreaseDecreaseInAccountsReceivable",
+        "label": "Increase (Decrease) in Accounts Receivable",
+        "values": {
+          "FY 2025": -667000.0,
+          "FY 2024": 1428000.0,
+          "FY 2023": -1452000.0
+        },
+        "depth": 4
+      },
+      {
+        "concept": "IncreaseDecreaseInInventories",
+        "label": "Increase (Decrease) in Inventories",
+        "values": {
+          "FY 2025": 39885000.0,
+          "FY 2024": 12398000.0,
+          "FY 2023": 15562000.0
+        },
+        "depth": 4
+      },
+      {
+        "concept": "DeferredIncomeTaxExpenseBenefit",
+        "label": "Deferred Income Tax Expense (Benefit)",
+        "values": {
+          "FY 2025": -30406000.0,
+          "FY 2024": 1049000.0,
+          "FY 2023": -398000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "GainsLossesOnExtinguishmentOfDebt",
+        "label": "Gain (Loss) on Extinguishment of Debt",
+        "values": {
+          "FY 2025": -5926000.0,
+          "FY 2024": -1330000.0,
+          "FY 2023": -1732000.0
+        },
+        "depth": 3
+      },
+      {
+        "concept": "NetCashProvidedByUsedInOperatingActivities",
+        "label": "Net Cash Provided by (Used in) Operating Activities",
+        "values": {
+          "FY 2025": -165521000.0,
+          "FY 2024": -48890000.0,
+          "FY 2023": -98867000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "PaymentsToAcquireBusinessesNetOfCashAcquired",
+        "label": "Payments to Acquire Businesses, Net of Cash Acquired",
+        "values": {
+          "FY 2025": 132441000.0,
+          "FY 2024": 0.0,
+          "FY 2023": 18966000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "NetCashProvidedByUsedInInvestingActivities",
+        "label": "Net Cash Provided by (Used in) Investing Activities",
+        "values": {
+          "FY 2025": -347397000.0,
+          "FY 2024": -98327000.0,
+          "FY 2023": 12018000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "label": "Payments to Acquire Property, Plant, and Equipment",
+        "values": {
+          "FY 2025": 156285000.0,
+          "FY 2024": 67093000.0,
+          "FY 2023": 54707000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "NetCashProvidedByUsedInFinancingActivities",
+        "label": "Net Cash Provided by (Used in) Financing Activities",
+        "values": {
+          "FY 2025": 1071271000.0,
+          "FY 2024": 256682000.0,
+          "FY 2023": 7369000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "ProceedsFromIssuanceOfCommonStock",
+        "label": "Proceeds from Issuance of Common Stock",
+        "values": {
+          "FY 2025": 1146057000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "ProceedsFromStockOptionsExercised",
+        "label": "Proceeds from Stock Options Exercised",
+        "values": {
+          "FY 2025": 2572000.0,
+          "FY 2024": 3507000.0,
+          "FY 2023": 2444000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
+        "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents, Period Increase (Decrease), Including Exchange Rate Effect",
+        "values": {
+          "FY 2025": 558243000.0,
+          "FY 2024": 108868000.0,
+          "FY 2023": -79437000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+        "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+        "values": {
+          "FY 2025": 833545000.0,
+          "FY 2024": 275302000.0,
+          "FY 2023": 166434000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "InterestPaidNet",
+        "label": "Interest Paid, Excluding Capitalized Interest, Operating Activities",
+        "values": {
+          "FY 2025": 24548000.0,
+          "FY 2024": 16287000.0,
+          "FY 2023": 15553000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "IncomeTaxesPaidNet",
+        "label": "Income Taxes Paid, Net",
+        "values": {
+          "FY 2025": 854000.0,
+          "FY 2024": 269000.0,
+          "FY 2023": -769000.0
+        },
+        "depth": 2
+      },
+      {
+        "concept": "EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+        "label": "Effect of Exchange Rate on Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+        "values": {
+          "FY 2025": -110000.0,
+          "FY 2024": -597000.0,
+          "FY 2023": 43000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "AllocatedShareBasedCompensationExpense",
+        "label": "Share-based Payment Arrangement, Expense",
+        "values": {
+          "FY 2025": 71099000.0,
+          "FY 2024": 56816000.0,
+          "FY 2023": 53461000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "AmortizationOfFinancingCosts",
+        "label": "Amortization of Debt Issuance Costs",
+        "values": {
+          "FY 2025": 3140000.0,
+          "FY 2024": 3091000.0,
+          "FY 2023": 2904000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "AmortizationOfIntangibleAssets",
+        "label": "Amortization of Intangible Assets",
+        "values": {
+          "FY 2025": 17956000.0,
+          "FY 2024": 12068000.0,
+          "FY 2023": 13100000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "Depreciation",
+        "label": "Depreciation",
+        "values": {
+          "FY 2025": 25369000.0,
+          "FY 2024": 19776000.0,
+          "FY 2023": 15407000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "DepreciationAndAmortization",
+        "label": "Depreciation, Depletion and Amortization, Nonproduction",
+        "values": {
+          "FY 2025": 43935000.0,
+          "FY 2024": 33655000.0,
+          "FY 2023": 29744000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "ForeignCurrencyTransactionGainLossBeforeTax",
+        "label": "Foreign Currency Transaction Gain (Loss), before Tax",
+        "values": {
+          "FY 2025": -463000.0,
+          "FY 2024": -87000.0,
+          "FY 2023": -470000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GainLossOnDispositionOfAssets",
+        "label": "Gain (Loss) on Disposition of Property Plant Equipment, Excluding Oil and Gas Property and Timber Property",
+        "values": {
+          "FY 2023": 111000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GainLossOnDispositionOfAssets1",
+        "label": "Gain (Loss) on Disposition of Assets",
+        "values": {
+          "FY 2025": -2613000.0,
+          "FY 2024": 2828000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GainLossOnSaleOfPropertyPlantEquipment",
+        "label": "Gain (Loss) on Disposition of Property Plant Equipment",
+        "values": {
+          "FY 2024": 2825000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "Goodwill",
+        "label": "Goodwill",
+        "values": {
+          "FY 2025": 205750000.0,
+          "FY 2024": 71020000.0,
+          "FY 2023": 71020000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "GoodwillImpairmentLoss",
+        "label": "Goodwill, Impairment Loss",
+        "values": {
+          "FY 2025": 0.0,
+          "FY 2024": 0.0,
+          "FY 2023": 0.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "IncomeTaxExpenseBenefit",
+        "label": "Income Tax Expense (Benefit)",
+        "values": {
+          "FY 2025": -27688000.0,
+          "FY 2024": 764000.0,
+          "FY 2023": 3650000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "InterestExpenseNonoperating",
+        "label": "InterestExpenseNonoperating",
+        "values": {
+          "FY 2025": 26489000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "NetIncomeLoss",
+        "label": "Net Income (Loss) Attributable to Parent",
+        "values": {
+          "FY 2025": -198209000.0,
+          "FY 2024": -190175000.0,
+          "FY 2023": -182571000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "NonoperatingIncomeExpense",
+        "label": "Nonoperating Income (Expense)",
+        "values": {
+          "FY 2025": 2941000.0,
+          "FY 2024": 390000.0,
+          "FY 2023": -1003000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "OperatingExpenses",
+        "label": "Operating Expenses",
+        "values": {
+          "FY 2025": 436019000.0,
+          "FY 2024": 305950000.0,
+          "FY 2023": 229327000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "OtherNonoperatingIncomeExpense",
+        "label": "Other Nonoperating Income (Expense)",
+        "values": {
+          "FY 2025": 4381000.0,
+          "FY 2024": 4431000.0,
+          "FY 2023": 3715000.0
+        },
+        "depth": 1
+      },
+      {
+        "concept": "RevenueFromContractWithCustomerIncludingAssessedTax",
+        "label": "Revenue from Contract with Customer, Including Assessed Tax",
+        "values": {
+          "FY 2023": 244592000.0
+        },
+        "depth": 1
+      }
+    ]
+  },
+  "completeness": [
+    {
+      "data_item": "identity",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "filing_index",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "latest_full_filing",
+      "status": "evidence-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "evidence-ready"
+    },
+    {
+      "data_item": "income_statement",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    },
+    {
+      "data_item": "balance_sheet",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    },
+    {
+      "data_item": "cash_flow",
+      "status": "model-ready",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "model-ready"
+    }
+  ],
+  "source_map": {
+    "entries": [
+      {
+        "data_item": "filing_index",
+        "provider": "edgartools",
+        "source_id": "0001819994-26-000013",
+        "filing_date": "2026-02-26",
+        "filing_url": "https://www.sec.gov/Archives/edgar/data/1819994/000181999426000013/rklb-20251231.htm",
+        "confidence": "evidence-ready"
+      },
+      {
+        "data_item": "latest_full_filing",
+        "provider": "edgartools",
+        "source_id": "0001819994-26-000013",
+        "sha256": "19e164c6e696daf308276e2c8ef939e4b1bb2df12c103989f3853c3ead69a5f8",
+        "confidence": "evidence-ready"
+      },
+      {
+        "data_item": "income_statement",
+        "provider": "edgartools",
+        "record_count": 25,
+        "confidence": "model-ready",
+        "source_id": "0001819994-26-000013"
+      },
+      {
+        "data_item": "balance_sheet",
+        "provider": "edgartools",
+        "record_count": 30,
+        "confidence": "model-ready",
+        "source_id": "0001819994-26-000013"
+      },
+      {
+        "data_item": "cash_flow",
+        "provider": "edgartools",
+        "record_count": 37,
+        "confidence": "model-ready",
+        "source_id": "0001819994-26-000013"
+      }
+    ],
+    "source_provider": "edgartools"
+  },
+  "unmapped_items": []
+}

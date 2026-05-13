@@ -51,7 +51,10 @@ capabilities:
   output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md when user asks to save'
   feeds_into:
     - 'alpha-thesis'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'driver-map'
     - 'consensus-map'
     - 'information-impact'
@@ -78,7 +81,10 @@ workflow:
     - 'next-step'
   feeds_into:
     - 'alpha-thesis'
-    - 'financial-model'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
     - 'driver-map'
     - 'consensus-map'
     - 'information-impact'

@@ -1,4 +1,4 @@
----
+﻿---
 name: research-journal
 description: Use when summarizing a completed research session, writing topic research notes, preserving solved research insights, or preparing a high-density Boss Brief for a PM or boss.
 ---
@@ -84,7 +84,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 - 用户机制、工程原理、设备链条还没搞懂 → `mechanism-map`。
 - 用户公司基础、业务演变、segment / KPI 历史口径还没搞清 → `company-primer`。
 - 用户 revenue / margin / backlog / KPI 口径还没拆清 → `driver-map`。
-- 用户要写完整 thesis / pair / model → 对应 `alpha-thesis`、`pair-trade`、`financial-model`。
+- 用户要写完整 thesis / pair / model → 对应 `alpha-thesis`、`pair-trade`、`3-statement-model / dcf-model / comps-analysis / model-update`。
 
 ## 输入澄清要求
 
@@ -334,7 +334,7 @@ topics/[topic-slug]/index.md
 | Journal 暴露出可写成 thesis 的 variant view | `alpha-thesis` |
 | Journal 暴露出 thesis 关键反方风险 | `bear-pre-mortem` |
 | Journal 需要横向比较 peer 或重排研究优先级 | `peer-deep-dive` |
-| Journal 需要量化到 model / valuation | `financial-model` |
+| Journal 需要量化到 model / valuation | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 已有完整研究，需要给 PM / boss transfer | Boss Brief mode |
 | 需要把本次 session 放进 topic 演进地图 | Topic Index Update mode |
 
@@ -382,5 +382,5 @@ topics/[topic-slug]/index.md
 - `mechanism-map` 解释行业机制、工程原理、设备链条和术语；本 skill 只消费已经想清楚的机制结论。
 - `driver-map` 拆业务实质和 model driver；本 skill 只记录已验证或清楚标注置信度的 driver insight。
 - `information-impact` 验证消息和 claim；本 skill 不做 claim check。
-- `alpha-thesis` / `bear-pre-mortem` / `financial-model` 负责继续研究、压测和量化；本 skill 不替代这些研究动作。
+- `alpha-thesis` / `bear-pre-mortem` / `3-statement-model / dcf-model / comps-analysis / model-update` 负责继续研究、压测和量化；本 skill 不替代这些研究动作。
 - Topic `index.md` 是研究地图，不是 v2 state system；不要维护 coverage、portfolio、decision journal 或交易状态。

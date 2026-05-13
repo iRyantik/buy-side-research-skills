@@ -1,4 +1,4 @@
----
+﻿---
 name: meta-skill
 description: Use when creating, rewriting, reviewing, or validating buy-side-research-skills plugin skills, skill.yaml metadata, artifact policy, runtime category, validators, or skill governance.
 ---
@@ -214,7 +214,7 @@ Research layers：
 |---|---|---|
 | `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别下一步最高杠杆问题 |
 | `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `financial-model` | 深度研究、primary research、thesis、财报、pair、建模 |
+| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model / dcf-model / comps-analysis / model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
 Operations skills：

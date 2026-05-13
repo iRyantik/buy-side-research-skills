@@ -1,4 +1,4 @@
----
+﻿---
 name: industry-quickread
 description: Use when quickly assessing an unfamiliar industry, theme, value chain, demand pocket, sector regime, or industry profit pool before choosing companies for deeper research.
 ---
@@ -207,7 +207,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md
 | 公司业务基础、segment / KPI 演变不清 | `company-primer` |
 | 公司 / segment / 产品线 / 披露 bucket 到 model driver 不清 | `driver-map` |
 | 行业判断已经形成 thesis 差异 | `alpha-thesis` |
-| 行业判断需要量化进模型 | `financial-model` |
+| 行业判断需要量化进模型 | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | 行业 / 主题关键假设需要 expert call、channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 形成可复用认知增量 | `research-journal` |
 
@@ -217,7 +217,7 @@ topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md
 new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
 -> candidate-screener / peer-deep-dive -> stock-quickread
 -> driver-map -> primary-research-plan
--> alpha-thesis / financial-model -> research-journal
+-> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
 ```
 
 ## 反模式自查

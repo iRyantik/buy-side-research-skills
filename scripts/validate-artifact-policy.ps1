@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 23
+    [int]$ExpectedActiveSkillCount = 27
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,19 +51,39 @@ $expectedPolicies = @{
         canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md"
     }
     "driver-map" = @{
-        save_policy = "optional_topic_session"
+        save_policy = "cache_artifact"
         default_artifact = "driver-map.md"
-        canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/driver-map.md"
+        canonical_location = "topics/company/[company-slug]/_cache/driver-map/driver-map.md and internal/driver-map.json"
     }
     "earnings-setup" = @{
         save_policy = "optional_topic_session"
         default_artifact = "earnings-setup.md"
         canonical_location = "topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md"
     }
-    "financial-model" = @{
+    "3-statement-model" = @{
         save_policy = "external_workbook"
-        default_artifact = "model.xlsx"
-        canonical_location = "user-provided workbook or topics/[topic]/_models/model.xlsx"
+        default_artifact = "<ticker>-3statement-model.xlsx"
+        canonical_location = "topics/[topic]/_models/[ticker]-3statement-model.xlsx"
+    }
+    "dcf-model" = @{
+        save_policy = "external_workbook"
+        default_artifact = "<ticker>-3statement-dcf-model.xlsx"
+        canonical_location = "topics/[topic]/_models/[ticker]-3statement-dcf-model.xlsx"
+    }
+    "comps-analysis" = @{
+        save_policy = "external_workbook"
+        default_artifact = "<ticker>-comps-analysis.xlsx"
+        canonical_location = "topics/[topic]/_models/[ticker]-comps-analysis.xlsx"
+    }
+    "model-update" = @{
+        save_policy = "external_workbook"
+        default_artifact = "<ticker>-model-update.xlsx | <ticker>-update-map.md"
+        canonical_location = "topics/[topic]/_models/[ticker]-model-update.xlsx or [ticker]-update-map.md"
+    }
+    "financial-data" = @{
+        save_policy = "cache_artifact"
+        default_artifact = "financial-data-summary.md"
+        canonical_location = "topics/company/[company-slug]/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/"
     }
     "information-impact" = @{
         save_policy = "none"

@@ -1,4 +1,4 @@
----
+﻿---
 name: company-primer
 description: Use when researching an unfamiliar company in depth, mapping what it sells, how the business evolved, how segments or KPIs changed, or why disclosure history may affect later driver, thesis, peer, or model work.
 ---
@@ -14,11 +14,11 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 # Company Primer
 
-把一家公司的业务基础和披露演变讲清楚，让后续 `driver-map`、`stock-quickread`、`alpha-thesis`、`peer-deep-dive` 和 `financial-model` 不建立在错的公司理解上。核心价值不是写“公司介绍”，而是识别这家公司到底卖什么、谁付钱、业务边界如何变化、披露口径哪里断裂，以及哪些历史变化会污染后续 driver 或 thesis 判断。
+把一家公司的业务基础和披露演变讲清楚，让后续 `driver-map`、`stock-quickread`、`alpha-thesis`、`peer-deep-dive` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 不建立在错的公司理解上。核心价值不是写“公司介绍”，而是识别这家公司到底卖什么、谁付钱、业务边界如何变化、披露口径哪里断裂，以及哪些历史变化会污染后续 driver 或 thesis 判断。
 
 如果输出变成成立年份、总部、管理层履历、按时间顺序罗列收购新闻、IR 话术复述或通用业务百科，本 skill 就失败了。历史只在它改变业务实质、segment 可比性、KPI 连续性、客户/产品边界或后续研究优先级时才写。
 
@@ -237,7 +237,7 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 
 - `driver-map`: [...]
 - `peer-deep-dive`: [...]
-- `financial-model`: [...]
+- `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
 ```
 
 ### Primitive Handoff

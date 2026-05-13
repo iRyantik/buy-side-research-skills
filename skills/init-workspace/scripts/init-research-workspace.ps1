@@ -13,11 +13,19 @@ $localAssetsRoot = Join-Path $scriptRoot "init-assets"
 $assetsRoot = if (Test-Path -LiteralPath $pluginAssetsRoot) { $pluginAssetsRoot } else { $localAssetsRoot }
 $ingestScriptsRoot = Join-Path $skillsRoot "ingest\scripts"
 $ingestAssetsRoot = Join-Path $skillsRoot "ingest\assets"
+$financialDataScriptsRoot = Join-Path $skillsRoot "financial-data\scripts"
+$financialDataAssetsRoot = Join-Path $skillsRoot "financial-data\assets"
 if (-not (Test-Path -LiteralPath $ingestScriptsRoot)) {
     $ingestScriptsRoot = $scriptRoot
 }
 if (-not (Test-Path -LiteralPath $ingestAssetsRoot)) {
     $ingestAssetsRoot = $scriptRoot
+}
+if (-not (Test-Path -LiteralPath $financialDataScriptsRoot)) {
+    $financialDataScriptsRoot = Join-Path $scriptRoot "financial-data"
+}
+if (-not (Test-Path -LiteralPath $financialDataAssetsRoot)) {
+    $financialDataAssetsRoot = Join-Path $scriptRoot "financial-data"
 }
 
 function Convert-ToFullPath {
@@ -141,7 +149,7 @@ Copy-ScriptIfMissing `
     -SourcePath $MyInvocation.MyCommand.Path `
     -RelativeTarget "_scripts\init-research-workspace.ps1"
 
-foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.template", "edge-radar.md")) {
+foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.template", "edge-radar.md", "env-setup.ps1.template")) {
     $sourceAsset = Join-Path $assetsRoot $assetName
     if (Test-Path -LiteralPath $sourceAsset) {
         Copy-ScriptIfMissing `
@@ -166,11 +174,38 @@ if (Test-Path -LiteralPath $requirementsPath) {
         -RelativeTarget "_scripts\requirements-ingest.txt"
 }
 
+$financialDataRoot = Join-Path "_scripts" "financial-data"
+foreach ($scriptName in @("financial_data.py", "bootstrap-financial-data-deps.ps1")) {
+    $sourceScript = Join-Path $financialDataScriptsRoot $scriptName
+    if (Test-Path -LiteralPath $sourceScript) {
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceScript `
+            -RelativeTarget (Join-Path $financialDataRoot $scriptName)
+    }
+}
+
+$providerRoot = Join-Path $financialDataScriptsRoot "providers"
+foreach ($providerName in @("sec_provider.py", "akshare_provider.py", "edinet_provider.py", "dart_provider.py", "openesef_provider.py")) {
+    $sourceProvider = Join-Path $providerRoot $providerName
+    if (Test-Path -LiteralPath $sourceProvider) {
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceProvider `
+            -RelativeTarget (Join-Path (Join-Path $financialDataRoot "providers") $providerName)
+    }
+}
+
+$financialRequirementsPath = Join-Path $financialDataAssetsRoot "requirements-financial-data.txt"
+if (Test-Path -LiteralPath $financialRequirementsPath) {
+    Copy-ScriptIfMissing `
+        -SourcePath $financialRequirementsPath `
+        -RelativeTarget (Join-Path $financialDataRoot "requirements-financial-data.txt")
+}
+
 $result = [ordered]@{
     workspace_path = $fullWorkspacePath
     created = @($created)
     skipped = @($skipped)
-    note = "No git init, no dependency install, and no ingest execution were performed. To enable the full ingest toolchain, run _scripts/bootstrap-ingest-deps.ps1 -CheckOnly first, then rerun with -Yes."
+    note = "No git init, no dependency install, and no ingest execution were performed. No financial-data execution was performed. To enable toolchains, run _scripts/bootstrap-ingest-deps.ps1 -CheckOnly and _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly first."
 }
 
 $result | ConvertTo-Json -Depth 4

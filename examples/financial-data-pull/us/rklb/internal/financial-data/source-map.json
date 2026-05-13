@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "data_item": "filing_index",
+      "provider": "edgartools",
+      "source_id": "0001819994-26-000013",
+      "filing_date": "2026-02-26",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/1819994/000181999426000013/rklb-20251231.htm",
+      "confidence": "evidence-ready"
+    },
+    {
+      "data_item": "latest_full_filing",
+      "provider": "edgartools",
+      "source_id": "0001819994-26-000013",
+      "sha256": "19e164c6e696daf308276e2c8ef939e4b1bb2df12c103989f3853c3ead69a5f8",
+      "confidence": "evidence-ready"
+    },
+    {
+      "data_item": "income_statement",
+      "provider": "edgartools",
+      "record_count": 25,
+      "confidence": "model-ready",
+      "source_id": "0001819994-26-000013"
+    },
+    {
+      "data_item": "balance_sheet",
+      "provider": "edgartools",
+      "record_count": 30,
+      "confidence": "model-ready",
+      "source_id": "0001819994-26-000013"
+    },
+    {
+      "data_item": "cash_flow",
+      "provider": "edgartools",
+      "record_count": 37,
+      "confidence": "model-ready",
+      "source_id": "0001819994-26-000013"
+    }
+  ],
+  "source_provider": "edgartools"
+}

@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "company": {
+    "ticker": "RKLB",
+    "name": "Rocket Lab Corp",
+    "source": "examples/financial-data-pull/us/rklb/identity.json"
+  },
+  "source_status": {
+    "primary_source": "RKLB FY2025 10-K",
+    "accession_number": "0001819994-26-000013",
+    "filing_date": "2026-02-26",
+    "period_coverage": "FY2023-FY2025",
+    "financial_data_pack": "examples/financial-data-pull/us/rklb/",
+    "confidence": "source-tracked"
+  },
+  "segment_geography_treatment": {
+    "reported_segments": [
+      {
+        "name": "Launch Services",
+        "business_reality": "Electron/HASTE launch and launch-related services; Neutron is a development-stage future option.",
+        "revenue_usd_m": {
+          "FY2023": 71.894,
+          "FY2024": 125.376,
+          "FY2025": 199.042
+        },
+        "gross_profit_usd_m": {
+          "FY2023": 8.067,
+          "FY2024": 34.59,
+          "FY2025": 81.27
+        },
+        "gross_margin_pct": {
+          "FY2023": 11.2,
+          "FY2024": 27.6,
+          "FY2025": 40.8
+        },
+        "source": "full-filing.md:3385"
+      },
+      {
+        "name": "Space Systems",
+        "business_reality": "Spacecraft components, spacecraft manufacturing, optical systems, spacecraft design and on-orbit management.",
+        "revenue_usd_m": {
+          "FY2023": 172.698,
+          "FY2024": 310.838,
+          "FY2025": 402.757
+        },
+        "gross_profit_usd_m": {
+          "FY2023": 43.342,
+          "FY2024": 81.559,
+          "FY2025": 125.911
+        },
+        "gross_margin_pct": {
+          "FY2023": 25.1,
+          "FY2024": 26.2,
+          "FY2025": 31.3
+        },
+        "product_service_split_usd_m": {
+          "products": {
+            "FY2023": 156.56,
+            "FY2024": 289.851,
+            "FY2025": 371.617
+          },
+          "services": {
+            "FY2023": 16.138,
+            "FY2024": 20.987,
+            "FY2025": 31.14
+          }
+        },
+        "source": "full-filing.md:3385, full-filing.md:3403"
+      }
+    ],
+    "geography": {
+      "treatment": "Use as billing-location disclosure, not as primary demand driver.",
+      "FY2025_revenue_usd_m": {
+        "United States": 475.394,
+        "Canada": 20.166,
+        "Japan": 65.638,
+        "Rest of world": 40.601
+      },
+      "source": "full-filing.md:3464"
+    }
+  },
+  "revenue_drivers": [
+    {
+      "business_bucket": "Launch Services",
+      "primary_driver": "launch cadence x average revenue per mission",
+      "secondary_drivers": [
+        "dedicated vs rideshare mix",
+        "mission complexity and target orbit",
+        "HASTE/suborbital mix",
+        "LC-1/LC-2 launch availability",
+        "Neutron timing"
+      ],
+      "observable_kpis": [
+        "segment revenue",
+        "segment gross profit",
+        "annual launch count from sourced launch manifest",
+        "multi-launch agreement announcements"
+      ],
+      "confidence": "medium",
+      "source_status": "segment revenue disclosed; annual launch count and ASP not in financial-data pack"
+    },
+    {
+      "business_bucket": "Space Systems products",
+      "primary_driver": "contract awards and backlog conversion to delivery milestones",
+      "secondary_drivers": [
+        "spacecraft/component mix",
+        "MDA and defense/customer program timing",
+        "supply-chain execution",
+        "GEOST contribution"
+      ],
+      "observable_kpis": [
+        "Space Systems product revenue",
+        "over-time revenue",
+        "contract assets",
+        "contract liabilities",
+        "backlog"
+      ],
+      "confidence": "medium-high",
+      "source_status": "product/service revenue and recognition model disclosed; order intake by product unavailable"
+    },
+    {
+      "business_bucket": "Company backlog",
+      "primary_driver": "new contracts minus revenue recognized",
+      "secondary_drivers": [
+        "program award timing",
+        "customer funding",
+        "contract modifications",
+        "cost-to-complete revisions"
+      ],
+      "observable_kpis": [
+        "remaining backlog",
+        "percentage expected within 12 months"
+      ],
+      "value": {
+        "remaining_backlog_usd_m": 1847.322,
+        "expected_within_12_months_pct": 37,
+        "expected_beyond_12_months_pct": 63
+      },
+      "confidence": "medium",
+      "source_status": "company-level backlog disclosed; segment split unavailable"
+    }
+  ],
+  "margin_drivers": [
+    {
+      "line_item": "gross_margin",
+      "driver": "segment mix plus execution cost curve",
+      "model_treatment": "model Launch Services and Space Systems gross margins separately",
+      "evidence": "Launch gross margin improved to 40.8% in FY2025; Space Systems gross margin improved to 31.3%",
+      "source": "full-filing.md:3385"
+    },
+    {
+      "line_item": "rd_expense",
+      "driver": "Neutron and spacecraft development intensity",
+      "model_treatment": "keep R&D as explicit investment line; do not force near-term operating leverage without source",
+      "evidence": "R&D was $270.7m in FY2025 vs gross profit of $207.2m",
+      "source": "financials.normalized.json"
+    },
+    {
+      "line_item": "working_capital",
+      "driver": "milestone billing, customer advances, contract assets/liabilities and inventory build",
+      "model_treatment": "forecast contract assets/liabilities and inventory as explicit operating working-capital lines",
+      "evidence": "contract liabilities were $195.4m at Dec. 31, 2025; customer advances received/billed net were $160.9m in FY2025",
+      "source": "full-filing.md:2428"
+    }
+  ],
+  "model_treatment": {
+    "base_case_modules": [
+      "Launch Services revenue and gross profit",
+      "Space Systems product revenue and gross profit",
+      "Space Systems services revenue and gross profit",
+      "R&D and SG&A",
+      "contract assets/liabilities and inventory",
+      "capex and PPE"
+    ],
+    "scenario_modules": [
+      "Neutron launch ramp and ASP",
+      "backlog conversion acceleration/deceleration",
+      "government customer concentration and program delays",
+      "GEOST integration / acquisition contribution"
+    ],
+    "do_not_do": [
+      "Do not allocate company-level backlog to segments without source.",
+      "Do not model RKLB as one consolidated revenue CAGR.",
+      "Do not treat launch complex theoretical capacity as base-case launch volume.",
+      "Do not count Neutron as current historical Launch Services run-rate."
+    ]
+  },
+  "recommended_model_modules": [
+    "segment revenue build",
+    "segment gross margin bridge",
+    "backlog conversion schedule",
+    "Neutron optionality scenario",
+    "customer concentration sensitivity",
+    "working capital / contract liabilities roll-forward"
+  ],
+  "valuation_methods": [
+    {
+      "method": "DCF / reverse DCF",
+      "use": "Test implied backlog conversion, Launch/Space Systems margins, R&D fade and Neutron scenario."
+    },
+    {
+      "method": "SOTP",
+      "use": "Separate Launch access / Neutron option from Space Systems project/components business."
+    },
+    {
+      "method": "Comps",
+      "use": "Use at least two peer lenses: launch/infrastructure and aerospace/space systems components; do not rely on one peer set."
+    }
+  ],
+  "confidence_source_status": [
+    {
+      "item": "segment revenue and gross profit",
+      "status": "company disclosed",
+      "confidence": "high"
+    },
+    {
+      "item": "Space Systems product/service split",
+      "status": "company disclosed",
+      "confidence": "high"
+    },
+    {
+      "item": "launch cadence and ASP",
+      "status": "requires external KPI source",
+      "confidence": "low-medium"
+    },
+    {
+      "item": "backlog by segment",
+      "status": "not disclosed",
+      "confidence": "low"
+    },
+    {
+      "item": "geography as demand signal",
+      "status": "billing-location disclosure only",
+      "confidence": "low"
+    }
+  ]
+}
