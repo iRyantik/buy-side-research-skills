@@ -89,14 +89,14 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - 新增 skill 必须先判断 `category: research|operations`。
 - Research skill 必须设置合法 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`。
 - Operations skill 不设置 `research_layer`，也不强制研究类 `Global Rules Capsule`、`Source 政策` 或 `篇幅基准`。
-- 新 skill 或重大改写完成前，必须同步 metadata、artifact policy、validators、README / docs / manifests。
+- 新 skill 或重大改写完成前，必须同步 metadata、artifact policy、validators、README / docs / manifests，并只运行本次改动直接相关的 targeted validator。用户明确要求跳过 validator 时，以用户要求为准。
 
 ### Runtime Rule Distribution
 
 - 插件运行时可能只识别具体 `SKILL.md`，不一定读取本文；因此本文是 project constitution / 维护源，不应被当作唯一 runtime prompt。
 - 全局 runtime research rules 维护在 `skills/_shared/global-rules.md`；该文件尽量使用本文原文，只收研究运行时规则，不收开发流程、迁移历史或文件组织细节。
 - 每个 active research `skills/*/SKILL.md` 必须内嵌同版本 `Global Rules Capsule`，使单个 research skill 被独立加载时也能遵守中文输出、source discipline、反幻觉、反流水账、Senior Analyst Radar 和 primitive routing。
-- 修改本文中会影响 runtime research behavior 的规则时，必须同步检查 `skills/_shared/global-rules.md` 和各 research skill capsule，并运行对应 validation script。
+- 修改本文中会影响 runtime research behavior 的规则时，必须同步检查 `skills/_shared/global-rules.md` 和各 research skill capsule。只有在同时新增或重大改写 skill 时，才运行对应 targeted validation script。
 
 ### Metadata and Version Policy
 

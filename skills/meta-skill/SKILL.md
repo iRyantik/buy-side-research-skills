@@ -137,17 +137,17 @@ description: Use when creating, rewriting, reviewing, or validating buy-side-res
 - [...]
 ```
 
-如果用户要求实现，直接改文件并运行 validators。不要输出长篇设计散文代替执行。
+如果用户要求实现，直接改文件。只有在新增或重大改写 skill 时，才运行本次改动直接相关的 targeted validators；用户明确要求跳过 validator 时，不要运行。不要输出长篇设计散文代替执行。
 
 如果只是 brainstorm / review，输出应优先列问题、tradeoff、推荐路径，不要提前写完整 `SKILL.md`。
 
 ## 失败处理
 
 - 如果 category 不清，先说明两种可能后果；不能猜成 research。
-- 如果 skill 会新增 active count，必须同步所有 count-based validators。
+- 如果 skill 会新增 active count，必须同步相关 count-based validators；只有在新增或重大改写 skill 时才运行 targeted validator。
 - 如果 operations skill 被要求套 research 模板，应改用 operations 结构。
 - 如果用户要求恢复 v2 state workflow，必须暂停并说明这是架构回退。
-- 如果 validator 和文档冲突，以 validator failure 为准，回头修 docs 或 validator。
+- 如果 validator 和文档冲突，先判断 validator 是否仍符合当前治理规则；不要为了通过旧 validator 恢复已废弃的流程。
 
 ## Workflow 联动
 

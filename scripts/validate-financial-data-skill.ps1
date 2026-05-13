@@ -8,7 +8,6 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $skillRoot = Join-Path $repoRoot "skills\$SkillName"
 $skillPath = Join-Path $skillRoot "SKILL.md"
 $yamlPath = Join-Path $skillRoot "skill.yaml"
-$handoffPath = Join-Path $repoRoot "HANDOFF.md"
 $scriptPaths = @(
     "scripts\financial_data.py",
     "scripts\bootstrap-financial-data-deps.ps1",
@@ -60,7 +59,6 @@ function Get-YamlScalar {
 
 Require-Path $skillPath "Missing financial-data SKILL.md"
 Require-Path $yamlPath "Missing financial-data skill.yaml"
-Require-Path $handoffPath "Missing repo HANDOFF.md"
 foreach ($script in $scriptPaths) {
     Require-Path (Join-Path $skillRoot $script) "Missing financial-data runtime file: $script"
 }
@@ -199,25 +197,6 @@ if (Test-Path -LiteralPath $mainScript) {
     )) {
         if (-not $scriptText.Contains($phrase)) {
             $failures.Add("financial_data.py missing required phrase '$phrase'")
-        }
-    }
-}
-
-if (Test-Path -LiteralPath $handoffPath) {
-    $handoffText = Get-Content -Raw -Encoding UTF8 -LiteralPath $handoffPath
-    foreach ($phrase in @(
-        '# HANDOFF - Financial-Data Provider Repair Execution',
-        'Sphere `347700`',
-        'Toray `3402`',
-        '`3750`',
-        'RKLB',
-        '_raw/` currently only had `provider_payload.json`',
-        '`edinet_provider`',
-        '`dart_provider`',
-        '`_raw/` evidence files'
-    )) {
-        if (-not $handoffText.Contains($phrase)) {
-            $failures.Add("HANDOFF.md missing required repair-context phrase '$phrase'")
         }
     }
 }

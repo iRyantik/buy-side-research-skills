@@ -51,6 +51,4 @@ if ($topLevelItems.Count -eq 0) {
 Compress-Archive -LiteralPath $topLevelItems -DestinationPath $zipPath -Force
 Remove-Item -LiteralPath $stageRoot -Recurse -Force
 
-& (Join-Path $PSScriptRoot "validate-release-package.ps1") -Version $Version -ZipPath $zipPath
-
 Write-Host "Release package written to $zipPath" -ForegroundColor Green

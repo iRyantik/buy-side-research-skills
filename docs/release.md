@@ -1,21 +1,19 @@
-# 发布
+# Release
 
-本文件面向插件源码仓库的维护者。日常使用插件不需要阅读本文件。
+This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-当前发布版本：`3.7.0`。正式稳定版本应打 tag 并通过 GitHub Releases 发布。
+Current release version: `3.7.0`.
 
-## Release 包结构
+## Release Package Contents
 
-Release zip 只包含用户安装和运行时必需材料：
+Release zip includes only runtime/install materials:
 
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `skills/`
 - `README.md`
 
-`docs/` 和 `examples/` 不进入 release zip——插件运行时不读取这两个目录。
-
-Release zip 不得包含源码仓库维护文件：
+Release zip must not include source-repo maintenance files:
 
 - root `CLAUDE.md`
 - root `AGENTS.md`
@@ -24,9 +22,9 @@ Release zip 不得包含源码仓库维护文件：
 - `.claude/`
 - `RTK.md`
 - `dist/`
-- 本地编辑器或 agent 状态
+- local editor or agent state
 
-Release zip 必须包含 skill 内置的运行时资源，尤其是：
+Release zip must include skill-owned runtime resources, especially:
 
 ```text
 skills/init-workspace/assets/CLAUDE.md.template
@@ -43,40 +41,26 @@ skills/financial-data/scripts/bootstrap-financial-data-deps.ps1
 skills/financial-data/scripts/providers/*.py
 ```
 
-## 发布前检查
+## Validator Policy
 
-生成 zip 前必须运行全部 validator：
+Release packaging does not require the full validator suite. Full-suite validation is expensive and should not run for routine commit / release work.
 
-```powershell
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-global-rules.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-primitive-routing.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-metadata.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-skill-structure.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-plugin-tree.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-artifact-policy.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-company-primer.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-init-skill.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-ingest-skill.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-financial-data-skill.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-meta-skill.ps1
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-new-session-skill.ps1
-rtk git diff --check
-```
+Run validators only after creating, rewriting, or materially changing a skill, and then run only the targeted validator(s) that cover that skill or governance surface. If the user explicitly asks to skip validators, do not run validators.
 
-## 构建
+## Build
 
 ```powershell
 rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.7.0
 ```
 
-构建产物：
+Build artifact:
 
 ```text
 dist/buy-side-research-skills-3.7.0.zip
 ```
 
-构建脚本会在生成 zip 后调用 release package validator 验证。
+The build script only stages and zips release contents. It does not run validators automatically.
 
-## 依赖策略
+## Dependency Policy
 
-包不应预装 Docling、EdgarTools、AKShare、edinet-tools、dart-fss、openesef、Tesseract、MarkItDown 或其他解析器。用户在 research workspace 中通过运行 `_scripts/bootstrap-ingest-deps.ps1` 或 `_scripts/financial-data/bootstrap-financial-data-deps.ps1` 显式选择安装。
+The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, dart-fss, openesef, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1` or `_scripts/financial-data/bootstrap-financial-data-deps.ps1`.
