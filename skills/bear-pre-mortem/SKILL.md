@@ -169,13 +169,13 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 ## 可选保存
 
-默认输出到对话。用户明确要求保存时，写入当前 topic session：
+默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/bear-pre-mortem.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 篇幅基准
 

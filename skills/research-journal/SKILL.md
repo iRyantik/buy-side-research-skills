@@ -1,4 +1,4 @@
-﻿---
+---
 name: research-journal
 description: Use when summarizing a completed research session, writing topic research notes, preserving solved research insights, or preparing a high-density Boss Brief for a PM or boss.
 ---
@@ -90,7 +90,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 
 | 维度 | 含义 | 默认处理 |
 |---|---|---|
-| **topic path** | `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/` | 用户未给路径时，先 handoff 到 `new-session` 创建 / 解析路径，不擅自创建复杂目录 |
+| **topic path** | topic root 下的日期化 Markdown 文件 | 用户未给路径时，先 handoff 到 `new-session` 创建 / 解析路径，不擅自创建复杂目录 |
 | **研究对象** | 主题 / 公司 / 事件 / peer set / thesis | 从上下文推断；不清楚时问 1 个澄清问题 |
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
@@ -163,7 +163,7 @@ Value tags：
 写入路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-research-journal.md
 ```
 
 Journal 不用 rigid template，但必须包含：
@@ -180,7 +180,7 @@ Boss Brief 是给 PM / boss 的高密度 transfer，不是简略版。
 写入路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/boss-brief.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-boss-brief.md
 ```
 
 写前先确认或从材料中提取：
@@ -210,7 +210,7 @@ Topic `index.md` 是演进式地图，不是状态库。只维护当前 topic �
 写入路径：
 
 ```text
-topics/[topic-slug]/index.md
+topics/[topic-namespace]/[topic-slug]/index.md
 ```
 
 不要补历史，不要强行重构所有旧 session；只更新本次 session 对 topic 地图的增量。

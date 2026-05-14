@@ -42,7 +42,7 @@ capabilities:
     - 'Standard Industry First-Pass'
     - 'Tight Triage'
     - 'Mixed Mode'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md when user asks to save'
+  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md when user asks to save'
   feeds_into:
     - 'mechanism-map'
     - 'candidate-screener'
@@ -65,10 +65,10 @@ capabilities:
     - 'route industry mechanism gaps to mechanism-map'
     - 'route company or segment model-driver gaps to driver-map'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'industry-quickread.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/industry-quickread.md'
-  save_trigger: 'save only when user asks to preserve the industry first-pass as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md'
+  save_trigger: 'save only when user asks to preserve the industry first-pass as dated topic research result'
 workflow:
   stage: 'industry-triage'
   can_follow:

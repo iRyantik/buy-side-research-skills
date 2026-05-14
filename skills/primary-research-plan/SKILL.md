@@ -1,4 +1,4 @@
-﻿---
+---
 name: primary-research-plan
 description: Use when designing a compliant primary research, expert call, channel check, fieldwork, survey, customer, supplier, competitor, or ex-employee interview plan to validate thesis, consensus, model-driver, or industry assumptions.
 ---
@@ -84,7 +84,7 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 | 时间窗口 | next print / 3M / 12M / 2-3Y | 默认 12M，若是 channel check 则加 3M |
 | 受访对象 | expert / customer / supplier / competitor / ex-employee / distributor / recruiter / dataset | 默认多 persona triangulation |
 | 合规约束 | 内部 restricted list / expert network protocol / no-contact list | 默认未知，必须写 "follow firm compliance" |
-| 保存需求 | 对话 / topic session artifact | 默认对话；用户要求保存时写 `primary-research-plan.md` |
+| 保存需求 | 对话 / dated topic research artifact | 默认对话；用户要求保存时写 `primary-research-plan.md` |
 
 ## Mode A: Standard Primary Research Plan
 
@@ -200,13 +200,13 @@ Red-line questions:
 
 ## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前 topic session：
+默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
 
 保存后的 `primary-research-plan.md` 是 research plan，不是 primary evidence，不是 earned memory。只有调研完成后形成 source-backed、合规、会改变判断的认知增量，才进入 `research-journal`。
 

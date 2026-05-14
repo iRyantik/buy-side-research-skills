@@ -63,20 +63,19 @@ if (Test-Path -LiteralPath $skillPath) {
 
     foreach ($phrase in @(
         "# New Session",
-        "New Topic Session",
-        "Resolve Save Path",
+        "New Topic Root",
+        "Resolve Dated Result Path",
         "Index Touch",
-        "topic_session_scaffold",
-        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
+        "topic_scaffold",
+        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md",
+        "2026-05-14-driver-map-2.md",
         "topic namespace",
         "company",
         "financial-data",
         "index.md",
-        "Requested Save Path",
-        "recent session",
-        "dated session",
+        "Result Path",
         "research output markdown",
-        "session_slug",
+        "dated result path",
         "requested artifact",
         "init-workspace",
         "earned insight",
@@ -106,7 +105,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         metadata_schema_version = "1"
         name = "new-session"
         id = "new-session"
-        version = "1.2.0"
+        version = "2.0.0"
         system_generation = "3.7.0"
         category = "operations"
     }
@@ -123,16 +122,16 @@ if (Test-Path -LiteralPath $yamlPath) {
     }
 
     foreach ($phrase in @(
-        "topic_session_scaffold",
-        "dated topic session folder + index.md",
-        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/",
-        "New Topic Session",
-        "Resolve Save Path",
+        "topic_scaffold",
+        "topic root + dated result file",
+        "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md",
+        "New Topic Root",
+        "Resolve Dated Result Path",
         "Index Touch",
         "long-lived container",
-        "resolve only the requested artifact save path",
+        "resolve only the requested dated result path",
         "do not precreate research output markdown files",
-        "do not name sessions after research skills",
+        "do not create per-research subdirectories",
         "do not write research conclusions or earned insight",
         "do not recommend next research skill",
         "create full topic scaffold"

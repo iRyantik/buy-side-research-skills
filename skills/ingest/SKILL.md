@@ -1,4 +1,4 @@
-﻿---
+---
 name: ingest
 description: Use when converting raw research materials such as PDF, XLSX, PPTX, DOCX, TXT, CSV, or markdown files into workspace _cache markdown before analysis.
 ---
@@ -58,7 +58,7 @@ description: Use when converting raw research materials such as PDF, XLSX, PPTX,
 
 1. 用户显式传入 `--topic` → 直接使用。
 2. `source_path` 在 `topics/<topic>/_inbox/` 下 → 自动推断 topic slug。
-3. 当前有活跃 topic session → 自动推断。
+3. 当前有活跃 topic root → 自动推断。
 4. 以上都不可用 → 使用 `"unclassified"` 作为 fallback。
 
 ### 文档类别推断
@@ -170,7 +170,7 @@ VISION_MAX_IMAGES_PER_DOC=20
 - 不删除、不重命名 `topics/<topic>/_raw/` 内已有源文件。
 - ingest 成功后将 `_inbox/` 内的源文件自动移至 `topics/<topic>/_raw/<ext>/`。
 - 不写空 cache 或假 cache。
-- 不把 `_cache/` 写进 topic session。
+- 不把 `_cache/` 写成 research Markdown 输出。
 - 不把 `_cache/` 当 original source。
 - 默认不 recursive；用户明确要求时才递归。
 - 缺 Docling、PyMuPDF4LLM、EdgarTools、openpyxl 等 parser dependency 时，必须报告 dependency gap。

@@ -37,10 +37,10 @@ capabilities:
     - 'route company foundation and disclosure evolution gaps to company-primer'
     - 'route systematic consensus and priced-in analysis to consensus-map'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'stock-quickread.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md'
-  save_trigger: 'save only when user asks to preserve the quickread as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-stock-quickread.md'
+  save_trigger: 'save only when user asks to preserve the quickread as dated topic research result'
 workflow:
   stage: 'discovery'
   next_steps:

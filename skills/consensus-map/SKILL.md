@@ -1,4 +1,4 @@
-﻿---
+---
 name: consensus-map
 description: Use when mapping sell-side consensus, buy-side bar, priced-in assumptions, market-implied expectations, revision direction, or variant-view gaps for a single stock, peer set, industry, or theme before thesis or model work.
 ---
@@ -212,13 +212,13 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 ## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前 topic session：
+默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
 
 保存后的 `consensus-map.md` 是 foundation artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。
 

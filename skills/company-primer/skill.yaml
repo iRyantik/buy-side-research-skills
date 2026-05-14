@@ -41,7 +41,7 @@ capabilities:
     - 'Foundation Primer'
     - 'Business Evolution Audit'
     - 'Disclosure Evolution Audit'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md when user asks to save'
+  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md when user asks to save'
   requirements:
     - 'map current business reality without writing sell-side company history'
     - 'source every product, customer, segment, KPI, M&A, divestiture, recast, or rename claim'
@@ -51,10 +51,10 @@ capabilities:
     - 'route source conflicts to information-impact'
     - 'do not perform DCF, comps, or full thesis work'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'company-primer.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md'
-  save_trigger: 'save only when user asks to preserve the company primer as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md'
+  save_trigger: 'save only when user asks to preserve the company primer as dated topic research result'
 workflow:
   stage: 'company-foundation'
   can_follow:

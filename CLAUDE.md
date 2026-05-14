@@ -1,4 +1,4 @@
-﻿# CLAUDE.md - Buy-Side Research Project Configuration
+# CLAUDE.md - Buy-Side Research Project Configuration
 
 > 本文件是这个工作目录的唯一 project constitution / source of truth。任何 skill、README 或局部说明与本文冲突时，以本文为准。
 
@@ -133,7 +133,7 @@ Operations skills：
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `topics/<topic>/_cache/` markdown |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
-| `new-session` | 创建 topic session + 完整 scaffold，解析 artifact 保存路径 |
+| `new-session` | 创建 topic root + 完整 scaffold，解析日期化 artifact 保存路径 |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 
@@ -156,7 +156,7 @@ Operations skills：
 | `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
 | `financial-data` | 拉结构化财报 / 按 ticker 拉三表 / openesef / DART / EDINET / AKShare | source-tracked financial evidence pack |
-| `new-session` | 新建 topic session / 解析 artifact 保存路径 / 轻量更新 index | topic session scaffold + canonical paths |
+| `new-session` | 新建 topic root / 解析日期化 artifact 保存路径 / 轻量更新 index | topic scaffold + dated result paths |
 | `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
@@ -213,7 +213,7 @@ Future research workspace：
 ├── _scripts/                        # 辅助脚本
 ├── edge-radar.md                    # 跨 topic 研究雷达
 └── topics/
-    └── <topic-slug>/                # 层级：aerospace 行业 > aerospace/ge-aerospace 公司
+    └── <namespace>/<topic-slug>/    # company / industry / theme / pair
         ├── index.md                 # topic 地图
         ├── _inbox/                  # 该 topic 待处理文件
         ├── _raw/                    # 原始文件（按文档类别）
@@ -231,22 +231,25 @@ Future research workspace：
         │   ├── irdecks/
         │   └── datasets/
         ├── _models/                 # 财务模型
-        ├── <YYYY-MM-DD>-<session>/  # 研究 session
+        ├── <YYYY-MM-DD>-<artifact>.md # research Markdown result
+        ├── <YYYY-MM-DD>-<artifact>-2.md # 同日同类结果冲突时保留历史
         └── <sub-topic>/             # integrate 合并的子 topic
 ```
 
 ### Artifact Save Policy
 
-- 新研究产物默认围绕 topic session 保存：`topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md`。
+- 新研究 Markdown 产物默认保存在 topic root，用日期和 artifact 名标记：`topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
+- 如果同日同 topic 同 artifact 已存在，保留历史并追加最低可用序号，例如 `2026-05-14-driver-map-2.md`。
 - `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
-- `candidate-screener` 和 `pair-trade` 属于 `default_topic_session`。
-- `company-primer`、`industry-quickread`、`consensus-map`、`primary-research-plan`、`mechanism-map`、`driver-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_session`。
+- `candidate-screener` 和 `pair-trade` 属于 `default_topic_result`。
+- `company-primer`、`industry-quickread`、`consensus-map`、`primary-research-plan`、`mechanism-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_result`。
 - `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
 - `3-statement-model / dcf-model / comps-analysis / model-update` 属于 `external_workbook`。
 - `research-journal` 属于 `earned_memory`。
 - `init-workspace` 属于 `workspace_scaffold`。
 - `ingest` 属于 `cache_artifact`。
 - `financial-data` 属于 `cache_artifact`。
+- `driver-map` canonical modeling input 属于 `cache_artifact`。
 
 ---
 

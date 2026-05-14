@@ -1,4 +1,4 @@
-﻿---
+---
 name: earnings-setup
 description: Use when preparing for an upcoming earnings print, reacting to newly reported results, or deciding whether earnings should trigger thesis, model, or decision updates.
 ---
@@ -198,13 +198,13 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ## 可选保存
 
-默认输出到对话。用户明确要求保存时，写入当前 topic session：
+默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/earnings-setup.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## Workflow 联动
 

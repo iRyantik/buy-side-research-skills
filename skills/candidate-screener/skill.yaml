@@ -40,7 +40,7 @@ capabilities:
     - 'Thematic'
     - 'Quant'
     - 'Mixed'
-  writes: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
+  writes: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md'
   feeds_into:
     - 'stock-quickread'
     - 'peer-deep-dive'
@@ -51,7 +51,7 @@ capabilities:
     - 'source every business linkage'
     - 'separate outbound screening from inbound claim checking'
 artifact_policy:
-  save_policy: 'default_topic_session'
+  save_policy: 'default_topic_result'
   default_artifact: 'candidate-screener.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/candidate-screener.md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md'
   save_trigger: 'save sourced candidate funnels by default unless user explicitly asks for conversation-only brainstorming'

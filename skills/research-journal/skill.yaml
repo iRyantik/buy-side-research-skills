@@ -38,10 +38,10 @@ capabilities:
     - 'Boss Brief'
     - 'Topic Index Update'
   writes:
-    - 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md'
-    - 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/boss-brief.md'
+    - 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-research-journal.md'
+    - 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-boss-brief.md'
   updates:
-    - 'topics/[topic-slug]/index.md'
+    - 'topics/[topic-namespace]/[topic-slug]/index.md'
   requirements:
     - 'preserve solved research insight, not raw reminders'
     - 'apply Earned Insight Gate before writing'
@@ -56,5 +56,5 @@ capabilities:
 artifact_policy:
   save_policy: 'earned_memory'
   default_artifact: 'research-journal.md | boss-brief.md | index.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/research-journal.md or boss-brief.md; topic index at topics/[topic-slug]/index.md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-research-journal.md or [YYYY-MM-DD]-boss-brief.md; topic index at topics/[topic-namespace]/[topic-slug]/index.md'
   save_trigger: 'write only content that passes the Earned Insight Gate; do not store raw reminders or unresolved guesses'

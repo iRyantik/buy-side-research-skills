@@ -1,4 +1,4 @@
-﻿---
+---
 name: stock-quickread
 description: Use when quickly assessing an unfamiliar company, getting a 30-minute first pass, or deciding whether a stock deserves deeper research.
 ---
@@ -234,13 +234,13 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 ## 可选保存
 
-默认输出到对话。用户明确要求保存时，写入当前 topic session：
+默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/stock-quickread.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-stock-quickread.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 篇幅基准
 

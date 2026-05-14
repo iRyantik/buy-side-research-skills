@@ -48,7 +48,7 @@ capabilities:
     - 'Standard Primary Research Plan'
     - 'Expert Call Guide'
     - 'Channel Check / Survey Plan'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md when user asks to save'
+  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md when user asks to save'
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'
@@ -66,10 +66,10 @@ capabilities:
     - 'rewrite MNPI or confidential questions into public or non-confidential proxies'
     - 'require triangulation and decision gates'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'primary-research-plan.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/primary-research-plan.md'
-  save_trigger: 'save only when user asks to preserve the primary research plan as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md'
+  save_trigger: 'save only when user asks to preserve the primary research plan as dated topic research result'
 workflow:
   stage: 'primary-research-design'
   can_follow:

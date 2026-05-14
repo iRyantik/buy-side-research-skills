@@ -1,4 +1,4 @@
-﻿---
+---
 name: financial-data
 description: Use when fetching or parsing structured company financial data by market and identifier, including SEC, AKShare, EDINET, DART, or openesef/ESEF routes, before modeling or research analysis.
 ---
@@ -36,7 +36,7 @@ description: Use when fetching or parsing structured company financial data by m
 - 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - 不拉 consensus、price、EV、FX、peer multiples 或 market data。
 - 不把 `_cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
-- 不创建 topic session research artifact。
+- 不创建 dated research Markdown artifact。
 - 不承诺所有市场都能 ticker-only 自动 discovery。
 
 ## 触发与输入

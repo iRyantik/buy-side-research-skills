@@ -1,4 +1,4 @@
-﻿---
+---
 name: mechanism-map
 description: Use when explaining industry mechanisms, engineering principles, equipment chains, process flows, technical terms, or know-how gaps that affect investment research.
 ---
@@ -88,7 +88,7 @@ description: Use when explaining industry mechanisms, engineering principles, eq
 | **技术深度** | 直觉解释 / 工程链条 / 商业约束 | 默认用研究员能建模和问问题的深度，不写教材 |
 | **行业范围** | 用户指定的行业 / 设备链 / 工艺链 | 按用户覆盖行业，不扩展到无关行业 |
 | **source 要求** | 是否需要 web/source-backed deep dive | 默认关键事实和数字必须 source；纯机制解释可标 `[需查证]` |
-| **保存需求** | 只在对话输出 / 写入 topic session | 默认对话；用户要求保存时写 `mechanism-map.md` |
+| **保存需求** | 只在对话输出 / 写入 topic root 日期文件 | 默认对话；用户要求保存时写 `mechanism-map.md` |
 
 如果用户只给一个很泛的主题，先把机制范围缩成 1-2 个最可能有投研价值的系统链条，不要展开成行业百科。
 
@@ -214,13 +214,13 @@ Rating hard standards:
 
 ## 可选保存
 
-默认只输出到对话。用户明确要求保存时，写入当前 topic session：
+默认只输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md
 ```
 
-如果当前没有 topic session，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
+如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
 
 ## Workflow 联动
 

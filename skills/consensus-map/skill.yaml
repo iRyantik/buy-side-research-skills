@@ -46,7 +46,7 @@ capabilities:
     - 'Single-Name Consensus Map'
     - 'Industry / Theme Consensus Map'
     - 'Tight Expectations Check'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md when user asks to save'
+  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md when user asks to save'
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'
@@ -65,10 +65,10 @@ capabilities:
     - 'mark missing consensus data as [需查证] instead of fabricating'
     - 'do not write full alpha thesis or earnings setup'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'consensus-map.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/consensus-map.md'
-  save_trigger: 'save only when user asks to preserve the consensus map as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md'
+  save_trigger: 'save only when user asks to preserve the consensus map as dated topic research result'
 workflow:
   stage: 'expectations-foundation'
   can_follow:

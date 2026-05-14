@@ -138,21 +138,17 @@
         │   ├── financial-data/      #     stable financial-data summary and internal evidence
         │   └── driver-map/          #     driver-map markdown and machine JSON
         ├── _models/                 #   财务模型 / workbooks
-        ├── 2026-05-13-launch-economics/
-        │   ├── driver-map.md
-        │   └── alpha-thesis.md
-        ├── 2026-06-02-q1-earnings-update/
-        │   ├── earnings-setup.md
-        │   └── model-update.md
-        └── 2026-09-10-capital-raise/
-            ├── stock-quickread.md
-            └── bear-pre-mortem.md
+        ├── 2026-05-13-driver-map.md
+        ├── 2026-05-13-alpha-thesis.md
+        ├── 2026-06-02-earnings-setup.md
+        ├── 2026-06-02-model-update.md
+        └── 2026-09-10-bear-pre-mortem.md
         └── <sub-topic>/             #   integrate 后的子 topic
 ```
 
-- 研究流：`new-session` 创建 topic 完整骨架和本次 dated session → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
+- 研究流：`new-session` 创建 topic 完整骨架并解析日期化 result path → 文件丢进 `topics/<topic>/_inbox/` → `ingest` 转换并归类到 `_raw/<category>/`。
 - Topic namespace 标准为 `company/`、`industry/`、`theme/`、`pair/`。单公司 canonical data 默认放在 `topics/company/<company-slug>/`。
-- Topic 是长期容器；同一个 topic 可以在不同时间有多个 dated session。Session slug 来自本次研究问题，不来自 skill 名。
+- Topic 是长期容器；research Markdown 结果直接在 topic root 用日期和 artifact 名保存。
 - `topics/<topic>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
 - `topics/<topic>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
 - `financial-data` 稳定入口输出到 `topics/company/<company-slug>/_cache/financial-data/`；theme / industry 只保存 snapshot 或 links。
@@ -163,23 +159,22 @@
 - **外部视觉模型**（主模型不支持多模态时）：设环境变量 `VISION_ENDPOINT` + `VISION_API_KEY` + `--describe-images` 可批量预描述图片。
 - 子 topic 用 `integrate` skill 合并到父 topic 下。
 
-### Topic Session Shape
+### Topic Research Result Shape
 
 ```text
 topics/<namespace>/<topic-slug>/
-  2026-05-13-launch-economics/
-    driver-map.md
-    alpha-thesis.md
-  2026-06-02-q1-earnings-update/
-    earnings-setup.md
-    model-update.md
+  2026-05-13-driver-map.md
+  2026-05-13-alpha-thesis.md
+  2026-06-02-earnings-setup.md
+  2026-06-02-model-update.md
+  2026-06-02-model-update-2.md
 ```
 
-- 保存路径不明确时，先用 `new-session` 创建或解析 topic session。
-- 如果用户说“继续上次”，优先定位最近 session 并报告 located；如果用户明确说“新开一轮研究”，即使 topic 相同，也创建新的 dated session。
-- `index.md` 是演进式地图：current question、session links、current map、open questions、cached materials、sub-topics、related artifacts。
+- 保存路径不明确时，先用 `new-session` 创建 topic root 或解析日期化 result path。
+- 同日同 topic 同 artifact 已存在时，保留历史并追加 `-2`、`-3` 等最低可用序号。
+- `index.md` 是演进式地图：current question、dated result links、current map、open questions、cached materials、sub-topics、related artifacts。
 - `index.md` 不是 checklist、transcript 或状态数据库。
-- Session 内只保存实际产出的 research Markdown；不要预创建全套 skill 文件，不要按 research skill 名创建 session。
+- 只创建实际产出的 research Markdown；不要预创建全套 skill 文件，不要为每次研究新建子目录。
 
 ### Company Modeling Inputs
 
@@ -215,7 +210,7 @@ Operations:
 |---|---|---|
 | `ingest` | 转换 `_inbox/` 文件为 markdown cache，自动移至 `topics/<topic>/_raw/` | source-tracked `topics/<topic>/_cache/` markdown |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 | source-tracked financial evidence pack |
-| `new-session` | 新建 / 定位 topic session；解析 artifact 保存路径；轻量更新 `index.md` | topic session scaffold + canonical save paths |
+| `new-session` | 新建 / 定位 topic root；解析日期化 artifact 保存路径；轻量更新 `index.md` | topic scaffold + dated result paths |
 
 Research:
 
@@ -292,7 +287,7 @@ _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 - 表格是否有结构性 takeaway？
 - 是否给出方向性判断，而不是“看情况”？
 - Single-stock 是否有 peer / history / consensus 锚点？
-- 如果要保存 artifact，是否已有 topic session？没有则先用 `new-session`。
+- 如果要保存 artifact，是否已有 topic root 和日期化 result path？没有则先用 `new-session`。
 
 ---
 

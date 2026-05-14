@@ -54,7 +54,7 @@ new-session
 integrate
 ```
 
-`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`consensus-map` 是 expectations foundation，用来拆 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；不替代 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update` 或 `earnings-setup`。`primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；不执行访谈、不生成假反馈、不替代 compliance 流程。`new-session` 创建或定位 topic session，解析标准保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
+`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`consensus-map` 是 expectations foundation，用来拆 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；不替代 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update` 或 `earnings-setup`。`primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；不执行访谈、不生成假反馈、不替代 compliance 流程。`new-session` 创建或定位 topic root，解析日期化保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
 
 ## Release 包
 
@@ -94,18 +94,14 @@ Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创�
         │   ├── financial-data/
         │   └── driver-map/
         ├── _models/                 # 财务模型
-        ├── 2026-05-13-launch-economics/
-        │   ├── driver-map.md
-        │   └── alpha-thesis.md
-        ├── 2026-06-02-q1-earnings-update/
-        │   ├── earnings-setup.md
-        │   └── model-update.md
-        └── 2026-09-10-capital-raise/
-            ├── stock-quickread.md
-            └── bear-pre-mortem.md
+        ├── 2026-05-13-driver-map.md
+        ├── 2026-05-13-alpha-thesis.md
+        ├── 2026-06-02-earnings-setup.md
+        ├── 2026-06-02-model-update.md
+        └── 2026-09-10-bear-pre-mortem.md
 ```
 
-`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件、拉取 financial-data 或创建 topic 研究产物。它会复制 ingest 和 financial-data 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。同一个 topic 是长期容器，可以在不同时间拥有多个 dated session；session slug 来自本次研究问题，不来自 skill 名。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。`financial-data` 稳定入口默认写入 `topics/company/<company-slug>/_cache/financial-data/`，theme / industry topic 只保存 snapshot 或 links。用户准备创建 topic session 或确定产物保存路径时使用 `new-session`。
+`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件、拉取 financial-data 或创建 topic 研究产物。它会复制 ingest 和 financial-data 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。同一个 topic 是长期容器；research Markdown 结果直接在 topic root 用日期文件名保存。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。`financial-data` 稳定入口默认写入 `topics/company/<company-slug>/_cache/financial-data/`，theme / industry topic 只保存 snapshot 或 links。用户准备创建 topic 或确定产物保存路径时使用 `new-session`。
 
 Company topic 的 modeling input 收口为：
 
@@ -133,15 +129,15 @@ Non-company topic 不保存 company canonical financial-data，只保存 snapsho
 
 ## Artifact 保存策略
 
-新研究产物应保存在 topic session 内：
+新研究 Markdown 产物应保存在 topic root，用日期和 artifact 名标记：
 
 ```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md
 ```
 
-同一 topic 可以有多个不同日期或同日不同 slug 的 session，例如 `2026-05-13-launch-economics/` 和 `2026-05-13-backlog-quality/`。Session 内只保存实际产出的 Markdown；不要预创建全套 research skill 文件，也不要按 research skill 名创建 session。
+同一 topic 可以在不同日期产生多份 research 结果。同日同 topic 同 artifact 已存在时，使用 `-2`、`-3` 等最低可用序号保留历史，例如 `2026-05-14-driver-map-2.md`。不要预创建全套 research skill 文件。
 
-若当前 topic session 不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 session 文件夹并轻量更新 topic `index.md`，但不得写研究结论。
+若当前 topic root 或保存路径不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 topic scaffold 并轻量更新 topic `index.md`，但不得写研究结论。
 
 仅以下情况例外：仅对话类 skill（`information-impact`、`next-step`）、earned-memory 写入（`research-journal`）、外部 workbook / update map（`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update`）。root 下的 `screens/`、`peers/`、`quickreads/`、`cross-market/` 为历史 / 示例目录，非 active 默认保存位置。
 
@@ -151,7 +147,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[session-slug]/[artifact].md
 topics/<topic-namespace>/<topic-slug>/_cache/[source-filename].md
 ```
 
-缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 topic session 输出。
+缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 research Markdown 输出。
 
 结构化财务数据缓存位于：
 

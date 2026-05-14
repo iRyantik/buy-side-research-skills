@@ -79,7 +79,7 @@ if (Test-Path -LiteralPath $skillPath) {
         "research",
         "operations",
         "new-session",
-        "topic_session_scaffold",
+        "topic_scaffold",
         "artifact policy",
         "skill.yaml",
         "validate-skill-metadata.ps1",

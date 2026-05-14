@@ -215,13 +215,13 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 
 ## Journal-First Handoff
 
-本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前 topic session 的研究材料保存为：
+本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前日期化保存路径的研究材料保存为：
 
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/alpha-thesis.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-alpha-thesis.md
 ```
 
-如果当前 topic session / save path 不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或直接写入 root。
+如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 

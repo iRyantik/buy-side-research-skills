@@ -97,18 +97,14 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
         │   ├── financial-data/
         │   └── driver-map/
         ├── _models/
-        ├── 2026-05-13-launch-economics/
-        │   ├── driver-map.md
-        │   └── alpha-thesis.md
-        ├── 2026-06-02-q1-earnings-update/
-        │   ├── earnings-setup.md
-        │   └── model-update.md
-        └── 2026-09-10-capital-raise/
-            ├── stock-quickread.md
-            └── bear-pre-mortem.md
+        ├── 2026-05-13-driver-map.md
+        ├── 2026-05-13-alpha-thesis.md
+        ├── 2026-06-02-earnings-setup.md
+        ├── 2026-06-02-model-update.md
+        └── 2026-09-10-bear-pre-mortem.md
 ```
 
-Topic 是长期容器；同一个 topic 可以在不同时间有多次 dated session。`_inbox/`、`_raw/`、`_cache/`、`_models/` 留在 topic root；session 目录只保存那一次研究实际产出的 Markdown，不按 skill 名预创建全套文件。
+Topic 是长期容器；research Markdown 结果直接保存在 topic root，用日期和 artifact 名标记。`_inbox/`、`_raw/`、`_cache/`、`_models/` 留在 topic root；同日同类结果已存在时追加 `-2`、`-3`，不覆盖历史。
 
 Company topic 的 data / driver / model 输出收口：
 
@@ -143,7 +139,7 @@ Operations skills：
 | Skill | 用途 |
 |---|---|
 | `init-workspace` | 创建或修复 research workspace scaffold |
-| `new-session` | 创建 / 定位 topic session，解析 artifact 保存路径，轻量更新 `index.md` |
+| `new-session` | 创建 / 定位 topic root，解析日期化 artifact 保存路径，轻量更新 `index.md` |
 | `ingest` | 把 raw materials 转成 source-tracked markdown cache |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |

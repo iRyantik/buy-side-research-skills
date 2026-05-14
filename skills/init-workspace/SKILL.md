@@ -26,7 +26,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 不负责：
 - 不 ingest PDF / Excel / PPTX / DOCX。
 - 不安装 Docling、EdgarTools、Tesseract、MarkItDown 或 Python packages。
-- 不创建 topic session artifact、`research-journal.md` 或 `boss-brief.md`。
+- 不创建 dated topic research artifact、`research-journal.md` 或 `boss-brief.md`。
 - 不运行 `git init`。
 - 不在 plugin dev repo 或 plugin install directory 内初始化 workspace。
 
@@ -133,7 +133,7 @@ description: Use when setting up or repairing a buy-side research workspace fold
 |---|---|
 | 用户刚装好插件，不知道从哪里开始 | `init-workspace` 创建 workspace scaffold |
 | 用户已有 workspace 但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init-workspace` repair missing scaffold |
-| workspace 已建好，用户要开始某个 company / theme / event research | handoff 到 `new-session` 创建 topic session |
+| workspace 已建好，用户要开始某个 company / theme / event research | handoff 到 `new-session` 创建 topic root |
 | 用户把材料放进 `_inbox/` 后想转换 | handoff 到 `ingest` |
 | 用户缺 Docling / EdgarTools / Tesseract / MarkItDown | 提示 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |
 | 用户缺 SEC / AKShare / EDINET / DART / openesef 财务数据依赖 | 提示 `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |

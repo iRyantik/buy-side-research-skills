@@ -69,7 +69,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         }
     }
 
-    foreach ($phrase in @("Foundation Primer", "Business Evolution Audit", "Disclosure Evolution Audit", "optional_topic_session", "company-primer.md")) {
+    foreach ($phrase in @("Foundation Primer", "Business Evolution Audit", "Disclosure Evolution Audit", "optional_topic_result", "company-primer.md")) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("skill.yaml is missing required phrase: $phrase")
         }

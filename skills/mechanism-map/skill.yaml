@@ -47,7 +47,7 @@ capabilities:
     - 'Mechanism Explainer'
     - 'Mechanism-to-Research Map'
     - 'Mixed Mode'
-  output_path: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md when user asks to save'
+  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md when user asks to save'
   requirements:
     - 'follow CLAUDE.md source policy'
     - 'explain terms, equipment chains, and process flows'
@@ -57,10 +57,10 @@ capabilities:
     - 'do not create or edit workbooks'
     - 'do not write full thesis'
 artifact_policy:
-  save_policy: 'optional_topic_session'
+  save_policy: 'optional_topic_result'
   default_artifact: 'mechanism-map.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/mechanism-map.md'
-  save_trigger: 'save only when user asks to preserve mechanism mapping as session research material'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md'
+  save_trigger: 'save only when user asks to preserve mechanism mapping as dated topic research result'
 workflow:
   stage: 'research-primitive'
   can_follow:

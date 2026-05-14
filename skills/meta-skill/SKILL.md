@@ -1,4 +1,4 @@
-﻿---
+---
 name: meta-skill
 description: Use when creating, rewriting, reviewing, or validating buy-side-research-skills plugin skills, skill.yaml metadata, artifact policy, runtime category, validators, or skill governance.
 ---
@@ -30,7 +30,7 @@ description: Use when creating, rewriting, reviewing, or validating buy-side-res
 本 skill 不负责：
 
 - 不写公司研究、thesis、driver-map、mechanism-map、Boss Brief 或 topic artifact。
-- 不创建 topic session artifact。
+- 不创建 dated topic research artifact。
 - 不恢复 `meta.json` 双轨。
 - 不恢复 v2 state files、portfolio tracker、decision-journal、thesis-tracker 或 v2 pair state logs。
 - 不把 active skills 物理移动进嵌套目录；插件 runtime skills 保持 `skills/[skill-name]/SKILL.md` 一层平铺。
@@ -194,11 +194,10 @@ Topic-centric 组织：
 
 ```text
 topics/
-  [topic-slug]/
+  [topic-namespace]/[topic-slug]/
     index.md
-      [YYYY-MM-DD]-[session-slug]/
-        research-journal.md
-        boss-brief.md
+    [YYYY-MM-DD]-research-journal.md
+    [YYYY-MM-DD]-boss-brief.md
 ```
 
 ### 3. Research / Operations 双轨结构
@@ -224,7 +223,7 @@ Operations skills：
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
-| `new-session` | 创建 / 定位 topic session、解析 artifact save path、轻量更新 topic `index.md` |
+| `new-session` | 创建 / 定位 topic root、解析日期化 artifact save path、轻量更新 topic `index.md` |
 
 Active skills 必须保持一层平铺：`skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -323,9 +322,9 @@ description: ...
 trigger: ...
 capabilities: ...
 artifact_policy:
-  save_policy: optional_topic_session
+  save_policy: optional_topic_result
   default_artifact: skill-name.md
-  canonical_location: topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/skill-name.md
+  canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-skill-name.md
   save_trigger: save only when user asks
 ```
 
@@ -340,13 +339,13 @@ Rules：
 
 Artifact policy：
 
-- `save_policy` 只能是 `none`、`optional_topic_session`、`default_topic_session`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_session_scaffold`。
+- `save_policy` 只能是 `none`、`optional_topic_result`、`default_topic_result`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_scaffold`。
 - 不落盘的 skill 写 `conversation-only`。
-- Topic artifact 必须落在 `topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/`。
+- Topic artifact 必须落在 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
-- `new-session` 使用 `topic_session_scaffold`，只创建 / 定位 topic session 和轻量更新 `index.md`，不写研究结论。
+- `new-session` 使用 `topic_scaffold`，只创建 / 定位 topic root、解析日期化 result path，并轻量更新 `index.md`，不写研究结论。
 
 ### 8. Source 政策（runtime shared rules 摘要）
 

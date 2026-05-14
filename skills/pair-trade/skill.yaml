@@ -50,7 +50,7 @@ capabilities:
     - 'borrow and liquidity awareness'
     - 'source links and as-of timestamps'
 artifact_policy:
-  save_policy: 'default_topic_session'
+  save_policy: 'default_topic_result'
   default_artifact: 'pair-note.md'
-  canonical_location: 'topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/pair-note.md'
-  save_trigger: 'save builder or monitor output to the current topic session by default; ask for path confirmation if no session is clear'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-pair-note.md'
+  save_trigger: 'save builder or monitor output to the current dated result path by default; ask for path confirmation if no path is clear'

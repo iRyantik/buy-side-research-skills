@@ -1,4 +1,4 @@
-﻿---
+---
 name: company-primer
 description: Use when researching an unfamiliar company in depth, mapping what it sells, how the business evolved, how segments or KPIs changed, or why disclosure history may affect later driver, thesis, peer, or model work.
 ---
@@ -97,7 +97,7 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 | **时间范围** | 最新业务结构 / 过去 3-5 年 / 上市以来 / 某次交易前后 | 默认最新披露 + 影响当前业务理解的历史变化 |
 | **披露范围** | segment / KPI / geography / customer / product | 默认 segment + KPI + material M&A / divestiture |
 | **source 状态** | 用户给 source / 需要自行找 source / source 冲突 | source 不足时标 `[来源待补]`，不编事实 |
-| **保存需求** | 只在对话输出 / 写入 topic session | 默认对话；用户要求保存时写 `company-primer.md` |
+| **保存需求** | 只在对话输出 / 写入 topic root 日期文件 | 默认对话；用户要求保存时写 `company-primer.md` |
 
 如果用户只给 ticker，不要追问一堆背景；按 Foundation Primer 开始，但把 source gap 标出来。如果用户明确要披露口径对齐，则直接进入 Disclosure Evolution Audit，不要先写完整公司介绍。
 
@@ -261,12 +261,12 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 
 ## 可选保存
 
-默认只输出到对话。用户明确要求保存时，写入当前 topic session：
+默认只输出到对话。用户明确要求保存时，写入当前日期化保存路径：
 ```text
-topics/[topic-slug]/[YYYY-MM-DD]-[session-slug]/company-primer.md
+topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md
 ```
 
-如果当前没有 topic session，先 handoff 到 `new-session` 创建 / 解析路径；不要自行发明大量目录，也不要把 primer 写进 `research-journal.md`，除非已经通过 `research-journal` 的 Earned Insight Gate。
+如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径；不要自行发明大量目录，也不要把 primer 写进 `research-journal.md`，除非已经通过 `research-journal` 的 Earned Insight Gate。
 
 ## Workflow 联动
 
