@@ -14,6 +14,17 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Use `3-statement-model` output when available as the forecast base. Do not treat incomplete, review-only, missing, or unmapped actuals as complete DCF inputs.
 
+## Model Sub-Agent Protocol
+
+This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
+
+Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+
+Useful DCF sub-agent QA buckets:
+- driver-map assumption audit against `driver-map.md` and `internal/driver-map.json`
+- FCF bridge QA, WACC / terminal value / sensitivity formula check
+- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+
 # DCF Model Builder
 
 ## Overview

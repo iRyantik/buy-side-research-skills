@@ -56,6 +56,10 @@ capabilities:
     - 'do not perform DCF or comps'
     - 'do not create or edit workbooks'
     - 'do not write full thesis'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for mechanism implication and value-capture conclusion'
+    - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'mechanism-map.md'

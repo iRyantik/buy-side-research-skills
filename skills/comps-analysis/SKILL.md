@@ -30,6 +30,17 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Use `driver-map` to separate business peers, valuation peers, segment treatment, geography treatment, and metric comparability before building the multiples table.
 
+## Model Sub-Agent Protocol
+
+This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, valuation verdict, multiple selection, peer-set judgment, model treatment, and delivery decision.
+
+Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+
+Useful comps sub-agent QA buckets:
+- peer set QA and business-peer vs valuation-peer separation
+- multiple source/as-of check, currency / fiscal-period normalization, and outlier handling review
+- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+
 # Comparable Company Analysis
 
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)

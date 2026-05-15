@@ -49,6 +49,10 @@ capabilities:
     - 'correlation and beta awareness'
     - 'borrow and liquidity awareness'
     - 'source links and as-of timestamps'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for pair verdict and sizing'
+    - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'pair-note.md'

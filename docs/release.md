@@ -47,6 +47,12 @@ Release packaging does not require the full validator suite. Full-suite validati
 
 Run validators only after creating, rewriting, or materially changing a skill, and then run only the targeted validator(s) that cover that skill or governance surface. If the user explicitly asks to skip validators, do not run validators.
 
+When changing the modeling sub-agent protocol for `3-statement-model`, `dcf-model`, `comps-analysis`, or `model-update`, run:
+
+```powershell
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts\validate-model-sub-agent-protocol.ps1
+```
+
 ## Build
 
 ```powershell

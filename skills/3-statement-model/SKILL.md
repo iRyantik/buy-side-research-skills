@@ -14,6 +14,17 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Do not turn missing or unmapped actuals into zero. Leave them blank, flag the mapping gap, and keep source/confidence status visible in the model checks.
 
+## Model Sub-Agent Protocol
+
+This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, formula architecture, model treatment, valuation handoff, and delivery decision.
+
+Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+
+Useful 3-statement sub-agent QA buckets:
+- actuals mapping audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness
+- IS / BS / CF linkage check and balance check
+- missing or unmapped actuals review; never coerce missing or unmapped actuals to zero
+
 # 3-Statement Financial Model Template Completion
 
 Complete and populate integrated financial model templates with proper linkages between Income Statement, Balance Sheet, and Cash Flow Statement.

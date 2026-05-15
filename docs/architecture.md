@@ -1,4 +1,4 @@
-﻿# 架构
+# 架构
 
 本仓库是 buy-side research 插件的源码目录，不是 research workspace。
 
@@ -58,9 +58,15 @@ integrate
 
 ## Sub-Agent Evidence Protocol
 
-Research runtime 可以使用 sub-agent 并行查 source，但 sub-agent 只是 evidence collector。它们只能返回 evidence card，不能写最终结论、ranking、thesis、valuation 或 model treatment。主 agent 必须抽查 URL/claim、处理 source conflict，并完成最终 synthesis。
+对已声明支持 Parallel Evidence Pass 的 research skill，research runtime 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只是 evidence collector。它们只能返回 evidence card，不能写最终结论、ranking、thesis、valuation 或 model treatment。主 agent 必须抽查 URL/claim、处理 source conflict，并完成最终 synthesis。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 
-v3.8.0 第一批允许显式 `Parallel Evidence Pass` 的 skill 是：`peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`。如果运行环境没有 sub-agent，这些 skill 仍按同一 evidence card 纪律单线程执行。
+v3.8.0 默认必须执行 `Parallel Evidence Pass` 的 skill 分四批：第一批 `peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`；第二批 `stock-quickread`、`industry-quickread`、`consensus-map`、`mechanism-map`、`information-impact`；第三批 `alpha-thesis`、`bear-pre-mortem`、`pair-trade`、`primary-research-plan`；第四批 `next-step`、`research-journal`。如果当前 host / runner 真的没有 sub-agent 能力，主 agent 必须在 artifact 或输出的 evidence protocol notes 中明确写出 `sub-agent unavailable`、原因、改用的单线程 evidence-card 流程，以及因此增加的 source coverage caveat；不得悄悄降级。
+
+## Model Sub-Agent Protocol
+
+`3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the research evidence-card-only list. Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
+
+Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision. Modeling skills must check `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness before using model inputs; missing or unmapped actuals must not be written as 0. Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 
 ## Release 包
 

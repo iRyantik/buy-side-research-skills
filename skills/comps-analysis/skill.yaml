@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'comps-analysis'
 id: 'comps-analysis'
 display_name: 'Comps Analysis'
-version: '1.0.0'
+version: '1.1.0'
 system_generation: '3.8.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -31,6 +31,7 @@ capabilities:
     - 'multiple benchmarking'
     - 'operating metric comparison'
     - 'outlier analysis'
+    - 'model_sub_agent_protocol'
   consumes:
     - 'financial-data'
     - 'driver-map'
@@ -47,6 +48,10 @@ capabilities:
     - 'Prefer source-tracked actuals and driver-map business treatment before external or manual data.'
     - 'Document differences between qualitative peer universe and valuation peer set.'
     - 'Do not mix provider-normalized review data with model-ready actuals without visible flags.'
+    - 'main_agent_workbook_ownership_required'
+    - 'source_map_and_completeness_check_required'
+    - 'no_final_valuation_or_workbook_delivery_by_sub-agent'
+    - 'no_missing_or_unmapped_actuals_as_zero'
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-comps-analysis.xlsx'

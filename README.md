@@ -661,9 +661,11 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
 
 ### Q10：sub-agent 是不是会直接替我写结论？
 
-**答**：不会。v3.8.0 开始，部分 research skill 可以用 sub-agent 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。
+**答**：不会。v3.8.0 开始，部分 research skill 默认必须用 sub-agent / delegate worker 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 
-第一批支持并行 evidence pass 的 skill 是：`peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`。如果你的运行环境没有 sub-agent，它们会按同样的 evidence 纪律单线程执行。
+默认执行 Parallel Evidence Pass 的 skill 包括：第一批 `peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`；第二批 `stock-quickread`、`industry-quickread`、`consensus-map`、`mechanism-map`、`information-impact`；第三批 `alpha-thesis`、`bear-pre-mortem`、`pair-trade`、`primary-research-plan`；第四批 `next-step`、`research-journal`。如果当前 host / runner 真的没有 sub-agent 能力，artifact 或输出必须明示 `sub-agent unavailable`、原因和 coverage caveat，不能悄悄降级。
+
+Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 可以让 sub-agent 做 actuals mapping audit、formula check、peer multiple check 或 update-map QA，但 sub-agent 只能返回 model QA notes / work-packet findings。最终 workbook、valuation verdict、price target、model treatment 和 delivery decision 必须由主 agent 负责。建模前必须检查 `actuals-resolved.json`、`evidence-pack.json`、source-map 和 completeness；missing or unmapped actuals 不得写成 0。
 
 ---
 

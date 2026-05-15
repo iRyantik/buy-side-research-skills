@@ -40,7 +40,7 @@ capabilities:
     - '矩阵必须有 Source 列'
     - 'Cross-cut 必须有具体引语和数字对比'
     - '必须输出 cluster / relative mismatch 判断'
-    - 'parallel_evidence_gathering is allowed only for source collection'
+    - 'parallel_evidence_spawn_default for source collection'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for rankings and conclusions'
     - 'url_claim_spot_check_required before using sub-agent sources'

@@ -65,6 +65,10 @@ capabilities:
     - 'include compliance guardrails and red-line questions'
     - 'rewrite MNPI or confidential questions into public or non-confidential proxies'
     - 'require triangulation and decision gates'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for primary research plan and compliance guardrails'
+    - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'primary-research-plan.md'

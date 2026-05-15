@@ -40,6 +40,10 @@ capabilities:
     - 'source links required'
     - 'base rate examples'
     - 'follow CLAUDE.md source policy'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for bear verdict'
+    - 'url_claim_spot_check_required before using sub-agent sources'
   inputs:
     - 'alpha-thesis output'
     - 'current conversation thesis'

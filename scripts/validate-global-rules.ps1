@@ -14,6 +14,8 @@ $linkPending = "[link " + [char]0x5F85 + [char]0x8865 + "]"
 $noFabrication = [string]([char]0x7EDD) + [char]0x5BF9 + [char]0x4E0D + [char]0x80FD + [char]0x7F16 + [char]0x9020
 $mainAgent = [string]([char]0x4E3B) + " agent"
 $noFinalConclusion = [string]([char]0x4E0D) + [char]0x5F97 + [char]0x5199 + [char]0x6700 + [char]0x7EC8 + [char]0x7ED3 + [char]0x8BBA
+$subAgentRuntimeCap = "Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return."
+$oldSubAgentRuntimeCap = "max 3-5 sub-agents" + " per skill"
 $requiredPhrases = @(
     $needsVerification,
     $sourcePending,
@@ -25,7 +27,8 @@ $requiredPhrases = @(
     "Sub-Agent Evidence Protocol",
     "evidence card",
     $mainAgent,
-    $noFinalConclusion
+    $noFinalConclusion,
+    $subAgentRuntimeCap
 )
 $forbiddenSharedTerms = @(
     "coverage/",
@@ -44,6 +47,24 @@ $importedModelingSkills = @(
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
+
+$legacyScanTargets = @(
+    (Join-Path $repoRoot "CLAUDE.md"),
+    (Join-Path $repoRoot "README.md")
+)
+$legacyScanTargets += Get-ChildItem -LiteralPath (Join-Path $repoRoot "docs") -Recurse -File |
+    Select-Object -ExpandProperty FullName
+$legacyScanTargets += Get-ChildItem -LiteralPath $skillsRoot -Recurse -File |
+    Select-Object -ExpandProperty FullName
+$legacyScanTargets += Get-ChildItem -LiteralPath (Join-Path $repoRoot "scripts") -Recurse -File |
+    Select-Object -ExpandProperty FullName
+
+foreach ($path in $legacyScanTargets) {
+    $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $path
+    if ($text.Contains($oldSubAgentRuntimeCap)) {
+        $failures.Add("legacy sub-agent runtime cap phrase remains in: $path")
+    }
+}
 
 function Get-YamlScalar {
     param(

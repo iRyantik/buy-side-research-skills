@@ -11,7 +11,7 @@ description: Use when quickly assessing an unfamiliar company, getting a 30-minu
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Sub-Agent Evidence Protocol：研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。
+- Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、quickread verdict、下一步研究判断、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
@@ -35,6 +35,15 @@ description: Use when quickly assessing an unfamiliar company, getting a 30-minu
 - 每条事实、数字、引语必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
 - 表格必须保留 Source 列或表下注；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
 - sub-agent 返回的 URL 只能当线索，抽查匹配后才能写成 verified source。
+
+## Parallel Evidence Pass
+
+本 skill 默认必须按 source bucket 启动 sub-agent / delegate worker 并行收集 quickread evidence；sub-agent 只能返回 evidence card：
+
+- 可拆任务：business / segment reality、financial snapshot、valuation / market data、recent events、counterparty assumptions。
+- sub-agent 不得写最终 quickread verdict、是否值得继续研究、对手盘判断、routing recommendation 或 thesis seed；这些必须由主 agent 统一口径后综合。
+- 主 agent 必须抽查关键 URL / claim，并把 business reality、financial facts、market expectations 和下一步问题统一成一个 quickread verdict。
+- 如果当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## 输出结构（严格按这个走）
 

@@ -80,6 +80,8 @@ description: Use when creating, rewriting, reviewing, or validating buy-side-res
 
 用于调整分类、版本策略、artifact policy、global rules 或 validator。必须同步 docs 和 release package validator，避免“规则写了但 CI 不管”。如果规则能被机械检查，优先写 validator；文档只负责解释判断型约束。
 
+Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-update`) use `Model Sub-Agent Protocol`. Do not add them to `Parallel Evidence Pass`, do not give them `evidence_cards_only`, and validate changes with `scripts/validate-model-sub-agent-protocol.ps1`.
+
 ### Mode D: Review / Gap Audit
 
 用于检查现有 skill 是否漂移。输出以问题和缺口为主，不要直接重写，除非用户明确要求实现。

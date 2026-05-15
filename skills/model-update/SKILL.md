@@ -14,6 +14,17 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Separate reported actuals, revised assumptions, and formula changes. Do not plug missing or unmapped actuals as zero, and do not overwrite a workbook without a visible update map.
 
+## Model Sub-Agent Protocol
+
+This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook or update map, valuation verdict, model treatment, change classification, and delivery decision.
+
+Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+
+Useful model-update sub-agent QA buckets:
+- reported actuals vs prior model reconciliation
+- assumption delta map, formula preservation check, and update-map QA
+- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+
 # Model Update
 
 description: Update financial models with new data — quarterly earnings, management guidance, macro changes, or revised assumptions. Adjusts estimates, recalculates valuation, and flags material changes. Use after earnings, guidance updates, or when assumptions need refreshing. Triggers on "update model", "plug earnings", "refresh estimates", "update numbers for [company]", "new guidance", or "revise estimates".

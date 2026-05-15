@@ -44,12 +44,20 @@ Source 质量：
 
 ## 5. Sub-Agent Evidence Protocol
 
-- 研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。
+- 对已声明支持 Parallel Evidence Pass 的 research skill，默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
 - 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
-- 如果当前运行环境没有 sub-agent，就按同一 evidence card 纪律由主 agent 单线程完成。
+- 如果当前 host / runner 真的没有 sub-agent 能力，主 agent 必须在 artifact 的 evidence protocol notes 中明确写出 `sub-agent unavailable`、原因、改用的单线程 evidence-card 流程，以及因此增加的 source coverage caveat；不得悄悄降级。
 
-## 6. Senior Analyst Radar
+## 6. Model Sub-Agent Protocol
+
+- `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
+- Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
+- Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
+- Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+- Before using modeling inputs, check `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; missing or unmapped actuals must not be written as 0.
+
+## 7. Senior Analyst Radar
 
 当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 
@@ -73,7 +81,7 @@ Source 质量：
 - 可以问 AI：[1-2 个最关键问题]
 ```
 
-## 7. Primitive Routing
+## 8. Primitive Routing
 
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。

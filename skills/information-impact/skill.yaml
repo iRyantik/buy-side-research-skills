@@ -52,6 +52,10 @@ capabilities:
     - 'distinguish direct supplier, indirect supplier, product applicability, and theme association'
     - 'do not treat rumors as verified facts'
     - 'follow CLAUDE.md source policy'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for claim impact verdict'
+    - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
   save_policy: 'none'
   default_artifact: 'conversation-only'

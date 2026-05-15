@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'dcf-model'
 id: 'dcf-model'
 display_name: 'DCF Model'
-version: '1.0.0'
+version: '1.1.0'
 system_generation: '3.8.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -31,6 +31,7 @@ capabilities:
     - 'reverse DCF'
     - 'sensitivity analysis'
     - 'valuation summary'
+    - 'model_sub_agent_protocol'
   consumes:
     - 'financial-data'
     - 'driver-map'
@@ -47,6 +48,10 @@ capabilities:
     - 'Prefer source-tracked financial-data and driver-map assumptions before external or manual data.'
     - 'Use 3-statement-model outputs when available for forecast base statements.'
     - 'Do not use incomplete actuals as complete model inputs without explicit review flags.'
+    - 'main_agent_workbook_ownership_required'
+    - 'source_map_and_completeness_check_required'
+    - 'no_final_valuation_or_workbook_delivery_by_sub-agent'
+    - 'no_missing_or_unmapped_actuals_as_zero'
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-3statement-dcf-model.xlsx'

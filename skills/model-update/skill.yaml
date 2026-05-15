@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'model-update'
 id: 'model-update'
 display_name: 'Model Update'
-version: '1.0.0'
+version: '1.1.0'
 system_generation: '3.8.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -31,6 +31,7 @@ capabilities:
     - 'guidance refresh'
     - 'assumption revision'
     - 'update map'
+    - 'model_sub_agent_protocol'
   consumes:
     - 'financial-data'
     - 'driver-map'
@@ -51,6 +52,10 @@ capabilities:
     - 'Prefer new financial-data actuals and driver-map changes before external or manual data.'
     - 'Separate reported actuals, revised assumptions, and formula changes.'
     - 'Do not overwrite user workbooks without explicit instruction.'
+    - 'main_agent_workbook_ownership_required'
+    - 'source_map_and_completeness_check_required'
+    - 'no_final_valuation_or_workbook_delivery_by_sub-agent'
+    - 'no_missing_or_unmapped_actuals_as_zero'
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-model-update.xlsx | <ticker>-update-map.md'

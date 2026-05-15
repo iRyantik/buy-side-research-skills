@@ -36,6 +36,10 @@ capabilities:
     - 'follow CLAUDE.md source policy'
     - 'route company foundation and disclosure evolution gaps to company-primer'
     - 'route systematic consensus and priced-in analysis to consensus-map'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for quickread verdict and routing'
+    - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'stock-quickread.md'

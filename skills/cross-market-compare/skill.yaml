@@ -54,7 +54,7 @@ capabilities:
     - 'as-of timestamps'
     - 'source links'
     - 'accounting and access adjustments'
-    - 'parallel_evidence_gathering is allowed only for source collection'
+    - 'parallel_evidence_spawn_default for source collection'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for spread interpretation and trade verdict'
     - 'url_claim_spot_check_required before using sub-agent sources'

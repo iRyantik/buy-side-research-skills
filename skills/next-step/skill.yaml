@@ -43,6 +43,10 @@ capabilities:
     - 'route source or claim gaps to information-impact'
     - 'route field evidence or channel validation gaps to primary-research-plan'
     - 'route company foundation or disclosure evolution gaps to company-primer'
+    - 'parallel_evidence_spawn_default for research bottleneck and source-gap audit'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for next question and routing decision'
+    - 'url_claim_spot_check_required before using sub-agent sources'
     - 'do not create standalone next-step files'
 artifact_policy:
   save_policy: 'none'
