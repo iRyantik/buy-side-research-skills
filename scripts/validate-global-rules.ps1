@@ -12,6 +12,8 @@ $needsVerification = "[" + [char]0x9700 + [char]0x67E5 + [char]0x8BC1 + "]"
 $sourcePending = "[" + [char]0x6765 + [char]0x6E90 + [char]0x5F85 + [char]0x8865 + "]"
 $linkPending = "[link " + [char]0x5F85 + [char]0x8865 + "]"
 $noFabrication = [string]([char]0x7EDD) + [char]0x5BF9 + [char]0x4E0D + [char]0x80FD + [char]0x7F16 + [char]0x9020
+$mainAgent = [string]([char]0x4E3B) + " agent"
+$noFinalConclusion = [string]([char]0x4E0D) + [char]0x5F97 + [char]0x5199 + [char]0x6700 + [char]0x7EC8 + [char]0x7ED3 + [char]0x8BBA
 $requiredPhrases = @(
     $needsVerification,
     $sourcePending,
@@ -19,7 +21,11 @@ $requiredPhrases = @(
     "Senior Analyst Radar",
     "mechanism-map",
     "driver-map",
-    $noFabrication
+    $noFabrication,
+    "Sub-Agent Evidence Protocol",
+    "evidence card",
+    $mainAgent,
+    $noFinalConclusion
 )
 $forbiddenSharedTerms = @(
     "coverage/",

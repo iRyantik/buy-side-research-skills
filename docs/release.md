@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.7.0`.
+Current release version: `3.8.0`.
 
 ## Release Package Contents
 
@@ -50,13 +50,13 @@ Run validators only after creating, rewriting, or materially changing a skill, a
 ## Build
 
 ```powershell
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.7.0
+rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.8.0
 ```
 
 Build artifact:
 
 ```text
-dist/buy-side-research-skills-3.7.0.zip
+dist/buy-side-research-skills-3.8.0.zip
 ```
 
 The build script only stages and zips release contents. It does not run validators automatically.

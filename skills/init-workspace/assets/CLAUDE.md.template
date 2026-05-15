@@ -11,7 +11,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `3.7.0`
+- Current system generation: `3.8.0`
 
 本 workspace 用于 buy-side equity research。目标不是“了解公司”，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
 
@@ -91,6 +91,13 @@
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
 - 不要凭印象写“管理层之前说过”；找到具体出处或删掉。
 - Sub-agent / AI 返回的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+
+### 4.6 Sub-Agent Evidence Protocol
+
+- 研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。
+- Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
+- 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
+- 如果当前运行环境没有 sub-agent，就按同一 evidence card 纪律由主 agent 单线程完成。
 
 ---
 

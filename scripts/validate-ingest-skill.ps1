@@ -127,7 +127,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "precision_level",
         "document_type",
         "route",
-        "3.7.0",
+        "3.8.0",
         "--category",
         "auto-infer document category",
         "strict topic check"
@@ -151,8 +151,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.3.0") {
         $failures.Add("ingest: expected skill version 1.3.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.7.0") {
-        $failures.Add("ingest: expected system_generation 3.7.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.8.0") {
+        $failures.Add("ingest: expected system_generation 3.8.0, found '$systemGeneration'")
     }
 }
 

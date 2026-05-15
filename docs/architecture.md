@@ -56,6 +56,12 @@ integrate
 
 `meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`consensus-map` 是 expectations foundation，用来拆 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；不替代 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update` 或 `earnings-setup`。`primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；不执行访谈、不生成假反馈、不替代 compliance 流程。`new-session` 创建或定位 topic root，解析日期化保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
 
+## Sub-Agent Evidence Protocol
+
+Research runtime 可以使用 sub-agent 并行查 source，但 sub-agent 只是 evidence collector。它们只能返回 evidence card，不能写最终结论、ranking、thesis、valuation 或 model treatment。主 agent 必须抽查 URL/claim、处理 source conflict，并完成最终 synthesis。
+
+v3.8.0 第一批允许显式 `Parallel Evidence Pass` 的 skill 是：`peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`。如果运行环境没有 sub-agent，这些 skill 仍按同一 evidence card 纪律单线程执行。
+
 ## Release 包
 
 Release 包实际只包含 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。不得包含 `docs/`、`examples/`、本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。

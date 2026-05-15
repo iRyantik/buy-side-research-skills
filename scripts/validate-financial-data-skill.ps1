@@ -132,7 +132,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "Dependency Bootstrap / Check",
         "Canonical Company Fetch",
         "Current Topic Snapshot",
-        "3.7.0"
+        "3.8.0"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("financial-data: skill.yaml missing required phrase '$phrase'")
@@ -153,8 +153,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.0.0") {
         $failures.Add("financial-data: expected skill version 1.0.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.7.0") {
-        $failures.Add("financial-data: expected system_generation 3.7.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.8.0") {
+        $failures.Add("financial-data: expected system_generation 3.8.0, found '$systemGeneration'")
     }
 }
 

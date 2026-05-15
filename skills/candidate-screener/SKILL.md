@@ -10,7 +10,8 @@ description: Use when turning a theme, hypothesis, event, or screening condition
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。
+- Sub-Agent Evidence Protocol：研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
@@ -50,6 +51,15 @@ description: Use when turning a theme, hypothesis, event, or screening condition
 - **卖方研报中的"概念股归类"不算 source**——卖方分类有 marketing 嫌疑，要找原始 disclosure（10-K、IR 资料、合同公告）
 - **估值数据必须有 as-of 时间戳**——AI 数据可能 stale，明确标注获取时点
 - **Sub-agent 返回的 ticker / 业务关联必须按 capsule 的反幻觉硬规则抽查**——这个 skill 高度依赖 web search，URL / 公司事实假冒是真实风险
+
+## Parallel Evidence Pass
+
+如果运行环境支持 sub-agent，本 skill 可以按候选公司或主题链路并行查证，但 sub-agent 只能返回 evidence card：
+
+- 可拆任务：候选 ticker 的业务关联、合同 / 客户 / 供应链证据、估值 / liquidity as-of、priced-in 线索、short candidate 受损机制。
+- sub-agent 不得写最终 tier、Top Candidates、Recommended for Deep Research 或 long / short basket 判断；这些必须由主 agent 去重、抽查、排序。
+- 主 agent 必须抽查关键 URL / claim，尤其是供应链、客户关系、主题受益机制和最新业务变化。
+- 找不到原始披露的候选只能保留为 `[需查证]` 线索，不能进入 Tier 1 verified list。
 
 ## AI 的局限（必读，前置警告）
 
@@ -385,6 +395,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 - ❌ Tier-2/3 关联只写"供应链相关"无具体 supplier link → 没 verify
 - ❌ 把卖方研报的"概念股归类"当作业务关联依据 → 卖方分类有 marketing 嫌疑
 - ❌ AI 依据"听过"或推测列 candidate 但没标 [需查证] → 编造嫌疑
+- ❌ 把 sub-agent evidence card 直接当成最终 Tier / Top Candidates → 必须由主 agent 抽查、去重、分层和排序
 
 **Hypothesis / Tiering**
 - ❌ 没拆解 mechanism 直接列 candidates → AI 推理价值丢失

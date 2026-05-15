@@ -47,6 +47,13 @@ Source 质量：
 - 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
 - sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
 
+### Sub-Agent Evidence Protocol
+
+- 研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。
+- Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
+- 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
+- 如果当前运行环境没有 sub-agent，就按同一 evidence card 纪律由主 agent 单线程完成。
+
 ---
 
 ## 4. Senior Analyst Radar
@@ -104,7 +111,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `skill.yaml` 是 metadata / index truth：负责 name、trigger、capabilities、workflow、quality gates、artifact policy 和索引信息。
 - `meta.json` 已 retired；active `skills/*/` 下不得新建或维护 `meta.json`。
 - `skill.yaml.version` 是单个 skill 自身的 semver，不表示系统代际。
-- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.7.0`。
+- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.8.0`。
 - Skill semver：MAJOR 表示输出契约或触发边界不兼容；MINOR 表示新增 mode / routing / workflow 能力；PATCH 表示措辞、source policy、反模式或 metadata 修正。
 
 ---
@@ -253,5 +260,5 @@ Future research workspace：
 
 ---
 
-**版本**：v3.7.0
+**版本**：v3.8.0
 **最后更新**：2026-05-10

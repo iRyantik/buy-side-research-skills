@@ -111,7 +111,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "meta-skill"
         id = "meta-skill"
         version = "1.1.1"
-        system_generation = "3.7.0"
+        system_generation = "3.8.0"
         metadata_schema_version = "1"
         category = "operations"
     }

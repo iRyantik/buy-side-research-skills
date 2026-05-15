@@ -10,7 +10,8 @@ description: Use when preparing for an upcoming earnings print, reacting to newl
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。
+- Sub-Agent Evidence Protocol：研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
@@ -38,6 +39,15 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 - Consensus、隐含 move、IV skew、SI、borrow、股价数据必须标注 provider 和获取时点。
 - KPI 基线、管理层 commentary、同业已报数据必须给具体 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
+
+## Parallel Evidence Pass
+
+如果运行环境支持 sub-agent，本 skill 可以按财报 setup 组件并行查证，但 sub-agent 只能返回 evidence card：
+
+- 可拆任务：consensus / buy-side bar 线索、last print baseline、guidance / KPI thresholds、peer read-through、options / implied move / borrow / SI timestamp。
+- sub-agent 不得写最终 asymmetric setup、pre-print decision tree、post-print thesis update 或 position decision；这些必须由主 agent 综合。
+- 主 agent 必须抽查关键 URL / claim，并统一所有时效性数据的 timestamp。
+- 财报后模式中，sub-agent 可摘 press release / transcript / KPI actuals，但主 agent 必须亲自对照 pre-print setup 后写决策。
 
 ---
 
@@ -188,6 +198,7 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - ❌ 用了"chat 群里说"的 whisper 但未标记"chat-sourced" → 必须标记，不能伪装成硬数据
 - ❌ 出现具体数字 / 引语但无 source link → 标记 `[需查证]` 或删
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
+- ❌ 把 sub-agent evidence card 直接写成 pre-print decision tree / post-print position decision，而没有主 agent 抽查时点、统一口径和综合判断
 
 ## 篇幅基准
 

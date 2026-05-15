@@ -3,7 +3,7 @@ name: 'earnings-setup'
 id: 'earnings-setup'
 display_name: 'Earnings Setup'
 version: '1.0.2'
-system_generation: '3.7.0'
+system_generation: '3.8.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -38,6 +38,10 @@ capabilities:
   requirements:
     - 'source links with timestamps'
     - 'follow CLAUDE.md source policy'
+    - 'parallel_evidence_gathering is allowed only for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for setup judgment and position decision'
+    - 'url_claim_spot_check_required before using sub-agent sources'
   post_print_handoff:
     - 'research_update'
     - 'model_update'
@@ -83,6 +87,7 @@ quality_gates:
     - 'post_print_is_line_by_line_recap'
     - 'post_print_no_thesis_connection'
     - 'no_explicit_position_decision'
+    - 'sub-agent evidence card pasted as pre-print decision tree or post-print decision'
   source_requirements:
     - 'consensus_with_provider_and_timestamp'
     - 'implied_move_with_source_and_timestamp'

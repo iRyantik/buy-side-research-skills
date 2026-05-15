@@ -42,7 +42,14 @@ Source 质量：
 - 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
 - sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
 
-## 5. Senior Analyst Radar
+## 5. Sub-Agent Evidence Protocol
+
+- 研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。
+- Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
+- 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
+- 如果当前运行环境没有 sub-agent，就按同一 evidence card 纪律由主 agent 单线程完成。
+
+## 6. Senior Analyst Radar
 
 当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 
@@ -66,7 +73,7 @@ Source 质量：
 - 可以问 AI：[1-2 个最关键问题]
 ```
 
-## 6. Primitive Routing
+## 7. Primitive Routing
 
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。

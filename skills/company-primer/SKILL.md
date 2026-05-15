@@ -10,7 +10,8 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查 URL 和 claim 是否匹配。
+- 绝对不能编造 URL、页码、引语、数字、人名、日期。
+- Sub-Agent Evidence Protocol：研究运行时可以用 sub-agent 并行查 source，但 sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
@@ -40,6 +41,15 @@ description: Use when researching an unfamiliar company in depth, mapping what i
 - 历史事件只写影响当前业务理解的部分；每个历史事件必须说明它改变了什么业务边界或披露口径。
 - Segment / KPI 前后口径不一致时必须标注，不得把不同定义的时间序列拼成一个 trend。
 - 多个 source 对 segment、产品边界或交易影响说法冲突时，必须标注冲突并说明暂用哪个口径。
+
+## Parallel Evidence Pass
+
+如果运行环境支持 sub-agent，本 skill 可以并行做公司事实取证，但 sub-agent 只能返回 evidence card：
+
+- 可拆任务：当前 business snapshot、segment / product reality、material M&A / divestiture、KPI / disclosure evolution、customer / end-market evidence。
+- sub-agent 不得写最终 company primer、业务边界判断、downstream handoff 或披露连续性结论；这些必须由主 agent 综合。
+- 主 agent 必须抽查关键 URL / claim，并统一“当前业务事实”和“历史披露变化”的时间口径。
+- 如果 sub-agent 找到的历史 source 与最新 filing / IR deck 冲突，主 agent 必须标注 source conflict，不能直接把旧事实写成当前业务。
 
 ## AI 的局限
 
@@ -297,6 +307,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md
 - ❌ 多个 source 对 segment 或 KPI 口径冲突时只挑一个顺手的用。
 - ❌ 把卖方或新闻对业务的描述当作公司披露事实。
 - ❌ 编 URL、页码、交易金额、收购日期或 KPI 定义。
+- ❌ 把 sub-agent evidence card 直接粘成 company primer 结论，而没有主 agent 抽查 URL、统一时间口径和处理 source conflict。
 
 ### Logic 类
 - ❌ 把 segment rename 当成业务变化，或把业务变化当成单纯 rename。

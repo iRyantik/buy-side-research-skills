@@ -106,7 +106,7 @@ if (Test-Path -LiteralPath $yamlPath) {
         name = "new-session"
         id = "new-session"
         version = "2.0.0"
-        system_generation = "3.7.0"
+        system_generation = "3.8.0"
         category = "operations"
     }
 

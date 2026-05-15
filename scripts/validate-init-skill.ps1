@@ -115,7 +115,7 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
         "workspace_scaffold",
         "workspace scaffold",
         "user-provided research workspace",
-        "3.7.0"
+        "3.8.0"
     )) {
         if (-not $yamlText.Contains($phrase)) {
             $failures.Add("init-workspace: skill.yaml missing required phrase '$phrase'")
@@ -136,8 +136,8 @@ if ((Test-Path -LiteralPath $skillPath) -and (Test-Path -LiteralPath $yamlPath))
     if ($yamlVersion -ne "1.4.0") {
         $failures.Add("init-workspace: expected skill version 1.4.0, found '$yamlVersion'")
     }
-    if ($systemGeneration -ne "3.7.0") {
-        $failures.Add("init-workspace: expected system_generation 3.7.0, found '$systemGeneration'")
+    if ($systemGeneration -ne "3.8.0") {
+        $failures.Add("init-workspace: expected system_generation 3.8.0, found '$systemGeneration'")
     }
 }
 
