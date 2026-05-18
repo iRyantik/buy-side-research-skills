@@ -1,8 +1,9 @@
 {
-  "name": "buy-side-research",
-  "description": "Buy-side equity research skill suite for Claude Code",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "buy-side-research-skills",
   "owner": {
-    "name": "iRyantik"
+    "name": "iRyantik",
+    "url": "https://github.com/iRyantik"
   },
   "plugins": [
     {
