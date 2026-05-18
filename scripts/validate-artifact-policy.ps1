@@ -1,5 +1,5 @@
 param(
-    [int]$ExpectedActiveSkillCount = 27
+    [int]$ExpectedActiveSkillCount = 28
 )
 
 $ErrorActionPreference = "Stop"
@@ -98,7 +98,7 @@ $expectedPolicies = @{
     "ingest" = @{
         save_policy = "cache_artifact"
         default_artifact = "[source-filename].md"
-        canonical_location = "topics/[topic]/_cache/[source-filename].md"
+        canonical_location = "topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md"
     }
     "industry-quickread" = @{
         save_policy = "optional_topic_result"
@@ -122,7 +122,7 @@ $expectedPolicies = @{
     }
     "new-session" = @{
         save_policy = "topic_scaffold"
-        default_artifact = "topic root + dated result file"
+        default_artifact = "topic root + inbox + dated result file"
         canonical_location = "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md"
     }
     "next-step" = @{
@@ -144,6 +144,11 @@ $expectedPolicies = @{
         save_policy = "optional_topic_result"
         default_artifact = "primary-research-plan.md"
         canonical_location = "topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md"
+    }
+    "promote-company" = @{
+        save_policy = "none"
+        default_artifact = "conversation-only"
+        canonical_location = "conversation-only"
     }
     "research-journal" = @{
         save_policy = "earned_memory"

@@ -1,4 +1,4 @@
-# Global Runtime Research Rules
+﻿# Global Runtime Research Rules
 
 > 本文件是插件运行时全局研究规则的维护源，尽量使用 `CLAUDE.md` 原文。
 > 插件环境可能只加载具体 `SKILL.md`；因此每个 active research skill 必须内嵌同版本 `Global Rules Capsule`。Operations skills 不强制内嵌研究 capsule。
@@ -83,7 +83,8 @@ Source 质量：
 
 ## 8. Primitive Routing
 
+- Workspace routing: `new-session` creates only `index.md` + `_inbox/`; `ingest` creates `_raw/<category>/` and `_cache/` on first conversion. Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`; use `promote-company` to move deterministic company-scoped files into `topics/company/<company-slug>/`. `integrate` remains whole-topic directory merge.
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- ingest 前确保 topic root 已存在（`topics/<topic>/index.md` 必须存在）。若缺失，先触发 `new-session` 创建 topic scaffold，再将文件放入 `topics/<topic>/_inbox/` 后执行 ingest。
+- ingest 前确保 topic root 已存在（`topics/<topic>/index.md` 必须存在）。若缺失，先触发 `new-session` 创建 topic root + `_inbox/`，再将文件放入 `topics/<topic>/_inbox/` 后执行 ingest。
 - 研究 skill 启动时，先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。

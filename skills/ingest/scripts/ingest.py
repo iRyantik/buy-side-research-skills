@@ -992,6 +992,8 @@ def route_converter(
 
 
 RAW_CATEGORIES = ("filings", "transcripts", "sellside", "industry", "irdecks", "datasets")
+TOPIC_NAMESPACES = ("company", "industry", "theme", "pair")
+TOPIC_OPERATION_DIRS = ("_raw", "_inbox", "_cache")
 
 CATEGORY_FILENAME_HINTS = {
     "filings": (r"\b(10[-_]?K|10[-_]?Q|8[-_]?K|20[-_]?F|40[-_]?F|annual.report|proxy|prospectus)\b",),
@@ -1026,18 +1028,31 @@ def discover_workspace(source: Path) -> Path:
     raise IngestError("Could not discover research workspace. Pass --workspace or run init first.")
 
 
+def normalize_topic_arg(topic: str | None) -> str | None:
+    if not topic:
+        return None
+    normalized = topic.replace("\\", "/").strip().strip("/")
+    if normalized.startswith("topics/"):
+        normalized = normalized[len("topics/") :]
+    return normalized or None
+
+
 def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> str:
-    if explicit_topic:
-        return explicit_topic
+    normalized_topic = normalize_topic_arg(explicit_topic)
+    if normalized_topic:
+        return normalized_topic
     try:
         rel = source.relative_to(workspace)
     except ValueError:
         return "unclassified"
     parts = rel.parts
+    if len(parts) >= 5 and parts[0] == "topics" and parts[1] in TOPIC_NAMESPACES and parts[3] in TOPIC_OPERATION_DIRS:
+        return f"{parts[1]}/{parts[2]}"
     if len(parts) >= 4 and parts[0] == "topics" and parts[2] in ("_raw", "_inbox", "_cache"):
         return parts[1]
     if len(parts) >= 3 and parts[0] == "_inbox" and parts[1] not in ("", "."):
-        return parts[1]
+        root_topic = "/".join(part for part in parts[1:-1] if part not in ("", "."))
+        return root_topic or "unclassified"
     if len(parts) >= 2 and parts[0] == "_inbox":
         return "unclassified"
     return "unclassified"
@@ -1087,6 +1102,8 @@ def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
         pass
     try:
         rel = source.resolve().relative_to(workspace.resolve())
+        if len(rel.parts) >= 5 and rel.parts[0] == "topics" and rel.parts[1] in TOPIC_NAMESPACES and rel.parts[3] == "_inbox":
+            return True
         if len(rel.parts) >= 3 and rel.parts[0] == "topics" and rel.parts[2] == "_inbox":
             return True
     except ValueError:
@@ -1204,8 +1221,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Ingest raw research materials into topics/<topic>/_cache/ markdown.")
     parser.add_argument("source_path", nargs="?", help="Source file or directory to ingest.")
     parser.add_argument("--workspace", help="Research workspace root. If omitted, discover from source path.")
-    parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/_cache.")
-    parser.add_argument("--topic", help="Topic slug for organizing raw/cache under topics/ (e.g. 'aerospace' or 'aerospace/ge-aerospace').")
+    parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/topics/<topic>/_cache.")
+    parser.add_argument("--topic", help="Namespaced topic for organizing raw/cache under topics/ (e.g. 'industry/space-launch' or 'company/rklb').")
     parser.add_argument("--category", help="Document category: filings, transcripts, sellside, industry, irdecks, datasets. Auto-inferred if omitted.")
     parser.add_argument("--bucket", help="Deprecated. Use --topic instead.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing cache files.")

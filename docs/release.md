@@ -39,6 +39,9 @@ skills/financial-data/assets/requirements-financial-data.txt
 skills/financial-data/scripts/financial_data.py
 skills/financial-data/scripts/bootstrap-financial-data-deps.ps1
 skills/financial-data/scripts/providers/*.py
+skills/promote-company/SKILL.md
+skills/promote-company/skill.yaml
+skills/promote-company/scripts/promote_company.py
 ```
 
 ## Validator Policy

@@ -1,209 +1,170 @@
-# 架构
+﻿# Architecture
 
-本仓库是 buy-side research 插件的源码目录，不是 research workspace。
+This repo is the plugin source. Runtime research work happens in a user-owned research workspace created by `init-workspace`.
 
-## 三棵树
+## Active Skill Layout
+
+Active skills remain flat:
 
 ```text
-buy-side-research-skills/          # 插件源码仓库
-release-package/                   # 生成的 zip 或市场分发包
-Research-AI-Power/                 # 用户 research workspace，由 init 创建
+skills/<skill-name>/SKILL.md
+skills/<skill-name>/skill.yaml
 ```
 
-## 源码仓库
+Do not move active skills into `skills/research/` or `skills/operations/`.
 
-仓库包含构建和验证插件所需的源文件：
-
-```text
-.claude-plugin/                    # Claude 插件清单
-.codex-plugin/                     # Codex 插件清单
-skills/                            # active 运行时 skills 和共享规则
-scripts/                           # 维护者 validator 和 release 构建脚本
-docs/                              # 用户和维护者文档
-examples/                          # 示例 workspace，非运行时依赖
-```
-
-skill 需要调用的运行时资源放在该 skill 目录内部，例如 `skills/ingest/scripts/`、`skills/financial-data/scripts/` 或 `skills/init-workspace/assets/`。root `scripts/` 仅用于源码仓库验证和 release 打包。
-
-## Skill 分类
-
-Active skills 平铺在 `skills/[skill-name]/SKILL.md` 下，不按 category 物理嵌套。
-
-顶层分类：
-
-- `research`：投研类 skill，必须携带 Global Rules Capsule 并设置 `research_layer`。
-- `operations`：workspace、缓存、路径或 skill governance 工具，使用更轻量的执行结构。
-
-Research 层级：
-
-| 层级 | Skills |
-|---|---|
-| `triage` | `information-impact`、`candidate-screener`、`industry-quickread`、`stock-quickread`、`next-step` |
-| `foundation` | `company-primer`、`consensus-map`、`mechanism-map`、`driver-map`、`cross-market-compare` |
-| `deep-work` | `peer-deep-dive`、`primary-research-plan`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` |
-| `memory` | `research-journal` |
-
-Operations skills：
+Operations skills:
 
 ```text
-init
+init-workspace
+new-session
 ingest
 financial-data
-meta-skill
-new-session
 integrate
+promote-company
+meta-skill
 ```
 
-`meta-skill` 是创建、重写、审查和验证插件 skills 的 active 指南。`industry-quickread` 是行业 / 主题 first-pass triage，用来判断 current regime、value capture、KPI/source map、anchor names 和下一步路由；不替代 `mechanism-map`，也不把 `driver-map` 泛化成行业 driver 拆解。`consensus-map` 是 expectations foundation，用来拆 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；不替代 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update` 或 `earnings-setup`。`primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；不执行访谈、不生成假反馈、不替代 compliance 流程。`new-session` 创建或定位 topic root，解析日期化保存路径，并轻量更新 topic `index.md`；不做研究，也不推荐下一研究步骤。
+`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: promote company-scoped files from an industry/theme workbench into `topics/company/<company-slug>/`.
 
-## Sub-Agent Evidence Protocol
+## Workspace Shape
 
-对已声明支持 Parallel Evidence Pass 的 research skill，research runtime 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只是 evidence collector。它们只能返回 evidence card，不能写最终结论、ranking、thesis、valuation 或 model treatment。主 agent 必须抽查 URL/claim、处理 source conflict，并完成最终 synthesis。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-v3.8.0 默认必须执行 `Parallel Evidence Pass` 的 skill 分四批：第一批 `peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`；第二批 `stock-quickread`、`industry-quickread`、`consensus-map`、`mechanism-map`、`information-impact`；第三批 `alpha-thesis`、`bear-pre-mortem`、`pair-trade`、`primary-research-plan`；第四批 `next-step`、`research-journal`。如果当前 host / runner 真的没有 sub-agent 能力，主 agent 必须在 artifact 或输出的 evidence protocol notes 中明确写出 `sub-agent unavailable`、原因、改用的单线程 evidence-card 流程，以及因此增加的 source coverage caveat；不得悄悄降级。
-
-## Model Sub-Agent Protocol
-
-`3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the research evidence-card-only list. Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
-
-Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision. Modeling skills must check `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness before using model inputs; missing or unmapped actuals must not be written as 0. Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-## Release 包
-
-Release 包实际只包含 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。不得包含 `docs/`、`examples/`、本地 agent 状态、私有机器配置、`.git/`、root `CLAUDE.md`、root `AGENTS.md` 或 root `scripts/`。
-
-插件本身没有运行时 CLAUDE / AGENTS 文件。源码仓库有 root `CLAUDE.md` + `AGENTS.md` 仅供维护使用；`init-workspace` 将 workspace `CLAUDE.md` + pointer 版 `AGENTS.md` 安装到用户 research workspace。
-
-## Research Workspace
-
-Research workspace 是用户拥有的文件夹，由 `init-workspace` skill 创建或修复，应包含 workspace `CLAUDE.md`、pointer 版 `AGENTS.md`、`_inbox/`、`_scripts/`、`edge-radar.md` 和 `topics/`。`_raw/`、`_cache/`、`_models/` 现在属于 `topics/<namespace>/<topic-slug>/` 内部，不再作为 workspace root 目录。原始材料由 `ingest` 转换为 topic `_cache/` markdown；结构化财务数据由 `financial-data` 写为 company canonical evidence pack。Workspace 不等于本插件源码仓库。
+`init-workspace` creates the workspace shell. `new-session` creates lightweight topic roots. `ingest`, `financial-data`, `driver-map`, and modeling skills create operational folders only when needed.
 
 ```text
-[research-workspace]/
-├── CLAUDE.md
-├── AGENTS.md
-├── _inbox/                          # 暂存区（支持 <topic>/ 子目录）
-├── _scripts/                        # 辅助脚本
-├── edge-radar.md                    # 跨主题雷达
-└── topics/
-    └── <namespace>/<topic-slug>/    # company / industry / theme / pair
-        ├── index.md
-        ├── _inbox/                  # topic 专属暂存
-        ├── _raw/                    # 原始源文件
-        │   ├── filings/
-        │   ├── transcripts/
-        │   ├── sellside/
-        │   ├── industry/
-        │   ├── irdecks/
-        │   └── datasets/
-        ├── _cache/                  # 转换后 markdown / financial-data / driver-map cache
-        │   ├── filings/
-        │   ├── transcripts/
-        │   ├── sellside/
-        │   ├── industry/
-        │   ├── irdecks/
-        │   ├── datasets/
-        │   ├── financial-data/
-        │   └── driver-map/
-        ├── _models/                 # 财务模型
-        ├── 2026-05-13-driver-map.md
-        ├── 2026-05-13-alpha-thesis.md
-        ├── 2026-06-02-earnings-setup.md
-        ├── 2026-06-02-model-update.md
-        └── 2026-09-10-bear-pre-mortem.md
+research-workspace/
+  CLAUDE.md
+  AGENTS.md
+  _inbox/
+  _scripts/
+  edge-radar.md
+  topics/
+    industry/<industry-slug>/
+      index.md
+      _inbox/
+      2026-05-18-industry-quickread.md
+      2026-05-18-peer-deep-dive.md
+      2026-05-18-rklb-stock-quickread.md
+      2026-05-18-rklb-driver-map.md
+
+    company/<company-slug>/
+      index.md
+      _inbox/
+      2026-05-18-stock-quickread.md
+      _raw/       # on demand by ingest
+      _cache/     # on demand by ingest / financial-data / driver-map
+      _models/    # on demand by modeling skills
 ```
 
-`init-workspace` 不会运行 `git init`、安装依赖、ingest 原始文件、拉取 financial-data 或创建 topic 研究产物。它会复制 ingest 和 financial-data 辅助脚本，让用户之后显式选择安装。`new-session` 创建 topic scaffold（含 `_inbox/`、`_raw/{filings,transcripts,sellside,industry,irdecks,datasets}/`、`_cache/`、`_models/`）并轻量更新 topic `index.md`。同一个 topic 是长期容器；research Markdown 结果直接在 topic root 用日期文件名保存。`ingest` 从 `topics/<topic>/_inbox/` 读取文件，转换后自动移至 `topics/<topic>/_raw/<category>/`，按文档类别组织，不创建 earned research memory。`financial-data` 稳定入口默认写入 `topics/company/<company-slug>/_cache/financial-data/`，theme / industry topic 只保存 snapshot 或 links。用户准备创建 topic 或确定产物保存路径时使用 `new-session`。
+Rules:
+- `new-session` creates only `index.md` and `_inbox/`.
+- `new-session` does not create `_raw/`, `_cache/`, or `_models/`.
+- `ingest` requires the topic root to exist and creates `_raw/<category>/` and `_cache/` on first conversion.
+- Industry and theme topics do not get `_models/` by default.
+- Company canonical topics are the durable home for company financial data, canonical driver maps, and model workbooks.
 
-Company topic 的 modeling input 收口为：
+## Research File Names
+
+Company canonical topic:
 
 ```text
-topics/company/<company-slug>/
-  _cache/
-    financial-data/
-      financial-data-summary.md
-      internal/
-        evidence-pack.json
-        actuals-resolved.json
-        full-filing.md
-    driver-map/
-      driver-map.md
-      internal/
-        driver-map.json
-  _models/
-    <ticker>-3statement-model.xlsx
-    <ticker>-3statement-dcf-model.xlsx
-    <ticker>-comps-analysis.xlsx
-    <ticker>-model-update.xlsx / <ticker>-update-map.md
+topics/company/rklb/2026-05-18-stock-quickread.md
+topics/company/rklb/2026-05-18-driver-map.md
 ```
 
-Non-company topic 不保存 company canonical financial-data，只保存 snapshot、links 或 aggregation。
-
-## Artifact 保存策略
-
-新研究 Markdown 产物应保存在 topic root，用日期和 artifact 名标记：
+Industry/theme topic research about the topic itself:
 
 ```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md
+topics/industry/space-launch/2026-05-18-industry-quickread.md
+topics/industry/space-launch/2026-05-18-peer-deep-dive.md
 ```
 
-同一 topic 可以在不同日期产生多份 research 结果。同日同 topic 同 artifact 已存在时，使用 `-2`、`-3` 等最低可用序号保留历史，例如 `2026-05-14-driver-map-2.md`。不要预创建全套 research skill 文件。
-
-若当前 topic root 或保存路径不明确，写 artifact 前先走 `new-session`。`new-session` 可创建 topic scaffold 并轻量更新 topic `index.md`，但不得写研究结论。
-
-仅以下情况例外：仅对话类 skill（`information-impact`、`next-step`）、earned-memory 写入（`research-journal`）、外部 workbook / update map（`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update`）。root 下的 `screens/`、`peers/`、`quickreads/`、`cross-market/` 为历史 / 示例目录，非 active 默认保存位置。
-
-材料缓存产物位于：
+Industry/theme workbench research about one company:
 
 ```text
-topics/<topic-namespace>/<topic-slug>/_cache/[source-filename].md
+topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
+topics/industry/space-launch/2026-05-18-rklb-driver-map.md
 ```
 
-缓存文件是 source-tracked 的中间材料，既不是原始来源也不是 research Markdown 输出。
-
-结构化财务数据缓存位于：
+Collision handling:
 
 ```text
-topics/company/<company-slug>/_cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/
+2026-05-18-rklb-driver-map.md
+2026-05-18-rklb-driver-map-2.md
+2026-05-18-rklb-driver-map-3.md
 ```
 
-必须包含 `manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json` 和 `source-map.json`。`3-statement-model / dcf-model / comps-analysis / model-update` 使用前必须检查 completeness 和 source map。
+## Company Promotion
 
-建模入口同时提供稳定短路径。外显层只放 Markdown summary，机器输入和审计索引进入 `internal/`：
+Use `promote-company` when a company first researched inside an industry/theme workbench deserves a canonical company topic.
+
+Default behavior:
+- create or locate `topics/company/<company-slug>/index.md` and `_inbox/`
+- move root Markdown matching `YYYY-MM-DD-<company-slug>-*.md`
+- remove the company prefix after moving
+- move clearly attributable `_inbox`, `_raw`, and `_cache` files
+- leave mixed peer/industry files in the source topic and backlink them
+- update both indexes with provenance
+
+Example:
+
+```text
+topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
+-> topics/company/rklb/2026-05-18-stock-quickread.md
+```
+
+Do not use `promote-company` for whole-topic directory merges; use `integrate`.
+
+## Cache And Modeling Inputs
+
+`ingest` cache:
+
+```text
+topics/<namespace>/<topic-slug>/_cache/<source-filename>.md
+```
+
+`financial-data` canonical company cache:
 
 ```text
 topics/company/<company-slug>/_cache/financial-data/
   financial-data-summary.md
   internal/
-    evidence-pack.json
     actuals-resolved.json
-    full-filing.md
-    completeness.json
+    evidence-pack.json
     source-map.json
+    completeness.json
 ```
 
-`financial-data-summary.md` 是人和 LLM 默认入口；`internal/actuals-resolved.json` 是 modeling skills 读取 historical actuals 的推荐机器入口；missing / unmapped 字段不得写成 0。`driver-map` 同样外显 `driver-map.md`，机器 JSON 放 `internal/driver-map.json`。
+`driver-map` canonical company cache:
 
-## Ingest 工具链
-
-PDF 双层路由：**PyMuPDF4LLM**（CPU 即可，10-50x 速度，适合文字为主文档）和 **docling**（258M VLM，MIT 许可证，适合表格密集型文档）。SEC filing 走 EdgarTools + docling。扫描件走 docling → PyMuPDF4LLM fallback，标注 Claude Vision review caveat。Excel 用 openpyxl 双加载。PPTX / DOCX 优先 docling，python-pptx / python-docx 为备选提取器。PDFPlumber 交叉检查 PDF 表格数值。旧格式 .xls 需用户先转为 .xlsx。
-
-按市场结构化财务数据不属于 `ingest`；使用 `financial-data`。V1 provider route 包括 SEC/EdgarTools、AKShare、EDINET、DART 和 openesef/ESEF，其中欧洲 ticker-only discovery 标 experimental，可靠路线是 filing URL 或 local ESEF package。
-
-已移除：Tesseract（OCR 由 Claude Vision 覆盖）、MarkItDown[all]（太重，无价值 extras）。
-
-依赖安装是显式的：
-
-```powershell
-_scripts/bootstrap-ingest-deps.ps1 -CheckOnly
-_scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
+```text
+topics/company/<company-slug>/_cache/driver-map/
+  driver-map.md
+  internal/
+    driver-map.json
 ```
 
-结构化财务数据依赖安装也是显式的：
+Model workbooks:
 
-```powershell
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+```text
+topics/company/<company-slug>/_models/
+  <ticker>-3statement-model.xlsx
+  <ticker>-3statement-dcf-model.xlsx
+  <ticker>-comps-analysis.xlsx
+  <ticker>-model-update.xlsx
 ```
 
-任何 skill 不得静默安装全局依赖。
+Modeling skills must not coerce missing or unmapped actuals to zero.
+
+## Release Package
+
+Release packages contain:
+
+```text
+.claude-plugin/
+.codex-plugin/
+skills/
+README.md
+```
+
+Release packages must not contain root `CLAUDE.md`, root `AGENTS.md`, root `scripts/`, `docs/`, `examples/`, `.git/`, or local machine state.

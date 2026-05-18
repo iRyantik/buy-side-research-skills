@@ -110,6 +110,9 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             "skills/meta-skill/skill.yaml",
             "skills/new-session/SKILL.md",
             "skills/new-session/skill.yaml",
+            "skills/promote-company/SKILL.md",
+            "skills/promote-company/skill.yaml",
+            "skills/promote-company/scripts/promote_company.py",
             "README.md"
         )) {
             Require-Entry $required
@@ -147,8 +150,8 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
             }
         }
 
-        if ($activeSkillNames.Count -ne 27) {
-            $failures.Add("Expected 27 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
+        if ($activeSkillNames.Count -ne 28) {
+            $failures.Add("Expected 28 active skills in release zip, found $($activeSkillNames.Count): $($activeSkillNames -join ', ')")
         }
 
         if (-not $activeSkillNames.Contains("company-primer")) {
@@ -179,6 +182,10 @@ if (-not (Test-Path -LiteralPath $ZipPath)) {
 
         if (-not $activeSkillNames.Contains("new-session")) {
             $failures.Add("Release zip is missing active skill: new-session")
+        }
+
+        if (-not $activeSkillNames.Contains("promote-company")) {
+            $failures.Add("Release zip is missing active skill: promote-company")
         }
 
         $claudeManifestText = Get-ZipEntryText ".claude-plugin/plugin.json"

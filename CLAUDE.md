@@ -1,4 +1,4 @@
-# CLAUDE.md - Buy-Side Research Project Configuration
+﻿# CLAUDE.md - Buy-Side Research Project Configuration
 
 > 本文件是这个工作目录的唯一 project constitution / source of truth。任何 skill、README 或局部说明与本文冲突时，以本文为准。
 
@@ -147,8 +147,9 @@ Operations skills：
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `topics/<topic>/_cache/` markdown |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
-| `new-session` | 创建 topic root + 完整 scaffold，解析日期化 artifact 保存路径 |
+| `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
+| `promote-company` | Move company-scoped workbench files into canonical company topic | company promotion + provenance |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
 
 `industry-quickread` 是 industry triage skill。涉及陌生行业、主题、value chain、需求口袋、利润池或行业周期 first-pass 时，先用 `industry-quickread` 判断 current regime、value capture、KPI/source map、anchor names 和下一步研究路由。
@@ -170,8 +171,9 @@ Operations skills：
 | `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
 | `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
 | `financial-data` | 拉结构化财报 / 按 ticker 拉三表 / openesef / DART / EDINET / AKShare | source-tracked financial evidence pack |
-| `new-session` | 新建 topic root / 解析日期化 artifact 保存路径 / 轻量更新 index | topic scaffold + dated result paths |
+| `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
 | `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
+| `promote-company` | Move company-scoped workbench files into canonical company topic | company promotion + provenance |
 | `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
@@ -198,6 +200,9 @@ Operations skills：
 ---
 
 ## 7. 文件组织
+### Current Workspace Rule
+
+`new-session` creates only `index.md` and `_inbox/` for a topic. It does not create `_raw/`, `_cache/`, or `_models/`. `ingest` creates `_raw/<category>/` and `_cache/` on first conversion. Industry/theme topics can temporarily hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`; use `promote-company` to move deterministic company-scoped files into `topics/company/<company-slug>/`. `integrate` remains the legacy whole-topic directory merge skill. Industry topics do not get `_models/` by default.
 
 本 repo 是 plugin development project，不兼作日常研究 workspace。研究产物示例放在 `examples/`；真正的用户 research workspace 由 `init-workspace` skill 创建或补齐。
 
@@ -230,21 +235,21 @@ Future research workspace：
     └── <namespace>/<topic-slug>/    # company / industry / theme / pair
         ├── index.md                 # topic 地图
         ├── _inbox/                  # 该 topic 待处理文件
-        ├── _raw/                    # 原始文件（按文档类别）
+        ├── _raw/                    # ingest 按需创建；原始文件（按文档类别）
         │   ├── filings/
         │   ├── transcripts/
         │   ├── sellside/
         │   ├── industry/
         │   ├── irdecks/
         │   └── datasets/
-        ├── _cache/                  # ingest 转换 markdown（与 _raw/ 分类对齐）；financial-data evidence packs
+        ├── _cache/                  # ingest / financial-data / driver-map 按需创建
         │   ├── filings/
         │   ├── transcripts/
         │   ├── sellside/
         │   ├── industry/
         │   ├── irdecks/
         │   └── datasets/
-        ├── _models/                 # 财务模型
+        ├── _models/                 # 建模时按需创建；默认 company topic
         ├── <YYYY-MM-DD>-<artifact>.md # research Markdown result
         ├── <YYYY-MM-DD>-<artifact>-2.md # 同日同类结果冲突时保留历史
         └── <sub-topic>/             # integrate 合并的子 topic

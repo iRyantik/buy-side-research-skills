@@ -1,8 +1,42 @@
-# Buy-Side Research Skills —— 零基础完全上手指南
+﻿# Buy-Side Research Skills —— 零基础完全上手指南
 
 > 当前版本：`3.8.0`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+
+---
+
+## Current Workspace Rules
+
+This section is the canonical v3.8 workspace rule.
+
+```text
+research-workspace/
+  _inbox/                 # global staging only
+  _scripts/
+  edge-radar.md
+  topics/
+    industry/<slug>/
+      index.md
+      _inbox/             # created by new-session
+      2026-05-18-industry-quickread.md
+      2026-05-18-rklb-stock-quickread.md
+
+    company/<slug>/
+      index.md
+      _inbox/             # created by new-session or promote-company
+      2026-05-18-stock-quickread.md
+      _cache/             # created on demand by financial-data / driver-map / ingest
+      _raw/               # created on demand by ingest
+      _models/            # created on demand by modeling skills
+```
+
+- `new-session` creates only `index.md` and `_inbox/`.
+- `ingest` creates `_raw/` and `_cache/` on first conversion.
+- Industry/theme topics can temporarily hold company research as `YYYY-MM-DD-<company-slug>-<artifact>.md`.
+- Use `promote-company` to move company-scoped files into `topics/company/<company-slug>/`.
+- `integrate` is unchanged and remains the legacy whole-topic directory merge skill.
+- Industry topics do not get `_models/` by default; model folders are created only when explicitly needed.
 
 ---
 
@@ -253,7 +287,7 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 
 **你跟 Claude 说**：*"帮我新建一个 IONQ 的研究 session"* 或 *"帮我新建一个核电行业的研究 session"*
 
-**会发生什么**：在 `topics/` 下创建对应的 topic 文件夹，里面包含所有子目录（`_inbox/`、`_raw/`、`_cache/`、`_models/`），并轻量更新 topic 的 `index.md`。
+**会发生什么**：在 `topics/` 下创建或定位对应的 topic 文件夹，只确保 `index.md` 和 `_inbox/`；`_raw/`、`_cache/`、`_models/` 由后续 skill 按需创建。
 
 **不会发生什么**：不会写任何研究结论。它只建骨架，不做研究。
 
@@ -298,6 +332,16 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 **什么时候用**：你把一个主题拆成几个子主题分别研究，现在想合并。
 
 **你跟 Claude 说**：*"帮我把某某子 topic 合并到某某父 topic 下面"*
+
+---
+
+#### `promote-company` —— 把行业里的公司研究沉淀到 company 目录
+
+**什么时候用**：你先在行业 / 主题 topic 里研究了一家公司，现在决定把它作为长期跟踪对象。
+
+**你跟 Claude 说**：*"把 space-launch topic 里的 RKLB 研究 promote 到 company/rklb"*
+
+**会发生什么**：把 `2026-05-18-rklb-*.md` 这类确定属于公司的文件移动到 `topics/company/rklb/`，文件名去掉 `rklb-` 前缀；行业级 peer / industry 文件留在原 topic，并在 company index 里 backlink。
 
 ---
 
@@ -522,7 +566,7 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
 
 ## 7. 文件放在哪里？Workspace 结构详解
 
-研究 workspace 是你电脑上的一个普通文件夹。下面是完整的内部结构：
+研究 workspace 是你电脑上的一个普通文件夹。下面是目标结构；`_raw/`、`_cache/`、`_models/` 都是按需出现，不是 `new-session` 默认创建。
 
 ```
 我的研究/                                 ← 你的 workspace 根目录
@@ -542,20 +586,20 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
     │   └── rocket-lab/                   ← Rocket Lab 这个 topic
     │       ├── index.md                  ← topic 地图（自动维护）
     │       ├── _inbox/                   ← RKLB 专属待处理文件
-    │       ├── _raw/                     ← 原始文件存档
+    │       ├── _raw/                     ← ingest 后才出现；原始文件存档
     │       │   ├── filings/              ←   SEC filings / 年报
     │       │   ├── transcripts/          ←   earnings call 记录
     │       │   ├── sellside/             ←   卖方报告
     │       │   ├── industry/             ←   行业报告
     │       │   ├── irdecks/              ←   公司 IR 演示文稿
     │       │   └── datasets/             ←   数据集
-    │       ├── _cache/                   ← 转换后的可读文件和缓存
+    │       ├── _cache/                   ← ingest / financial-data / driver-map 后才出现
     │       │   ├── filings/              ←   filing 转的 markdown
     │       │   ├── financial-data/       ←   结构化财务数据
     │       │   │   ├── financial-data-summary.md   ← 你读这个
     │       │   │   └── internal/                   ← 机器读的 JSON（你不用管）
     │       │   └── driver-map/           ←   driver 拆解缓存
-    │       ├── _models/                  ← 财务模型 Excel 文件
+    │       ├── _models/                  ← 建模后才出现；通常只在 company topic
     │       │   ├── rklb-3statement-model.xlsx
     │       │   └── rklb-dcf-model.xlsx
     │       ├── 2026-05-13-stock-quickread.md    ← 研究产物（日期+技能名）
@@ -565,27 +609,39 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
     │
     ├── industry/                         ← 行业研究
     │   └── nuclear-power/
-    │       └── ...（结构同上）
+    │       ├── index.md
+    │       ├── _inbox/
+    │       ├── 2026-05-18-industry-quickread.md
+    │       ├── 2026-05-18-peer-deep-dive.md
+    │       └── 2026-05-18-rklb-stock-quickread.md
+    │       # 行业 topic 默认不建 _models/
     │
     ├── theme/                            ← 主题研究
     │   └── ai-data-center-power/
-    │       └── ...（结构同上）
+    │       ├── index.md
+    │       ├── _inbox/
+    │       └── 2026-05-18-industry-quickread.md
     │
     └── pair/                             ← Pair trade 研究
         └── vrt-long-smci-short/
-            └── ...（结构同上）
+            ├── index.md
+            ├── _inbox/
+            └── 2026-05-18-pair-trade.md
 ```
 
 ### 几个重要的规则
 
 1. **日期文件名**：研究产物直接放在 topic 根目录下，文件名格式为 `YYYY-MM-DD-<skill名>.md`。如果同一天同一 skill 产生了多个版本，后面的自动加 `-2`、`-3`。
    - 示例：`2026-05-14-driver-map.md`、`2026-05-14-driver-map-2.md`
+   - 行业 / 主题 topic 里的单公司研究用 `YYYY-MM-DD-<company-slug>-<skill名>.md`，例如 `2026-05-18-rklb-stock-quickread.md`。
 
-2. **缓存 vs 产物**：`_cache/` 下面的文件是"中间材料"（原始文件转的 markdown、拉取的财务数据），不是研究结论。研究结论是以日期文件名放在 topic 根目录的 markdown 文件。
+2. **公司沉淀**：行业 / 主题里跑出来的公司研究，确认有长期价值后用 `promote-company` 沉淀到 `topics/company/<company-slug>/`；文件名会去掉公司前缀，例如 `2026-05-18-rklb-stock-quickread.md` 变成 `2026-05-18-stock-quickread.md`。
 
-3. **internal vs 外显**：`internal/` 下的 JSON 是给建模 skill 读的机器文件，你不需要手动打开。人类阅读入口是 `financial-data-summary.md` 和 `driver-map.md`。
+3. **缓存 vs 产物**：`_cache/` 下面的文件是"中间材料"（原始文件转的 markdown、拉取的财务数据），不是研究结论。研究结论是以日期文件名放在 topic 根目录的 markdown 文件。
 
-4. **一个 topic 是长期容器**：你不会因为"这轮研究做完了"就删除 topic 文件夹。下次有新发现、新财报，继续往里加日期文件即可。
+4. **internal vs 外显**：`internal/` 下的 JSON 是给建模 skill 读的机器文件，你不需要手动打开。人类阅读入口是 `financial-data-summary.md` 和 `driver-map.md`。
+
+5. **一个 topic 是长期容器**：你不会因为"这轮研究做完了"就删除 topic 文件夹。下次有新发现、新财报，继续往里加日期文件即可。
 
 ---
 

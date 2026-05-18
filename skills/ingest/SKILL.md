@@ -1,108 +1,97 @@
 ---
 name: ingest
-description: Use when converting raw research materials such as PDF, XLSX, PPTX, DOCX, TXT, CSV, or markdown files into workspace _cache markdown before analysis.
+description: Use when converting raw research materials such as PDF, XLSX, PPTX, DOCX, TXT, CSV, or markdown files into source-tracked topic _cache markdown before analysis.
 ---
 
 # Ingest
 
-`ingest` 把 research workspace 里的 raw material 转成 `topics/<topic>/_cache/` 下的 LLM-friendly markdown，并写清 source path、hash、modified time、converter、converted time、document type、route 和 precision caveat。
-
-它是 operations skill，不是研究 skill。它不生成投资结论，不把 `_cache/` 当 original source，不写 `research-journal`，不静默安装依赖。转换失败时必须 fail honestly，不写假 cache。
+`ingest` converts local raw materials into LLM-friendly, source-tracked Markdown under a topic `_cache/`. It records source path, hash, modified time, converter, converted time, document type, route, and precision caveats. It is an operations skill, not a research skill.
 
 ## 心法
 
-`ingest` 的核心 invariant 是材料可读性和可追溯性。很多幻觉不是发生在 thesis 阶段，而是发生在最前面：PDF 表格错读、Excel 公式和值混在一起、PPT notes 丢失、扫描件被当成文本层。
+The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-能安全转换就转换；不能安全转换就失败并说明缺什么。`_cache/` 永远只是 operational cache，关键数字、引语和页码仍然必须回查原始 source。
+`new-session` prepares the topic root and `_inbox/`. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
 
 ## 职责边界
 
 负责：
-- 检测 TXT / Markdown / CSV / PDF / DOCX / PPTX / XLSX / XLSM / XLS 格式。
-- 调用 `ingest.py`、`ingest_xlsx.py`、`ingest_table_crosscheck.py`。
-- 写入 `topics/<topic>/_cache/[source-filename].md`。
-- 输出 converted / skipped / failed summary。
-- 报告 dependency gap 和 precision caveat。
-- **ingest 成功后自动将源文件从 `_inbox/` 移至 `topics/<topic>/_raw/<ext>/`。**
+- Convert TXT, Markdown, CSV, PDF, DOCX, PPTX, XLSX, XLSM, and supported workbook-style files.
+- Write source-tracked Markdown to `topics/<namespace>/<topic-slug>/_cache/[source-filename].md`.
+- Create `_raw/<category>/` and `_cache/` on first conversion.
+- Move successfully converted source files from topic `_inbox/` to `_raw/<category>/`.
+- Report converted / skipped / failed summary.
+- Fail honestly on dependency or conversion gaps.
 
 不负责：
-- 不移动、删除、重命名已在 `topics/<topic>/_raw/` 下的源文件。
-- 不验证 claim 是否真实；claim check 交给 `information-impact`。
-- 不解释公司业务；公司基础交给 `company-primer`。
-- 不拆 driver；driver gap 交给 `driver-map`。
-- 不沉淀 earned insight；memory 交给 `research-journal`。
-- 不自动安装 Docling、PyMuPDF4LLM、EdgarTools 或 Python packages。
-- 不按 ticker 拉取结构化财报；结构化财务数据拉取交给 `financial-data`。
+- Do not create topic roots or `index.md`; use `new-session`.
+- Do not move files already under `_raw/`.
+- Do not write investment conclusions or earned insight.
+- Do not treat `_cache/` as original source.
+- Do not fetch structured financial data by ticker; use `financial-data`.
+- Do not silently install dependencies.
 
 ## 触发与输入
 
-触发语：
-- “ingest this”
-- “消化这个文件”
-- “转成 markdown”
-- “处理 `_inbox/`”
-- “把 PDF / XLSX / PPTX / DOCX 放进 `_cache/`”
+Trigger phrases:
+- "ingest this"
+- "convert this PDF to markdown"
+- "process this _inbox file"
+- "把 PDF / Excel / PPT 转成 cache"
 
-### Pre-condition
+Pre-condition:
+- `topics/<namespace>/<topic-slug>/index.md` must already exist.
+- Topic `_inbox/` normally comes from `new-session`.
 
-**ingest 前 topic 必须已存在。** 若 `topics/<topic>/index.md` 不存在 → block，提示先运行 `new-session` 创建 topic scaffold。例外：workspace root `_inbox/` 的未分类文件不 block（topic = `unclassified`）。
+Inputs:
 
-输入确认：
-- `source_path`：文件或目录路径。**优先使用 `topics/<topic>/_inbox/`**（将文件放入对应 topic 的 inbox）；workspace root `_inbox/` 仅用于未分类文件。
-- `workspace`：默认从 source path 向上寻找含 `topics/` 且含 `_inbox/` 的 workspace；找不到时要求 `--workspace`。
-- `topic`：Topic slug，用于组织 `topics/<topic>/_raw/` 和 `topics/<topic>/_cache/`（如 `aerospace`）。从 `topics/<topic>/_inbox/` 路径自动推断，或用 `--topic` 显式传入。
-- `category`：文档类别（`filings`、`transcripts`、`sellside`、`industry`、`irdecks`、`datasets`）。默认自动推断（文件名 + 内容检测），也可显式传入 `--category`。
-- `force`：默认已有 cache 且 hash 一致就 skip；只有用户要求重跑才 overwrite。
-
-### Topic 分类
-
-1. 用户显式传入 `--topic` → 直接使用。
-2. `source_path` 在 `topics/<topic>/_inbox/` 下 → 自动推断 topic slug。
-3. 当前有活跃 topic root → 自动推断。
-4. 以上都不可用 → 使用 `"unclassified"` 作为 fallback。
-
-### 文档类别推断
-
-| 优先级 | 逻辑 |
+| Input | Purpose |
 |---|---|
-| 1 | 用户显式传 `--category filings` |
-| 2 | 文件名含 `10-K/10-Q/20-F/8-K/annual` → `filings` |
-| 3 | 文件名含 `transcript/call/earnings` → `transcripts` |
-| 4 | 文件名含 `deck/presentation/investor` → `irdecks` |
-| 5 | 文件名含 `initiation/rating/target` → `sellside` |
-| 6 | 文件名含 `industry/market report/outlook` → `industry` |
-| 7 | 扩展名 `.xlsx/.xls/.csv` → `datasets` |
-| 8 | SEC filing header 检测 → `filings` |
-| 9 | fallback → `unclassified` |
+| `source_path` | file or directory to ingest |
+| `workspace` | research workspace root |
+| `topic` | namespaced topic such as `industry/space-launch` or `company/rklb` |
+| `category` | `filings`, `transcripts`, `sellside`, `industry`, `irdecks`, `datasets`, or `unclassified` |
+| `force` | overwrite stale cache when explicitly requested |
+| `recursive` | recurse through a directory only when explicitly requested |
+
+Topic inference:
+- explicit `--topic industry/space-launch` wins.
+- source under `topics/industry/space-launch/_inbox/` resolves to `industry/space-launch`.
+- source under `topics/company/rklb/_raw/filings/` resolves to `company/rklb`.
+- root `_inbox/<topic>/` remains supported for unclassified staging.
+- if no topic can be inferred, fail or require explicit `--topic`; do not silently create a new topic.
 
 ## 执行模式
 
 ### Dependency Check
-
-运行：
 
 ```powershell
 python _scripts/ingest.py --check-deps
 _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 ```
 
-用户显式确认后才运行 `_scripts/bootstrap-ingest-deps.ps1 -Yes`。
+Only install dependencies after explicit user confirmation.
 
 ### Single File Ingest
 
-单文件转换。PDF 文字为主用 PyMuPDF4LLM，表格密集用 docling；SEC filing 检查 EdgarTools / EDGAR_IDENTITY readiness；扫描 PDF 尝试 docling → PyMuPDF4LLM fallback，标注 Claude Vision review caveat；XLSX / XLSM 用 openpyxl；legacy `.xls` 需先转为 `.xlsx`。
+1. Verify workspace and topic root exist.
+2. Detect document format and category.
+3. Convert to Markdown using the best available route.
+4. Create `_cache/` and `_raw/<category>/` as needed.
+5. Write cache Markdown.
+6. If the source was inside topic `_inbox/`, move it to `_raw/<category>/`.
 
 ### Directory Ingest
 
-处理 `_inbox/` 或 `topics/<topic>/_raw/` 目录。单个文件失败不阻塞其他文件，但最后必须列出 failed files。
+Process supported files in the directory. A single file failure should not block other files, but the final result must list failures.
 
-### Cache Reuse Check
+### Cache Reuse
 
-检查 cache 是否存在，并用 source hash 判断是否可复用。hash 不一致时提示 `--force` 重跑。
+If cache exists and source hash matches, skip unless `--force` is set. If cache exists but source differs, use a collision-safe filename rather than overwriting by default.
 
 ## 工具资源
 
-本 skill 使用：
+Runtime scripts:
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
@@ -111,71 +100,19 @@ _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 - `skills/ingest/scripts/bootstrap-ingest-deps.sh`
 - `skills/ingest/assets/requirements-ingest.txt`
 
-核心依赖：Docling、PyMuPDF4LLM、EdgarTools、openpyxl、python-pptx、python-docx、PDFPlumber、pypdf、Pillow。按 ticker / filing package 拉取结构化财报交给 `financial-data`。一键安装：
-
-```powershell
-# Windows
-_scripts/bootstrap-ingest-deps.ps1 -Yes
-_scripts/bootstrap-ingest-deps.ps1 -CheckOnly   # 仅检查
-
-# macOS
-chmod +x _scripts/bootstrap-ingest-deps.sh
-./_scripts/bootstrap-ingest-deps.sh --yes
-
-# 中国用户（使用镜像）
-_scripts/bootstrap-ingest-deps.ps1 -Yes -China
-./_scripts/bootstrap-ingest-deps.sh --yes --china
-```
-
-### PDF 双层路由
-
-| 文档特征 | 工具 | 说明 |
-|---|---|---|
-| 文字为主（transcripts、IR deck 文本页） | **PyMuPDF4LLM** | CPU 即可，10-50x 速度优势 |
-| 表格密集（10-K、招股书、含并格表格） | **docling** | 258M VLM，MIT 许可证 |
-| SEC filing | **docling + EdgarTools** | EdgarTools XBRL 就绪后走 docling narrative |
-| 扫描件（OCR required） | **docling → PyMuPDF4LLM fallback** | 标注 precision caveat，关键文件建议 Claude Vision review |
-
-### 结构化财务数据边界
-
-`ingest` 只转换用户已经放入 workspace 的本地 raw material。按 `market + identifier` 拉取三表、segment revenue、ESEF/iXBRL 或 DART/EDINET/AKShare 数据时，用 `financial-data`；不要把 provider 拉数逻辑塞回 ingest。
-
-### 图片提取（Vision Pipeline）
-
-默认**零 API 调用**：从 PDF/DOCX/PPTX/XLSX 提取图片 → 去重（SHA256）→ 过滤（<100x100 跳过）→ 写入 `_cache/<category>/_figures/img_NNN.png` → cache markdown 用 `![Figure N](_figures/img_NNN.png)` 嵌入。研究 skill 读取 cache 时，Claude 多模态自动看图。
-
-**可选外部视觉模型**（主模型不支持多模态时）：
-
-```bash
-# 环境变量
-VISION_ENDPOINT=https://your-api.com/v1/chat/completions
-VISION_API_KEY=sk-xxx
-VISION_MODEL_NAME=gpt-4o
-VISION_MAX_TOKENS=1024
-VISION_MAX_IMAGES_PER_DOC=20
-
-# CLI args（覆盖环境变量）
---vision-endpoint --vision-api-key --vision-model --describe-images
-```
-
-| 图片源 | 提取方法 |
-|---|---|
-| PDF | PyMuPDF (fitz) 逐页提取嵌入图片 |
-| DOCX | python-docx 提取 document part 图片 |
-| PPTX | python-pptx 提取 slide shape 图片 |
-| XLSX | openpyxl 提取 worksheet 内嵌图片 |
+Core routes include Docling, PyMuPDF4LLM, EdgarTools readiness checks, openpyxl, python-pptx, python-docx, PDFPlumber, pypdf, and Pillow.
 
 ## 文件安全
 
-- 不删除、不重命名 `topics/<topic>/_raw/` 内已有源文件。
-- ingest 成功后将 `_inbox/` 内的源文件自动移至 `topics/<topic>/_raw/<ext>/`。
-- 不写空 cache 或假 cache。
-- 不把 `_cache/` 写成 research Markdown 输出。
-- 不把 `_cache/` 当 original source。
-- 默认不 recursive；用户明确要求时才递归。
-- 缺 Docling、PyMuPDF4LLM、EdgarTools、openpyxl 等 parser dependency 时，必须报告 dependency gap。
+- Never delete source files.
+- Never move files already under `_raw/`.
+- Move only files from `_inbox/` after successful conversion.
+- Never write empty or fake cache.
+- Never write research Markdown artifacts into topic root.
+- Default is non-recursive.
+- Missing parser dependencies must be reported, not hidden.
 
-每个 cache header 必须包含：
+Cache header must include:
 - `source_path`
 - `source_sha256`
 - `source_modified_utc`
@@ -192,17 +129,21 @@ VISION_MAX_IMAGES_PER_DOC=20
 ## Ingest Result
 
 **结论先行**
-[converted / skipped / failed 的一句话结论]
+[converted / skipped / failed summary]
 
 | Source | Cache | Status | Converter | Precision |
 |---|---|---|---|---|
 | [...] | [...] | [...] | [...] | [...] |
 
+## Topic
+- topic: [...]
+- cache: `topics/<namespace>/<topic-slug>/_cache/`
+- raw: `topics/<namespace>/<topic-slug>/_raw/<category>/`
+
 ## Route / Dependency
 - document_type: [...]
 - route: [...]
 - precision_level: [...]
-- page_count / table_count: [...]
 - dependency_status: [...]
 
 ## Caveats
@@ -211,42 +152,36 @@ VISION_MAX_IMAGES_PER_DOC=20
 
 ## 失败处理
 
-- 缺 dependency：输出缺什么、如何 `-CheckOnly` / `-Yes`，不写 cache。
-- source path 不存在：直接 failed。
-- workspace 无法发现：要求传 `--workspace` 或先运行 `init-workspace`。
-- 扫描 PDF 缺 docling 和 pymupdf4llm：failed，标注建议 Claude Vision review。
-- SEC filing 缺 `EDGAR_IDENTITY`：标记 SEC route 不完整；不要声称 XBRL route 已完成。
-- Docling 和 PyMuPDF4LLM 均失败且无 pypdf fallback：failed，不写假 markdown。
+- Missing topic root: block and ask user to run `new-session`.
+- Source path missing: failed, no cache written.
+- Workspace cannot be discovered: ask for `--workspace`.
+- Dependency missing: report exact package and bootstrap command.
+- Converter failure: failed, no fake Markdown.
+- Topic cannot be inferred: require explicit `--topic`.
 
 ## Workflow 联动
 
-| 场景 | 处理 |
+| Scenario | Handling |
 |---|---|
-| workspace 还没有 `topics/` | 先用 `init-workspace` |
-| dependency 缺失 | `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后 `-Yes` |
-| cache 生成后要判断 claim 可信度 | `information-impact` |
-| cache 是 annual report / 10-K / 20-F | `company-primer` 或 `driver-map` |
-| cache 是 industry report / technical paper | `mechanism-map` |
-| 需要按 ticker / filing package 拉取结构化财报 | `financial-data` |
-| cache 是 financial model workbook | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 研究已经想清楚 | `research-journal` |
-| 研究 skill 需要发现已 ingest 材料 | 检查 `topics/<topic-slug>/_cache/` |
+| Workspace has no `topics/` | Use `init-workspace` |
+| Topic root is missing | Use `new-session` |
+| User has files in topic `_inbox/` | Use `ingest` |
+| Cache is annual report / 10-K / 20-F | Feed `company-primer` or `driver-map` |
+| Cache is industry report / technical paper | Feed `industry-quickread` or `mechanism-map` |
+| Need structured financial statements by ticker | Use `financial-data` |
+| Need company promotion from industry workbench | Use `promote-company` after research files exist |
 
-Artifact policy：
+Artifact policy:
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `[source-filename].md`
-- `canonical_location`: `topics/[topic]/_cache/[source-filename].md`
+- `canonical_location`: `topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md`
 
 ## 安全自查
 
-- ❌ 缺 dependency 还说转换完成。
-- ❌ 自动静默安装依赖。
-- ❌ 把 cache markdown 当原始 source。
-- ❌ 在 ingest 阶段总结投资结论。
-- ❌ 移动、删除、改名 `topics/<topic>/_raw/` 下已有文件。
-- ❌ 默认递归整个 workspace。
-- ❌ 把 `_cache/` 内容写进 `research-journal`。
-- ❌ PDF / Excel 数字不写 precision caveat。
-- ❌ 扫描 PDF 缺 converter 还写假 cache。
-- ❌ SEC filing 缺 `EDGAR_IDENTITY` 还声称 XBRL route 完整。
-- ❌ 不传 `--topic` 且无法推断时静默使用 `unclassified`，应提示用户确认。
+- ❌ Created a topic root or `index.md`.
+- ❌ Moved a source file before conversion succeeded.
+- ❌ Moved files already under `_raw/`.
+- ❌ Treated `_cache/` as original source.
+- ❌ Wrote investment conclusions.
+- ❌ Silently installed dependencies.
+- ❌ Ran recursive ingest without explicit request.

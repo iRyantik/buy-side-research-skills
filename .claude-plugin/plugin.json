@@ -110,6 +110,10 @@
     "new-session",
     "topic-root",
     "save-path",
-    "index-touch"
+    "index-touch",
+    "promote-company",
+    "company-promotion",
+    "industry-workbench",
+    "company-canonical"
   ]
 }
