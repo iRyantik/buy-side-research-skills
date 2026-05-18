@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "buy-side-research-skills",
   "version": "3.9.0",
   "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: research skills plus operations skills for workspace init, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
@@ -115,5 +115,24 @@
     "company-promotion",
     "industry-workbench",
     "company-canonical"
-  ]
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Buy-Side Research Skills",
+    "shortDescription": "Run buy-side equity research workflows.",
+    "longDescription": "Buy-Side Research Skills provides research workflows, financial-data ingestion, document ingest, topic organization, and modeling handoffs for source-tracked equity research workspaces.",
+    "developerName": "buy-side-research-system",
+    "category": "Research",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Transform"
+    ],
+    "websiteURL": "https://github.com/iRyantik/buy-side-research-skills",
+    "defaultPrompt": [
+      "Initialize a buy-side research workspace.",
+      "Run a stock quickread on this company.",
+      "Fetch source-tracked financial data before modeling."
+    ]
+  }
 }
