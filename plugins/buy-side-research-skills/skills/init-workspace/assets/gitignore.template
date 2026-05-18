@@ -4,6 +4,10 @@ topics/*/_inbox/
 topics/*/_raw/
 topics/*/_cache/
 topics/*/_models/
+topics/*/*/_inbox/
+topics/*/*/_raw/
+topics/*/*/_cache/
+topics/*/*/_models/
 
 .claude/
 RTK.md

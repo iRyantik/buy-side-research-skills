@@ -3,66 +3,81 @@ name: init-workspace
 description: Use when setting up or repairing a buy-side research workspace folder before research begins, especially when the user asks to initialize, scaffold, bootstrap, or create the standard workspace layout.
 ---
 
-# Init
+# Init Workspace
 
-`init-workspace` 把一个普通文件夹变成可用的 buy-side research workspace。它创建或修复目录 scaffold，写入 workspace `CLAUDE.md`、`.gitignore` 和 `edge-radar.md`，并复制 ingest / financial-data helper scripts，帮助用户在正确位置开始研究。
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, and copies ingest / financial-data helper scripts into `_scripts/`.
 
-它是 operations skill，不是研究 skill。它不研究公司、不 ingest 文件、不安装依赖、不运行 `git init`、不创建 topic artifact，也不应该把 workspace scaffold 写进当前 plugin repo。
+It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
 
-## 心法
+## Mental Model
 
-`init-workspace` 的核心 invariant 是防止 workspace 污染：plugin dev repo、raw material、cache、models 和可沉淀的 research memory 必须分开。一个干净 workspace 比一份更长说明文档更有用。
+The invariant is separation of concerns:
 
-默认行为必须保守、幂等、可重复运行。已有核心文件不覆盖，缺什么补什么；复制 helper scripts 可以，但执行 ingest 或安装依赖不可以。
+- `init-workspace` creates the root workspace shell.
+- `new-session` creates or locates a topic root with `index.md` and `_inbox/`.
+- `ingest` creates `_raw/<category>/` and `_cache/` only when material is converted.
+- `financial-data`, `driver-map`, and modeling skills create their own cache/model folders when they run.
 
-## 职责边界
+The default behavior must be conservative, idempotent, and repeatable. Existing core files are skipped, not overwritten.
 
-负责：
-- 创建 `_inbox/`、`_scripts/`、`topics/` scaffold。
-- 写入缺失的 workspace `CLAUDE.md`、`.gitignore`、`edge-radar.md`。
-- 复制 `init-research-workspace.ps1`、init assets（含 `env-setup.ps1.template`）、ingest scripts、`bootstrap-ingest-deps.ps1` 和 `requirements-ingest.txt` 到 `_scripts/`。
-- 复制 `financial-data` helper scripts、providers、`bootstrap-financial-data-deps.ps1` 和 `requirements-financial-data.txt` 到 `_scripts/financial-data/`。
+## Responsibilities
 
-不负责：
-- 不 ingest PDF / Excel / PPTX / DOCX。
-- 不安装 Docling、EdgarTools、Tesseract、MarkItDown 或 Python packages。
-- 不创建 dated topic research artifact、`research-journal.md` 或 `boss-brief.md`。
-- 不运行 `git init`。
-- 不在 plugin dev repo 或 plugin install directory 内初始化 workspace。
+Responsible for:
 
-## 触发与输入
+- Creating root `_inbox/`, `_scripts/`, and `topics/`.
+- Writing missing root `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`.
+- Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
+- Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
 
-触发语：
-- “init research workspace”
-- “初始化研究工作区”
-- “创建研究文件夹”
-- “setup research”
-- “bootstrap workspace”
-- “补齐 research workspace”
+Not responsible for:
 
-必须确认：
-- `WorkspacePath`：用户明确给出的 research workspace 路径。
-- 目标路径不是当前 plugin repo、`.claude/plugins/...` install directory，且不包含 `.claude-plugin/`、`.codex-plugin/`、`skills/` 这类 plugin repo 标志。
-- 已有 `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md` 时只 skip，不覆盖。
+- Ingesting PDF / Excel / PPTX / DOCX materials.
+- Installing Docling, EdgarTools, Tesseract, MarkItDown, or Python packages.
+- Creating dated topic research artifacts.
+- Creating topic roots; use `new-session`.
+- Creating topic-level `_raw/`, `_cache/`, or `_models/`.
+- Running `git init`.
+- Initializing inside the plugin dev repo or plugin install directory.
 
-## 执行模式
+## Trigger And Input
+
+Trigger phrases:
+
+- "init research workspace"
+- "初始化研究工作区"
+- "创建研究文件夹"
+- "setup research"
+- "bootstrap workspace"
+- "补齐 research workspace"
+
+Required input:
+
+- `WorkspacePath`: an explicit user-owned research workspace path.
+- The target path must not be the plugin repo, a plugin install directory, or any folder containing plugin markers such as `.claude-plugin/`, `.codex-plugin/`, or `skills/`.
+- Existing `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and root `edge-radar.md` must be skipped, not overwritten.
+
+## Modes
 
 ### New Workspace Scaffold
 
-目标路径不存在或为空时，创建完整 scaffold、核心模板和 `_scripts/` helper files。
+When the target path does not exist or is empty, create the root scaffold, root templates, and `_scripts/` helper files.
 
 ### Repair Existing Workspace
 
-目标路径已有内容时，只补缺失目录和缺失核心文件。已有文件一律 skipped。
+When the target path already has content, only add missing root scaffold directories and missing core files. Do not repair topic-level `_raw/`, `_cache/`, or `_models/`; those are owned by downstream skills.
 
 ### Dry Explanation
 
-用户只问“最终文件夹长什么样”或“init 会做什么”时，不运行脚本，只解释目录树和边界。
+When the user only asks what init will do or what the folder will look like, do not run the helper script. Explain the root scaffold and boundaries.
 
-## 工具资源
+## Tool Resources
 
-本 skill 使用：
+Use the helper script when mutating files:
+
 - `skills/init-workspace/scripts/init-research-workspace.ps1`
+
+Runtime assets copied by the helper:
+
 - `skills/init-workspace/assets/CLAUDE.md.template`
 - `skills/init-workspace/assets/AGENTS.md.template`
 - `skills/init-workspace/assets/gitignore.template`
@@ -78,19 +93,19 @@ description: Use when setting up or repairing a buy-side research workspace fold
 - `skills/financial-data/scripts/providers/*.py`
 - `skills/financial-data/assets/requirements-financial-data.txt`
 
-优先调用 helper script，不要手写复制逻辑。
+Prefer the helper script over hand-written copy logic.
 
-## 文件安全
+## File Safety
 
-- 幂等：重复运行只补缺失项。
-- 不覆盖已有 `CLAUDE.md`、`.gitignore`、`topics/_meta/edge-radar.md`。
-- 不删除、不移动用户已有文件。
-- 不在 plugin repo、plugin install directory 或任何包含 plugin manifest 的目录内执行。
-- 不把 `_raw/`、`_cache/`、`_models/` 当作可提交研究成果。
+- Idempotent: reruns only add missing items.
+- Never overwrite existing `CLAUDE.md`, `AGENTS.md`, `.gitignore`, or `edge-radar.md`.
+- Never delete or move user files.
+- Never initialize inside a plugin repo, plugin install directory, or any directory containing plugin manifests.
+- Never treat `_raw/`, `_cache/`, `_models/`, or `_inbox/` as publishable research outputs.
 
-## 运行输出契约
+## Output Contract
 
-成功或 repair 后输出：
+After success or repair:
 
 ```markdown
 ## Init Result
@@ -105,10 +120,10 @@ description: Use when setting up or repairing a buy-side research workspace fold
 - [...]
 
 ## Workspace Shape
-[目录树]
+[root scaffold tree]
 ```
 
-被阻止时输出：
+When blocked:
 
 ```markdown
 ## Init Blocked
@@ -120,37 +135,41 @@ description: Use when setting up or repairing a buy-side research workspace fold
 - suggested_path: [...]
 ```
 
-## 失败处理
+## Failure Handling
 
-- 路径不明确：先要求明确 `WorkspacePath`，不要猜。
-- 命中 plugin repo 标志：拒绝并要求换一个 user-owned research workspace。
-- 文件权限不足：说明哪个路径失败，不要继续假装成功。
-- helper script 缺失：报告 plugin package 不完整，要求修复安装或重新安装 release zip。
+- Missing path: ask for an explicit `WorkspacePath`; do not guess.
+- Plugin repo markers found: refuse and ask for a user-owned research workspace.
+- Permission failure: name the exact path that failed; do not pretend success.
+- Missing helper script: report that the plugin package is incomplete and ask the user to reinstall or repair the release package.
 
-## Workflow 联动
+## Workflow Links
 
-| 场景 | 处理 |
+| Scenario | Handling |
 |---|---|
-| 用户刚装好插件，不知道从哪里开始 | `init-workspace` 创建 workspace scaffold |
-| 用户已有 workspace 但缺 `_raw/`、`_cache/`、`topics/_meta/` | `init-workspace` repair missing scaffold |
-| workspace 已建好，用户要开始某个 company / theme / event research | handoff 到 `new-session` 创建 topic root |
-| 用户把材料放进 `_inbox/` 后想转换 | handoff 到 `ingest` |
-| 用户缺 Docling / EdgarTools / Tesseract / MarkItDown | 提示 `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |
-| 用户缺 SEC / AKShare / EDINET / DART / openesef 财务数据依赖 | 提示 `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`，用户确认后才 `-Yes` |
-| 用户要研究公司 | handoff 到 `company-primer` 或 `stock-quickread` |
+| User just installed the plugin and does not know where to start | Use `init-workspace` to create the root workspace scaffold |
+| Existing workspace is missing root scaffold files | Use `init-workspace` repair |
+| User wants to start a company / industry / theme / pair topic | Hand off to `new-session` |
+| User drops materials into a topic `_inbox/` | Hand off to `ingest` |
+| User needs structured financial data | Hand off to `financial-data` |
+| User needs to promote company workbench files from an industry/theme topic | Hand off to `promote-company` |
+| User wants to merge whole topic directories | Hand off to `integrate` |
+| User lacks ingest dependencies | Suggest `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
+| User lacks financial-data dependencies | Suggest `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
 
-Artifact policy：
+Artifact policy:
+
 - `save_policy`: `workspace_scaffold`
 - `default_artifact`: `workspace scaffold`
-- `canonical_location`: 用户指定 research workspace
+- `canonical_location`: user-provided research workspace
 
-## 安全自查
+## Safety Self-Check
 
-- ❌ 在 plugin repo 内初始化 workspace。
-- ❌ 覆盖已有 `CLAUDE.md`、`.gitignore` 或 `edge-radar.md`。
-- ❌ 自动 `git init`。
-- ❌ 自动 ingest raw materials。
-- ❌ 自动拉取 financial-data 或安装 financial-data dependencies。
-- ❌ 自动安装 dependencies。
-- ❌ 创建 topic artifact、`research-journal.md` 或 `boss-brief.md`。
-- ❌ 生成 v2 state folders，如 `coverage/`、`portfolio/`、`pairs/`。
+- Did not initialize inside the plugin repo.
+- Did not overwrite existing root files.
+- Did not run `git init`.
+- Did not ingest raw materials.
+- Did not fetch financial data.
+- Did not install dependencies.
+- Did not create topic artifacts.
+- Did not create topic-level `_raw/`, `_cache/`, or `_models/`.
+- Did not recreate v2 state folders such as `coverage/`, `portfolio/`, or `pairs/`.

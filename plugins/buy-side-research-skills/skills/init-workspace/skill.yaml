@@ -34,9 +34,10 @@ capabilities:
     - 'Dry Explanation'
   requirements:
     - 'require an explicit WorkspacePath before mutating files'
-    - 'create only workspace scaffold directories and template files'
+    - 'create only root workspace scaffold directories and template files'
     - 'never initialize inside the plugin development repo or plugin install directory'
-    - 'never overwrite existing CLAUDE.md, AGENTS.md, .gitignore, or topics/_meta/edge-radar.md'
+    - 'never overwrite existing CLAUDE.md, AGENTS.md, .gitignore, or root edge-radar.md'
+    - 'do not create topic-level _raw/, _cache/, or _models/'
     - 'do not git init'
     - 'copy ingest helper scripts and dependency bootstrap when available but do not execute ingest or install dependencies'
     - 'copy financial-data helper scripts and dependency bootstrap when available but do not execute financial-data or install dependencies'
@@ -73,6 +74,7 @@ quality_gates:
     - 'ingesting_files'
     - 'installing_dependencies'
     - 'creating_topic_artifacts'
+    - 'creating_topic_level_raw_cache_or_models'
     - 'creating_v2_state_folders'
   required_scaffold:
     - '_inbox'

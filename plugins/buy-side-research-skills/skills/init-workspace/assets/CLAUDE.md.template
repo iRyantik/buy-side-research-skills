@@ -1,4 +1,4 @@
-﻿# CLAUDE.md - Buy-Side Research Workspace Constitution
+# CLAUDE.md - Buy-Side Research Workspace Constitution
 
 > 本文件是当前 research workspace 的本地宪法。任何在此目录或子目录工作的 Claude / Codex / agent，都必须遵守以下规则。
 > 如果本文件与某个 skill 的局部指令冲突，采用更严格的 source、反幻觉、文件安全和 workspace 边界规则。
@@ -131,14 +131,13 @@ Current canonical topic rule:
 ```text
 topics/<namespace>/<topic-slug>/
   index.md
-  _inbox/      # created by new-session
-  _raw/        # created on demand by ingest
-  _cache/      # created on demand by ingest / financial-data / driver-map
-  _models/     # created on demand by modeling skills, normally company topics
+  _inbox/
+  YYYY-MM-DD-<artifact>.md
 ```
 
 - `new-session` creates only `index.md` and `_inbox/`.
 - `ingest` creates `_raw/<category>/` and `_cache/` on first conversion.
+- `financial-data`, `driver-map`, and modeling skills create their own cache/model folders on demand.
 - Industry/theme topics can hold company workbench research as `YYYY-MM-DD-<company-slug>-<artifact>.md`.
 - Use `promote-company` to move company-scoped files into `topics/company/<company-slug>/`.
 - `integrate` remains whole-topic directory merge.
@@ -153,36 +152,27 @@ topics/<namespace>/<topic-slug>/
     └── <namespace>/<topic-slug>/    #   namespace: company / industry / theme / pair
         ├── index.md                 #   topic 地图
         ├── _inbox/                  #   该 topic 的待处理文件
-        ├── _raw/                    #   created on demand by ingest; 原始文件，按文档类别组织
-        │   ├── filings/             #     10-K, 10-Q, 20-F, annual report
-        │   ├── transcripts/         #     earnings call, conference transcript
-        │   ├── sellside/            #     sell-side research reports
-        │   ├── industry/            #     industry reports
-        │   ├── irdecks/             #     IR / investor day presentations
-        │   └── datasets/            #     CSV, Excel, provider payloads
-        ├── _cache/                  #   created on demand by ingest / financial-data / driver-map
-        │   ├── filings/
-        │   ├── transcripts/
-        │   ├── sellside/
-        │   ├── industry/
-        │   ├── irdecks/
-        │   ├── datasets/
-        │   ├── financial-data/      #     stable financial-data summary and internal evidence
-        │   └── driver-map/          #     driver-map markdown and machine JSON
-        ├── _models/                 #   created on demand by modeling skills, normally company topics
         ├── 2026-05-13-driver-map.md
         ├── 2026-05-13-alpha-thesis.md
         ├── 2026-06-02-earnings-setup.md
         ├── 2026-06-02-model-update.md
         └── 2026-09-10-bear-pre-mortem.md
-        └── <sub-topic>/             #   integrate 后的子 topic
+```
+
+- On-demand topic directories:
+
+```text
+topics/<namespace>/<topic-slug>/
+  _raw/<category>/        # ingest creates
+  _cache/                 # ingest / financial-data / driver-map creates
+  _models/                # modeling creates, normally company topics
 ```
 
 - 研究流：`new-session` 创建 topic `index.md` + `_inbox/` 并解析日期化 result path → 文件丢进 `topics/<namespace>/<topic>/_inbox/` → `ingest` 按需创建 `_raw/<category>/` 和 `_cache/`。
 - Topic namespace 标准为 `company/`、`industry/`、`theme/`、`pair/`。单公司 canonical data 默认放在 `topics/company/<company-slug>/`。
 - Topic 是长期容器；research Markdown 结果直接在 topic root 用日期和 artifact 名保存。
-- `topics/<topic>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
-- `topics/<topic>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
+- `topics/<namespace>/<topic-slug>/_raw/` 按文档类别组织（filings/transcripts/sellside/industry/irdecks/datasets），不用文件扩展名。
+- `topics/<namespace>/<topic-slug>/_cache/` 是 ingest 产生的中间 markdown，不是 original source，不是 earned memory。
 - `financial-data` 稳定入口输出到 `topics/company/<company-slug>/_cache/financial-data/`；theme / industry 只保存 snapshot 或 links。
 - `_models/` 只在建模时按需创建，默认沉淀在 `topics/company/<company-slug>/_models/`；行业 topic 默认没有模型目录。
 - `_scripts/` 保存 init / ingest / financial-data helper scripts。
@@ -197,12 +187,14 @@ topics/<namespace>/<topic-slug>/
 topics/<namespace>/<topic-slug>/
   2026-05-13-driver-map.md
   2026-05-13-alpha-thesis.md
+  2026-05-18-rklb-stock-quickread.md     # company workbench file inside industry/theme topics
   2026-06-02-earnings-setup.md
   2026-06-02-model-update.md
   2026-06-02-model-update-2.md
 ```
 
 - 保存路径不明确时，先用 `new-session` 创建 topic root 或解析日期化 result path。
+- Industry/theme 里的单公司研究使用 `YYYY-MM-DD-<company-slug>-<artifact>.md`；沉淀到 company topic 时用 `promote-company`。
 - 同日同 topic 同 artifact 已存在时，保留历史并追加 `-2`、`-3` 等最低可用序号。
 - `index.md` 是演进式地图：current question、dated result links、current map、open questions、cached materials、sub-topics、related artifacts。
 - `index.md` 不是 checklist、transcript 或状态数据库。
@@ -240,9 +232,13 @@ Operations:
 
 | Skill | When to use | Output |
 |---|---|---|
-| `ingest` | 转换 `_inbox/` 文件为 markdown cache，自动移至 `topics/<topic>/_raw/` | source-tracked `topics/<topic>/_cache/` markdown |
+| `init-workspace` | 初始化或修复 research workspace root scaffold | root scaffold + copied helper scripts |
+| `new-session` | 新建 / 定位 topic root；解析日期化 artifact 保存路径；轻量更新 `index.md` | topic root + dated result paths |
+| `ingest` | 转换 topic `_inbox/` 文件为 markdown cache，自动移至 `_raw/<category>/` | source-tracked cache markdown |
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 | source-tracked financial evidence pack |
-| `new-session` | 新建 / 定位 topic root；解析日期化 artifact 保存路径；轻量更新 `index.md` | topic scaffold + dated result paths |
+| `integrate` | 合并 whole-topic directory / 建立父子 topic 结构 | topic merge + backlinks |
+| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 company topic | moved company files + provenance |
+| `meta-skill` | 修改本插件 skill / metadata / governance | skill authoring guidance |
 
 Research:
 
