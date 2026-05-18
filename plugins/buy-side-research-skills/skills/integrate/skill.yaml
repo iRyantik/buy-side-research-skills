@@ -1,0 +1,53 @@
+﻿metadata_schema_version: 1
+name: 'integrate'
+id: 'integrate'
+display_name: 'Integrate Topics'
+version: '1.0.0'
+system_generation: '3.9.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Merge a child topic into a parent topic, creating hierarchical topic structure.'
+description: 'Merge a child topic into a parent topic, creating hierarchical topic structure.'
+tags:
+  - 'integrate'
+  - 'merge'
+  - 'topic'
+  - 'scaffold'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'integrate'
+    - 'merge topic'
+    - '合并 topic'
+    - '合并研究'
+  description: '当用户要把子 topic 合并到父 topic 时触发'
+capabilities:
+  modes:
+    - 'Merge Child into Parent'
+  requirements:
+    - 'verify both topics exist before merging'
+    - 'move child directory under parent'
+    - 'update both index.md with bidirectional links'
+    - 'report merge summary'
+artifact_policy:
+  save_policy: 'none'
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'do not create standalone research artifacts; only move topic directories and update index links when explicitly requested'
+workflow:
+  stage: 'topic-organization'
+  can_follow:
+    - 'new-session'
+    - 'research-journal'
+  feeds_into:
+    - 'company-primer'
+    - 'driver-map'
+    - 'alpha-thesis'
+  can_trigger: []
+quality_gates:
+  anti_patterns:
+    - 'writing_research_conclusions'
+    - 'deleting_child_directory'
+    - 'overwriting_index_md'
+    - 'merging_unrelated_topics_without_confirmation'

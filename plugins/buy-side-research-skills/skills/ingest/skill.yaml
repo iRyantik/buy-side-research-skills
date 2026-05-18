@@ -1,0 +1,86 @@
+﻿metadata_schema_version: 1
+name: 'ingest'
+id: 'ingest'
+display_name: 'Ingest'
+version: '1.4.0'
+system_generation: '3.9.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Convert raw research materials into source-tracked topic _cache markdown before analysis.'
+description: 'Convert local raw research materials into source-tracked topic _cache markdown, creating _raw and _cache on demand while requiring the topic root to already exist.'
+tags:
+  - 'ingest'
+  - 'document-conversion'
+  - 'cache'
+  - 'raw-material'
+  - 'topic-cache'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'ingest'
+    - 'convert to markdown'
+    - 'process _inbox'
+    - 'convert PDF'
+    - 'convert Excel'
+    - '处理 _inbox'
+  description: 'Trigger when the user wants to convert local raw research material into topic _cache markdown.'
+capabilities:
+  modes:
+    - 'Dependency Check'
+    - 'Single File Ingest'
+    - 'Directory Ingest'
+    - 'Cache Reuse'
+  requirements:
+    - 'strict topic root check: topics/<namespace>/<topic-slug>/index.md must exist before ingest'
+    - 'support namespaced topics such as industry/space-launch and company/rklb'
+    - 'write topics/<namespace>/<topic-slug>/_cache/[source-filename].md'
+    - 'create _cache/ and _raw/<category>/ on first conversion'
+    - 'auto-move source files from topic _inbox/ to _raw/<category>/ after successful conversion'
+    - 'never move files already under _raw/'
+    - 'never create topic root or index.md'
+    - 'auto-infer document category when possible'
+    - 'include source_sha256, source_modified_utc, converted_at_utc, precision_level, document_type, and route'
+    - 'report dependency gaps honestly'
+  inputs:
+    source_path: 'file or directory path'
+    workspace: 'research workspace root'
+    topic: 'namespaced topic such as industry/space-launch or company/rklb'
+    category: 'filings | transcripts | sellside | industry | irdecks | datasets | unclassified'
+    force: 'overwrite stale cache only when explicitly requested'
+artifact_policy:
+  save_policy: 'cache_artifact'
+  default_artifact: '[source-filename].md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md'
+  save_trigger: 'write cache only when converting a source file for an existing topic'
+workflow:
+  stage: 'source-material-ingest'
+  can_follow:
+    - 'init-workspace'
+    - 'new-session'
+  feeds_into:
+    - 'industry-quickread'
+    - 'company-primer'
+    - 'mechanism-map'
+    - 'driver-map'
+    - 'information-impact'
+    - '3-statement-model'
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
+  can_trigger: []
+quality_gates:
+  anti_patterns:
+    - 'creating_topic_root'
+    - 'moving_files_before_successful_conversion'
+    - 'moving_files_already_under_raw'
+    - 'writing_fake_cache'
+    - 'treating_cache_as_original_source'
+    - 'writing_research_conclusions'
+    - 'silent_dependency_install'
+    - 'recursive_ingest_without_explicit_request'
+  required_paths:
+    - 'topics/[topic-namespace]/[topic-slug]/index.md'
+    - 'topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md'
+    - 'topics/[topic-namespace]/[topic-slug]/_raw/[category]/'

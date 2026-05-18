@@ -98,27 +98,27 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 
 ## 5. Skill Authoring 规则
 
-- 新增、重写或大幅修改任何 `skills/*/SKILL.md` 前，必须调用 / 遵守 `skills/meta-skill/SKILL.md`。
+- 新增、重写或大幅修改任何 `plugins/buy-side-research-skills/skills/*/SKILL.md` 前，必须调用 / 遵守 `plugins/buy-side-research-skills/skills/meta-skill/SKILL.md`。
 - 写 skill 时必须先明确它服务的决策时刻，不要按“输出文档形式”机械切 skill。
 - 新增 skill 必须先判断 `category: research|operations`。
 - Research skill 必须设置合法 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`。
 - Operations skill 不设置 `research_layer`，也不强制研究类 `Global Rules Capsule`、`Source 政策` 或 `篇幅基准`。
-- 新 skill 或重大改写完成前，必须同步 metadata、artifact policy、validators、README / docs / manifests，并只运行本次改动直接相关的 targeted validator。用户明确要求跳过 validator 时，以用户要求为准。
+- 新 skill 或重大改写完成前，必须同步 metadata、artifact policy、README / docs / manifests。root `scripts/` 开发校验层已删除；不要引用或恢复旧 validator / build-release 入口，除非用户另行要求重新设计工具链。
 
 ### Runtime Rule Distribution
 
 - 插件运行时可能只识别具体 `SKILL.md`，不一定读取本文；因此本文是 project constitution / 维护源，不应被当作唯一 runtime prompt。
-- 全局 runtime research rules 维护在 `skills/_shared/global-rules.md`；该文件尽量使用本文原文，只收研究运行时规则，不收开发流程、迁移历史或文件组织细节。
-- 每个 active research `skills/*/SKILL.md` 必须内嵌同版本 `Global Rules Capsule`，使单个 research skill 被独立加载时也能遵守中文输出、source discipline、反幻觉、反流水账、Senior Analyst Radar 和 primitive routing。
-- 修改本文中会影响 runtime research behavior 的规则时，必须同步检查 `skills/_shared/global-rules.md` 和各 research skill capsule。只有在同时新增或重大改写 skill 时，才运行对应 targeted validation script。
+- 全局 runtime research rules 维护在 `plugins/buy-side-research-skills/skills/_shared/global-rules.md`；该文件尽量使用本文原文，只收研究运行时规则，不收开发流程、迁移历史或文件组织细节。
+- 每个 active research `plugins/buy-side-research-skills/skills/*/SKILL.md` 必须内嵌同版本 `Global Rules Capsule`，使单个 research skill 被独立加载时也能遵守中文输出、source discipline、反幻觉、反流水账、Senior Analyst Radar 和 primitive routing。
+- 修改本文中会影响 runtime research behavior 的规则时，必须同步检查 `plugins/buy-side-research-skills/skills/_shared/global-rules.md` 和各 research skill capsule。
 
 ### Metadata and Version Policy
 
 - `SKILL.md` 是 runtime truth：负责触发后的实际行为、source discipline、workflow 和输出约束。
 - `skill.yaml` 是 metadata / index truth：负责 name、trigger、capabilities、workflow、quality gates、artifact policy 和索引信息。
-- `meta.json` 已 retired；active `skills/*/` 下不得新建或维护 `meta.json`。
+- `meta.json` 已 retired；active `plugins/buy-side-research-skills/skills/*/` 下不得新建或维护 `meta.json`。
 - `skill.yaml.version` 是单个 skill 自身的 semver，不表示系统代际。
-- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.8.0`。
+- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.9.0`。
 - Skill semver：MAJOR 表示输出契约或触发边界不兼容；MINOR 表示新增 mode / routing / workflow 能力；PATCH 表示措辞、source policy、反模式或 metadata 修正。
 
 ---
@@ -149,8 +149,8 @@ Operations skills：
 | `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
 | `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
 | `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
-| `promote-company` | Move company-scoped workbench files into canonical company topic | company promotion + provenance |
-| `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、validators 和 governance |
+| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic | company promotion + provenance |
+| `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata 和 governance |
 
 `industry-quickread` 是 industry triage skill。涉及陌生行业、主题、value chain、需求口袋、利润池或行业周期 first-pass 时，先用 `industry-quickread` 判断 current regime、value capture、KPI/source map、anchor names 和下一步研究路由。
 
@@ -173,8 +173,8 @@ Operations skills：
 | `financial-data` | 拉结构化财报 / 按 ticker 拉三表 / openesef / DART / EDINET / AKShare | source-tracked financial evidence pack |
 | `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
 | `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
-| `promote-company` | Move company-scoped workbench files into canonical company topic | company promotion + provenance |
-| `meta-skill` | 写 skill / 改 skill / 更新 validator / 调整 governance | skill authoring changes or review |
+| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic | company promotion + provenance |
+| `meta-skill` | 写 skill / 改 skill / 调整 governance | skill authoring changes or review |
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一个 | 快速公司分析 + 对手盘假设 |
@@ -206,23 +206,35 @@ Operations skills：
 
 本 repo 是 plugin development project，不兼作日常研究 workspace。研究产物示例放在 `examples/`；真正的用户 research workspace 由 `init-workspace` skill 创建或补齐。
 
-Plugin dev repo：
+Plugin source repo wrapper：
 
 ```text
-[plugin-dev-root]/
-├── .claude-plugin/
-├── .codex-plugin/
-├── skills/
-├── scripts/
+[repo-root]/
+├── .claude-plugin/marketplace.json
+├── plugins/
+│   └── buy-side-research-skills/
+│       ├── .claude-plugin/plugin.json
+│       ├── .codex-plugin/plugin.json
+│       └── skills/
 ├── docs/
 ├── examples/
 ├── CLAUDE.md
 └── README.md
 ```
 
-Active skills 保持一层平铺：`skills/[skill-name]/SKILL.md`。不要把 active skills 物理移动进 `skills/research/` 或 `skills/operations/`。
+Active skills 在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要把 active skills 物理移动进 `skills/research/` 或 `skills/operations/`。
 
-Runtime 必需的模板、脚本、references 应放进对应 `skills/[skill]/` 下；root `scripts/` 只放开发校验、发布打包脚本，不作为具体 skill 的 runtime 依赖入口。
+Runtime 必需的模板、脚本、references 应放进对应 `plugins/buy-side-research-skills/skills/[skill]/` 下。root `scripts/` 已删除，不再作为开发校验、发布打包或 runtime 依赖入口。
+
+Release zip 仍保持扁平 runtime 结构：
+
+```text
+[release-zip-root]/
+├── .claude-plugin/
+├── .codex-plugin/
+├── skills/
+└── README.md
+```
 
 Future research workspace：
 
@@ -272,5 +284,5 @@ Future research workspace：
 
 ---
 
-**版本**：v3.8.0
+**版本**：v3.9.0
 **最后更新**：2026-05-10

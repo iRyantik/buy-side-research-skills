@@ -2,27 +2,52 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.8.0`.
+Current release version: `3.9.0`.
+
+## Source And Runtime Shape
+
+The source repo is a wrapper. The canonical plugin payload is:
+
+```text
+plugins/buy-side-research-skills/
+  .claude-plugin/
+    plugin.json
+  .codex-plugin/
+    plugin.json
+  skills/
+```
+
+Release zip files stay flat for installation:
+
+```text
+.claude-plugin/
+.codex-plugin/
+skills/
+README.md
+```
 
 ## Release Package Contents
 
-Release zip includes only runtime/install materials:
+Release zip includes only runtime/install materials copied from the payload plus root README:
 
-- `.claude-plugin/`
-- `.codex-plugin/`
-- `skills/`
+- `plugins/buy-side-research-skills/.claude-plugin/` -> `.claude-plugin/`
+- `plugins/buy-side-research-skills/.codex-plugin/` -> `.codex-plugin/`
+- `plugins/buy-side-research-skills/skills/` -> `skills/`
 - `README.md`
 
 Release zip must not include source-repo maintenance files:
 
+- `plugins/`
 - root `CLAUDE.md`
 - root `AGENTS.md`
-- root `scripts/`
+- `docs/`
+- `examples/`
 - `.git/`
 - `.claude/`
 - `RTK.md`
 - `dist/`
 - local editor or agent state
+- root marketplace wrapper files
 
 Release zip must include skill-owned runtime resources, especially:
 
@@ -44,31 +69,11 @@ skills/promote-company/skill.yaml
 skills/promote-company/scripts/promote_company.py
 ```
 
-## Validator Policy
+## Tooling Policy
 
-Release packaging does not require the full validator suite. Full-suite validation is expensive and should not run for routine commit / release work.
+Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Run validators only after creating, rewriting, or materially changing a skill, and then run only the targeted validator(s) that cover that skill or governance surface. If the user explicitly asks to skip validators, do not run validators.
-
-When changing the modeling sub-agent protocol for `3-statement-model`, `dcf-model`, `comps-analysis`, or `model-update`, run:
-
-```powershell
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts\validate-model-sub-agent-protocol.ps1
-```
-
-## Build
-
-```powershell
-rtk powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1 -Version 3.8.0
-```
-
-Build artifact:
-
-```text
-dist/buy-side-research-skills-3.8.0.zip
-```
-
-The build script only stages and zips release contents. It does not run validators automatically.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.9.0.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 ## Dependency Policy
 

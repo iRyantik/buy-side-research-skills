@@ -1,0 +1,79 @@
+﻿metadata_schema_version: 1
+name: '3-statement-model'
+id: '3-statement-model'
+display_name: '3-Statement Model'
+version: '1.1.0'
+system_generation: '3.9.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'research'
+research_layer: 'deep-work'
+summary: 'Build or populate integrated income statement, balance sheet, and cash flow statement models.'
+description: 'Build or populate integrated 3-statement financial models using source-tracked historical actuals, driver-map assumptions, formulas, scenarios, and model checks.'
+tags:
+  - modeling
+  - 3-statement
+  - operating-model
+  - xlsx
+trigger:
+  type: 'keyword'
+  keywords:
+    - '搭 model'
+    - 'build model'
+    - '3 statement'
+    - '3-statement'
+    - 'three statement model'
+    - 'operating model'
+    - 'populate model'
+  description: 'Use when the user wants to build, fill, or populate an integrated IS/BS/CF operating model.'
+capabilities:
+  modes:
+    - 'template completion'
+    - 'new workbook build'
+    - 'historical actuals population'
+    - 'statement linkage checks'
+    - 'model_sub_agent_protocol'
+  consumes:
+    - 'financial-data'
+    - 'driver-map'
+  preferred_inputs:
+    - '_cache/financial-data/financial-data-summary.md'
+    - '_cache/financial-data/internal/actuals-resolved.json'
+    - '_cache/financial-data/internal/evidence-pack.json'
+    - '_cache/driver-map/driver-map.md'
+    - '_cache/driver-map/internal/driver-map.json'
+  output_path: 'topics/[topic]/_models/[ticker]-3statement-model.xlsx'
+  requirements:
+    - 'Prefer source-tracked actuals from financial-data before external or manual data.'
+    - 'Prefer driver-map assumptions for segment, geography, revenue, and margin treatment.'
+    - 'Do not convert missing or unmapped actuals to zero; leave blanks and flag review checks.'
+    - 'main_agent_workbook_ownership_required'
+    - 'source_map_and_completeness_check_required'
+    - 'no_final_valuation_or_workbook_delivery_by_sub-agent'
+    - 'no_missing_or_unmapped_actuals_as_zero'
+artifact_policy:
+  save_policy: 'external_workbook'
+  default_artifact: '<ticker>-3statement-model.xlsx'
+  canonical_location: 'topics/[topic]/_models/[ticker]-3statement-model.xlsx'
+  save_trigger: 'write workbook only when the user asks to create/update a model or provides a workbook target'
+workflow:
+  stage: 'model-build'
+  can_follow:
+    - 'financial-data'
+    - 'driver-map'
+    - 'company-primer'
+    - 'mechanism-map'
+  feeds_into:
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
+    - 'research-journal'
+  can_trigger:
+    - 'dcf-model'
+    - 'comps-analysis'
+    - 'model-update'
+quality_gates:
+  anti_patterns:
+    - 'Do not silently fill missing historicals with zero.'
+    - 'Do not hardcode projected statements where formulas are required.'
+    - 'Do not treat provider-normalized review data as audited company disclosure without review.'

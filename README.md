@@ -1,6 +1,6 @@
 ﻿# Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.8.0`
+> 当前版本：`3.9.0`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -8,7 +8,7 @@
 
 ## Current Workspace Rules
 
-This section is the canonical v3.8 workspace rule.
+This section is the canonical v3.9 workspace rule.
 
 ```text
 research-workspace/
@@ -60,6 +60,12 @@ research-workspace/
 ### 用一句话说
 
 **这个插件把专业股票研究员（buy-side analyst）的工作流程，变成了一套你在 Claude Code 或 Codex 里可以直接用中文对话触发的「技能」。**
+
+### 源码与安装包结构
+
+当前源码仓库是 wrapper + nested payload 结构：真正的 plugin payload 在 `plugins/buy-side-research-skills/`，active skills 在 `plugins/buy-side-research-skills/skills/[skill-name]/`。
+
+用户下载的 Release zip 仍是扁平运行时结构，解压后直接包含 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。源码 root 的 `CLAUDE.md`、`AGENTS.md`、`docs/`、`examples/` 不进入安装包。
 
 ### 用人话说
 
@@ -123,7 +129,7 @@ research-workspace/
 
 ```
 插件源码仓库（本 repo）
-    ↓ 你安装它
+    ↓ 发布为扁平 Release zip 后安装
 Claude Code / Codex（你的 AI 助手）
     ↓ 你对它说话，它加载本插件的 skills
 研究 Workspace（你电脑上一个普通文件夹）
@@ -717,7 +723,7 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
 
 ### Q10：sub-agent 是不是会直接替我写结论？
 
-**答**：不会。v3.8.0 开始，部分 research skill 默认必须用 sub-agent / delegate worker 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+**答**：不会。v3.9.0 开始，部分 research skill 默认必须用 sub-agent / delegate worker 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 
 默认执行 Parallel Evidence Pass 的 skill 包括：第一批 `peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`；第二批 `stock-quickread`、`industry-quickread`、`consensus-map`、`mechanism-map`、`information-impact`；第三批 `alpha-thesis`、`bear-pre-mortem`、`pair-trade`、`primary-research-plan`；第四批 `next-step`、`research-journal`。如果当前 host / runner 真的没有 sub-agent 能力，artifact 或输出必须明示 `sub-agent unavailable`、原因和 coverage caveat，不能悄悄降级。
 
@@ -789,5 +795,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.8.0
+**版本**：v3.9.0
 **最后更新**：2026-05-15

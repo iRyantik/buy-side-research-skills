@@ -1,0 +1,65 @@
+﻿metadata_schema_version: 1
+name: 'stock-quickread'
+id: 'stock-quickread'
+display_name: 'Stock Quickread'
+version: '1.1.0'
+system_generation: '3.9.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'research'
+research_layer: 'triage'
+summary: '30 分钟快速了解一家陌生公司，达到''能问出像样的下一层问题''的状态'
+description: '30 分钟快速了解一家陌生公司，达到''能问出像样的下一层问题''的状态'
+tags:
+  - 'quickread'
+  - 'company-analysis'
+  - 'buy-side'
+  - 'new-coverage'
+trigger:
+  type: 'keyword'
+  keywords:
+    - '帮我看一下'
+    - '这家公司是做什么的'
+    - '帮我快速过一下'
+    - '我对这家不熟'
+    - '把这份招股书'
+    - '压缩成关键点'
+  description: '当用户想快速了解一家陌生公司时触发'
+capabilities:
+  generates: '9-section structured company analysis'
+  output_format: '1200-1800 字 + 3 张数据表'
+  time_estimate: '30 minutes'
+  includes:
+    - 'counterparty assumptions / 对手盘需要相信什么'
+  requirements:
+    - 'source links required'
+    - 'follow CLAUDE.md source policy'
+    - 'route company foundation and disclosure evolution gaps to company-primer'
+    - 'route systematic consensus and priced-in analysis to consensus-map'
+    - 'parallel_evidence_spawn_default for source collection'
+    - 'sub-agent outputs must be evidence_cards_only'
+    - 'main_agent_synthesis_required for quickread verdict and routing'
+    - 'url_claim_spot_check_required before using sub-agent sources'
+artifact_policy:
+  save_policy: 'optional_topic_result'
+  default_artifact: 'stock-quickread.md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-stock-quickread.md'
+  save_trigger: 'save only when user asks to preserve the quickread as dated topic research result'
+workflow:
+  stage: 'discovery'
+  next_steps:
+    - 'consensus-map'
+    - 'company-primer'
+    - 'alpha-thesis'
+  decision_point: '值不值得花时间深入研究'
+quality_gates:
+  anti_patterns:
+    - 'flow_water_account_style'
+    - 'management_bios'
+    - '5_year_historical_financials'
+    - 'industry_intro_textbooks'
+  data_requirements:
+    - 'financial_data_table'
+    - 'capital_cycle_metrics'
+    - 'empirical_drivers'
+    - 'source_links'

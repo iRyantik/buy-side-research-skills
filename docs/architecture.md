@@ -1,14 +1,41 @@
-﻿# Architecture
+# Architecture
 
-This repo is the plugin source. Runtime research work happens in a user-owned research workspace created by `init-workspace`.
+This repo is the source wrapper for the `buy-side-research-skills` plugin. Runtime research work happens in a user-owned research workspace created by `init-workspace`.
+
+## Source Layout
+
+The canonical plugin payload lives under `plugins/buy-side-research-skills/`:
+
+```text
+repo-root/
+  .claude-plugin/
+    marketplace.json
+  plugins/
+    buy-side-research-skills/
+      .claude-plugin/
+        plugin.json
+      .codex-plugin/
+        plugin.json
+      skills/
+        <skill-name>/
+          SKILL.md
+          skill.yaml
+  docs/
+  examples/
+  CLAUDE.md
+  AGENTS.md
+  README.md
+```
+
+Root `scripts/` and root `skills/` are not part of the current source layout. Do not restore the old root-level runtime manifests or validator/build scripts unless the tooling is redesigned in a separate change.
 
 ## Active Skill Layout
 
-Active skills remain flat:
+Active skills remain flat inside the payload:
 
 ```text
-skills/<skill-name>/SKILL.md
-skills/<skill-name>/skill.yaml
+plugins/buy-side-research-skills/skills/<skill-name>/SKILL.md
+plugins/buy-side-research-skills/skills/<skill-name>/skill.yaml
 ```
 
 Do not move active skills into `skills/research/` or `skills/operations/`.
@@ -25,7 +52,7 @@ promote-company
 meta-skill
 ```
 
-`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: promote company-scoped files from an industry/theme workbench into `topics/company/<company-slug>/`.
+`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: it promotes company-scoped files from an industry/theme workbench into `topics/company/<company-slug>/`.
 
 ## Workspace Shape
 
@@ -62,37 +89,6 @@ Rules:
 - `ingest` requires the topic root to exist and creates `_raw/<category>/` and `_cache/` on first conversion.
 - Industry and theme topics do not get `_models/` by default.
 - Company canonical topics are the durable home for company financial data, canonical driver maps, and model workbooks.
-
-## Research File Names
-
-Company canonical topic:
-
-```text
-topics/company/rklb/2026-05-18-stock-quickread.md
-topics/company/rklb/2026-05-18-driver-map.md
-```
-
-Industry/theme topic research about the topic itself:
-
-```text
-topics/industry/space-launch/2026-05-18-industry-quickread.md
-topics/industry/space-launch/2026-05-18-peer-deep-dive.md
-```
-
-Industry/theme workbench research about one company:
-
-```text
-topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
-topics/industry/space-launch/2026-05-18-rklb-driver-map.md
-```
-
-Collision handling:
-
-```text
-2026-05-18-rklb-driver-map.md
-2026-05-18-rklb-driver-map-2.md
-2026-05-18-rklb-driver-map-3.md
-```
 
 ## Company Promotion
 
@@ -158,7 +154,7 @@ Modeling skills must not coerce missing or unmapped actuals to zero.
 
 ## Release Package
 
-Release packages contain:
+Release packages remain flat even though the source repo is nested:
 
 ```text
 .claude-plugin/
@@ -167,4 +163,4 @@ skills/
 README.md
 ```
 
-Release packages must not contain root `CLAUDE.md`, root `AGENTS.md`, root `scripts/`, `docs/`, `examples/`, `.git/`, or local machine state.
+Release packages must not contain `plugins/`, root `CLAUDE.md`, root `AGENTS.md`, `docs/`, `examples/`, `.git/`, `dist/`, or local machine state.

@@ -1,0 +1,72 @@
+﻿metadata_schema_version: 1
+name: 'meta-skill'
+id: 'meta-skill'
+display_name: 'Meta Skill'
+version: '1.1.1'
+system_generation: '3.9.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Create, modify, and review buy-side research plugin skills, metadata, docs, manifests, and governance.'
+description: 'Create, modify, and review buy-side research plugin skills, metadata, artifact policy, docs, manifests, and governance.'
+tags:
+  - 'meta-skill'
+  - 'skill-authoring'
+  - 'skill-governance'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'meta-skill'
+    - 'write a skill'
+    - 'create skill'
+    - 'modify skill'
+    - 'update skill'
+    - 'skill authoring'
+    - 'skill governance'
+    - 'validate skill'
+    - '改 skill'
+    - '写 skill'
+    - '新增 skill'
+    - '调整 governance'
+  description: '当用户要创建、修改或审查本插件 skills / metadata / docs / manifests / governance 时触发'
+capabilities:
+  modes:
+    - 'New Skill Design'
+    - 'Existing Skill Rewrite'
+    - 'Governance Update'
+    - 'Review / Gap Audit'
+  requirements:
+    - 'classify skills as research or operations'
+    - 'assign research_layer only for research skills'
+    - 'keep active skills flat under plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md'
+    - 'do not recreate meta.json'
+    - 'do not restore v2 state workflows'
+    - 'sync docs and manifests when governance changes'
+artifact_policy:
+  save_policy: 'none'
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'does not create research artifacts; edits plugin source only when the user explicitly requests implementation'
+workflow:
+  stage: 'skill-authoring'
+  can_follow:
+    - 'user-governance-request'
+    - 'governance-review'
+  feeds_into:
+    - 'SKILL.md'
+    - 'skill.yaml'
+    - 'docs'
+  can_trigger: []
+quality_gates:
+  anti_patterns:
+    - 'restoring_meta_json'
+    - 'nesting_active_skills_by_category'
+    - 'forcing_operations_into_research_template'
+    - 'forgetting_public_docs'
+  required_checks:
+    - 'category_research_or_operations'
+    - 'research_layer_for_research_only'
+    - 'artifact_policy_present'
+    - 'active_skill_paths_consistent'
+    - 'release_package_shape_documented'

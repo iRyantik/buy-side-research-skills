@@ -1,8 +1,10 @@
-# 安装
+﻿# 安装
 
 仓库：`iRyantik/buy-side-research-skills`
 
 插件可通过市场流程安装，也可从 release zip 安装。
+
+当前源码仓库使用 wrapper + nested payload 结构：源码里的 plugin payload 位于 `plugins/buy-side-research-skills/`。Release zip 仍是扁平安装包，解压后直接看到 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。
 
 ## Claude
 
@@ -33,7 +35,7 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 ## 第一次使用
 
-运行 `init-workspace` 创建或修复 research workspace scaffold。`3.8.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
+运行 `init-workspace` 创建或修复 research workspace scaffold。`3.9.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
 
 `init-workspace` 之后，如需创建或定位 topic root 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
 
