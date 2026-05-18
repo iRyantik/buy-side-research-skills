@@ -1,6 +1,6 @@
 ---
 name: new-session
-description: Use when creating or locating a topic root, preparing its inbox, resolving a dated research result filename, or lightly updating a topic index.
+description: Create or locate a topic root and resolve a dated research result filename.
 ---
 
 # New Session

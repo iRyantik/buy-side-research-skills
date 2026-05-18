@@ -1,6 +1,6 @@
 ---
 name: primary-research-plan
-description: Use when designing a compliant primary research, expert call, channel check, fieldwork, survey, customer, supplier, competitor, or ex-employee interview plan to validate thesis, consensus, model-driver, or industry assumptions.
+description: Design a compliant expert call channel check survey or fieldwork plan.
 ---
 
 ## Global Rules Capsule (v1)

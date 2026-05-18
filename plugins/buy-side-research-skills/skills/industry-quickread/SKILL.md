@@ -1,6 +1,6 @@
 ---
 name: industry-quickread
-description: Use when quickly assessing an unfamiliar industry, theme, value chain, demand pocket, sector regime, or industry profit pool before choosing companies for deeper research.
+description: Run a first pass on an industry theme value chain demand pocket or profit pool.
 ---
 
 ## Global Rules Capsule (v1)

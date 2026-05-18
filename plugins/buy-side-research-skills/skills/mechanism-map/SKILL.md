@@ -1,6 +1,6 @@
 ---
 name: mechanism-map
-description: Use when explaining industry mechanisms, engineering principles, equipment chains, process flows, technical terms, or know-how gaps that affect investment research.
+description: Explain industry mechanisms engineering principles equipment chains and process flows.
 ---
 
 ## Global Rules Capsule (v1)

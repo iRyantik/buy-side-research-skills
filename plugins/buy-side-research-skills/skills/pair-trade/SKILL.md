@@ -1,6 +1,6 @@
 ---
 name: pair-trade
-description: Use when building or monitoring a long/short pair trade, evaluating whether two names can pair, finding a hedge candidate, checking spread health, or reviewing whether an existing pair still works.
+description: Evaluate a long short pair trade hedge candidate spread logic and key risks.
 ---
 
 ## Global Rules Capsule (v1)

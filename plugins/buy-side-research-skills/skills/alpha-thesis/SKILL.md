@@ -1,6 +1,6 @@
 ---
 name: alpha-thesis
-description: Use when building or refining a buy-side long-only or short-only single-name investment thesis that needs a variant view, catalysts, kill criteria, scenarios, and sizing logic. Use pair-trade for Long X + Short Y, hedge candidates, or pair/hedged structures.
+description: Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria.
 ---
 
 ## Global Rules Capsule (v1)

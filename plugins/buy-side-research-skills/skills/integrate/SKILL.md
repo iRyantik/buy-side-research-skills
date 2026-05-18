@@ -1,6 +1,6 @@
 ---
 name: integrate
-description: Use when merging a child topic into a parent topic (e.g. merging a company topic into its industry topic after research).
+description: Merge a whole child topic into a parent topic and update topic indexes.
 ---
 
 # Integrate

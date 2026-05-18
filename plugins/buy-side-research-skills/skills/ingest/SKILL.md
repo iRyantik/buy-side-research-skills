@@ -1,6 +1,6 @@
 ---
 name: ingest
-description: Use when converting raw research materials such as PDF, XLSX, PPTX, DOCX, TXT, CSV, or markdown files into source-tracked topic _cache markdown before analysis.
+description: Convert raw research files into source-tracked topic cache markdown before analysis.
 ---
 
 # Ingest

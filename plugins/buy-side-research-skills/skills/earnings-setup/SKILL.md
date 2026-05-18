@@ -1,6 +1,6 @@
 ---
 name: earnings-setup
-description: Use when preparing for an upcoming earnings print, reacting to newly reported results, or deciding whether earnings should trigger thesis, model, or decision updates.
+description: Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed.
 ---
 
 ## Global Rules Capsule (v1)

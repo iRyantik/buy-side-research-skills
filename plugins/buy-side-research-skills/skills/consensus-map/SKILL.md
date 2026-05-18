@@ -1,6 +1,6 @@
 ---
 name: consensus-map
-description: Use when mapping sell-side consensus, buy-side bar, priced-in assumptions, market-implied expectations, revision direction, or variant-view gaps for a single stock, peer set, industry, or theme before thesis or model work.
+description: Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps.
 ---
 
 ## Global Rules Capsule (v1)

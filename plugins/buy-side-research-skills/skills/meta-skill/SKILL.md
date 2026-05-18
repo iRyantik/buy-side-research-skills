@@ -1,6 +1,6 @@
-﻿---
+---
 name: meta-skill
-description: Use when creating, rewriting, or reviewing buy-side-research-skills plugin skills, skill.yaml metadata, artifact policy, runtime category, docs, manifests, or skill governance.
+description: Create review or update buy-side research skills metadata docs manifests and governance.
 ---
 
 # Meta Skill
@@ -276,7 +276,7 @@ description: Use when [具体触发场景和用户症状].
 ---
 ```
 
-Frontmatter 必须只写触发条件，不总结 workflow。
+Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description` 必须是纯文本单行，建议少于 140 个字符，不使用 `|` / `>` block scalar、Markdown、列表或长触发规则。
 
 ### 6. Operations SKILL.md 必填结构
 

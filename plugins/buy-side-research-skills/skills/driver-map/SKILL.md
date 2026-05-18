@@ -1,6 +1,6 @@
 ---
 name: driver-map
-description: Use when decomposing revenue drivers, segment buckets, margin drivers, backlog conversion, price/volume/mix, or weird disclosure into business reality before modeling or thesis work.
+description: Decompose revenue margin backlog price volume mix and segment drivers before modeling.
 ---
 
 ## Global Rules Capsule (v1)

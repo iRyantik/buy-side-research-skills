@@ -1,6 +1,6 @@
 ---
 name: next-step
-description: Use when the user asks what to research next, says a research thread feels off, wants a senior-analyst review, or asks how to keep digging after a research session.
+description: Choose the highest-value next research question when a thread feels stuck or incomplete.
 ---
 
 ## Global Rules Capsule (v1)

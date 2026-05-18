@@ -1,6 +1,6 @@
 ---
 name: cross-market-compare
-description: Use when comparing A/H shares, ADRs, local listings, or cross-market peers where valuation, currency, accounting, liquidity, or access differences matter.
+description: Compare local listings ADRs or cross-market peers across valuation currency liquidity and access.
 ---
 
 ## Global Rules Capsule (v1)

@@ -1,6 +1,6 @@
 ---
 name: company-primer
-description: Use when researching an unfamiliar company in depth, mapping what it sells, how the business evolved, how segments or KPIs changed, or why disclosure history may affect later driver, thesis, peer, or model work.
+description: Map an unfamiliar company's business segments customers history and disclosure evolution.
 ---
 
 ## Global Rules Capsule (v1)

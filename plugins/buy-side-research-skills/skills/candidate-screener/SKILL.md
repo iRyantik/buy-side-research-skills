@@ -1,6 +1,6 @@
 ---
 name: candidate-screener
-description: Use when turning a theme, hypothesis, event, or screening condition into a sourced long/short candidate list before deeper research.
+description: Turn a theme event or screen into a sourced long or short candidate funnel.
 ---
 
 ## Global Rules Capsule (v1)

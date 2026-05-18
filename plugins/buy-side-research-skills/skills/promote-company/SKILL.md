@@ -1,6 +1,6 @@
 ---
 name: promote-company
-description: Use when promoting company-specific research from an industry or theme workbench topic into the canonical company topic.
+description: Promote company-specific files from an industry or theme workbench to a company topic.
 ---
 
 # Promote Company

@@ -1,6 +1,6 @@
 ---
 name: bear-pre-mortem
-description: Use when stress-testing a thesis, finding the strongest opposing case, looking for holes, or reversing a long or short investment argument.
+description: Stress test an investment thesis and build the strongest opposing case with sourced risks.
 ---
 
 ## Global Rules Capsule (v1)

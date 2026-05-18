@@ -1,6 +1,6 @@
 ---
 name: research-journal
-description: Use when summarizing a completed research session, writing topic research notes, preserving solved research insights, or preparing a high-density Boss Brief for a PM or boss.
+description: Summarize completed research into durable topic notes and boss brief outputs.
 ---
 
 ## Global Rules Capsule (v1)

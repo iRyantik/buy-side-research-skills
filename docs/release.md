@@ -86,6 +86,8 @@ plugins/buy-side-research-skills/.codex-plugin/plugin.json
 plugins/buy-side-research-skills/.claude-plugin/plugin.json
 ```
 
+Before publishing skill card changes, confirm every `SKILL.md` frontmatter `description` is a short one-line plain text UI summary. Do not use `description: |`, Markdown, bullets, or long trigger/workflow paragraphs in frontmatter; put long behavior details in the body and `skill.yaml`.
+
 ## Dependency Policy
 
 The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, dart-fss, openesef, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1` or `_scripts/financial-data/bootstrap-financial-data-deps.ps1`.

@@ -1,6 +1,6 @@
 ---
 name: stock-quickread
-description: Use when quickly assessing an unfamiliar company, getting a 30-minute first pass, or deciding whether a stock deserves deeper research.
+description: Run a fast sourced first pass on an unfamiliar company and decide whether to dig deeper.
 ---
 
 ## Global Rules Capsule (v1)

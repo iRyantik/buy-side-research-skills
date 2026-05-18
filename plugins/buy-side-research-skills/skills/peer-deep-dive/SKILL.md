@@ -1,6 +1,6 @@
 ---
 name: peer-deep-dive
-description: Use when comparing multiple companies in the same industry, running horizontal peer research, building a KPI matrix, or ranking candidates for deeper work.
+description: Compare companies in one industry with sourced KPI matrices and research ranking.
 ---
 
 ## Global Rules Capsule (v1)

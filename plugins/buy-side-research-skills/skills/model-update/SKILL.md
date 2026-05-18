@@ -1,6 +1,6 @@
 ---
 name: model-update
-description: Update financial models with new data, quarterly earnings, management guidance, macro changes, or revised assumptions. Adjusts estimates, recalculates valuation, and flags material changes. Use after earnings, guidance updates, or when assumptions need refreshing.
+description: Update a financial model for earnings guidance new data or revised assumptions.
 ---
 
 ## Research Workspace Adapter

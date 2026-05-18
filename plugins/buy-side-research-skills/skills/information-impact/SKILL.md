@@ -1,6 +1,6 @@
 ---
 name: information-impact
-description: Use when checking whether a news item, rumor, supply-chain claim, sell-side note, data point, or expert comment is credible and worth follow-up research.
+description: Check whether a news claim rumor note or data point is credible and research-relevant.
 ---
 
 ## Global Rules Capsule (v1)

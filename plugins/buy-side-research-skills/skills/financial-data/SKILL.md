@@ -1,6 +1,6 @@
 ---
 name: financial-data
-description: Use when fetching or parsing structured company financial data by market and identifier, including SEC, AKShare, EDINET, DART, or openesef/ESEF routes, before modeling or research analysis.
+description: Fetch or parse source-tracked company financial data by market and identifier.
 ---
 
 # Financial Data

@@ -1,6 +1,6 @@
 ---
 name: init-workspace
-description: Use when setting up or repairing a buy-side research workspace folder before research begins, especially when the user asks to initialize, scaffold, bootstrap, or create the standard workspace layout.
+description: Initialize or repair a buy-side research workspace root scaffold and helper scripts.
 ---
 
 # Init Workspace
