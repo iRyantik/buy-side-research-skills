@@ -5,6 +5,7 @@ Deterministic extraction: identity, income_statement, balance_sheet, cash_flow.
 from __future__ import annotations
 
 import datetime as dt
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 from html.parser import HTMLParser
 import importlib.util
@@ -14,9 +15,11 @@ import os
 from pathlib import Path
 import re
 import tempfile
+import time
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from types import SimpleNamespace
 from typing import Any
+import xml.etree.ElementTree as ET
 import zipfile
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -27,6 +30,7 @@ EXTRACTABLE = ["identity", "filing_index", "latest_full_filing", "income_stateme
 OPEN_DART_FINANCIALS_URL = "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json"
 OPEN_DART_LIST_URL = "https://opendart.fss.or.kr/api/list.json"
 OPEN_DART_DOCUMENT_URL = "https://opendart.fss.or.kr/api/document.xml"
+OPEN_DART_CORP_CODE_URL = "https://opendart.fss.or.kr/api/corpCode.xml"
 FLOW_STATEMENTS = ("income_statement", "cash_flow")
 QUARTERLY_REPORT_CODES = (
     ("Q1", "11013"),
@@ -34,6 +38,11 @@ QUARTERLY_REPORT_CODES = (
     ("Q3", "11014"),
     ("FY", "11011"),
 )
+DART_CORP_CACHE_TTL_SECONDS = 30 * 24 * 60 * 60
+DART_CORP_CACHE_REFRESH_ENV = "BSRS_DART_CORP_CACHE_REFRESH"
+ANNUAL_REPORT_TERM = "\uc0ac\uc5c5\ubcf4\uace0\uc11c"
+HALF_YEAR_REPORT_TERM = "\ubc18\uae30\ubcf4\uace0\uc11c"
+QUARTERLY_REPORT_TERM = "\ubd84\uae30\ubcf4\uace0\uc11c"
 
 
 def dependency_available() -> bool:
@@ -62,6 +71,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
         "items_extracted": [],
         "errors": [],
     }
+    timings: dict[str, Any] = {}
 
     import dart_fss as dart
     dart.set_api_key(api_key=api_key)
@@ -69,23 +79,38 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
     # --- identity ---
     corp = None
     if "identity" in items or _needs_provider_context(items):
+        phase_start = time.perf_counter()
         try:
-            years = _years_from_periods(periods_text)
+            years = _years_for_request(periods_text, quarterly)
             corp = _get_corp(identifier, dart, api_key, years)
             result["company"] = {
                 "name": corp.corp_name if hasattr(corp, "corp_name") else str(corp),
                 "stock_code": getattr(corp, "stock_code", identifier),
                 "corp_code": getattr(corp, "corp_code", None),
             }
+            cache_status = getattr(corp, "corp_code_cache_status", None)
+            if cache_status:
+                timings["corp_code_cache_status"] = cache_status
+                cache_age_days = getattr(corp, "corp_code_cache_age_days", None)
+                if cache_age_days is not None:
+                    timings["corp_code_cache_age_days"] = cache_age_days
+                if cache_status == "stale-fallback":
+                    result.setdefault("data_gaps", []).append(
+                        "corp_code_cache: stale-cache-review; using stale ticker-to-corp_code metadata after OpenDART lookup failed"
+                    )
             result["items_extracted"].append("identity")
         except Exception as e:
             result["errors"].append(f"identity: {e}")
+            timings["identity_lookup_seconds"] = _elapsed(phase_start)
+            result["provider_timing"] = timings
             return result
+        timings["identity_lookup_seconds"] = _elapsed(phase_start)
 
     # --- statements ---
     if corp and _needs_statements(items):
+        phase_start = time.perf_counter()
         try:
-            years = _years_from_periods(periods_text)
+            years = _years_for_request(periods_text, quarterly)
             corp_code = getattr(corp, "corp_code", identifier)
             statements, sources, gaps = _fetch_open_dart_statements(api_key, corp_code, years, quarterly=quarterly)
             result["statement_sources"] = sources
@@ -104,26 +129,33 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                     result["items_extracted"].append(item_key)
         except Exception as e:
             result["errors"].append(f"statement_extract: {e}")
+        timings["statement_fetch_seconds"] = _elapsed(phase_start)
 
     # --- filing index / latest full filing ---
     if corp and _needs_filing(items):
+        phase_start = time.perf_counter()
         try:
-            years = _years_from_periods(periods_text)
+            years = _years_for_request(periods_text, quarterly)
             corp_code = getattr(corp, "corp_code", identifier)
             filings = _discover_periodic_filings(api_key, corp_code, years, quarterly=quarterly)
+            timings["filing_discovery_seconds"] = _elapsed(phase_start)
             if not filings:
                 raise RuntimeError(f"periodic filing discovery failed for {corp_code} across years {years}")
             result["filing_documents"] = filings
             if "filing_index" in items:
                 result["items_extracted"].append("filing_index")
             if "latest_full_filing" in items:
+                filing_start = time.perf_counter()
                 filing = _get_filing_text(api_key, corp, filings[0])
+                timings["latest_full_filing_seconds"] = _elapsed(filing_start)
+                timings.update(filing.get("timing", {}) if isinstance(filing, dict) else {})
                 result["filing"] = filing
                 if filing.get("status") == "fetched" and filing.get("markdown"):
                     result["items_extracted"].append("latest_full_filing")
                 else:
                     result["errors"].append(f"latest_full_filing: {filing.get('error', 'markdown unavailable')}")
         except Exception as e:
+            timings.setdefault("filing_discovery_seconds", _elapsed(phase_start))
             result["errors"].append(f"filing_extract: {e}")
 
     if "revenue_split" in items:
@@ -134,6 +166,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
         result["status"] = "partial" if result["errors"] or (_needs_statements(items) and not non_identity) else "success"
     else:
         result["status"] = "provider-gap"
+    result["provider_timing"] = timings
     return result
 
 
@@ -150,28 +183,175 @@ def _get_corp_from_open_dart(identifier: str, api_key: str, years: list[int]) ->
     if re.fullmatch(r"\d{8}", clean):
         return SimpleNamespace(corp_code=clean, stock_code=None, corp_name=clean)
 
+    if re.fullmatch(r"\d{6}", clean):
+        refresh_requested = os.getenv(DART_CORP_CACHE_REFRESH_ENV) == "1"
+        cached_entry = _read_cached_corp_code(clean)
+        cached_age_days = _cache_entry_age_days(cached_entry) if cached_entry else None
+        cached_is_fresh = cached_age_days is not None and cached_age_days <= (DART_CORP_CACHE_TTL_SECONDS / 86400)
+        if cached_entry and cached_is_fresh and not refresh_requested:
+            return _corp_from_cache_entry(cached_entry, "hit", cached_age_days)
+
+        lookup_status = "refresh" if refresh_requested else "stale" if cached_entry else "miss"
+        lookup_error = None
+        direct = None
+        try:
+            direct = _find_corp_code_from_recent_filings(clean, api_key, years)
+        except Exception as exc:
+            lookup_error = exc
+        if direct is not None:
+            _write_cached_corp_code(clean, direct)
+            _annotate_corp_cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
+            return direct
+        if os.getenv("BSRS_DART_ENABLE_CORP_MASTER") == "1":
+            try:
+                direct = _find_corp_code_from_master(clean, api_key)
+            except Exception as exc:
+                lookup_error = exc
+            if direct is not None:
+                _write_cached_corp_code(clean, direct)
+                _annotate_corp_cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
+                return direct
+        if cached_entry and not cached_is_fresh:
+            stale = _corp_from_cache_entry(cached_entry, "stale-fallback", cached_age_days)
+            stale.corp_code_cache_error = str(lookup_error or "OpenDART lookup returned no match")
+            return stale
+    return None
+
+
+def _read_cached_corp_code(stock_code: str) -> dict[str, Any] | None:
+    cache_path, _ = _dart_corp_cache_paths()
+    if not cache_path.exists():
+        return None
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    entry = payload.get(stock_code)
+    if not isinstance(entry, dict):
+        return None
+    if not str(entry.get("corp_code") or "").strip():
+        return None
+    return entry
+
+
+def _write_cached_corp_code(stock_code: str, corp: Any) -> None:
+    cache_path, meta_path = _dart_corp_cache_paths()
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        payload = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
+        if not isinstance(payload, dict):
+            payload = {}
+    except Exception:
+        payload = {}
+
+    fetched_at = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    payload[stock_code] = {
+        "corp_code": str(getattr(corp, "corp_code", "") or "").strip(),
+        "corp_name": str(getattr(corp, "corp_name", "") or "").strip(),
+        "stock_code": stock_code,
+        "source": "OpenDART official ticker lookup",
+        "fetched_at_utc": fetched_at,
+    }
+    _write_json_atomic(cache_path, payload)
+    _write_json_atomic(meta_path, {
+        "schema_version": 1,
+        "updated_at_utc": fetched_at,
+        "ttl_days": round(DART_CORP_CACHE_TTL_SECONDS / 86400),
+        "cache_scope": "KR ticker-to-corp_code metadata only; no statements, filings, receipts, ZIPs, markdown, or research content",
+    })
+
+
+def _dart_corp_cache_paths() -> tuple[Path, Path]:
+    base = os.getenv("LOCALAPPDATA")
+    root = Path(base) if base else Path(tempfile.gettempdir())
+    cache_dir = root / "buy-side-research-skills" / "financial-data-cache" / "dart-corp-code"
+    return cache_dir / "corp-code-map.json", cache_dir / "corp-code-map.meta.json"
+
+
+def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path.replace(path)
+
+
+def _cache_entry_age_days(entry: dict[str, Any] | None) -> float | None:
+    if not entry:
+        return None
+    fetched_at = entry.get("fetched_at_utc")
+    if not fetched_at:
+        return None
+    try:
+        fetched = dt.datetime.fromisoformat(str(fetched_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    now = dt.datetime.now(dt.timezone.utc)
+    return round(max(0.0, (now - fetched).total_seconds() / 86400), 3)
+
+
+def _corp_from_cache_entry(entry: dict[str, Any], status: str, age_days: float | None) -> Any:
+    corp = SimpleNamespace(
+        corp_code=str(entry.get("corp_code") or "").strip(),
+        stock_code=str(entry.get("stock_code") or "").strip(),
+        corp_name=str(entry.get("corp_name") or "").strip(),
+    )
+    _annotate_corp_cache(corp, status, age_days)
+    return corp
+
+
+def _annotate_corp_cache(corp: Any, status: str, age_days: float | None) -> None:
+    corp.corp_code_cache_status = status
+    if age_days is not None:
+        corp.corp_code_cache_age_days = age_days
+
+
+def _find_corp_code_from_recent_filings(stock_code: str, api_key: str, years: list[int]) -> Any | None:
     for bgn_de, end_de in _corp_lookup_windows(years):
         for corp_cls in ("Y", "K"):
-            for page_no in range(1, 51):
-                params = {
-                    "crtfc_key": api_key,
-                    "bgn_de": bgn_de,
-                    "end_de": end_de,
-                    "corp_cls": corp_cls,
-                    "page_no": str(page_no),
-                    "page_count": "100",
-                }
-                with urlopen(OPEN_DART_LIST_URL + "?" + urlencode(params), timeout=30) as response:
-                    payload = json.loads(response.read().decode("utf-8"))
+            for page_no in range(1, 21):
+                try:
+                    params = {
+                        "crtfc_key": api_key,
+                        "bgn_de": bgn_de,
+                        "end_de": end_de,
+                        "corp_cls": corp_cls,
+                        "page_no": str(page_no),
+                        "page_count": "100",
+                    }
+                    with urlopen(OPEN_DART_LIST_URL + "?" + urlencode(params), timeout=12) as response:
+                        payload = json.loads(response.read().decode("utf-8"))
+                except Exception:
+                    break
                 for row in payload.get("list") or []:
-                    if str(row.get("stock_code") or "").strip() == clean:
+                    if str(row.get("stock_code") or "").strip() == stock_code:
                         return SimpleNamespace(
                             corp_code=str(row.get("corp_code") or "").strip(),
-                            stock_code=clean,
+                            stock_code=stock_code,
                             corp_name=str(row.get("corp_name") or "").strip(),
                         )
                 if page_no >= int(payload.get("total_page") or page_no):
                     break
+    return None
+
+
+def _find_corp_code_from_master(stock_code: str, api_key: str) -> Any | None:
+    params = {"crtfc_key": api_key}
+    with urlopen(OPEN_DART_CORP_CODE_URL + "?" + urlencode(params), timeout=60) as response:
+        content = response.read()
+    with zipfile.ZipFile(io.BytesIO(content)) as package:
+        xml_names = [name for name in package.namelist() if name.lower().endswith(".xml")]
+        if not xml_names:
+            raise RuntimeError("OpenDART corpCode.xml package contained no XML file")
+        root = ET.fromstring(package.read(xml_names[0]))
+
+    for node in root.findall(".//list"):
+        row_stock_code = (node.findtext("stock_code") or "").strip()
+        if row_stock_code != stock_code:
+            continue
+        return SimpleNamespace(
+            corp_code=(node.findtext("corp_code") or "").strip(),
+            stock_code=stock_code,
+            corp_name=(node.findtext("corp_name") or "").strip(),
+        )
     return None
 
 
@@ -224,6 +404,14 @@ def _years_from_periods(periods: str) -> list[int]:
     return list(range(today.year - 3, today.year + 1))
 
 
+def _years_for_request(periods: str, quarterly: bool = False) -> list[int]:
+    years = _years_from_periods(periods)
+    if quarterly and not re.findall(r"(20\d{2})", periods):
+        today = dt.date.today()
+        return [today.year, today.year - 1, today.year - 2]
+    return years
+
+
 def _is_quarterly_request(periods: str | None) -> bool:
     token = re.sub(r"[^a-z0-9]+", "", str(periods or "").strip().lower())
     return token in {"latest4q", "last4q", "latest4quarters", "latestfourquarters", "quarterly"}
@@ -249,32 +437,57 @@ def _fetch_open_dart_statements(api_key: str, corp_code: str, years: list[int],
 
     report_codes = QUARTERLY_REPORT_CODES if quarterly else (("FY", "11011"),)
 
-    for year in years:
-        for period_code, report_code in report_codes:
-            rows = []
-            used_fs_div = None
-            for fs_div in ("CFS", "OFS"):
-                payload = _open_dart_financials(api_key, corp_code, year, fs_div, report_code)
-                period_rows = payload.get("list") or []
-                if period_rows:
-                    rows = period_rows
-                    used_fs_div = fs_div
-                    sources.append({
-                        "year": year,
-                        "period_code": period_code,
-                        "reprt_code": report_code,
-                        "fs_div": fs_div,
-                        "row_count": len(period_rows),
-                        "status": payload.get("status"),
-                        "message": payload.get("message"),
-                    })
-                    break
-            if not rows:
-                gaps.append(f"financial_statements_{year}_{period_code}: OpenDART returned no CFS/OFS rows")
-                continue
-            _merge_open_dart_rows(grouped, rows, year, period_code, used_fs_div or "unknown")
+    tasks = [
+        (idx, year, period_code, report_code)
+        for idx, (year, (period_code, report_code)) in enumerate(
+            (year, report_code_pair)
+            for year in years
+            for report_code_pair in report_codes
+        )
+    ]
+    task_results: list[tuple[int, int, str, list[dict[str, Any]], str | None, dict[str, Any] | None, str | None]] = []
+    max_workers = min(6, max(1, len(tasks)))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_map = {
+            executor.submit(_fetch_open_dart_period_rows, api_key, corp_code, year, period_code, report_code): (idx, year, period_code)
+            for idx, year, period_code, report_code in tasks
+        }
+        for future in as_completed(future_map):
+            idx, year, period_code = future_map[future]
+            try:
+                rows, used_fs_div, source, gap = future.result()
+            except Exception as exc:
+                rows, used_fs_div, source, gap = [], None, None, f"financial_statements_{year}_{period_code}: {exc}"
+            task_results.append((idx, year, period_code, rows, used_fs_div, source, gap))
+
+    for _, year, period_code, rows, used_fs_div, source, gap in sorted(task_results, key=lambda item: item[0]):
+        if source:
+            sources.append(source)
+        if gap:
+            gaps.append(gap)
+        if not rows:
+            continue
+        _merge_open_dart_rows(grouped, rows, year, period_code, used_fs_div or "unknown")
 
     return ({key: list(value.values()) for key, value in grouped.items()}), sources, gaps
+
+
+def _fetch_open_dart_period_rows(api_key: str, corp_code: str, year: int,
+                                 period_code: str, report_code: str) -> tuple[list[dict[str, Any]], str | None, dict[str, Any] | None, str | None]:
+    for fs_div in ("CFS", "OFS"):
+        payload = _open_dart_financials(api_key, corp_code, year, fs_div, report_code)
+        period_rows = payload.get("list") or []
+        if period_rows:
+            return period_rows, fs_div, {
+                "year": year,
+                "period_code": period_code,
+                "reprt_code": report_code,
+                "fs_div": fs_div,
+                "row_count": len(period_rows),
+                "status": payload.get("status"),
+                "message": payload.get("message"),
+            }, None
+    return [], None, None, f"financial_statements_{year}_{period_code}: OpenDART returned no CFS/OFS rows"
 
 
 def _derive_quarterly_flow_statements(statements: dict[str, list[dict[str, Any]]]) -> dict[str, list[dict[str, Any]]]:
@@ -356,8 +569,8 @@ def _parse_dart_period(period: str) -> tuple[int, str] | None:
 def _discover_periodic_filings(api_key: str, corp_code: str, years: list[int],
                                quarterly: bool = False) -> list[dict[str, Any]]:
     matches_by_receipt: dict[str, dict[str, Any]] = {}
-    report_terms = ("분기보고서", "반기보고서", "사업보고서") if quarterly else ("사업보고서",)
-    max_results = 4 if quarterly else 1
+    report_terms = (QUARTERLY_REPORT_TERM, HALF_YEAR_REPORT_TERM, ANNUAL_REPORT_TERM) if quarterly else (ANNUAL_REPORT_TERM,)
+    max_results = 1
 
     for bgn_de, end_de in _corp_lookup_windows(years):
         for page_no in range(1, 21):
@@ -421,14 +634,21 @@ def _get_filing_text(api_key: str, corp: Any, filing_meta: dict[str, Any]) -> di
     if not receipt:
         return {"status": "error", "error": "missing OpenDART receipt number"}
     try:
+        zip_start = time.perf_counter()
         package_path = _download_document_zip(api_key, receipt)
+        extract_start = time.perf_counter()
         markdown = _extract_document_markdown(package_path, corp, filing_meta)
+        timing = {
+            "document_zip_download_seconds": _elapsed(zip_start),
+            "markdown_extraction_seconds": _elapsed(extract_start),
+        }
         if not markdown:
             return {
                 "status": "error",
                 "error": "OpenDART document package contained no readable XML/HTML text",
                 "rcept_no": receipt,
                 "local_path": str(package_path),
+                "timing": timing,
             }
         return {
             "rcept_no": receipt,
@@ -443,6 +663,7 @@ def _get_filing_text(api_key: str, corp: Any, filing_meta: dict[str, Any]) -> di
             "markdown_sha256": hashlib.sha256(markdown.encode("utf-8")).hexdigest(),
             "markdown": markdown,
             "status": "fetched",
+            "timing": timing,
         }
     except Exception as e:
         return {
@@ -652,3 +873,7 @@ def _clean_amount(value: Any) -> int | float | None:
             return float(text)
         except ValueError:
             return None
+
+
+def _elapsed(start: float) -> float:
+    return round(time.perf_counter() - start, 3)

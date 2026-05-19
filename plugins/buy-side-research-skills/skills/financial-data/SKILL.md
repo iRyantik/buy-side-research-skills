@@ -164,10 +164,16 @@ Provider matrix：
 | US | EdgarTools / SEC | 三表 + filing markdown + SEC XBRL dimension `revenue_split` when available; split completeness is review-only |
 | CN A-share | AKShare / Eastmoney | 三表 + `stock_zygc_em` 收入拆分；provider-normalized route |
 | HK | Eastmoney HKF10 direct | 三表；结构化收入拆分默认 `provider-gap` |
-| JP | edinet-tools | EDINET route; field coverage may be partial |
-| KR | dart-fss | requires `DART_API_KEY` |
+| JP | EDINET official / edinet-tools | EDINET-only route; no J-Quants/Yahoo fallback; `latest4q` can be partial but must not hang or fake complete coverage |
+| KR | OpenDART official + local corp_code metadata cache | requires `DART_API_KEY`; ticker -> corp_code uses a 30-day local metadata cache, while statements and full filings are fetched live from official APIs |
 | TW | FinMind public API | 三表 best-effort；结构化收入拆分默认 `provider-gap` |
 | EU | openesef | ESEF/iXBRL parser route; ticker-only discovery experimental |
+
+KR / JP source policy:
+
+- KR uses OpenDART official APIs only: a local 30-day metadata cache may store ticker -> corp_code identity mapping under `%LOCALAPPDATA%\buy-side-research-skills\financial-data-cache\dart-corp-code\`, but `fnlttSinglAcntAll.json` statements and `document.xml` full filing ZIP/Markdown are always fetched live. Set `BSRS_DART_CORP_CACHE_REFRESH=1` to force a corp_code metadata refresh. Do not cache KR statements, filing receipt numbers, ZIPs, Markdown, or research results.
+- JP uses EDINET official APIs only. Daily document-list metadata may be cached locally to avoid repeated discovery scans, but the source filing remains the EDINET type=1 ZIP and full filing Markdown is only evidence-ready when that ZIP exists.
+- Yahoo/yfinance is not a source-tracked `financial-data` provider for JP/KR three statements or filings.
 
 Revenue split rule:
 

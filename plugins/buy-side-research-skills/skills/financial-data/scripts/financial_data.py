@@ -182,6 +182,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
     filing_info = provider_result.get("filing", {}) or {}
     errors = list(provider_result.get("errors", []))
     data_gaps = list(provider_result.get("data_gaps", []))
+    provider_timing = provider_result.get("provider_timing", {}) or {}
     gap_by_item = {
         str(gap).split(":", 1)[0].strip(): str(gap).split(":", 1)[1].strip()
         for gap in data_gaps
@@ -222,6 +223,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
         "completeness": completeness_items,
         "errors": errors,
         "data_gaps": data_gaps,
+        "provider_timing": provider_timing,
         "items_extracted": extracted,
         "provider_payload": provider_result,
     }
@@ -813,6 +815,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         "provider_status": normalized["provider_status"],
         "errors": normalized["errors"],
         "data_gaps": normalized.get("data_gaps", []),
+        "provider_timing": normalized.get("provider_timing", {}),
         "items_extracted": normalized["items_extracted"],
     }
     write_json(cache_dir / "cross-check.json", cross_check)
@@ -878,6 +881,7 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
         "completeness": completeness,
         "source_map": source_map,
         "cross_check": cross_check,
+        "provider_timing": cross_check.get("provider_timing", {}),
         "statements": financials or {},
     }
     write_json(internal_dir / "evidence-pack.json", evidence_pack)
@@ -1079,14 +1083,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.check_deps:
-        print(json.dumps(dependency_matrix(), ensure_ascii=False, indent=2))
+        print(json.dumps(dependency_matrix(), ensure_ascii=True, indent=2))
         return 0
 
     if not args.market or not args.identifier:
-        print(json.dumps({"status": "failed", "error": "--market and --identifier required"}, ensure_ascii=False, indent=2))
+        print(json.dumps({"status": "failed", "error": "--market and --identifier required"}, ensure_ascii=True, indent=2))
         return 1
     if args.output_scope == "canonical_company" and not args.company_slug:
-        print(json.dumps({"status": "failed", "error": "--company-slug required for canonical_company"}, ensure_ascii=False, indent=2))
+        print(json.dumps({"status": "failed", "error": "--company-slug required for canonical_company"}, ensure_ascii=True, indent=2))
         return 1
 
     try:
@@ -1108,12 +1112,13 @@ def main() -> int:
             "provider": normalized["provider"],
             "extracted": normalized["items_extracted"],
             "errors": normalized["errors"],
+            "provider_timing": normalized.get("provider_timing", {}),
             "completeness": normalized["completeness"],
             "output": output,
-        }, ensure_ascii=False, indent=2))
+        }, ensure_ascii=True, indent=2))
         return 0
     except Exception as exc:
-        print(json.dumps({"status": "failed", "error": str(exc)}, ensure_ascii=False, indent=2))
+        print(json.dumps({"status": "failed", "error": str(exc)}, ensure_ascii=True, indent=2))
         return 1
 
 

@@ -6,18 +6,26 @@ Deterministic extraction: identity, income_statement, balance_sheet, cash_flow, 
 from __future__ import annotations
 
 import datetime as dt
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from html.parser import HTMLParser
 import importlib.util
+import json
 import os
 from pathlib import Path
 import re
 import tempfile
+import time
 from typing import Any
 import zipfile
 
 
 PROVIDER = "edinet-tools"
 EXTRACTABLE = ["identity", "filing_index", "income_statement", "balance_sheet", "cash_flow", "latest_full_filing", "revenue_split"]
+EDINET_DISCOVERY_BUDGET_SECONDS_QUARTERLY = 160
+EDINET_DISCOVERY_BUDGET_SECONDS_ANNUAL = 90
+EDINET_DISCOVERY_WORKERS = 4
+EDINET_DOCUMENT_LIST_TIMEOUT_SECONDS = 15
+EDINET_DOCUMENT_LIST_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
 
 
 def dependency_available() -> bool:
@@ -46,6 +54,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
         "items_extracted": [],
         "errors": [],
     }
+    timings: dict[str, float] = {}
 
     import edinet_tools as et
 
@@ -54,6 +63,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
     # --- identity ---
     entity = None
     if "identity" in items or _needs_data(items):
+        phase_start = time.perf_counter()
         try:
             entity = et.entity_by_ticker(identifier)
             if not getattr(entity, "edinet_code", None):
@@ -67,23 +77,35 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             result["items_extracted"].append("identity")
         except Exception as e:
             result["errors"].append(f"identity: {e}")
+            timings["identity_lookup_seconds"] = _elapsed(phase_start)
+            result["provider_timing"] = timings
             return result
+        timings["identity_lookup_seconds"] = _elapsed(phase_start)
 
     parsed_reports: list[tuple[Any, dict[str, Any]]] = []
     needs_report = bool({"income_statement", "balance_sheet", "cash_flow", "latest_full_filing"} & set(items))
     if entity and hasattr(entity, "edinet_code") and needs_report:
+        discovery_start = time.perf_counter()
         try:
             years = _years_from_periods(periods_text)
             documents = _discover_report_documents(entity, years, api_key, quarterly=quarterly)
+            timings["filing_discovery_seconds"] = _elapsed(discovery_start)
             if not documents:
                 raise RuntimeError(f"docID discovery failed for {entity.edinet_code} across years {years}")
+            if quarterly and len(documents) < 4:
+                result.setdefault("data_gaps", []).append(
+                    f"latest4q_document_coverage: EDINET discovery found {len(documents)} of 4 target documents"
+                )
+            parse_start = time.perf_counter()
             for document in documents:
                 document_meta = _document_meta(document)
                 parsed_reports.append((document.parse(), document_meta))
+            timings["statement_parse_seconds"] = _elapsed(parse_start)
             result["filing_documents"] = [meta for _, meta in parsed_reports]
             if "filing_index" in items:
                 result["items_extracted"].append("filing_index")
         except Exception as e:
+            timings.setdefault("filing_discovery_seconds", _elapsed(discovery_start))
             result["errors"].append(f"securities_report: {e}")
 
     # --- statements ---
@@ -106,8 +128,11 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 
     # --- latest_full_filing ---
     if "latest_full_filing" in items and parsed_reports and entity and hasattr(entity, "edinet_code"):
+        filing_start = time.perf_counter()
         latest_parsed, latest_meta = parsed_reports[0]
         filing = _get_filing_text(entity, latest_parsed, latest_meta, api_key)
+        timings["latest_full_filing_seconds"] = _elapsed(filing_start)
+        timings.update(filing.get("timing", {}) if isinstance(filing, dict) else {})
         result["filing"] = filing
         if filing.get("status") == "fetched" and filing.get("markdown"):
             result["items_extracted"].append("latest_full_filing")
@@ -125,6 +150,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             result["status"] = "partial" if result["errors"] else "success"
     else:
         result["status"] = "provider-gap"
+    result["provider_timing"] = timings
     return result
 
 
@@ -221,17 +247,24 @@ def _get_filing_text(entity: Any, parsed: Any, document_meta: dict[str, Any],
         if not doc_id:
             return {"status": "error", "error": "missing EDINET document id"}
 
+        zip_start = time.perf_counter()
         package_path = _download_public_doc_zip(str(doc_id), api_key)
+        extract_start = time.perf_counter()
         markdown = _extract_public_doc_markdown(
             package_path=package_path,
             edinet_code=edinet_code,
             document_meta=document_meta,
         )
+        timing = {
+            "document_zip_download_seconds": _elapsed(zip_start),
+            "markdown_extraction_seconds": _elapsed(extract_start),
+        }
         if not markdown:
             return {
                 "status": "error",
                 "error": "EDINET type=1 package contained no readable PublicDoc HTML/XHTML text",
                 "local_path": str(package_path),
+                "timing": timing,
             }
 
         return {
@@ -245,6 +278,7 @@ def _get_filing_text(entity: Any, parsed: Any, document_meta: dict[str, Any],
             "text_length": len(markdown),
             "markdown": markdown,
             "status": "fetched",
+            "timing": timing,
         }
     except Exception as e:
         return {"status": "error", "error": str(e)}
@@ -383,32 +417,51 @@ def _years_from_periods(periods: str) -> list[int]:
 
 def _discover_report_documents(entity: Any, years: list[int], api_key: str | None,
                                quarterly: bool = False) -> list[Any]:
-    from edinet_tools.client import fetch_documents_list
     from edinet_tools.document import Document
 
     last_error = None
     doc_types = {"140", "160", "120"} if quarterly else {"120"}
-    max_documents = 8 if quarterly else 1
+    max_documents = 4 if quarterly else 1
+    budget_seconds = EDINET_DISCOVERY_BUDGET_SECONDS_QUARTERLY if quarterly else EDINET_DISCOVERY_BUDGET_SECONDS_ANNUAL
+    started_at = time.perf_counter()
     matches_by_doc_id: dict[str, dict[str, Any]] = {}
+
+    candidate_dates: list[str] = []
+    seen_dates = set()
     for year in sorted(years, reverse=True):
         for candidate_date in _candidate_filing_dates(year, quarterly=quarterly):
-            try:
-                payload = fetch_documents_list(candidate_date, api_key=api_key, timeout=30, max_retries=1)
-            except Exception as e:
-                last_error = e
+            if candidate_date in seen_dates:
                 continue
-            matches = [
-                item for item in (payload.get("results") or [])
-                if item.get("edinetCode") == entity.edinet_code and item.get("docTypeCode") in doc_types
-            ]
-            for item in matches:
-                doc_id = str(item.get("docID") or "").strip()
-                if doc_id:
-                    matches_by_doc_id[doc_id] = item
-            if len(matches_by_doc_id) >= max_documents:
+            candidate_dates.append(candidate_date)
+            seen_dates.add(candidate_date)
+
+    for batch in _batches(candidate_dates, EDINET_DISCOVERY_WORKERS):
+        if time.perf_counter() - started_at > budget_seconds:
+            if matches_by_doc_id:
                 break
+            raise RuntimeError(f"docID discovery budget exceeded after {budget_seconds}s")
+        with ThreadPoolExecutor(max_workers=min(EDINET_DISCOVERY_WORKERS, len(batch))) as executor:
+            future_map = {
+                executor.submit(_fetch_documents_list_cached, candidate_date, api_key): candidate_date
+                for candidate_date in batch
+            }
+            for future in as_completed(future_map):
+                try:
+                    payload = future.result()
+                except Exception as e:
+                    last_error = e
+                    continue
+                matches = [
+                    item for item in (payload.get("results") or [])
+                    if item.get("edinetCode") == entity.edinet_code and item.get("docTypeCode") in doc_types
+                ]
+                for item in matches:
+                    doc_id = str(item.get("docID") or "").strip()
+                    if doc_id:
+                        matches_by_doc_id[doc_id] = item
         if len(matches_by_doc_id) >= max_documents:
             break
+
     if matches_by_doc_id:
         ordered = sorted(
             matches_by_doc_id.values(),
@@ -417,28 +470,62 @@ def _discover_report_documents(entity: Any, years: list[int], api_key: str | Non
         )[:max_documents]
         return [Document(item) for item in ordered]
     if last_error:
-        raise RuntimeError(f"docID discovery failed after API error: {last_error}")
+        raise RuntimeError(f"docID discovery failed after API/cache error: {last_error}")
     return []
+
+
+def _fetch_documents_list_cached(candidate_date: str, api_key: str | None) -> dict[str, Any]:
+    from edinet_tools.client import fetch_documents_list
+
+    cache_path = _edinet_document_list_cache_path(candidate_date)
+    if cache_path.exists() and time.time() - cache_path.stat().st_mtime < EDINET_DOCUMENT_LIST_CACHE_TTL_SECONDS:
+        try:
+            return json.loads(cache_path.read_text(encoding="utf-8"))
+        except Exception:
+            cache_path.unlink(missing_ok=True)
+    payload = fetch_documents_list(
+        candidate_date,
+        api_key=api_key,
+        timeout=EDINET_DOCUMENT_LIST_TIMEOUT_SECONDS,
+        max_retries=1,
+    )
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return payload
+
+
+def _edinet_document_list_cache_path(candidate_date: str) -> Path:
+    base = os.getenv("LOCALAPPDATA")
+    if base:
+        root = Path(base)
+    else:
+        root = Path(tempfile.gettempdir())
+    return root / "buy-side-research-skills" / "financial-data-cache" / "edinet-document-lists" / f"{candidate_date}.json"
+
+
+def _batches(values: list[str], size: int) -> list[list[str]]:
+    return [values[index:index + size] for index in range(0, len(values), size)]
 
 
 def _candidate_filing_dates(year: int, quarterly: bool = False) -> list[str]:
     today = dt.date.today()
     if quarterly:
         windows = [
-            (dt.date(year + 1, 2, 1), dt.date(year + 1, 2, 20)),
-            (dt.date(year, 11, 1), dt.date(year, 11, 20)),
-            (dt.date(year, 8, 1), dt.date(year, 8, 20)),
-            (dt.date(year, 6, 1), dt.date(year, 7, 15)),
-            (dt.date(year, 5, 1), dt.date(year, 5, 20)),
-            (dt.date(year, 9, 1), dt.date(year, 9, 20)),
-            (dt.date(year, 12, 1), dt.date(year, 12, 20)),
+            (dt.date(year + 1, 2, 7), dt.date(year + 1, 2, 17)),
+            (dt.date(year, 11, 7), dt.date(year, 11, 17)),
+            (dt.date(year, 8, 7), dt.date(year, 8, 17)),
+            (dt.date(year, 6, 20), dt.date(year, 7, 7)),
+            (dt.date(year, 5, 7), dt.date(year, 5, 17)),
+            (dt.date(year, 9, 7), dt.date(year, 9, 17)),
+            (dt.date(year, 12, 7), dt.date(year, 12, 17)),
         ]
     else:
         windows = [
-            (dt.date(year, 6, 1), dt.date(year, 7, 15)),
-            (dt.date(year, 3, 15), dt.date(year, 4, 15)),
-            (dt.date(year, 9, 15), dt.date(year, 10, 15)),
-            (dt.date(year, 12, 15), dt.date(year + 1, 1, 15)),
+            (dt.date(year, 6, 20), dt.date(year, 7, 7)),
+            (dt.date(year, 3, 25), dt.date(year, 4, 10)),
+            (dt.date(year, 5, 15), dt.date(year, 6, 15)),
+            (dt.date(year, 9, 20), dt.date(year, 10, 10)),
+            (dt.date(year, 12, 20), dt.date(year + 1, 1, 10)),
         ]
     dates: list[str] = []
     seen = set()
@@ -494,3 +581,7 @@ def _prior_period(period: str) -> str:
     if not match:
         return "FYprior"
     return f"FY{int(match.group(1)) - 1}"
+
+
+def _elapsed(start: float) -> float:
+    return round(time.perf_counter() - start, 3)
