@@ -47,12 +47,20 @@ import sys
 from typing import Any
 
 
-DEFAULT_ITEMS = ["identity", "filing_index", "latest_full_filing", "income_statement", "balance_sheet", "cash_flow"]
+DEFAULT_ITEMS = ["identity", "filing_index", "latest_full_filing", "income_statement", "balance_sheet", "cash_flow", "revenue_split"]
+FINANCIAL_OUTPUT_KEYS = (
+    "income_statement",
+    "balance_sheet",
+    "cash_flow",
+    "revenue_split",
+    "income_statement_quarterly_derived",
+    "cash_flow_quarterly_derived",
+)
 
 SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot")
 
 # Third-party normalized-data providers: their output is never model-ready
-THIRD_PARTY_PROVIDERS = {"akshare"}
+THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
 OFFICIAL_EVIDENCE_PROVIDERS = {"edgartools", "dart-fss", "edinet-tools", "openesef"}
 
 PROVIDER_MODULES = {
@@ -61,6 +69,7 @@ PROVIDER_MODULES = {
     "hk": "akshare_provider",
     "jp": "edinet_provider",
     "kr": "dart_provider",
+    "tw": "finmind_provider",
     "eu": "openesef_provider",
 }
 
@@ -96,6 +105,7 @@ def dependency_matrix() -> dict[str, Any]:
         "packages": {
             "edgartools": {"available": module_available("edgar"), "install_hint": "pip install edgartools"},
             "akshare": {"available": module_available("akshare"), "install_hint": "pip install akshare"},
+            "finmind": {"available": True, "install_hint": "uses FinMind public HTTP API; no package required"},
             "edinet-tools": {"available": module_available("edinet_tools"), "install_hint": "pip install edinet-tools"},
             "dart-fss": {"available": module_available("dart_fss"), "install_hint": "pip install dart-fss"},
             "openesef": {"available": module_available("openesef"), "install_hint": "pip install openesef"},
@@ -104,6 +114,7 @@ def dependency_matrix() -> dict[str, Any]:
             "EDGAR_IDENTITY": {"configured": bool(os.getenv("EDGAR_IDENTITY"))},
             "DART_API_KEY": {"configured": bool(os.getenv("DART_API_KEY"))},
             "EDINET_API_KEY": {"configured": bool(os.getenv("EDINET_API_KEY"))},
+            "FINMIND_TOKEN": {"configured": bool(os.getenv("FINMIND_TOKEN")), "required": False},
         },
     }
 
@@ -151,6 +162,7 @@ DEFAULT_ITEMS_REQUIRE = (
     "income_statement",
     "balance_sheet",
     "cash_flow",
+    "revenue_split",
 )
 
 
@@ -161,7 +173,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
 
     company = provider_result.get("company", {})
     financials_raw = {}
-    for key in ("income_statement", "balance_sheet", "cash_flow"):
+    for key in FINANCIAL_OUTPUT_KEYS:
         val = provider_result.get(key)
         if val:
             financials_raw[key] = val
@@ -169,6 +181,12 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
 
     filing_info = provider_result.get("filing", {}) or {}
     errors = list(provider_result.get("errors", []))
+    data_gaps = list(provider_result.get("data_gaps", []))
+    gap_by_item = {
+        str(gap).split(":", 1)[0].strip(): str(gap).split(":", 1)[1].strip()
+        for gap in data_gaps
+        if ":" in str(gap)
+    }
     provider_error = provider_result.get("error")
     if provider_error:
         errors.append(str(provider_error))
@@ -189,6 +207,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
             "data_item": item, "status": status_c,
             "source_provider": provider, "period_coverage": request.get("periods", "latest"),
             "model_usable": status_c,
+            "caveat": gap_by_item.get(item, ""),
         })
 
     status = derive_pack_status(provider_status, requested_items, extracted, errors)
@@ -202,6 +221,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
         "filing": filing_info,
         "completeness": completeness_items,
         "errors": errors,
+        "data_gaps": data_gaps,
         "items_extracted": extracted,
         "provider_payload": provider_result,
     }
@@ -210,6 +230,9 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
 def filter_financials_by_period(financials: dict[str, Any], periods: str | None) -> dict[str, Any]:
     if not financials or not periods or periods == "latest":
         return financials
+
+    if is_latest4q_period_filter(str(periods)):
+        return filter_financials_latest_periods(financials, max_periods=4)
 
     allowed_years = parse_fiscal_year_filter(str(periods))
     if not allowed_years:
@@ -228,9 +251,128 @@ def filter_financials_by_period(financials: dict[str, Any], periods: str | None)
             if kept_values:
                 kept = dict(row)
                 kept["values"] = kept_values
+                if isinstance(row.get("metrics"), dict):
+                    kept["metrics"] = {
+                        period: metrics
+                        for period, metrics in row.get("metrics", {}).items()
+                        if period in kept_values
+                    }
+                if isinstance(row.get("source_periods"), dict):
+                    kept["source_periods"] = {
+                        period: sources
+                        for period, sources in row.get("source_periods", {}).items()
+                        if period in kept_values
+                    }
+                if isinstance(row.get("cumulative_values"), dict):
+                    kept["cumulative_values"] = {
+                        period: value
+                        for period, value in row.get("cumulative_values", {}).items()
+                        if period in kept_values
+                    }
+                if isinstance(row.get("period_basis_by_period"), dict):
+                    kept["period_basis_by_period"] = {
+                        period: basis
+                        for period, basis in row.get("period_basis_by_period", {}).items()
+                        if period in kept_values
+                    }
                 kept_rows.append(kept)
         filtered[statement] = kept_rows
     return filtered
+
+
+def is_latest4q_period_filter(periods: str | None) -> bool:
+    token = re.sub(r"[^a-z0-9]+", "", str(periods or "").strip().lower())
+    return token in {"latest4q", "last4q", "latest4quarters", "latestfourquarters", "quarterly"}
+
+
+def filter_financials_latest_periods(financials: dict[str, Any], max_periods: int = 4) -> dict[str, Any]:
+    filtered: dict[str, Any] = {}
+    for statement, rows in financials.items():
+        periods = sorted(
+            {
+                str(period)
+                for row in rows
+                if isinstance(row, dict)
+                for period in (row.get("values", {}) or {}).keys()
+            },
+            key=period_sort_key,
+            reverse=True,
+        )[:max_periods]
+        allowed = set(periods)
+        kept_rows = []
+        for row in rows:
+            values = row.get("values", {}) if isinstance(row, dict) else {}
+            kept_values = {
+                period: value
+                for period, value in values.items()
+                if str(period) in allowed
+            }
+            if kept_values:
+                kept = dict(row)
+                kept["values"] = kept_values
+                if isinstance(row.get("metrics"), dict):
+                    kept["metrics"] = {
+                        period: metrics
+                        for period, metrics in row.get("metrics", {}).items()
+                        if str(period) in allowed
+                    }
+                if isinstance(row.get("source_periods"), dict):
+                    kept["source_periods"] = {
+                        period: sources
+                        for period, sources in row.get("source_periods", {}).items()
+                        if str(period) in allowed
+                    }
+                if isinstance(row.get("cumulative_values"), dict):
+                    kept["cumulative_values"] = {
+                        period: value
+                        for period, value in row.get("cumulative_values", {}).items()
+                        if str(period) in allowed
+                    }
+                if isinstance(row.get("period_basis_by_period"), dict):
+                    kept["period_basis_by_period"] = {
+                        period: basis
+                        for period, basis in row.get("period_basis_by_period", {}).items()
+                        if str(period) in allowed
+                    }
+                kept_rows.append(kept)
+        filtered[statement] = kept_rows
+    return filtered
+
+
+def period_sort_key(label: Any) -> tuple[int, int, int, int, str]:
+    """Sort period labels from multiple providers without inventing periods."""
+    text = str(label or "").strip()
+    date_match = re.search(r"(20\d{2}|19\d{2})[-/.](\d{1,2})[-/.](\d{1,2})", text)
+    if date_match:
+        year = int(date_match.group(1))
+        month = int(date_match.group(2))
+        day = int(date_match.group(3))
+        quarter = max(1, min(4, (month - 1) // 3 + 1))
+        return (year, quarter, month, day, text)
+
+    year_match = re.search(r"(20\d{2}|19\d{2})", text)
+    year = int(year_match.group(1)) if year_match else 0
+    quarter = 4
+    month = 12
+    day = 31
+
+    q_match = re.search(r"[Qq]([1-4])", text)
+    if q_match:
+        quarter = int(q_match.group(1))
+        month = quarter * 3
+        day = 31 if quarter in {1, 4} else 30
+    elif re.search(r"[Hh]1|中报|半年|半期|二季|第二季", text):
+        quarter, month, day = 2, 6, 30
+    elif re.search(r"[Hh]2", text):
+        quarter, month, day = 4, 12, 31
+    elif re.search(r"一季|第一季", text):
+        quarter, month, day = 1, 3, 31
+    elif re.search(r"三季|第三季", text):
+        quarter, month, day = 3, 9, 30
+    elif re.search(r"年报|年度|annual|FY", text, flags=re.IGNORECASE):
+        quarter, month, day = 4, 12, 31
+
+    return (year, quarter, month, day, text)
 
 
 def parse_fiscal_year_filter(periods: str) -> set[int]:
@@ -246,7 +388,7 @@ def parse_fiscal_year_filter(periods: str) -> set[int]:
 
 
 def fiscal_year_from_label(label: str) -> int | None:
-    match = re.search(r"\b(20\d{2}|19\d{2})\b", str(label))
+    match = re.search(r"(20\d{2}|19\d{2})", str(label))
     if not match:
         return None
     return int(match.group(1))
@@ -259,11 +401,12 @@ def item_materialized(item: str, provider_result: dict[str, Any],
         return bool(provider_result.get("company"))
     if item == "filing_index":
         filing = provider_result.get("filing", {}) or {}
-        return bool(filing) and filing.get("status") != "error"
+        filing_documents = provider_result.get("filing_documents") or []
+        return (bool(filing) and filing.get("status") != "error") or bool(filing_documents)
     if item == "latest_full_filing":
         filing = provider_result.get("filing", {}) or {}
         return bool(filing.get("markdown"))
-    if item in ("income_statement", "balance_sheet", "cash_flow"):
+    if item in ("income_statement", "balance_sheet", "cash_flow", "revenue_split"):
         if financials_raw is not None:
             return bool(financials_raw.get(item))
         return bool(provider_result.get(item))
@@ -277,6 +420,8 @@ def confidence_determine(item: str, provider_result: dict[str, Any]) -> str:
         return "provider-normalized-review"
     if provider in OFFICIAL_EVIDENCE_PROVIDERS and item in ("identity", "filing_index", "latest_full_filing"):
         return "evidence-ready"
+    if item == "revenue_split":
+        return provider_result.get("revenue_split_completeness_status", "available-review") if provider_result.get(item) else "provider-gap"
     if item in ("income_statement", "balance_sheet", "cash_flow"):
         return "model-ready" if provider_result.get(item) else "provider-gap"
     return "provider-gap"
@@ -338,6 +483,34 @@ def build_financials_markdown(financials: dict[str, Any]) -> str:
         if vals:
             periods_str = ", ".join(f"{p}: {v}" for p, v in sorted(vals.items()) if v is not None)
             lines.append(f"- {lbl}: {periods_str}")
+    lines.extend(["", "## Revenue Split", ""])
+    split_rows = financials.get("revenue_split", [])
+    if split_rows:
+        for row in split_rows:
+            lbl = row.get("label", "")
+            split_type = row.get("split_type", "")
+            vals = row.get("values", {})
+            if vals:
+                periods_str = ", ".join(f"{p}: {v}" for p, v in sorted(vals.items()) if v is not None)
+                prefix = f"{split_type} / " if split_type else ""
+                lines.append(f"- {prefix}{lbl}: {periods_str}")
+    else:
+        lines.append("- No structured revenue split extracted.")
+    derived_sections = [
+        ("income_statement_quarterly_derived", "Income Statement - Quarter-Only Derived"),
+        ("cash_flow_quarterly_derived", "Cash Flow - Quarter-Only Derived"),
+    ]
+    for key, title in derived_sections:
+        rows = financials.get(key, [])
+        if not rows:
+            continue
+        lines.extend(["", f"## {title}", "", "_Derived from cumulative OpenDART reporting periods; original cumulative statements are retained._", ""])
+        for row in rows:
+            lbl = row.get("label", "")
+            vals = row.get("values", {})
+            if vals:
+                periods_str = ", ".join(f"{p}: {v}" for p, v in sorted(vals.items()) if v is not None)
+                lines.append(f"- {lbl}: {periods_str}")
     return "\n".join(lines)
 
 
@@ -393,7 +566,7 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
 
     lines.extend(["", "## Structured Actuals", ""])
     if statements:
-        for statement in ("income_statement", "balance_sheet", "cash_flow"):
+        for statement in FINANCIAL_OUTPUT_KEYS:
             rows = statements.get(statement, [])
             periods = sorted({
                 period
@@ -401,6 +574,23 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
                 for period in (row.get("values", {}) if isinstance(row, dict) else {}).keys()
             })
             lines.append(f"- `{statement}`: {len(rows)} rows; periods: {', '.join(periods) if periods else 'none'}")
+        derived_rows = {
+            key: statements.get(key, [])
+            for key in ("income_statement_quarterly_derived", "cash_flow_quarterly_derived")
+            if statements.get(key)
+        }
+        if derived_rows:
+            lines.extend(["", "## Derived Quarter-Only KR Flow Statements", ""])
+            lines.append("- OpenDART Q1/H1/Q3/FY flow statements can be cumulative; original cumulative rows are retained.")
+            lines.append("- Derived rows are calculated as `Q1 = Q1`, `Q2 = H1 - Q1`, `Q3 = Q3_YTD - H1`, `Q4 = FY - Q3_YTD`.")
+            lines.append("- Balance sheet is not derived because it is a point-in-time statement.")
+            for statement, rows in derived_rows.items():
+                periods = sorted({
+                    period
+                    for row in rows
+                    for period in (row.get("values", {}) if isinstance(row, dict) else {}).keys()
+                })
+                lines.append(f"- `{statement}`: {len(rows)} rows; derived periods: {', '.join(periods) if periods else 'none'}")
     else:
         lines.append("- No structured statement rows were materialized.")
 
@@ -420,6 +610,11 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
         lines.extend(["", "## Errors / Caveats", ""])
         for err in cross_check.get("errors", []):
             lines.append(f"- {err}")
+    if cross_check.get("data_gaps"):
+        if not cross_check.get("errors"):
+            lines.extend(["", "## Errors / Caveats", ""])
+        for gap in cross_check.get("data_gaps", []):
+            lines.append(f"- {gap}")
 
     return "\n".join(lines) + "\n"
 
@@ -447,40 +642,110 @@ def _build_source_map(provider: str, filing: dict, financials: dict,
     """Build source-map.json tracing each data dimension to its source."""
     entries = []
     completeness_by_item = {item["data_item"]: item for item in completeness}
+    filing_source_id = _source_id_from_filing(filing)
+    filing_url = filing.get("filing_url") or filing.get("source_url") if filing else ""
 
     # Filing-level source
     if filing and filing.get("status") != "error":
         entries.append({
             "data_item": "filing_index",
             "provider": provider,
-            "source_id": filing.get("accession_number", ""),
+            "source_id": filing_source_id,
             "filing_date": filing.get("filing_date", ""),
-            "filing_url": filing.get("filing_url", ""),
+            "filing_url": filing_url,
             "confidence": completeness_by_item.get("filing_index", {}).get("status", "provider-gap"),
         })
         if filing.get("markdown"):
             entries.append({
                 "data_item": "latest_full_filing",
                 "provider": provider,
-                "source_id": filing.get("accession_number", ""),
+                "source_id": filing_source_id,
                 "sha256": filing.get("markdown_sha256", ""),
+                "source_package_type": filing.get("source_package_type", ""),
+                "source_url": filing_url,
                 "confidence": completeness_by_item.get("latest_full_filing", {}).get("status", "provider-gap"),
             })
 
     # Statement-level source
-    for stmt_type in ("income_statement", "balance_sheet", "cash_flow"):
+    for stmt_type in FINANCIAL_OUTPUT_KEYS:
         rows = financials.get(stmt_type, [])
+        first_row = rows[0] if rows else {}
         entry = {
             "data_item": stmt_type,
             "provider": provider,
             "record_count": len(rows),
-            "confidence": completeness_by_item.get(stmt_type, {}).get("status", "provider-gap"),
+            "confidence": completeness_by_item.get(stmt_type, {}).get("status", first_row.get("confidence", "provider-gap")),
         }
         if rows:
-            entry["source_id"] = filing.get("accession_number", "")
+            entry["source_id"] = filing_source_id
+            if first_row.get("source_type"):
+                entry["source_type"] = first_row.get("source_type")
+            if first_row.get("derivation"):
+                entry["derivation"] = first_row.get("derivation")
+            if stmt_type == "revenue_split":
+                entry["concepts"] = sorted({
+                    str(row.get("concept"))
+                    for row in rows
+                    if isinstance(row, dict) and row.get("concept")
+                })
+                entry["axes"] = sorted({
+                    str(row.get("axis"))
+                    for row in rows
+                    if isinstance(row, dict) and row.get("axis")
+                })
+                entry["members_sample"] = sorted({
+                    str(row.get("member") or row.get("label"))
+                    for row in rows[:25]
+                    if isinstance(row, dict) and (row.get("member") or row.get("label"))
+                })
+                entry["split_types"] = sorted({
+                    str(row.get("split_type"))
+                    for row in rows
+                    if isinstance(row, dict) and row.get("split_type")
+                })
+                entry["axis_count"] = len(entry["axes"])
+                entry["extraction_methods"] = sorted({
+                    str(row.get("extraction_method"))
+                    for row in rows
+                    if isinstance(row, dict) and row.get("extraction_method")
+                })
+                entry["model_bucket_hints"] = sorted({
+                    str(row.get("model_bucket_hint"))
+                    for row in rows
+                    if isinstance(row, dict) and row.get("model_bucket_hint")
+                })
+                entry["review_required"] = any(
+                    bool(row.get("review_required"))
+                    for row in rows
+                    if isinstance(row, dict)
+                )
+                reconciliation_statuses = sorted({
+                    str(row.get("reconciliation_status") or row.get("axis_completeness_status"))
+                    for row in rows
+                    if isinstance(row, dict) and (row.get("reconciliation_status") or row.get("axis_completeness_status"))
+                })
+                if reconciliation_statuses:
+                    entry["reconciliation_statuses"] = reconciliation_statuses
+                    entry["reconciliation_status"] = (
+                        "partial-review" if "partial-review" in reconciliation_statuses
+                        else "unreconciled-review" if "unreconciled-review" in reconciliation_statuses
+                        else reconciliation_statuses[0]
+                    )
+                if first_row.get("completeness_status"):
+                    entry["revenue_split_completeness_status"] = first_row.get("completeness_status")
         entries.append(entry)
 
     return {"entries": entries, "source_provider": provider}
+
+
+def _source_id_from_filing(filing: dict | None) -> str:
+    if not filing:
+        return ""
+    for key in ("accession_number", "document_id", "doc_id", "rcept_no", "edinet_code", "corp_code", "source_sha256", "markdown_sha256"):
+        value = filing.get(key)
+        if value:
+            return str(value)
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -547,6 +812,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         "status": status,
         "provider_status": normalized["provider_status"],
         "errors": normalized["errors"],
+        "data_gaps": normalized.get("data_gaps", []),
         "items_extracted": normalized["items_extracted"],
     }
     write_json(cache_dir / "cross-check.json", cross_check)
@@ -602,6 +868,9 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
             "status": filing.get("status", "unavailable") if filing else "unavailable",
             "accession_number": filing.get("accession_number") if filing else None,
             "document_id": filing.get("document_id") if filing else None,
+            "rcept_no": filing.get("rcept_no") if filing else None,
+            "report_name": filing.get("report_name") if filing else None,
+            "source_package_type": filing.get("source_package_type") if filing else None,
             "filing_date": filing.get("filing_date") if filing else None,
             "source_url": filing.get("filing_url", filing.get("source_url")) if filing else None,
             "has_full_filing_markdown": bool(filing_md),
@@ -609,6 +878,7 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
         "completeness": completeness,
         "source_map": source_map,
         "cross_check": cross_check,
+        "statements": financials or {},
     }
     write_json(internal_dir / "evidence-pack.json", evidence_pack)
 
@@ -643,6 +913,13 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
         "latest_raw_evidence_path": str(raw_dir),
         "latest_run_cache_path": str(cache_dir),
     })
+    alias_raw_dir = internal_dir / "_raw"
+    if alias_raw_dir.exists():
+        if alias_raw_dir.is_dir():
+            shutil.rmtree(alias_raw_dir)
+        else:
+            alias_raw_dir.unlink()
+    shutil.copytree(raw_dir, alias_raw_dir)
 
     if filing:
         write_json(internal_dir / "filing-index.json", filing)
@@ -699,6 +976,9 @@ def write_raw_evidence_pack(raw_dir: Path, provider: str, company: dict[str, Any
         "filing_url": filing.get("filing_url", filing.get("source_url")),
         "local_path": filing.get("local_path"),
         "accession_number": filing.get("accession_number"),
+        "rcept_no": filing.get("rcept_no"),
+        "report_name": filing.get("report_name"),
+        "report_code": filing.get("report_code"),
         "edinet_code": filing.get("edinet_code"),
         "doc_type": filing.get("doc_type"),
         "source_file": source_path.name,
@@ -710,6 +990,7 @@ def _filing_id(provider: str, filing: dict[str, Any]) -> str:
     candidates = [
         filing.get("accession_number"),
         filing.get("document_id"),
+        filing.get("rcept_no"),
         filing.get("edinet_code"),
         filing.get("corp_code"),
         filing.get("source_sha256"),
@@ -783,7 +1064,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--output-scope", choices=("canonical_company", "current_topic_snapshot"), default="canonical_company")
     p.add_argument("--company-slug")
     p.add_argument("--topic")
-    p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "eu"), help="Market route")
+    p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu"), help="Market route")
     p.add_argument("--identifier", help="Ticker, CIK, filing URL, or market-specific identifier")
     p.add_argument("--identifier-type", default="ticker", choices=("ticker", "isin", "lei", "cik", "edinet_code", "dart_corp_code", "filing_url", "local_esef_package"))
     p.add_argument("--canonical-id")

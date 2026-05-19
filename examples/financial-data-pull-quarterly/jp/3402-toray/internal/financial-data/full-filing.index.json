@@ -1,0 +1,6 @@
+{
+  "source": "https://disclosure.edinet-fsa.go.jp/api/v2/documents/S100X38C",
+  "total_chars": 825,
+  "num_chunks": 1,
+  "chunk_size": 12000
+}

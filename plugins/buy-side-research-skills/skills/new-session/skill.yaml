@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'new-session'
 id: 'new-session'
 display_name: 'New Session'
 version: '2.1.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'

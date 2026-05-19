@@ -15,7 +15,7 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或查原文时再进入 `internal/evidence-pack.json`、`internal/source-map.json` 或 `internal/full-filing.md`。
+- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md` 和 `internal/actuals-resolved.json`；需要审计或查原文时再进入 `internal/evidence-pack.json`、`internal/source-map.json` 或 `internal/full-filing.md`。
 
 # Driver Map
 
@@ -40,6 +40,19 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 - **未披露 driver 只能写成 proxy 或 assumption**，必须标 `[来源待补]` / `[需查证]`，不能写成 company fact。
 - **卖方拆分、行业图谱、专家访谈可以作线索**，但关键 driver 仍要回到 filing、IR、earnings call、transcript、监管文件或明确数据源。
 - **多个 source 冲突时必须标冲突**，尤其是 10-K vs IR deck、press release vs call、公司口径 vs peer 口径。
+
+## Financial-Data 联动
+
+`financial-data` 是本 skill 的 preferred upstream input，但不能替代 driver 判断。
+
+读取顺序：
+
+1. 先读 `topics/company/<company-slug>/_cache/financial-data/internal/actuals-resolved.json`。
+2. 如果 `statements.revenue_split` 存在且非空，直接 review 其披露口径：`source_type = official-xbrl-dimension` 标为 `provider-structured`，`source_type = filing-table-extracted-review` 标为 `provider-table-review`，再转成 model bucket。
+3. 如果 `revenue_split` 缺失或为空，读 `internal/evidence-pack.json` / `internal/completeness.json` 确认缺口，再读 `internal/full-filing.md`，用 LLM 从原文抽 disclosed revenue split，并标为 `llm-extracted-review`。
+4. 如果原文也没有披露，标为 `not-disclosed`；不能编造 segment、product 或 geography split。
+
+本 skill 可以改变收入 bucket 的建模处理方式，但不能覆盖 `financial-data` 的 completeness。`provider-structured`、`provider-table-review`、`provider-normalized-review`、`llm-extracted-review` 和 `not-disclosed` 必须在 `driver-map.md` 和 `internal/driver-map.json` 中分清。若 `revenue_split` row 标有 `review_required: true`，必须由 LLM 解释 axis/member 并映射 model bucket，不能直接当作最终建模口径。
 
 ## Parallel Evidence Pass
 
@@ -219,6 +232,8 @@ topics/company/<company-slug>/_cache/driver-map/
 ```
 
 `driver-map.md` 是人和 LLM 的默认入口，必须明确推荐模型类型：DCF、comps、sum-of-the-parts、3-statement only、update existing model，或“不适合建模 / 先补数据”。`internal/driver-map.json` 至少包含 `segment_geography_treatment`、`revenue_drivers`、`margin_drivers`、`model_treatment`、`recommended_model_modules`、`valuation_methods`、`confidence_source_status`。
+
+如果使用了 `financial-data`，`internal/driver-map.json` 还必须在 `confidence_source_status` 或相邻字段中记录收入拆分来源：`provider-structured`、`provider-table-review`、`llm-extracted-review` 或 `not-disclosed`。
 
 如果当前没有 company topic，先 handoff 到 `new-session` 创建 / 解析路径，不要自行发明大量目录。theme / industry / pair topic 只链接或摘要 company cache，不保存第二套 canonical company driver-map。
 

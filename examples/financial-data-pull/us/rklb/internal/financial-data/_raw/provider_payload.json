@@ -8,7 +8,8 @@
     "latest_full_filing",
     "income_statement",
     "balance_sheet",
-    "cash_flow"
+    "cash_flow",
+    "revenue_split"
   ],
   "items_extracted": [
     "identity",
@@ -1035,6 +1036,9 @@
       },
       "depth": 1
     }
+  ],
+  "data_gaps": [
+    "revenue_split: SEC segment/geography extraction requires a dedicated XBRL dimensions or filing-table parser"
   ],
   "status": "success"
 }

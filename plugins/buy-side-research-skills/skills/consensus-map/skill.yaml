@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'consensus-map'
 id: 'consensus-map'
 display_name: 'Consensus Map'
 version: '1.0.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

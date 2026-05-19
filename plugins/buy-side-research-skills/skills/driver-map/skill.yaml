@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'driver-map'
 id: 'driver-map'
 display_name: 'Driver Map'
 version: '1.1.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -50,6 +50,10 @@ capabilities:
     - 'map business reality to model drivers'
     - 'flag model-driver gaps and weird disclosure'
     - 'write public driver-map.md and internal/driver-map.json with segment/geography treatment, revenue drivers, margin drivers, valuation methods, model type recommendation, and confidence/source status when saving for modeling'
+    - 'read financial-data internal/actuals-resolved.json first; use statements.revenue_split when present'
+    - 'fallback to internal/full-filing.md for LLM extraction only when structured revenue_split is missing'
+    - 'label revenue split source as provider-structured, provider-table-review, llm-extracted-review, or not-disclosed'
+    - 'when financial-data revenue_split rows have review_required true, map axis/member labels to model buckets before modeling'
     - 'hand off company foundation or disclosure evolution history to company-primer'
     - 'hand off field evidence gaps to primary-research-plan'
     - 'do not perform DCF or comps'

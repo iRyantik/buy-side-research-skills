@@ -1,4 +1,4 @@
 {
-  "latest_raw_evidence_path": "internal/financial-data/_raw",
-  "latest_run_cache_path": "internal/financial-data"
+  "latest_raw_evidence_path": "C:\\Users\\M\\AppData\\Local\\Temp\\bsrs-financial-data-smoke\\topics\\company\\rklb\\_raw\\datasets\\financial-data\\us\\rklb\\20260518T074010Z",
+  "latest_run_cache_path": "C:\\Users\\M\\AppData\\Local\\Temp\\bsrs-financial-data-smoke\\topics\\company\\rklb\\_cache\\datasets\\financial-data\\us\\rklb\\20260518T074010Z"
 }

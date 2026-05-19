@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'next-step'
 id: 'next-step'
 display_name: 'Next Step'
 version: '1.2.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

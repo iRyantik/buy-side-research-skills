@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'peer-deep-dive'
 id: 'peer-deep-dive'
 display_name: 'Peer Deep Dive'
 version: '1.0.2'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

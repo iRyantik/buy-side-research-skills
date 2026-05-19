@@ -316,7 +316,7 @@ name: skill-name
 id: skill-name
 display_name: Skill Name
 version: 1.0.0
-system_generation: 3.9.0
+system_generation: 3.10.0
 author: buy-side-research-system
 namespace: research.equity
 category: research
@@ -535,6 +535,6 @@ Operations skill：
 ## 文档版本
 
 - **版本**：v1.1
-- **基于**：buy-side-research-skills v3.9.0
+- **基于**：buy-side-research-skills v3.10.0
 - **最后更新**：2026-05-10
 - **维护者**：用户（user）

@@ -1,0 +1,13 @@
+{
+  "provider": "akshare",
+  "company": {
+    "ticker": "09868",
+    "input_ticker": "09868",
+    "market": "hk",
+    "display_name": "unknown",
+    "name_status": "unavailable",
+    "provider": "akshare"
+  },
+  "captured_at_utc": "2026-05-18T08:55:35+00:00",
+  "status": "available"
+}

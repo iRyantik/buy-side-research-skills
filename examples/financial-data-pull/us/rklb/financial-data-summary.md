@@ -1,42 +1,48 @@
-# RKLB Financial Data Summary
+# Rocket Lab Corp Financial Data Summary
 
 **Conclusion**
 
 - Status: `success`
 - Market / identifier: `us` / `RKLB`
-- Provider: `edgartools / SEC`
-- Period coverage: `FY2023-FY2025`
-- Source filing: FY2025 Form 10-K, filed 2026-02-26, accession `0001819994-26-000013`
-- SEC URL: https://www.sec.gov/Archives/edgar/data/1819994/000181999426000013/rklb-20251231.htm
-- Internal machine data: `internal/financial-data/`
+- Provider: `edgartools`
+- Period filter: `FY2023-FY2025`
+- Latest run cache: `C:\Users\M\AppData\Local\Temp\bsrs-financial-data-smoke\topics\company\rklb\_cache\datasets\financial-data\us\rklb\20260518T074010Z`
+- Internal machine data: `internal/`
+
+## Filing
+
+- Filing status: `fetched`
+- Filing date: `2026-02-26`
+- Accession / document id: `0001819994-26-000013`
+- Full filing retained internally: `True`
 
 ## Completeness Matrix
 
-| Data item | Status | Source/provider | Period coverage | Model usable? | Caveat |
+| Data item | Status | Provider | Period coverage | Model usable | Caveat |
 |---|---|---|---|---|---|
-| Identity | evidence-ready | SEC / EdgarTools | FY2023-FY2025 | yes | Company identity resolved from SEC data. |
-| Filing index | evidence-ready | SEC / EdgarTools | FY2023-FY2025 | yes | Latest 10-K identified and indexed. |
-| Latest full filing | evidence-ready | SEC / EdgarTools | FY2025 10-K | yes, for evidence review | Full filing is retained internally, not exposed as a top-level artifact. |
-| Income statement | model-ready | SEC XBRL | FY2023-FY2025 | yes | Use `internal/financial-data/actuals-resolved.json` for machine input. |
-| Balance sheet | model-ready | SEC XBRL | FY2023-FY2025 | yes | Use `internal/financial-data/actuals-resolved.json` for machine input. |
-| Cash flow | model-ready | SEC XBRL | FY2023-FY2025 | yes | Use `internal/financial-data/actuals-resolved.json` for machine input. |
+| identity | evidence-ready | edgartools | FY2023-FY2025 | evidence-ready |  |
+| filing_index | evidence-ready | edgartools | FY2023-FY2025 | evidence-ready |  |
+| latest_full_filing | evidence-ready | edgartools | FY2023-FY2025 | evidence-ready |  |
+| income_statement | model-ready | edgartools | FY2023-FY2025 | model-ready |  |
+| balance_sheet | model-ready | edgartools | FY2023-FY2025 | model-ready |  |
+| cash_flow | model-ready | edgartools | FY2023-FY2025 | model-ready |  |
+| revenue_split | provider-gap | edgartools | FY2023-FY2025 | provider-gap | SEC segment/geography extraction requires a dedicated XBRL dimensions or filing-table parser |
 
 ## Structured Actuals
 
-- `income_statement`: FY2023, FY2024, FY2025 rows extracted.
-- `balance_sheet`: FY2023, FY2024, FY2025 rows extracted.
-- `cash_flow`: FY2023, FY2024, FY2025 rows extracted.
-- Missing/unmapped policy: leave blank and flag review; never fill missing values with zero.
+- `income_statement`: 25 rows; periods: FY 2023, FY 2024, FY 2025
+- `balance_sheet`: 30 rows; periods: FY 2023, FY 2024, FY 2025
+- `cash_flow`: 37 rows; periods: FY 2023, FY 2024, FY 2025
+- `revenue_split`: 0 rows; periods: none
 
-## Internal Files
+## Model Input Policy
 
-Machine-readable data and audit evidence are intentionally internal:
+- Public surface is Markdown-only: this summary is the default file for humans and LLMs.
+- Machine inputs are under `internal/`; modeling scripts should read JSON there and must not parse this Markdown for numbers.
+- Missing or unmapped actuals must stay blank and be flagged for review; never convert them to zero.
+- Unmapped / unavailable items:
+  - `revenue_split`: `provider-gap`
 
-- `internal/financial-data/actuals-resolved.json`
-- `internal/financial-data/evidence-pack.json`
-- `internal/financial-data/financials.normalized.json`
-- `internal/financial-data/full-filing.md`
-- `internal/financial-data/completeness.json`
-- `internal/financial-data/source-map.json`
-- `internal/financial-data/cross-check.json`
-- `internal/financial-data/_raw/`
+## Errors / Caveats
+
+- revenue_split: SEC segment/geography extraction requires a dedicated XBRL dimensions or filing-table parser

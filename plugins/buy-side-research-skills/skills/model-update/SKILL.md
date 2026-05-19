@@ -14,6 +14,8 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Separate reported actuals, revised assumptions, and formula changes. Do not plug missing or unmapped actuals as zero, and do not overwrite a workbook without a visible update map.
 
+If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cash_flow_quarterly_derived`, use those rows for single-quarter reported flow updates; keep the original cumulative rows as audit evidence. Never derive or subtract balance sheet rows because they are point-in-time values.
+
 ## Model Sub-Agent Protocol
 
 This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook or update map, valuation verdict, model treatment, change classification, and delivery decision.

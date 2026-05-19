@@ -35,6 +35,12 @@
       "record_count": 37,
       "confidence": "model-ready",
       "source_id": "0001819994-26-000013"
+    },
+    {
+      "data_item": "revenue_split",
+      "provider": "edgartools",
+      "record_count": 0,
+      "confidence": "provider-gap"
     }
   ],
   "source_provider": "edgartools"

@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "provider_status": "success",
+  "errors": [],
+  "data_gaps": [
+    "revenue_split: no stable structured EDINET revenue split parser in this route"
+  ],
+  "items_extracted": [
+    "identity",
+    "filing_index",
+    "income_statement",
+    "balance_sheet",
+    "cash_flow",
+    "latest_full_filing"
+  ]
+}

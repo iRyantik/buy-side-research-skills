@@ -1,0 +1,11 @@
+{
+  "provider": "edinet-tools",
+  "filing_id": "s100x38c",
+  "status": "fetched",
+  "filing_url": "https://disclosure.edinet-fsa.go.jp/api/v2/documents/S100X38C",
+  "local_path": null,
+  "accession_number": null,
+  "edinet_code": "E00873",
+  "doc_type": "160",
+  "source_file": "source.md"
+}

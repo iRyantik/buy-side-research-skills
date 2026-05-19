@@ -7,7 +7,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 `financial-data` 把各市场可机器读取的财务数据变成 source-tracked evidence pack。它是 operations skill，不是研究 skill：只负责拉取、解析、标准化、标注完整性和写入 `_cache/datasets/financial-data/`，不解释投资含义、不做 forecast、不替代 `driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`。
 
-核心产物不是“看起来完整的三表”，而是“哪些字段真的可用、来自哪里、能不能进模型”。如果 provider 没有 segment revenue、geography split、share count 或 net debt，本 skill 必须把缺口写进 `completeness.json` 和 `financials.md`，不能用推断补齐。
+核心产物不是“看起来完整的三表”，而是“哪些字段真的可用、来自哪里、能不能进模型”。V1 默认抓三表；如果 provider 能结构化抓到收入拆分，就把它写进 `actuals-resolved.json` 的 `statements.revenue_split`；如果不能，就只标 `revenue_split = provider-gap` 并保留 filing / annual report 原文供 `driver-map` 用 LLM 抽。不能用推断补齐。
 
 ## 心法
 
@@ -26,7 +26,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 - 保存 raw provider payload 到 `_raw/datasets/financial-data/`，保存 normalized evidence pack 到 `_cache/datasets/financial-data/`。
 - raw evidence 层至少包含 `provider_payload.json`、`identity-source.json`；存在真实 filing source 时还要写 `filings/<filing-id>/source.*`、`source-metadata.json`、`source.sha256`。
 - 生成 public `financial-data-summary.md`；机器文件进入 `internal/`，包括 `evidence-pack.json`、`actuals-resolved.json`、`full-filing.md`、`manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json`、`source-map.json` 和 `cross-check.json`。
-- 输出字段级 completeness matrix：三表、segment revenue、geography split、share count、net debt 分开标状态。
+- 输出字段级 completeness matrix：三表和 `revenue_split` 分开标状态。
 - 支持 current topic snapshot：`topics/<topic>/_cache/datasets/financial-data-snapshot/<run-id>/`。
 - 对 dependency gap、credential gap、provider gap fail honestly。
 
@@ -58,11 +58,11 @@ description: Fetch or parse source-tracked company financial data by market and 
 | `output_scope` | `canonical_company` / `current_topic_snapshot` | 默认 `canonical_company` |
 | `company_slug` | 公司 canonical topic slug | canonical 输出必填 |
 | `topic` | 当前 topic slug | snapshot 输出必填 |
-| `market` | `us` / `cn` / `hk` / `jp` / `kr` / `eu` | 必填 |
+| `market` | `us` / `cn` / `hk` / `jp` / `kr` / `tw` / `eu` | 必填 |
 | `identifier` | ticker、CIK、EDINET code、DART corp code、LEI、filing URL 等 | 必填 |
 | `identifier_type` | `ticker` / `isin` / `lei` / `cik` / `edinet_code` / `dart_corp_code` / `filing_url` / `local_esef_package` | 默认 `ticker` |
 | `periods` | `latest`、`FY2021-FY2025`、`quarterly` 等 | 默认 `latest` |
-| `items` | 三表、segment revenue、geography split、share count、net debt | 默认全取 |
+| `items` | 三表、`revenue_split`、filing / full text | 默认全取 |
 | `source_mode` | `auto` / `filing_only` / `provider_normalized` | 默认 `auto` |
 | `financial_data_pack_path` | 给 snapshot 或 `3-statement-model / dcf-model / comps-analysis / model-update` 指向已有 pack | 可选 |
 
@@ -128,7 +128,7 @@ topics/company/<company-slug>/
       cross-check.json
 ```
 
-`_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
+`_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
 如果 `topics/company/<company-slug>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
 
@@ -161,11 +161,18 @@ Provider matrix：
 
 | Market | Provider | V1 status |
 |---|---|---|
-| US | EdgarTools / SEC | dependency + credential gated |
-| CN / HK | AKShare | provider-normalized route |
+| US | EdgarTools / SEC | 三表 + filing markdown + SEC XBRL dimension `revenue_split` when available; split completeness is review-only |
+| CN A-share | AKShare / Eastmoney | 三表 + `stock_zygc_em` 收入拆分；provider-normalized route |
+| HK | Eastmoney HKF10 direct | 三表；结构化收入拆分默认 `provider-gap` |
 | JP | edinet-tools | EDINET route; field coverage may be partial |
 | KR | dart-fss | requires `DART_API_KEY` |
+| TW | FinMind public API | 三表 best-effort；结构化收入拆分默认 `provider-gap` |
 | EU | openesef | ESEF/iXBRL parser route; ticker-only discovery experimental |
+
+Revenue split rule:
+
+- 能结构化抓到：写入 `actuals-resolved.json` 的 `statements.revenue_split`，并在 `completeness.json` / `source-map.json` 标明来源。
+- 不能结构化抓到：不新增假 split，不新增 `revenue-split.json`；只在 completeness 里标 `provider-gap`，由 `driver-map` 读取 `full-filing.md` 用 LLM 抽 disclosed split。
 
 ## 文件安全
 
@@ -205,7 +212,7 @@ Provider matrix：
 - [...]
 ```
 
-`available / partial / unavailable / provider-gap` 必须按字段写清。特别是三表、segment revenue、geography split、share count、net debt 分开标状态。
+`available / partial / unavailable / provider-gap` 必须按字段写清。特别是三表和 `revenue_split` 分开标状态。
 
 ## 失败处理
 

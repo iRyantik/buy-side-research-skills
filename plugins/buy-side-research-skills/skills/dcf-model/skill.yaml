@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'dcf-model'
 id: 'dcf-model'
 display_name: 'DCF Model'
 version: '1.1.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -48,6 +48,7 @@ capabilities:
     - 'Prefer source-tracked financial-data and driver-map assumptions before external or manual data.'
     - 'Use 3-statement-model outputs when available for forecast base statements.'
     - 'Do not use incomplete actuals as complete model inputs without explicit review flags.'
+    - 'Use income_statement_quarterly_derived and cash_flow_quarterly_derived for single-quarter flow inputs when present; never subtract balance sheet rows.'
     - 'main_agent_workbook_ownership_required'
     - 'source_map_and_completeness_check_required'
     - 'no_final_valuation_or_workbook_delivery_by_sub-agent'

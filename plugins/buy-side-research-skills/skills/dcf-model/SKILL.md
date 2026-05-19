@@ -14,6 +14,8 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 
 Use `3-statement-model` output when available as the forecast base. Do not treat incomplete, review-only, missing, or unmapped actuals as complete DCF inputs.
 
+If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cash_flow_quarterly_derived`, use those rows for single-quarter flow inputs and FCF bridge checks; keep the original cumulative rows as audit evidence. Never derive or subtract balance sheet rows because they are point-in-time values.
+
 ## Model Sub-Agent Protocol
 
 This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.

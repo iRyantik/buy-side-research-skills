@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "data_item": "income_statement",
+      "provider": "finmind",
+      "record_count": 17,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "balance_sheet",
+      "provider": "finmind",
+      "record_count": 103,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "cash_flow",
+      "provider": "finmind",
+      "record_count": 30,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "provider": "finmind",
+      "record_count": 0,
+      "confidence": "provider-gap"
+    }
+  ],
+  "source_provider": "finmind"
+}

@@ -1,0 +1,4638 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-05-18T09:41:47+00:00",
+  "latest_run_cache_path": "C:\\Users\\M\\AppData\\Local\\Temp\\bsrs-financial-data-kr-derived-smoke\\topics\\company\\347700-sphere\\_cache\\datasets\\financial-data\\kr\\347700\\20260518T094147Z",
+  "status": "success",
+  "resolution_policy": {
+    "missing_or_unmapped": "leave_blank_and_flag_review",
+    "never_fill_missing_with_zero": true,
+    "model_input_gate": "use completeness/source_map before workbook population"
+  },
+  "statements": {
+    "income_statement": [
+      {
+        "label": "영업수익",
+        "concept": "ifrs-full_Revenue",
+        "values": {
+          "FY2025H1": 18861302763,
+          "FY2025Q3": 21096473744,
+          "FY2025": 95638566409,
+          "FY2026Q1": 45069081671
+        },
+        "cumulative_values": {
+          "FY2025H1": 40713856934,
+          "FY2025Q3": 61810330678,
+          "FY2025": 95638566409,
+          "FY2026Q1": 45069081671
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "영업손실",
+        "concept": "dart_OperatingIncomeLoss",
+        "values": {
+          "FY2025H1": 2091670188,
+          "FY2025Q3": -989553534,
+          "FY2025": 9052274666,
+          "FY2026Q1": 710711909
+        },
+        "cumulative_values": {
+          "FY2025H1": 6402633766,
+          "FY2025Q3": 5413080232,
+          "FY2025": 9052274666,
+          "FY2026Q1": 710711909
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "금융수익",
+        "concept": "ifrs-full_FinanceIncome",
+        "values": {
+          "FY2025H1": 31093880236,
+          "FY2025Q3": 653704344,
+          "FY2025": 18960510712,
+          "FY2026Q1": 65444974040
+        },
+        "cumulative_values": {
+          "FY2025H1": 31544913801,
+          "FY2025Q3": 32198618145,
+          "FY2025": 18960510712,
+          "FY2026Q1": 65444974040
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "금융비용",
+        "concept": "ifrs-full_FinanceCosts",
+        "values": {
+          "FY2025H1": 6624411811,
+          "FY2025Q3": 2166477056,
+          "FY2025": 21532349217,
+          "FY2026Q1": 24252442365
+        },
+        "cumulative_values": {
+          "FY2025H1": 7443691912,
+          "FY2025Q3": 9610168968,
+          "FY2025": 21532349217,
+          "FY2026Q1": 24252442365
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타수익",
+        "concept": "dart_OtherGains",
+        "values": {
+          "FY2025H1": 12894694,
+          "FY2025Q3": 11859686,
+          "FY2025": 221176988,
+          "FY2026Q1": 3635753
+        },
+        "cumulative_values": {
+          "FY2025H1": 112897147,
+          "FY2025Q3": 124756833,
+          "FY2025": 221176988,
+          "FY2026Q1": 3635753
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타비용",
+        "concept": "dart_OtherLosses",
+        "values": {
+          "FY2025H1": 46200201,
+          "FY2025Q3": 5231346,
+          "FY2025": 818561540,
+          "FY2026Q1": 62110513
+        },
+        "cumulative_values": {
+          "FY2025H1": 91085951,
+          "FY2025Q3": 96317297,
+          "FY2025": 818561540,
+          "FY2026Q1": 62110513
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "법인세차감전순손실",
+        "concept": "ifrs-full_ProfitLossBeforeTax",
+        "values": {
+          "FY2025H1": 26539901897,
+          "FY2025Q3": -2495697906,
+          "FY2025": 4884978219,
+          "FY2026Q1": 41844768824
+        },
+        "cumulative_values": {
+          "FY2025H1": 30537735642,
+          "FY2025Q3": 28042037736,
+          "FY2025": 4884978219,
+          "FY2026Q1": 41844768824
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기순손실",
+        "concept": "ifrs-full_ProfitLoss",
+        "values": {
+          "FY2025H1": 21188098049,
+          "FY2025Q3": -3313111951,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "cumulative_values": {
+          "FY2025H1": 24352388875,
+          "FY2025Q3": 21039276924,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "총포괄손실",
+        "concept": "ifrs-full_ComprehensiveIncome",
+        "values": {
+          "FY2025H1": 21138662506,
+          "FY2025Q3": -3313111951,
+          "FY2025": 175601595,
+          "FY2026Q1": 39785320465
+        },
+        "cumulative_values": {
+          "FY2025H1": 24302953332,
+          "FY2025Q3": 20989841381,
+          "FY2025": 175601595,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "법인세비용",
+        "concept": "ifrs-full_IncomeTaxExpenseContinuingOperations",
+        "values": {
+          "FY2025H1": 2516098872,
+          "FY2025Q3": 27414045,
+          "FY2025": 459303737,
+          "FY2026Q1": 118530814
+        },
+        "cumulative_values": {
+          "FY2025H1": 3349641791,
+          "FY2025Q3": 3377055836,
+          "FY2025": 459303737,
+          "FY2026Q1": 118530814
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타포괄손익",
+        "concept": "ifrs-full_OtherComprehensiveIncome",
+        "values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 5340570
+        },
+        "cumulative_values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 5340570
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "반기순이익(손실)의 귀속",
+        "concept": "-표준계정코드 미사용-",
+        "values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "cumulative_values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속될 계속영업손익",
+        "concept": "ifrs-full_IncomeFromContinuingOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025H1": 24023803025,
+          "FY2025Q3": -2523111951,
+          "FY2025": 4425674482,
+          "FY2026Q1": 41726238010
+        },
+        "cumulative_values": {
+          "FY2025H1": 27188093851,
+          "FY2025Q3": 24664981900,
+          "FY2025": 4425674482,
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속될 중단영업손익",
+        "concept": "ifrs-full_IncomeFromDiscontinuedOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025H1": -2835704976,
+          "FY2025Q3": -790000000,
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "cumulative_values": {
+          "FY2025H1": -2835704976,
+          "FY2025Q3": -3625704976,
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "계속영업기본주당이익(손실)",
+        "concept": "ifrs-full_BasicEarningsLossPerShareFromContinuingOperations",
+        "values": {
+          "FY2025H1": 618,
+          "FY2025Q3": -64,
+          "FY2025": 135,
+          "FY2026Q1": 932
+        },
+        "cumulative_values": {
+          "FY2025H1": 863,
+          "FY2025Q3": 723,
+          "FY2025": 135,
+          "FY2026Q1": 932
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "중단영업기본주당이익(손실)",
+        "concept": "ifrs-full_BasicEarningsLossPerShareFromDiscontinuedOperations",
+        "values": {
+          "FY2025H1": -73,
+          "FY2025Q3": -20,
+          "FY2025": -130,
+          "FY2026Q1": -43
+        },
+        "cumulative_values": {
+          "FY2025H1": -90,
+          "FY2025Q3": -106,
+          "FY2025": -130,
+          "FY2026Q1": -43
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "계속영업희석주당이익(손실)",
+        "concept": "ifrs-full_DilutedEarningsLossPerShareFromContinuingOperations",
+        "values": {
+          "FY2025H1": 556,
+          "FY2025Q3": -26,
+          "FY2025": -119,
+          "FY2026Q1": 173
+        },
+        "cumulative_values": {
+          "FY2025H1": 717,
+          "FY2025Q3": 616,
+          "FY2025": -119,
+          "FY2026Q1": 173
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "중단영업희석주당이익(손실)",
+        "concept": "ifrs-full_DilutedEarningsLossPerShareFromDiscontinuedOperations",
+        "values": {
+          "FY2025H1": -73,
+          "FY2025Q3": -20,
+          "FY2025": -130,
+          "FY2026Q1": -43
+        },
+        "cumulative_values": {
+          "FY2025H1": -90,
+          "FY2025Q3": -106,
+          "FY2025": -130,
+          "FY2026Q1": -43
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "확정급여제도의재측정요소",
+        "concept": "ifrs-full_OtherComprehensiveIncomeNetOfTaxGainsLossesOnRemeasurementsOfDefinedBenefitPlans",
+        "values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 5340570
+        },
+        "cumulative_values": {
+          "FY2025H1": -49435543,
+          "FY2025Q3": -49435543,
+          "FY2025": 5340570
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "계속영업이익(손실)",
+        "concept": "ifrs-full_ProfitLossFromContinuingOperations",
+        "values": {
+          "FY2025H1": 24023803025,
+          "FY2025Q3": -2523111951,
+          "FY2025": 4425674482,
+          "FY2026Q1": 41726238010
+        },
+        "cumulative_values": {
+          "FY2025H1": 27188093851,
+          "FY2025Q3": 24664981900,
+          "FY2025": 4425674482,
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "중단영업이익(손실)",
+        "concept": "ifrs-full_ProfitLossFromDiscontinuedOperations",
+        "values": {
+          "FY2025H1": -2835704976,
+          "FY2025Q3": -790000000,
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "cumulative_values": {
+          "FY2025H1": -2835704976,
+          "FY2025Q3": -3625704976,
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지분법손익",
+        "concept": "ifrs-full_AdjustmentsForUndistributedProfitsOfInvestmentsAccountedForUsingEquityMethod",
+        "values": {
+          "FY2025H1": 12068791,
+          "FY2025Q3": 12068791
+        },
+        "cumulative_values": {
+          "FY2025H1": 12068791,
+          "FY2025Q3": 12068791
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "매출원가",
+        "concept": "ifrs-full_CostOfSales",
+        "values": {
+          "FY2025H1": 13890562734,
+          "FY2025Q3": 20028061254,
+          "FY2025": 78789579665,
+          "FY2026Q1": 38336112253
+        },
+        "cumulative_values": {
+          "FY2025H1": 30305820215,
+          "FY2025Q3": 50333881469,
+          "FY2025": 78789579665,
+          "FY2026Q1": 38336112253
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "매출총이익",
+        "concept": "ifrs-full_GrossProfit",
+        "values": {
+          "FY2025H1": 4970740029,
+          "FY2025Q3": 1068412490,
+          "FY2025": 16848986744,
+          "FY2026Q1": 6732969418
+        },
+        "cumulative_values": {
+          "FY2025H1": 10408036719,
+          "FY2025Q3": 11476449209,
+          "FY2025": 16848986744,
+          "FY2026Q1": 6732969418
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "판매비와관리비",
+        "concept": "ifrs-full_SellingGeneralAndAdministrativeExpense",
+        "values": {
+          "FY2025H1": 2879069841,
+          "FY2025Q3": 2057966024
+        },
+        "cumulative_values": {
+          "FY2025H1": 4005402953,
+          "FY2025Q3": 6063368977
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "판매비와관리비",
+        "concept": "dart_TotalSellingGeneralAdministrativeExpenses",
+        "values": {
+          "FY2025": 7796712078,
+          "FY2026Q1": 6022257509
+        },
+        "cumulative_values": {
+          "FY2025": 7796712078,
+          "FY2026Q1": 6022257509
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주지분",
+        "concept": "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent",
+        "values": {
+          "FY2025": 175601595,
+          "FY2026Q1": 39785320465
+        },
+        "cumulative_values": {
+          "FY2025": 175601595,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속되는 계속영업포괄손익",
+        "concept": "ifrs-full_ComprehensiveIncomeFromContinuingOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025": 4431015052,
+          "FY2026Q1": 41726238010
+        },
+        "cumulative_values": {
+          "FY2025": 4431015052,
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속되는 중단영업포괄손익",
+        "concept": "ifrs-full_ComprehensiveIncomeFromDiscontinuedOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "cumulative_values": {
+          "FY2025": -4255413457,
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "후속적으로 당기손익으로 재분류되지 않는 항목",
+        "concept": "ifrs-full_OtherComprehensiveIncomeThatWillNotBeReclassifiedToProfitOrLossNetOfTax",
+        "values": {
+          "FY2025": 5340570
+        },
+        "cumulative_values": {
+          "FY2025": 5340570
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      }
+    ],
+    "balance_sheet": [
+      {
+        "label": "유동자산",
+        "concept": "ifrs-full_CurrentAssets",
+        "values": {
+          "FY2025H1": 103702528708,
+          "FY2025Q3": 100719058699,
+          "FY2025": 77436651918,
+          "FY2026Q1": 111374396218
+        },
+        "cumulative_values": {
+          "FY2025": 77436651918,
+          "FY2026Q1": 111374396218
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "현금및현금성자산",
+        "concept": "ifrs-full_CashAndCashEquivalents",
+        "values": {
+          "FY2025H1": 13821123859,
+          "FY2025Q3": 3838173085,
+          "FY2025": 4166536785,
+          "FY2026Q1": 26655581061
+        },
+        "cumulative_values": {
+          "FY2025": 4166536785,
+          "FY2026Q1": 26655581061
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "상각후원가측정금융자산",
+        "concept": "-표준계정코드 미사용-",
+        "values": {
+          "FY2025H1": 167461578,
+          "FY2025Q3": 160399273,
+          "FY2026Q1": 19460024878
+        },
+        "cumulative_values": {
+          "FY2026Q1": 19460024878
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "매출채권및기타채권",
+        "concept": "ifrs-full_TradeAndOtherCurrentReceivables",
+        "values": {
+          "FY2025H1": 19546316866,
+          "FY2025Q3": 24492307724,
+          "FY2025": 22054021383,
+          "FY2026Q1": 41716497296
+        },
+        "cumulative_values": {
+          "FY2025": 22054021383,
+          "FY2026Q1": 41716497296
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "재고자산",
+        "concept": "ifrs-full_Inventories",
+        "values": {
+          "FY2025": 10479203039,
+          "FY2026Q1": 26437929263
+        },
+        "cumulative_values": {
+          "FY2025": 10479203039,
+          "FY2026Q1": 26437929263
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "단기대여금",
+        "concept": "dart_ShortTermLoans",
+        "values": {
+          "FY2025": 750000000,
+          "FY2026Q1": 500000000
+        },
+        "cumulative_values": {
+          "FY2025": 750000000,
+          "FY2026Q1": 500000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기법인세자산",
+        "concept": "ifrs-full_CurrentTaxAssets",
+        "values": {
+          "FY2025H1": 228820,
+          "FY2025Q3": 31899380,
+          "FY2025": 548502165,
+          "FY2026Q1": 568189435
+        },
+        "cumulative_values": {
+          "FY2025": 548502165,
+          "FY2026Q1": 568189435
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "비유동자산",
+        "concept": "ifrs-full_NoncurrentAssets",
+        "values": {
+          "FY2025H1": 16969060618,
+          "FY2025Q3": 19645322555,
+          "FY2025": 17920240202,
+          "FY2026Q1": 399852099036
+        },
+        "cumulative_values": {
+          "FY2025": 17920240202,
+          "FY2026Q1": 399852099036
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "유형자산",
+        "concept": "ifrs-full_PropertyPlantAndEquipment",
+        "values": {
+          "FY2025H1": 123953549,
+          "FY2025Q3": 2911430875,
+          "FY2025": 93759637,
+          "FY2026Q1": 79839311
+        },
+        "cumulative_values": {
+          "FY2025": 93759637,
+          "FY2026Q1": 79839311
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "사용권자산",
+        "concept": "ifrs-full_RightofuseAssets",
+        "values": {
+          "FY2025H1": 331267588,
+          "FY2025Q3": 303157505,
+          "FY2025": 249315356,
+          "FY2026Q1": 209591019
+        },
+        "cumulative_values": {
+          "FY2025": 249315356,
+          "FY2026Q1": 209591019
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "무형자산",
+        "concept": "ifrs-full_IntangibleAssetsOtherThanGoodwill",
+        "values": {
+          "FY2025H1": 61268805,
+          "FY2025Q3": 58256764,
+          "FY2025": 41888793,
+          "FY2026Q1": 38657473
+        },
+        "cumulative_values": {
+          "FY2025": 41888793,
+          "FY2026Q1": 38657473
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "자산총계",
+        "concept": "ifrs-full_Assets",
+        "values": {
+          "FY2025H1": 120671589326,
+          "FY2025Q3": 120364381254,
+          "FY2025": 95356892120,
+          "FY2026Q1": 511226495254
+        },
+        "cumulative_values": {
+          "FY2025": 95356892120,
+          "FY2026Q1": 511226495254
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "유동부채",
+        "concept": "ifrs-full_CurrentLiabilities",
+        "values": {
+          "FY2025H1": 39084451689,
+          "FY2025Q3": 42171141527,
+          "FY2025": 31570234462,
+          "FY2026Q1": 408684316266
+        },
+        "cumulative_values": {
+          "FY2025": 31570234462,
+          "FY2026Q1": 408684316266
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "매입채무및기타채무",
+        "concept": "ifrs-full_TradeAndOtherCurrentPayables",
+        "values": {
+          "FY2025H1": 11641567302,
+          "FY2025Q3": 13815077238,
+          "FY2025": 12456379411,
+          "FY2026Q1": 22145384262
+        },
+        "cumulative_values": {
+          "FY2025": 12456379411,
+          "FY2026Q1": 22145384262
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "계약부채",
+        "concept": "ifrs-full_CurrentContractLiabilities",
+        "values": {
+          "FY2025H1": 570220
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "리스부채",
+        "concept": "ifrs-full_CurrentLeaseLiabilities",
+        "values": {
+          "FY2025H1": 207220501,
+          "FY2025Q3": 187803748,
+          "FY2025": 162307374,
+          "FY2026Q1": 143596056
+        },
+        "cumulative_values": {
+          "FY2025": 162307374,
+          "FY2026Q1": 143596056
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "비유동부채",
+        "concept": "ifrs-full_NoncurrentLiabilities",
+        "values": {
+          "FY2025H1": 10778227362,
+          "FY2025Q3": 10697441403,
+          "FY2025": 152514682,
+          "FY2026Q1": 163254413
+        },
+        "cumulative_values": {
+          "FY2025": 152514682,
+          "FY2026Q1": 163254413
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "매입채무및기타채무",
+        "concept": "dart_LongTermTradeAndOtherNonCurrentPayables",
+        "values": {
+          "FY2025H1": 79250000,
+          "FY2025Q3": 79030464,
+          "FY2025": 19030464,
+          "FY2026Q1": 19030464
+        },
+        "cumulative_values": {
+          "FY2025": 19030464,
+          "FY2026Q1": 19030464
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "순확정급여부채",
+        "concept": "dart_PostemploymentBenefitObligations",
+        "values": {
+          "FY2025Q3": 26633527
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "부채총계",
+        "concept": "ifrs-full_Liabilities",
+        "values": {
+          "FY2025H1": 49862679051,
+          "FY2025Q3": 52868582930,
+          "FY2025": 31722749144,
+          "FY2026Q1": 408847570679
+        },
+        "cumulative_values": {
+          "FY2025": 31722749144,
+          "FY2026Q1": 408847570679
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "자본총계",
+        "concept": "ifrs-full_Equity",
+        "values": {
+          "FY2025H1": 70808910275,
+          "FY2025Q3": 67495798324,
+          "FY2025": 63634142976,
+          "FY2026Q1": 102378924575
+        },
+        "cumulative_values": {
+          "FY2025": 63634142976,
+          "FY2026Q1": 102378924575
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "자본과부채총계",
+        "concept": "ifrs-full_EquityAndLiabilities",
+        "values": {
+          "FY2025H1": 120671589326,
+          "FY2025Q3": 120364381254,
+          "FY2025": 95356892120,
+          "FY2026Q1": 511226495254
+        },
+        "cumulative_values": {
+          "FY2025": 95356892120,
+          "FY2026Q1": 511226495254
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타유동자산",
+        "concept": "ifrs-full_OtherCurrentAssets",
+        "values": {
+          "FY2025H1": 1716943747,
+          "FY2025Q3": 1997232841,
+          "FY2025": 7100145379,
+          "FY2026Q1": 6206036093
+        },
+        "cumulative_values": {
+          "FY2025": 7100145379,
+          "FY2026Q1": 6206036093
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타비유동자산",
+        "concept": "ifrs-full_OtherNoncurrentAssets",
+        "values": {
+          "FY2025": 30000000,
+          "FY2026Q1": 24000000
+        },
+        "cumulative_values": {
+          "FY2025": 30000000,
+          "FY2026Q1": 24000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타금융자산",
+        "concept": "ifrs-full_OtherFinancialAssets",
+        "values": {
+          "FY2025H1": 316303500,
+          "FY2025Q3": 316057000
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "단기대여금",
+        "concept": "dart_ShortTermLoansNet",
+        "values": {
+          "FY2025H1": 1400000000,
+          "FY2025Q3": 1000000000
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "파생상품자산",
+        "concept": "ifrs-full_DerivativeFinancialAssets",
+        "values": {
+          "FY2025H1": 53870098549,
+          "FY2025Q3": 53870098549
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "매각예정비유동자산",
+        "concept": "ifrs-full_NoncurrentAssetsOrDisposalGroupsClassifiedAsHeldForSale",
+        "values": {
+          "FY2025H1": 5018237228,
+          "FY2025Q3": 4746177239,
+          "FY2025": 4349345663,
+          "FY2026Q1": 5256967310
+        },
+        "cumulative_values": {
+          "FY2025": 4349345663,
+          "FY2026Q1": 5256967310
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "관계기업투자주식",
+        "concept": "ifrs-full_InvestmentsInAssociates",
+        "values": {
+          "FY2025H1": 3312068791,
+          "FY2025Q3": 3312068791
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "순확정급여자산",
+        "concept": "ifrs-full_RecognisedAssetsDefinedBenefitPlan",
+        "values": {
+          "FY2025H1": 79846765
+        },
+        "cumulative_values": {},
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period"
+        }
+      },
+      {
+        "label": "매각예정부채",
+        "concept": "ifrs-full_LiabilitiesIncludedInDisposalGroupsClassifiedAsHeldForSale",
+        "values": {
+          "FY2025H1": 3562248871,
+          "FY2025Q3": 3290188882,
+          "FY2025": 3073065787,
+          "FY2026Q1": 3641825249
+        },
+        "cumulative_values": {
+          "FY2025": 3073065787,
+          "FY2026Q1": 3641825249
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "투자부동산",
+        "concept": "ifrs-full_InvestmentProperty",
+        "values": {
+          "FY2025H1": 8952321217,
+          "FY2025Q3": 8952321217,
+          "FY2025": 8944561307,
+          "FY2026Q1": 8942621330
+        },
+        "cumulative_values": {
+          "FY2025": 8944561307,
+          "FY2026Q1": 8942621330
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기법인세부채",
+        "concept": "ifrs-full_CurrentTaxLiabilities",
+        "values": {
+          "FY2025H1": 786342993,
+          "FY2025Q3": 430810613,
+          "FY2025": 33768706,
+          "FY2026Q1": 33768706
+        },
+        "cumulative_values": {
+          "FY2025": 33768706,
+          "FY2026Q1": 33768706
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "이연법인세부채",
+        "concept": "ifrs-full_DeferredTaxLiabilities",
+        "values": {
+          "FY2025H1": 10531515784,
+          "FY2025Q3": 10431378139,
+          "FY2025": 155,
+          "FY2026Q1": 155
+        },
+        "cumulative_values": {
+          "FY2025": 155,
+          "FY2026Q1": 155
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "파생상품자산",
+        "concept": "dart_CurrentDerivativeAsset",
+        "values": {
+          "FY2025": 25520801744
+        },
+        "cumulative_values": {
+          "FY2025": 25520801744
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산",
+        "concept": "ifrs-full_CurrentFinancialAssetsAtFairValueThroughProfitOrLossMandatorilyMeasuredAtFairValue",
+        "values": {
+          "FY2025": 2445378400,
+          "FY2026Q1": 4010478400
+        },
+        "cumulative_values": {
+          "FY2025": 2445378400,
+          "FY2026Q1": 4010478400
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타금융자산",
+        "concept": "ifrs-full_OtherCurrentFinancialAssets",
+        "values": {
+          "FY2025": 22717360,
+          "FY2026Q1": 22717360
+        },
+        "cumulative_values": {
+          "FY2025": 22717360,
+          "FY2026Q1": 22717360
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "이연법인세자산",
+        "concept": "ifrs-full_DeferredTaxAssets",
+        "values": {
+          "FY2025": 3346801460,
+          "FY2026Q1": 3040837096
+        },
+        "cumulative_values": {
+          "FY2025": 3346801460,
+          "FY2026Q1": 3040837096
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "관계기업투자",
+        "concept": "ifrs-full_InvestmentAccountedForUsingEquityMethod",
+        "values": {
+          "FY2025": 3292761110,
+          "FY2026Q1": 3292761110
+        },
+        "cumulative_values": {
+          "FY2025": 3292761110,
+          "FY2026Q1": 3292761110
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산",
+        "concept": "ifrs-full_NoncurrentFinancialAssetsAtFairValueThroughProfitOrLossMandatorilyMeasuredAtFairValue",
+        "values": {
+          "FY2025": 1585082314,
+          "FY2026Q1": 364442719819
+        },
+        "cumulative_values": {
+          "FY2025": 1585082314,
+          "FY2026Q1": 364442719819
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "순확정급여자산",
+        "concept": "ifrs-full_NoncurrentRecognisedAssetsDefinedBenefitPlan",
+        "values": {
+          "FY2025": 20013225
+        },
+        "cumulative_values": {
+          "FY2025": 20013225
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "기타금융자산",
+        "concept": "ifrs-full_OtherNoncurrentFinancialAssets",
+        "values": {
+          "FY2025": 316057000,
+          "FY2026Q1": 321047000
+        },
+        "cumulative_values": {
+          "FY2025": 316057000,
+          "FY2026Q1": 321047000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속되는 자본",
+        "concept": "ifrs-full_EquityAttributableToOwnersOfParent",
+        "values": {
+          "FY2025": 63634142976,
+          "FY2026Q1": 102378924575
+        },
+        "cumulative_values": {
+          "FY2025": 63634142976,
+          "FY2026Q1": 102378924575
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타자본항목",
+        "concept": "dart_ElementsOfOtherStockholdersEquity",
+        "values": {
+          "FY2025": 28593036199,
+          "FY2026Q1": 26419964250
+        },
+        "cumulative_values": {
+          "FY2025": 28593036199,
+          "FY2026Q1": 26419964250
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "자본금",
+        "concept": "ifrs-full_IssuedCapital",
+        "values": {
+          "FY2025": 23331482000,
+          "FY2026Q1": 24682095500
+        },
+        "cumulative_values": {
+          "FY2025": 23331482000,
+          "FY2026Q1": 24682095500
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "이익잉여금(결손금)",
+        "concept": "ifrs-full_RetainedEarnings",
+        "values": {
+          "FY2025": 11709624777,
+          "FY2026Q1": 51276864825
+        },
+        "cumulative_values": {
+          "FY2025": 11709624777,
+          "FY2026Q1": 51276864825
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "파생상품부채",
+        "concept": "dart_CurrentDerivativeLiabilities",
+        "values": {
+          "FY2025": 3311319309,
+          "FY2026Q1": 39253753119
+        },
+        "cumulative_values": {
+          "FY2025": 3311319309,
+          "FY2026Q1": 39253753119
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "전환사채",
+        "concept": "dart_CurrentPortionOfConvertibleBonds",
+        "values": {
+          "FY2025": 11330907966,
+          "FY2026Q1": 16679761913
+        },
+        "cumulative_values": {
+          "FY2025": 11330907966,
+          "FY2026Q1": 16679761913
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "충당부채",
+        "concept": "ifrs-full_CurrentProvisions",
+        "values": {
+          "FY2025": 15100000
+        },
+        "cumulative_values": {
+          "FY2025": 15100000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "단기차입금",
+        "concept": "ifrs-full_OtherCurrentBorrowingsAndCurrentPortionOfOtherNoncurrentBorrowings",
+        "values": {
+          "FY2025": 1000000000,
+          "FY2026Q1": 326195931726
+        },
+        "cumulative_values": {
+          "FY2025": 1000000000,
+          "FY2026Q1": 326195931726
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기타부채",
+        "concept": "ifrs-full_OtherCurrentLiabilities",
+        "values": {
+          "FY2025": 187385909,
+          "FY2026Q1": 590295235
+        },
+        "cumulative_values": {
+          "FY2025": 187385909,
+          "FY2026Q1": 590295235
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "리스부채",
+        "concept": "ifrs-full_NoncurrentLeaseLiabilities",
+        "values": {
+          "FY2025": 133484063,
+          "FY2026Q1": 112409140
+        },
+        "cumulative_values": {
+          "FY2025": 133484063,
+          "FY2026Q1": 112409140
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "순확정급여부채",
+        "concept": "ifrs-full_NoncurrentRecognisedLiabilitiesDefinedBenefitPlan",
+        "values": {
+          "FY2026Q1": 31814654
+        },
+        "cumulative_values": {
+          "FY2026Q1": 31814654
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "재무상태표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2026Q1": "report_period"
+        }
+      }
+    ],
+    "cash_flow": [
+      {
+        "label": "영업활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+        "values": {
+          "FY2025H1": -11037920461,
+          "FY2025Q3": -18564211878,
+          "FY2025": -14666603366,
+          "FY2026Q1": -32004405444
+        },
+        "cumulative_values": {
+          "FY2025H1": -11037920461,
+          "FY2025Q3": -18564211878,
+          "FY2025": -14666603366,
+          "FY2026Q1": -32004405444
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "영업활동으로 창출된 현금",
+        "concept": "-표준계정코드 미사용-",
+        "values": {
+          "FY2025H1": -11765540112,
+          "FY2025Q3": -17634814347,
+          "FY2025": 8718711991,
+          "FY2026Q1": 62976465471
+        },
+        "cumulative_values": {
+          "FY2025H1": -11765540112,
+          "FY2025Q3": -17634814347,
+          "FY2025": 8718711991,
+          "FY2026Q1": 62976465471
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "이자의 지급",
+        "concept": "ifrs-full_InterestPaidClassifiedAsOperatingActivities",
+        "values": {
+          "FY2025": -441053511,
+          "FY2026Q1": 13543660
+        },
+        "cumulative_values": {
+          "FY2025": -441053511,
+          "FY2026Q1": 13543660
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "법인세의 환급(납부)",
+        "concept": "ifrs-full_IncomeTaxesPaidRefundClassifiedAsOperatingActivities",
+        "values": {
+          "FY2025H1": -3428762461,
+          "FY2025Q3": -3943520281,
+          "FY2025": -4241305071,
+          "FY2026Q1": -21962710
+        },
+        "cumulative_values": {
+          "FY2025H1": -3428762461,
+          "FY2025Q3": -3943520281,
+          "FY2025": -4241305071,
+          "FY2026Q1": -21962710
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "투자활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInInvestingActivities",
+        "values": {
+          "FY2025H1": 8542096578,
+          "FY2025Q3": 6166562398,
+          "FY2025": 3248576530,
+          "FY2026Q1": -345562374887
+        },
+        "cumulative_values": {
+          "FY2025H1": 8542096578,
+          "FY2025Q3": 6166562398,
+          "FY2025": 3248576530,
+          "FY2026Q1": -345562374887
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "유형자산의 취득",
+        "concept": "ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025H1": 42820000,
+          "FY2025Q3": 2846820000,
+          "FY2025": -44069827,
+          "FY2026Q1": -2945000
+        },
+        "cumulative_values": {
+          "FY2025H1": 42820000,
+          "FY2025Q3": 2846820000,
+          "FY2025": -44069827,
+          "FY2026Q1": -2945000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "무형자산의 취득",
+        "concept": "ifrs-full_PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025Q3": 1722000,
+          "FY2025": -2046120
+        },
+        "cumulative_values": {
+          "FY2025Q3": 1722000,
+          "FY2025": -2046120
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "보증금의 증가",
+        "concept": "dart_IncreaseInGuaranteeDeposits",
+        "values": {
+          "FY2025H1": -4160000,
+          "FY2025Q3": -4160000,
+          "FY2025": -310000,
+          "FY2026Q1": -5000000
+        },
+        "cumulative_values": {
+          "FY2025H1": -4160000,
+          "FY2025Q3": -4160000,
+          "FY2025": -310000,
+          "FY2026Q1": -5000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "재무활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInFinancingActivities",
+        "values": {
+          "FY2025H1": 14695534033,
+          "FY2025Q3": 14614511580,
+          "FY2025": 13974500977,
+          "FY2026Q1": 399949710668
+        },
+        "cumulative_values": {
+          "FY2025H1": 14695534033,
+          "FY2025Q3": 14614511580,
+          "FY2025": 13974500977,
+          "FY2026Q1": 399949710668
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "현금및현금성자산의 증가",
+        "concept": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalentsBeforeEffectOfExchangeRateChanges",
+        "values": {
+          "FY2025H1": 12199710150,
+          "FY2025Q3": 2216862100,
+          "FY2025": 2556474141,
+          "FY2026Q1": 22382930337
+        },
+        "cumulative_values": {
+          "FY2025H1": 12199710150,
+          "FY2025Q3": 2216862100,
+          "FY2025": 2556474141,
+          "FY2026Q1": 22382930337
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기초의 현금및현금성자산",
+        "concept": "dart_CashAndCashEquivalentsAtBeginningOfPeriodCf",
+        "values": {
+          "FY2025H1": 1514715792,
+          "FY2025Q3": 1514715792,
+          "FY2025": 1514715792,
+          "FY2026Q1": 4166536785
+        },
+        "cumulative_values": {
+          "FY2025H1": 1514715792,
+          "FY2025Q3": 1514715792,
+          "FY2025": 1514715792,
+          "FY2026Q1": 4166536785
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "현금및현금성자산의 환율변동효과",
+        "concept": "ifrs-full_EffectOfExchangeRateChangesOnCashAndCashEquivalents",
+        "values": {
+          "FY2025H1": 106697917,
+          "FY2025Q3": 106595193,
+          "FY2025": 95346852,
+          "FY2026Q1": 106113939
+        },
+        "cumulative_values": {
+          "FY2025H1": 106697917,
+          "FY2025Q3": 106595193,
+          "FY2025": 95346852,
+          "FY2026Q1": 106113939
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "기말의 현금및현금성자산",
+        "concept": "dart_CashAndCashEquivalentsAtEndOfPeriodCf",
+        "values": {
+          "FY2025H1": 13821123859,
+          "FY2025Q3": 3838173085,
+          "FY2025": 4166536785,
+          "FY2026Q1": 26655581061
+        },
+        "cumulative_values": {
+          "FY2025H1": 13821123859,
+          "FY2025Q3": 3838173085,
+          "FY2025": 4166536785,
+          "FY2026Q1": 26655581061
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "단기차입금의 상환",
+        "concept": "dart_RepaymentsOfShortTermBorrowings",
+        "values": {
+          "FY2025H1": -811649420,
+          "FY2025Q3": -811649420,
+          "FY2025": -811649420,
+          "FY2026Q1": -2302000000
+        },
+        "cumulative_values": {
+          "FY2025H1": -811649420,
+          "FY2025Q3": -811649420,
+          "FY2025": -811649420,
+          "FY2026Q1": -2302000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산의 취득",
+        "concept": "dart_PurchaseOfFinancialAssetsAtFairValueThroughProfitOrLossClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025H1": -3491466814,
+          "FY2025Q3": -3491466814,
+          "FY2025": -3935532314,
+          "FY2026Q1": -351177799510
+        },
+        "cumulative_values": {
+          "FY2025H1": -3491466814,
+          "FY2025Q3": -3491466814,
+          "FY2025": -3935532314,
+          "FY2026Q1": -351177799510
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기순이익(손실)",
+        "concept": "ifrs-full_ProfitLoss",
+        "values": {
+          "FY2025H1": 21188098049,
+          "FY2025Q3": -3313111951,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "cumulative_values": {
+          "FY2025H1": 21188098049,
+          "FY2025Q3": -3313111951,
+          "FY2025": 170261025,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "자기주식의 취득으로 인한 현금의 유출",
+        "concept": "dart_AcquisitionOfTreasuryShares",
+        "values": {
+          "FY2025H1": -54381040,
+          "FY2025Q3": -54381040,
+          "FY2025": -54381040,
+          "FY2026Q1": 34266977722
+        },
+        "cumulative_values": {
+          "FY2025H1": -54381040,
+          "FY2025Q3": -54381040,
+          "FY2025": -54381040,
+          "FY2026Q1": 34266977722
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "리스부채의 상환",
+        "concept": "ifrs-full_PaymentsOfLeaseLiabilitiesClassifiedAsFinancingActivities",
+        "values": {
+          "FY2025H1": -152664175,
+          "FY2025Q3": -233686628,
+          "FY2025": -298500334,
+          "FY2026Q1": -80482613
+        },
+        "cumulative_values": {
+          "FY2025H1": -152664175,
+          "FY2025Q3": -233686628,
+          "FY2025": -298500334,
+          "FY2026Q1": -80482613
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "주식선택권의 행사",
+        "concept": "dart_ProceedsFromExerciseOfShareOptions",
+        "values": {
+          "FY2025H1": 102579248,
+          "FY2025Q3": 102579248,
+          "FY2025": 102579248
+        },
+        "cumulative_values": {
+          "FY2025H1": 102579248,
+          "FY2025Q3": 102579248,
+          "FY2025": 102579248
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "단기차입금의 증가",
+        "concept": "dart_ProceedsFromShortTermBorrowings",
+        "values": {
+          "FY2025H1": 611649420,
+          "FY2025Q3": 611649420,
+          "FY2025": 1611649420,
+          "FY2026Q1": 312867290000
+        },
+        "cumulative_values": {
+          "FY2025H1": 611649420,
+          "FY2025Q3": 611649420,
+          "FY2025": 1611649420,
+          "FY2026Q1": 312867290000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "보증금의 감소",
+        "concept": "dart_DecreaseInGuaranteeDeposits",
+        "values": {
+          "FY2025H1": 26751888,
+          "FY2025Q3": 36998388,
+          "FY2025": 10246500,
+          "FY2026Q1": 10000
+        },
+        "cumulative_values": {
+          "FY2025H1": 26751888,
+          "FY2025Q3": 36998388,
+          "FY2025": 10246500,
+          "FY2026Q1": 10000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산의 처분",
+        "concept": "dart_ProceedsFromDisposalOfFinancialAssetsAtFairValueThroughProfitOrLossClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025H1": 1000000000,
+          "FY2025Q3": 1000000000,
+          "FY2025": 1000000000,
+          "FY2026Q1": 5373359623
+        },
+        "cumulative_values": {
+          "FY2025H1": 1000000000,
+          "FY2025Q3": 1000000000,
+          "FY2025": 1000000000,
+          "FY2026Q1": 5373359623
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "이자의 수취",
+        "concept": "ifrs-full_InterestReceivedClassifiedAsOperatingActivities",
+        "values": {
+          "FY2025H1": 221434687,
+          "FY2025Q3": 351881214,
+          "FY2025": 298473608,
+          "FY2026Q1": 36331383
+        },
+        "cumulative_values": {
+          "FY2025H1": 221434687,
+          "FY2025Q3": 351881214,
+          "FY2025": 298473608,
+          "FY2026Q1": 36331383
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025H1": "cumulative_report_period",
+          "FY2025Q3": "cumulative_report_period",
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "임대보증금의 감소",
+        "concept": "dart_DecreaseInGuaranteeDepositsAsFinancialActivities",
+        "values": {
+          "FY2025": -850000
+        },
+        "cumulative_values": {
+          "FY2025": -850000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "신주발행비",
+        "concept": "dart_PaymentForStockIssueCost",
+        "values": {
+          "FY2025": -48542141,
+          "FY2026Q1": -26349696
+        },
+        "cumulative_values": {
+          "FY2025": -48542141,
+          "FY2026Q1": -26349696
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "파생상품의 매도",
+        "concept": "dart_AdjustmentsForDecreaseIncreaseInDerivativeAssets",
+        "values": {
+          "FY2025": 528000000
+        },
+        "cumulative_values": {
+          "FY2025": 528000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "선급금의 지급",
+        "concept": "dart_AdjustmentsForDecreaseincreaseInAdvancePayments",
+        "values": {
+          "FY2025": -4975589200
+        },
+        "cumulative_values": {
+          "FY2025": -4975589200
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "단기대여금의 상환",
+        "concept": "dart_ProceedsFromSalesOfShortTermLoansAndReceivables",
+        "values": {
+          "FY2025": 3190000000,
+          "FY2026Q1": 250000000
+        },
+        "cumulative_values": {
+          "FY2025": 3190000000,
+          "FY2026Q1": 250000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "단기대여금의 대여",
+        "concept": "dart_PurchaseOfShortTermLoansAndReceivables",
+        "values": {
+          "FY2025": -250000000
+        },
+        "cumulative_values": {
+          "FY2025": -250000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period"
+        }
+      },
+      {
+        "label": "영업활동으로 창출된 현금",
+        "concept": "ifrs-full_OtherCashReceiptsFromOperatingActivities",
+        "values": {
+          "FY2025": -10282718392,
+          "FY2026Q1": -32032317777
+        },
+        "cumulative_values": {
+          "FY2025": -10282718392,
+          "FY2026Q1": -32032317777
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "운전자본 조정",
+        "concept": "ifrs-full_IncreaseDecreaseInWorkingCapital",
+        "values": {
+          "FY2025": -16911444221,
+          "FY2026Q1": -31334676590
+        },
+        "cumulative_values": {
+          "FY2025": -16911444221,
+          "FY2026Q1": -31334676590
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      },
+      {
+        "label": "비현금항목 조정",
+        "concept": "ifrs-full_OtherAdjustmentsForNoncashItems",
+        "values": {
+          "FY2025": 6458464804,
+          "FY2026Q1": -40482961652
+        },
+        "cumulative_values": {
+          "FY2025": 6458464804,
+          "FY2026Q1": -40482961652
+        },
+        "currency": "KRW",
+        "source_type": "official-api",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "period_basis": "report_period",
+        "period_basis_by_period": {
+          "FY2025": "report_period",
+          "FY2026Q1": "report_period"
+        }
+      }
+    ],
+    "income_statement_quarterly_derived": [
+      {
+        "label": "영업수익",
+        "concept": "ifrs-full_Revenue",
+        "values": {
+          "FY2025Q2": 18861302763,
+          "FY2025Q3": 21096473744,
+          "FY2025Q4": 33828235731,
+          "FY2026Q1": 45069081671
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "영업손실",
+        "concept": "dart_OperatingIncomeLoss",
+        "values": {
+          "FY2025Q2": 2091670188,
+          "FY2025Q3": -989553534,
+          "FY2025Q4": 3639194434,
+          "FY2026Q1": 710711909
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "금융수익",
+        "concept": "ifrs-full_FinanceIncome",
+        "values": {
+          "FY2025Q2": 31093880236,
+          "FY2025Q3": 653704344,
+          "FY2025Q4": -13238107433,
+          "FY2026Q1": 65444974040
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "금융비용",
+        "concept": "ifrs-full_FinanceCosts",
+        "values": {
+          "FY2025Q2": 6624411811,
+          "FY2025Q3": 2166477056,
+          "FY2025Q4": 11922180249,
+          "FY2026Q1": 24252442365
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "기타수익",
+        "concept": "dart_OtherGains",
+        "values": {
+          "FY2025Q2": 12894694,
+          "FY2025Q3": 11859686,
+          "FY2025Q4": 96420155,
+          "FY2026Q1": 3635753
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "기타비용",
+        "concept": "dart_OtherLosses",
+        "values": {
+          "FY2025Q2": 46200201,
+          "FY2025Q3": 5231346,
+          "FY2025Q4": 722244243,
+          "FY2026Q1": 62110513
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "법인세차감전순손실",
+        "concept": "ifrs-full_ProfitLossBeforeTax",
+        "values": {
+          "FY2025Q2": 26539901897,
+          "FY2025Q3": -2495697906,
+          "FY2025Q4": -23157059517,
+          "FY2026Q1": 41844768824
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "당기순손실",
+        "concept": "ifrs-full_ProfitLoss",
+        "values": {
+          "FY2025Q2": 21188098049,
+          "FY2025Q3": -3313111951,
+          "FY2025Q4": -20869015899,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "총포괄손실",
+        "concept": "ifrs-full_ComprehensiveIncome",
+        "values": {
+          "FY2025Q2": 21138662506,
+          "FY2025Q3": -3313111951,
+          "FY2025Q4": -20814239786,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "법인세비용",
+        "concept": "ifrs-full_IncomeTaxExpenseContinuingOperations",
+        "values": {
+          "FY2025Q2": 2516098872,
+          "FY2025Q3": 27414045,
+          "FY2025Q4": -2917752099,
+          "FY2026Q1": 118530814
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "기타포괄손익",
+        "concept": "ifrs-full_OtherComprehensiveIncome",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 54776113
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "반기순이익(손실)의 귀속",
+        "concept": "-표준계정코드 미사용-",
+        "values": {
+          "FY2025Q2": -3213726369,
+          "FY2025Q3": 0,
+          "FY2025Q4": 219696568,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속될 계속영업손익",
+        "concept": "ifrs-full_IncomeFromContinuingOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025Q2": 24023803025,
+          "FY2025Q3": -2523111951,
+          "FY2025Q4": -20239307418,
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속될 중단영업손익",
+        "concept": "ifrs-full_IncomeFromDiscontinuedOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2025Q3": -790000000,
+          "FY2025Q4": -629708481,
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "계속영업기본주당이익(손실)",
+        "concept": "ifrs-full_BasicEarningsLossPerShareFromContinuingOperations",
+        "values": {
+          "FY2025Q2": 731,
+          "FY2025Q3": -140,
+          "FY2025Q4": -588,
+          "FY2026Q1": 932
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "중단영업기본주당이익(손실)",
+        "concept": "ifrs-full_BasicEarningsLossPerShareFromDiscontinuedOperations",
+        "values": {
+          "FY2025Q2": -90,
+          "FY2025Q3": -16,
+          "FY2025Q4": -24,
+          "FY2026Q1": -43
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "계속영업희석주당이익(손실)",
+        "concept": "ifrs-full_DilutedEarningsLossPerShareFromContinuingOperations",
+        "values": {
+          "FY2025Q2": 585,
+          "FY2025Q3": -101,
+          "FY2025Q4": -735,
+          "FY2026Q1": 173
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "중단영업희석주당이익(손실)",
+        "concept": "ifrs-full_DilutedEarningsLossPerShareFromDiscontinuedOperations",
+        "values": {
+          "FY2025Q2": -90,
+          "FY2025Q3": -16,
+          "FY2025Q4": -24,
+          "FY2026Q1": -43
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "확정급여제도의재측정요소",
+        "concept": "ifrs-full_OtherComprehensiveIncomeNetOfTaxGainsLossesOnRemeasurementsOfDefinedBenefitPlans",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 54776113
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "계속영업이익(손실)",
+        "concept": "ifrs-full_ProfitLossFromContinuingOperations",
+        "values": {
+          "FY2025Q2": 24023803025,
+          "FY2025Q3": -2523111951,
+          "FY2025Q4": -20239307418,
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "중단영업이익(손실)",
+        "concept": "ifrs-full_ProfitLossFromDiscontinuedOperations",
+        "values": {
+          "FY2025Q3": -790000000,
+          "FY2025Q4": -629708481,
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지분법손익",
+        "concept": "ifrs-full_AdjustmentsForUndistributedProfitsOfInvestmentsAccountedForUsingEquityMethod",
+        "values": {
+          "FY2025Q3": 0
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "매출원가",
+        "concept": "ifrs-full_CostOfSales",
+        "values": {
+          "FY2025Q3": 20028061254,
+          "FY2025Q4": 28455698196,
+          "FY2026Q1": 38336112253
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "매출총이익",
+        "concept": "ifrs-full_GrossProfit",
+        "values": {
+          "FY2025Q3": 1068412490,
+          "FY2025Q4": 5372537535,
+          "FY2026Q1": 6732969418
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "판매비와관리비",
+        "concept": "ifrs-full_SellingGeneralAndAdministrativeExpense",
+        "values": {
+          "FY2025Q3": 2057966024
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "판매비와관리비",
+        "concept": "dart_TotalSellingGeneralAdministrativeExpenses",
+        "values": {
+          "FY2026Q1": 6022257509
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지배기업의 소유주지분",
+        "concept": "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent",
+        "values": {
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속되는 계속영업포괄손익",
+        "concept": "ifrs-full_ComprehensiveIncomeFromContinuingOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2026Q1": 41726238010
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "지배기업의 소유주에게 귀속되는 중단영업포괄손익",
+        "concept": "ifrs-full_ComprehensiveIncomeFromDiscontinuedOperationsAttributableToOwnersOfParent",
+        "values": {
+          "FY2026Q1": -1940917545
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "포괄손익계산서",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      }
+    ],
+    "cash_flow_quarterly_derived": [
+      {
+        "label": "영업활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+        "values": {
+          "FY2025Q2": -21720039659,
+          "FY2025Q3": -7526291417,
+          "FY2025Q4": 3897608512,
+          "FY2026Q1": -32004405444
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "영업활동으로 창출된 현금",
+        "concept": "-표준계정코드 미사용-",
+        "values": {
+          "FY2025Q2": -18040280961,
+          "FY2025Q3": -5869274235,
+          "FY2025Q4": 26353526338,
+          "FY2026Q1": 62976465471
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "이자의 지급",
+        "concept": "ifrs-full_InterestPaidClassifiedAsOperatingActivities",
+        "values": {
+          "FY2026Q1": 13543660
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "법인세의 환급(납부)",
+        "concept": "ifrs-full_IncomeTaxesPaidRefundClassifiedAsOperatingActivities",
+        "values": {
+          "FY2025Q3": -514757820,
+          "FY2025Q4": -297784790,
+          "FY2026Q1": -21962710
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "투자활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInInvestingActivities",
+        "values": {
+          "FY2025Q2": 2110800390,
+          "FY2025Q3": -2375534180,
+          "FY2025Q4": -2917985868,
+          "FY2026Q1": -345562374887
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "유형자산의 취득",
+        "concept": "ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025Q3": 2804000000,
+          "FY2025Q4": -2890889827,
+          "FY2026Q1": -2945000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "무형자산의 취득",
+        "concept": "ifrs-full_PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025Q4": -3768120
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "보증금의 증가",
+        "concept": "dart_IncreaseInGuaranteeDeposits",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 3850000,
+          "FY2026Q1": -5000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "재무활동으로 인한 현금흐름",
+        "concept": "ifrs-full_CashFlowsFromUsedInFinancingActivities",
+        "values": {
+          "FY2025Q2": -223506213,
+          "FY2025Q3": -81022453,
+          "FY2025Q4": -640010603,
+          "FY2026Q1": 399949710668
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "현금및현금성자산의 증가",
+        "concept": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalentsBeforeEffectOfExchangeRateChanges",
+        "values": {
+          "FY2025Q2": -19832745482,
+          "FY2025Q3": -9982848050,
+          "FY2025Q4": 339612041,
+          "FY2026Q1": 22382930337
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "기초의 현금및현금성자산",
+        "concept": "dart_CashAndCashEquivalentsAtBeginningOfPeriodCf",
+        "values": {
+          "FY2025Q2": 0,
+          "FY2025Q3": 0,
+          "FY2025Q4": 0,
+          "FY2026Q1": 4166536785
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "현금및현금성자산의 환율변동효과",
+        "concept": "ifrs-full_EffectOfExchangeRateChangesOnCashAndCashEquivalents",
+        "values": {
+          "FY2025Q2": 112042,
+          "FY2025Q3": -102724,
+          "FY2025Q4": -11248341,
+          "FY2026Q1": 106113939
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "기말의 현금및현금성자산",
+        "concept": "dart_CashAndCashEquivalentsAtEndOfPeriodCf",
+        "values": {
+          "FY2025Q2": -19832633440,
+          "FY2025Q3": -9982950774,
+          "FY2025Q4": 328363700,
+          "FY2026Q1": 26655581061
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "단기차입금의 상환",
+        "concept": "dart_RepaymentsOfShortTermBorrowings",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 0,
+          "FY2026Q1": -2302000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산의 취득",
+        "concept": "dart_PurchaseOfFinancialAssetsAtFairValueThroughProfitOrLossClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": -444065500,
+          "FY2026Q1": -351177799510
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "당기순이익(손실)",
+        "concept": "ifrs-full_ProfitLoss",
+        "values": {
+          "FY2025Q2": 18023807223,
+          "FY2025Q3": -24501210000,
+          "FY2025Q4": 3483372976,
+          "FY2026Q1": 39785320465
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "자기주식의 취득으로 인한 현금의 유출",
+        "concept": "dart_AcquisitionOfTreasuryShares",
+        "values": {
+          "FY2025Q2": 0,
+          "FY2025Q3": 0,
+          "FY2025Q4": 0,
+          "FY2026Q1": 34266977722
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "리스부채의 상환",
+        "concept": "ifrs-full_PaymentsOfLeaseLiabilitiesClassifiedAsFinancingActivities",
+        "values": {
+          "FY2025Q2": -126085461,
+          "FY2025Q3": -81022453,
+          "FY2025Q4": -64813706,
+          "FY2026Q1": -80482613
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q2": [
+            "FY2025H1",
+            "FY2025Q1"
+          ],
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "주식선택권의 행사",
+        "concept": "dart_ProceedsFromExerciseOfShareOptions",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 0
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "단기차입금의 증가",
+        "concept": "dart_ProceedsFromShortTermBorrowings",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 1000000000,
+          "FY2026Q1": 312867290000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "보증금의 감소",
+        "concept": "dart_DecreaseInGuaranteeDeposits",
+        "values": {
+          "FY2025Q3": 10246500,
+          "FY2025Q4": -26751888,
+          "FY2026Q1": 10000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "당기손익-공정가치측정금융자산의 처분",
+        "concept": "dart_ProceedsFromDisposalOfFinancialAssetsAtFairValueThroughProfitOrLossClassifiedAsInvestingActivities",
+        "values": {
+          "FY2025Q3": 0,
+          "FY2025Q4": 0,
+          "FY2026Q1": 5373359623
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "이자의 수취",
+        "concept": "ifrs-full_InterestReceivedClassifiedAsOperatingActivities",
+        "values": {
+          "FY2025Q3": 130446527,
+          "FY2025Q4": -53407606,
+          "FY2026Q1": 36331383
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2025Q3": [
+            "FY2025Q3",
+            "FY2025H1"
+          ],
+          "FY2025Q4": [
+            "FY2025",
+            "FY2025Q3"
+          ],
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "신주발행비",
+        "concept": "dart_PaymentForStockIssueCost",
+        "values": {
+          "FY2026Q1": -26349696
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "단기대여금의 상환",
+        "concept": "dart_ProceedsFromSalesOfShortTermLoansAndReceivables",
+        "values": {
+          "FY2026Q1": 250000000
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "영업활동으로 창출된 현금",
+        "concept": "ifrs-full_OtherCashReceiptsFromOperatingActivities",
+        "values": {
+          "FY2026Q1": -32032317777
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "운전자본 조정",
+        "concept": "ifrs-full_IncreaseDecreaseInWorkingCapital",
+        "values": {
+          "FY2026Q1": -31334676590
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      },
+      {
+        "label": "비현금항목 조정",
+        "concept": "ifrs-full_OtherAdjustmentsForNoncashItems",
+        "values": {
+          "FY2026Q1": -40482961652
+        },
+        "currency": "KRW",
+        "source_type": "official-api-derived",
+        "provider": "dart-fss",
+        "statement_name": "현금흐름표",
+        "fs_div": "CFS",
+        "derivation": "quarter_from_cumulative",
+        "source_periods": {
+          "FY2026Q1": [
+            "FY2026Q1"
+          ]
+        },
+        "confidence": "model-ready-review"
+      }
+    ]
+  },
+  "completeness": [
+    {
+      "data_item": "identity",
+      "status": "evidence-ready",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "evidence-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "filing_index",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": ""
+    },
+    {
+      "data_item": "latest_full_filing",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": ""
+    },
+    {
+      "data_item": "income_statement",
+      "status": "model-ready",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "balance_sheet",
+      "status": "model-ready",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "cash_flow",
+      "status": "model-ready",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": "no stable free structured DART revenue split route"
+    }
+  ],
+  "source_map": {
+    "entries": [
+      {
+        "data_item": "income_statement",
+        "provider": "dart-fss",
+        "record_count": 30,
+        "confidence": "model-ready",
+        "source_id": "",
+        "source_type": "official-api"
+      },
+      {
+        "data_item": "balance_sheet",
+        "provider": "dart-fss",
+        "record_count": 53,
+        "confidence": "model-ready",
+        "source_id": "",
+        "source_type": "official-api"
+      },
+      {
+        "data_item": "cash_flow",
+        "provider": "dart-fss",
+        "record_count": 32,
+        "confidence": "model-ready",
+        "source_id": "",
+        "source_type": "official-api"
+      },
+      {
+        "data_item": "revenue_split",
+        "provider": "dart-fss",
+        "record_count": 0,
+        "confidence": "provider-gap"
+      },
+      {
+        "data_item": "income_statement_quarterly_derived",
+        "provider": "dart-fss",
+        "record_count": 29,
+        "confidence": "model-ready-review",
+        "source_id": "",
+        "source_type": "official-api-derived",
+        "derivation": "quarter_from_cumulative"
+      },
+      {
+        "data_item": "cash_flow_quarterly_derived",
+        "provider": "dart-fss",
+        "record_count": 28,
+        "confidence": "model-ready-review",
+        "source_id": "",
+        "source_type": "official-api-derived",
+        "derivation": "quarter_from_cumulative"
+      }
+    ],
+    "source_provider": "dart-fss"
+  },
+  "unmapped_items": [
+    {
+      "data_item": "filing_index",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": ""
+    },
+    {
+      "data_item": "latest_full_filing",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "dart-fss",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": "no stable free structured DART revenue split route"
+    }
+  ]
+}

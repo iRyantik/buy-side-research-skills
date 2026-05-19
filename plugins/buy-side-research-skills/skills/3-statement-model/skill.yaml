@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: '3-statement-model'
 id: '3-statement-model'
 display_name: '3-Statement Model'
 version: '1.1.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -47,6 +47,7 @@ capabilities:
     - 'Prefer source-tracked actuals from financial-data before external or manual data.'
     - 'Prefer driver-map assumptions for segment, geography, revenue, and margin treatment.'
     - 'Do not convert missing or unmapped actuals to zero; leave blanks and flag review checks.'
+    - 'Use income_statement_quarterly_derived and cash_flow_quarterly_derived for single-quarter KR flow actuals when present; never subtract balance sheet rows.'
     - 'main_agent_workbook_ownership_required'
     - 'source_map_and_completeness_check_required'
     - 'no_final_valuation_or_workbook_delivery_by_sub-agent'

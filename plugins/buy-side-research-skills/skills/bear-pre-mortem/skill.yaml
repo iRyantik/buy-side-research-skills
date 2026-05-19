@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'bear-pre-mortem'
 id: 'bear-pre-mortem'
 display_name: 'Bear Pre-Mortem'
 version: '1.0.2'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'

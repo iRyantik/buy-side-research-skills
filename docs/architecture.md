@@ -129,7 +129,10 @@ topics/company/<company-slug>/_cache/financial-data/
     evidence-pack.json
     source-map.json
     completeness.json
+    full-filing.md
 ```
+
+`actuals-resolved.json` contains the three statements and may include `statements.revenue_split` when a provider exposes structured revenue split. US SEC split rows come from XBRL dimensions and remain review-only until `driver-map` maps them to model buckets. If no structured split is available, `completeness.json` marks `revenue_split` as `provider-gap`; `driver-map` may then use `full-filing.md` for LLM extraction.
 
 `driver-map` canonical company cache:
 
@@ -139,6 +142,8 @@ topics/company/<company-slug>/_cache/driver-map/
   internal/
     driver-map.json
 ```
+
+`driver-map` reads financial-data first. It treats SEC XBRL dimension `revenue_split` as `provider-structured`, table fallback split as `provider-table-review`, and uses `review_required` metadata to map axis/member labels into model buckets. If no structured split exists, it uses `full-filing.md` for `llm-extracted-review` revenue split or marks the split `not-disclosed`.
 
 Model workbooks:
 

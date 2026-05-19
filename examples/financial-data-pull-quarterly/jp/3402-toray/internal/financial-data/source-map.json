@@ -1,0 +1,47 @@
+{
+  "entries": [
+    {
+      "data_item": "filing_index",
+      "provider": "edinet-tools",
+      "source_id": "",
+      "filing_date": "2025-11-14",
+      "filing_url": "",
+      "confidence": "evidence-ready"
+    },
+    {
+      "data_item": "latest_full_filing",
+      "provider": "edinet-tools",
+      "source_id": "",
+      "sha256": "",
+      "confidence": "evidence-ready"
+    },
+    {
+      "data_item": "income_statement",
+      "provider": "edinet-tools",
+      "record_count": 8,
+      "confidence": "model-ready",
+      "source_id": ""
+    },
+    {
+      "data_item": "balance_sheet",
+      "provider": "edinet-tools",
+      "record_count": 12,
+      "confidence": "model-ready",
+      "source_id": ""
+    },
+    {
+      "data_item": "cash_flow",
+      "provider": "edinet-tools",
+      "record_count": 3,
+      "confidence": "model-ready",
+      "source_id": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "provider": "edinet-tools",
+      "record_count": 0,
+      "confidence": "provider-gap"
+    }
+  ],
+  "source_provider": "edinet-tools"
+}

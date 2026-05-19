@@ -1,0 +1,18 @@
+{
+  "status": "success",
+  "provider_status": "success",
+  "errors": [],
+  "data_gaps": [
+    "financial_statements_2026_H1: OpenDART returned no CFS/OFS rows",
+    "financial_statements_2026_Q3: OpenDART returned no CFS/OFS rows",
+    "financial_statements_2026_FY: OpenDART returned no CFS/OFS rows",
+    "quarterly_statement_scope: OpenDART Q1/H1/Q3 values may be cumulative reporting-period amounts",
+    "revenue_split: no stable free structured DART revenue split route"
+  ],
+  "items_extracted": [
+    "identity",
+    "income_statement",
+    "balance_sheet",
+    "cash_flow"
+  ]
+}

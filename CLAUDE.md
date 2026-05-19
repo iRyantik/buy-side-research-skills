@@ -1,4 +1,4 @@
-﻿# CLAUDE.md - Buy-Side Research Project Configuration
+# CLAUDE.md - Buy-Side Research Project Configuration
 
 > 本文件是这个工作目录的唯一 project constitution / source of truth。任何 skill、README 或局部说明与本文冲突时，以本文为准。
 
@@ -118,7 +118,7 @@ v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直�
 - `skill.yaml` 是 metadata / index truth：负责 name、trigger、capabilities、workflow、quality gates、artifact policy 和索引信息。
 - `meta.json` 已 retired；active `plugins/buy-side-research-skills/skills/*/` 下不得新建或维护 `meta.json`。
 - `skill.yaml.version` 是单个 skill 自身的 semver，不表示系统代际。
-- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.9.0`。
+- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.10.0`。
 - Skill semver：MAJOR 表示输出契约或触发边界不兼容；MINOR 表示新增 mode / routing / workflow 能力；PATCH 表示措辞、source policy、反模式或 metadata 修正。
 
 ---
@@ -284,5 +284,5 @@ Future research workspace：
 
 ---
 
-**版本**：v3.9.0
+**版本**：v3.10.0
 **最后更新**：2026-05-10

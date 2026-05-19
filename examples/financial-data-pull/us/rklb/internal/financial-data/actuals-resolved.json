@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-05-13T10:24:46+00:00",
-  "latest_run_cache_path": "internal/financial-data",
+  "generated_at_utc": "2026-05-18T07:40:10+00:00",
+  "latest_run_cache_path": "C:\\Users\\M\\AppData\\Local\\Temp\\bsrs-financial-data-smoke\\topics\\company\\rklb\\_cache\\datasets\\financial-data\\us\\rklb\\20260518T074010Z",
   "status": "success",
   "resolution_policy": {
     "missing_or_unmapped": "leave_blank_and_flag_review",
@@ -925,42 +925,56 @@
       "status": "evidence-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "evidence-ready"
+      "model_usable": "evidence-ready",
+      "caveat": ""
     },
     {
       "data_item": "filing_index",
       "status": "evidence-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "evidence-ready"
+      "model_usable": "evidence-ready",
+      "caveat": ""
     },
     {
       "data_item": "latest_full_filing",
       "status": "evidence-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "evidence-ready"
+      "model_usable": "evidence-ready",
+      "caveat": ""
     },
     {
       "data_item": "income_statement",
       "status": "model-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "model-ready"
+      "model_usable": "model-ready",
+      "caveat": ""
     },
     {
       "data_item": "balance_sheet",
       "status": "model-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "model-ready"
+      "model_usable": "model-ready",
+      "caveat": ""
     },
     {
       "data_item": "cash_flow",
       "status": "model-ready",
       "source_provider": "edgartools",
       "period_coverage": "FY2023-FY2025",
-      "model_usable": "model-ready"
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "provider-gap",
+      "caveat": "SEC segment/geography extraction requires a dedicated XBRL dimensions or filing-table parser"
     }
   ],
   "source_map": {
@@ -1000,9 +1014,24 @@
         "record_count": 37,
         "confidence": "model-ready",
         "source_id": "0001819994-26-000013"
+      },
+      {
+        "data_item": "revenue_split",
+        "provider": "edgartools",
+        "record_count": 0,
+        "confidence": "provider-gap"
       }
     ],
     "source_provider": "edgartools"
   },
-  "unmapped_items": []
+  "unmapped_items": [
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "edgartools",
+      "period_coverage": "FY2023-FY2025",
+      "model_usable": "provider-gap",
+      "caveat": "SEC segment/geography extraction requires a dedicated XBRL dimensions or filing-table parser"
+    }
+  ]
 }

@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-05-18T09:02:29+00:00",
+  "latest_run_cache_path": "C:\\Users\\M\\AppData\\Local\\Temp\\bsrs-financial-data-quarterly-smoke\\topics\\company\\3402-toray\\_cache\\datasets\\financial-data\\jp\\3402\\20260518T090229Z",
+  "status": "success",
+  "resolution_policy": {
+    "missing_or_unmapped": "leave_blank_and_flag_review",
+    "never_fill_missing_with_zero": true,
+    "model_input_gate": "use completeness/source_map before workbook population"
+  },
+  "statements": {
+    "income_statement": [
+      {
+        "label": "Operating income",
+        "concept": "operating_income",
+        "values": {
+          "2026-03-31": 79512000000,
+          "FY2025": 127453000000,
+          "FY2024": 57651000000,
+          "2025-03-31": 44445000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Ordinary income",
+        "concept": "ordinary_income",
+        "values": {
+          "2026-03-31": 77759000000,
+          "FY2025": 96851000000,
+          "FY2024": 77982000000,
+          "2025-03-31": 48979000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Net sales",
+        "concept": "net_sales",
+        "values": {
+          "FY2025": 651714000000,
+          "FY2024": 606925000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Net income",
+        "concept": "net_income",
+        "values": {
+          "FY2025": 77911000000,
+          "FY2024": 21897000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Income before taxes",
+        "concept": "income_before_taxes",
+        "values": {
+          "FY2025": 114288000000,
+          "FY2024": 59567000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Non-operating income",
+        "concept": "non_operating_income",
+        "values": {
+          "FY2025": 82106000000,
+          "FY2024": 71916000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Non-operating expenses",
+        "concept": "non_operating_expenses",
+        "values": {
+          "FY2025": 4568000000,
+          "FY2024": 4626000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Income taxes",
+        "concept": "income_taxes",
+        "values": {
+          "FY2025": 27615000000,
+          "FY2024": 29112000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      }
+    ],
+    "balance_sheet": [
+      {
+        "label": "Total assets",
+        "concept": "total_assets",
+        "values": {
+          "2026-03-31": 3292597000000,
+          "FY2025": 1568354000000,
+          "2025-03-31": 3466518000000,
+          "FY2024": 1594541000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Current assets",
+        "concept": "current_assets",
+        "values": {
+          "2026-03-31": 1461988000000,
+          "FY2025": 1461988000000,
+          "2025-03-31": 1522640000000,
+          "FY2024": 1522640000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Total liabilities",
+        "concept": "total_liabilities",
+        "values": {
+          "2026-03-31": 1472025000000,
+          "FY2025": 1472025000000,
+          "2025-03-31": 1620156000000,
+          "FY2024": 1620156000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Net assets",
+        "concept": "net_assets",
+        "values": {
+          "2026-03-31": 1820572000000,
+          "FY2025": 821963000000,
+          "2025-03-31": 1846362000000,
+          "FY2024": 807815000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Noncurrent assets",
+        "concept": "noncurrent_assets",
+        "values": {
+          "FY2025": 1830609000000,
+          "FY2024": 1943878000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Cash and deposits",
+        "concept": "cash_and_deposits",
+        "values": {
+          "FY2025": 237295000000,
+          "FY2024": 235887000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Property, plant and equipment",
+        "concept": "property_plant_equipment",
+        "values": {
+          "FY2025": 1109588000000,
+          "FY2024": 1081115000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Deferred tax assets",
+        "concept": "deferred_tax_assets",
+        "values": {
+          "FY2025": 4629000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Current liabilities",
+        "concept": "current_liabilities",
+        "values": {
+          "FY2025": 295691000000,
+          "FY2024": 246943000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Retained earnings",
+        "concept": "retained_earnings",
+        "values": {
+          "FY2025": 1170508000000,
+          "FY2024": 1068364000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Long-term loans payable",
+        "concept": "long_term_loans_payable",
+        "values": {
+          "FY2025": 228100000000,
+          "FY2024": 252792000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Bonds payable",
+        "concept": "bonds_payable",
+        "values": {
+          "FY2025": 150000000000,
+          "FY2024": 190000000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      }
+    ],
+    "cash_flow": [
+      {
+        "label": "Operating cash flow",
+        "concept": "operating_cash_flow",
+        "values": {
+          "FY2025": 255033000000,
+          "FY2024": 185680000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Investing cash flow",
+        "concept": "investing_cash_flow",
+        "values": {
+          "FY2025": -63198000000,
+          "FY2024": -120997000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      },
+      {
+        "label": "Financing cash flow",
+        "concept": "financing_cash_flow",
+        "values": {
+          "FY2025": -188520000000,
+          "FY2024": -70370000000
+        },
+        "currency": "JPY",
+        "source_type": "official-parser",
+        "provider": "edinet-tools"
+      }
+    ]
+  },
+  "completeness": [
+    {
+      "data_item": "identity",
+      "status": "evidence-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "evidence-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "filing_index",
+      "status": "evidence-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "evidence-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "latest_full_filing",
+      "status": "evidence-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "evidence-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "income_statement",
+      "status": "model-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "balance_sheet",
+      "status": "model-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "cash_flow",
+      "status": "model-ready",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "model-ready",
+      "caveat": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": "no stable structured EDINET revenue split parser in this route"
+    }
+  ],
+  "source_map": {
+    "entries": [
+      {
+        "data_item": "filing_index",
+        "provider": "edinet-tools",
+        "source_id": "",
+        "filing_date": "2025-11-14",
+        "filing_url": "",
+        "confidence": "evidence-ready"
+      },
+      {
+        "data_item": "latest_full_filing",
+        "provider": "edinet-tools",
+        "source_id": "",
+        "sha256": "",
+        "confidence": "evidence-ready"
+      },
+      {
+        "data_item": "income_statement",
+        "provider": "edinet-tools",
+        "record_count": 8,
+        "confidence": "model-ready",
+        "source_id": ""
+      },
+      {
+        "data_item": "balance_sheet",
+        "provider": "edinet-tools",
+        "record_count": 12,
+        "confidence": "model-ready",
+        "source_id": ""
+      },
+      {
+        "data_item": "cash_flow",
+        "provider": "edinet-tools",
+        "record_count": 3,
+        "confidence": "model-ready",
+        "source_id": ""
+      },
+      {
+        "data_item": "revenue_split",
+        "provider": "edinet-tools",
+        "record_count": 0,
+        "confidence": "provider-gap"
+      }
+    ],
+    "source_provider": "edinet-tools"
+  },
+  "unmapped_items": [
+    {
+      "data_item": "revenue_split",
+      "status": "provider-gap",
+      "source_provider": "edinet-tools",
+      "period_coverage": "latest4q",
+      "model_usable": "provider-gap",
+      "caveat": "no stable structured EDINET revenue split parser in this route"
+    }
+  ]
+}

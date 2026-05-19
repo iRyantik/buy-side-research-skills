@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-05-18T08:55:28+00:00",
+  "run_id": "20260518T085528Z",
+  "output_scope": "canonical_company",
+  "market": "cn",
+  "identifier": "300014",
+  "identifier_type": "ticker",
+  "company_slug": "300014-eve-energy",
+  "canonical_id": "300014",
+  "periods": "latest4q",
+  "mode": "latest_core",
+  "provider": "akshare",
+  "provider_status": "success",
+  "status": "success"
+}

@@ -1,0 +1,13 @@
+{
+  "status": "success",
+  "provider_status": "success",
+  "errors": [],
+  "data_gaps": [],
+  "items_extracted": [
+    "identity",
+    "income_statement",
+    "balance_sheet",
+    "cash_flow",
+    "revenue_split"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-05-18T09:02:29+00:00",
+  "run_id": "20260518T090229Z",
+  "output_scope": "canonical_company",
+  "market": "jp",
+  "identifier": "3402",
+  "identifier_type": "ticker",
+  "company_slug": "3402-toray",
+  "canonical_id": "3402",
+  "periods": "latest4q",
+  "mode": "latest_core",
+  "provider": "edinet-tools",
+  "provider_status": "success",
+  "status": "success"
+}

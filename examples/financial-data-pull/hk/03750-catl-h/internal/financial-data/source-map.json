@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "data_item": "income_statement",
+      "provider": "akshare",
+      "record_count": 32,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "balance_sheet",
+      "provider": "akshare",
+      "record_count": 65,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "cash_flow",
+      "provider": "akshare",
+      "record_count": 26,
+      "confidence": "provider-normalized-review",
+      "source_id": ""
+    },
+    {
+      "data_item": "revenue_split",
+      "provider": "akshare",
+      "record_count": 0,
+      "confidence": "provider-gap"
+    }
+  ],
+  "source_provider": "akshare"
+}

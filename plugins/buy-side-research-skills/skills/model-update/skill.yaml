@@ -1,9 +1,9 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'model-update'
 id: 'model-update'
 display_name: 'Model Update'
 version: '1.1.0'
-system_generation: '3.9.0'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -52,6 +52,7 @@ capabilities:
     - 'Prefer new financial-data actuals and driver-map changes before external or manual data.'
     - 'Separate reported actuals, revised assumptions, and formula changes.'
     - 'Do not overwrite user workbooks without explicit instruction.'
+    - 'Use income_statement_quarterly_derived and cash_flow_quarterly_derived for single-quarter reported flow updates when present; never subtract balance sheet rows.'
     - 'main_agent_workbook_ownership_required'
     - 'source_map_and_completeness_check_required'
     - 'no_final_valuation_or_workbook_delivery_by_sub-agent'

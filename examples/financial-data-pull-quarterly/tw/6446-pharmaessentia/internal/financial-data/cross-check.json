@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "provider_status": "success",
+  "errors": [],
+  "data_gaps": [
+    "revenue_split: no stable free structured TW revenue split route"
+  ],
+  "items_extracted": [
+    "identity",
+    "income_statement",
+    "balance_sheet",
+    "cash_flow"
+  ]
+}

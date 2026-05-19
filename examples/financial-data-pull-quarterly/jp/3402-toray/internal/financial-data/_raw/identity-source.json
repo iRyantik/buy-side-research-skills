@@ -1,0 +1,11 @@
+{
+  "provider": "edinet-tools",
+  "company": {
+    "name": "TORAY INDUSTRIES,INC.",
+    "edinet_code": "E00873",
+    "ticker": "3402",
+    "type": ""
+  },
+  "captured_at_utc": "2026-05-18T09:02:29+00:00",
+  "status": "available"
+}

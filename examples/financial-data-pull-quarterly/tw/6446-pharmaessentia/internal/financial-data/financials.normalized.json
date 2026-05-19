@@ -1,0 +1,1213 @@
+{
+  "income_statement": [
+    {
+      "label": "OtherComprehensiveIncome",
+      "concept": "OtherComprehensiveIncome",
+      "values": {
+        "2025-06-30": -1077112000.0,
+        "2025-09-30": -276947000.0,
+        "2025-12-31": 267911000.0,
+        "2026-03-31": 243020000.0
+      }
+    },
+    {
+      "label": "TAX",
+      "concept": "TAX",
+      "values": {
+        "2025-06-30": -736429000.0,
+        "2025-09-30": -59177000.0,
+        "2025-12-31": 536451000.0,
+        "2026-03-31": 185954000.0
+      }
+    },
+    {
+      "label": "IncomeAfterTaxes",
+      "concept": "IncomeAfterTaxes",
+      "values": {
+        "2025-06-30": 832251000.0,
+        "2025-09-30": 1473077000.0,
+        "2025-12-31": 1476282000.0,
+        "2026-03-31": 2149627000.0
+      }
+    },
+    {
+      "label": "TotalConsolidatedProfitForThePeriod",
+      "concept": "TotalConsolidatedProfitForThePeriod",
+      "values": {
+        "2025-06-30": -244861000.0,
+        "2025-09-30": 1196130000.0,
+        "2025-12-31": 1744193000.0,
+        "2026-03-31": 2392647000.0
+      }
+    },
+    {
+      "label": "EquityAttributableToOwnersOfParent",
+      "concept": "EquityAttributableToOwnersOfParent",
+      "values": {
+        "2025-06-30": 832251000.0,
+        "2025-09-30": 1473077000.0,
+        "2025-12-31": 1476282000.0,
+        "2026-03-31": 2149627000.0
+      }
+    },
+    {
+      "label": "OperatingIncome",
+      "concept": "OperatingIncome",
+      "values": {
+        "2025-06-30": 1095589000.0,
+        "2025-09-30": 1165881000.0,
+        "2025-12-31": 1561476000.0,
+        "2026-03-31": 2087077000.0
+      }
+    },
+    {
+      "label": "TotalNonoperatingIncomeAndExpense",
+      "concept": "TotalNonoperatingIncomeAndExpense",
+      "values": {
+        "2025-06-30": -999767000.0,
+        "2025-09-30": 248019000.0,
+        "2025-12-31": 451257000.0,
+        "2026-03-31": 248504000.0
+      }
+    },
+    {
+      "label": "CostOfGoodsSold",
+      "concept": "CostOfGoodsSold",
+      "values": {
+        "2025-06-30": 450205000.0,
+        "2025-09-30": 327927000.0,
+        "2025-12-31": 543675000.0,
+        "2026-03-31": 621281000.0
+      }
+    },
+    {
+      "label": "Revenue",
+      "concept": "Revenue",
+      "values": {
+        "2025-06-30": 3602461000.0,
+        "2025-09-30": 3893772000.0,
+        "2025-12-31": 4881238000.0,
+        "2026-03-31": 5121378000.0
+      }
+    },
+    {
+      "label": "GrossProfit",
+      "concept": "GrossProfit",
+      "values": {
+        "2025-06-30": 3152256000.0,
+        "2025-09-30": 3565845000.0,
+        "2025-12-31": 4337563000.0,
+        "2026-03-31": 4500097000.0
+      }
+    },
+    {
+      "label": "OperatingExpenses",
+      "concept": "OperatingExpenses",
+      "values": {
+        "2025-06-30": 2056667000.0,
+        "2025-09-30": 2399964000.0,
+        "2025-12-31": 2776087000.0,
+        "2026-03-31": 2413020000.0
+      }
+    },
+    {
+      "label": "PreTaxIncome",
+      "concept": "PreTaxIncome",
+      "values": {
+        "2025-06-30": 95822000.0,
+        "2025-09-30": 1413900000.0,
+        "2025-12-31": 2012733000.0,
+        "2026-03-31": 2335581000.0
+      }
+    },
+    {
+      "label": "IncomeFromContinuingOperations",
+      "concept": "IncomeFromContinuingOperations",
+      "values": {
+        "2025-06-30": 832251000.0,
+        "2025-09-30": 1473077000.0,
+        "2025-12-31": 1476282000.0,
+        "2026-03-31": 2149627000.0
+      }
+    },
+    {
+      "label": "EPS",
+      "concept": "EPS",
+      "values": {
+        "2025-06-30": 2.5,
+        "2025-09-30": 3.99,
+        "2025-12-31": 3.98,
+        "2026-03-31": 5.79
+      }
+    }
+  ],
+  "balance_sheet": [
+    {
+      "label": "CashAndCashEquivalents",
+      "concept": "CashAndCashEquivalents",
+      "values": {
+        "2025-06-30": 20782747000.0,
+        "2025-09-30": 21581135000.0,
+        "2025-12-31": 22692972000.0,
+        "2026-03-31": 24175410000.0
+      }
+    },
+    {
+      "label": "CashAndCashEquivalents_per",
+      "concept": "CashAndCashEquivalents_per",
+      "values": {
+        "2025-06-30": 63.35,
+        "2025-09-30": 62.64,
+        "2025-12-31": 60.66,
+        "2026-03-31": 60.3
+      }
+    },
+    {
+      "label": "FinancialAssetsAtFairvalueThroughOtherComprehensiveIncomeNonCurrent",
+      "concept": "FinancialAssetsAtFairvalueThroughOtherComprehensiveIncomeNonCurrent",
+      "values": {
+        "2025-06-30": 447318000.0,
+        "2025-09-30": 419271000.0,
+        "2025-12-31": 410800000.0,
+        "2026-03-31": 380040000.0
+      }
+    },
+    {
+      "label": "FinancialAssetsAtFairvalueThroughOtherComprehensiveIncomeNonCurrent_per",
+      "concept": "FinancialAssetsAtFairvalueThroughOtherComprehensiveIncomeNonCurrent_per",
+      "values": {
+        "2025-06-30": 1.36,
+        "2025-09-30": 1.22,
+        "2025-12-31": 1.1,
+        "2026-03-31": 0.95
+      }
+    },
+    {
+      "label": "FinancialAssetsAtAmortizedCost",
+      "concept": "FinancialAssetsAtAmortizedCost",
+      "values": {
+        "2025-06-30": 21964000.0,
+        "2025-09-30": 23027000.0,
+        "2025-12-31": 24111000.0,
+        "2026-03-31": 24281000.0
+      }
+    },
+    {
+      "label": "FinancialAssetsAtAmortizedCost_per",
+      "concept": "FinancialAssetsAtAmortizedCost_per",
+      "values": {
+        "2025-06-30": 0.07,
+        "2025-09-30": 0.07,
+        "2025-12-31": 0.06,
+        "2026-03-31": 0.06
+      }
+    },
+    {
+      "label": "FinancialAssetsAtAmortizedCostNonCurrent",
+      "concept": "FinancialAssetsAtAmortizedCostNonCurrent",
+      "values": {
+        "2025-06-30": 25642000.0,
+        "2025-09-30": 448563000.0,
+        "2025-12-31": 465119000.0,
+        "2026-03-31": 409087000.0
+      }
+    },
+    {
+      "label": "FinancialAssetsAtAmortizedCostNonCurrent_per",
+      "concept": "FinancialAssetsAtAmortizedCostNonCurrent_per",
+      "values": {
+        "2025-06-30": 0.08,
+        "2025-09-30": 1.3,
+        "2025-12-31": 1.24,
+        "2026-03-31": 1.02
+      }
+    },
+    {
+      "label": "OtherReceivable",
+      "concept": "OtherReceivable",
+      "values": {
+        "2025-06-30": 17978000.0,
+        "2025-09-30": 30976000.0,
+        "2025-12-31": 46944000.0,
+        "2026-03-31": 28739000.0
+      }
+    },
+    {
+      "label": "OtherReceivable_per",
+      "concept": "OtherReceivable_per",
+      "values": {
+        "2025-06-30": 0.05,
+        "2025-09-30": 0.09,
+        "2025-12-31": 0.13,
+        "2026-03-31": 0.07
+      }
+    },
+    {
+      "label": "Prepayments",
+      "concept": "Prepayments",
+      "values": {
+        "2025-06-30": 346986000.0,
+        "2025-09-30": 290342000.0,
+        "2025-12-31": 337196000.0,
+        "2026-03-31": 580270000.0
+      }
+    },
+    {
+      "label": "Prepayments_per",
+      "concept": "Prepayments_per",
+      "values": {
+        "2025-06-30": 1.06,
+        "2025-09-30": 0.84,
+        "2025-12-31": 0.9,
+        "2026-03-31": 1.45
+      }
+    },
+    {
+      "label": "AccountsReceivableNet",
+      "concept": "AccountsReceivableNet",
+      "values": {
+        "2025-06-30": 3258719000.0,
+        "2025-09-30": 3558467000.0,
+        "2025-12-31": 4472337000.0,
+        "2026-03-31": 4776517000.0
+      }
+    },
+    {
+      "label": "AccountsReceivableNet_per",
+      "concept": "AccountsReceivableNet_per",
+      "values": {
+        "2025-06-30": 9.93,
+        "2025-09-30": 10.33,
+        "2025-12-31": 11.95,
+        "2026-03-31": 11.91
+      }
+    },
+    {
+      "label": "Inventories",
+      "concept": "Inventories",
+      "values": {
+        "2025-06-30": 1159772000.0,
+        "2025-09-30": 1166142000.0,
+        "2025-12-31": 1298077000.0,
+        "2026-03-31": 1219300000.0
+      }
+    },
+    {
+      "label": "Inventories_per",
+      "concept": "Inventories_per",
+      "values": {
+        "2025-06-30": 3.54,
+        "2025-09-30": 3.39,
+        "2025-12-31": 3.47,
+        "2026-03-31": 3.04
+      }
+    },
+    {
+      "label": "OtherCurrentAssets",
+      "concept": "OtherCurrentAssets",
+      "values": {
+        "2025-06-30": 42439000.0,
+        "2025-09-30": 41986000.0,
+        "2025-12-31": 42232000.0,
+        "2026-03-31": 41148000.0
+      }
+    },
+    {
+      "label": "OtherCurrentAssets_per",
+      "concept": "OtherCurrentAssets_per",
+      "values": {
+        "2025-06-30": 0.13,
+        "2025-09-30": 0.12,
+        "2025-12-31": 0.11,
+        "2026-03-31": 0.1
+      }
+    },
+    {
+      "label": "CurrentAssets",
+      "concept": "CurrentAssets",
+      "values": {
+        "2025-06-30": 25770912000.0,
+        "2025-09-30": 26842283000.0,
+        "2025-12-31": 29043718000.0,
+        "2026-03-31": 30923112000.0
+      }
+    },
+    {
+      "label": "CurrentAssets_per",
+      "concept": "CurrentAssets_per",
+      "values": {
+        "2025-06-30": 78.56,
+        "2025-09-30": 77.92,
+        "2025-12-31": 77.63,
+        "2026-03-31": 77.13
+      }
+    },
+    {
+      "label": "PropertyPlantAndEquipment",
+      "concept": "PropertyPlantAndEquipment",
+      "values": {
+        "2025-06-30": 2962692000.0,
+        "2025-09-30": 3250117000.0,
+        "2025-12-31": 4152252000.0,
+        "2026-03-31": 4376505000.0
+      }
+    },
+    {
+      "label": "PropertyPlantAndEquipment_per",
+      "concept": "PropertyPlantAndEquipment_per",
+      "values": {
+        "2025-06-30": 9.03,
+        "2025-09-30": 9.43,
+        "2025-12-31": 11.1,
+        "2026-03-31": 10.92
+      }
+    },
+    {
+      "label": "RightOfUseAsset",
+      "concept": "RightOfUseAsset",
+      "values": {
+        "2025-06-30": 834084000.0,
+        "2025-09-30": 784822000.0,
+        "2025-12-31": 749608000.0,
+        "2026-03-31": 855378000.0
+      }
+    },
+    {
+      "label": "RightOfUseAsset_per",
+      "concept": "RightOfUseAsset_per",
+      "values": {
+        "2025-06-30": 2.54,
+        "2025-09-30": 2.28,
+        "2025-12-31": 2.0,
+        "2026-03-31": 2.13
+      }
+    },
+    {
+      "label": "IntangibleAssets",
+      "concept": "IntangibleAssets",
+      "values": {
+        "2025-06-30": 259955000.0,
+        "2025-09-30": 244528000.0,
+        "2025-12-31": 235117000.0,
+        "2026-03-31": 224259000.0
+      }
+    },
+    {
+      "label": "IntangibleAssets_per",
+      "concept": "IntangibleAssets_per",
+      "values": {
+        "2025-06-30": 0.79,
+        "2025-09-30": 0.71,
+        "2025-12-31": 0.63,
+        "2026-03-31": 0.56
+      }
+    },
+    {
+      "label": "DeferredTaxAssets",
+      "concept": "DeferredTaxAssets",
+      "values": {
+        "2025-06-30": 2024348000.0,
+        "2025-09-30": 1982063000.0,
+        "2025-12-31": 1693127000.0,
+        "2026-03-31": 1941179000.0
+      }
+    },
+    {
+      "label": "DeferredTaxAssets_per",
+      "concept": "DeferredTaxAssets_per",
+      "values": {
+        "2025-06-30": 6.17,
+        "2025-09-30": 5.75,
+        "2025-12-31": 4.53,
+        "2026-03-31": 4.84
+      }
+    },
+    {
+      "label": "OtherNoncurrentAssets",
+      "concept": "OtherNoncurrentAssets",
+      "values": {
+        "2025-06-30": 424548000.0,
+        "2025-09-30": 426033000.0,
+        "2025-12-31": 610918000.0,
+        "2026-03-31": 931672000.0
+      }
+    },
+    {
+      "label": "OtherNoncurrentAssets_per",
+      "concept": "OtherNoncurrentAssets_per",
+      "values": {
+        "2025-06-30": 1.29,
+        "2025-09-30": 1.24,
+        "2025-12-31": 1.63,
+        "2026-03-31": 2.32
+      }
+    },
+    {
+      "label": "NoncurrentAssets",
+      "concept": "NoncurrentAssets",
+      "values": {
+        "2025-06-30": 7033067000.0,
+        "2025-09-30": 7607766000.0,
+        "2025-12-31": 8367576000.0,
+        "2026-03-31": 9166557000.0
+      }
+    },
+    {
+      "label": "NoncurrentAssets_per",
+      "concept": "NoncurrentAssets_per",
+      "values": {
+        "2025-06-30": 21.44,
+        "2025-09-30": 22.08,
+        "2025-12-31": 22.37,
+        "2026-03-31": 22.87
+      }
+    },
+    {
+      "label": "TotalAssets",
+      "concept": "TotalAssets",
+      "values": {
+        "2025-06-30": 32803979000.0,
+        "2025-09-30": 34450049000.0,
+        "2025-12-31": 37411294000.0,
+        "2026-03-31": 40089669000.0
+      }
+    },
+    {
+      "label": "TotalAssets_per",
+      "concept": "TotalAssets_per",
+      "values": {
+        "2025-06-30": 100.0,
+        "2025-09-30": 100.0,
+        "2025-12-31": 100.0,
+        "2026-03-31": 100.0
+      }
+    },
+    {
+      "label": "AccountsPayable",
+      "concept": "AccountsPayable",
+      "values": {
+        "2025-06-30": 146284000.0,
+        "2025-09-30": 199798000.0,
+        "2025-12-31": 156704000.0,
+        "2026-03-31": 143742000.0
+      }
+    },
+    {
+      "label": "AccountsPayable_per",
+      "concept": "AccountsPayable_per",
+      "values": {
+        "2025-06-30": 0.45,
+        "2025-09-30": 0.58,
+        "2025-12-31": 0.42,
+        "2026-03-31": 0.36
+      }
+    },
+    {
+      "label": "OtherPayables",
+      "concept": "OtherPayables",
+      "values": {
+        "2025-06-30": 1658234000.0,
+        "2025-09-30": 1761658000.0,
+        "2025-12-31": 2129484000.0,
+        "2026-03-31": 1590146000.0
+      }
+    },
+    {
+      "label": "OtherPayables_per",
+      "concept": "OtherPayables_per",
+      "values": {
+        "2025-06-30": 5.05,
+        "2025-09-30": 5.11,
+        "2025-12-31": 5.69,
+        "2026-03-31": 3.97
+      }
+    },
+    {
+      "label": "CurrentTaxLiabilities",
+      "concept": "CurrentTaxLiabilities",
+      "values": {
+        "2025-06-30": 169954000.0,
+        "2025-09-30": 66149000.0,
+        "2025-12-31": 266538000.0,
+        "2026-03-31": 667318000.0
+      }
+    },
+    {
+      "label": "CurrentTaxLiabilities_per",
+      "concept": "CurrentTaxLiabilities_per",
+      "values": {
+        "2025-06-30": 0.52,
+        "2025-09-30": 0.19,
+        "2025-12-31": 0.71,
+        "2026-03-31": 1.66
+      }
+    },
+    {
+      "label": "OtherCurrentLiabilities",
+      "concept": "OtherCurrentLiabilities",
+      "values": {
+        "2025-06-30": 1160456000.0,
+        "2025-09-30": 1695797000.0,
+        "2025-12-31": 1925644000.0,
+        "2026-03-31": 2149847000.0
+      }
+    },
+    {
+      "label": "OtherCurrentLiabilities_per",
+      "concept": "OtherCurrentLiabilities_per",
+      "values": {
+        "2025-06-30": 3.54,
+        "2025-09-30": 4.92,
+        "2025-12-31": 5.15,
+        "2026-03-31": 5.36
+      }
+    },
+    {
+      "label": "CurrentLiabilities",
+      "concept": "CurrentLiabilities",
+      "values": {
+        "2025-06-30": 3341869000.0,
+        "2025-09-30": 3928456000.0,
+        "2025-12-31": 4680703000.0,
+        "2026-03-31": 4737365000.0
+      }
+    },
+    {
+      "label": "CurrentLiabilities_per",
+      "concept": "CurrentLiabilities_per",
+      "values": {
+        "2025-06-30": 10.19,
+        "2025-09-30": 11.4,
+        "2025-12-31": 12.51,
+        "2026-03-31": 11.82
+      }
+    },
+    {
+      "label": "LongtermBorrowings",
+      "concept": "LongtermBorrowings",
+      "values": {
+        "2025-06-30": 47823000.0,
+        "2025-09-30": 46329000.0,
+        "2025-12-31": 44834000.0,
+        "2026-03-31": 43340000.0
+      }
+    },
+    {
+      "label": "LongtermBorrowings_per",
+      "concept": "LongtermBorrowings_per",
+      "values": {
+        "2025-06-30": 0.15,
+        "2025-09-30": 0.13,
+        "2025-12-31": 0.12,
+        "2026-03-31": 0.11
+      }
+    },
+    {
+      "label": "OtherNoncurrentLiabilities",
+      "concept": "OtherNoncurrentLiabilities",
+      "values": {
+        "2025-06-30": 112890000.0,
+        "2025-09-30": 21213000.0,
+        "2025-12-31": 23139000.0,
+        "2026-03-31": 25025000.0
+      }
+    },
+    {
+      "label": "OtherNoncurrentLiabilities_per",
+      "concept": "OtherNoncurrentLiabilities_per",
+      "values": {
+        "2025-06-30": 0.34,
+        "2025-09-30": 0.06,
+        "2025-12-31": 0.06,
+        "2026-03-31": 0.06
+      }
+    },
+    {
+      "label": "NoncurrentLiabilities",
+      "concept": "NoncurrentLiabilities",
+      "values": {
+        "2025-06-30": 916731000.0,
+        "2025-09-30": 772361000.0,
+        "2025-12-31": 755260000.0,
+        "2026-03-31": 898093000.0
+      }
+    },
+    {
+      "label": "NoncurrentLiabilities_per",
+      "concept": "NoncurrentLiabilities_per",
+      "values": {
+        "2025-06-30": 2.79,
+        "2025-09-30": 2.24,
+        "2025-12-31": 2.02,
+        "2026-03-31": 2.24
+      }
+    },
+    {
+      "label": "OrdinaryShare",
+      "concept": "OrdinaryShare",
+      "values": {
+        "2025-06-30": 3421701000.0,
+        "2025-09-30": 3421821000.0,
+        "2025-12-31": 3796294000.0,
+        "2026-03-31": 3799094000.0
+      }
+    },
+    {
+      "label": "OrdinaryShare_per",
+      "concept": "OrdinaryShare_per",
+      "values": {
+        "2025-06-30": 10.43,
+        "2025-09-30": 9.93,
+        "2025-12-31": 10.15,
+        "2026-03-31": 9.48
+      }
+    },
+    {
+      "label": "CapitalStock",
+      "concept": "CapitalStock",
+      "values": {
+        "2025-06-30": 3787872000.0,
+        "2025-09-30": 3787992000.0,
+        "2025-12-31": 3796294000.0,
+        "2026-03-31": 3799094000.0
+      }
+    },
+    {
+      "label": "CapitalStock_per",
+      "concept": "CapitalStock_per",
+      "values": {
+        "2025-06-30": 11.55,
+        "2025-09-30": 11.0,
+        "2025-12-31": 10.15,
+        "2026-03-31": 9.48
+      }
+    },
+    {
+      "label": "CapitalSurplusAdditionalPaidInCapital",
+      "concept": "CapitalSurplusAdditionalPaidInCapital",
+      "values": {
+        "2025-06-30": 22903917000.0,
+        "2025-09-30": 22904958000.0,
+        "2025-12-31": 22965762000.0,
+        "2026-03-31": 23083970000.0
+      }
+    },
+    {
+      "label": "CapitalSurplusAdditionalPaidInCapital_per",
+      "concept": "CapitalSurplusAdditionalPaidInCapital_per",
+      "values": {
+        "2025-06-30": 69.82,
+        "2025-09-30": 66.49,
+        "2025-12-31": 61.39,
+        "2026-03-31": 57.58
+      }
+    },
+    {
+      "label": "CapitalSurplus",
+      "concept": "CapitalSurplus",
+      "values": {
+        "2025-06-30": 23591508000.0,
+        "2025-09-30": 23591929000.0,
+        "2025-12-31": 24106248000.0,
+        "2026-03-31": 24106520000.0
+      }
+    },
+    {
+      "label": "CapitalSurplus_per",
+      "concept": "CapitalSurplus_per",
+      "values": {
+        "2025-06-30": 71.92,
+        "2025-09-30": 68.48,
+        "2025-12-31": 64.44,
+        "2026-03-31": 60.13
+      }
+    },
+    {
+      "label": "UnappropriatedRetainedEarningsAaccumulatedDeficit",
+      "concept": "UnappropriatedRetainedEarningsAaccumulatedDeficit",
+      "values": {
+        "2025-06-30": 3998170000.0,
+        "2025-09-30": 5471247000.0,
+        "2025-12-31": 6947130000.0,
+        "2026-03-31": 9096757000.0
+      }
+    },
+    {
+      "label": "UnappropriatedRetainedEarningsAaccumulatedDeficit_per",
+      "concept": "UnappropriatedRetainedEarningsAaccumulatedDeficit_per",
+      "values": {
+        "2025-06-30": 12.19,
+        "2025-09-30": 15.88,
+        "2025-12-31": 18.57,
+        "2026-03-31": 22.69
+      }
+    },
+    {
+      "label": "RetainedEarnings",
+      "concept": "RetainedEarnings",
+      "values": {
+        "2025-06-30": 4295528000.0,
+        "2025-09-30": 5768605000.0,
+        "2025-12-31": 7244488000.0,
+        "2026-03-31": 9394115000.0
+      }
+    },
+    {
+      "label": "RetainedEarnings_per",
+      "concept": "RetainedEarnings_per",
+      "values": {
+        "2025-06-30": 13.09,
+        "2025-09-30": 16.74,
+        "2025-12-31": 19.36,
+        "2026-03-31": 23.43
+      }
+    },
+    {
+      "label": "OtherEquityInterest",
+      "concept": "OtherEquityInterest",
+      "values": {
+        "2025-06-30": -324421000.0,
+        "2025-09-30": -594186000.0,
+        "2025-12-31": -408750000.0,
+        "2026-03-31": -127912000.0
+      }
+    },
+    {
+      "label": "OtherEquityInterest_per",
+      "concept": "OtherEquityInterest_per",
+      "values": {
+        "2025-06-30": -0.99,
+        "2025-09-30": -1.72,
+        "2025-12-31": -1.09,
+        "2026-03-31": -0.32
+      }
+    },
+    {
+      "label": "EquityAttributableToOwnersOfParent",
+      "concept": "EquityAttributableToOwnersOfParent",
+      "values": {
+        "2025-06-30": 28545379000.0,
+        "2025-09-30": 29749232000.0,
+        "2025-12-31": 31975331000.0,
+        "2026-03-31": 34454211000.0
+      }
+    },
+    {
+      "label": "EquityAttributableToOwnersOfParent_per",
+      "concept": "EquityAttributableToOwnersOfParent_per",
+      "values": {
+        "2025-06-30": 87.02,
+        "2025-09-30": 86.35,
+        "2025-12-31": 85.47,
+        "2026-03-31": 85.94
+      }
+    },
+    {
+      "label": "TotalLiabilitiesEquity",
+      "concept": "TotalLiabilitiesEquity",
+      "values": {
+        "2025-06-30": 32803979000.0,
+        "2025-09-30": 34450049000.0,
+        "2025-12-31": 37411294000.0,
+        "2026-03-31": 40089669000.0
+      }
+    },
+    {
+      "label": "TotalLiabilitiesEquity_per",
+      "concept": "TotalLiabilitiesEquity_per",
+      "values": {
+        "2025-06-30": 100.0,
+        "2025-09-30": 100.0,
+        "2025-12-31": 100.0,
+        "2026-03-31": 100.0
+      }
+    },
+    {
+      "label": "NumberOfSharesInEntityHeldByEntityAndByItsSubsidiaries",
+      "concept": "NumberOfSharesInEntityHeldByEntityAndByItsSubsidiaries",
+      "values": {
+        "2025-06-30": 8905000.0,
+        "2025-09-30": 8905000.0,
+        "2025-12-31": 8469000.0,
+        "2026-03-31": 8001000.0
+      }
+    },
+    {
+      "label": "CurrentIncomeTaxAssets",
+      "concept": "CurrentIncomeTaxAssets",
+      "values": {
+        "2025-06-30": 140307000.0,
+        "2025-09-30": 150208000.0,
+        "2025-12-31": 129849000.0,
+        "2026-03-31": 77447000.0
+      }
+    },
+    {
+      "label": "CurrentIncomeTaxAssets_per",
+      "concept": "CurrentIncomeTaxAssets_per",
+      "values": {
+        "2025-06-30": 0.43,
+        "2025-09-30": 0.44,
+        "2025-12-31": 0.35,
+        "2026-03-31": 0.19
+      }
+    },
+    {
+      "label": "Liabilities",
+      "concept": "Liabilities",
+      "values": {
+        "2025-06-30": 4258600000.0,
+        "2025-09-30": 4700817000.0,
+        "2025-12-31": 5435963000.0,
+        "2026-03-31": 5635458000.0
+      }
+    },
+    {
+      "label": "Liabilities_per",
+      "concept": "Liabilities_per",
+      "values": {
+        "2025-06-30": 12.98,
+        "2025-09-30": 13.65,
+        "2025-12-31": 14.53,
+        "2026-03-31": 14.06
+      }
+    },
+    {
+      "label": "Equity",
+      "concept": "Equity",
+      "values": {
+        "2025-06-30": 28545379000.0,
+        "2025-09-30": 29749232000.0,
+        "2025-12-31": 31975331000.0,
+        "2026-03-31": 34454211000.0
+      }
+    },
+    {
+      "label": "Equity_per",
+      "concept": "Equity_per",
+      "values": {
+        "2025-06-30": 87.02,
+        "2025-09-30": 86.35,
+        "2025-12-31": 85.47,
+        "2026-03-31": 85.94
+      }
+    },
+    {
+      "label": "CurrentContractLiabilities",
+      "concept": "CurrentContractLiabilities",
+      "values": {
+        "2025-06-30": 0.0,
+        "2025-09-30": 0.0,
+        "2025-12-31": 0.0,
+        "2026-03-31": 72000.0
+      }
+    },
+    {
+      "label": "CurrentContractLiabilities_per",
+      "concept": "CurrentContractLiabilities_per",
+      "values": {
+        "2025-06-30": 0.0,
+        "2025-09-30": 0.0,
+        "2025-12-31": 0.0,
+        "2026-03-31": 0.0
+      }
+    },
+    {
+      "label": "InvestmentAccountedForUsingEquityMethod",
+      "concept": "InvestmentAccountedForUsingEquityMethod",
+      "values": {
+        "2025-06-30": 54480000.0,
+        "2025-09-30": 52369000.0,
+        "2025-12-31": 50635000.0,
+        "2026-03-31": 48437000.0
+      }
+    },
+    {
+      "label": "InvestmentAccountedForUsingEquityMethod_per",
+      "concept": "InvestmentAccountedForUsingEquityMethod_per",
+      "values": {
+        "2025-06-30": 0.17,
+        "2025-09-30": 0.15,
+        "2025-12-31": 0.14,
+        "2026-03-31": 0.12
+      }
+    },
+    {
+      "label": "LegalReserve",
+      "concept": "LegalReserve",
+      "values": {
+        "2025-06-30": 297358000.0,
+        "2025-09-30": 297358000.0,
+        "2025-12-31": 297358000.0,
+        "2026-03-31": 297358000.0
+      }
+    },
+    {
+      "label": "LegalReserve_per",
+      "concept": "LegalReserve_per",
+      "values": {
+        "2025-06-30": 0.91,
+        "2025-09-30": 0.86,
+        "2025-12-31": 0.79,
+        "2026-03-31": 0.74
+      }
+    },
+    {
+      "label": "CapitalSurplusChangesInEquityOfAssociatesAndJointVenturesAccountedForUsingEquityMethod",
+      "concept": "CapitalSurplusChangesInEquityOfAssociatesAndJointVenturesAccountedForUsingEquityMethod",
+      "values": {
+        "2025-12-31": 610000.0,
+        "2026-03-31": 610000.0
+      }
+    },
+    {
+      "label": "CapitalSurplusChangesInEquityOfAssociatesAndJointVenturesAccountedForUsingEquityMethod_per",
+      "concept": "CapitalSurplusChangesInEquityOfAssociatesAndJointVenturesAccountedForUsingEquityMethod_per",
+      "values": {
+        "2025-12-31": 0.0,
+        "2026-03-31": 0.0
+      }
+    }
+  ],
+  "cash_flow": [
+    {
+      "label": "CashBalancesIncrease",
+      "concept": "CashBalancesIncrease",
+      "values": {
+        "2025-06-30": -268344000.0,
+        "2025-09-30": 530044000.0,
+        "2025-12-31": 1641881000.0,
+        "2026-03-31": 1482438000.0
+      }
+    },
+    {
+      "label": "CashBalancesEndOfPeriod",
+      "concept": "CashBalancesEndOfPeriod",
+      "values": {
+        "2025-06-30": 20782747000.0,
+        "2025-09-30": 21581135000.0,
+        "2025-12-31": 22692972000.0,
+        "2026-03-31": 24175410000.0
+      }
+    },
+    {
+      "label": "PropertyAndPlantAndEquipment",
+      "concept": "PropertyAndPlantAndEquipment",
+      "values": {
+        "2025-06-30": -470021000.0,
+        "2025-09-30": -782186000.0,
+        "2025-12-31": -1596060000.0,
+        "2026-03-31": -467229000.0
+      }
+    },
+    {
+      "label": "CashBalancesBeginningOfPeriod",
+      "concept": "CashBalancesBeginningOfPeriod",
+      "values": {
+        "2025-06-30": 21051091000.0,
+        "2025-09-30": 21051091000.0,
+        "2025-12-31": 21051091000.0,
+        "2026-03-31": 22692972000.0
+      }
+    },
+    {
+      "label": "IncomeBeforeIncomeTaxFromContinuingOperations",
+      "concept": "IncomeBeforeIncomeTaxFromContinuingOperations",
+      "values": {
+        "2025-06-30": 1556303000.0,
+        "2025-09-30": 2970203000.0,
+        "2025-12-31": 4982936000.0,
+        "2026-03-31": 2335581000.0
+      }
+    },
+    {
+      "label": "DecreaseInShortTermLoans",
+      "concept": "DecreaseInShortTermLoans",
+      "values": {
+        "2025-06-30": -2311710000.0,
+        "2025-09-30": -2174760000.0,
+        "2025-12-31": -2242500000.0
+      }
+    },
+    {
+      "label": "InterestIncome",
+      "concept": "InterestIncome",
+      "values": {
+        "2025-06-30": -382807000.0,
+        "2025-09-30": -506538000.0,
+        "2025-12-31": -642524000.0,
+        "2026-03-31": -139526000.0
+      }
+    },
+    {
+      "label": "InventoryIncrease",
+      "concept": "InventoryIncrease",
+      "values": {
+        "2025-06-30": 76098000.0,
+        "2025-09-30": 69728000.0,
+        "2025-12-31": -62207000.0,
+        "2026-03-31": 78777000.0
+      }
+    },
+    {
+      "label": "ReceivableIncrease",
+      "concept": "ReceivableIncrease",
+      "values": {
+        "2025-06-30": -634889000.0,
+        "2025-09-30": -934637000.0,
+        "2025-12-31": -1848507000.0,
+        "2026-03-31": -304180000.0
+      }
+    },
+    {
+      "label": "TotalIncomeLossItems",
+      "concept": "TotalIncomeLossItems",
+      "values": {
+        "2025-06-30": -129794000.0,
+        "2025-09-30": -139984000.0,
+        "2025-12-31": 245093000.0,
+        "2026-03-31": 29022000.0
+      }
+    },
+    {
+      "label": "InterestExpense",
+      "concept": "InterestExpense",
+      "values": {
+        "2025-06-30": 14220000.0,
+        "2025-09-30": 19774000.0,
+        "2025-12-31": 25530000.0,
+        "2026-03-31": 4707000.0
+      }
+    },
+    {
+      "label": "AccountsPayable",
+      "concept": "AccountsPayable",
+      "values": {
+        "2025-06-30": 19851000.0,
+        "2025-09-30": 73365000.0,
+        "2025-12-31": 30271000.0,
+        "2026-03-31": -12962000.0
+      }
+    },
+    {
+      "label": "AmortizationExpense",
+      "concept": "AmortizationExpense",
+      "values": {
+        "2025-06-30": 33416000.0,
+        "2025-09-30": 50624000.0,
+        "2025-12-31": 67969000.0,
+        "2026-03-31": 16716000.0
+      }
+    },
+    {
+      "label": "Depreciation",
+      "concept": "Depreciation",
+      "values": {
+        "2025-06-30": 161498000.0,
+        "2025-09-30": 242984000.0,
+        "2025-12-31": 330630000.0,
+        "2026-03-31": 100446000.0
+      }
+    },
+    {
+      "label": "NetIncomeBeforeTax",
+      "concept": "NetIncomeBeforeTax",
+      "values": {
+        "2025-06-30": 1556303000.0,
+        "2025-09-30": 2970203000.0,
+        "2025-12-31": 4982936000.0,
+        "2026-03-31": 2335581000.0
+      }
+    },
+    {
+      "label": "RepaymentOfLongTermDebt",
+      "concept": "RepaymentOfLongTermDebt",
+      "values": {
+        "2025-06-30": -6202000.0,
+        "2025-09-30": -9319000.0,
+        "2025-12-31": -11902000.0,
+        "2026-03-31": -1494000.0
+      }
+    },
+    {
+      "label": "CashReceivedThroughOperations",
+      "concept": "CashReceivedThroughOperations",
+      "values": {
+        "2025-06-30": 991963000.0,
+        "2025-09-30": 3108656000.0,
+        "2025-12-31": 4894754000.0,
+        "2026-03-31": 1571458000.0
+      }
+    },
+    {
+      "label": "CashProvidedByInvestingActivities",
+      "concept": "CashProvidedByInvestingActivities",
+      "values": {
+        "2025-06-30": -601623000.0,
+        "2025-09-30": -1355289000.0,
+        "2025-12-31": -2475125000.0,
+        "2026-03-31": -525199000.0
+      }
+    },
+    {
+      "label": "PayTheInterest",
+      "concept": "PayTheInterest",
+      "values": {
+        "2025-06-30": -14220000.0,
+        "2025-09-30": -19774000.0,
+        "2025-12-31": -25530000.0,
+        "2026-03-31": -4707000.0
+      }
+    },
+    {
+      "label": "RentalPrincipalRepayments",
+      "concept": "RentalPrincipalRepayments",
+      "values": {
+        "2025-06-30": -110806000.0,
+        "2025-09-30": -163547000.0,
+        "2025-12-31": -217407000.0,
+        "2026-03-31": -55140000.0
+      }
+    },
+    {
+      "label": "CashFlowsProvidedFromFinancingActivities",
+      "concept": "CashFlowsProvidedFromFinancingActivities",
+      "values": {
+        "2025-06-30": -90343000.0,
+        "2025-09-30": -511831000.0,
+        "2025-12-31": -499926000.0,
+        "2026-03-31": -14882000.0
+      }
+    },
+    {
+      "label": "DecreaseInDepositDeposit",
+      "concept": "DecreaseInDepositDeposit",
+      "values": {
+        "2025-06-30": 9394000.0,
+        "2025-09-30": 10269000.0,
+        "2025-12-31": 10486000.0,
+        "2026-03-31": 722000.0
+      }
+    },
+    {
+      "label": "NetCashInflowFromOperatingActivities",
+      "concept": "NetCashInflowFromOperatingActivities",
+      "values": {
+        "2025-06-30": 1131893000.0,
+        "2025-09-30": 3365268000.0,
+        "2025-12-31": 5277677000.0,
+        "2026-03-31": 1734254000.0
+      }
+    },
+    {
+      "label": "CashFlowsFromOperatingActivities",
+      "concept": "CashFlowsFromOperatingActivities",
+      "values": {
+        "2025-06-30": 1131893000.0,
+        "2025-09-30": 3365268000.0,
+        "2025-12-31": 5277677000.0,
+        "2026-03-31": 1734254000.0
+      }
+    }
+  ]
+}

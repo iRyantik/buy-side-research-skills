@@ -100,3 +100,7 @@
 - Operating Expenses: FY 2023: 229327000.0, FY 2024: 305950000.0, FY 2025: 436019000.0
 - Other Nonoperating Income (Expense): FY 2023: 3715000.0, FY 2024: 4431000.0, FY 2025: 4381000.0
 - Revenue from Contract with Customer, Including Assessed Tax: FY 2023: 244592000.0
+
+## Revenue Split
+
+- No structured revenue split extracted.

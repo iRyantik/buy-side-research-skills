@@ -1,6 +1,6 @@
-﻿# Buy-Side Research Skills —— 零基础完全上手指南
+# Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.9.0`
+> 当前版本：`3.10.0`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -319,15 +319,16 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 
 #### `financial-data` —— 拉取结构化财务数据
 
-**什么时候用**：你需要公司的三表数据（利润表、资产负债表、现金流量表）来搭模型或做分析。
+**什么时候用**：你需要公司的三表数据（利润表、资产负债表、现金流量表）来搭模型或做分析；如果该市场能结构化抓收入拆分，`financial-data` 会一并写入。
 
 **你跟 Claude 说**：
 - 美股：*"用 financial-data 帮我拉 AAPL 的美股财务数据"*
 - A 股：*"用 financial-data 帮我拉 600519 贵州茅台的财务数据"*
 - 日股：*"用 financial-data 帮我拉 7203 丰田的日股财务数据"*
 - 韩股：*"用 financial-data 帮我拉 005930 三星电子的韩股财务数据"*
+- 台股：*"用 financial-data 帮我拉 2330 台积电的台股财务数据"*
 
-**会发生什么**：输出 `financial-data-summary.md`（人类可读的财务概览）+ `internal/` 下的结构化 JSON（给建模 skill 用）。
+**会发生什么**：输出 `financial-data-summary.md`（人类可读的财务概览）+ `internal/` 下的结构化 JSON（给建模 skill 和 `driver-map` 用）。`actuals-resolved.json` 默认放三表；A 股等可结构化拆分的市场还会包含 `statements.revenue_split`。抓不到收入拆分时不编造，`driver-map` 会用 `full-filing.md` 从原文抽。
 
 **需要什么**：Python + 依赖已安装（见 3.4 节）；对应市场的 key 已配置（见 3.2-3.3 节）。
 
@@ -645,7 +646,7 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
 
 3. **缓存 vs 产物**：`_cache/` 下面的文件是"中间材料"（原始文件转的 markdown、拉取的财务数据），不是研究结论。研究结论是以日期文件名放在 topic 根目录的 markdown 文件。
 
-4. **internal vs 外显**：`internal/` 下的 JSON 是给建模 skill 读的机器文件，你不需要手动打开。人类阅读入口是 `financial-data-summary.md` 和 `driver-map.md`。
+4. **internal vs 外显**：`internal/` 下的 JSON 是给建模 skill 和 `driver-map` 读的机器文件，你不需要手动打开。人类阅读入口是 `financial-data-summary.md` 和 `driver-map.md`。`actuals-resolved.json` 放三表和可选 `revenue_split`；如果没有结构化收入拆分，`driver-map` 会从 `full-filing.md` 用 LLM 抽 disclosed split。
 
 5. **一个 topic 是长期容器**：你不会因为"这轮研究做完了"就删除 topic 文件夹。下次有新发现、新财报，继续往里加日期文件即可。
 
@@ -723,7 +724,7 @@ Claude 会拆解报告的核心假设、和 consensus 的差异、以及关键�
 
 ### Q10：sub-agent 是不是会直接替我写结论？
 
-**答**：不会。v3.9.0 开始，部分 research skill 默认必须用 sub-agent / delegate worker 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+**答**：不会。v3.10.0 开始，部分 research skill 默认必须用 sub-agent / delegate worker 并行查 source，但 sub-agent 只能交 evidence card。最终结论、peer ranking、driver 判断、估值解释和 URL 抽查都必须由主 agent 完成。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 
 默认执行 Parallel Evidence Pass 的 skill 包括：第一批 `peer-deep-dive`、`driver-map`、`company-primer`、`candidate-screener`、`cross-market-compare`、`earnings-setup`；第二批 `stock-quickread`、`industry-quickread`、`consensus-map`、`mechanism-map`、`information-impact`；第三批 `alpha-thesis`、`bear-pre-mortem`、`pair-trade`、`primary-research-plan`；第四批 `next-step`、`research-journal`。如果当前 host / runner 真的没有 sub-agent 能力，artifact 或输出必须明示 `sub-agent unavailable`、原因和 coverage caveat，不能悄悄降级。
 
@@ -795,5 +796,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.9.0
+**版本**：v3.10.0
 **最后更新**：2026-05-15
