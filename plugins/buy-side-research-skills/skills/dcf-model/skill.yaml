@@ -8,8 +8,8 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
-summary: 'Build DCF valuation models with projections, WACC, terminal value, sensitivities, and valuation output.'
-description: 'Build DCF valuation workbooks using source-tracked historical actuals, driver-map assumptions, operating forecasts, WACC, terminal value, and sensitivity analysis.'
+summary: 'Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.'
+description: 'Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.'
 tags:
   - dcf
   - valuation

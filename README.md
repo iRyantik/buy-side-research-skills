@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.1`
+> 当前版本：`3.10.2`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -796,5 +796,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.1
+**版本**：v3.10.2
 **最后更新**：2026-05-15

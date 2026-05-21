@@ -8,8 +8,8 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
-summary: 'Build comparable company valuation workbooks with peer metrics, multiples, statistics, and methodology.'
-description: 'Build comparable company analysis workbooks using source-tracked actuals, driver-map business treatment, peer universe logic, valuation multiples, and outlier checks.'
+summary: 'Build comparable company valuation workbooks with peer multiples and operating metrics.'
+description: 'Build comparable company valuation workbooks with peer multiples and operating metrics.'
 tags:
   - comps
   - peer-multiples

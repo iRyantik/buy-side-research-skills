@@ -8,8 +8,8 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
-summary: 'Update existing financial models after earnings, guidance, macro changes, or revised assumptions.'
-description: 'Update model workbooks or produce update maps using new source-tracked actuals, refreshed driver-map assumptions, guidance changes, and variance checks.'
+summary: 'Update a financial model for earnings guidance new data or revised assumptions.'
+description: 'Update a financial model for earnings guidance new data or revised assumptions.'
 tags:
   - model-update
   - earnings-update

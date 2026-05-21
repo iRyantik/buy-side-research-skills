@@ -8,8 +8,8 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
-summary: 'Build or populate integrated income statement, balance sheet, and cash flow statement models.'
-description: 'Build or populate integrated 3-statement financial models using source-tracked historical actuals, driver-map assumptions, formulas, scenarios, and model checks.'
+summary: 'Build or populate source-tracked income statement balance sheet and cash flow workbooks.'
+description: 'Build or populate source-tracked income statement balance sheet and cash flow workbooks.'
 tags:
   - modeling
   - 3-statement
