@@ -188,7 +188,7 @@ Operations skills：
 | `earnings-setup` | 下周财报 / 刚出了财报 / print | pre-print setup / post-print read |
 | `mechanism-map` | 行业机制 / 工程原理 / 设备链条 / know-how gap | mechanism map + value capture + research read-through |
 | `driver-map` | 拆 driver / 收入怎么拆 / bucket 为什么怪 | business reality + model driver map |
-| `3-statement-model` | 搭 operating model / 三表模型 | 3-statement workbook |
+| `3-statement-model` | 搭 operating model / 历史 + 预测三表模型 | 3-statement workbook |
 | `dcf-model` | DCF / reverse DCF / intrinsic value | DCF workbook |
 | `comps-analysis` | comps / peer multiples / relative valuation | comps workbook |
 | `model-update` | 更新已有模型 / plug earnings / refresh estimates | update map / updated workbook |
@@ -284,5 +284,5 @@ Future research workspace：
 
 ---
 
-**版本**：v3.10.2
+**版本**：v3.10.3
 **最后更新**：2026-05-10

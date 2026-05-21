@@ -8,8 +8,8 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
-summary: 'Build or populate source-tracked income statement balance sheet and cash flow workbooks.'
-description: 'Build or populate source-tracked income statement balance sheet and cash flow workbooks.'
+summary: 'Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.'
+description: 'Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.'
 tags:
   - modeling
   - 3-statement
@@ -25,12 +25,13 @@ trigger:
     - 'three statement model'
     - 'operating model'
     - 'populate model'
-  description: 'Use when the user wants to build, fill, or populate an integrated IS/BS/CF operating model.'
+  description: 'Use when the user wants to build, populate, or forecast an integrated IS/BS/CF operating model.'
 capabilities:
   modes:
     - 'template completion'
     - 'new workbook build'
     - 'historical actuals population'
+    - 'forecast statement build'
     - 'statement linkage checks'
     - 'model_sub_agent_protocol'
   consumes:

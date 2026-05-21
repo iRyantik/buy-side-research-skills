@@ -1,6 +1,6 @@
 ---
 name: 3-statement-model
-description: Build or populate source-tracked income statement balance sheet and cash flow workbooks.
+description: Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.
 ---
 
 ## Research Workspace Adapter
@@ -11,6 +11,8 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 - `_cache/financial-data/internal/evidence-pack.json` for completeness/source-map/cross-check
 - `_cache/driver-map/driver-map.md` for human/LLM driver treatment
 - `_cache/driver-map/internal/driver-map.json` for machine driver inputs
+
+`3-statement-model` is the owner of the integrated three-statement forecast base in this workspace. It does not only populate historical actuals. It takes reported actuals from `financial-data`, forecast inputs from `driver-map`, guidance, or explicit user assumptions, and produces linked IS / BS / CF projections that downstream valuation skills consume. `dcf-model` and `comps-analysis` may use this workbook as an input, but they do not own the forecast source of truth.
 
 Do not turn missing or unmapped actuals into zero. Leave them blank, flag the mapping gap, and keep source/confidence status visible in the model checks.
 

@@ -1,8 +1,14 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.2`
+> 当前版本：`3.10.3`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+
+---
+
+## Beginner 入口
+
+- [Beginner 先看：Skill 分层图（HTML 可视化）](docs/beginner-skill-map.html)
 
 ---
 
@@ -88,7 +94,7 @@ research-workspace/
 | 搞清楚一家公司到底靠什么赚钱 | "用 driver-map 拆 Rocket Lab 的收入 driver" |
 | 搞懂一个行业的工程/技术原理 | "用 mechanism-map 解释燃气轮机产业链" |
 | 拉美股/A股/港股/日股/韩股/欧股的财务数据 | "用 financial-data 拉 AAPL 美股数据" |
-| 搭三表财务模型 | "用 3-statement-model 给 GE 搭模型" |
+| 搭三表财务预测模型 | "用 3-statement-model 给 GE 搭模型" |
 | 做 DCF 估值 | "用 dcf-model 给 Rocket Lab 做 DCF" |
 | 看市场对一只股票的预期 | "用 consensus-map 看市场对 IONQ 的预期" |
 | 写一份完整的做多/做空 thesis | "用 alpha-thesis 写 GE Vernova 做多逻辑" |
@@ -398,7 +404,7 @@ Skills 按研究深度分为四层。越往下越深入。
 | `earnings-setup` | 准备一份财报 | 下周有财报，想知道该关注什么、什么数字会改变故事 | *"用 earnings-setup 准备下周 GE 的财报"* |
 | `pair-trade` | 分析一对多空组合 | 有做多 X 做空 Y 的想法，想分析逻辑是否自洽 | *"用 pair-trade 分析做多 VRT 做空 SMCI"* |
 | `primary-research-plan` | 设计专家访谈或渠道调研计划 | 需要验证一个关键 thesis 假设，想约专家聊 | *"用 primary-research-plan 设计验证 IONQ 客户 adoption 的方案"* |
-| `3-statement-model` | 搭三表财务模型 | 需要建利润表、资产负债表、现金流量表的预测模型 | *"用 3-statement-model 给 Rocket Lab 搭模型"* |
+| `3-statement-model` | 搭三表财务预测模型 | 需要先填历史 actuals，再建立利润表、资产负债表、现金流量表的预测模型 | *"用 3-statement-model 给 Rocket Lab 搭模型"* |
 | `dcf-model` | 做 DCF 估值 | 需要基于自由现金流折现算 intrinsic value | *"用 dcf-model 给 GE Vernova 做估值"* |
 | `comps-analysis` | 做可比公司估值 | 需要看 peer group 的 multiples 来判断贵不贵 | *"用 comps-analysis 做核电行业的可比公司分析"* |
 | `model-update` | 更新已有模型 | 财报出来了，需要把新数据 plug 进已有的模型 | *"用 model-update 更新 GE 的模型"* |
@@ -459,7 +465,7 @@ Skills 按研究深度分为四层。越往下越深入。
 >
 > 你：用 driver-map 拆 RKLB 的 revenue driver
 >
-> 你：用 3-statement-model 给 RKLB 搭模型
+> 你：用 3-statement-model 给 RKLB 搭历史 + 预测三表模型
 >
 > 你：用 dcf-model 给 RKLB 做估值
 >
@@ -796,5 +802,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.2
+**版本**：v3.10.3
 **最后更新**：2026-05-15
