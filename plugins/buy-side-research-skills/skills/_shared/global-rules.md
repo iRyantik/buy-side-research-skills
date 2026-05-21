@@ -12,6 +12,8 @@
 ## 2. 全局输出规则
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。
+- 非中文 / 英文公司披露项使用“源语言锚点 + 中文解释”的最小必要原则：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
 - 所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`。
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。
@@ -41,6 +43,12 @@ Source 质量：
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
 - 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
 - sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
+
+## 4.5 紧凑证据显示
+
+- 表格优先用 `Ev` 或 `证据` 短列承载 source、时间点和例外状态。默认格式是 `S1@FY25`；如果不是干净 source-backed 值，再追加状态：`S1@FY25:REV`。
+- 状态码只用于例外：`REV` = 需复核，`GAP` = 来源缺口，`ND` = 未披露，`EST` = 估算 / 假设，`CON` = 来源冲突。干净值不写 `OK`。
+- 表格下方用一行 source registry 保持可追溯性，例如：`S1 = DART 2025 사업보고서（年度报告）, filed 2026-03-18, link`。如果全表 as-of 相同，只在表前或表后写一次；只有行级差异进入 `Ev`。
 
 ## 5. Sub-Agent Evidence Protocol
 

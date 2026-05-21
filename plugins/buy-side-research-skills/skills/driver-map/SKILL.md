@@ -3,11 +3,14 @@ name: driver-map
 description: Decompose revenue margin backlog price volume mix and segment drivers before modeling.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -27,13 +30,13 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 
 很多投研错误不是发生在 DCF、comps 或 thesis 结论，而是发生在更前面：你以为你知道这家公司靠什么增长，但其实只是接受了公司给的 bucket 名称。`driver-map` 的工作是把披露口径拆成业务实质，再把业务实质压缩成少数可验证、可跟踪、可建模的 driver。
 
-本 skill 复用 `3-statement-model / dcf-model / comps-analysis / model-update` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Global Rules Capsule (v1)` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
+本 skill 复用 `3-statement-model / dcf-model / comps-analysis / model-update` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Global Rules Capsule (v2)` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 driver-map-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 driver-map-specific 要求。
 
 特别强调：
 - **每个 reported bucket、segment revenue、KPI、orders、backlog、margin、price / volume / mix 判断都必须有 source / as-of**。
@@ -115,9 +118,11 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 
 先把公司披露的 bucket 翻译成真实业务，不要直接接受命名。
 
-| Reported bucket | Business reality | End-market / customer | Source / as-of | Gap |
+| Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
-| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [source] | [缺口] |
+| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | S1@FY25 | [缺口] |
+
+Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -186,8 +191,10 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 ## Reported Bucket → Business Reality
 
-| Reported bucket | Business reality | End-market / customer | Source / as-of | Gap |
+| Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
+
+Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
 ## Business Reality → Model Driver
 
@@ -196,8 +203,10 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 ## Driver Quality
 
-| Driver | Rating | Why | Source / as-of | What would improve confidence |
+| Driver | Rating | Why | Ev | What would improve confidence |
 |---|---|---|---|---|
+
+Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
 ## Disclosure vs Inference / Proxy Strategy
 

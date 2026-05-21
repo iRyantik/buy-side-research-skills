@@ -3,11 +3,14 @@ name: pair-trade
 description: Evaluate a long short pair trade hedge candidate spread logic and key risks.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -43,7 +46,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 pair-trade-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pair-trade-specific 要求。
 
 特别提醒：
 - **价格 / spread / beta / correlation 必须有 as-of 时间戳**。金融数据 stale 几天就失真。
@@ -131,7 +134,9 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Beta to 半导体设备 ETF | 1.05 | 1.10 |
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
-| Source / as-of | [source] | [source] |
+| Ev | S1@[date] | S2@[date] |
+
+Sources: `S1 = [long-side source/provider], as-of [date], [link/location]`; `S2 = [short-side source/provider], as-of [date], [link/location]`.
 
 #### 2. 为什么这两家可比（Why are these two correlated）
 
@@ -139,9 +144,11 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 按维度对比，每条要给具体 % 或事实，不允许 "两家都做半导体设备"这种空话：
 
-| 维度 | Long X | Short Y | Source |
+| 维度 | Long X | Short Y | Ev |
 |---|---|---|---|
-| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | [10-K segment data](url) |
+| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | S1@FY25 |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 | 客户重叠（top 10） | TSMC / Samsung / Intel / SK Hynix | TSMC / Samsung / Intel / Micron | [investor day deck](url) |
 | 产品 substitution | EUV 不可替代 | DUV / etch / deposition 可替代性不同 | [行业研究](url) |
 | 共同 macro 暴露 | 半导体 capex cycle、科技出口管制、利率 | 同上 | [industry capex tracker](url) |
@@ -153,9 +160,11 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 必须有具体 percentile / sigma，不允许 "spread 偏离历史"这种含糊判断。
 
-| Metric | Long X 当前 | Short Y 当前 | Spread 当前 | 5Y mean | 5Y std | 当前 z-score | Source |
+| Metric | Long X 当前 | Short Y 当前 | Spread 当前 | 5Y mean | 5Y std | 当前 z-score | Ev |
 |---|---|---|---|---|---|---|---|
-| EV/EBITDA NTM | 22x | 18x | +4x | +2x | 1.5x | +1.3σ | [Bloomberg as-of YYYY-MM-DD](url) |
+| EV/EBITDA NTM | 22x | 18x | +4x | +2x | 1.5x | +1.3σ | S1@[date] |
+
+Sources: `S1 = Bloomberg / market data provider, as-of [date], [link/location]`.
 | P/E NTM | 30x | 24x | +6x | +3x | 2x | +1.5σ | [source] |
 | EV/Sales | 9x | 5x | +4x | +2x | 1x | +2.0σ | [source] |
 | FCF yield | 3.5% | 5.0% | -1.5% | -0.5% | 0.8% | -1.25σ | [source] |
@@ -167,9 +176,11 @@ Spread converge 论点的强度判断：
 
 #### 4. Beta / Correlation / 宏观敏感度
 
-| Metric | 数值 | 解读 | Source |
+| Metric | 数值 | 解读 | Ev |
 |---|---|---|---|
-| 180D return correlation (X vs Y) | 0.85 | 高 correlation 是 pair 必要条件；< 0.7 警惕，可能不是真 pair | [Bloomberg CORR](url) |
+| 180D return correlation (X vs Y) | 0.85 | 高 correlation 是 pair 必要条件；< 0.7 警惕，可能不是真 pair | S1@[date] |
+
+Sources: `S1 = Bloomberg CORR / market data provider, as-of [date], [link/location]`.
 | 180D beta (X vs Y) | 1.05 | 用于 sizing：dollar-neutral 还是 beta-neutral | [Bloomberg BETA](url) |
 | 共同 macro factor | 半导体设备 ETF beta、USD/JPY、10Y 利率 | 列出最显著的共同因子；这些 hedge 不掉 | [source] |
 | 独有 idiosyncratic factor | X: EUV bookings；Y: DRAM capex / etch share | 这才是 pair alpha source | [source] |
@@ -383,9 +394,11 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 按 §A.4.5 的 long thesis 和 short thesis 分别评估：
 
-| | Status | 关键变化 | Source |
+| | Status | 关键变化 | Ev |
 |---|---|---|---|
-| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | [新数据 / event](url) |
+| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | S1@latest |
+
+Sources: `S1 = [new data/event source], as-of/filed [date], [link]`.
 | Short thesis (§5.2 假设) | still valid / weakened / invalidated | 同上 | [source] |
 | Macro / correlation regime | stable / shifting / broken | 共同因子是否变化 | [source] |
 

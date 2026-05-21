@@ -354,7 +354,7 @@ Artifact policy：
 
 ### 8. Source 政策（runtime shared rules 摘要）
 
-Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules Capsule (v1)`，`Source 政策` 节只写 skill-specific 增量。
+Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules Capsule (v2)`，`Source 政策` 节只写 skill-specific 增量。
 
 必须有 source：
 

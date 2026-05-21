@@ -3,11 +3,14 @@ name: mechanism-map
 description: Explain industry mechanisms engineering principles equipment chains and process flows.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -31,7 +34,7 @@ description: Explain industry mechanisms engineering principles equipment chains
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 mechanism-map-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 mechanism-map-specific 要求。
 
 特别强调：
 - **工程机制、设备功能、工艺流程**可以使用公司技术白皮书、工程资料、监管/行业机构资料、教材型资料或明确 source；如果不确定，标 `[需查证]`。
@@ -113,9 +116,11 @@ description: Explain industry mechanisms engineering principles equipment chains
 
 ### Step 2: Terms that matter
 
-| Term / part | Plain meaning | Boundary / not this | Why it matters | Source / as-of |
+| Term / part | Plain meaning | Boundary / not this | Why it matters | Ev |
 |---|---|---|---|---|
-| [term] | [一句话解释] | [容易混淆对象] | [投研意义] | [source or 需查证] |
+| [term] | [一句话解释] | [容易混淆对象] | [投研意义] | S1@latest 或 GAP |
+
+Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
 ### Step 3: How it works
 
@@ -189,8 +194,10 @@ Rating hard standards:
 
 ## Terms that matter
 
-| Term / part | Plain meaning | Boundary / not this | Why it matters | Source / as-of |
+| Term / part | Plain meaning | Boundary / not this | Why it matters | Ev |
 |---|---|---|---|---|
+
+Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
 ## How it works
 

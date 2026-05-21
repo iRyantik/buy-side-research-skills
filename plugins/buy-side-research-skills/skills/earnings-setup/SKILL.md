@@ -3,11 +3,14 @@ name: earnings-setup
 description: Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -33,7 +36,7 @@ description: Prepare for or react to earnings and decide whether thesis drivers 
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 earnings-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 earnings-specific 要求。
 
 Earnings setup 对 source 时效性要求极高。快速提醒：
 - Consensus、隐含 move、IV skew、SI、borrow、股价数据必须标注 provider 和获取时点。
@@ -80,9 +83,11 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 
 结构化展示，所有数字必须附 source 和**获取时点**：
 
-| 维度 | 当前值 | 解读 | Source（含时点） |
+| 维度 | 当前值 | 解读 | Ev |
 |---|---|---|---|
-| 隐含 move | ±7% | 期权市场对这次 print 的隐含波动 | [CBOE / OptionMetrics 2024-XX-XX HH:MM](url) |
+| 隐含 move | ±7% | 期权市场对这次 print 的隐含波动 | S1@[timestamp] |
+
+Sources: `S1 = CBOE / OptionMetrics, as-of [timestamp], [link/location]`.
 | 财报前 1-3M 股价 vs 板块 | +12% vs XLE +3% | 跑赢 → buy-side 预期已偏高 | [Bloomberg / Yahoo](url) |
 | Short Interest | 4.5% of float | 绝对水平 + 近 1M 趋势 | [Bloomberg SI 2024-XX-XX](url) |
 | Borrow rate | 35bps | 是否便宜（无空头压力） | [borrow desk](url) |
@@ -100,9 +105,11 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 ### 3. 真正要听 / 看的 3 件事（具体到 KPI 或 metric）
 不是"看下游需求"——太空。要具体到具体数字阈值，且基线必须有 source：
 
-| KPI | 上次基线 + Source | 这次的关键阈值 | 含义 |
+| KPI | 上次基线 + Ev | 这次的关键阈值 | 含义 |
 |---|---|---|---|
-| Permian rig count 2H 指引 | 12 台 [Q2 2024 call p.5](url) | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
+| Permian rig count 2H 指引 | 12 台 S1@2024Q2 | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
+
+Sources: `S1 = [earnings call/source title], as-of/filed [date], [link]`.
 | Buyback pace | Q2 完成 $300M [Q2 2024 10-Q cash flow](url) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
 | OpEx per BOE | $9.5 [Q2 2024 supplementals p.3](url) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
 

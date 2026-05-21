@@ -3,11 +3,14 @@ name: stock-quickread
 description: Run a fast sourced first pass on an unfamiliar company and decide whether to dig deeper.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -29,7 +32,7 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 quickread-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 quickread-specific 要求。
 
 快速提醒：
 - 每条事实、数字、引语必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
@@ -62,9 +65,11 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个单季度**两行的数据（含同比变化）。期间拆行为独立行。
 
-| 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Source |
+| 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Ev |
 |---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [10-K 2024 p.42](url) |
+| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | S1@FY24 |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 | 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [10-Q Q1 2025 p.15](url) |
 | 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [10-K 2024 p.42](url) |
 | 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [10-Q Q1 2025 p.15](url) |
@@ -96,9 +101,11 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 **(a) 关键比率（最少给出以下 4 项）**
 
-| 比率 | 当前值 | 判断 | Source |
+| 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|
-| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [10-K 2024 cash flow + p.X notes](url) |
+| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | S1@FY24 |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 | FCF / 净利润 | 0.6 | 现金转化质量；持续 < 0.7 是警告 | [10-K 2024 cash flow stmt](url) |
 | 净负债 / EBITDA | 2.5x | 绝对水平 + 近 2 年变化方向 | [10-K 2024 balance sheet + EBITDA reconciliation](url) |
 | 资本返还 / FCF | 30% | 派息 + 回购占 FCF 比；判断股东回报 willingness | [10-K 2024 cash flow stmt + 8-K 回购公告](url) |
@@ -128,9 +135,11 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 
 **输出格式**：列 2-3 个变量，每个给具体证据。
 
-| 关键变量 | 证据 | 为什么是当前 regime 的关键 | Source |
+| 关键变量 | 证据 | 为什么是当前 regime 的关键 | Ev |
 |---|---|---|---|
-| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | [EIA Weekly Petroleum Status Report](https://www.eia.gov/petroleum/weekly/)；股价数据：[Bloomberg](url) |
+| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | S1@latest;S2@[date] |
+
+Sources: `S1 = EIA Weekly Petroleum Status Report, as-of [date], [link]`; `S2 = Bloomberg, as-of [date]`.
 | 单井 EUR 公布数 | Q1/Q2 2024 财报后股价跌 8%/6%，EUR 数据均低于预期 | 市场在 reprice Permian 储量耗尽担忧 | [Q1/Q2 2024 earnings release](url)；EUR: [Enverus / Rystad](url) |
 | 单位 OpEx | 上调 OpEx 指引那次股价 -12% | 投资人当前对成本通胀极度敏感 | [Q3 2024 call transcript Q&A 段](url) |
 
@@ -151,9 +160,11 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 **(b) 估值倍数对比**
 
-| 倍数 | 当前 | 自身 5 年中位 | 同业当前 | 解读 | Source |
+| 倍数 | 当前 | 自身 5 年中位 | 同业当前 | 解读 | Ev |
 |---|---|---|---|---|---|
-| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | [Bloomberg / CapIQ](url) |
+| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | S1@[date] |
+
+Sources: `S1 = Bloomberg / CapIQ, as-of [date], [link/location]`.
 | P/E | 18x | 14x | 16x | ... | [Bloomberg / CapIQ](url) |
 | FCF yield | 5% | 7% | 6% | ... | [Bloomberg / CapIQ + 自算](url) |
 

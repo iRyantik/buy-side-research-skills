@@ -3,11 +3,14 @@ name: bear-pre-mortem
 description: Stress test an investment thesis and build the strongest opposing case with sourced risks.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -31,7 +34,7 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 pre-mortem-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pre-mortem-specific 要求。
 
 空头压力测试对 source 真实性要求更高。快速提醒：
 - 每个红旗、历史 base rate、内部人交易、会计变化都必须能链到 filing / 权威数据；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
@@ -98,11 +101,13 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 ### 3. 会计 / 财务红旗清单
 
-逐项扫，每条要给：当前数 / 警戒阈值 / 状态 / Source。有问题的那几条单独展开论证。
+逐项扫，每条要给：当前数 / 警戒阈值 / 状态 / Ev。有问题的那几条单独展开论证。
 
-| 红旗项 | 当前数 | 警戒阈值 | 状态 | Source |
+| 红旗项 | 当前数 | 警戒阈值 | 状态 | Ev |
 |---|---|---|---|---|
-| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | [Q3 2024 10-Q balance sheet](url) |
+| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | S1@2024Q3 |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 | 库存增速 vs 收入增速 | ... | ... | ... | [10-Q](url) |
 | Capex vs D&A 长期比例 | 1.8x | 持续 > 1.5x 警惕过投 | ... | [10-K cash flow](url) |
 | 经营性现金流 vs 净利润长期匹配度 | OCF/NI 0.6 | < 0.7 持续是警告 | 🚩 | [10-K cash flow + income](url) |
@@ -121,11 +126,13 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 ### 5. Base Rate / 历史相似情境
 
-这种"故事"（高估值 + 高增长预期 / 周期顶部 + 资本支出潮 / 类似商业模式 + 类似阶段）**历史上的样本结果如何**？拉 3-5 个可比案例，每个给具体公司 / 时间窗口 / 结局 / Source。
+这种"故事"（高估值 + 高增长预期 / 周期顶部 + 资本支出潮 / 类似商业模式 + 类似阶段）**历史上的样本结果如何**？拉 3-5 个可比案例，每个给具体公司 / 时间窗口 / 结局 / Ev。
 
-| 可比情境 | 时间窗口 | 公司 / 标的 | 结局 | Source |
+| 可比情境 | 时间窗口 | 公司 / 标的 | 结局 | Ev |
 |---|---|---|---|---|
-| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | [Bloomberg history](url)；[Whiting 10-K 历年](url) |
+| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | S1@[date];S2@FY15 |
+
+Sources: `S1 = Bloomberg history, as-of [date]`; `S2 = Whiting 10-K, filed [date], [link]`.
 | ... | ... | ... | ... | ... |
 
 Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一样"，base rate 告诉你"通常不"。**但 base rate 的力度全在 source 真实**——编造的可比案例反而削弱压力测试。

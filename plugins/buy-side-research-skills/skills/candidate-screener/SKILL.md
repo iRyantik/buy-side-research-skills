@@ -3,11 +3,14 @@ name: candidate-screener
 description: Turn a theme event or screen into a sourced long or short candidate funnel.
 ---
 
-## Global Rules Capsule (v1)
+## Global Rules Capsule (v2)
 
 本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
+- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -43,7 +46,7 @@ description: Turn a theme event or screen into a sourced long or short candidate
 
 ## Source 政策
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v1)`。本节只补充 screener-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 screener-specific 要求。
 
 特别强调：
 - **每个 candidate 的"业务 / 受益机制"必须有 source link**——不允许 AI 编造业务关联
@@ -167,10 +170,12 @@ description: Turn a theme event or screen into a sourced long or short candidate
 
 ## Tier 1 — Direct Exposure (Pure-play / 主营 > 50% 受益)
 
-| Ticker | Market | 业务 / 受益机制 | 受益强度 | Liquidity (ADV) | 估值锚 | Priced-in | Source |
+| Ticker | Market | 业务 / 受益机制 | 受益强度 | Liquidity (ADV) | 估值锚 | Priced-in | Ev |
 |---|---|---|---|---|---|---|---|
-| AAA US | NYSE | 100% 数据中心运营核电；35% 容量已签 hyperscaler PPA $80/MWh | High | $150M | EV/EBITDA 12x (vs 5Y mean 8x) | 部分 | [10-K](url) [PPA announcement](url) |
-| BBB | A 股 | 60% 收入来自数据中心 HVAC | High | $80M | PE 25x (vs 同业 18x) | Mostly | [10-K segment](url) |
+| AAA US | NYSE | 100% 数据中心运营核电；35% 容量已签 hyperscaler PPA $80/MWh | High | $150M | EV/EBITDA 12x (vs 5Y mean 8x) | 部分 | S1@FY25;S2@2026 |
+| BBB | A 股 | 60% 收入来自数据中心 HVAC | High | $80M | PE 25x (vs 同业 18x) | Mostly | S3@FY25 |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`; `S2 = [contract/news source], as-of/filed [date], [link]`; `S3 = [segment source], as-of/filed [date], [link]`.
 
 **Tier 1 判断**：受益机制 direct 且 quantifiable；普遍 priced-in 较多；alpha 来自基本面 vs 估值的 spread
 
@@ -191,7 +196,10 @@ description: Turn a theme event or screen into a sourced long or short candidate
 
 [同样的表格结构，方向反过来]
 
-| Ticker | Market | 受损机制 | 受损强度 | Liquidity | 估值 | Already-shorting? | Source |
+| Ticker | Market | 受损机制 | 受损强度 | Liquidity | 估值 | Already-shorting? | Ev |
+|---|---|---|---|---|---|---|---|
+
+Sources: `S1 = [source title/provider], as-of [date], [link/location]`.
 
 **Short Candidate 关键判断**：
 - Priced-in 评估更重要——明显的 short 多数已 priced（high SI、负面 sentiment）
@@ -272,9 +280,11 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 
 ## Matched Candidates
 
-| Ticker | Market | EV/EBITDA | FCF yield | Capex/D&A | All criteria met? | As-of | Source |
-|---|---|---|---|---|---|---|---|
-| AAA | US | 6.5x | 11% | 0.5 | ✅ | 2026 Q1 | [10-Q](url) [Bloomberg](url) |
+| Ticker | Market | EV/EBITDA | FCF yield | Capex/D&A | All criteria met? | Ev |
+|---|---|---|---|---|---|---|
+| AAA | US | 6.5x | 11% | 0.5 | ✅ | S1@2026Q1;S2@[date] |
+
+Sources: `S1 = [filing/source title], as-of/filed [date], [link]`; `S2 = [market data provider], as-of [date]`.
 | BBB | A 股 | 7.8x | 9% | 0.6 | ✅ | 2025 Q4 | [年报](url) |
 | CCC | HK | 8.2x ❌ | 10% | 0.65 | ❌ (EV/EBITDA fail by 0.2x) | 2026 Q1 | [年报](url) |
 
