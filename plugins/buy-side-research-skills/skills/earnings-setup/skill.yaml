@@ -38,10 +38,9 @@ capabilities:
   requirements:
     - 'source links with timestamps'
     - 'follow CLAUDE.md source policy'
-    - 'parallel_evidence_spawn_default for source collection'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for setup judgment and position decision'
-    - 'url_claim_spot_check_required before using sub-agent sources'
+    - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
   post_print_handoff:
     - 'research_update'
     - 'model_update'

@@ -64,10 +64,9 @@ capabilities:
     - 'label market-implied assumptions as inference unless fully modeled'
     - 'mark missing consensus data as [需查证] instead of fabricating'
     - 'do not write full alpha thesis or earnings setup'
-    - 'parallel_evidence_spawn_default for source collection'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for consensus conclusion and variant-view gap'
-    - 'url_claim_spot_check_required before using sub-agent sources'
+    - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'consensus-map.md'

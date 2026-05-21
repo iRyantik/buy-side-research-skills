@@ -53,10 +53,9 @@ capabilities:
     - 'maintain topic index as an evolutionary map, not a state tracker'
     - 'boss brief is high-density, not simplified'
     - 'follow Global Rules Capsule source policy'
-    - 'parallel_evidence_spawn_default for source-anchor and earned-insight audit'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for earned insight and Boss Brief'
-    - 'url_claim_spot_check_required before using sub-agent sources'
+    - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
 artifact_policy:
   save_policy: 'earned_memory'
   default_artifact: 'research-journal.md | boss-brief.md | index.md'

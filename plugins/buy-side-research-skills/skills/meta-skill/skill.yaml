@@ -43,6 +43,8 @@ capabilities:
     - 'do not recreate meta.json'
     - 'do not restore v2 state workflows'
     - 'sync docs and manifests when governance changes'
+    - 'default parallel is reserved for high fan-out multi-leg workflows only'
+    - 'single-thread is the default for other research skills unless the user explicitly requests sub-agent / delegate / 并行'
 artifact_policy:
   save_policy: 'none'
   default_artifact: 'conversation-only'
