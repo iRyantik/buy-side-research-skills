@@ -46,11 +46,15 @@ description: Turn a theme event or screen into a sourced long or short candidate
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（候选公司、业务关联、客户 / 供应链关系、筛选指标、市场数据）都必须紧跟短 anchor，如 `S1@FY25` / `P1@2026-05-21`。
+- No Orphan Truth Claim：输出前检查每个 candidate 的业务关联、受益机制、screen metric 和排除理由是否都有 anchor；无 source 时只能留 gap，不得升级为 verified。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 screener-specific 要求。
 
 特别强调：
 - **每个 candidate 的"业务 / 受益机制"必须有 source link**——不允许 AI 编造业务关联
 - **找不到 source 的关联标 `[需查证]`**——不能因为"听说过"就当 verified
+- **本 skill 不用自动 internet fallback 把业务关联、客户 / 供应链关系或受益机制升级成 verified fact**：缺本地 / 一手 source 时继续保留 `[需查证]` 线索状态。
 - **卖方研报中的"概念股归类"不算 source**——卖方分类有 marketing 嫌疑，要找原始 disclosure（10-K、IR 资料、合同公告）
 - **估值数据必须有 as-of 时间戳**——AI 数据可能 stale，明确标注获取时点
 - **Sub-agent 返回的 ticker / 业务关联必须按 capsule 的反幻觉硬规则抽查**——这个 skill 高度依赖 web search，URL / 公司事实假冒是真实风险

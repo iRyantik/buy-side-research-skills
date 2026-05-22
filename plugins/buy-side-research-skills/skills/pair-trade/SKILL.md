@@ -46,6 +46,9 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（long / short leg fact、spread、borrow、valuation、correlation、catalyst、hedge ratio 输入）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`。
+- No Orphan Truth Claim：输出前检查 pair setup 的业务事实、market data、risk / catalyst、company disclosed claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pair-trade-specific 要求。
 
 特别提醒：

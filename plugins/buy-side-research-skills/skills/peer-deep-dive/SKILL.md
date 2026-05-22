@@ -38,10 +38,16 @@ description: Compare companies in one industry with sourced KPI matrices and res
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（peer KPI、valuation、liquidity、business model、segment / disclosure comparison）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`，不只横向矩阵 `Ev` 要挂证据。
+- No Orphan Truth Claim：输出前检查 peer matrix 外的正文事实、ranking 依据、source conflict 和 market data claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 peer-deep-dive-specific 要求。
 
 快速提醒：
 - 横向矩阵每行 / 每个关键数据点必须给 Source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
+- 横向矩阵里的 market / valuation / liquidity 列允许在本地缺失时补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
+- 经营、KPI、机制、客户 / 项目、company-disclosed fact 仍保持原有 source discipline，不因 fallback 放宽。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - Cross-cut 矛盾信号必须给两边的具体引语和定位；sub-agent URL 抽查匹配后才可使用。
 - 跨公司比较必须确认口径可比；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
 
@@ -148,6 +154,8 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列 + 表下 sourc
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
 每行 `Ev` 标注主要数据来源（典型：`S1@FY25;S2@[date]`），表下用 `Sources: S1 = 10-K FY2025, filed [date], [link]; S2 = Bloomberg/CapIQ, as-of [date]`。
+
+正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. S1@FY25;S2@FY25`
 
 
 **ROIC（除现金）计算公式**：NOPAT / (Invested Capital - 现金及等价物)。闲置现金不参与经营但会拉低分母，剔除后反映经营业务的真实投入回报。口径说明：如现金超过总资产的 20%，差异可能显著，需在表下单独标注各家的现金占比。

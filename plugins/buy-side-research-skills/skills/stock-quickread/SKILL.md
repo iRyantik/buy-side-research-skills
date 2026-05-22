@@ -32,10 +32,16 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（业务事实、财务数字、valuation clue、price action、市场数据）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`，不只表格 `Ev` 要挂证据。
+- No Orphan Truth Claim：输出前检查数字、业务事实、segment claim、`market expects` / `company disclosed` 等表述是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 quickread-specific 要求。
 
 快速提醒：
 - 每条事实、数字、引语必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
+- 允许对 market 型 section 做受控 fallback：估值锚、price action、市场倍数、FCF yield、capital-cycle ratio 所需市场端数据、近期股价 / 板块表现，在本地 `_cache` / `financial-data` 缺失时可补公开网页数据，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 用 `I1@...` 表示。
+- 不允许用 internet source 补 business fact、segment 利润、company-disclosed KPI、未披露分部事实；这些缺口继续写 `[需查证]` / `[来源待补]` / `not disclosed`。
+- 若本 quickread 首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - 表格必须保留 Source 列或表下注；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
 - sub-agent 返回的 URL 只能当线索，抽查匹配后才能写成 verified source。
 
@@ -70,6 +76,8 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 | 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | S1@FY24 |
 
 Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
+
+正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. S1@FY25`
 | 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [10-Q Q1 2025 p.15](url) |
 | 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [10-K 2024 p.42](url) |
 | 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [10-Q Q1 2025 p.15](url) |
@@ -165,6 +173,8 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 | EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | S1@[date] |
 
 Sources: `S1 = Bloomberg / CapIQ, as-of [date], [link/location]`.
+
+正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. I1@[date]:WEB`
 | P/E | 18x | 14x | 16x | ... | [Bloomberg / CapIQ](url) |
 | FCF yield | 5% | 7% | 6% | ... | [Bloomberg / CapIQ + 自算](url) |
 

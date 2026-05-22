@@ -36,6 +36,9 @@ description: Run a first pass on an industry theme value chain demand pocket or 
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（行业价格、库存、运价、板块表现、valuation anchor、供需事实）都必须紧跟短 anchor，如 `P1@2026-05-21` / `I1@2026-05-21:WEB`。
+- No Orphan Truth Claim：输出前检查行业事实、市场数据、priced-in clue、thematic claim 是否都有 anchor；internet chatter 不能写成行业事实。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 industry-quickread-specific 要求。
 
 特别强调：
@@ -43,6 +46,9 @@ description: Run a first pass on an industry theme value chain demand pocket or 
 - **行业报告和卖方报告可作线索，不可替代一手或权威数据**：优先使用政府 / 监管数据、交易所公告、公司 filings / IR、协会数据、海关数据、权威行业机构。
 - **概念股归类不是业务关联 source**：某公司被市场称为某主题受益股，不等于它真的捕获该行业利润池。
 - **无法验证的行业数字必须标 `[需查证]` / `[来源待补]`**，不要为了让表格完整而编数字。
+- **本 skill 只允许有限的 market-data fallback**：priced-in clue、anchor valuation、板块表现、公开行业价格 / 库存 / 运价等公开 web 数据，在本地缺失时可补 `internet source`，并在 `Ev` 使用 `I1@...`。
+- **不要把 internet chatter 写成行业事实**：theme buzz、媒体热词、论坛 / 社媒讨论不能替代行业事实、公司披露或 verified consensus。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - **冲突 source 必须暴露**：例如协会出货量、公司 commentary、卖方供需模型相互冲突时，写出冲突而不是挑一个顺手数字。
 
 ## Parallel Evidence Pass

@@ -39,6 +39,9 @@ description: Check whether a news claim rumor note or data point is credible and
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（新闻事实、时间点、原始说法、市场反应、公司 / 监管回应）都必须紧跟短 anchor，如 `P1@2026-05-21` / `I1@2026-05-21:WEB`。
+- No Orphan Truth Claim：输出前检查 claim、source provenance、market reaction、management / company disclosed 表述是否都有 anchor；传闻只能标为 rumor / unverified。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 information-impact-specific 要求。
 
 特别强调：

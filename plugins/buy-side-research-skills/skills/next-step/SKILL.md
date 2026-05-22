@@ -34,10 +34,14 @@ description: Choose the highest-value next research question when a thread feels
 
 ## Source 政策
 
+- Claim-Level Source Contract：本 skill 默认不新增裸事实；若必须引用 truth-like claim（已知事实、数字、披露变化、市场数据），必须紧跟已有短 anchor，如 `S1@FY25` / `P1@2026-05-21`。
+- No Orphan Truth Claim：输出前检查每个建议依赖的事实是否已有 anchor；没有 source 的只能写成 hypothesis / `[来源待补]`，不能写成确定事实。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 next-step-specific 要求。
 
 特别强调：
 - 本 skill 默认不新增事实，只基于用户给的材料诊断下一步；若必须引用事实、数字、KPI、新闻或管理层说法，必须有 source 或标 `[来源待补]`。
+- 本 skill 不自动抓 internet market data 补事实；默认只诊断 gap 和 research priority，不负责把缺口补成新事实。
 - 用户给的 unsourced claim 不能被当成事实；写成“如果这个 claim 成立”或标 `[需查证]`。
 - 生成 AI 问题时，不要把未验证事实写进问题前提；应把验证动作写进问题本身。
 - 不确定 link 是否存在时写 `[link 待补]`，不要为了让 prompt 看起来完整而造链接。

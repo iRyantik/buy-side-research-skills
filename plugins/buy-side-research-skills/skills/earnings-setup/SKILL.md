@@ -36,11 +36,17 @@ description: Prepare for or react to earnings and decide whether thesis drivers 
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（KPI baseline、consensus、implied move、revision、peer reaction、price action）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`，不只表格 `Ev` 要挂证据。
+- No Orphan Truth Claim：输出前检查财报数据、市场预期、管理层表述、`company disclosed` / `market expects` claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 earnings-specific 要求。
 
 Earnings setup 对 source 时效性要求极高。快速提醒：
 - Consensus、隐含 move、IV skew、SI、borrow、股价数据必须标注 provider 和获取时点。
 - KPI 基线、管理层 commentary、同业已报数据必须给具体 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
+- 当本地 cache 缺失时，可对 implied move、IV、SI、borrow、近 1-3M revision、peer print reaction、板块 price action 补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
+- KPI baseline、management commentary、company-disclosed threshold 仍优先 local / filing；这些不是自动 internet fallback 的范围。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
 
 ## Parallel Evidence Pass
@@ -88,6 +94,8 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 | 隐含 move | ±7% | 期权市场对这次 print 的隐含波动 | S1@[timestamp] |
 
 Sources: `S1 = CBOE / OptionMetrics, as-of [timestamp], [link/location]`.
+
+正文 claim 示例：`Options imply a 7.5% move into earnings, above the trailing eight-quarter realized median of 5.2%. I1@[timestamp]:WEB`
 | 财报前 1-3M 股价 vs 板块 | +12% vs XLE +3% | 跑赢 → buy-side 预期已偏高 | [Bloomberg / Yahoo](url) |
 | Short Interest | 4.5% of float | 绝对水平 + 近 1M 趋势 | [Bloomberg SI 2024-XX-XX](url) |
 | Borrow rate | 35bps | 是否便宜（无空头压力） | [borrow desk](url) |
@@ -110,6 +118,8 @@ Sources: `S1 = CBOE / OptionMetrics, as-of [timestamp], [link/location]`.
 | Permian rig count 2H 指引 | 12 台 S1@2024Q2 | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
 
 Sources: `S1 = [earnings call/source title], as-of/filed [date], [link]`.
+
+正文 claim 示例：`Management kept FY26 revenue guidance unchanged but narrowed the margin range by 50 bps. S1@[date]`
 | Buyback pace | Q2 完成 $300M [Q2 2024 10-Q cash flow](url) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
 | OpEx per BOE | $9.5 [Q2 2024 supplementals p.3](url) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
 

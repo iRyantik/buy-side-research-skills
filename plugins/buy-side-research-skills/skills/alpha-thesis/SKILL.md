@@ -34,10 +34,16 @@ description: Build a sourced long or short investment thesis with variant view c
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（scenario 输入、catalyst、valuation input、priced-in、crowding、业务事实）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`。
+- No Orphan Truth Claim：输出前检查 thesis fact、market expectation、management / company disclosed claim、kill criteria 依据是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 thesis-specific 要求。
 
 快速提醒：
 - 每条事实、数字、引语、consensus 数字必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
+- 估值、priced-in、crowding、borrow、scenario 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
+- 核心 thesis business fact、未披露 driver、管理层原话、客户 / 项目事实不允许自动 internet fallback；缺口继续老实标 `[需查证]` / `[来源待补]` / `not disclosed`。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - Catalyst 事件、kill criteria 基线、scenario 假设依赖的事实都必须给 source；研究员概率和判断本身不需要 source。
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
 

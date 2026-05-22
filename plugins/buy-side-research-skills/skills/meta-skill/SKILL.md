@@ -356,6 +356,12 @@ Artifact policy：
 
 Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules Capsule (v2)`，`Source 政策` 节只写 skill-specific 增量。
 
+Claim-level source contract：
+- 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟短 source anchor，如 `S1@FY25`、`P1@2026-05-21`、`I1@2026-05-21:WEB`。
+- 模板示例必须展示正文 claim anchor，而不是只在段末写笼统 `Sources used`；链接只放进 `Sources:` registry。
+- `judgment` / `synthesis` / `概率判断` 可以不逐句挂 source，但它依赖的事实 claim 必须已经 source-backed。
+- 所有 research skill 必须包含 `No Orphan Truth Claim` 或等价自检：输出前查数字、业务事实、客户关系、segment claim、`market expects` / `management said` / `company disclosed` 是否有 anchor；没有就补 source、降级为 gap，或删除。
+
 必须有 source：
 
 - 财务数字、估值、市场数据、价格、as-of 数据。
@@ -363,6 +369,12 @@ Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules 
 - 行业数据：市占率、价格、产能、需求量、TAM。
 - 管理层引语、专家访谈、监管表态、第三方判断。
 - 历史事件和时间点。
+
+若启用 `internet source` fallback，必须同时写清：
+- 只在 local source 缺失时触发。
+- 只补 market / consensus / valuation / liquidity / price-action 字段。
+- 业务事实、公司披露 KPI、客户 / 项目 / 管理层原话、未披露 driver 缺口不可 fallback。
+- `Ev` / `证据` 列使用 `L1`、`P1`、`I1` 这类来源层级码，且 `I1` registry 必须包含 provider、as-of、`internet source` 标签和 link。
 
 Source 质量：
 

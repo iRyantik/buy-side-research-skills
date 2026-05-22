@@ -34,10 +34,14 @@ description: Explain industry mechanisms engineering principles equipment chains
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（工程机制、设备链、工艺参数、行业事实、公司业务事实）都必须紧跟短 anchor，如 `P1@2026-05-21` / `S1@FY25`。
+- No Orphan Truth Claim：输出前检查技术事实、行业事实、公司披露 claim 是否都有 anchor；机制解释可做综合判断，但支撑事实必须可追溯。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 mechanism-map-specific 要求。
 
 特别强调：
 - **工程机制、设备功能、工艺流程**可以使用公司技术白皮书、工程资料、监管/行业机构资料、教材型资料或明确 source；如果不确定，标 `[需查证]`。
+- **本 skill 不引入自动 internet market data fallback**：工程机制解释可引用公开技术 / 工程资料，但公司事实和运营事实仍按现有 source discipline 处理。
 - **产能、成本、效率、订单、价格、客户、装机量、市场规模、项目时间表**必须有 source / as-of。
 - **“可以用于某场景”不等于“已经被某客户采用”**；任何客户、供应链、项目落地 claim 必须回到 `information-impact` 或可靠 source。
 - **行业常识可以作为解释背景，但不能冒充公司事实**。把 mechanism read-through 写成 researcher inference，而不是 company disclosure。

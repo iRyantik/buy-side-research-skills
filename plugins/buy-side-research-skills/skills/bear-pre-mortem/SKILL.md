@@ -34,10 +34,16 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（risk evidence、scenario 输入、kill criteria、valuation input、borrow / crowding、业务事实）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`。
+- No Orphan Truth Claim：输出前检查红旗、反证、管理层 / 公司披露 claim、market data claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pre-mortem-specific 要求。
 
 空头压力测试对 source 真实性要求更高。快速提醒：
 - 每个红旗、历史 base rate、内部人交易、会计变化都必须能链到 filing / 权威数据；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
+- 估值、priced-in、crowding、borrow、scenario downside 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
+- 核心 bear case business fact、未披露 driver、管理层原话、客户 / 项目事实不允许自动 internet fallback；缺口继续老实标 `[需查证]` / `[来源待补]` / `not disclosed`。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - 匿名爆料、社媒、论坛只能作线索，不能当做空事实依据。
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
 

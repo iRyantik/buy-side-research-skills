@@ -36,15 +36,21 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（consensus 数字、revision、price reaction、implied move、multiple、crowding 线索）都必须紧跟短 anchor，如 `S1@2026-05-21` / `I1@2026-05-21:WEB`，不只表格 `Ev` 要挂证据。
+- No Orphan Truth Claim：输出前检查 `market expects`、`consensus implies`、provider 数字、管理层或公司披露 claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 consensus-map-specific 要求。
 
 特别强调：
 - **consensus 数字必须写 provider / as-of / metric definition**：例如 Visible Alpha、FactSet、Bloomberg、CapIQ、company-collected consensus；没有可靠 provider 时写 `[需查证]`，不要估。
+- **本 skill 允许 market-data fallback**：当本地 consensus pack 或结构化 cache 缺失时，可对 consensus provider 数字、revision、price reaction、multiple、options implied move、short interest、crowding 线索补公开网页 source，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
 - **broker notes 只能证明 narrative，不等于 consensus dataset**：可以引用为"某类多空论点"，但不能用 2-3 篇报告冒充市场一致预期。
 - **buy-side bar 必须标为推断**：用 price reaction、revision breadth、multiple expansion、options implied move、short interest、crowding、call transcript Q&A 等推断时，必须写"推断依据"和不确定性。
 - **market-implied assumptions 必须说明方法**：倍数反推、reverse DCF、required CAGR、implied margin、bear-implied downside 不能只给结论；如果没有模型支撑，写成 clue 并 handoff 到 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - **revision direction 要有时间窗**：3M / 6M / since last print / since investor day，不要写"最近上修"却没有 as-of。
 - **没有数据时不要假装完整**：表格允许出现 `[需查证]`、`[来源待补]`、`not disclosed`，但不能填 AI 猜测。
+- **不要把 internet source 冒充 company fact**：管理层原话、company-disclosed KPI、业务事实和未披露 driver 缺口不适用自动 fallback，缺口继续标 `[需查证]` / `[来源待补]` / `not disclosed`。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 ## Parallel Evidence Pass
 
@@ -131,6 +137,8 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 Sources: `S1 = [provider/source title], as-of [date], [link/location]`.
 
+正文 claim 示例：`Consensus FY26 EBITDA has moved down 6% over three months, while dispersion widened from 8% to 14%. S1@[date]`
+
 **Takeaway**: [市场数字共识到底集中在哪个 operating assumption]
 
 ## 3. Buy-Side / Market-Implied Bar
@@ -158,6 +166,8 @@ Sources: `S1 = [provider/source title], as-of [date], [link/location]`.
 | Margin | [mix / pricing / utilization] | [KPI] | S1@latest | `driver-map` |
 
 Sources: `S1 = [source title/provider], as-of [date], [link/location]`.
+
+正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. S1@latest`
 | Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [source] | `3-statement-model / dcf-model / comps-analysis / model-update` |
 
 ## 6. Where Consensus Could Be Wrong

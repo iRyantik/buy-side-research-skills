@@ -39,14 +39,20 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（price、FX、market cap、EV、ADV、borrow、spread、share class / ADR ratio）都必须紧跟短 anchor，如 `P1@2026-05-21` / `I1@2026-05-21:WEB`，不只表格 `Ev` 要挂证据。
+- No Orphan Truth Claim：输出前检查市场字段、上市结构、交易限制、liquidity / access claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 cross-market-specific 要求。
 
 特别强调：
 - **价格、FX、market cap、EV、share count、ADR ratio、borrow、成交量必须有 source / as-of**。
+- **本 skill 允许 market-data fallback**：price、FX、market cap、EV、ADV、bid-ask、borrow、spread history、ADR / local listing 的市场字段，在本地缺失时可补公开网页 source，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
 - **同一公司多地上市必须确认 share class 和经济权益**，不能假设 1 ADR = 1 ordinary。
+- **share class / ADR ratio 无权威可验证 source 时不得硬填**：宁可写 `[来源待补]` 或 qualitative framing，也不要拿 quote page 猜 conversion。
 - **跨市场 peer 比较必须确认会计口径**：GAAP / IFRS / 中国会计准则、Non-GAAP 调整项、报表频率。
 - **历史 spread / z-score 必须说明计算窗口**（1Y / 3Y / 5Y）和数据源。
 - **可交易性是事实问题**：转换机制、资本管制、short borrow、港股通 / 沪深股通、OTC liquidity 都要 source。
+- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 ## Parallel Evidence Pass
 
@@ -134,6 +140,8 @@ Sources: `S1 = [source title/provider], as-of [date], [link/location]`.
 | Market cap USD-eq | | | | S1@[date] |
 
 Sources: `S1 = [market data provider/source title], as-of [date], [link/location]`.
+
+正文 claim 示例：`The ADR trades at a 2.4% premium to the local line after FX and ratio adjustment, while local ADV is 3.1x the ADR ADV. I1@[date]:WEB`
 | EV USD-eq | | | | |
 | P/E NTM | | | | |
 | EV/EBITDA NTM | | | | |

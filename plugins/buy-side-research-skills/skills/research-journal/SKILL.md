@@ -34,10 +34,14 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 
 ## Source 政策
 
+- Claim-Level Source Contract：journal 只沉淀 source-backed settled insight；每个保留下来的 truth-like claim 都必须紧跟短 anchor，如 `S1@FY25` / `P1@2026-05-21`。
+- No Orphan Truth Claim：输出前检查 insight、数字、业务事实、管理层 / 市场 claim 是否能追到 source-backed anchor；不能追溯的只能标 gap / hypothesis，不进入 settled insight。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 research-journal-specific 要求。
 
 特别强调：
 - Journal 里的事实、数字、KPI、管理层引语、行业数据、历史时间点必须有 source / as-of；没有 source 的事实必须标 `[来源待补]` 或不写入。
+- 本 skill 只沉淀已验证 insight，不新增 internet fallback 抓取。若上游 artifact 里某字段是 `internet source`，保留该标签和 source registry，不要洗成更高等级 source。
 - Journal 可以记录研究员判断，但判断依据的事实必须有 source；不要把“我们觉得”包装成事实。
 - `mechanism-map` / `driver-map` 的结果只有在 source 和逻辑被理解后才能吸收；否则写成 open question 或 handoff，不写成 settled insight。
 - Boss Brief 可以牺牲细节，但不能牺牲关键 source、争议、风险和置信度。
@@ -282,10 +286,10 @@ topics/[topic-namespace]/[topic-slug]/index.md
 ## [研究问题 / insight]
 
 **结论先行**
-[1-2 句话说清楚已经赚到的 insight]
+[1-2 句话说清楚已经赚到的 insight，例如：`订单结构的变化比总 backlog 更能解释 margin inflection；FY25 服务订单占比提升至 42%。 S1@FY25`]
 
 **Source anchors**
-- [source / as-of]
+- `S1 = [source title], as-of/filed [date], [link/location]`
 
 **为什么重要**
 - [改变了什么业务实质 / driver / market framing / peer group / 研究优先级]

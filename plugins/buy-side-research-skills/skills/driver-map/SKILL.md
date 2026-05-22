@@ -36,11 +36,15 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（driver、segment、backlog、price / volume / mix、margin bridge、披露口径变化）都必须紧跟短 anchor，如 `S1@FY25` / `P1@2026-05-21`。
+- No Orphan Truth Claim：输出前检查 driver fact、company-disclosed KPI、管理层表述和 proxy 依据是否都有 anchor；未披露 driver 只能写 proxy / assumption / gap。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 driver-map-specific 要求。
 
 特别强调：
 - **每个 reported bucket、segment revenue、KPI、orders、backlog、margin、price / volume / mix 判断都必须有 source / as-of**。
 - **未披露 driver 只能写成 proxy 或 assumption**，必须标 `[来源待补]` / `[需查证]`，不能写成 company fact。
+- **本 skill 不使用自动 internet market data fallback 来补未披露 driver**：缺口继续只能写 proxy、assumption、`[需查证]`、`[来源待补]` 或 `not-disclosed`。
 - **卖方拆分、行业图谱、专家访谈可以作线索**，但关键 driver 仍要回到 filing、IR、earnings call、transcript、监管文件或明确数据源。
 - **多个 source 冲突时必须标冲突**，尤其是 10-K vs IR deck、press release vs call、公司口径 vs peer 口径。
 

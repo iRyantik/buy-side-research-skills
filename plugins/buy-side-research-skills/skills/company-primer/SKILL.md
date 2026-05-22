@@ -36,11 +36,15 @@ description: Map an unfamiliar company's business segments customers history and
 
 ## Source 政策
 
+- Claim-Level Source Contract：正文里的每个 truth-like claim（business snapshot、segment reality、客户 / 项目关系、披露口径变化、M&A 影响）都必须紧跟短 anchor，如 `S1@FY25` / `P1@2026-05-21`。
+- No Orphan Truth Claim：输出前检查所有业务事实、客户关系、segment / KPI / disclosure evolution claim 是否都有 anchor；未披露内容只能写 gap、proxy 或 assumption，不能用 internet source 伪补。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 company-primer-specific 要求。
 
 特别强调：
 - 公司业务、产品、客户、segment、KPI、并购、剥离、recast、rename、discontinued operations 和重大历史时间点必须有 source / as-of。
 - 优先使用最新 10-K / annual report、10-Q、20-F、IR deck、earnings call、press release、transaction filing、公司官网业务页；二手资料只能补线索，不能替代公司披露。
+- 本 skill 不使用自动 internet market data fallback 来补 business snapshot、segment reality、disclosure evolution、M&A 影响或 KPI 口径。缺本地 / 一手 source 时继续写 `[需查证]` / `[来源待补]` / `unknown`。
 - 历史事件只写影响当前业务理解的部分；每个历史事件必须说明它改变了什么业务边界或披露口径。
 - Segment / KPI 前后口径不一致时必须标注，不得把不同定义的时间序列拼成一个 trend。
 - 多个 source 对 segment、产品边界或交易影响说法冲突时，必须标注冲突并说明暂用哪个口径。
@@ -189,12 +193,16 @@ description: Map an unfamiliar company's business segments customers history and
 
 Sources: `S1 = [source title], as-of/filed [date], [link]`.
 
+正文 claim 示例：`The company reports two operating segments, but the customer economics map more cleanly to equipment sales and lifecycle services. S1@FY25`
+
 ## Segment / Product Reality
 
 | Reported segment / product | Business reality | Customer / end-market | Why it matters | Ev |
 |---|---|---|---|---|
 
 Sources: `S1 = [source title], as-of/filed [date], [link]`.
+
+正文 claim 示例：`Management changed the disclosed KPI definition in FY24, so pre-FY24 growth is not directly comparable without a bridge. S1@FY24`
 
 ## What Actually Changed
 

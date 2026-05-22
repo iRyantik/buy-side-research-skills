@@ -36,10 +36,14 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 ## Source 政策
 
+- Claim-Level Source Contract：研究计划里的已知事实、hypothesis provenance、待验证业务关系或市场数据必须紧跟短 anchor，如 `S1@FY25` / `P1@2026-05-21`；计划问题本身不伪装成证据。
+- No Orphan Truth Claim：输出前检查每个 hypothesis 的来源状态；无 source 的只能标 `working hypothesis` / `[来源待补]`，不能写成 primary evidence。
+
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 primary-research-plan-specific 要求。
 
 特别强调：
 - **计划前提必须标 source 状态**：hypothesis 来自 `consensus-map`、`driver-map`、`alpha-thesis`、filing、call、dataset 还是用户 unsourced claim，都要写清楚。
+- 本 skill 只记录 hypothesis 和 source gap，不自动补 internet market data 事实。缺口保持为 `[需查证]` / `[来源待补]`，再决定是否需要 primary work。
 - **primary research 还没发生时不能写成 evidence**：只能写 planned source、target persona、expected evidence、decision gate。
 - **专家或渠道反馈需要 provenance**：真正访谈后引用时必须记录 date、persona、source type、compliance status、是否可引用、是否匿名。
 - **不提供法律意见**：只给通用 compliance guardrails；遇到敏感问题，要求先走机构 compliance / expert-network protocol。

@@ -30,6 +30,27 @@
 - 管理层引语、专家访谈、监管表态、第三方判断。
 - 历史事件和时间点。
 
+### 3.0 Claim-Level Source Contract
+
+- `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
+- 每个 `truth-like claim` 必须紧跟短 source anchor；默认写成 `S1@FY25`、`L1@FY25`、`P1@2026-05-21` 或 `I1@2026-05-21:WEB`，不要在正文塞长链接。
+- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. S1@FY25`
+- `Sources:` registry 必须展开每个 anchor 的 title、provider、as-of / filed date、page / table / URL location 和 link；表格可继续用 `Ev` / `证据` 短列。
+- `judgment` / `synthesis` / `概率判断` 不强制逐句挂 source，但其依据的事实 claim 必须已经 source-backed。
+- 没有 source 的 claim 只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不得伪装成事实。
+
+### 3.1 Source hierarchy and controlled fallback
+
+- 默认顺序：`local source > primary public source > internet source`。
+- `local source`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包。
+- `primary public source`：filing、IR、交易所、监管、政府、协会、公司官网等可公开验证原始 source。
+- `internet source`：公开网页上的 market/provider 数据、财经站点、交易页面、公开新闻页、公开数据库页面。
+- `internet source` 只能在 **本地缺失** 且 **字段本来就属于 market / consensus / valuation / liquidity / price-action 类信息** 时自动 fallback。
+- `internet source` 不能冒充 company-disclosed fact。业务事实、分部利润、公司披露 KPI、客户 / 项目 / 供应链关系、管理层原话、未披露 driver 缺口，缺 source 时继续写 `[需查证]` / `[来源待补]` / `not disclosed`。
+- fallback 成功后可以进入主表 / 主文，但必须显式标 `internet source`、provider、as-of、URL / source location。
+- `internet source` 与 local / primary public source 冲突时，必须保留冲突说明，不得静默覆盖。
+- 即使允许 fallback，如果公开网页也拿不到可靠 source，继续 honest degrade：`[需查证]` / `[来源待补]` / `not disclosed`。
+
 Source 质量：
 - 一手原始：SEC filings、交易所公告、公司 IR、earnings call、监管 / 政府数据。
 - 二手权威：transcripts、Bloomberg / FactSet / CapIQ / Visible Alpha、行业研究机构、专家访谈平台。
@@ -44,11 +65,21 @@ Source 质量：
 - 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
 - sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
 
+### 4.1 No Orphan Truth Claim self-check
+
+- 输出前检查是否有数字、业务事实、客户关系、segment claim、行业事实、历史事件没有 source anchor。
+- 检查是否有 `market expects` / `management said` / `company disclosed` / `consensus implies` 等表述但没有 anchor。
+- 检查是否只有段末 source registry、但段内多个 claim 无法逐一对应到 anchor。
+- 发现 orphan claim 时，必须补 source anchor、降级为 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，或删除该 claim。
+
 ## 4.5 紧凑证据显示
 
 - 表格优先用 `Ev` 或 `证据` 短列承载 source、时间点和例外状态。默认格式是 `S1@FY25`；如果不是干净 source-backed 值，再追加状态：`S1@FY25:REV`。
 - 状态码只用于例外：`REV` = 需复核，`GAP` = 来源缺口，`ND` = 未披露，`EST` = 估算 / 假设，`CON` = 来源冲突。干净值不写 `OK`。
 - 表格下方用一行 source registry 保持可追溯性，例如：`S1 = DART 2025 사업보고서（年度报告）, filed 2026-03-18, link`。如果全表 as-of 相同，只在表前或表后写一次；只有行级差异进入 `Ev`。
+- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现来源层级：`L1` = local source，`P1` = primary public source，`I1` = internet source。可写成 `L1@FY25`、`P1@2026-05-21`、`I1@2026-05-21:WEB`。
+- `I1` registry 必须展开 provider、as-of、`internet source` 标签和 link，例如：`I1 = Yahoo Finance quote page, as-of 2026-05-21, internet source, link`。
+- 某 section 首次使用 internet fallback 时，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 ## 5. Sub-Agent Evidence Protocol
 
