@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.6`
+> 当前版本：`3.10.7`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -55,15 +55,15 @@ research-workspace/
 
 - source 可信度顺序是 `workspace-local > primary public > reputable provider/news > internet market source`。
 - 同一可信度层级内，研究和新闻默认优先 home-market / local-language source；市场数据默认优先主要上市地 / 交易市场的数据源。
-- 不维护任何市场专属 provider 白名单；如果使用全球、英文或非本地市场 fallback，必须在 `Sources:` registry 写明 fallback reason。
+- 不维护任何市场专属 provider 白名单；如果使用全球、英文或非本地市场 fallback，必须在文末 `## Resources` 写明 fallback reason。
 
 ---
 
 ### Claim-level source contract
 
-- 新 research output 默认把每个可验证的 truth-like claim 都挂可点击短 source anchor，例如 `[S1]` / `[P1]` / `[I1]`。
-- 正文不堆长链接；正文和表格只显示短码，provider、as-of / filed date、page / location 统一放在 `Sources:` registry，真实链接放在文件底部 reference definitions。
-- 多个 source 写成 `[S1] [I1]`，不要写成 `[S1][I1]`。
+- 新 research output 默认把每个可验证的 truth-like claim 都挂 inline clickable short source anchor，例如 `[S1](./source.md)` / `[P1](https://...)` / `[I1](https://...)`。
+- 正文不堆长链接；正文和表格只显示短码，但短码本身必须可点击。provider、as-of / filed date、page / location 统一放在文末 `## Resources`；不要在表格下方默认展开完整 source metadata。
+- 多个 source 写成 `[S1](./source.md) [I1](https://...)`，不要写成 `[S1][I1]`。
 - 判断句可以不逐句挂 source，但它依赖的事实、数字、引语、市场数据和业务关系必须已经有 anchor。
 - 没有 source 的事实只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不能写成确定事实。
 
@@ -125,6 +125,7 @@ research-workspace/
 | 准备财报季 | "用 earnings-setup 准备下周 GE 的财报" |
 | 设计一对 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" |
 | 比较几家同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" |
+| 看 Reddit 上的情绪和高信号帖子 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" |
 | 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" |
 | 判断一条新闻值不值得追 | "用 information-impact 看这条消息" |
 
@@ -152,7 +153,7 @@ research-workspace/
 | **Python**（仅 `ingest` 和 `financial-data` 需要） | 去 python.org 下载，安装时勾选 "Add Python to PATH" | 免费 |
 | **本插件** | 看下一节，全程用对话安装 | 免费，开源 |
 
-> **如果你只做对话类研究**（让 Claude 帮你分析、写 thesis、做 peer comparison），你甚至不需要装 Python。只有当你需要**消化 PDF/Excel 文件**或**拉取结构化财务数据**时，才需要 Python。
+> **如果你只做对话类研究**（让 Claude 帮你分析、写 thesis、做 peer comparison），你甚至不需要装 Python。只有当你需要**消化 PDF/Excel 文件**、**拉取结构化财务数据**或**抓取 Reddit sentiment 数据**时，才需要 Python。
 
 ### 三个概念先搞清楚
 
@@ -401,6 +402,7 @@ Skills 按研究深度分为四层。越往下越深入。
 | `industry-quickread` | 快速了解一个行业 | 遇到陌生行业，想搞清格局和关键问题 | *"用 industry-quickread 看核电行业"* |
 | `candidate-screener` | 从主题出发找受益股 | 有个主题想法，想知道哪些公司受益 | *"用 candidate-screener 找 AI 数据中心电力的受益股"* |
 | `information-impact` | 判断一条消息重不重要 | 看到一条新闻/传闻，想判断是否值得追 | *"用 information-impact 分析这条消息靠不靠谱"* |
+| `reddit-sentiment` | 抓取并总结 Reddit 情绪 | 想知道某只股票、IPO、财报或主题在 Reddit 上怎么被讨论 | *"用 reddit-sentiment 查 SpaceX IPO 在 Reddit 上怎么看"* |
 | `next-step` | 研究卡住了，问下一步怎么做 | 不确定接下来该研究什么 | *"用 next-step 帮我判断下一步研究什么"* |
 
 ---
@@ -801,6 +803,7 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 | 快速看一个行业 | `industry-quickread` | 否 | 20-40 分钟 |
 | 从主题找受益股 | `candidate-screener` | 否 | 30-60 分钟 |
 | 判断一条新闻 | `information-impact` | 否 | 10-15 分钟 |
+| 看 Reddit 情绪 | `reddit-sentiment` | **是** | 15-45 分钟 |
 | 研究卡住了 | `next-step` | 否 | 10 分钟 |
 | 深度拆公司业务 | `company-primer` | 否 | 1-2 小时 |
 | 拆市场预期 | `consensus-map` | 否 | 1-2 小时 |
@@ -825,5 +828,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.6
-**最后更新**：2026-05-15
+**版本**：v3.10.7
+**最后更新**：2026-05-22

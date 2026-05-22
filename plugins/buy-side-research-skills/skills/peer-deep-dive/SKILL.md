@@ -10,11 +10,11 @@ description: Compare companies in one industry with sourced KPI matrices and res
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
 - 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `[S1]`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `[S1] = source title, as-of/filed; reference link` registry 保持可追溯。
+- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in `Sources:`.
+- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
 - Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -39,20 +39,20 @@ description: Compare companies in one industry with sourced KPI matrices and res
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（peer KPI、valuation、liquidity、business model、segment / disclosure comparison）都必须紧跟可点击短 anchor，如 `[S1]` / `[I1]`，不只横向矩阵 `Ev` 要挂证据。
+- Claim-Level Source Contract：正文里的每个 truth-like claim（peer KPI、valuation、liquidity、business model、segment / disclosure comparison）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`，不只横向矩阵 `Ev` 要挂证据。
 - No Orphan Truth Claim：输出前检查 peer matrix 外的正文事实、ranking 依据、source conflict 和 market data claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
 
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 peer-deep-dive-specific 要求。
 
 快速提醒：
 - 横向矩阵每行 / 每个关键数据点必须给 Source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 横向矩阵里的 market / valuation / liquidity 列允许在本地缺失时补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1]`。
+- 横向矩阵里的 market / valuation / liquidity 列允许在本地缺失时补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
 - 经营、KPI、机制、客户 / 项目、company-disclosed fact 仍保持原有 source discipline，不因 fallback 放宽。
 - 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - Cross-cut 矛盾信号必须给两边的具体引语和定位；sub-agent URL 抽查匹配后才可使用。
 - 跨公司比较必须确认口径可比；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
 
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in `Sources:`.
+- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
 ## Parallel Evidence Pass
 
 本 skill 默认必须按公司或 source bucket 启动 sub-agent / delegate worker 并行收集 evidence；只能让 sub-agent 产出 evidence card：
@@ -148,16 +148,16 @@ description: Compare companies in one industry with sourced KPI matrices and res
 
 ### 2. 横向矩阵（核心数据表）
 
-N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列 + 表下 source registry**。分两层：
+N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 source metadata 放文末 `## Resources`**。分两层：
 
 #### 2A. 通用维度（所有行业都列）
 
 | 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金） | 净负债/EBITDA | Capex/D&A | FCF yield | EV/EBITDA(当前 vs 5Y 中位) | 资本返还/FCF | Ev |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
-每行 `Ev` 标注主要数据来源（典型：`[S1] [S2]`），表下用 `Sources: [S1] = 10-K FY2025, filed [date], [link]; [S2] = Bloomberg/CapIQ, as-of [date]`。
+每行 `Ev` 标注主要数据来源（典型：`[S1](link) [S2](link)`）；文末 `## Resources` 统一展开：`- [S1](link) = local source | 10-K FY2025 | filed [date]`、`- [S2](link) = market data source | Bloomberg/CapIQ | as-of [date]`。
 
-正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. [S1] [S2]`
+正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. [S1](link) [S2](link)`
 
 
 **ROIC（除现金）计算公式**：NOPAT / (Invested Capital - 现金及等价物)。闲置现金不参与经营但会拉低分母，剔除后反映经营业务的真实投入回报。口径说明：如现金超过总资产的 20%，差异可能显著，需在表下单独标注各家的现金占比。
@@ -425,7 +425,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md
 - ❌ 没说当前 regime 在 trade 什么变量
 
 **第 2 节（矩阵）专项**
-- ❌ 表格无 `Ev` 列 / 无表下 source registry → 加上
+- ❌ 表格无 `Ev` 列或文末 `## Resources` 缺失 → 加上
 - ❌ 跨公司口径不一致但没标注（EBITDA 调整项不同等）→ 标 footnote 或 normalize
 - ❌ 行业特定 KPI 列了通用项但没列对应板块的特定 KPI → 补
 - ❌ 没有 ROIC（除现金）/ Capex 强度 / 估值 vs 自身历史 等关键判断指标

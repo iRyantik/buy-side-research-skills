@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "3.10.6",
+  "version": "3.10.7",
   "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: research skills plus operations skills for workspace init, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
@@ -79,6 +79,11 @@
     "price-volume-mix",
     "model-driver-gap",
     "stock-quickread",
+    "reddit-sentiment",
+    "social-sentiment",
+    "retail-sentiment",
+    "narrative-clusters",
+    "recommended-reading",
     "peer-deep-dive",
     "pair-trade",
     "long-short",

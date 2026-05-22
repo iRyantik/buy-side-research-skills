@@ -10,11 +10,11 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
 - 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `[S1]`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `[S1] = source title, as-of/filed; reference link` registry 保持可追溯。
+- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in `Sources:`.
+- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
 - Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -40,14 +40,14 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（price、FX、market cap、EV、ADV、borrow、spread、share class / ADR ratio）都必须紧跟可点击短 anchor，如 `[P1]` / `[I1]`，不只表格 `Ev` 要挂证据。
+- Claim-Level Source Contract：正文里的每个 truth-like claim（price、FX、market cap、EV、ADV、borrow、spread、share class / ADR ratio）都必须紧跟 inline clickable short anchor，如 `[P1](link)` / `[I1](link)`，不只表格 `Ev` 要挂证据。
 - No Orphan Truth Claim：输出前检查市场字段、上市结构、交易限制、liquidity / access claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
 
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 cross-market-specific 要求。
 
 特别强调：
 - **价格、FX、market cap、EV、share count、ADR ratio、borrow、成交量必须有 source / as-of**。
-- **本 skill 允许 market-data fallback**：price、FX、market cap、EV、ADV、bid-ask、borrow、spread history、ADR / local listing 的市场字段，在本地缺失时可补公开网页 source，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1]`。
+- **本 skill 允许 market-data fallback**：price、FX、market cap、EV、ADV、bid-ask、borrow、spread history、ADR / local listing 的市场字段，在本地缺失时可补公开网页 source，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
 - **同一公司多地上市必须确认 share class 和经济权益**，不能假设 1 ADR = 1 ordinary。
 - **share class / ADR ratio 无权威可验证 source 时不得硬填**：宁可写 `[来源待补]` 或 qualitative framing，也不要拿 quote page 猜 conversion。
 - **跨市场 peer 比较必须确认会计口径**：GAAP / IFRS / 中国会计准则、Non-GAAP 调整项、报表频率。
@@ -55,7 +55,7 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 - **可交易性是事实问题**：转换机制、资本管制、short borrow、港股通 / 沪深股通、OTC liquidity 都要 source。
 - 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in `Sources:`.
+- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
 ## Parallel Evidence Pass
 
 本 skill 默认必须按市场 / listing / peer leg 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
@@ -129,7 +129,6 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 | Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Ev |
 |---|---|---|---|---|---|---|---|
 
-Sources: `[S1] = [source title/provider], as-of [date]; reference link [S1]: [link/location]`.
 
 **Step 2: Price / valuation normalization**
 
@@ -137,13 +136,12 @@ Sources: `[S1] = [source title/provider], as-of [date]; reference link [S1]: [li
 
 | Metric | Listing A | Listing B | Spread | Ev |
 |---|---:|---:|---:|---|
-| Price local | | | | [S1] |
-| Price USD-eq | | | | [S1] |
-| Market cap USD-eq | | | | [S1] |
+| Price local | | | | [S1](link) |
+| Price USD-eq | | | | [S1](link) |
+| Market cap USD-eq | | | | [S1](link) |
 
-Sources: `[S1] = [market data provider/source title], as-of [date], [link/location]`.
 
-正文 claim 示例：`The ADR trades at a 2.4% premium to the local line after FX and ratio adjustment, while local ADV is 3.1x the ADR ADV. [I1]`
+正文 claim 示例：`The ADR trades at a 2.4% premium to the local line after FX and ratio adjustment, while local ADV is 3.1x the ADR ADV. [I1](link)`
 | EV USD-eq | | | | |
 | P/E NTM | | | | |
 | EV/EBITDA NTM | | | | |
@@ -251,14 +249,12 @@ Sources: `[S1] = [market data provider/source title], as-of [date], [link/locati
 | Dimension | A | B | Comparable? | Ev |
 |---|---|---|---|---|
 
-Sources: `[S1] = [source title/provider], as-of [date]; reference link [S1]: [link/location]`.
 
 ## Normalized Valuation Table
 
 | Metric | A local | A USD-eq | B local | B USD-eq | Spread | History / z-score | Ev |
 |---|---:|---:|---:|---:|---:|---:|---|
 
-Sources: `[S1] = [market data provider/source title], as-of [date], [link/location]`.
 
 ## Adjustment Layers
 

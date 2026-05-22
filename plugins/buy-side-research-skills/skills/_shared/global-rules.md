@@ -33,10 +33,10 @@
 ### 3.0 Claim-Level Source Contract
 
 - `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
-- 每个 `truth-like claim` 必须紧跟可点击短 source anchor；正文和表格默认只显示 `[S1]`、`[L1]`、`[P1]` 或 `[I1]`，不要在可见文本里塞日期或长 URL。
-- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1]`
-- `Sources:` registry 必须展开每个 anchor 的 title、provider、as-of / filed date、page / table / URL location；文件底部用 markdown reference definitions 放真实 link，例如 `[S1]: ./source.md` 或 `[I1]: https://...`。
-- 多个 source 写成 `[S1] [I1]`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a]` / `[S1b]`。
+- 每个 `truth-like claim` 必须紧跟 inline clickable short source anchor；可见文本保持短码，但短码本身必须带真实 link，例如 `[S1](./source.md)`、`[L1](./_cache/source.md)`、`[P1](https://...)` 或 `[I1](https://...)`，不要在可见文本里塞日期或长 URL。
+- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./source.md)`
+- 每篇 research artifact 文末必须有且只有一个 `## Resources`，重复使用同一个 clickable short anchor，并展开 source type、title/provider、as-of / filed date、page / table / URL location、fallback reason（如适用）。正文和表格里的短码必须可直接点击；不要在表格下方默认展开完整 source metadata。
+- 多个 source 写成 `[S1](./source.md) [I1](https://...)`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a](...)` / `[S1b](...)`。
 - `judgment` / `synthesis` / `概率判断` 不强制逐句挂 source，但其依据的事实 claim 必须已经 source-backed。
 - 没有 source 的 claim 只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不得伪装成事实。
 
@@ -45,7 +45,7 @@
 - Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
 - `workspace-local` means this research workspace's `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
 - Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
-- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the `Sources:` registry must state the fallback reason.
+- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
 
 - 简写顺序：`workspace-local > primary public > reputable provider/news > internet market source`。
 - `workspace-local`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包。
@@ -75,16 +75,16 @@ Source 质量：
 
 - 输出前检查是否有数字、业务事实、客户关系、segment claim、行业事实、历史事件没有 source anchor。
 - 检查是否有 `market expects` / `management said` / `company disclosed` / `consensus implies` 等表述但没有 anchor。
-- 检查是否只有段末 source registry、但段内多个 claim 无法逐一对应到 anchor。
+- 检查是否只有文末 `## Resources`、但正文或表格内多个 claim 无法逐一对应到 anchor。
 - 发现 orphan claim 时，必须补 source anchor、降级为 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，或删除该 claim。
 
 ## 4.5 紧凑证据显示
 
-- 表格优先用 `Ev` 或 `证据` 短列承载可点击短 source anchor 和例外状态。默认格式是 `[S1]`；如果不是干净 source-backed 值，再追加状态：`[S1]:REV`。
+- 表格优先用 `Ev` 或 `证据` 短列承载 inline clickable short source anchor 和例外状态。默认格式是 `[S1](link)`；如果不是干净 source-backed 值，再追加状态：`[S1](link):REV`。
 - 状态码只用于例外：`REV` = 需复核，`GAP` = 来源缺口，`ND` = 未披露，`EST` = 估算 / 假设，`CON` = 来源冲突。干净值不写 `OK`。
-- 表格下方用 source registry 保持可追溯性，例如：`- [S1] = company annual report, filed 2026-03-18, p.42`，并在文件底部放 `[S1]: <link>`。如果全表 as-of 相同，只在表前或表后写一次；只有行级差异进入 `Ev`。
-- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现可点击来源层级：`[L1]` = workspace-local source，`[P1]` = primary public source，`[I1]` = internet source。
-- `[I1]` registry 必须展开 provider、as-of、`internet source` 标签和 fallback reason，例如：`- [I1] = provider quote page, as-of 2026-05-21, internet source, reason: home-market field unavailable`；文件底部用 `[I1]: https://...` 放真实 link。
+- 每篇 artifact 文末用 `## Resources` 保持可追溯性，例如：`- [S1](./annual-report.md) = local source | company annual report | filed 2026-03-18 | p.42`。如果全表 as-of 相同，只在 `## Resources` 写一次；只有行级差异进入 `Ev`。
+- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现可点击来源层级：`[L1](link)` = workspace-local source，`[P1](link)` = primary public source，`[I1](link)` = internet source。
+- `[I1](link)` registry 必须展开 provider、as-of、`internet source` 标签和 fallback reason，例如：`- [I1](https://...) = provider quote page, as-of 2026-05-21, internet source, reason: home-market field unavailable`；真实 link 必须挂在短码本身。
 - 某 section 首次使用 internet fallback 时，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 ## 5. Sub-Agent Evidence Protocol

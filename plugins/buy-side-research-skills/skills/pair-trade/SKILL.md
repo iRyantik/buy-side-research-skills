@@ -10,11 +10,11 @@ description: Evaluate a long short pair trade hedge candidate spread logic and k
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
 - 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `[S1]`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `[S1] = source title, as-of/filed; reference link` registry 保持可追溯。
+- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in `Sources:`.
+- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
 - Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、pair recommendation、spread verdict、position / sizing、ranking、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -47,7 +47,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（long / short leg fact、spread、borrow、valuation、correlation、catalyst、hedge ratio 输入）都必须紧跟可点击短 anchor，如 `[S1]` / `[I1]`。
+- Claim-Level Source Contract：正文里的每个 truth-like claim（long / short leg fact、spread、borrow、valuation、correlation、catalyst、hedge ratio 输入）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`。
 - No Orphan Truth Claim：输出前检查 pair setup 的业务事实、market data、risk / catalyst、company disclosed claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
 
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pair-trade-specific 要求。
@@ -58,7 +58,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 - **Spread 的历史 percentile / σ 必须给具体计算窗口**（5Y / 3Y / 1Y）。
 - **借券可得性 / borrow rate 必须给 source 和 as-of**。short side 流动性是真实约束，不是 backtest 假设。
 
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in `Sources:`.
+- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
 ## Parallel Evidence Pass
 
 本 skill 默认必须按 pair evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
@@ -139,9 +139,8 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Beta to 半导体设备 ETF | 1.05 | 1.10 |
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
-| Ev | [S1] | [S2] |
+| Ev | [S1](link) | [S2](link) |
 
-Sources: `[S1] = [long-side source/provider], as-of [date], [link/location]`; `[S2] = [short-side source/provider], as-of [date], [link/location]`.
 
 #### 2. 为什么这两家可比（Why are these two correlated）
 
@@ -151,9 +150,8 @@ Sources: `[S1] = [long-side source/provider], as-of [date], [link/location]`; `[
 
 | 维度 | Long X | Short Y | Ev |
 |---|---|---|---|
-| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | [S1] |
+| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | [S1](link) |
 
-Sources: `[S1] = [filing/source title], as-of/filed [date]; reference link [S1]: [link]`.
 | 客户重叠（top 10） | TSMC / Samsung / Intel / SK Hynix | TSMC / Samsung / Intel / Micron | [investor day deck](url) |
 | 产品 substitution | EUV 不可替代 | DUV / etch / deposition 可替代性不同 | [行业研究](url) |
 | 共同 macro 暴露 | 半导体 capex cycle、科技出口管制、利率 | 同上 | [industry capex tracker](url) |
@@ -167,9 +165,8 @@ Sources: `[S1] = [filing/source title], as-of/filed [date]; reference link [S1]:
 
 | Metric | Long X 当前 | Short Y 当前 | Spread 当前 | 5Y mean | 5Y std | 当前 z-score | Ev |
 |---|---|---|---|---|---|---|---|
-| EV/EBITDA NTM | 22x | 18x | +4x | +2x | 1.5x | +1.3σ | [S1] |
+| EV/EBITDA NTM | 22x | 18x | +4x | +2x | 1.5x | +1.3σ | [S1](link) |
 
-Sources: `[S1] = Bloomberg / market data provider, as-of [date], [link/location]`.
 | P/E NTM | 30x | 24x | +6x | +3x | 2x | +1.5σ | [source] |
 | EV/Sales | 9x | 5x | +4x | +2x | 1x | +2.0σ | [source] |
 | FCF yield | 3.5% | 5.0% | -1.5% | -0.5% | 0.8% | -1.25σ | [source] |
@@ -183,9 +180,8 @@ Spread converge 论点的强度判断：
 
 | Metric | 数值 | 解读 | Ev |
 |---|---|---|---|
-| 180D return correlation (X vs Y) | 0.85 | 高 correlation 是 pair 必要条件；< 0.7 警惕，可能不是真 pair | [S1] |
+| 180D return correlation (X vs Y) | 0.85 | 高 correlation 是 pair 必要条件；< 0.7 警惕，可能不是真 pair | [S1](link) |
 
-Sources: `[S1] = Bloomberg CORR / market data provider, as-of [date], [link/location]`.
 | 180D beta (X vs Y) | 1.05 | 用于 sizing：dollar-neutral 还是 beta-neutral | [Bloomberg BETA](url) |
 | 共同 macro factor | 半导体设备 ETF beta、USD/JPY、10Y 利率 | 列出最显著的共同因子；这些 hedge 不掉 | [source] |
 | 独有 idiosyncratic factor | X: EUV bookings；Y: DRAM capex / etch share | 这才是 pair alpha source | [source] |
@@ -401,9 +397,8 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 | | Status | 关键变化 | Ev |
 |---|---|---|---|
-| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | [S1] |
+| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | [S1](link) |
 
-Sources: `[S1] = [new data/event source], as-of/filed [date], [link]`.
 | Short thesis (§5.2 假设) | still valid / weakened / invalidated | 同上 | [source] |
 | Macro / correlation regime | stable / shifting / broken | 共同因子是否变化 | [source] |
 

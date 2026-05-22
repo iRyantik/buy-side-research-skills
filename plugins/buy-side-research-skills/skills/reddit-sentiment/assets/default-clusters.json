@@ -1,0 +1,211 @@
+{
+  "clusters": [
+    {
+      "name": "valuation_skepticism",
+      "description": "Valuation concern, expensive multiple, bubble or dilution framing.",
+      "keywords": [
+        "overvalued",
+        "valuation",
+        "multiple",
+        "P/E",
+        "P/S",
+        "EV/EBITDA",
+        "bubble",
+        "too expensive",
+        "overpriced",
+        "market cap",
+        "dilution",
+        "priced in",
+        "rich valuation"
+      ]
+    },
+    {
+      "name": "retail_fomo",
+      "description": "Retail buying appetite, meme framing, momentum or YOLO language.",
+      "keywords": [
+        "fomo",
+        "meme",
+        "YOLO",
+        "all in",
+        "to the moon",
+        "diamond hands",
+        "buy the dip",
+        "loading up",
+        "retail",
+        "squeeze",
+        "momentum",
+        "day one"
+      ]
+    },
+    {
+      "name": "bear_risk",
+      "description": "Bearish downside, fraud, execution, balance sheet, demand or macro risk.",
+      "keywords": [
+        "bear",
+        "short",
+        "fraud",
+        "scam",
+        "bankrupt",
+        "debt",
+        "cash burn",
+        "risk",
+        "lawsuit",
+        "regulatory",
+        "competition",
+        "slowdown",
+        "guidance cut",
+        "red flag"
+      ]
+    },
+    {
+      "name": "bull_optionality",
+      "description": "Long-term optionality, moat, category winner, TAM or upside framing.",
+      "keywords": [
+        "optionality",
+        "long term",
+        "moat",
+        "TAM",
+        "compounder",
+        "winner",
+        "category leader",
+        "monopoly",
+        "growth story",
+        "multi-decade",
+        "upside",
+        "best in class",
+        "must own"
+      ]
+    },
+    {
+      "name": "governance_trust",
+      "description": "Management trust, control, shareholder rights, related-party or governance framing.",
+      "keywords": [
+        "governance",
+        "management",
+        "CEO",
+        "founder",
+        "board",
+        "control",
+        "voting",
+        "dual class",
+        "shareholder rights",
+        "related party",
+        "insider",
+        "lockup",
+        "trust"
+      ]
+    },
+    {
+      "name": "product_quality",
+      "description": "Product, technology, engineering, quality, reliability or user experience claims.",
+      "keywords": [
+        "product",
+        "technology",
+        "tech",
+        "engineering",
+        "quality",
+        "reliability",
+        "bug",
+        "defect",
+        "performance",
+        "roadmap",
+        "launch",
+        "platform",
+        "software",
+        "hardware"
+      ]
+    },
+    {
+      "name": "customer_demand",
+      "description": "Demand, adoption, backlog, orders, churn, usage or customer behavior.",
+      "keywords": [
+        "demand",
+        "customer",
+        "adoption",
+        "backlog",
+        "orders",
+        "bookings",
+        "churn",
+        "usage",
+        "subscriber",
+        "ARR",
+        "retention",
+        "pricing power",
+        "waitlist"
+      ]
+    },
+    {
+      "name": "peer_proxy",
+      "description": "Sympathy trade, peer comparison, sector basket, competitor or substitute framing.",
+      "keywords": [
+        "peer",
+        "competitor",
+        "rival",
+        "sympathy",
+        "sector",
+        "basket",
+        "ETF",
+        "substitute",
+        "alternative",
+        "compare",
+        "relative value",
+        "spread"
+      ]
+    },
+    {
+      "name": "catalyst_timing",
+      "description": "Near-term event, earnings, listing, product launch, regulatory or data catalyst.",
+      "keywords": [
+        "catalyst",
+        "earnings",
+        "print",
+        "filing",
+        "IPO",
+        "S-1",
+        "approval",
+        "launch date",
+        "guidance",
+        "conference",
+        "investor day",
+        "next week",
+        "tomorrow"
+      ]
+    },
+    {
+      "name": "liquidity_positioning",
+      "description": "Flow, short interest, options, borrow, index, liquidity or positioning discussion.",
+      "keywords": [
+        "short interest",
+        "borrow",
+        "options",
+        "calls",
+        "puts",
+        "implied move",
+        "IV",
+        "volume",
+        "liquidity",
+        "index",
+        "ETF",
+        "flow",
+        "positioning",
+        "crowded"
+      ]
+    }
+  ],
+  "exclusion_patterns": {
+    "auto_moderator": [
+      "AutoModerator",
+      "VisualMod"
+    ],
+    "deleted_removed": [
+      "[deleted]",
+      "[removed]"
+    ],
+    "min_comment_length": 20
+  },
+  "classification": {
+    "core_min_comments": 10,
+    "context_min_comments": 5,
+    "core_min_selftext_length": 40
+  }
+}

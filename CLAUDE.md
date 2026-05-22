@@ -45,10 +45,10 @@ Source 质量：
 ### Claim-Level Source Contract
 
 - `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
-- 每个 `truth-like claim` 必须紧跟可点击短 source anchor；正文和表格默认只显示 `[S1]`、`[L1]`、`[P1]` 或 `[I1]`，不要在可见文本里塞日期或长 URL。
-- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1]`
-- `Sources:` registry 必须展开每个 anchor 的 title、provider、as-of / filed date、page / table / URL location；文件底部用 markdown reference definitions 放真实 link，例如 `[S1]: ./source.md` 或 `[I1]: https://...`。
-- 多个 source 写成 `[S1] [I1]`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a]` / `[S1b]`。
+- 每个 `truth-like claim` 必须紧跟 inline clickable short source anchor；可见文本保持短码，但短码本身必须带真实 link，例如 `[S1](./source.md)`、`[L1](./_cache/source.md)`、`[P1](https://...)` 或 `[I1](https://...)`，不要在可见文本里塞日期或长 URL。
+- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./source.md)`
+- 每篇 research artifact 文末必须有且只有一个 `## Resources`，重复使用同一个 clickable short anchor，并展开 source type、title/provider、as-of / filed date、page / table / URL location、fallback reason（如适用）。正文和表格里的短码必须可直接点击；不要在表格下方默认展开完整 source metadata。
+- 多个 source 写成 `[S1](./source.md) [I1](https://...)`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a](...)` / `[S1b](...)`。
 - `judgment` / `synthesis` / `概率判断` 不强制逐句挂 source，但其依据的事实 claim 必须已经 source-backed。
 - 没有 source 的 claim 只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不得伪装成事实。
 
@@ -57,7 +57,7 @@ Source 质量：
 - Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
 - `workspace-local` means this research workspace's `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
 - Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
-- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the `Sources:` registry must state the fallback reason.
+- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
 
 - 简写顺序：`workspace-local > primary public > reputable provider/news > internet market source`。
 - `workspace-local`：topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存内部数据包。
@@ -72,12 +72,12 @@ Source 质量：
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
 - 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
 - sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
-- 优先使用可点击紧凑证据码：`[L1]` = workspace-local source，`[P1]` = primary public source，`[I1]` = internet source；表下 registry 展开 provider、as-of、`internet source` 标签和 fallback reason，文件底部 reference definitions 放真实 link。若某 section 首次使用 internet fallback，正文需加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
+- 优先使用 inline clickable 紧凑证据码：`[L1](link)` = workspace-local source，`[P1](link)` = primary public source，`[I1](link)` = internet source；文末 `## Resources` 展开 provider、as-of、`internet source` 标签和 fallback reason，真实 link 必须挂在短码本身。若某 section 首次使用 internet fallback，正文需加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 No Orphan Truth Claim self-check：
 - 输出前检查是否有数字、业务事实、客户关系、segment claim、行业事实、历史事件没有 source anchor。
 - 检查是否有 `market expects` / `management said` / `company disclosed` / `consensus implies` 等表述但没有 anchor。
-- 检查是否只有段末 source registry、但段内多个 claim 无法逐一对应到 anchor。
+- 检查是否只有文末 `## Resources`、但正文或表格内多个 claim 无法逐一对应到 anchor。
 - 发现 orphan claim 时，必须补 source anchor、降级为 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，或删除该 claim。
 
 ### Sub-Agent Evidence Protocol
@@ -168,7 +168,7 @@ Research layers：
 
 | Layer | Skills | 作用 |
 |---|---|---|
-| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `next-step` | 过滤信息、找候选、行业 first-pass、快速判断、识别下一步最高杠杆问题 |
+| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `reddit-sentiment`, `next-step` | 过滤信息、找候选、行业 first-pass、social sentiment、快速判断、识别下一步最高杠杆问题 |
 | `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
 | `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
@@ -186,6 +186,8 @@ Operations skills：
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata 和 governance |
 
 `industry-quickread` 是 industry triage skill。涉及陌生行业、主题、value chain、需求口袋、利润池或行业周期 first-pass 时，先用 `industry-quickread` 判断 current regime、value capture、KPI/source map、anchor names 和下一步研究路由。
+
+`reddit-sentiment` 是 social sentiment triage skill。涉及 Reddit 上对某只股票、IPO、财报、新闻或主题的情绪、叙事、推荐阅读和可验证 social claims 时，用 `reddit-sentiment` 抓取 / 标注 / 总结；Reddit 只作为 clue-only social source，不替代公司披露、filing、market data 或 primary evidence。
 
 `consensus-map` 是 expectations foundation skill。涉及单股、peer set、行业或主题的 sell-side consensus、buy-side bar、priced-in assumptions、market-implied expectations、revision direction 或 variant-view gap 时，用 `consensus-map` 摊开市场当前相信什么；不要直接跳到 `alpha-thesis`。
 
@@ -211,6 +213,7 @@ Operations skills：
 | `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
 | `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
 | `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一个 | 快速公司分析 + 对手盘假设 |
+| `reddit-sentiment` | Reddit 情绪 / reddit 上怎么看 / social sentiment | Reddit collection + narrative clusters + Recommended Reading |
 | `consensus-map` | 市场预期 / priced-in / buy-side bar / variant-view gap | consensus stack + debate map + routing |
 | `primary-research-plan` | expert call / channel check / survey / fieldwork 验证关键假设 | compliant primary research plan |
 | `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
@@ -305,7 +308,7 @@ Future research workspace：
 - 新研究 Markdown 产物默认保存在 topic root，用日期和 artifact 名标记：`topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
 - 如果同日同 topic 同 artifact 已存在，保留历史并追加最低可用序号，例如 `2026-05-14-driver-map-2.md`。
 - `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
-- `candidate-screener` 和 `pair-trade` 属于 `default_topic_result`。
+- `candidate-screener`、`pair-trade`、`reddit-sentiment` 属于 `default_topic_result`。
 - `company-primer`、`industry-quickread`、`consensus-map`、`primary-research-plan`、`mechanism-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_result`。
 - `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
 - `3-statement-model / dcf-model / comps-analysis / model-update` 属于 `external_workbook`。
@@ -317,5 +320,5 @@ Future research workspace：
 
 ---
 
-**版本**：v3.10.3
-**最后更新**：2026-05-10
+**版本**：v3.10.7
+**最后更新**：2026-05-22

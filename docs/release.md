@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.10.6`.
+Current release version: `3.10.7`.
 
 ## Source And Runtime Shape
 
@@ -66,6 +66,11 @@ skills/financial-data/assets/requirements-financial-data.txt
 skills/financial-data/scripts/financial_data.py
 skills/financial-data/scripts/bootstrap-financial-data-deps.ps1
 skills/financial-data/scripts/providers/*.py
+skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt
+skills/reddit-sentiment/assets/default-clusters.json
+skills/reddit-sentiment/scripts/reddit_label.py
+skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.ps1
+skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh
 skills/promote-company/SKILL.md
 skills/promote-company/skill.yaml
 skills/promote-company/scripts/promote_company.py
@@ -75,7 +80,7 @@ skills/promote-company/scripts/promote_company.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.6.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.7.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 
