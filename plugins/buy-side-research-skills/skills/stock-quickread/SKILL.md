@@ -10,10 +10,11 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
 - 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `[S1]`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `[S1] = source title, as-of/filed; reference link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
+- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in `Sources:`.
 - Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、quickread verdict、下一步研究判断、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -32,19 +33,20 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（业务事实、财务数字、valuation clue、price action、市场数据）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`，不只表格 `Ev` 要挂证据。
+- Claim-Level Source Contract：正文里的每个 truth-like claim（业务事实、财务数字、valuation clue、price action、市场数据）都必须紧跟可点击短 anchor，如 `[S1]` / `[I1]`，不只表格 `Ev` 要挂证据。
 - No Orphan Truth Claim：输出前检查数字、业务事实、segment claim、`market expects` / `company disclosed` 等表述是否都有 anchor；没有就补 source、降级为 gap，或删除。
 
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 quickread-specific 要求。
 
 快速提醒：
 - 每条事实、数字、引语必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 允许对 market 型 section 做受控 fallback：估值锚、price action、市场倍数、FCF yield、capital-cycle ratio 所需市场端数据、近期股价 / 板块表现，在本地 `_cache` / `financial-data` 缺失时可补公开网页数据，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 用 `I1@...` 表示。
+- 允许对 market 型 section 做受控 fallback：估值锚、price action、市场倍数、FCF yield、capital-cycle ratio 所需市场端数据、近期股价 / 板块表现，在本地 `_cache` / `financial-data` 缺失时可补公开网页数据，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 用 `[I1]` 表示。
 - 不允许用 internet source 补 business fact、segment 利润、company-disclosed KPI、未披露分部事实；这些缺口继续写 `[需查证]` / `[来源待补]` / `not disclosed`。
 - 若本 quickread 首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - 表格必须保留 Source 列或表下注；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
 - sub-agent 返回的 URL 只能当线索，抽查匹配后才能写成 verified source。
 
+- Locality-aware news / event evidence: at the same source-quality tier, prefer home-market / local-language sources for event claims; if using global or English fallback, state the fallback reason in `Sources:`.
 ## Parallel Evidence Pass
 
 只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
@@ -73,11 +75,11 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 | 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Ev |
 |---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | S1@FY24 |
+| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [S1] |
 
-Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
+Sources: `[S1] = [filing/source title], as-of/filed [date]; reference link [S1]: [link]`.
 
-正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. S1@FY25`
+正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1]`
 | 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [10-Q Q1 2025 p.15](url) |
 | 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [10-K 2024 p.42](url) |
 | 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [10-Q Q1 2025 p.15](url) |
@@ -111,9 +113,9 @@ Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 
 | 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|
-| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | S1@FY24 |
+| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S1] |
 
-Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
+Sources: `[S1] = [filing/source title], as-of/filed [date]; reference link [S1]: [link]`.
 | FCF / 净利润 | 0.6 | 现金转化质量；持续 < 0.7 是警告 | [10-K 2024 cash flow stmt](url) |
 | 净负债 / EBITDA | 2.5x | 绝对水平 + 近 2 年变化方向 | [10-K 2024 balance sheet + EBITDA reconciliation](url) |
 | 资本返还 / FCF | 30% | 派息 + 回购占 FCF 比；判断股东回报 willingness | [10-K 2024 cash flow stmt + 8-K 回购公告](url) |
@@ -145,9 +147,9 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 
 | 关键变量 | 证据 | 为什么是当前 regime 的关键 | Ev |
 |---|---|---|---|
-| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | S1@latest;S2@[date] |
+| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | [S1] [S2] |
 
-Sources: `S1 = EIA Weekly Petroleum Status Report, as-of [date], [link]`; `S2 = Bloomberg, as-of [date]`.
+Sources: `[S1] = EIA Weekly Petroleum Status Report, as-of [date], [link]`; `[S2] = Bloomberg, as-of [date]`.
 | 单井 EUR 公布数 | Q1/Q2 2024 财报后股价跌 8%/6%，EUR 数据均低于预期 | 市场在 reprice Permian 储量耗尽担忧 | [Q1/Q2 2024 earnings release](url)；EUR: [Enverus / Rystad](url) |
 | 单位 OpEx | 上调 OpEx 指引那次股价 -12% | 投资人当前对成本通胀极度敏感 | [Q3 2024 call transcript Q&A 段](url) |
 
@@ -170,11 +172,11 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 | 倍数 | 当前 | 自身 5 年中位 | 同业当前 | 解读 | Ev |
 |---|---|---|---|---|---|
-| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | S1@[date] |
+| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | [S1] |
 
-Sources: `S1 = Bloomberg / CapIQ, as-of [date], [link/location]`.
+Sources: `[S1] = Bloomberg / CapIQ, as-of [date]; reference link [S1]: [link/location]`.
 
-正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. I1@[date]:WEB`
+正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1]`
 | P/E | 18x | 14x | 16x | ... | [Bloomberg / CapIQ](url) |
 | FCF yield | 5% | 7% | 6% | ... | [Bloomberg / CapIQ + 自算](url) |
 

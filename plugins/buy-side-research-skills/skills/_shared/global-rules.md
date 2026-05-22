@@ -33,16 +33,22 @@
 ### 3.0 Claim-Level Source Contract
 
 - `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
-- 每个 `truth-like claim` 必须紧跟短 source anchor；默认写成 `S1@FY25`、`L1@FY25`、`P1@2026-05-21` 或 `I1@2026-05-21:WEB`，不要在正文塞长链接。
-- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. S1@FY25`
-- `Sources:` registry 必须展开每个 anchor 的 title、provider、as-of / filed date、page / table / URL location 和 link；表格可继续用 `Ev` / `证据` 短列。
+- 每个 `truth-like claim` 必须紧跟可点击短 source anchor；正文和表格默认只显示 `[S1]`、`[L1]`、`[P1]` 或 `[I1]`，不要在可见文本里塞日期或长 URL。
+- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1]`
+- `Sources:` registry 必须展开每个 anchor 的 title、provider、as-of / filed date、page / table / URL location；文件底部用 markdown reference definitions 放真实 link，例如 `[S1]: ./source.md` 或 `[I1]: https://...`。
+- 多个 source 写成 `[S1] [I1]`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a]` / `[S1b]`。
 - `judgment` / `synthesis` / `概率判断` 不强制逐句挂 source，但其依据的事实 claim 必须已经 source-backed。
 - 没有 source 的 claim 只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不得伪装成事实。
 
 ### 3.1 Source hierarchy and controlled fallback
 
-- 默认顺序：`local source > primary public source > internet source`。
-- `local source`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包。
+- Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
+- `workspace-local` means this research workspace's `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
+- Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
+- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the `Sources:` registry must state the fallback reason.
+
+- 简写顺序：`workspace-local > primary public > reputable provider/news > internet market source`。
+- `workspace-local`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包。
 - `primary public source`：filing、IR、交易所、监管、政府、协会、公司官网等可公开验证原始 source。
 - `internet source`：公开网页上的 market/provider 数据、财经站点、交易页面、公开新闻页、公开数据库页面。
 - `internet source` 只能在 **本地缺失** 且 **字段本来就属于 market / consensus / valuation / liquidity / price-action 类信息** 时自动 fallback。
@@ -74,11 +80,11 @@ Source 质量：
 
 ## 4.5 紧凑证据显示
 
-- 表格优先用 `Ev` 或 `证据` 短列承载 source、时间点和例外状态。默认格式是 `S1@FY25`；如果不是干净 source-backed 值，再追加状态：`S1@FY25:REV`。
+- 表格优先用 `Ev` 或 `证据` 短列承载可点击短 source anchor 和例外状态。默认格式是 `[S1]`；如果不是干净 source-backed 值，再追加状态：`[S1]:REV`。
 - 状态码只用于例外：`REV` = 需复核，`GAP` = 来源缺口，`ND` = 未披露，`EST` = 估算 / 假设，`CON` = 来源冲突。干净值不写 `OK`。
-- 表格下方用一行 source registry 保持可追溯性，例如：`S1 = DART 2025 사업보고서（年度报告）, filed 2026-03-18, link`。如果全表 as-of 相同，只在表前或表后写一次；只有行级差异进入 `Ev`。
-- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现来源层级：`L1` = local source，`P1` = primary public source，`I1` = internet source。可写成 `L1@FY25`、`P1@2026-05-21`、`I1@2026-05-21:WEB`。
-- `I1` registry 必须展开 provider、as-of、`internet source` 标签和 link，例如：`I1 = Yahoo Finance quote page, as-of 2026-05-21, internet source, link`。
+- 表格下方用 source registry 保持可追溯性，例如：`- [S1] = company annual report, filed 2026-03-18, p.42`，并在文件底部放 `[S1]: <link>`。如果全表 as-of 相同，只在表前或表后写一次；只有行级差异进入 `Ev`。
+- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现可点击来源层级：`[L1]` = workspace-local source，`[P1]` = primary public source，`[I1]` = internet source。
+- `[I1]` registry 必须展开 provider、as-of、`internet source` 标签和 fallback reason，例如：`- [I1] = provider quote page, as-of 2026-05-21, internet source, reason: home-market field unavailable`；文件底部用 `[I1]: https://...` 放真实 link。
 - 某 section 首次使用 internet fallback 时，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
 ## 5. Sub-Agent Evidence Protocol

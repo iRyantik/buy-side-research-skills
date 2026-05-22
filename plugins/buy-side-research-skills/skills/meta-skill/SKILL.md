@@ -357,8 +357,8 @@ Artifact policy：
 Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules Capsule (v2)`，`Source 政策` 节只写 skill-specific 增量。
 
 Claim-level source contract：
-- 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟短 source anchor，如 `S1@FY25`、`P1@2026-05-21`、`I1@2026-05-21:WEB`。
-- 模板示例必须展示正文 claim anchor，而不是只在段末写笼统 `Sources used`；链接只放进 `Sources:` registry。
+- 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟可点击短 source anchor，如 `[S1]`、`[P1]`、`[I1]`。
+- 模板示例必须展示正文 claim anchor，而不是只在段末写笼统 `Sources used`；正文和表格只显示短码，provider、as-of、source type 放进 `Sources:` registry，真实链接放在文件底部 reference definitions。
 - `judgment` / `synthesis` / `概率判断` 可以不逐句挂 source，但它依赖的事实 claim 必须已经 source-backed。
 - 所有 research skill 必须包含 `No Orphan Truth Claim` 或等价自检：输出前查数字、业务事实、客户关系、segment claim、`market expects` / `management said` / `company disclosed` 是否有 anchor；没有就补 source、降级为 gap，或删除。
 
@@ -374,7 +374,13 @@ Claim-level source contract：
 - 只在 local source 缺失时触发。
 - 只补 market / consensus / valuation / liquidity / price-action 字段。
 - 业务事实、公司披露 KPI、客户 / 项目 / 管理层原话、未披露 driver 缺口不可 fallback。
-- `Ev` / `证据` 列使用 `L1`、`P1`、`I1` 这类来源层级码，且 `I1` registry 必须包含 provider、as-of、`internet source` 标签和 link。
+- `Ev` / `证据` 列使用 `[L1]`、`[P1]`、`[I1]` 这类可点击来源层级码，且 `[I1]` registry 必须包含 provider、as-of、`internet source` 标签和 fallback reason；真实 link 放 reference definition。
+
+新增或修改 research skill 时，必须遵守 locality-aware source selection：
+- Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
+- Within the same quality tier, prefer `home-market / local-language source`.
+- News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market data source.
+- Do not add market-specific provider whitelists unless every major covered market is maintained in the same matrix; by default, use the principle and require fallback reason in `Sources:`.
 
 Source 质量：
 

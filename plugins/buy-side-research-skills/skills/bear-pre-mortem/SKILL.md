@@ -10,10 +10,11 @@ description: Stress test an investment thesis and build the strongest opposing c
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
 - 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `S1@FY25`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `S1 = source title, as-of/filed, link` registry 保持可追溯。
+- 表格优先用 `Ev` / `证据` 短列承载 source、时间点和例外状态。默认 `[S1]`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；表后用 `[S1] = source title, as-of/filed; reference link` registry 保持可追溯。
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
+- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in `Sources:`.
 - Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、bear verdict、short pitch、position / sizing、ranking、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -34,19 +35,20 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（risk evidence、scenario 输入、kill criteria、valuation input、borrow / crowding、业务事实）都必须紧跟短 anchor，如 `S1@FY25` / `I1@2026-05-21:WEB`。
+- Claim-Level Source Contract：正文里的每个 truth-like claim（risk evidence、scenario 输入、kill criteria、valuation input、borrow / crowding、业务事实）都必须紧跟可点击短 anchor，如 `[S1]` / `[I1]`。
 - No Orphan Truth Claim：输出前检查红旗、反证、管理层 / 公司披露 claim、market data claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
 
 全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 pre-mortem-specific 要求。
 
 空头压力测试对 source 真实性要求更高。快速提醒：
 - 每个红旗、历史 base rate、内部人交易、会计变化都必须能链到 filing / 权威数据；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 估值、priced-in、crowding、borrow、scenario downside 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `I1@...`。
+- 估值、priced-in、crowding、borrow、scenario downside 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `[I1]`。
 - 核心 bear case business fact、未披露 driver、管理层原话、客户 / 项目事实不允许自动 internet fallback；缺口继续老实标 `[需查证]` / `[来源待补]` / `not disclosed`。
 - 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - 匿名爆料、社媒、论坛只能作线索，不能当做空事实依据。
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
 
+- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in `Sources:`.
 ## Parallel Evidence Pass
 
 只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
@@ -111,9 +113,9 @@ description: Stress test an investment thesis and build the strongest opposing c
 
 | 红旗项 | 当前数 | 警戒阈值 | 状态 | Ev |
 |---|---|---|---|---|
-| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | S1@2024Q3 |
+| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | [S1] |
 
-Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
+Sources: `[S1] = [filing/source title], as-of/filed [date]; reference link [S1]: [link]`.
 | 库存增速 vs 收入增速 | ... | ... | ... | [10-Q](url) |
 | Capex vs D&A 长期比例 | 1.8x | 持续 > 1.5x 警惕过投 | ... | [10-K cash flow](url) |
 | 经营性现金流 vs 净利润长期匹配度 | OCF/NI 0.6 | < 0.7 持续是警告 | 🚩 | [10-K cash flow + income](url) |
@@ -136,9 +138,9 @@ Sources: `S1 = [filing/source title], as-of/filed [date], [link]`.
 
 | 可比情境 | 时间窗口 | 公司 / 标的 | 结局 | Ev |
 |---|---|---|---|---|
-| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | S1@[date];S2@FY15 |
+| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | [S1] [S2] |
 
-Sources: `S1 = Bloomberg history, as-of [date]`; `S2 = Whiting 10-K, filed [date], [link]`.
+Sources: `[S1] = Bloomberg history, as-of [date]`; `[S2] = Whiting 10-K, filed [date], [link]`.
 | ... | ... | ... | ... | ... |
 
 Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一样"，base rate 告诉你"通常不"。**但 base rate 的力度全在 source 真实**——编造的可比案例反而削弱压力测试。

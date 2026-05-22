@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.5`
+> 当前版本：`3.10.6`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -48,15 +48,22 @@ research-workspace/
 
 - research skills 默认先查本地 `_cache/`、`financial-data` 和已 ingest 的 source-tracked markdown。
 - 如果本地缺失，只有部分 market / consensus / valuation / liquidity / price-action section 会自动 fallback 到公开互联网 market data。
-- 这类字段会显式标成 `internet source`，并写明 provider、as-of、URL / source location；不会冒充公司披露原文。
+- 这类字段会显式标成 `internet source`，并写明 provider、as-of、URL / source location；若使用全球 / 非本地市场 fallback，还要写明 fallback reason；不会冒充公司披露原文。
 - 业务事实、segment 利润、公司披露 KPI、客户 / 项目事实、管理层原话、未披露 driver 等缺口，仍然保持 `[需查证]` / `[来源待补]` / `not disclosed`。
+
+### 本地语言 / 本地市场 source 优先
+
+- source 可信度顺序是 `workspace-local > primary public > reputable provider/news > internet market source`。
+- 同一可信度层级内，研究和新闻默认优先 home-market / local-language source；市场数据默认优先主要上市地 / 交易市场的数据源。
+- 不维护任何市场专属 provider 白名单；如果使用全球、英文或非本地市场 fallback，必须在 `Sources:` registry 写明 fallback reason。
 
 ---
 
 ### Claim-level source contract
 
-- 新 research output 默认把每个可验证的 truth-like claim 都挂短 source anchor，例如 `S1@FY25` / `P1@2026-05-21` / `I1@2026-05-21:WEB`。
-- 正文不堆长链接；链接、provider、as-of / filed date、page / location 统一放在 `Sources:` registry。
+- 新 research output 默认把每个可验证的 truth-like claim 都挂可点击短 source anchor，例如 `[S1]` / `[P1]` / `[I1]`。
+- 正文不堆长链接；正文和表格只显示短码，provider、as-of / filed date、page / location 统一放在 `Sources:` registry，真实链接放在文件底部 reference definitions。
+- 多个 source 写成 `[S1] [I1]`，不要写成 `[S1][I1]`。
 - 判断句可以不逐句挂 source，但它依赖的事实、数字、引语、市场数据和业务关系必须已经有 anchor。
 - 没有 source 的事实只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不能写成确定事实。
 
@@ -818,5 +825,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.5
+**版本**：v3.10.6
 **最后更新**：2026-05-15
