@@ -51,6 +51,8 @@ Release zip must not include source-repo maintenance files:
 - local editor or agent state
 - root marketplace wrapper files
 
+`docs/beginner-skill-map.html` is a repository documentation asset for beginner reading from GitHub. Keep it tracked in the source repo and linked from `README.md`, but do not copy it into the runtime release zip.
+
 Release zip must include skill-owned runtime resources, especially:
 
 ```text
