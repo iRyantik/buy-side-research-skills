@@ -3,9 +3,9 @@ name: next-step
 description: Choose the highest-value next research question when a thread feels stuck or incomplete.
 ---
 
-## Global Rules Capsule (v2)
+## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
@@ -38,7 +38,7 @@ description: Choose the highest-value next research question when a thread feels
 - Claim-Level Source Contract：本 skill 默认不新增裸事实；若必须引用 truth-like claim（已知事实、数字、披露变化、市场数据），必须紧跟已有inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
 - No Orphan Truth Claim：输出前检查每个建议依赖的事实是否已有 anchor；没有 source 的只能写成 hypothesis / `[来源待补]`，不能写成确定事实。
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 next-step-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 next-step-specific 要求。
 
 特别强调：
 - 本 skill 默认不新增事实，只基于用户给的材料诊断下一步；若必须引用事实、数字、KPI、新闻或管理层说法，必须有 source 或标 `[来源待补]`。

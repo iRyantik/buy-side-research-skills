@@ -7,7 +7,7 @@
 
 - 在本目录或子目录工作前，先读取并遵守 root `CLAUDE.md`。
 - 若 `AGENTS.md`、`CLAUDE.md`、任何 `SKILL.md` 或其他局部指令冲突，以 root `CLAUDE.md` 为准。
-- 不要在本文件复制 source policy、反流水账规则、skill trigger 表或文件组织细节；这些规则分别维护在 root `CLAUDE.md`、`plugins/buy-side-research-skills/skills/_shared/global-rules.md`、各 `SKILL.md` 和 workspace `CLAUDE.md.template`。
+- 不要在本文件复制 source policy、反流水账规则、skill trigger 表或文件组织细节；这些规则分别维护在 root `CLAUDE.md`、`plugins/buy-side-research-skills/skills/_shared/research-policy-baseline.md`、各 `SKILL.md` 和 workspace `CLAUDE.md.template`。
 
 ## Boundary
 

@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.7`
+> 当前版本：`3.10.8`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -387,6 +387,7 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 **什么时候用**：你想修改本插件的某个 skill 的行为，或新增一个 skill。
 
 > 普通用户**不需要用这个**。这是给插件维护者用的。
+> 维护口径：root `CLAUDE.md` 管 plugin 开发宪法，`CLAUDE.md.template` 管 workspace 高层宪法，invoked `SKILL.md` 管 runtime 行为，`skills/_shared/research-policy-baseline.md` 只做 authoring baseline。
 
 ---
 
@@ -828,5 +829,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.7
+**版本**：v3.10.8
 **最后更新**：2026-05-22

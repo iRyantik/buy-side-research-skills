@@ -3,9 +3,9 @@ name: research-journal
 description: Summarize completed research into durable topic notes and boss brief outputs.
 ---
 
-## Global Rules Capsule (v2)
+## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
@@ -38,7 +38,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 - Claim-Level Source Contract：journal 只沉淀 source-backed settled insight；每个保留下来的 truth-like claim 都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
 - No Orphan Truth Claim：输出前检查 insight、数字、业务事实、管理层 / 市场 claim 是否能追到 source-backed anchor；不能追溯的只能标 gap / hypothesis，不进入 settled insight。
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 research-journal-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 research-journal-specific 要求。
 
 特别强调：
 - Journal 里的事实、数字、KPI、管理层引语、行业数据、历史时间点必须有 source / as-of；没有 source 的事实必须标 `[来源待补]` 或不写入。

@@ -3,6 +3,13 @@ name: dcf-model
 description: Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.
 ---
 
+## Modeling Runtime Capsule
+
+- 本 skill 使用单独的 modeling capsule，不吃 research capsule。
+- 建模前先检查 actuals completeness、source-map、review flag 和 evidence-pack。
+- missing / unmapped actuals 不能静默写成 0。
+- 可使用 bounded QA 型 sub-agent，但主 agent 负责 final workbook、valuation treatment 和 delivery。
+
 ## Research Workspace Adapter
 
 In this research workspace, prefer source-tracked company-topic inputs before external, web, or manual data:

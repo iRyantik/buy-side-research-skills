@@ -26,6 +26,7 @@ description: Create review or update buy-side research skills metadata docs mani
 - 为 research skill 指定 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`。
 - 维护 artifact policy、version policy、public docs 和 manifests 的一致性。
 - 把研究 skill 写作纪律维护在 active runtime skill 中。
+- 维护 authority hierarchy、hard gate 和 UTF-8 文本纪律。
 
 本 skill 不负责：
 
@@ -85,6 +86,70 @@ Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-upda
 ### Mode D: Review / Gap Audit
 
 用于检查现有 skill 是否漂移。输出以问题和缺口为主，不要直接重写，除非用户明确要求实现。
+
+## Authority Hierarchy
+
+规则冲突时按以下顺序判断：
+
+1. plugin dev repo root `CLAUDE.md`
+   - plugin 开发宪法
+2. `init-workspace/assets/CLAUDE.md.template`
+   - workspace 高层宪法模板
+3. invoked `SKILL.md`
+   - runtime executable contract
+4. `_shared/research-policy-baseline.md`
+   - authoring baseline only，not runtime authority
+
+runtime 行为上，如果 template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
+
+- **research `SKILL.md` wins**
+
+## Capsule Policy
+
+### Research skills
+
+active research skill 必须内嵌 canonical medium capsule。
+
+公共 capsule 至少覆盖：
+- 默认中文、结论先行
+- truth-like claim 必须挂 clickable short anchor
+- 文末唯一 `## Resources`
+- 无 source 就 honest degrade
+- source quality first
+- 同层优先 local-language / home-market source
+- `internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口
+- `internet source` 不冒充 company-disclosed fact
+- 默认单线或默认并行的一句话规则
+- 主 agent 负责最终 synthesis
+
+这套 capsule 文案优先复用已验证过的原文规则，不要为了“统一腔调”而把规则改写成另一套说法。
+
+### Modeling skills
+
+`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 使用 separate modeling capsule，不吃 research capsule。
+
+### Operations skills
+
+operations skills 不嵌 research capsule。
+
+## Hard Gate
+
+任何公共 research 规则变更，必须在同一个 change 里同步：
+
+1. `_shared/research-policy-baseline.md`
+2. 所有受影响的 active research `SKILL.md`
+3. 如影响 workspace 高层摘要，再改 `CLAUDE.md.template`
+4. 如影响 public behavior / package language，再改 `README.md`、`docs/release.md`、payload manifests / marketplace manifests
+
+不允许只改 baseline / template 而不改 skills 就合并或发版。
+
+## UTF-8 文本纪律
+
+中文或多语言文本资产统一使用 **UTF-8 无 BOM**。
+
+- `.md` / `.yaml` / `.json` 默认按 UTF-8 无 BOM 维护。
+- 修改中文文件时必须显式使用 UTF-8 写回。
+- 批量脚本改写文本时必须指定 UTF-8，避免 mojibake。
 
 ## 工具资源
 
@@ -354,7 +419,7 @@ Artifact policy：
 
 ### 8. Source 政策（runtime shared rules 摘要）
 
-Research skill 的通用 source / anti-hallucination 规则放在 `Global Rules Capsule (v2)`，`Source 政策` 节只写 skill-specific 增量。
+Research skill 的通用 source / anti-hallucination 规则放在开头的 canonical medium capsule，`Source 政策` 节只写 skill-specific 增量。
 
 Claim-level source contract：
 - 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟 inline clickable short source anchor，如 `[S1](link)`、`[P1](link)`、`[I1](link)`。
@@ -553,6 +618,6 @@ Operations skill：
 ## 文档版本
 
 - **版本**：v1.1
-- **基于**：buy-side-research-skills v3.10.7
+- **基于**：buy-side-research-skills v3.10.8
 - **最后更新**：2026-05-22
 - **维护者**：用户（user）

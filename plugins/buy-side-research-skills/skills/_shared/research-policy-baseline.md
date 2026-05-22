@@ -1,7 +1,26 @@
-# Global Runtime Research Rules
+# 研究规则维护基线
 
-> 本文件是插件运行时全局研究规则的维护源，尽量使用 `CLAUDE.md` 原文。
-> 插件环境可能只加载具体 `SKILL.md`；因此每个 active research skill 必须内嵌同版本 `Global Rules Capsule`。Operations skills 不强制内嵌研究 capsule。
+> 本文件是 research skill authoring / review / batch sync 的维护基线，不是 runtime authority。
+> skill 运行时不能假设会自动读取本文件；真正的 runtime truth 在被调用的 `SKILL.md`。
+> 本文件尽量保留已验证过的原文规则，尤其是多语言披露规则、source contract、本地语言 / 本地市场 source 优先规则。
+
+## 0. 角色与同步顺序
+
+- 本文件负责：完整 research policy baseline、authoring 对照底稿、capsule 批量同步基线。
+- 本文件不负责：单独决定 runtime 行为。
+- 公共 research 规则变更时，固定顺序是：
+  1. 改本文件
+  2. 同步所有受影响的 active research `SKILL.md`
+  3. 如影响 workspace 高层原则，再改 `CLAUDE.md.template`
+
+## 0.1 UTF-8 文本纪律
+
+中文或多语言文本资产统一使用 **UTF-8 无 BOM**。
+
+- `.md` / `.yaml` / `.json` 默认按 UTF-8 无 BOM 维护。
+- 修改中文文件时必须显式使用 UTF-8 写回。
+- 批量脚本改写文本时必须指定 UTF-8，避免 mojibake。
+- 如果出现中文异常，先区分是控制台显示问题还是文件内容真的被写坏，再继续修改。
 
 ## 1. 研究上下文
 

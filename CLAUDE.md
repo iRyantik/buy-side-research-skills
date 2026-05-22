@@ -1,324 +1,169 @@
-# CLAUDE.md - Buy-Side Research Project Configuration
+# CLAUDE.md - Buy-Side Research Skills 插件开发宪法
 
-> 本文件是这个工作目录的唯一 project constitution / source of truth。任何 skill、README 或局部说明与本文冲突时，以本文为准。
-
----
-
-## 1. 研究上下文
-
-- **身份语境**：Buy-side equity researcher，偏 hedge fund / long-short 研究语境。
-- **主要覆盖**：industrials, aerospace and defense, advanced manufacturing, oil & gas, renewable, nuclear, emerging tech themes。
-- **v3 核心目标**：不是维护交易状态，而是像 senior analyst 一样发现高价值研究问题，并把真正想清楚的认知增量沉淀成 topic journal / Boss Brief。
+> 本文件只服务 `buy-side-research-skills` plugin dev repo。
+> 它是插件开发与发布治理的 source of truth，不是用户 research workspace 的运行时宪法。
 
 ---
 
-## 2. 全局输出规则
+## 1. 定位
 
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、skill name、财务和行业术语可以保留英文。
-- 所有分析必须结论先行：第一段先给判断 / action / verdict，再给依据。
-- 不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`。
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。
-- 数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
+- 本文件负责 **plugin 开发宪法**：authoring governance、metadata / manifest / packaging / release sync、authority hierarchy、hard gate。
+- 用户 workspace 的高层宪法模板维护在 `plugins/buy-side-research-skills/skills/init-workspace/assets/CLAUDE.md.template`。
+- 被调用的 active skill 运行时行为，以对应的 `plugins/buy-side-research-skills/skills/*/SKILL.md` 为准。
+- `_shared/research-policy-baseline.md` 只做 authoring baseline / review baseline，不是假定会自动加载的 runtime authority。
 
 ---
 
-## 3. Source 政策
+## 2. Authority Hierarchy
 
-每一条事实声明、数字、引语必须有 source link 或明确 source 描述。研究员判断本身不需要 source，但判断依据的事实必须有 source。
+规则冲突时按以下顺序判断：
 
-必须有 source：
-- 财务数字、估值、市场数据、价格、as-of 数据。
-- KPI / 运营数据：产量、客户数、ARR、库存、orders、backlog 等。
-- 行业数据：市占率、价格、产能、需求量、TAM。
-- 管理层引语、专家访谈、监管表态、第三方判断。
-- 历史事件和时间点。
+1. root `CLAUDE.md`
+   - plugin 开发宪法
+2. `init-workspace/assets/CLAUDE.md.template`
+   - workspace 高层宪法模板
+3. invoked research `SKILL.md`
+   - runtime executable contract
+4. `_shared/research-policy-baseline.md`
+   - authoring baseline only，not runtime authority
 
-Source 质量：
-- 一手原始：SEC filings、交易所公告、公司 IR、earnings call、监管 / 政府数据。
-- 二手权威：transcripts、Bloomberg / FactSet / CapIQ / Visible Alpha、行业研究机构、专家访谈平台。
-- 三手解读：Reuters、Bloomberg News、FT、WSJ、日经、卖方报告、行业媒体。
-- 仅作线索：社媒、论坛、聊天记录、传闻截图、个人博客、券商转述。
+如果 workspace template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
 
-能用一手就不用二手。多个 source 冲突时必须标注冲突，不要挑一个顺手的用。
-
-### Claim-Level Source Contract
-
-- `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
-- 每个 `truth-like claim` 必须紧跟 inline clickable short source anchor；可见文本保持短码，但短码本身必须带真实 link，例如 `[S1](./source.md)`、`[L1](./_cache/source.md)`、`[P1](https://...)` 或 `[I1](https://...)`，不要在可见文本里塞日期或长 URL。
-- 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./source.md)`
-- 每篇 research artifact 文末必须有且只有一个 `## Resources`，重复使用同一个 clickable short anchor，并展开 source type、title/provider、as-of / filed date、page / table / URL location、fallback reason（如适用）。正文和表格里的短码必须可直接点击；不要在表格下方默认展开完整 source metadata。
-- 多个 source 写成 `[S1](./source.md) [I1](https://...)`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a](...)` / `[S1b](...)`。
-- `judgment` / `synthesis` / `概率判断` 不强制逐句挂 source，但其依据的事实 claim 必须已经 source-backed。
-- 没有 source 的 claim 只能写成 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，不得伪装成事实。
-
-### Source hierarchy and controlled fallback
-
-- Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
-- `workspace-local` means this research workspace's `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
-- Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
-- Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
-
-- 简写顺序：`workspace-local > primary public > reputable provider/news > internet market source`。
-- `workspace-local`：topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存内部数据包。
-- `primary public source`：filing、IR、交易所、监管、政府、协会、公司官网等可公开验证原始 source。
-- `internet source`：公开网页上的 market/provider 数据、财经站点、交易页面、公开新闻页、公开数据库页面。
-- `internet source` 只服务市场型信息缺口：market、consensus、valuation、liquidity、price action。
-- `internet source` 不能替代 company-disclosed fact。业务事实、segment 利润、公司披露 KPI、客户 / 项目事实、管理层原话、未披露 driver 缺口继续标 `[需查证]` / `[来源待补]` / `not disclosed`。
-- fallback 写入主文时必须显式标 `internet source`、provider、as-of、URL / source location。
-- 若 internet source 与 local / primary public source 冲突，必须保留冲突说明，不得静默覆盖。
-
-反幻觉硬规则：
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- 不确定 URL 是否存在时，写 `[link 待补]`，不要造链接。
-- sub-agent 或其他 AI 给出的 URL 一律视为 `[agent-provided, 未验证]`；关键 link 必须人工抽查 URL 和 claim 是否匹配。
-- 优先使用 inline clickable 紧凑证据码：`[L1](link)` = workspace-local source，`[P1](link)` = primary public source，`[I1](link)` = internet source；文末 `## Resources` 展开 provider、as-of、`internet source` 标签和 fallback reason，真实 link 必须挂在短码本身。若某 section 首次使用 internet fallback，正文需加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-
-No Orphan Truth Claim self-check：
-- 输出前检查是否有数字、业务事实、客户关系、segment claim、行业事实、历史事件没有 source anchor。
-- 检查是否有 `market expects` / `management said` / `company disclosed` / `consensus implies` 等表述但没有 anchor。
-- 检查是否只有文末 `## Resources`、但正文或表格内多个 claim 无法逐一对应到 anchor。
-- 发现 orphan claim 时，必须补 source anchor、降级为 `[需查证]` / `[来源待补]` / `not disclosed` / `working hypothesis`，或删除该 claim。
-
-### Sub-Agent Evidence Protocol
-
-- 默认执行 Parallel Evidence Pass 的 research skill 现在只保留：`peer-deep-dive`、`candidate-screener`、`cross-market-compare`、`pair-trade`、`driver-map`。这些 shortlist skill 默认启动 sub-agent / delegate worker 并行查 source；其它 research skill 默认单线执行，只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时才开启并行。sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
-- 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
-- If a default-parallel shortlist skill or a user-explicit parallel request cannot spawn sub-agents on the current host / runner, the main agent must state `sub-agent unavailable`, the reason, the single-thread evidence-card fallback used instead, and the resulting source coverage caveat. Do not silently downgrade.
-
-### Model Sub-Agent Protocol
-
-- `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
-- Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
-- Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
-- Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- Before using modeling inputs, check `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; missing or unmapped actuals must not be written as 0.
----
-
-## 4. Senior Analyst Radar
-
-v3 的核心价值是投研 add-in：发现中高置信的高价值疑点，直接点破，不等用户主动问。
-
-只在疑点可能改变以下任一事项时提醒：
-- 业务实质理解。
-- model driver。
-- 市场预期 / consensus framing。
-- peer group 或估值框架。
-- 下一步研究优先级。
-
-高价值维度：
-- 业务实质错读：披露名称和真实经济实质不一致。
-- 披露口径异常：segment / KPI / revenue bucket 拆分不自然。
-- model-driver gap：revenue / margin / backlog / price / volume / mix driver 没拆清楚。
-- narrative-data mismatch：管理层 narrative 和数据表现不一致。
-- margin / revenue mismatch：收入增长和利润率走势解释不通。
-- market misread：市场用错误框架理解公司或行业。
-- peer mismatch：公司被市场放进错误 peer group。
-- source conflict：filing、IR deck、call、新闻、卖方口径冲突。
-- know-how gap：关键行业机制、设备、工程原理、术语没搞清楚；需要时触发 `mechanism-map`。
-
-提醒格式：
-
-```markdown
-**这里值得深化**
-- 怪异点：[哪里不自然]
-- 可能说明：[1-2 个解释]
-- 可以问 AI：[1-2 个最关键问题]
-```
+- **research `SKILL.md` wins**
+- template 只提供高层约束，不覆盖 skill procedure
 
 ---
 
-## 5. Skill Authoring 规则
+## 3. 各层职责
 
-- 新增、重写或大幅修改任何 `plugins/buy-side-research-skills/skills/*/SKILL.md` 前，必须调用 / 遵守 `plugins/buy-side-research-skills/skills/meta-skill/SKILL.md`。
-- 写 skill 时必须先明确它服务的决策时刻，不要按“输出文档形式”机械切 skill。
-- 新增 skill 必须先判断 `category: research|operations`。
-- Research skill 必须设置合法 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`。
-- Operations skill 不设置 `research_layer`，也不强制研究类 `Global Rules Capsule`、`Source 政策` 或 `篇幅基准`。
-- 新 skill 或重大改写完成前，必须同步 metadata、artifact policy、README / docs / manifests。root `scripts/` 开发校验层已删除；不要引用或恢复旧 validator / build-release 入口，除非用户另行要求重新设计工具链。
+### 3.1 Root `CLAUDE.md`
 
-### Runtime Rule Distribution
+负责：
+- plugin repo 的目标、边界、authoring governance
+- metadata / manifest / release / packaging 同步规则
+- 哪些文件是 runtime truth，哪些只是维护基线
+- hard gate 维护纪律
 
-- 插件运行时可能只识别具体 `SKILL.md`，不一定读取本文；因此本文是 project constitution / 维护源，不应被当作唯一 runtime prompt。
-- 全局 runtime research rules 维护在 `plugins/buy-side-research-skills/skills/_shared/global-rules.md`；该文件尽量使用本文原文，只收研究运行时规则，不收开发流程、迁移历史或文件组织细节。
-- 每个 active research `plugins/buy-side-research-skills/skills/*/SKILL.md` 必须内嵌同版本 `Global Rules Capsule`，使单个 research skill 被独立加载时也能遵守中文输出、source discipline、反幻觉、反流水账、Senior Analyst Radar 和 primitive routing。
-- 修改本文中会影响 runtime research behavior 的规则时，必须同步检查 `plugins/buy-side-research-skills/skills/_shared/global-rules.md` 和各 research skill capsule。
+不负责：
+- 详细 research runtime procedure
+- 完整 source / fallback / sub-agent playbook
+- 每个 research artifact 的写作模板正文
 
-### Metadata and Version Policy
+### 3.2 `CLAUDE.md.template`
 
-- `SKILL.md` 是 runtime truth：负责触发后的实际行为、source discipline、workflow 和输出约束。
-- `skill.yaml` 是 metadata / index truth：负责 name、trigger、capabilities、workflow、quality gates、artifact policy 和索引信息。
-- `meta.json` 已 retired；active `plugins/buy-side-research-skills/skills/*/` 下不得新建或维护 `meta.json`。
-- `skill.yaml.version` 是单个 skill 自身的 semver，不表示系统代际。
-- 系统代际写入 `skill.yaml.system_generation`；当前主干为 `3.10.0`。
-- Skill semver：MAJOR 表示输出契约或触发边界不兼容；MINOR 表示新增 mode / routing / workflow 能力；PATCH 表示措辞、source policy、反模式或 metadata 修正。
+负责：
+- workspace 语境与高层原则
+- 默认中文、结论先行、data first、anti sell-side
+- workspace file rules / topic structure / routing
+- 高层 source stance
 
----
+不负责：
+- 完整 claim-level source contract 全文
+- 完整 fallback taxonomy
+- 完整状态码字典
+- skill-specific section-level 细则
 
-## 6. Active Skill 触发指引
+### 3.3 Research `SKILL.md`
 
-### 6.1 Skill 分类
+负责：
+- 真正 runtime 会用到的执行合同
+- canonical medium capsule
+- skill-specific delta
+- 输出结构、fallback 边界、默认单线 / 默认并行、routing handoff
 
-Top-level category 只允许：
-- `research`
-- `operations`
+### 3.4 `research-policy-baseline.md`
 
-Research layers：
+负责：
+- 完整研究规则 baseline
+- 维护者 review / batch sync 的对照底稿
+- 关键原文规则的集中保存，包括多语言披露规则、本地语言 / 本地市场 source 优先、claim-level source contract、clickable short anchors + `## Resources`
 
-| Layer | Skills | 作用 |
-|---|---|---|
-| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `reddit-sentiment`, `next-step` | 过滤信息、找候选、行业 first-pass、social sentiment、快速判断、识别下一步最高杠杆问题 |
-| `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
-| `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
-
-Operations skills：
-
-| Skill | 作用 |
-|---|---|
-| `init-workspace` | 创建 / 修复 research workspace scaffold |
-| `ingest` | 把 raw material 转成 source-tracked `topics/<topic>/_cache/` markdown |
-| `financial-data` | 按 market + identifier 拉取或解析结构化公司财务数据 evidence pack |
-| `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
-| `integrate` | 将子 topic 合并到父 topic 下，形成层级结构 |
-| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic | company promotion + provenance |
-| `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata 和 governance |
-
-`industry-quickread` 是 industry triage skill。涉及陌生行业、主题、value chain、需求口袋、利润池或行业周期 first-pass 时，先用 `industry-quickread` 判断 current regime、value capture、KPI/source map、anchor names 和下一步研究路由。
-
-`reddit-sentiment` 是 social sentiment triage skill。涉及 Reddit 上对某只股票、IPO、财报、新闻或主题的情绪、叙事、推荐阅读和可验证 social claims 时，用 `reddit-sentiment` 抓取 / 标注 / 总结；Reddit 只作为 clue-only social source，不替代公司披露、filing、market data 或 primary evidence。
-
-`consensus-map` 是 expectations foundation skill。涉及单股、peer set、行业或主题的 sell-side consensus、buy-side bar、priced-in assumptions、market-implied expectations、revision direction 或 variant-view gap 时，用 `consensus-map` 摊开市场当前相信什么；不要直接跳到 `alpha-thesis`。
-
-`primary-research-plan` 是 compliant primary research planning skill。涉及 expert call、customer / supplier / competitor channel check、survey、fieldwork、ex-employee interview 或需要把关键 thesis / consensus / driver 假设拿到现实世界验证时，用 `primary-research-plan` 设计合规计划；它不执行访谈、不生成假反馈、不提供法律意见。
-
-`mechanism-map` 是 research primitive。涉及行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap 时，先用 `mechanism-map` 搞清“东西怎么运作、哪里捕获价值”，再进入 `driver-map`、`3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis` 或 `peer-deep-dive`。
-
-`driver-map` 是 company / segment model-driver primitive。涉及公司、segment、产品线或披露 bucket 的 revenue / margin / backlog / price / volume / mix driver、披露口径异常或 model-driver gap 时，优先拆成 `driver-map`，再进入 `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`peer-deep-dive` 或 `pair-trade`。不要把泛行业 driver 拆解交给 `driver-map`；行业层 first-pass 先用 `industry-quickread`，机制不清再用 `mechanism-map`。
-
-`company-primer` 是 company foundation skill。涉及公司到底卖什么、客户是谁、业务边界如何演变、material M&A / divestiture、segment / KPI rename、recast 或披露口径断裂时，先用 `company-primer` 打地基；若口径断裂已经阻塞 driver 判断，再进入 `driver-map`。
-
-### 6.2 Skill 触发表
-
-| Skill | 触发场景 | 输出形态 |
-|---|---|---|
-| `init-workspace` | 初始化 research workspace / 创建研究文件夹 / setup research | workspace scaffold |
-| `ingest` | 消化 raw 文件 / 转成 markdown / 处理 `_inbox` | source-tracked cache markdown |
-| `financial-data` | 拉结构化财报 / 按 ticker 拉三表 / openesef / DART / EDINET / AKShare | source-tracked financial evidence pack |
-| `new-session` | 创建 / 定位 topic root，只确保 `index.md` + `_inbox/`，并解析日期化 artifact 保存路径 | topic root + inbox + dated result paths |
-| `integrate` | 合并子 topic 到父 topic / 形成层级 topic 结构 | topic merge + index 双向链接 |
-| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic | company promotion + provenance |
-| `meta-skill` | 写 skill / 改 skill / 调整 governance | skill authoring changes or review |
-| `candidate-screener` | 找受益股 / candidates / 主题或量化筛选 | sourced candidate funnel |
-| `industry-quickread` | 快速看行业 / 主题 / value chain / 利润池 / 行业周期 | industry first-pass + KPI/source map + routing |
-| `stock-quickread` | 快速看一家公司 / 不熟 / 30 分钟过一个 | 快速公司分析 + 对手盘假设 |
-| `reddit-sentiment` | Reddit 情绪 / reddit 上怎么看 / social sentiment | Reddit collection + narrative clusters + Recommended Reading |
-| `consensus-map` | 市场预期 / priced-in / buy-side bar / variant-view gap | consensus stack + debate map + routing |
-| `primary-research-plan` | expert call / channel check / survey / fieldwork 验证关键假设 | compliant primary research plan |
-| `company-primer` | 深度研究公司基础 / 业务演变 / segment 或 KPI 口径变化 | company foundation + disclosure evolution |
-| `peer-deep-dive` | 几家公司一起看 / 横向研究 | industry lens + cross-cut 信号 + 研究排序 |
-| `pair-trade` | Long X Short Y / pair / hedge candidate | pair verdict + spread logic |
-| `alpha-thesis` | 搭 long / short thesis / pitch 逻辑 | variant view + catalyst + kill criteria |
-| `bear-pre-mortem` | 打逻辑 / 找漏洞 / 反向思考 | steelman bear case |
-| `earnings-setup` | 下周财报 / 刚出了财报 / print | pre-print setup / post-print read |
-| `mechanism-map` | 行业机制 / 工程原理 / 设备链条 / know-how gap | mechanism map + value capture + research read-through |
-| `driver-map` | 拆 driver / 收入怎么拆 / bucket 为什么怪 | business reality + model driver map |
-| `3-statement-model` | 搭 operating model / 历史 + 预测三表模型 | 3-statement workbook |
-| `dcf-model` | DCF / reverse DCF / intrinsic value | DCF workbook |
-| `comps-analysis` | comps / peer multiples / relative valuation | comps workbook |
-| `model-update` | 更新已有模型 / plug earnings / refresh estimates | update map / updated workbook |
-| `information-impact` | 这个消息靠谱吗 / claim check / 供应链传闻 | Claim Check + Research Relevance |
-| `cross-market-compare` | A/H / ADR / 跨市场估值差 | normalized valuation + access adjustment |
-| `research-journal` | 总结本轮研究 / 写进 journal / boss brief | topic journal / Boss Brief |
-| `next-step` | 下一步怎么研究 / 这段哪里不对劲 / 怎么继续挖 | senior analyst research coach |
+不负责：
+- 单独决定 runtime 行为
 
 ---
 
-## 7. 文件组织
-### Current Workspace Rule
+## 4. Skill Families
 
-`new-session` creates only `index.md` and `_inbox/` for a topic. It does not create `_raw/`, `_cache/`, or `_models/`. `ingest` creates `_raw/<category>/` and `_cache/` on first conversion. Industry/theme topics can temporarily hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`; use `promote-company` to move deterministic company-scoped files into `topics/company/<company-slug>/`. `integrate` remains the legacy whole-topic directory merge skill. Industry topics do not get `_models/` by default.
+### 4.1 Research skills
 
-本 repo 是 plugin development project，不兼作日常研究 workspace。研究产物示例放在 `examples/`；真正的用户 research workspace 由 `init-workspace` skill 创建或补齐。
+Research skills 必须内嵌 **canonical medium capsule + skill-specific delta**。
 
-Plugin source repo wrapper：
+公共 capsule 至少覆盖：
+- 默认中文、结论先行
+- truth-like claim 必须挂 clickable short anchor
+- 文末唯一 `## Resources`
+- 无 source 就 honest degrade
+- source quality first
+- 同层优先 local-language / home-market source
+- `internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口
+- `internet source` 不冒充 company-disclosed fact
+- 本 skill 默认单线或默认并行的一句话规则
+- 主 agent 负责最终 synthesis
 
-```text
-[repo-root]/
-├── .claude-plugin/marketplace.json
-├── plugins/
-│   └── buy-side-research-skills/
-│       ├── .claude-plugin/plugin.json
-│       ├── .codex-plugin/plugin.json
-│       └── skills/
-├── docs/
-├── examples/
-├── CLAUDE.md
-└── README.md
-```
+### 4.2 Modeling skills
 
-Active skills 在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要把 active skills 物理移动进 `skills/research/` 或 `skills/operations/`。
+`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 使用 **separate modeling capsule**，不吃 research capsule。
 
-Runtime 必需的模板、脚本、references 应放进对应 `plugins/buy-side-research-skills/skills/[skill]/` 下。root `scripts/` 已删除，不再作为开发校验、发布打包或 runtime 依赖入口。
+公共 modeling capsule 至少覆盖：
+- actuals completeness
+- source-map verification
+- no silent zeros
+- bounded QA 型 sub-agent
+- 主 agent 负责 final workbook、valuation treatment、delivery
 
-Release zip 仍保持扁平 runtime 结构：
+### 4.3 Operations skills
 
-```text
-[release-zip-root]/
-├── .claude-plugin/
-├── .codex-plugin/
-├── skills/
-└── README.md
-```
-
-Future research workspace：
-
-```text
-[research-workspace]/
-├── _inbox/                          # 全局暂存（仅未分类文件）
-├── _scripts/                        # 辅助脚本
-├── edge-radar.md                    # 跨 topic 研究雷达
-└── topics/
-    └── <namespace>/<topic-slug>/    # company / industry / theme / pair
-        ├── index.md                 # topic 地图
-        ├── _inbox/                  # 该 topic 待处理文件
-        ├── _raw/                    # ingest 按需创建；原始文件（按文档类别）
-        │   ├── filings/
-        │   ├── transcripts/
-        │   ├── sellside/
-        │   ├── industry/
-        │   ├── irdecks/
-        │   └── datasets/
-        ├── _cache/                  # ingest / financial-data / driver-map 按需创建
-        │   ├── filings/
-        │   ├── transcripts/
-        │   ├── sellside/
-        │   ├── industry/
-        │   ├── irdecks/
-        │   └── datasets/
-        ├── _models/                 # 建模时按需创建；默认 company topic
-        ├── <YYYY-MM-DD>-<artifact>.md # research Markdown result
-        ├── <YYYY-MM-DD>-<artifact>-2.md # 同日同类结果冲突时保留历史
-        └── <sub-topic>/             # integrate 合并的子 topic
-```
-
-### Artifact Save Policy
-
-- 新研究 Markdown 产物默认保存在 topic root，用日期和 artifact 名标记：`topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
-- 如果同日同 topic 同 artifact 已存在，保留历史并追加最低可用序号，例如 `2026-05-14-driver-map-2.md`。
-- `screens/`、`peers/`、`quickreads/`、`cross-market/` 只作为 legacy / example 路径保留；active skill 不再把这些 root 目录作为默认保存位置。
-- `candidate-screener`、`pair-trade`、`reddit-sentiment` 属于 `default_topic_result`。
-- `company-primer`、`industry-quickread`、`consensus-map`、`primary-research-plan`、`mechanism-map`、`stock-quickread`、`peer-deep-dive`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`cross-market-compare` 属于 `optional_topic_result`。
-- `information-impact`、`next-step`、`meta-skill` 属于 `none`，不创建 standalone research artifact。
-- `3-statement-model / dcf-model / comps-analysis / model-update` 属于 `external_workbook`。
-- `research-journal` 属于 `earned_memory`。
-- `init-workspace` 属于 `workspace_scaffold`。
-- `ingest` 属于 `cache_artifact`。
-- `financial-data` 属于 `cache_artifact`。
-- `driver-map` canonical modeling input 属于 `cache_artifact`。
+Operations skills 不嵌 research capsule，只保留各自操作边界、文件安全、输入输出和必要 source discipline。
 
 ---
 
-**版本**：v3.10.7
-**最后更新**：2026-05-22
+## 5. Hard Gate
+
+任何公共 research 规则变更，必须在**同一个 change**里同步完成：
+
+1. 修改 `_shared/research-policy-baseline.md`
+2. 同步所有受影响的 active research `SKILL.md` capsules
+3. 如影响 workspace 高层原则，再修改 `CLAUDE.md.template`
+4. 如影响 public behavior / package language，再同步 `README.md`、`docs/release.md`、plugin manifests / marketplace manifests
+
+不允许只改 baseline / template 而不改 skills 就合并或发版。
+
+---
+
+## 6. UTF-8 文本纪律
+
+中文或多语言文本资产统一使用 **UTF-8 无 BOM**。
+
+至少适用于：
+- `.md`
+- `.yaml`
+- `.json`
+
+硬规则：
+- 修改含中文或多语言文本的文件时，必须显式以 UTF-8 写回。
+- 批量脚本改写文本时，必须显式指定 UTF-8，避免 mojibake。
+- 不要依赖终端默认编码去“碰运气”写文件。
+- 如果发现中文显示异常，先判断是控制台渲染问题还是文件内容真的被写坏；不要把 mojibake 当成“只是终端问题”直接带进提交。
+
+---
+
+## 7. Authoring Rules
+
+- active runtime skills 保持平铺在 `plugins/buy-side-research-skills/skills/[skill-name]/`。
+- 不恢复 retired `meta.json`、v2 state workflow、ticker-centric tracker 结构。
+- 任何新 skill 或重大 skill rewrite，如果影响 public positioning、skill map、keywords、release payload，必须同步 docs / manifests。
+- “尽量用已有原文”优先于“为了结构好看而重写腔调”。尤其是多语言披露规则、source contract、本地语言 source 优先等已验证过的规则，默认沿用原文，只做最小改写。
+
+---
+
+## 8. Release Shape
+
+runtime release zip 继续保持扁平 payload：
+
+- `.claude-plugin/`
+- `.codex-plugin/`
+- `skills/`
+- `README.md`
+
+repo docs、authoring baseline、release notes 是否进 zip，以当期 release policy 为准；不要默认把所有 repo 文档塞进运行时包。

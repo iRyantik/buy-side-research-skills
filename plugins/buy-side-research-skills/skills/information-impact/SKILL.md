@@ -3,9 +3,9 @@ name: information-impact
 description: Check whether a news claim rumor note or data point is credible and research-relevant.
 ---
 
-## Global Rules Capsule (v2)
+## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
@@ -43,7 +43,7 @@ description: Check whether a news claim rumor note or data point is credible and
 - Claim-Level Source Contract：正文里的每个 truth-like claim（新闻事实、时间点、原始说法、市场反应、公司 / 监管回应）都必须紧跟 inline clickable short anchor，如 `[P1](link)` / `[I1](link)`。
 - No Orphan Truth Claim：输出前检查 claim、source provenance、market reaction、management / company disclosed 表述是否都有 anchor；传闻只能标为 rumor / unverified。
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 information-impact-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 information-impact-specific 要求。
 
 特别强调：
 - **每个事实、数字、客户关系、订单、合同、数据点必须有 source / as-of**。

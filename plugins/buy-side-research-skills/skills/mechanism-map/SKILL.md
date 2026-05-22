@@ -3,9 +3,9 @@ name: mechanism-map
 description: Explain industry mechanisms engineering principles equipment chains and process flows.
 ---
 
-## Global Rules Capsule (v2)
+## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
@@ -38,7 +38,7 @@ description: Explain industry mechanisms engineering principles equipment chains
 - Claim-Level Source Contract：正文里的每个 truth-like claim（工程机制、设备链、工艺参数、行业事实、公司业务事实）都必须紧跟 inline clickable short anchor，如 `[P1](link)` / `[S1](link)`。
 - No Orphan Truth Claim：输出前检查技术事实、行业事实、公司披露 claim 是否都有 anchor；机制解释可做综合判断，但支撑事实必须可追溯。
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 mechanism-map-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 mechanism-map-specific 要求。
 
 特别强调：
 - **工程机制、设备功能、工艺流程**可以使用公司技术白皮书、工程资料、监管/行业机构资料、教材型资料或明确 source；如果不确定，标 `[需查证]`。

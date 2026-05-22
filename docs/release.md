@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.10.7`.
+Current release version: `3.10.8`.
 
 ## Source And Runtime Shape
 
@@ -53,6 +53,10 @@ Release zip must not include source-repo maintenance files:
 
 `docs/beginner-skill-map.html` is a repository documentation asset for beginner reading from GitHub. Keep it tracked in the source repo and linked from `README.md`, but do not copy it into the runtime release zip.
 
+`skills/_shared/research-policy-baseline.md` is a repository-side authoring baseline. It helps preserve canonical research rules and sync capsules, but it is not a runtime authority layer.
+
+Chinese or multilingual text assets in this repo should be maintained as UTF-8 without BOM, especially governance docs, templates, and skill markdown.
+
 Release zip must include skill-owned runtime resources, especially:
 
 ```text
@@ -82,7 +86,7 @@ skills/promote-company/scripts/promote_company.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.7.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.8.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 

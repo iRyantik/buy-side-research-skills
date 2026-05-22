@@ -3,9 +3,9 @@ name: driver-map
 description: Decompose revenue margin backlog price volume mix and segment drivers before modeling.
 ---
 
-## Global Rules Capsule (v2)
+## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下全局规则；维护源是 `skills/_shared/global-rules.md`，该文件尽量使用 `CLAUDE.md` 原文。
+本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
 
 - 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
 - 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
@@ -31,7 +31,7 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 
 很多投研错误不是发生在 DCF、comps 或 thesis 结论，而是发生在更前面：你以为你知道这家公司靠什么增长，但其实只是接受了公司给的 bucket 名称。`driver-map` 的工作是把披露口径拆成业务实质，再把业务实质压缩成少数可验证、可跟踪、可建模的 driver。
 
-本 skill 复用 `3-statement-model / dcf-model / comps-analysis / model-update` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Global Rules Capsule (v2)` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
+本 skill 复用 `3-statement-model / dcf-model / comps-analysis / model-update` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Research Runtime Capsule` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
@@ -40,7 +40,7 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 - Claim-Level Source Contract：正文里的每个 truth-like claim（driver、segment、backlog、price / volume / mix、margin bridge、披露口径变化）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
 - No Orphan Truth Claim：输出前检查 driver fact、company-disclosed KPI、管理层表述和 proxy 依据是否都有 anchor；未披露 driver 只能写 proxy / assumption / gap。
 
-全局 source / anti-hallucination 规则已内嵌在 `Global Rules Capsule (v2)`。本节只补充 driver-map-specific 要求。
+全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 driver-map-specific 要求。
 
 特别强调：
 - **每个 reported bucket、segment revenue、KPI、orders、backlog、margin、price / volume / mix 判断都必须有 source / as-of**。
