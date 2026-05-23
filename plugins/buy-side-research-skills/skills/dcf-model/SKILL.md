@@ -3,6 +3,10 @@ name: dcf-model
 description: Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.
 ---
 
+# DCF Model
+
+Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

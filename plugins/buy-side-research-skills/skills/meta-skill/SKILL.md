@@ -343,6 +343,8 @@ description: Use when [具体触发场景和用户症状].
 
 Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description` 必须是纯文本单行，建议少于 140 个字符，不使用 `|` / `>` block scalar、Markdown、列表或长触发规则。
 
+为了避免 skill card description 再次空白，active `SKILL.md` 除了正确 frontmatter 外，还必须保留一个顶层 `# ...` 标题；不要让 frontmatter 后直接进入 `## Research Runtime Capsule` 或 `## Modeling Runtime Capsule`。
+
 ### 6. Operations SKILL.md 必填结构
 
 Operations skill 使用轻量执行结构：
@@ -405,6 +407,7 @@ Rules：
 - `meta.json` 已 retired；不要新建、恢复或维护。
 - `version` 是单个 skill 自身 semver，不是系统代际。
 - `system_generation` 记录该 skill 当前对齐的系统代际。
+- `SKILL.md` frontmatter 后第一个非空正文标题必须是顶层 `# ...`，再进入 capsule 或其它二级标题。
 
 Artifact policy：
 

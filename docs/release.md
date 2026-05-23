@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.10.8`.
+Current release version: `3.10.9`.
 
 ## Source And Runtime Shape
 
@@ -86,7 +86,7 @@ skills/promote-company/scripts/promote_company.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.8.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.9.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 
@@ -99,13 +99,14 @@ plugins/buy-side-research-skills/.claude-plugin/plugin.json
 
 Before publishing skill card changes, treat `SKILL.md` frontmatter `description` as the canonical card UI description. Every active skill should keep that field as a short one-line plain text English summary. Do not use `description: |`, Markdown, bullets, or long trigger/workflow paragraphs in frontmatter; put long behavior details in the body and `skill.yaml`.
 
-Before packaging, also confirm every active `skill.yaml` `description` matches the corresponding `SKILL.md` frontmatter description exactly, and that both `SKILL.md` and `skill.yaml` are saved as UTF-8 without BOM using a stable newline convention.
+Before packaging, also confirm every active `skill.yaml` `description` matches the corresponding `SKILL.md` frontmatter description exactly, that frontmatter is followed by a top-level `# ...` heading before any `## Research Runtime Capsule` / `## Modeling Runtime Capsule`, and that both `SKILL.md` and `skill.yaml` are saved as UTF-8 without BOM using a stable newline convention.
 
 Suggested validation checks:
 
 ```powershell
 rtk rg -n '^description:' plugins/buy-side-research-skills/skills -g SKILL.md
 rtk rg -n '^summary:|^description:' plugins/buy-side-research-skills/skills -g skill.yaml
+rtk rg -n '^(# |## Research Runtime Capsule|## Modeling Runtime Capsule)' plugins/buy-side-research-skills/skills -g SKILL.md
 ```
 
 ## Dependency Policy

@@ -3,6 +3,10 @@ name: 3-statement-model
 description: Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.
 ---
 
+# 3-Statement Model
+
+Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

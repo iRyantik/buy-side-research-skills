@@ -3,6 +3,10 @@ name: comps-analysis
 description: Build comparable company valuation workbooks with peer multiples and operating metrics.
 ---
 
+# Comps Analysis
+
+Build comparable company valuation workbooks with peer multiples and operating metrics.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

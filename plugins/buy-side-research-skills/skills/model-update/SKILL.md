@@ -3,6 +3,10 @@ name: model-update
 description: Update a financial model for earnings guidance new data or revised assumptions.
 ---
 
+# Model Update
+
+Update a financial model for earnings guidance new data or revised assumptions.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。
