@@ -107,6 +107,27 @@ If a file already exists, preserve history with the lowest available suffix:
 2026-05-18-rklb-driver-map-3.md
 ```
 
+### Qualifier-aware Naming
+
+When the upstream research skill declares `artifact_policy.naming_mode`, resolve dated filenames with the following runtime decision tree:
+
+- `plain`
+  - use `YYYY-MM-DD-<artifact>.md`
+- `optional_qualifier`
+  - use `YYYY-MM-DD-<artifact>.md` for topic-level overview saves
+  - use `YYYY-MM-DD-<artifact>-<qualifier>.md` for sub-question slices, same-day repeat saves, or topics that already contain many same-skill artifacts
+- `required_qualifier`
+  - use `YYYY-MM-DD-<artifact>-<qualifier>.md` by default
+
+Industry/theme workbench files keep the same rule with a company prefix:
+
+```text
+YYYY-MM-DD-<company-slug>-<artifact>.md
+YYYY-MM-DD-<company-slug>-<artifact>-<qualifier>.md
+```
+
+`qualifier` should be a short kebab-case subtopic, event, or question anchor. Its primary role is topic-level readability and retrieval, not only same-day de-duplication. `-2`, `-3`, etc. remain collision fallback only.
+
 ### Index Touch
 
 Only append or lightly update:
@@ -200,6 +221,7 @@ Artifact policy:
 - `save_policy`: `topic_scaffold`
 - `default_artifact`: `topic root + inbox + dated result file`
 - `canonical_location`: `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`
+- `naming_mode`: read from the upstream saved research skill when present; do not invent a different naming tier inside `new-session`
 
 ## 安全自查
 

@@ -83,6 +83,7 @@ topics/
 - `_raw/` 存放原始输入或外部导入包
 - `_models/` 存放模型与相关工作簿
 - dated artifact 归属 topic root，不在 workspace 根目录乱放
+- topic artifact 命名由 `new-session` 统一解析；高频问题卡片型 skill 可以使用 `artifact + qualifier`，不要手写随意 dated 文件名，也不要把 `-2/-3` 当主命名策略。
 
 ---
 

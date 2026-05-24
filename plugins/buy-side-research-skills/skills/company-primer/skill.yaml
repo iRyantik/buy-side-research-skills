@@ -57,6 +57,7 @@ artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'company-primer.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md'
+  naming_mode: 'plain'
   save_trigger: 'save only when user asks to preserve the company primer as dated topic research result'
 workflow:
   stage: 'company-foundation'

@@ -259,6 +259,8 @@ _cache/datasets/reddit-sentiment/[run_id]/
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = required_qualifier`。默认应由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`，用事件、话题或叙事锚点区分不同 sentiment 报告，而不是只靠同日后缀。
+
 如果同日同 topic 已存在，保留历史并追加最低可用序号，例如 `2026-05-22-reddit-sentiment-2.md`。
 
 ## Workflow 联动

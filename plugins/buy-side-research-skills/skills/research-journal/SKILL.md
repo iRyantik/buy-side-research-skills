@@ -189,6 +189,8 @@ Value tags：
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-research-journal.md
 ```
 
+`research-journal` 的 `artifact_policy.naming_mode = plain`。earned memory 默认继续使用 `YYYY-MM-DD-<artifact>.md`；Boss Brief 也维持同一 dated deliverable 口径，不把 qualifier 当默认命名。
+
 Journal 不用 rigid template，但必须包含：
 - 本轮研究地图：研究了哪些问题，而不是聊了什么。
 - 结论先行：每个 section 开头先给结论。

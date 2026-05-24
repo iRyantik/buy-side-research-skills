@@ -53,6 +53,7 @@ artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'alpha-thesis.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-alpha-thesis.md'
+  naming_mode: 'plain'
   save_trigger: 'save only when user asks to preserve the thesis as dated topic research result; use research-journal only after insight is earned'
 workflow:
   stage: 'analysis'

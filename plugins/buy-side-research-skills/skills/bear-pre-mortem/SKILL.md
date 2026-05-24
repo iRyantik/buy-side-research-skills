@@ -202,6 +202,8 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；pre-mortem 作为完整 thesis pressure test，不把 qualifier 当默认命名。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 篇幅基准

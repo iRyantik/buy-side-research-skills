@@ -245,6 +245,8 @@ Rating hard standards:
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = required_qualifier`。保存时默认应由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`，例如围绕具体机制点、设备链条、工艺步骤或 value-capture 问题命名，而不是长期积累一串 `mechanism-map-2/-3`。
+
 如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
 
 ## Workflow 联动

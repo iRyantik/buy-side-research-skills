@@ -62,4 +62,5 @@ artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'cross-market-compare.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md'
+  naming_mode: 'optional_qualifier'
   save_trigger: 'save only when user asks to preserve the cross-market comparison as dated topic research result'

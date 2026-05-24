@@ -61,6 +61,7 @@ artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'reddit-sentiment.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md'
+  naming_mode: 'required_qualifier'
   save_trigger: 'save Reddit sentiment reports by default because the workflow creates dated raw/cache evidence packs'
 workflow:
   stage: 'social-sentiment-triage'

@@ -143,6 +143,12 @@ operations skills 不嵌 research capsule。
 
 不允许只改 baseline / template 而不改 skills 就合并或发版。
 
+命名规则补充 hard gate：
+
+5. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
+6. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
+7. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
+
 ## UTF-8 文本纪律
 
 中文或多语言文本资产统一使用 **UTF-8 无 BOM**。
@@ -150,6 +156,8 @@ operations skills 不嵌 research capsule。
 - `.md` / `.yaml` / `.json` 默认按 UTF-8 无 BOM 维护。
 - 修改中文文件时必须显式使用 UTF-8 写回。
 - 批量脚本改写文本时必须指定 UTF-8，避免 mojibake。
+- 不对 `SKILL.md` 做整文件重排或批量格式化；frontmatter、顶层 `# H1`、空行结构和 parser-sensitive 顺序只做本次字段所需的最小编辑。
+- JSON 只做键值级最小编辑，不重排整个对象；YAML 保持现有缩进和引号风格，不为美化做全量重写。
 
 ## 工具资源
 
@@ -396,6 +404,7 @@ artifact_policy:
   save_policy: optional_topic_result
   default_artifact: skill-name.md
   canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-skill-name.md
+  naming_mode: plain
   save_trigger: save only when user asks
 ```
 
@@ -414,11 +423,18 @@ Artifact policy：
 - `save_policy` 只能是 `none`、`optional_topic_result`、`default_topic_result`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_scaffold`。
 - 不落盘的 skill 写 `conversation-only`。
 - Topic artifact 必须落在 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
+- 只有会落 topic markdown 的 research skill 才声明 `artifact_policy.naming_mode`；可选值只允许 `plain`、`optional_qualifier`、`required_qualifier`。
+- `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
 - `new-session` 使用 `topic_scaffold`，只创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 result path，并轻量更新 `index.md`，不写研究结论。
 - `promote-company` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
+
+默认 naming tier：
+- `plain`：`stock-quickread`、`company-primer`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`
+- `optional_qualifier`：`consensus-map`、`industry-quickread`、`peer-deep-dive`、`cross-market-compare`、`candidate-screener`、`primary-research-plan`
+- `required_qualifier`：`mechanism-map`、`reddit-sentiment`
 
 ### 8. Source 政策（runtime shared rules 摘要）
 

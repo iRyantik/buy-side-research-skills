@@ -273,6 +273,8 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-stock-quickread.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；不要为了 quickread 的普通保存随意追加 qualifier。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 篇幅基准

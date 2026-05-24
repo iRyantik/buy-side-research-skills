@@ -89,6 +89,8 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 默认保存到当前日期化保存路径的 `pair-note.md`，同时在对话中给出核心结论。
 
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
+
 如果当前没有明确 dated result path：
 - 先 handoff 到 `new-session` 创建 / 解析路径，例如 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-pair-note.md`。
 - 让用户确认 topic / slug 后再保存。

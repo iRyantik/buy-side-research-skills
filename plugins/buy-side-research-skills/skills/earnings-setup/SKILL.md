@@ -237,6 +237,8 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；print-specific setup / read-through 仍视为一篇完整 dated deliverable，而不是默认拆成 qualifier 卡片。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## Workflow 联动

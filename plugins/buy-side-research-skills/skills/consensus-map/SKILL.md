@@ -250,6 +250,8 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。topic 总览默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只回答一个子问题、同日重复保存，或当前 topic 下已经堆了很多 `consensus-map`，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
 
 保存后的 `consensus-map.md` 是 foundation artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。

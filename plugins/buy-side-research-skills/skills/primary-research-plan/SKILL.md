@@ -229,6 +229,8 @@ Red-line questions:
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。topic 级总计划默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只服务一个 diligence track、访谈篮子或验证问题，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
 
 保存后的 `primary-research-plan.md` 是 research plan，不是 primary evidence，不是 earned memory。只有调研完成后形成 source-backed、合规、会改变判断的认知增量，才进入 `research-journal`。

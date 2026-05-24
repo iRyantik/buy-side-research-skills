@@ -390,6 +390,8 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。完整 peer set 深挖默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只比较某个子群组、listing 角度或局部 debate，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 输出篇幅基准（线性 scale）

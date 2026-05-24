@@ -305,6 +305,8 @@ Compare local listings ADRs or cross-market peers across valuation currency liqu
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。完整 local-vs-ADR / cross-market 主比较默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只比较某个 listing angle、liquidity gap 或 access issue，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
+
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 不要自动维护状态库。

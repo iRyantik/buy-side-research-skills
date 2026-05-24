@@ -63,6 +63,7 @@ artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'mechanism-map.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md'
+  naming_mode: 'required_qualifier'
   save_trigger: 'save only when user asks to preserve mechanism mapping as dated topic research result'
 workflow:
   stage: 'research-primitive'

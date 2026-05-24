@@ -58,4 +58,5 @@ artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'candidate-screener.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md'
+  naming_mode: 'optional_qualifier'
   save_trigger: 'save sourced candidate funnels by default unless user explicitly asks for conversation-only brainstorming'

@@ -298,6 +298,8 @@ Map an unfamiliar company's business segments customers history and disclosure e
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-primer.md
 ```
 
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；primer 是 topic 级基础档，不把 qualifier 当默认命名。
+
 如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径；不要自行发明大量目录，也不要把 primer 写进 `research-journal.md`，除非已经通过 `research-journal` 的 Earned Insight Gate。
 
 ## Workflow 联动

@@ -50,6 +50,7 @@ artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'earnings-setup.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md'
+  naming_mode: 'plain'
   save_trigger: 'save only when user asks to preserve the pre-print setup or post-print read as dated topic research result'
 workflow:
   stage: 'execution'
