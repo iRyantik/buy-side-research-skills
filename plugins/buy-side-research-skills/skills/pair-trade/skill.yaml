@@ -49,6 +49,8 @@ capabilities:
     - 'correlation and beta awareness'
     - 'borrow and liquidity awareness'
     - 'source links and as-of timestamps'
+    - 'may use trusted-market-bridge for A-share Hong Kong and US market quote price action valuation kline consensus and news support when local evidence is missing'
+    - 'scope_restricted from trusted-market-bridge should normally fall back to web or internet market sources and be disclosed in final resources'
     - 'parallel_evidence_spawn_default for source collection'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for pair verdict and sizing'

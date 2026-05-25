@@ -48,6 +48,11 @@ capabilities:
     - 'next-step'
   requirements:
     - 'follow CLAUDE.md source policy'
+    - 'market-snapshot fields default to workspace-local / financial-data then trusted-market-bridge then web fallback'
+    - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action fx_snapshot adr_ah_premium and market_screen'
+    - 'treat market_screen as a screening convenience layer, not thesis truth or business-fact authority'
+    - 'scope_restricted unsupported_market ambiguous and unavailable may fall back to existing web or internet source logic unless longbridge_only is explicitly requested'
+    - 'do not relax borrow conversion accounting-basis or share-class sourcing discipline because bridge evidence exists'
     - 'source every business linkage'
     - 'separate outbound screening from inbound claim checking'
     - 'parallel_evidence_spawn_default for source collection'

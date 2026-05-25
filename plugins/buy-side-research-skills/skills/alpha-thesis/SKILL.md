@@ -18,7 +18,7 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
 - 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
+- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
 - Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、thesis、variant-view judgment、position / sizing、ranking、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
 - 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
@@ -46,8 +46,11 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 快速提醒：
 - 每条事实、数字、引语、consensus 数字必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 估值、priced-in、crowding、borrow、scenario 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
-- 核心 thesis business fact、未披露 driver、管理层原话、客户 / 项目事实不允许自动 internet fallback；缺口继续老实标 `[需查证]` / `[来源待补]` / `not disclosed`。
+- 估值、priced-in、crowding、borrow、scenario 输入里的市场端数据，若本地缺失，可补公开网页 `internet source`，但必须写 provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。 
+- 对 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 trusted third-party，最后才是 web fallback。若对象属于 A股 / 港股 / 美股，且 thesis 需要 `market_quote`、`valuation_snapshot`、`price_action` 或 `consensus`，可先调用 `trusted-market-bridge`；bridge 命中字段使用 `[LBG1](link)` 风格锚点，并在 `## Resources` 展开 `Longbridge Securities | domain | symbol.market | as-of | fallback reason`。这仍然只是 provider-derived market evidence，不升级为 company-disclosed fact。 
+- `trusted-market-bridge` 在本 skill 里只服务 thesis 的市场定价层：`variant view vs consensus`、`priced-in / valuation anchor`、`price-action / crowding-like market context`。业务事实、管理层原话、客户 / 项目事实、披露 wording 仍走原有高等级 source；若 thesis 关键逻辑依赖 `driver-map`、`company-primer` 或 `mechanism-map`，继续按原路由 handoff。 
+- 如果 Longbridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，默认继续回退到既有 web / internet source；正文不需要展开解释，只在最终 `## Resources` 写清 fallback reason。只有用户明确要求 `longbridge_only` 时才不回退。 
+- 核心 thesis business fact、未披露 driver、管理层原话、客户 / 项目事实不允许自动 internet fallback；缺口继续老实标 `[需查证]` / `[来源待补]` / `not disclosed`。 
 - 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 - Catalyst 事件、kill criteria 基线、scenario 假设依赖的事实都必须给 source；研究员概率和判断本身不需要 source。
 - 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。

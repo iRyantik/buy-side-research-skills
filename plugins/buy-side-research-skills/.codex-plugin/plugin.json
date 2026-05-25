@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "3.10.12",
+  "version": "3.10.13",
   "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: research skills plus operations skills for workspace init, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
@@ -119,7 +119,13 @@
     "promote-company",
     "company-promotion",
     "industry-workbench",
-    "company-canonical"
+    "company-canonical",
+    "trusted-market-bridge",
+    "market-bridge",
+    "longbridge",
+    "quote",
+    "filings",
+    "price-data"
   ],
   "skills": "./skills/",
   "interface": {
@@ -137,7 +143,8 @@
     "defaultPrompt": [
       "Initialize a buy-side research workspace.",
       "Run a stock quickread on this company.",
-      "Fetch source-tracked financial data before modeling."
+      "Fetch source-tracked financial data before modeling.",
+      "Use trusted-market-bridge to pull A-share Hong Kong and US market evidence."
     ]
   }
 }

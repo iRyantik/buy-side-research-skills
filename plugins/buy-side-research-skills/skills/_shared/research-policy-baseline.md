@@ -61,16 +61,22 @@
 
 ### 3.1 Source hierarchy and controlled fallback
 
-- Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
+- Use two source tracks rather than one flat hierarchy.
+- Disclosure-fact track: `workspace-local > primary public > trusted third-party > web`. Use this for company facts, segment / KPI disclosure, customer / project / supply-chain relationship facts, management quotes, and regulatory / filing facts.
+- Market-snapshot track: `workspace-local / financial-data > trusted third-party > web`. Use this for `market_quote`, `valuation_snapshot`, `price_action`, `kline_snapshot`, `consensus`, `financial_snapshot`, `fx_snapshot`, `adr_ah_premium`, and clearly market-data-like liquidity / market-context fields.
+- `financial-data` is the highest-value reusable structured cache inside `workspace-local`. It takes priority over trusted third-party providers for market / snapshot fields, but it does not replace `primary public` when wording, segment definition, or disclosure truth must be checked.
+- Optional provider bridge rule: when a skill explicitly invokes `trusted-market-bridge`, A-share / Hong Kong / US market-snapshot fields may use Longbridge as the default trusted third-party layer before generic internet fallback. Supported bridge domains now include market data, price action, valuation, FX, ADR/AH premium, consensus, financial snapshots, and high-level `market_screen` signals. This does not upgrade Longbridge into `primary public source` or company-truth authority.
 - `workspace-local` means this research workspace's `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
 - Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
 - Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
 
-- 简写顺序：`workspace-local > primary public > reputable provider/news > internet market source`。
+- 简写顺序不是单行总顺序，而是双轨：披露事实轨 `workspace-local > primary public > trusted third-party > web`；市场快照轨 `workspace-local / financial-data > trusted third-party > web`。
 - `workspace-local`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包。
 - `primary public source`：filing、IR、交易所、监管、政府、协会、公司官网等可公开验证原始 source。
+- `trusted third-party`：Longbridge 等 provider 聚合层；当前统一入口优先是 `trusted-market-bridge`，但它只服务 market / snapshot 字段，不上升为 company truth。
 - `internet source`：公开网页上的 market/provider 数据、财经站点、交易页面、公开新闻页、公开数据库页面。
-- `internet source` 只能在 **本地缺失** 且 **字段本来就属于 market / consensus / valuation / liquidity / price-action 类信息** 时自动 fallback。
+- `internet source` 只能在 **本地缺失** 且 **字段本来就属于 market-snapshot track** 时自动 fallback。
+- If `trusted-market-bridge` is used, preserve provider-specific anchors such as `[LBG1](link)` and expand provider, symbol, market, as-of, and fallback reason in the final `## Resources` list.
 - `internet source` 不能冒充 company-disclosed fact。业务事实、分部利润、公司披露 KPI、客户 / 项目 / 供应链关系、管理层原话、未披露 driver 缺口，缺 source 时继续写 `[需查证]` / `[来源待补]` / `not disclosed`。
 - fallback 成功后可以进入主表 / 主文，但必须显式标 `internet source`、provider、as-of、URL / source location。
 - `internet source` 与 local / primary public source 冲突时，必须保留冲突说明，不得静默覆盖。

@@ -63,6 +63,8 @@ capabilities:
     - 'separate sell-side consensus from inferred buy-side bar'
     - 'label market-implied assumptions as inference unless fully modeled'
     - 'mark missing consensus data as [需查证] instead of fabricating'
+    - 'may use trusted-market-bridge for A-share Hong Kong and US market data filings news consensus and financial snapshot support when local evidence is missing'
+    - 'scope_restricted from trusted-market-bridge should normally fall back to web or internet market sources and be disclosed in final resources'
     - 'do not write full alpha thesis or earnings setup'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for consensus conclusion and variant-view gap'

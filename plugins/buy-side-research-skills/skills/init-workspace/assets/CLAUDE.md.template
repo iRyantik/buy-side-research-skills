@@ -56,9 +56,10 @@
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。
 - 每个 truth-like claim 默认使用 inline clickable short anchor。
 - 每篇 research artifact 文末统一保留一个 `## Resources`。
-- source quality first：`workspace-local > primary public > reputable provider/news > internet market source`。
+- source quality follows two tracks：披露事实轨 `workspace-local > primary public > trusted third-party > web`；市场快照轨 `workspace-local / financial-data > trusted third-party > web`。
 - 同一质量层级内，优先 `home-market / local-language source`。
-- `internet source` 只补 market / consensus / valuation / liquidity / price-action 类信息缺口，不冒充 company-disclosed fact。
+- `financial-data` 视为 `workspace-local` 里最高价值的结构化财务缓存；市场/快照字段先看它和本地 `_cache`，再看 trusted third-party，最后才是 web。
+- `internet source` 只补 market-snapshot track 的缺口，不冒充 company-disclosed fact；公司/披露事实仍优先 `primary public`。
 
 更完整的 claim-level source contract、fallback taxonomy、sub-agent protocol 和 skill-specific 边界，由被调用的 active skill 决定。
 

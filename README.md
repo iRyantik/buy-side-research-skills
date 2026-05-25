@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.12`
+> 当前版本：`3.10.13`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -47,13 +47,17 @@ research-workspace/
 ### 本地缺数时的 market data fallback
 
 - research skills 默认先查本地 `_cache/`、`financial-data` 和已 ingest 的 source-tracked markdown。
+- 市场/快照类字段默认走双轨顺序：先 `workspace-local / financial-data`，再 `trusted third-party`，最后才是 web / internet fallback。
+- 如果对象是 A股 / 港股 / 美股，且当前 skill 显式借用 `trusted-market-bridge`，则 market-snapshot track 可先通过 Longbridge 拉取 `market_quote`、`price_action`、`valuation_snapshot`、`fx_snapshot`、`adr_ah_premium`、`news`、`filings`、`consensus`、`financial_snapshot` 或高层 `market_screen` 信号；这类字段必须显式保留 `Longbridge Securities`、symbol、market、as-of 和 fallback reason，不冒充公司披露原文。
+- 如果 Longbridge 对某个域 `scope_restricted`，默认自动降级到现有 web / internet market source fallback；正文不必额外展开，最终只需在 `## Resources` 写明 `fallback reason`。
+- 当前显式消费这层 bridge 的 skill 包括：`consensus-map`、`earnings-setup`、`peer-deep-dive`、`pair-trade`、`cross-market-compare`、`stock-quickread`、`candidate-screener`、`alpha-thesis`、`bear-pre-mortem` 和 `industry-quickread`。 
 - 如果本地缺失，只有部分 market / consensus / valuation / liquidity / price-action section 会自动 fallback 到公开互联网 market data。
 - 这类字段会显式标成 `internet source`，并写明 provider、as-of、URL / source location；若使用全球 / 非本地市场 fallback，还要写明 fallback reason；不会冒充公司披露原文。
 - 业务事实、segment 利润、公司披露 KPI、客户 / 项目事实、管理层原话、未披露 driver 等缺口，仍然保持 `[需查证]` / `[来源待补]` / `not disclosed`。
 
 ### 本地语言 / 本地市场 source 优先
 
-- source 可信度顺序是 `workspace-local > primary public > reputable provider/news > internet market source`。
+- source 不是单行总顺序，而是双轨：披露事实轨 `workspace-local > primary public > trusted third-party > web`；市场快照轨 `workspace-local / financial-data > trusted third-party > web`。
 - 同一可信度层级内，研究和新闻默认优先 home-market / local-language source；市场数据默认优先主要上市地 / 交易市场的数据源。
 - 不维护任何市场专属 provider 白名单；如果使用全球、英文或非本地市场 fallback，必须在文末 `## Resources` 写明 fallback reason。
 
@@ -414,6 +418,10 @@ Skills 按研究深度分为四层。越往下越深入。
 |---|---|---|---|
 | `company-primer` | 深度拆解一家公司的业务 | 决定认真看某家公司，需要搞清楚它到底卖什么、客户是谁、历史怎么演变 | *"用 company-primer 深度看 GE Vernova"* |
 | `consensus-map` | 拆解市场现在相信什么 | 想知道 sell-side 共识、buy-side bar、市场隐含预期是什么，哪里可能错了 | *"用 consensus-map 看市场对 IONQ 的预期"* |
+| `earnings-setup` | 做财报前 setup 或财报后快读 | 想看 print 前后的预期、price action、revisions、news / filings fallback | *"用 earnings-setup 准备 RKLB 下周财报"* |
+| `peer-deep-dive` | 横向深比一组同行 | 想比较 market / valuation / consensus / recent event context，并允许 bridge 补 A / 港 / 美市场证据 | *"用 peer-deep-dive 比较 RKLB、LUNR、SPIR"* |
+| `pair-trade` | 评估 long / short pair 的 spread 逻辑 | 想比较两腿的价格、估值、consensus、news，并在 bridge 受限时自动退回 web source | *"用 pair-trade 分析做多 VRT 做空 SMCI"* |
+| `trusted-market-bridge` | 拉取 A / 港 / 美市场证据包 | 想用 Longbridge 拉市场数据、价格数据、FX、ADR/AH premium、filings、news、consensus、financial snapshot 或 `market_screen` 信号，或给 research skill 提供统一 bridge | *"用 trusted-market-bridge 拉 NVDA.US 的市场数据和 FX"* |
 | `mechanism-map` | 搞懂一个行业的技术和物理机制 | 行业有工程/技术/工艺/设备链条不懂，需要搞清"东西到底怎么运作" | *"用 mechanism-map 解释燃气轮机"* |
 | `driver-map` | 拆一家公司的收入/利润由什么驱动 | 想知道公司业绩由量、价、mix、产能利用率等哪些因素决定 | *"用 driver-map 拆 Rocket Lab 的 revenue driver"* |
 | `cross-market-compare` | 跨市场估值比较 | A/H 股、ADR、多地上市的估值差异 | *"用 cross-market-compare 比较比亚迪 A 股和 H 股"* |
@@ -425,8 +433,9 @@ Skills 按研究深度分为四层。越往下越深入。
 | Skill | 一句话 | 什么时候用 | 你跟 Claude 说 |
 |---|---|---|---|
 | `peer-deep-dive` | 横向比较几家同行业公司 | 想看一个行业里几家公司的相对优劣 | *"用 peer-deep-dive 比较 VRT、GEV、SMCI"* |
-| `alpha-thesis` | 写一份做多或做空的完整逻辑 | 已经有了足够的认知，想系统化写出投资逻辑 | *"用 alpha-thesis 写 IONQ 做空 thesis"* |
-| `bear-pre-mortem` | 反过来打自己的逻辑 | thesis 写完了，想在投钱之前找漏洞 | *"用 bear-pre-mortem 打我的 GEV 做多 thesis"* |
+| `alpha-thesis` | 写一份做多或做空的完整逻辑 | 已经有了足够的认知，想系统化写出投资逻辑，并允许 bridge 补 priced-in / valuation / consensus / price-action 这类市场快照输入 | *"用 alpha-thesis 写 IONQ 做空 thesis"* |
+| `bear-pre-mortem` | 用最强反方视角压测 thesis | 想检验 downside、crowding、估值反证和 price setup，bridge 只补市场快照层，不放宽 short-side 事实纪律 | *"用 bear-pre-mortem 压测我对 RKLB 的多头 thesis"* |
+| `industry-quickread` | 30-45 分钟看懂一个行业值不值得继续研究 | 想快速判断行业 current regime、value pool 和下一步研究入口，并允许 bridge 补板块表现、valuation anchor、FX / premium framing | *"用 industry-quickread 看 AI 电力基础设施"* |
 | `earnings-setup` | 准备一份财报 | 下周有财报，想知道该关注什么、什么数字会改变故事 | *"用 earnings-setup 准备下周 GE 的财报"* |
 | `pair-trade` | 分析一对多空组合 | 有做多 X 做空 Y 的想法，想分析逻辑是否自洽 | *"用 pair-trade 分析做多 VRT 做空 SMCI"* |
 | `primary-research-plan` | 设计专家访谈或渠道调研计划 | 需要验证一个关键 thesis 假设，想约专家聊 | *"用 primary-research-plan 设计验证 IONQ 客户 adoption 的方案"* |
@@ -829,5 +838,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.12
+**版本**：v3.10.13
 **最后更新**：2026-05-22
