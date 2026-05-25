@@ -9,6 +9,7 @@
 
 - 本文件负责 **plugin 开发宪法**：authoring governance、metadata / manifest / packaging / release sync、authority hierarchy、hard gate。
 - 用户 workspace 的高层宪法模板维护在 `plugins/buy-side-research-skills/skills/init-workspace/assets/CLAUDE.md.template`。
+- Claude / Codex hooks 通过 `init-workspace` 下发到用户 workspace 的 project-level config（`.claude/settings.json`、`.codex/hooks.json`）；plugin dev repo 文档本身不是宿主自动 hook discovery surface。
 - 被调用的 active skill 运行时行为，以对应的 `plugins/buy-side-research-skills/skills/*/SKILL.md` 为准。
 - `_shared/research-policy-baseline.md` 只做 authoring baseline / review baseline，不是假定会自动加载的 runtime authority。
 

@@ -7,6 +7,8 @@ description: Compare companies in one industry with sourced KPI matrices and res
 
 Compare companies in one industry with sourced KPI matrices and research ranking.
 
+Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
+
 ## Research Runtime Capsule
 
 本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。

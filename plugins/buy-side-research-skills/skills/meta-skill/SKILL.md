@@ -136,6 +136,20 @@ active research skill 必须内嵌 canonical medium capsule。
 
 operations skills 不嵌 research capsule。
 
+## Hooks-First Runtime Law
+
+跨宿主 deterministic runtime law 优先落到 workspace hooks，而不是继续堆进 skill prose。正式加载面是：
+
+- workspace `.claude/settings.json`
+- workspace `.claude/hooks/`
+- workspace `.codex/hooks.json`
+
+plugin dev repo 中的 hook 配置与脚本通过 `init-workspace` 交付到 workspace；plugin-local docs 不是宿主自动 hook discovery surface。
+
+hook 只负责 binary / machine-checkable guardrails，例如 source legality、subagent boundary、workspace path safety、明显 narrative drift。判断密度高、依赖研究品味或需要主观裁判的规则，继续留在 `SKILL.md`、`skill.yaml` 与 authoring governance 中。
+
+如 hook 与 prose 在 binary legality 上冲突，以 hook enforcement 为准。`research-policy-baseline.md` 继续只是 authoring baseline，不是 runtime authority。
+
 ## Hard Gate
 
 任何公共 research 规则变更，必须在同一个 change 里同步：
@@ -147,12 +161,19 @@ operations skills 不嵌 research capsule。
 
 不允许只改 baseline / template 而不改 skills 就合并或发版。
 
+hooks-first 补充 hard gate：
+
+5. 新的 deterministic runtime rule，如能脚本化，优先进 workspace hooks，而不是继续堆进 `SKILL.md` prose。
+6. hooks 共享脚本与宿主 adapter 必须同步维护；不允许只改 Claude 或只改 Codex 一侧配置。
+7. hooks 的正式交付面是 `init-workspace` scaffold；不允许把 plugin dev repo 局部文件误当成宿主自动加载面。
+8. 默认 subagent 策略继续属于 `skill.yaml` / `SKILL.md` 的 workflow 设计，不属于 hook。
+
 命名规则补充 hard gate：
 
-5. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
-6. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
-7. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
-8. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
+9. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
+10. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
+11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
+12. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
 
 ## UTF-8 文本纪律
 

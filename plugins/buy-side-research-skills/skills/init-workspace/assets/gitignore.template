@@ -10,6 +10,7 @@ topics/*/*/_cache/
 topics/*/*/_models/
 
 .claude/
+.codex/
 RTK.md
 dist/
 *.zip

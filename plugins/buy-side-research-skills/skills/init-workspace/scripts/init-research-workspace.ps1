@@ -49,6 +49,7 @@ function Add-Result {
 
 $fullWorkspacePath = Convert-ToFullPath $WorkspacePath
 $created = New-Object System.Collections.Generic.List[string]
+$updated = New-Object System.Collections.Generic.List[string]
 $skipped = New-Object System.Collections.Generic.List[string]
 
 if (Test-Path -LiteralPath $fullWorkspacePath) {
@@ -145,7 +146,37 @@ function Copy-ScriptIfMissing {
     Add-Result $script:created ($RelativeTarget.Replace("\", "/"))
 }
 
-Copy-ScriptIfMissing `
+function Sync-ManagedFile {
+    param(
+        [string]$SourcePath,
+        [string]$RelativeTarget
+    )
+
+    $targetPath = Join-Path $fullWorkspacePath $RelativeTarget
+    $relativeName = $RelativeTarget.Replace("\", "/")
+    $targetParent = Split-Path -Parent $targetPath
+    if (-not (Test-Path -LiteralPath $targetParent)) {
+        New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+    }
+
+    if (-not (Test-Path -LiteralPath $targetPath)) {
+        Copy-Item -LiteralPath $SourcePath -Destination $targetPath
+        Add-Result $script:created $relativeName
+        return
+    }
+
+    $sourceHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $SourcePath).Hash
+    $targetHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $targetPath).Hash
+    if ($sourceHash -eq $targetHash) {
+        Add-Result $script:skipped $relativeName
+        return
+    }
+
+    Copy-Item -LiteralPath $SourcePath -Destination $targetPath -Force
+    Add-Result $script:updated $relativeName
+}
+
+Sync-ManagedFile `
     -SourcePath $MyInvocation.MyCommand.Path `
     -RelativeTarget "_scripts\init-research-workspace.ps1"
 
@@ -155,6 +186,28 @@ foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.
         Copy-ScriptIfMissing `
             -SourcePath $sourceAsset `
             -RelativeTarget (Join-Path "_scripts\init-assets" $assetName)
+    }
+}
+
+foreach ($relativeAsset in @(
+    ".claude\settings.json",
+    ".claude\hooks\_hook_common.ps1",
+    ".claude\hooks\source_contract.ps1",
+    ".claude\hooks\subagent_protocol.ps1",
+    ".claude\hooks\workspace_guard.ps1",
+    ".claude\hooks\no_filing_summary.ps1",
+    ".claude\hooks\must_state_market_expectation.ps1",
+    ".codex\hooks.json"
+)) {
+    $sourceAsset = Join-Path $assetsRoot $relativeAsset
+    if (Test-Path -LiteralPath $sourceAsset) {
+        Sync-ManagedFile `
+            -SourcePath $sourceAsset `
+            -RelativeTarget $relativeAsset
+
+        Sync-ManagedFile `
+            -SourcePath $sourceAsset `
+            -RelativeTarget (Join-Path "_scripts\init-assets" $relativeAsset)
     }
 }
 
@@ -204,6 +257,7 @@ if (Test-Path -LiteralPath $financialRequirementsPath) {
 $result = [ordered]@{
     workspace_path = $fullWorkspacePath
     created = @($created)
+    updated = @($updated)
     skipped = @($skipped)
     note = "No git init, no dependency install, and no ingest execution were performed. No financial-data execution was performed. To enable toolchains, run _scripts/bootstrap-ingest-deps.ps1 -CheckOnly and _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly first."
 }

@@ -1,4 +1,6 @@
 .claude/
+!plugins/buy-side-research-skills/skills/init-workspace/assets/.claude/
+!plugins/buy-side-research-skills/skills/init-workspace/assets/.claude/**
 RTK.md
 dist/
 *.zip

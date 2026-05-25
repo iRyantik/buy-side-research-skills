@@ -5,7 +5,7 @@ description: Initialize or repair a buy-side research workspace root scaffold an
 
 # Init Workspace
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, and copies ingest / financial-data helper scripts into `_scripts/`.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, copies ingest / financial-data helper scripts into `_scripts/`, and installs project-local Claude / Codex hook config so both hosts can load the same binary runtime guardrails.
 
 It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
 
@@ -18,7 +18,7 @@ The invariant is separation of concerns:
 - `ingest` creates `_raw/<category>/` and `_cache/` only when material is converted.
 - `financial-data`, `driver-map`, and modeling skills create their own cache/model folders when they run.
 
-The default behavior must be conservative, idempotent, and repeatable. Existing core files are skipped, not overwritten.
+The default behavior must be conservative, idempotent, and repeatable. Existing root workspace documents are skipped, not overwritten; managed hook assets and host adapters are synced on repair.
 
 ## Responsibilities
 
@@ -28,6 +28,8 @@ Responsible for:
 - Writing missing root `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`.
 - Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
 - Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
+- Copying shared workspace hook scripts into `.claude/hooks/` and host adapter config into `.claude/settings.json` and `.codex/hooks.json`.
+- Repairing managed hook assets and hook adapters when the workspace already exists.
 
 Not responsible for:
 
@@ -55,6 +57,7 @@ Required input:
 - `WorkspacePath`: an explicit user-owned research workspace path.
 - The target path must not be the plugin repo, a plugin install directory, or any folder containing plugin markers such as `.claude-plugin/`, `.codex-plugin/`, or `skills/`.
 - Existing `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and root `edge-radar.md` must be skipped, not overwritten.
+- Managed hook assets under `.claude/`, `.codex/`, and `_scripts/init-assets/` are treated as plugin-owned runtime files and may be updated during repair.
 
 ## Modes
 
@@ -83,6 +86,9 @@ Runtime assets copied by the helper:
 - `skills/init-workspace/assets/gitignore.template`
 - `skills/init-workspace/assets/edge-radar.md`
 - `skills/init-workspace/assets/env-setup.ps1.template`
+- `skills/init-workspace/assets/.claude/settings.json`
+- `skills/init-workspace/assets/.claude/hooks/*.ps1`
+- `skills/init-workspace/assets/.codex/hooks.json`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`

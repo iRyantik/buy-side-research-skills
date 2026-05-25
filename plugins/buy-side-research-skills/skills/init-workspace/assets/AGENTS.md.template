@@ -8,6 +8,7 @@
 - 在本目录或子目录工作前，先读取并遵守 `CLAUDE.md`。
 - 若 `AGENTS.md`、`CLAUDE.md`、任何 skill 指令或其他局部说明冲突，以 workspace `CLAUDE.md` 为准。
 - 不要在本文件复制 source policy、反流水账规则、skill trigger 表或文件组织细节；这些规则只维护在 workspace `CLAUDE.md`。
+- `.claude/settings.json`、`.claude/hooks/`、`.codex/hooks.json` 是 workspace runtime contract 的一部分；不要手改或删除，除非同步更新插件治理。
 
 ## Boundary
 

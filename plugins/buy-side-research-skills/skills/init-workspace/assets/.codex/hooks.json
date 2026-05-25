@@ -1,0 +1,58 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/workspace_guard.ps1') }\"",
+            "statusMessage": "Checking workspace guardrails"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/source_contract.ps1') }\"",
+            "statusMessage": "Checking source contract"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/no_filing_summary.ps1') }\"",
+            "statusMessage": "Checking narrative drift"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/must_state_market_expectation.ps1') }\"",
+            "statusMessage": "Checking market expectation framing"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/subagent_protocol.ps1') }\"",
+            "statusMessage": "Checking subagent boundary"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $root = git rev-parse --show-toplevel; & (Join-Path $root '.claude/hooks/source_contract.ps1') }\"",
+            "statusMessage": "Checking final source contract"
+          }
+        ]
+      }
+    ]
+  }
+}
