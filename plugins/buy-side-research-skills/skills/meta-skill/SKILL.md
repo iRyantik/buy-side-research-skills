@@ -5,6 +5,8 @@ description: Create review or update buy-side research skills metadata docs mani
 
 # Meta Skill
 
+Agent and plugin runtime upgrades belong to `update-agent-runtime`; `init-workspace` remains responsible for workspace scaffold and repair only.
+
 `meta-skill` 是本插件唯一的 active skill-authoring guide。它维护 `research / operations` 双轨：research skill 保留严格投研结构，operations skill 使用更轻的执行结构。
 
 写 / 改任何 active skill 时，以 root `CLAUDE.md` 为项目宪法，以本 skill 为 authoring guide。

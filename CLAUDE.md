@@ -15,6 +15,8 @@
 
 ---
 
+> Agent/plugin runtime upgrade flow belongs to `update-agent-runtime`; `init-workspace` remains workspace scaffold-and-repair only.
+
 ## 2. Authority Hierarchy
 
 规则冲突时按以下顺序判断：

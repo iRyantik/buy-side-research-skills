@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.16`
+> 当前版本：`3.10.17`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -319,6 +319,18 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 **会发生什么**：在当前文件夹创建标准研究 workspace 结构（`_inbox/`、`_scripts/`、`topics/`、`edge-radar.md`）。
 
 **不会发生什么**：不会安装 Python 依赖，不会拉取数据，不会创建 git 仓库。
+
+---
+
+#### `update-agent-runtime` —— 更新当前宿主插件并同步当前 workspace
+
+**什么时候用**：插件已经装好了，但你要把 **当前宿主**（Claude Code 或 Codex）里的 buy-side 插件更新到最新 GitHub release，并把当前 workspace 的 hooks、`_scripts/`、根目录 `CLAUDE.md` / `AGENTS.md` 的 managed runtime sections 同步到最新模板。
+
+**你跟当前宿主说**：*"用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"*。
+
+**会发生什么**：只更新当前宿主，不碰另一个宿主；自动取最新 release zip；修复 `.claude/settings.json`、`.claude/hooks/*.ps1`、`.codex/hooks.json`、`_scripts/`，并定向升级当前 workspace 的 `CLAUDE.md` / `AGENTS.md` managed sections。
+
+**不会发生什么**：不会整份覆盖你自定义的 `CLAUDE.md` / `AGENTS.md`，不会直接按固定机器路径手改 cache，也不会默认同时更新 Claude 和 Codex 两边。
 
 ---
 
@@ -801,11 +813,16 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ### 更新插件
 
-当有新版本发布时，对 Claude 说：
+当有新版本发布时，在**你当前正在用的宿主**里说：
 
-> "帮我更新 buy-side-research-skills 插件到最新版本"
+> "用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"
 
-或者重新下载最新 Release zip 覆盖安装。
+它会：
+
+- 自动判断当前是在 Claude Code 还是 Codex 里运行
+- 只更新当前宿主，不碰另一个宿主
+- 从 GitHub latest release 拉最新 zip
+- 同步修复当前 workspace 的 hooks、`_scripts/`、`CLAUDE.md` / `AGENTS.md` managed runtime sections
 
 ### 报告问题
 
@@ -849,5 +866,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.16
+**版本**：v3.10.17
 **最后更新**：2026-05-22

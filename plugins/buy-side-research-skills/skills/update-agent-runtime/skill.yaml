@@ -1,0 +1,75 @@
+metadata_schema_version: 1
+name: 'update-agent-runtime'
+id: 'update-agent-runtime'
+display_name: 'Update Agent Runtime'
+version: '1.0.0'
+system_generation: '3.10.17'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Update the current host plugin runtime to the latest GitHub release and sync the current workspace scaffold.'
+description: 'Update the current host plugin runtime to the latest GitHub release and sync the current workspace scaffold.'
+tags:
+  - 'update-agent-runtime'
+  - 'plugin-update'
+  - 'runtime-upgrade'
+  - 'claude-code'
+  - 'codex'
+  - 'workspace-repair'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'update-agent-runtime'
+    - 'update plugin runtime'
+    - 'upgrade buy-side plugin'
+    - 'update current host plugin'
+    - '更新插件到最新版本'
+    - '更新当前宿主插件'
+    - '修复 workspace 运行时'
+  description: 'Trigger when the user wants to update the buy-side plugin in the current host and sync the current workspace runtime assets.'
+capabilities:
+  modes:
+    - 'Auto Host Update'
+    - 'Claude Host Update'
+    - 'Codex Host Update'
+    - 'Workspace Runtime Sync'
+  requirements:
+    - 'default host selection is auto and updates only the current host runtime'
+    - 'host auto must detect the current host from explicit override, script path, or runtime env without scanning the other host'
+    - 'fetch the latest release zip from GitHub and use it as the source of truth for workspace sync'
+    - 'use official claude plugin CLI commands for Claude host updates'
+    - 'use official codex plugin marketplace upgrade and plugin add commands for Codex host updates'
+    - 'reuse init-workspace scaffold logic from the latest release package instead of duplicating repair behavior'
+    - 'patch current workspace CLAUDE.md and AGENTS.md conservatively instead of overwriting whole files'
+    - 'do not update the other host unless the user explicitly overrides host for dev or test use'
+artifact_policy:
+  save_policy: 'none'
+  default_artifact: 'conversation-only'
+  canonical_location: 'conversation-only'
+  save_trigger: 'does not create standalone research artifacts; updates the current host plugin runtime and current workspace files when explicitly requested'
+workflow:
+  stage: 'runtime-maintenance'
+  can_follow:
+    - 'install'
+    - 'init-workspace'
+    - 'user-maintenance-request'
+  feeds_into:
+    - 'init-workspace'
+    - 'new-session'
+    - 'ingest'
+    - 'financial-data'
+  can_trigger: []
+quality_gates:
+  anti_patterns:
+    - 'updating_both_hosts_by_default'
+    - 'hardcoding_single_machine_cache_paths'
+    - 'rewriting_workspace_docs_wholesale'
+    - 'bypassing_official_host_plugin_clis'
+    - 'using_installed_old_templates_as_workspace_truth'
+  required_checks:
+    - 'host_detected_or_explicitly_overridden'
+    - 'latest_release_zip_resolved'
+    - 'current_host_runtime_updated'
+    - 'workspace_scaffold_repaired'
+    - 'managed_workspace_docs_patched_or_flagged_for_manual_merge'

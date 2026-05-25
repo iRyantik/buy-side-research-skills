@@ -6,6 +6,7 @@ description: Initialize or repair a buy-side research workspace root scaffold an
 # Init Workspace
 
 `init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, copies ingest / financial-data helper scripts into `_scripts/`, and installs project-local Claude / Codex hook config so both hosts can load the same binary runtime guardrails.
+It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
 It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
 
