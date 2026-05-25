@@ -23,7 +23,7 @@ description: Create review or update buy-side research skills metadata docs mani
 
 - 设计、重写、审查 active skill 的 `SKILL.md` 和 `skill.yaml`。
 - 判断 `category: research|operations`。
-- 为 research skill 指定 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`。
+- 为 research skill 指定 `research_layer`：`triage`、`foundation`、`deep-work`、`memory`、`supporting`。
 - 维护 artifact policy、version policy、public docs 和 manifests 的一致性。
 - 把研究 skill 写作纪律维护在 active runtime skill 中。
 - 维护 authority hierarchy、hard gate 和 UTF-8 文本纪律。
@@ -128,6 +128,10 @@ active research skill 必须内嵌 canonical medium capsule。
 
 `3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 使用 separate modeling capsule，不吃 research capsule。
 
+### Supporting visualization skills
+
+`research-viz` 这类 supporting visualization skill 仍属于 research 轨，但不进入主研究 ladder。它们可以生成 topic-side HTML artifact，必须绑定一个基准 markdown 研究产物，默认复用基准 stem，只替换扩展名为 `.html`；如需多图，可在 stem 后追加最小 qualifier。
+
 ### Operations skills
 
 operations skills 不嵌 research capsule。
@@ -148,6 +152,7 @@ operations skills 不嵌 research capsule。
 5. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
 6. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
 7. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
+8. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
 
 ## UTF-8 文本纪律
 
@@ -609,6 +614,14 @@ Operations skill：
 - 不创建 research artifact，除非该 operations skill 的职责就是创建 scaffold / cache。
 - 不强制 research capsule / Source 政策 / 篇幅基准。
 - Validator、docs、manifest count 同步。
+
+Supporting visualization skill：
+
+- `category: research`，但 `research_layer: supporting`，不混进主 research ladder。
+- 有完整 frontmatter、顶层 `# H1`、runtime capsule 和清晰 output contract。
+- 保存到 topic 时必须绑定一个基准 markdown research artifact，并复用同一 stem 输出 `.html`。
+- 不把安装器、拖拽 `.skill` 包说明或外部分发层 manifest 搬进 plugin runtime skill。
+- 只做 source-backed visualization，不创造新的公司事实或 thesis。
 
 ### 13. 不要做的事
 

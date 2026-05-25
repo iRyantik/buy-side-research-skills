@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ TITLE }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<!-- Uncomment as needed:
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
+-->
+<style>
+  :root {
+    --paper:           #FAFAF7;
+    --paper-edge:      #F4F3EE;
+    --ink:             #1A1A1A;
+    --ink-2:           #4A4A4A;
+    --ink-3:           #6B6B6B;
+    --hairline:        #D4D4CE;
+    --grid:            #E8E7E1;
+
+    --accent:          #1F3A5F;
+    --accent-soft:     #4A6B8A;
+    --accent-ghost:    #C8D2DE;
+
+    --highlight:       #8B2635;
+    --highlight-soft:  #C77E3A;
+
+    --pos:             #2D5F3F;
+    --pos-soft:        #A8C4B0;
+    --neg:             #8B2635;
+    --neg-soft:        #D4A5A5;
+    --neutral:         #B5B5AE;
+
+    --cat-1: #1F3A5F; --cat-2: #8B2635; --cat-3: #C77E3A; --cat-4: #6B7F5C; --cat-5: #4A5D6C;
+
+    --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    --font-sans:  'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono:  'JetBrains Mono', 'Source Code Pro', Menlo, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
+
+  .figure {
+    width: 1200px;
+    margin: 32px auto;
+    padding: 36px 48px 32px 48px;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+  }
+
+  .chart-eyebrow {
+    font-family: var(--font-sans);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 6px 0;
+  }
+  .chart-title {
+    font-family: var(--font-serif);
+    font-size: 24px; font-weight: 600;
+    line-height: 1.2; color: var(--ink);
+    margin: 0 0 6px 0;
+  }
+  .chart-subtitle {
+    font-size: 13px; color: var(--ink-2);
+    margin: 0 0 16px 0;
+  }
+  .chart-source {
+    font-size: 10.5px; color: var(--ink-3); font-style: italic;
+    margin-top: 16px;
+    border-top: 1px solid var(--hairline);
+    padding-top: 8px;
+  }
+
+  /* Control bar — sliders, toggles, filter pills */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 18px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: var(--paper-edge);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+  }
+  .controls-section {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .controls-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* Pills (filter / toggle) */
+  .pills { display: flex; gap: 6px; }
+  .pill {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    padding: 3px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--ink-3);
+    background: transparent;
+    transition: all 100ms;
+  }
+  .pill.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-ghost);
+  }
+  .pill:hover { border-color: var(--ink-2); }
+
+  /* Sliders */
+  .slider-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 0;
+    font-size: 11px;
+  }
+  .slider-row label { color: var(--ink-2); }
+  .slider-value {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--highlight);
+    text-align: right;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    background: transparent;
+    height: 18px;
+    width: 100%;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--hairline); height: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-top: -5px;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-track {
+    background: var(--hairline); height: 2px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border: none; border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* Reset / utility buttons */
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .btn:hover { border-color: var(--ink-2); color: var(--ink); }
+
+  /* Tooltip — single instance, shared across charts on page */
+  .tt {
+    position: fixed;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 7px 10px;
+    border-radius: 3px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 120ms;
+    z-index: 1000;
+    max-width: 280px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .tt.show { opacity: 1; }
+  .tt b { font-weight: 600; }
+  .tt .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .tt .sep { color: var(--neutral); margin: 0 4px; }
+
+  /* SVG defaults */
+  svg { display: block; max-width: 100%; }
+  .axis text {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    fill: var(--ink-2);
+  }
+  .axis-num text {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    fill: var(--ink-2);
+  }
+  .axis path, .axis line { stroke: var(--hairline); shape-rendering: crispEdges; }
+  .grid line {
+    stroke: var(--grid); stroke-width: 1;
+    stroke-dasharray: 1 3; shape-rendering: crispEdges;
+  }
+  .grid path { stroke: none; }
+  .data-label {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    fill: var(--ink);
+  }
+  .crosshair {
+    stroke: var(--ink-2);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+    pointer-events: none;
+  }
+  .focal { fill: var(--highlight); }
+
+  /* Map container (only for global-map) */
+  #map {
+    width: 100%;
+    height: 540px;
+    border: 1px solid var(--hairline);
+  }
+  /* Leaflet attribution — make small and unobtrusive but keep visible */
+  .leaflet-control-attribution {
+    font-size: 9px !important;
+    background: rgba(250,250,247,0.85) !important;
+    color: var(--ink-3) !important;
+  }
+  .leaflet-popup-content-wrapper {
+    border-radius: 2px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+</style>
+</head>
+<body>
+
+<!-- Shared tooltip element -->
+<div id="tt" class="tt"></div>
+
+<div class="figure">
+
+  <p class="chart-eyebrow">{{ EYEBROW }}</p>
+  <h1 class="chart-title">{{ TITLE }}</h1>
+  <p class="chart-subtitle">{{ SUBTITLE }}</p>
+
+  <!-- Control bar — sliders, toggles, filter pills. Remove if chart has no controls. -->
+  <div class="controls">
+    <!-- Example: filter pills -->
+    <div class="controls-section">
+      <span class="controls-label">Category</span>
+      <div class="pills" id="filter-pills">
+        <span class="pill active" data-cat="A">A</span>
+        <span class="pill active" data-cat="B">B</span>
+      </div>
+    </div>
+    <!-- Example: reset button -->
+    <button class="btn" onclick="resetView()">Reset</button>
+  </div>
+
+  <!-- Chart container -->
+  <div id="chart"></div>
+  <!-- For maps, use #map instead of #chart -->
+
+  <p class="chart-source">Source: {{ SOURCE }}. As of {{ DATE }}.</p>
+</div>
+
+<script>
+  // ─── Shared tooltip helpers ────────────────────────────────────
+  const tt = document.getElementById("tt");
+  function showTip(html, evt) {
+    tt.innerHTML = html;
+    tt.classList.add("show");
+    positionTip(evt);
+  }
+  function positionTip(evt) {
+    const x = evt.clientX, y = evt.clientY;
+    const rect = tt.getBoundingClientRect();
+    let left = x + 14, top = y - rect.height - 10;
+    if (left + rect.width > window.innerWidth - 8) left = x - rect.width - 14;
+    if (top < 8) top = y + 14;
+    tt.style.left = left + "px";
+    tt.style.top = top + "px";
+  }
+  function hideTip() { tt.classList.remove("show"); }
+  document.addEventListener("mousemove", (evt) => {
+    if (tt.classList.contains("show")) positionTip(evt);
+  });
+
+  // ─── Chart code ────────────────────────────────────────────────
+  // Replace this with the specific chart's interactive template
+  // from references/<chart>.md — "Interactive variant" section.
+
+  function resetView() { /* implement per chart */ }
+</script>
+
+</body>
+</html>

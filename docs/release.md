@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `3.10.14`.
+Current release version: `3.10.15`.
 
 ## Source And Runtime Shape
 
@@ -77,6 +77,12 @@ skills/reddit-sentiment/assets/default-clusters.json
 skills/reddit-sentiment/scripts/reddit_label.py
 skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.ps1
 skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh
+skills/research-viz/SKILL.md
+skills/research-viz/skill.yaml
+skills/research-viz/assets/template.html
+skills/research-viz/assets/template-interactive.html
+skills/research-viz/references/*.md
+skills/research-viz/examples/*.html
 skills/promote-company/SKILL.md
 skills/promote-company/skill.yaml
 skills/promote-company/scripts/promote_company.py
@@ -86,7 +92,7 @@ skills/promote-company/scripts/promote_company.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.13.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-3.10.15.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 

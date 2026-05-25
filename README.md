@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`3.10.14`
+> 当前版本：`3.10.15`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -130,6 +130,7 @@ research-workspace/
 | 设计一对 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" |
 | 比较几家同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" |
 | 看 Reddit 上的情绪和高信号帖子 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" |
+| 把一篇研究文做成 memo-ready HTML 图 | "用 research-viz 把这篇 mechanism-map 做成 capability map" |
 | 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" |
 | 判断一条新闻值不值得追 | "用 information-impact 看这条消息" |
 
@@ -428,6 +429,14 @@ Skills 按研究深度分为四层。越往下越深入。
 
 ---
 
+#### Supporting：研究配套可视化
+
+| Skill | 一句话 | 什么时候用 | 你跟 Claude 说 |
+|---|---|---|---|
+| `research-viz` | 把已有研究文做成 memo-ready HTML 图 | 已经有一篇 markdown 研究主文，想补 capability map、peer scatter、valuation band、timeline 或其它 HTML 图表 | *"用 research-viz 把这篇 mechanism-map 做成 capability map"* |
+
+---
+
 #### 第三层：深度研究（Deep Work）
 
 | Skill | 一句话 | 什么时候用 | 你跟 Claude 说 |
@@ -439,6 +448,7 @@ Skills 按研究深度分为四层。越往下越深入。
 | `earnings-setup` | 准备一份财报 | 下周有财报，想知道该关注什么、什么数字会改变故事 | *"用 earnings-setup 准备下周 GE 的财报"* |
 | `pair-trade` | 分析一对多空组合 | 有做多 X 做空 Y 的想法，想分析逻辑是否自洽 | *"用 pair-trade 分析做多 VRT 做空 SMCI"* |
 | `primary-research-plan` | 设计专家访谈或渠道调研计划 | 需要验证一个关键 thesis 假设，想约专家聊 | *"用 primary-research-plan 设计验证 IONQ 客户 adoption 的方案"* |
+| `research-viz` | 把基准研究文做成 HTML 图表 | 已经有一篇研究主文，想把核心信息变成 memo-ready capability map、peer scatter、valuation band 或 timeline | *"用 research-viz 把这篇 mechanism-map 做成 capability map"* |
 | `3-statement-model` | 搭三表财务预测模型 | 需要先填历史 actuals，再建立利润表、资产负债表、现金流量表的预测模型 | *"用 3-statement-model 给 Rocket Lab 搭模型"* |
 | `dcf-model` | 做 DCF 估值 | 需要基于自由现金流折现算 intrinsic value | *"用 dcf-model 给 GE Vernova 做估值"* |
 | `comps-analysis` | 做可比公司估值 | 需要看 peer group 的 multiples 来判断贵不贵 | *"用 comps-analysis 做核电行业的可比公司分析"* |
@@ -818,6 +828,7 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 | 深度拆公司业务 | `company-primer` | 否 | 1-2 小时 |
 | 拆市场预期 | `consensus-map` | 否 | 1-2 小时 |
 | 搞懂行业技术 | `mechanism-map` | 否 | 1-2 小时 |
+| 把研究文做成图 | `research-viz` | 否 | 20-60 分钟 |
 | 拆收入/利润 driver | `driver-map` | 否（产出 markdown）/ 是（产出 JSON cache） | 1-3 小时 |
 | 跨市场估值比较 | `cross-market-compare` | 否 | 1-2 小时 |
 | 横向比较同行业公司 | `peer-deep-dive` | 否 | 2-4 小时 |
@@ -838,5 +849,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v3.10.14
+**版本**：v3.10.15
 **最后更新**：2026-05-22

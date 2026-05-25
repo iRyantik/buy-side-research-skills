@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TSMC — Global wafer-fab footprint (interactive)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  :root {
+    --paper:#FAFAF7; --paper-edge:#F4F3EE;
+    --ink:#1A1A1A; --ink-2:#4A4A4A; --ink-3:#6B6B6B;
+    --hairline:#D4D4CE; --grid:#E8E7E1;
+    --accent:#1F3A5F; --accent-soft:#4A6B8A; --accent-ghost:#C8D2DE;
+    --highlight:#8B2635; --highlight-soft:#C77E3A;
+    --neutral:#B5B5AE;
+    --font-serif:'Source Serif 4','Source Serif Pro',Georgia,serif;
+    --font-sans:'Inter','Helvetica Neue',Arial,sans-serif;
+    --font-mono:'JetBrains Mono','Source Code Pro',Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:#EFEDE5;color:var(--ink);
+    font-family:var(--font-sans);font-size:13px;
+    font-feature-settings:"tnum" 1,"lnum" 1;}
+  .figure{
+    width:1200px;margin:32px auto;padding:36px 48px 32px 48px;
+    background:var(--paper);border:1px solid var(--hairline);
+  }
+  .chart-eyebrow{font-size:10px;font-weight:600;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 6px 0;}
+  .chart-title{font-family:var(--font-serif);font-size:26px;font-weight:600;
+    line-height:1.2;margin:0 0 6px 0;}
+  .chart-subtitle{font-size:13px;color:var(--ink-2);margin:0 0 16px 0;}
+  .chart-source{font-size:10.5px;color:var(--ink-3);font-style:italic;
+    margin-top:14px;border-top:1px solid var(--hairline);padding-top:8px;}
+  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;
+    padding:10px 14px;margin-bottom:14px;background:var(--paper-edge);
+    border:1px solid var(--hairline);border-radius:2px;}
+  .controls-section{display:flex;align-items:center;gap:8px;}
+  .controls-label{font-size:10px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3);}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;}
+  .pill{font-size:11px;padding:3px 10px;border:1px solid var(--hairline);
+    border-radius:12px;cursor:pointer;user-select:none;color:var(--ink-3);
+    background:transparent;transition:all 100ms;}
+  .pill.active{color:var(--accent);border-color:var(--accent);background:var(--accent-ghost);}
+  .pill:hover{border-color:var(--ink-2);}
+  .btn{font-size:10px;padding:3px 10px;border:1px solid var(--hairline);
+    background:transparent;color:var(--ink-2);cursor:pointer;border-radius:2px;}
+  .btn:hover{border-color:var(--ink-2);color:var(--ink);}
+  .tt{position:fixed;pointer-events:none;background:var(--ink);color:var(--paper);
+    padding:7px 10px;border-radius:3px;font-size:11px;line-height:1.4;
+    opacity:0;transition:opacity 120ms;z-index:1000;max-width:280px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .tt.show{opacity:1;}
+  .tt b{font-weight:600;}
+  .tt .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+  .figure-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;}
+  #map{width:100%;height:540px;border:1px solid var(--hairline);
+    background:var(--paper-edge);}
+  .leaflet-control-attribution{font-size:9px !important;
+    background:rgba(250,250,247,0.85) !important;color:var(--ink-3) !important;}
+  .leaflet-popup-content-wrapper{border-radius:2px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.12);}
+  .leaflet-popup-content{margin:10px 12px;font-family:var(--font-sans);}
+  table.tabular{width:100%;border-collapse:collapse;font-size:12px;}
+  table.tabular th,table.tabular td{padding:6px 8px;border-bottom:1px solid var(--hairline);}
+  table.tabular th{font-weight:600;text-align:left;color:var(--ink-2);
+    font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+    border-bottom:1px solid var(--ink-2);}
+  table.tabular td.num{text-align:right;font-family:var(--font-mono);
+    font-variant-numeric:tabular-nums;}
+  table.tabular tr.focal td{color:var(--highlight);}
+  table.tabular tr.dimmed td{opacity:0.3;}
+  table.tabular tr.row-h{cursor:pointer;}
+  table.tabular tr.row-h:hover td{background:var(--paper-edge);}
+  table.tabular tr.total td{border-top:1px solid var(--ink);font-weight:600;
+    border-bottom:2px solid var(--ink);}
+  .pane-title{font-size:10px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 8px 0;}
+  .map-legend{background:rgba(250,250,247,0.92) !important;
+    padding:8px 10px !important;border:1px solid var(--hairline) !important;
+    font-family:var(--font-sans) !important;font-size:10px !important;
+    color:var(--ink-2) !important;line-height:1.5 !important;}
+</style>
+</head>
+<body>
+
+<div id="tt" class="tt"></div>
+
+<div class="figure">
+  <p class="chart-eyebrow">TSMC · 2330 TT · Operations · Interactive</p>
+  <h1 class="chart-title">Global wafer-fab footprint, by installed capacity</h1>
+  <p class="chart-subtitle">
+    Marker area proportional to installed 12-inch-equivalent monthly wafer capacity (kwpm).
+    Burgundy = facilities outside Taiwan. Hover for details, click for popup, filter by region.
+  </p>
+
+  <div class="controls">
+    <div class="controls-section">
+      <span class="controls-label">Region</span>
+      <div class="pills" id="region-pills"></div>
+    </div>
+    <button class="btn" onclick="resetView()">Reset view</button>
+  </div>
+
+  <div class="figure-grid">
+    <div><div id="map"></div></div>
+    <div>
+      <p class="pane-title">Facilities, ranked by capacity</p>
+      <table class="tabular" id="facility-table">
+        <thead>
+          <tr><th>Facility</th><th style="text-align:right;">kwpm</th><th style="text-align:right;">% total</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="chart-source">
+    Source: Company filings and earnings transcripts; TrendForce capacity database.
+    Figures are author's estimates of installed capacity at FY25 year-end.
+    As of 31 Mar 2026. Map tiles &copy; CARTO &copy; OpenStreetMap contributors.
+  </p>
+</div>
+
+<script>
+// ─── Tooltip helpers ────────────────────────────────────────────
+const tt = document.getElementById("tt");
+function showTip(html, evt) {
+  tt.innerHTML = html;
+  tt.classList.add("show");
+  positionTip(evt);
+}
+function positionTip(evt) {
+  const x = evt.clientX, y = evt.clientY;
+  const rect = tt.getBoundingClientRect();
+  let left = x + 14, top = y - rect.height - 10;
+  if (left + rect.width > window.innerWidth - 8) left = x - rect.width - 14;
+  if (top < 8) top = y + 14;
+  tt.style.left = left + "px";
+  tt.style.top = top + "px";
+}
+function hideTip() { tt.classList.remove("show"); }
+document.addEventListener("mousemove", (evt) => {
+  if (tt.classList.contains("show")) positionTip(evt);
+});
+
+// ─── Data ───────────────────────────────────────────────────────
+const data = [
+  { name: "Hsinchu (Fab 12, 14, 15, 18)", lat: 24.78, lon: 121.00, value: 850, region: "Taiwan",  focal: false },
+  { name: "Tainan (Fab 6, 18)",            lat: 23.00, lon: 120.22, value: 520, region: "Taiwan",  focal: false },
+  { name: "Taichung (Fab 15)",             lat: 24.16, lon: 120.68, value: 200, region: "Taiwan",  focal: false },
+  { name: "Shanghai (Fab 10)",             lat: 31.23, lon: 121.47, value: 100, region: "China",   focal: false },
+  { name: "Nanjing (Fab 16)",              lat: 32.06, lon: 118.80, value:  55, region: "China",   focal: false },
+  { name: "Kumamoto (JASM)",               lat: 32.83, lon: 130.62, value:  55, region: "Japan",   focal: true  },
+  { name: "Phoenix (Fab 21)",              lat: 33.45, lon: -112.07,value:  50, region: "USA",     focal: true  },
+  { name: "Dresden (ESMC)",                lat: 51.05, lon:   13.74,value:  40, region: "Germany", focal: true  },
+];
+
+const total = d3.sum(data, d => d.value);
+const regions = [...new Set(data.map(d => d.region))];
+const active = new Set(regions);
+
+// ─── Build region filter pills ──────────────────────────────────
+const pillsEl = document.getElementById("region-pills");
+regions.forEach(r => {
+  const p = document.createElement("span");
+  p.className = "pill active";
+  p.dataset.region = r;
+  p.textContent = r;
+  p.addEventListener("click", () => {
+    if (active.has(r)) { active.delete(r); p.classList.remove("active"); }
+    else               { active.add(r); p.classList.add("active"); }
+    redrawMarkers();
+    redrawTable();
+  });
+  pillsEl.appendChild(p);
+});
+
+// ─── Map ────────────────────────────────────────────────────────
+const map = L.map("map", {
+  center: [25, 100],
+  zoom: 2,
+  zoomControl: true,
+  scrollWheelZoom: true,
+  zoomSnap: 0.5,
+  worldCopyJump: true,
+});
+
+L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 19,
+  }
+).addTo(map);
+
+const rScale = d3.scaleSqrt()
+  .domain([0, d3.max(data, d => d.value)])
+  .range([5, 28]);
+
+const markers = {};
+
+data.forEach(d => {
+  const m = L.circleMarker([d.lat, d.lon], {
+    radius: rScale(d.value),
+    fillColor: d.focal ? "#8B2635" : "#1F3A5F",
+    fillOpacity: 0.55,
+    color:     d.focal ? "#8B2635" : "#1F3A5F",
+    weight: 1.5,
+    opacity: 1,
+  }).addTo(map);
+
+  m.on("mouseover", (evt) => {
+    showTip(
+      `<b>${d.name}</b><br>
+       <span class="num">${d3.format(",")(d.value)}</span> kwpm
+       (<span class="num">${d3.format(".1%")(d.value/total)}</span> of total)<br>
+       <span style="color:var(--neutral);">${d.region}</span>`,
+      evt.originalEvent
+    );
+  });
+  m.on("mouseout", hideTip);
+
+  m.bindPopup(
+    `<div style="font-family:var(--font-sans);font-size:11.5px;line-height:1.5;min-width:160px;">
+       <strong style="font-family:var(--font-serif);font-size:14px;">${d.name}</strong><br>
+       <span style="font-family:var(--font-mono);">${d3.format(",")(d.value)} kwpm</span><br>
+       <span style="color:#6B6B6B;font-size:10.5px;">${d.region} · ${d3.format(".1%")(d.value/total)} of installed base</span>
+     </div>`,
+    { closeButton: false, autoPan: true, maxWidth: 240 }
+  );
+
+  markers[d.name] = m;
+});
+
+const bounds = L.latLngBounds(data.map(d => [d.lat, d.lon]));
+map.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 });
+
+function resetView() { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 5 }); }
+
+// ─── Marker filter ──────────────────────────────────────────────
+function redrawMarkers() {
+  data.forEach(d => {
+    const m = markers[d.name];
+    if (active.has(d.region)) {
+      m.setStyle({ opacity: 1, fillOpacity: 0.55 });
+    } else {
+      m.setStyle({ opacity: 0.06, fillOpacity: 0.04 });
+    }
+  });
+}
+
+// ─── Legend ─────────────────────────────────────────────────────
+const legend = L.control({ position: "bottomright" });
+legend.onAdd = function() {
+  const div = L.DomUtil.create("div", "map-legend");
+  const legendVals = [50, 200, 850];
+  div.innerHTML = `
+    <div style="font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+                color:#6B6B6B;margin-bottom:6px;">Capacity (kwpm)</div>
+    ${legendVals.map(v => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+        <span style="display:inline-block;width:${rScale(v)*2}px;height:${rScale(v)*2}px;
+                     background:#1F3A5F;opacity:0.55;border-radius:50%;
+                     border:1px solid #1F3A5F;flex-shrink:0;"></span>
+        <span style="font-family:var(--font-mono);">${d3.format(",")(v)}</span>
+      </div>`).join("")}
+    <div style="margin-top:6px;color:#8B2635;font-style:italic;">
+      &mdash; Burgundy &#61; ex-Taiwan
+    </div>
+  `;
+  return div;
+};
+legend.addTo(map);
+
+// ─── Side table ─────────────────────────────────────────────────
+const tbody = document.querySelector("#facility-table tbody");
+function redrawTable() {
+  tbody.innerHTML = "";
+  [...data].sort((a, b) => b.value - a.value).forEach(d => {
+    const tr = document.createElement("tr");
+    tr.className = "row-h" + (d.focal ? " focal" : "") + (active.has(d.region) ? "" : " dimmed");
+    tr.innerHTML = `
+      <td>${d.name}</td>
+      <td class="num">${d3.format(",")(d.value)}</td>
+      <td class="num">${d3.format(".0%")(d.value/total)}</td>
+    `;
+    tr.addEventListener("mouseenter", () => {
+      if (markers[d.name]) markers[d.name].openPopup();
+    });
+    tr.addEventListener("mouseleave", () => {
+      if (markers[d.name]) markers[d.name].closePopup();
+    });
+    tr.addEventListener("click", () => {
+      map.flyTo([d.lat, d.lon], 6, { duration: 0.8 });
+    });
+    tbody.appendChild(tr);
+  });
+  const totalRow = document.createElement("tr");
+  totalRow.className = "total";
+  totalRow.innerHTML = `<td>Total</td><td class="num">${d3.format(",")(total)}</td><td class="num">100%</td>`;
+  tbody.appendChild(totalRow);
+
+  const exTw = data.filter(d => d.focal).reduce((a, b) => a + b.value, 0);
+  const exRow = document.createElement("tr");
+  exRow.innerHTML = `<td colspan="3" style="font-style:italic;color:var(--highlight);font-family:var(--font-serif);border-bottom:none;padding-top:10px;">
+    Ex-Taiwan: ${d3.format(",")(exTw)} kwpm &nbsp;&middot;&nbsp; ${d3.format(".1%")(exTw/total)} of total
+  </td>`;
+  tbody.appendChild(exRow);
+}
+redrawTable();
+</script>
+
+</body>
+</html>
