@@ -95,8 +95,12 @@ function Get-StringProperty {
     param($Object, [string[]]$Names)
 
     if ($null -eq $Object) { return $null }
+    $propertyNames = @()
+    if ($null -ne $Object.PSObject -and $null -ne $Object.PSObject.Properties) {
+        $propertyNames = @($Object.PSObject.Properties | ForEach-Object { $_.Name })
+    }
     foreach ($name in $Names) {
-        if ($Object.PSObject.Properties.Name -contains $name) {
+        if ($propertyNames -contains $name) {
             $value = $Object.$name
             if ($null -ne $value -and -not [string]::IsNullOrWhiteSpace([string]$value)) {
                 return [string]$value
@@ -128,7 +132,7 @@ function Get-RedirectionPaths {
 
     $paths = New-Object System.Collections.Generic.List[string]
     if ([string]::IsNullOrWhiteSpace($Command)) { return @() }
-    foreach ($match in [regex]::Matches($Command, '(?:(?:>|>>)\s*)(["'']?)([^"''\s]+?\.(?:md|html))\1')) {
+    foreach ($match in [regex]::Matches($Command, '(?:(?:>|>>)\s*)(["'']?)([^"''\s]+?\.(?:md|html|xlsx))\1')) {
         [void]$paths.Add($match.Groups[2].Value.Trim())
     }
     return @($paths | Select-Object -Unique)
@@ -198,6 +202,24 @@ function Get-MarkdownTargets {
     return $targets.ToArray()
 }
 
+function Get-WorkbookTargets {
+    param($Payload)
+
+    $targets = New-Object System.Collections.Generic.List[object]
+    $workspaceRoot = Get-WorkspaceRoot $Payload
+
+    foreach ($path in (Get-CandidatePaths $Payload)) {
+        if ($path -match '\.xlsx$' -and (Test-Path -LiteralPath $path)) {
+            $info = Get-XlsxWorkbookInfo -Path $path -WorkspaceRoot $workspaceRoot
+            if ($null -ne $info) {
+                [void]$targets.Add($info)
+            }
+        }
+    }
+
+    return $targets.ToArray()
+}
+
 function Test-IsArtifactLikeText {
     param([string]$Text)
 
@@ -217,4 +239,95 @@ function Test-IsTopicArtifactRootFile {
     $parts = $relative.Split('/')
     if ($parts.Length -ne 4) { return $false }
     return $parts[0] -eq "topics"
+}
+
+function Read-ZipEntryText {
+    param(
+        [Parameter(Mandatory = $true)]$Archive,
+        [Parameter(Mandatory = $true)][string]$EntryPath
+    )
+
+    $entry = $Archive.GetEntry($EntryPath)
+    if ($null -eq $entry) { return $null }
+
+    $stream = $entry.Open()
+    try {
+        $reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::UTF8, $true)
+        try {
+            return $reader.ReadToEnd()
+        } finally {
+            $reader.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Resolve-XlsxEntryPath {
+    param([Parameter(Mandatory = $true)][string]$Target)
+
+    $clean = ($Target -replace '\\', '/').Trim()
+    if ($clean.StartsWith('/')) { $clean = $clean.TrimStart('/') }
+    if ($clean.StartsWith('xl/')) { return $clean }
+    return "xl/$clean"
+}
+
+function Get-XlsxWorkbookInfo {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$WorkspaceRoot
+    )
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+
+    $archive = [System.IO.Compression.ZipFile]::OpenRead($Path)
+    try {
+        $workbookText = Read-ZipEntryText -Archive $archive -EntryPath 'xl/workbook.xml'
+        if ([string]::IsNullOrWhiteSpace($workbookText)) { return $null }
+        $relsText = Read-ZipEntryText -Archive $archive -EntryPath 'xl/_rels/workbook.xml.rels'
+        $sharedStringsText = Read-ZipEntryText -Archive $archive -EntryPath 'xl/sharedStrings.xml'
+
+        [xml]$workbookXml = $workbookText
+        [xml]$relsXml = if ([string]::IsNullOrWhiteSpace($relsText)) { '<Relationships />' } else { $relsText }
+
+        $relationshipMap = @{}
+        foreach ($rel in $relsXml.DocumentElement.ChildNodes) {
+            if ($rel.Attributes['Id'] -and $rel.Attributes['Target']) {
+                $relationshipMap[$rel.Attributes['Id'].Value] = Resolve-XlsxEntryPath -Target $rel.Attributes['Target'].Value
+            }
+        }
+
+        $sheetInfos = New-Object System.Collections.Generic.List[object]
+        foreach ($sheet in $workbookXml.SelectNodes("/*[local-name()='workbook']/*[local-name()='sheets']/*[local-name()='sheet']")) {
+            $sheetName = $sheet.Attributes['name'].Value
+            $relId = $null
+            foreach ($attr in $sheet.Attributes) {
+                if ($attr.LocalName -eq 'id') { $relId = $attr.Value; break }
+            }
+            if (-not $relId -or -not $relationshipMap.ContainsKey($relId)) { continue }
+            $entryPath = $relationshipMap[$relId]
+            $sheetText = Read-ZipEntryText -Archive $archive -EntryPath $entryPath
+            if ([string]::IsNullOrWhiteSpace($sheetText)) { continue }
+            $formulaCount = ([regex]::Matches($sheetText, '<f(?:\s|>)')).Count
+            $cellCount = ([regex]::Matches($sheetText, '<c\b')).Count
+            [void]$sheetInfos.Add([pscustomobject]@{
+                Name = $sheetName
+                EntryPath = $entryPath
+                Text = $sheetText
+                FormulaCount = $formulaCount
+                CellCount = $cellCount
+            })
+        }
+
+        return [pscustomobject]@{
+            kind = "workbook"
+            path = $Path
+            display = Get-RelativeDisplayPath -Path $Path -Root $WorkspaceRoot
+            sharedStringsText = [string]$sharedStringsText
+            sheets = $sheetInfos.ToArray()
+            sheetNames = @($sheetInfos | ForEach-Object { $_.Name })
+        }
+    } finally {
+        $archive.Dispose()
+    }
 }

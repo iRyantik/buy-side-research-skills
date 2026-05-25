@@ -7,6 +7,8 @@ description: Build DCF valuation workbooks using source-tracked actuals drivers 
 
 Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.
 
+Deterministic binary guardrails for formula discipline, missing-actuals handling, valuation basis, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

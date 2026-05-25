@@ -150,6 +150,13 @@ plugin dev repo 中的 hook 配置与脚本通过 `init-workspace` 交付到 wor
 
 hook 只负责 binary / machine-checkable guardrails，例如 source legality、subagent boundary、workspace path safety、明显 narrative drift。判断密度高、依赖研究品味或需要主观裁判的规则，继续留在 `SKILL.md`、`skill.yaml` 与 authoring governance 中。
 
+`information-impact` 的 claim qualification 与 `primary-research-plan` 的 compliance floor 也属于 hook-first binary rules。
+`cross-market-compare` 的 listing identity / currency basis / as-of parity floor 也属于 hook-first binary rules。
+`reddit-sentiment` 的 social clue-only boundary 也属于 hook-first binary rules。
+modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 的 statement presence、balance integrity、formula discipline、missing-actuals floor 和 valuation-basis floor 也属于 xlsx-aware hook-first binary rules；第一轮不做“逐项全量配平 / full line-item reconciliation” hook。
+`research-journal` 的 earned-insight gate 与 topic index map-only boundary 也属于 hook-first binary rules。
+`research-viz` 的 stem-binding、self-contained delivery 和 source-line contract 也属于 hook-first binary rules。
+
 如 hook 与 prose 在 binary legality 上冲突，以 hook enforcement 为准。`research-policy-baseline.md` 继续只是 authoring baseline，不是 runtime authority。
 
 ## Hard Gate

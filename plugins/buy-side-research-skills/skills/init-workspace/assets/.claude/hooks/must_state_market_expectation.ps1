@@ -9,7 +9,7 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     $isTargetSkill = $false
     if ($target.kind -eq "file" -and $target.path) {
         $leaf = [System.IO.Path]::GetFileName($target.path)
-        if ($leaf -match 'stock-quickread|consensus-map') { $isTargetSkill = $true }
+        if ($leaf -match 'stock-quickread|consensus-map|earnings-setup|pair-trade|bear-pre-mortem') { $isTargetSkill = $true }
     }
 
     if (-not $isTargetSkill) { continue }

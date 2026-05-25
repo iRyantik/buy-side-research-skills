@@ -7,6 +7,8 @@ description: Build source-tracked 3-statement models with historical actuals and
 
 Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.
 
+Deterministic binary guardrails for statement presence, balance integrity, formula discipline, missing-actuals handling, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

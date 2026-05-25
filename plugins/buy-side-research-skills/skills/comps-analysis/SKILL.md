@@ -7,6 +7,8 @@ description: Build comparable company valuation workbooks with peer multiples an
 
 Build comparable company valuation workbooks with peer multiples and operating metrics.
 
+Deterministic binary guardrails for source legality, valuation basis, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。

@@ -7,6 +7,8 @@ description: Update a financial model for earnings guidance new data or revised 
 
 Update a financial model for earnings guidance new data or revised assumptions.
 
+Deterministic binary guardrails for missing-actuals handling, valuation basis, conditional balance integrity, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
+
 ## Modeling Runtime Capsule
 
 - 本 skill 使用单独的 modeling capsule，不吃 research capsule。
