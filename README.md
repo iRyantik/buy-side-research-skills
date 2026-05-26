@@ -189,13 +189,19 @@ Longbridge（长桥证券）提供 **A股 / 港股 / 美股** 的实时行情、
 
 **如果你只做对话类研究（分析、写 thesis、做 peer comparison），跳过这一步。**
 
-只有当你要用到以下功能时，才需要对应的 Python 包。在 Claude Code 里说：
+需要用文件处理或数据拉取功能时，对 Claude 说你想做什么，它会自动安装对应的依赖：
 
-> "帮我检查 ingest 和 financial-data 的 Python 依赖是否齐全，缺什么就帮我装上"
+> "我要用 ingest 处理 PDF 文件，帮我检查并安装需要的依赖"
+>
+> "我要用 financial-data 拉美股数据，帮我检查并安装需要的依赖"
+>
+> "我要用 reddit-sentiment 查 Reddit 情绪，帮我检查并安装需要的依赖"
+>
+> "我要用 dcf-model 搭模型，帮我检查并安装需要的依赖"
 
-Claude 会自动检查并安装。这是一次性的。具体包含：
+各功能对应的 Python 包：
 
-| 用到什么功能 | 会装哪些 Python 包 |
+| 功能 | 会装哪些 Python 包 |
 |---|---|
 | **处理 PDF/Excel/PPT/Word 文件**（ingest） | docling, edgartools, pymupdf4llm, openpyxl, python-pptx, python-docx, pdfplumber, pypdf, Pillow |
 | **拉取美股/A股/港股/日股/韩股财务数据**（financial-data） | edgartools, akshare, edinet-tools, dart-fss, openesef |
