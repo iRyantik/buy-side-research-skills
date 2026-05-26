@@ -159,29 +159,18 @@ Longbridge（长桥证券）提供 **A股 / 港股 / 美股** 的实时行情、
 
 Longbridge 有独立插件，提供了行情、估值、共识、持仓、自选等全套技能。在 Claude Code 或 Codex 里安装：
 
-> **Claude Code**：`/plugin marketplace add longbridge/skills`，然后 `/plugin install longbridge-skills`
+> **Claude Code**：`/plugin marketplace add longbridge/skills`，然后 `/plugin install longbridge@longbridge-skills`
 
 > **Codex**：`codex plugin marketplace add longbridge/skills`
 
-> Marketplace 地址：[https://github.com/longbridge/skills](https://github.com/longbridge/skills)
+> 官方页面：[https://open.longbridge.com/zh-CN/skill/](https://open.longbridge.com/zh-CN/skill/)
 
-**第二步：安装 longbridge 命令行工具（CLI）**
+**第二步：安装 longbridge CLI 并登录**
 
-Longbridge CLI 是独立二进制，提供行情、共识、财报等数据查询能力：
+按照官方安装指南完成 CLI 安装和登录授权：
+[https://longbridge.com/skill-install.md](https://longbridge.com/skill-install.md)
 
-> **macOS**：`brew install --cask longbridge/tap/longbridge-terminal`
->
-> **Windows**：在 PowerShell 里运行 `iwr https://open.longbridge.com/longbridge/longbridge-terminal/install.ps1 | iex`
-
-**第三步：登录 Longbridge**
-
-你需要一个 [Longbridge](https://longbridge.com) 账号。装好插件后，在终端登录一次：
-
-```bash
-longbridge auth login
-```
-
-然后告诉 Claude：*"帮我检查 Longbridge 是否正确连接"* 即可。
+完成后跟 Claude 说 "帮我查一下 TSLA 的最新行情" 确认可用。
 
 > Longbridge 覆盖 US / HK / SH / SZ 四个市场。日股、韩股、欧股不在覆盖范围，会自动使用公开互联网 fallback。
 
@@ -324,44 +313,44 @@ Claude 会自动检查并安装。这是一次性的。具体包含：
 
 ### 运维类
 
-| 我想做什么 | 跟 Claude 说 |
-|---|---|
-| 创建/修复研究 workspace | "帮我初始化研究 workspace" |
-| 新建一个研究主题 | "帮我新建一个 XXX 的研究 session" |
-| 把 PDF/Excel/PPT 转成可搜索文本 | "帮我用 ingest 处理 \_inbox 里的文件" |
-| 拉取美股/A股/港股/日股/韩股财务数据 | "用 financial-data 拉 AAPL 美股数据" |
-| 获取实时行情/估值/共识（A股/港股/美股） | "用 trusted-market-bridge 拉 NVDA 市场数据" |
-| 更新插件到最新版 | "用 update-agent-runtime 更新插件" |
-| 合并子 topic | "帮我把子 topic 合并到父 topic" |
-| 把行业里的公司研究沉淀到 company 目录 | "把 XXX 的 RKLB 研究 promote 到 company" |
+| 我想做什么 | 跟 Claude 说 | Skill 名字 |
+|---|---|---|
+| 创建/修复研究 workspace | "帮我初始化研究 workspace" | `init-workspace` |
+| 新建一个研究主题 | "帮我新建一个 XXX 的研究 session" | `new-session` |
+| 把 PDF/Excel/PPT 转成可搜索文本 | "帮我用 ingest 处理 \_inbox 里的文件" | `ingest` |
+| 拉取美股/A股/港股/日股/韩股财务数据 | "用 financial-data 拉 AAPL 美股数据" | `financial-data` |
+| 获取实时行情/估值/共识（A股/港股/美股） | "用 trusted-market-bridge 拉 NVDA 市场数据" | `trusted-market-bridge` |
+| 更新插件到最新版 | "用 update-agent-runtime 更新插件" | `update-agent-runtime` |
+| 合并子 topic | "帮我把子 topic 合并到父 topic" | `integrate` |
+| 把行业里的公司研究沉淀到 company 目录 | "把 XXX 的 RKLB 研究 promote 到 company" | `promote-company` |
 
 ### 研究类
 
-| 我想做什么 | 跟 Claude 说 |
-|---|---|
-| 快速看一家公司 | "用 stock-quickread 看 VRT" |
-| 快速了解一个行业 | "用 industry-quickread 看核电行业" |
-| 从主题出发找受益股 | "用 candidate-screener 找 AI 电力的受益股" |
-| 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" |
-| 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" |
-| 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" |
-| 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" |
-| 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" |
-| 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" |
-| 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" |
-| 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" |
-| 横向比较同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" |
-| 写做多/做空 thesis | "用 alpha-thesis 写 IONQ 做空 thesis" |
-| 找 thesis 漏洞/压测 | "用 bear-pre-mortem 压测我对 RKLB 的多头 thesis" |
-| 准备财报季 | "用 earnings-setup 准备下周 GE 的财报" |
-| 分析 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" |
-| 设计专家访谈/调研计划 | "用 primary-research-plan 设计验证方案" |
-| 搭三表财务预测模型 | "用 3-statement-model 给 Rocket Lab 搭模型" |
-| 做 DCF 估值 | "用 dcf-model 给 GE Vernova 做估值" |
-| 做可比公司估值 | "用 comps-analysis 做核电行业的可比分析" |
-| 更新已有模型（财报后） | "用 model-update 更新 GE 的模型" |
-| 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" |
-| 把研究文做成 HTML 图表 | "用 research-viz 把这篇做成 capability map" |
+| 我想做什么 | 跟 Claude 说 | Skill 名字 |
+|---|---|---|
+| 快速看一家公司 | "用 stock-quickread 看 VRT" | `stock-quickread` |
+| 快速了解一个行业 | "用 industry-quickread 看核电行业" | `industry-quickread` |
+| 从主题出发找受益股 | "用 candidate-screener 找 AI 电力的受益股" | `candidate-screener` |
+| 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" | `information-impact` |
+| 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" | `reddit-sentiment` |
+| 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | `next-step` |
+| 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" | `company-primer` |
+| 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" | `consensus-map` |
+| 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" | `mechanism-map` |
+| 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" | `driver-map` |
+| 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" | `cross-market-compare` |
+| 横向比较同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" | `peer-deep-dive` |
+| 写做多/做空 thesis | "用 alpha-thesis 写 IONQ 做空 thesis" | `alpha-thesis` |
+| 找 thesis 漏洞/压测 | "用 bear-pre-mortem 压测我对 RKLB 的多头 thesis" | `bear-pre-mortem` |
+| 准备财报季 | "用 earnings-setup 准备下周 GE 的财报" | `earnings-setup` |
+| 分析 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" | `pair-trade` |
+| 设计专家访谈/调研计划 | "用 primary-research-plan 设计验证方案" | `primary-research-plan` |
+| 搭三表财务预测模型 | "用 3-statement-model 给 Rocket Lab 搭模型" | `3-statement-model` |
+| 做 DCF 估值 | "用 dcf-model 给 GE Vernova 做估值" | `dcf-model` |
+| 做可比公司估值 | "用 comps-analysis 做核电行业的可比分析" | `comps-analysis` |
+| 更新已有模型（财报后） | "用 model-update 更新 GE 的模型" | `model-update` |
+| 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" | `research-journal` |
+| 把研究文做成 HTML 图表 | "用 research-viz 把这篇做成 capability map" | `research-viz` |
 
 ---
 
