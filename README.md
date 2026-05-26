@@ -164,10 +164,16 @@ Longbridge 有独立插件，提供了行情、估值、共识、持仓、自选
 > **Codex**：`codex plugin marketplace add longbridge/skills`
 
 > Marketplace 地址：[https://github.com/longbridge/skills](https://github.com/longbridge/skills)
->
-> 安装插件后，`longbridge` 命令行工具会自动下载到你的电脑。
 
-**第二步：登录 Longbridge**
+**第二步：安装 longbridge 命令行工具（CLI）**
+
+Longbridge CLI 是独立二进制，提供行情、共识、财报等数据查询能力：
+
+> **macOS**：`brew install --cask longbridge/tap/longbridge-terminal`
+>
+> **Windows**：在 PowerShell 里运行 `iwr https://open.longbridge.com/longbridge/longbridge-terminal/install.ps1 | iex`
+
+**第三步：登录 Longbridge**
 
 你需要一个 [Longbridge](https://longbridge.com) 账号。装好插件后，在终端登录一次：
 
