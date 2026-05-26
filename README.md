@@ -114,17 +114,9 @@ Claude Code / Codex（你的 AI 助手）
 
 如果 Claude 回复说能看到一列 skill 名字（如 `stock-quickread`、`financial-data`、`driver-map` 等），说明安装成功。
 
-> **macOS 用户注意**：workspace 的 hooks 和辅助脚本依赖 PowerShell 7（`pwsh`）。如果你还没装，先跑 `brew install powershell` 再继续下一步。
+> **macOS 用户**：workspace 需要 PowerShell 7（`pwsh`）环境。
 
-### 第四步：更新插件
 
-当有新版本发布时，在 Claude Code 里说：
-
-> "用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"
-
-它会自动拉取最新版本、修复 hooks 和 `_scripts/`、同步 `CLAUDE.md` 的 managed sections。不会覆盖你自定义的内容。
-
----
 
 ## 3. 配置
 
@@ -213,7 +205,9 @@ Claude 会自动检查并安装。这是一次性的。
 
 ## 4. 快速入门
 
-假设你想快速看一家公司：**Vertiv（VRT）**。
+以下所有场景，你都是在用中文跟 Claude 对话。不需要写代码，不需要敲命令。
+
+### 场景 A：快速看一家不熟的公司
 
 **你**：帮我新建一个 Vertiv 的研究 session
 
@@ -227,7 +221,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-再比如你有一个主题想法，想找受益股：
+### 场景 B：有主题想法，找受益股
 
 **你**：帮我新建一个 AI 数据中心电力的研究 session
 
@@ -237,9 +231,81 @@ Claude 会自动检查并安装。这是一次性的。
 
 **你**：（筛选出几家后）用 peer-deep-dive 比较 VRT、GEV、SMCI
 
+---
+
+### 场景 C：认真研究一家公司，搭模型
+
+**你**：帮我新建一个 Rocket Lab 的研究 session
+
+**你**：用 financial-data 拉 RKLB 美股数据
+
+**你**：用 company-primer 深度看 RKLB
+
+**你**：用 driver-map 拆 RKLB 的 revenue driver
+
+**你**：用 3-statement-model 给 RKLB 搭历史+预测三表模型
+
+**你**：用 dcf-model 给 RKLB 做估值
+
+**你**：用 alpha-thesis 写 RKLB 做多 thesis
+
+**你**：用 bear-pre-mortem 打一下这个做多 thesis
+
+---
+
+### 场景 D：财报季来了
+
+**你**：帮我新建一个 GE Q1 2026 财报的研究 session
+
+**你**：用 earnings-setup 准备下周 GE 的财报
+
+**你**：（财报出了后）用 model-update 把最新数据更新进 GE 的模型
+
+**你**：用 research-journal 记录 post-earnings 的判断更新
+
+---
+
+### 场景 E：搞懂一个陌生行业
+
+**你**：帮我新建一个燃气轮机行业的研究 session
+
+**你**：用 industry-quickread 看燃气轮机行业
+
+**你**：用 mechanism-map 解释燃气轮机
+
+**你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上找上市公司
+
+**你**：用 peer-deep-dive 比较 GE Vernova、西门子能源、三菱重工
+
+---
+
+### 场景 F：突发新闻来了
+
+**你**：我刚刚看到——"美国商务部提议限制 AI 芯片出口"。用 information-impact 分析这条消息
+
+**你**：（根据分析结果）用 candidate-screener 按这个消息的逻辑找受益股
+
+---
+
+### 场景 G：想做空一只股票
+
+**你**：帮我新建一个 IONQ 做空的研究 session
+
+**你**：用 consensus-map 看市场对 IONQ 的预期
+
+**你**：用 driver-map 拆 IONQ 的 revenue driver
+
+**你**：用 alpha-thesis 写 IONQ 做空 thesis
+
+**你**：用 bear-pre-mortem 反打这份做空 thesis（检验你的做空逻辑）
+
+---
+
 **整个过程你没有写一行代码，也没有敲任何命令。你只是在用中文跟 Claude 对话。**
 
 ---
+
+## 5. 更新插件
 
 ## 5. Skill 速查表
 
@@ -286,7 +352,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-## 7. 文件放在哪里？
+## 6. 文件放在哪里？
 
 研究产物都放在 `topics/` 下。你不需要手动管理，Claude 会自动处理。
 
@@ -311,7 +377,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-## 8. 常见问题
+## 7. 常见问题
 
 ### Q1：我不知道该用哪个 skill
 
