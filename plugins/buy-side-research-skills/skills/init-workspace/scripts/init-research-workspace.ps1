@@ -99,47 +99,6 @@ function Get-HookLauncherCommand {
     return ('sh "{0}" "{1}"' -f $runner, $hookPath)
 }
 
-function Convert-FromJsonCompat {
-    param([string]$RawJson)
-
-    $convertCommand = Get-Command ConvertFrom-Json -ErrorAction Stop
-    if ($convertCommand.Parameters.ContainsKey("Depth")) {
-        return $RawJson | ConvertFrom-Json -Depth 100
-    }
-
-    return $RawJson | ConvertFrom-Json
-}
-
-function Resolve-HookConfigNode {
-    param(
-        [object]$Node,
-        [string]$WorkspaceRoot
-    )
-
-    if ($Node -is [string]) {
-        if ($Node -match '^\{\{HOOK_RUNNER\}\}\s+([^\s"]+\.ps1)$') {
-            return Get-HookLauncherCommand -WorkspaceRoot $WorkspaceRoot -RelativeHookPath $Matches[1]
-        }
-        return $Node
-    }
-
-    if ($Node -is [System.Collections.IList]) {
-        foreach ($item in $Node) {
-            [void](Resolve-HookConfigNode -Node $item -WorkspaceRoot $WorkspaceRoot)
-        }
-        return $Node
-    }
-
-    if ($Node -is [psobject]) {
-        foreach ($property in $Node.PSObject.Properties) {
-            $property.Value = Resolve-HookConfigNode -Node $property.Value -WorkspaceRoot $WorkspaceRoot
-        }
-        return $Node
-    }
-
-    return $Node
-}
-
 function Render-HookConfigText {
     param(
         [string]$SourcePath,
@@ -147,9 +106,12 @@ function Render-HookConfigText {
     )
 
     $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $SourcePath
-    $jsonObject = Convert-FromJsonCompat -RawJson $text
-    $rendered = Resolve-HookConfigNode -Node $jsonObject -WorkspaceRoot $WorkspaceRoot
-    return ($rendered | ConvertTo-Json -Depth 100)
+    $regex = [regex]'\{\{HOOK_RUNNER\}\}\s+([^\s"\\]+\.ps1)'
+    $sb = {
+        param($m)
+        return Get-HookLauncherCommand -WorkspaceRoot $WorkspaceRoot -RelativeHookPath $m.Groups[1].Value
+    }
+    return $regex.Replace($text, $sb)
 }
 
 $fullWorkspacePath = Convert-ToFullPath $WorkspacePath

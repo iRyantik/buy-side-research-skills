@@ -11,7 +11,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `4.5.0`
+- Current system generation: `4.5.1`
 
 本 workspace 用于 buy-side equity research。目标不是"了解公司"，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
 
