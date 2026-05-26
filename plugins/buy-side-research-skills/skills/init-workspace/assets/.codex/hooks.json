@@ -106,6 +106,16 @@
                     },
                     {
                         "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/historical_actuals_fill_floor.ps1",
+                        "statusMessage": "Checking final historical actuals fill floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/driver_breakdown_coverage_floor.ps1",
+                        "statusMessage": "Checking final driver breakdown coverage floor"
+                    },
+                    {
+                        "type": "command",
                         "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
                         "statusMessage": "Checking final valuation basis required"
                     },
@@ -123,6 +133,11 @@
                         "type": "command",
                         "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_driver_floor.ps1",
                         "statusMessage": "Checking final three statement driver floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_checks_result_floor.ps1",
+                        "statusMessage": "Checking final three statement checks result floor"
                     },
                     {
                         "type": "command",
@@ -264,6 +279,16 @@
                         "type": "command",
                         "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
                         "statusMessage": "Checking missing actuals not zero"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/historical_actuals_fill_floor.ps1",
+                        "statusMessage": "Checking historical actuals fill floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/driver_breakdown_coverage_floor.ps1",
+                        "statusMessage": "Checking driver breakdown coverage floor"
                     },
                     {
                         "type": "command",

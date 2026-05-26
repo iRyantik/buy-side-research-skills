@@ -139,6 +139,27 @@ function Get-RedirectionPaths {
     return @($paths | Select-Object -Unique)
 }
 
+function Get-EmbeddedArtifactPathsFromText {
+    param([string]$Text)
+
+    $paths = New-Object System.Collections.Generic.List[string]
+    if ([string]::IsNullOrWhiteSpace($Text)) { return @() }
+
+    foreach ($match in [regex]::Matches($Text, '\[[^\]]+\]\(([^)]+?\.(?:md|html|xlsx))\)')) {
+        [void]$paths.Add($match.Groups[1].Value.Trim())
+    }
+
+    foreach ($match in [regex]::Matches($Text, '(?i)([A-Z]:\\[^<>\r\n\t"]+?\.xlsx)')) {
+        [void]$paths.Add($match.Groups[1].Value.Trim())
+    }
+
+    foreach ($match in [regex]::Matches($Text, '(?i)(?:^|[\s(])((?:\./|\.\./|topics/|_models/)[^\s)]+?\.xlsx)(?:$|[\s)])')) {
+        [void]$paths.Add($match.Groups[1].Value.Trim())
+    }
+
+    return @($paths | Select-Object -Unique)
+}
+
 function Get-CandidatePaths {
     param($Payload)
 
@@ -164,6 +185,12 @@ function Get-CandidatePaths {
         if ($resolved) { [void]$paths.Add($resolved) }
     }
 
+    $lastMessage = Get-LastAssistantMessage $Payload
+    foreach ($path in (Get-EmbeddedArtifactPathsFromText -Text $lastMessage)) {
+        $resolved = Convert-ToWorkspacePath -WorkspaceRoot $workspaceRoot -Path $path
+        if ($resolved) { [void]$paths.Add($resolved) }
+    }
+
     return @($paths | Select-Object -Unique)
 }
 
@@ -171,6 +198,25 @@ function Get-LastAssistantMessage {
     param($Payload)
     if ($null -eq $Payload) { return $null }
     return Get-StringProperty $Payload @("last_assistant_message", "lastAssistantMessage")
+}
+
+function Get-BooleanProperty {
+    param($Object, [string[]]$Names)
+
+    if ($null -eq $Object) { return $false }
+    foreach ($name in $Names) {
+        if ($Object.PSObject.Properties.Name -contains $name) {
+            $value = $Object.$name
+            if ($value -is [bool]) { return [bool]$value }
+            if ($null -ne $value) {
+                $text = ([string]$value).Trim()
+                if ($text -match '^(?i:true|1|yes)$') { return $true }
+                if ($text -match '^(?i:false|0|no)$') { return $false }
+            }
+        }
+    }
+
+    return $false
 }
 
 function Get-MarkdownTargets {
@@ -520,6 +566,546 @@ function Read-ZipEntryText {
         }
     } finally {
         $stream.Dispose()
+    }
+}
+
+function Read-JsonFileIfPresent {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    $raw = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path
+    if ([string]::IsNullOrWhiteSpace($raw)) { return $null }
+
+    $convertCommand = Get-Command ConvertFrom-Json -ErrorAction Stop
+    if ($convertCommand.Parameters.ContainsKey("Depth")) {
+        return $raw | ConvertFrom-Json -Depth 50
+    }
+
+    return $raw | ConvertFrom-Json
+}
+
+function Get-TopicRootFromWorkbookPath {
+    param([Parameter(Mandatory = $true)][string]$WorkbookPath)
+
+    $fullPath = [System.IO.Path]::GetFullPath($WorkbookPath)
+    $directory = Split-Path -Parent $fullPath
+    while (-not [string]::IsNullOrWhiteSpace($directory)) {
+        $leaf = Split-Path -Leaf $directory
+        if ($leaf -ieq "_models") {
+            return Split-Path -Parent $directory
+        }
+        $parent = Split-Path -Parent $directory
+        if ($parent -eq $directory) { break }
+        $directory = $parent
+    }
+
+    return $null
+}
+
+function Get-ModelingFinancialDataInputs {
+    param([Parameter(Mandatory = $true)][string]$WorkbookPath)
+
+    $topicRoot = Get-TopicRootFromWorkbookPath -WorkbookPath $WorkbookPath
+    if ([string]::IsNullOrWhiteSpace($topicRoot)) {
+        return [pscustomobject]@{
+            TopicRoot = $null
+            FinancialDataInternal = $null
+            ActualsResolvedPath = $null
+            EvidencePackPath = $null
+            ActualsResolved = $null
+            EvidencePack = $null
+        }
+    }
+
+    $internalDir = Join-Path $topicRoot "_cache/financial-data/internal"
+    $actualsResolvedPath = Join-Path $internalDir "actuals-resolved.json"
+    $evidencePackPath = Join-Path $internalDir "evidence-pack.json"
+
+    return [pscustomobject]@{
+        TopicRoot = $topicRoot
+        FinancialDataInternal = $internalDir
+        ActualsResolvedPath = $actualsResolvedPath
+        EvidencePackPath = $evidencePackPath
+        ActualsResolved = Read-JsonFileIfPresent -Path $actualsResolvedPath
+        EvidencePack = Read-JsonFileIfPresent -Path $evidencePackPath
+    }
+}
+
+function Get-ModelingDriverMapInputs {
+    param([Parameter(Mandatory = $true)][string]$WorkbookPath)
+
+    $topicRoot = Get-TopicRootFromWorkbookPath -WorkbookPath $WorkbookPath
+    if ([string]::IsNullOrWhiteSpace($topicRoot)) {
+        return [pscustomobject]@{
+            TopicRoot = $null
+            DriverMapInternal = $null
+            DriverMapPath = $null
+            DriverMap = $null
+        }
+    }
+
+    $internalDir = Join-Path $topicRoot "_cache/driver-map/internal"
+    $driverMapPath = Join-Path $internalDir "driver-map.json"
+
+    return [pscustomobject]@{
+        TopicRoot = $topicRoot
+        DriverMapInternal = $internalDir
+        DriverMapPath = $driverMapPath
+        DriverMap = Read-JsonFileIfPresent -Path $driverMapPath
+    }
+}
+
+function Test-IsWindowsHostPlatform {
+    return [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)
+}
+
+function Test-IsMacOSHostPlatform {
+    return [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::OSX)
+}
+
+function Convert-ExcelColumnNumberToLetters {
+    param([Parameter(Mandatory = $true)][int]$ColumnNumber)
+
+    $current = $ColumnNumber
+    $letters = ""
+    while ($current -gt 0) {
+        $current -= 1
+        $letters = [char](65 + ($current % 26)) + $letters
+        $current = [math]::Floor($current / 26)
+    }
+
+    return $letters
+}
+
+function New-WorkbookSessionCellRecord {
+    param(
+        [Parameter(Mandatory = $true)][int]$Index,
+        [Parameter(Mandatory = $true)][string]$Ref,
+        $Value,
+        [string]$Text,
+        [string]$Formula,
+        [bool]$HasFormula
+    )
+
+    $resolvedText = ""
+    if (-not [string]::IsNullOrWhiteSpace($Text)) {
+        $resolvedText = [string]$Text
+    } elseif ($null -ne $Value) {
+        $resolvedText = [string]$Value
+    }
+
+    return [pscustomobject]@{
+        Index = $Index
+        Ref = $Ref
+        Text = $resolvedText.Trim()
+        Value = $Value
+        Formula = $Formula
+        HasFormula = $HasFormula
+    }
+}
+
+function ConvertTo-WorkbookSessionRows {
+    param(
+        [Parameter(Mandatory = $true)]$Worksheet,
+        [Parameter(Mandatory = $true)]$UsedRange
+    )
+
+    $rows = New-Object System.Collections.Generic.List[object]
+    $startRow = [int]$UsedRange.Row
+    $startColumn = [int]$UsedRange.Column
+    $rowCount = [int]$UsedRange.Rows.Count
+    $columnCount = [int]$UsedRange.Columns.Count
+
+    for ($rowOffset = 0; $rowOffset -lt $rowCount; $rowOffset += 1) {
+        $cells = New-Object System.Collections.Generic.List[object]
+        for ($columnOffset = 0; $columnOffset -lt $columnCount; $columnOffset += 1) {
+            $rowIndex = $rowOffset + 1
+            $columnIndex = $columnOffset + 1
+            $cell = $UsedRange.Cells.Item($rowIndex, $columnIndex)
+            try {
+                $absoluteRow = $startRow + $rowOffset
+                $absoluteColumn = $startColumn + $columnOffset
+                $ref = "$(Convert-ExcelColumnNumberToLetters -ColumnNumber $absoluteColumn)$absoluteRow"
+                $value = $null
+                $text = ""
+                $formula = $null
+                $hasFormula = $false
+
+                try { $value = $cell.Value2 } catch {}
+                try { $text = [string]$cell.Text } catch {}
+                try {
+                    if ($cell.HasFormula) {
+                        $hasFormula = $true
+                        $formula = [string]$cell.Formula
+                    }
+                } catch {}
+
+                [void]$cells.Add((New-WorkbookSessionCellRecord -Index $columnOffset -Ref $ref -Value $value -Text $text -Formula $formula -HasFormula $hasFormula))
+            } finally {
+                try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($cell) } catch {}
+            }
+        }
+
+        $nonEmptyCells = @($cells | Where-Object {
+            -not [string]::IsNullOrWhiteSpace([string]$_.Text) -or
+            $_.HasFormula -or
+            $null -ne $_.Value
+        })
+        $labelCell = $nonEmptyCells | Select-Object -First 1
+        $labelText = if ($null -ne $labelCell) { [string]$labelCell.Text } else { "" }
+        $resultCells = @()
+        if ($null -ne $labelCell) {
+            $resultCells = @($cells | Where-Object {
+                $_.Index -gt $labelCell.Index -and (
+                    -not [string]::IsNullOrWhiteSpace([string]$_.Text) -or
+                    $_.HasFormula -or
+                    $null -ne $_.Value
+                )
+            })
+        }
+
+        [void]$rows.Add([pscustomobject]@{
+            SheetName = [string]$Worksheet.Name
+            RowNumber = $startRow + $rowOffset
+            Cells = $cells.ToArray()
+            Label = ($labelText.Trim())
+            ResultCells = $resultCells
+            IsBlank = ($nonEmptyCells.Count -eq 0)
+        })
+    }
+
+    return $rows.ToArray()
+}
+
+function Get-NativeExcelWorkbookSessionSnapshot {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return [pscustomobject]@{
+            Attempted = $false
+            Succeeded = $false
+            Method = "missing-path"
+            Message = "Workbook path does not exist."
+            Sheets = @()
+        }
+    }
+
+    if (Test-IsWindowsHostPlatform) {
+        $excel = $null
+        $workbook = $null
+        try {
+            $excel = New-Object -ComObject Excel.Application
+            $excel.Visible = $false
+            $excel.DisplayAlerts = $false
+            $excel.AskToUpdateLinks = $false
+            $excel.EnableEvents = $false
+            $excel.ScreenUpdating = $false
+            try { $excel.AutomationSecurity = 3 } catch {}
+
+            $workbook = $excel.Workbooks.Open($Path, $false, $false)
+            try { $workbook.ForceFullCalculation = $true } catch {}
+            try { $workbook.RefreshAll() } catch {}
+            try { $excel.CalculateFullRebuild() } catch { $excel.Calculate() }
+            try { $excel.CalculateUntilAsyncQueriesDone() } catch {}
+
+            $sheetRecords = New-Object System.Collections.Generic.List[object]
+            $preferredSheets = @()
+            foreach ($worksheet in @($workbook.Worksheets)) {
+                try {
+                    if ([string]$worksheet.Name -match '(?i)(checks|audit checks|validation|model checks|master checks|error checks|integrity|sanity)') {
+                        $preferredSheets += $worksheet
+                    }
+                } catch {
+                    try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($worksheet) } catch {}
+                }
+            }
+
+            $worksheetsToRead = if ($preferredSheets.Count -gt 0) { @($preferredSheets) } else { @($workbook.Worksheets) }
+            foreach ($worksheet in $worksheetsToRead) {
+                $usedRange = $null
+                try {
+                    $usedRange = $worksheet.UsedRange
+                    if ($null -eq $usedRange) { continue }
+                    $rows = @(ConvertTo-WorkbookSessionRows -Worksheet $worksheet -UsedRange $usedRange)
+                    [void]$sheetRecords.Add([pscustomobject]@{
+                        Name = [string]$worksheet.Name
+                        Rows = $rows
+                    })
+                } finally {
+                    if ($null -ne $usedRange) {
+                        try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($usedRange) } catch {}
+                    }
+                    try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($worksheet) } catch {}
+                }
+            }
+
+            $workbook.Save()
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $true
+                Method = "excel-com"
+                Message = "Workbook recalculated and inspected with Excel COM."
+                Sheets = $sheetRecords.ToArray()
+            }
+        } catch {
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $false
+                Method = "excel-com"
+                Message = $_.Exception.Message
+                Sheets = @()
+            }
+        } finally {
+            if ($null -ne $workbook) {
+                try { $workbook.Close($true) } catch {}
+                try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
+            }
+            if ($null -ne $excel) {
+                try { $excel.Quit() } catch {}
+                try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
+            }
+            [System.GC]::Collect()
+            [System.GC]::WaitForPendingFinalizers()
+        }
+    }
+
+    if (Test-IsMacOSHostPlatform) {
+        $osascript = Get-Command osascript -ErrorAction SilentlyContinue
+        if ($null -eq $osascript) {
+            return [pscustomobject]@{
+                Attempted = $false
+                Succeeded = $false
+                Method = "excel-applescript"
+                Message = "osascript not available."
+                Sheets = @()
+            }
+        }
+
+        $tempJsonPath = Join-Path ([System.IO.Path]::GetTempPath()) ("codex-excel-session-" + [System.Guid]::NewGuid().ToString("N") + ".json")
+        $escapedPath = $Path.Replace('\', '\\').Replace('"', '\"')
+        $escapedJsonPath = $tempJsonPath.Replace('\', '\\').Replace('"', '\"')
+        $script = @"
+var excel = Application('Microsoft Excel');
+var se = Application('System Events');
+excel.includeStandardAdditions = true;
+var workbookPath = "$escapedPath";
+var outputPath = "$escapedJsonPath";
+
+function rowRecord(sheetName, rowNumber, cells) {
+  var nonEmpty = cells.filter(function (cell) {
+    return (cell.Text && cell.Text.trim() !== '') || cell.HasFormula || cell.Value !== null;
+  });
+  var labelCell = nonEmpty.length > 0 ? nonEmpty[0] : null;
+  var resultCells = labelCell ? cells.filter(function (cell) {
+    return cell.Index > labelCell.Index && ((cell.Text && cell.Text.trim() !== '') || cell.HasFormula || cell.Value !== null);
+  }) : [];
+  return {
+    SheetName: sheetName,
+    RowNumber: rowNumber,
+    Cells: cells,
+    Label: labelCell ? String(labelCell.Text || '').trim() : '',
+    ResultCells: resultCells,
+    IsBlank: nonEmpty.length === 0
+  };
+}
+
+var workbook = excel.open(Path(workbookPath));
+excel.calculate();
+workbook.save();
+
+var sheets = [];
+for (var i = 0; i < workbook.worksheets.length; i++) {
+  var sheet = workbook.worksheets[i];
+  var name = sheet.name();
+  if (!/(checks|audit checks|validation|model checks|master checks|error checks|integrity|sanity)/i.test(name)) {
+    continue;
+  }
+  var usedRange = sheet.usedRange();
+  var rowCount = Number(usedRange.rowCount());
+  var columnCount = Number(usedRange.columnCount());
+  var startRow = Number(usedRange.rowIndex());
+  var startColumn = Number(usedRange.columnIndex());
+  var rows = [];
+  for (var r = 0; r < rowCount; r++) {
+    var cells = [];
+    for (var c = 0; c < columnCount; c++) {
+      var cell = sheet.cells.item(startRow + r, startColumn + c);
+      var formula = '';
+      try { formula = String(cell.formula()); } catch (e) {}
+      var value = null;
+      try { value = cell.value(); } catch (e) {}
+      var text = '';
+      if (value !== null && value !== undefined) { text = String(value); }
+      cells.push({
+        Index: c,
+        Ref: '',
+        Text: text.trim(),
+        Value: value,
+        Formula: formula,
+        HasFormula: !!formula
+      });
+    }
+    rows.push(rowRecord(name, startRow + r, cells));
+  }
+  sheets.push({ Name: name, Rows: rows });
+}
+
+workbook.close({ saving: 'yes' });
+excel.quit();
+excel.doShellScript('python3 - <<''PY''\nimport json, pathlib\npath = pathlib.Path(r''' + outputPath + r''')\npath.write_text(json.dumps({"Sheets": ' + JSON.stringify(sheets) + r'}, ensure_ascii=False), encoding="utf-8")\nPY');
+"@
+
+        try {
+            & $osascript.Source -l JavaScript -e $script | Out-Null
+            if (-not (Test-Path -LiteralPath $tempJsonPath)) {
+                return [pscustomobject]@{
+                    Attempted = $true
+                    Succeeded = $false
+                    Method = "excel-applescript"
+                    Message = "Microsoft Excel automation completed but returned no session snapshot."
+                    Sheets = @()
+                }
+            }
+
+            $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $tempJsonPath | ConvertFrom-Json -Depth 20
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $true
+                Method = "excel-applescript"
+                Message = "Workbook recalculated and inspected with Microsoft Excel."
+                Sheets = @($snapshot.Sheets)
+            }
+        } catch {
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $false
+                Method = "excel-applescript"
+                Message = $_.Exception.Message
+                Sheets = @()
+            }
+        } finally {
+            if (Test-Path -LiteralPath $tempJsonPath) {
+                Remove-Item -LiteralPath $tempJsonPath -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        Attempted = $false
+        Succeeded = $false
+        Method = "unsupported-host"
+        Message = "No native Excel automation path for this host."
+        Sheets = @()
+    }
+}
+
+function Invoke-NativeExcelWorkbookRecalc {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return [pscustomobject]@{
+            Attempted = $false
+            Succeeded = $false
+            Method = "missing-path"
+            Message = "Workbook path does not exist."
+        }
+    }
+
+    if (Test-IsWindowsHostPlatform) {
+        $excel = $null
+        $workbook = $null
+        try {
+            $excel = New-Object -ComObject Excel.Application
+            $excel.Visible = $false
+            $excel.DisplayAlerts = $false
+            $excel.AskToUpdateLinks = $false
+            $excel.EnableEvents = $false
+            $excel.ScreenUpdating = $false
+            try {
+                $excel.AutomationSecurity = 3
+            } catch {}
+            $workbook = $excel.Workbooks.Open($Path, $false, $false)
+            try { $workbook.ForceFullCalculation = $true } catch {}
+            try { $workbook.RefreshAll() } catch {}
+            try { $excel.CalculateFullRebuild() } catch { $excel.Calculate() }
+            try { $excel.CalculateUntilAsyncQueriesDone() } catch {}
+            $workbook.Save()
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $true
+                Method = "excel-com"
+                Message = "Workbook recalculated with Excel COM."
+            }
+        } catch {
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $false
+                Method = "excel-com"
+                Message = $_.Exception.Message
+            }
+        } finally {
+            if ($null -ne $workbook) {
+                try { $workbook.Close($true) } catch {}
+                try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($workbook) } catch {}
+            }
+            if ($null -ne $excel) {
+                try { $excel.Quit() } catch {}
+                try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($excel) } catch {}
+            }
+            [System.GC]::Collect()
+            [System.GC]::WaitForPendingFinalizers()
+        }
+    }
+
+    if (Test-IsMacOSHostPlatform) {
+        $osascript = Get-Command osascript -ErrorAction SilentlyContinue
+        if ($null -eq $osascript) {
+            return [pscustomobject]@{
+                Attempted = $false
+                Succeeded = $false
+                Method = "excel-applescript"
+                Message = "osascript not available."
+            }
+        }
+
+        $escapedPath = $Path.Replace('\', '\\').Replace('"', '\"')
+        $script = @(
+            'tell application "Microsoft Excel"',
+            "set wb to open POSIX file ""$escapedPath""",
+            'calculate now',
+            'save workbook wb',
+            'close workbook wb saving yes',
+            'quit',
+            'end tell'
+        ) -join "`n"
+
+        try {
+            & $osascript.Source -e $script | Out-Null
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $true
+                Method = "excel-applescript"
+                Message = "Workbook recalculated with Microsoft Excel."
+            }
+        } catch {
+            return [pscustomobject]@{
+                Attempted = $true
+                Succeeded = $false
+                Method = "excel-applescript"
+                Message = $_.Exception.Message
+            }
+        }
+    }
+
+    return [pscustomobject]@{
+        Attempted = $false
+        Succeeded = $false
+        Method = "unsupported-host"
+        Message = "No native Excel automation path for this host."
     }
 }
 

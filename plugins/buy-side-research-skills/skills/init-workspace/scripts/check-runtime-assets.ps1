@@ -182,7 +182,8 @@ function New-SmokeWorkbook {
     param(
         [string]$Path,
         [string[]]$SheetNames,
-        [string[]]$SharedStrings
+        [string[]]$SharedStrings,
+        [hashtable]$SheetXmlByName = @{}
     )
 
     Add-Type -AssemblyName System.IO.Compression | Out-Null
@@ -227,7 +228,11 @@ function New-SmokeWorkbook {
             }
 
             for ($i = 0; $i -lt $SheetNames.Count; $i++) {
-                $sheetXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><worksheet xmlns=`"http://schemas.openxmlformats.org/spreadsheetml/2006/main`"><sheetData/></worksheet>"
+                $sheetName = $SheetNames[$i]
+                $sheetXml = $SheetXmlByName[$sheetName]
+                if ([string]::IsNullOrWhiteSpace($sheetXml)) {
+                    $sheetXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><worksheet xmlns=`"http://schemas.openxmlformats.org/spreadsheetml/2006/main`"><sheetData/></worksheet>"
+                }
                 $entry = $archive.CreateEntry("xl/worksheets/sheet$($i + 1).xml")
                 $writer = New-Object System.IO.StreamWriter($entry.Open(), [System.Text.UTF8Encoding]::new($false))
                 try { $writer.Write($sheetXml) } finally { $writer.Dispose() }
@@ -486,10 +491,222 @@ The hurdle and beat-and-raise framing.
     $threeStatementNoRetainedPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-retained.xlsx"
     $threeStatementNoDebtTiePath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-debt-tie.xlsx"
     $threeStatementNoDriverPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-driver.xlsx"
+    $threeStatementChecksPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-checks-pass.xlsx"
+    $threeStatementChecksNonZeroPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-checks-nonzero.xlsx"
+    $threeStatementChecksFormulaPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-checks-formula.xlsx"
+    $threeStatementHistoricalPassPath = Join-Path $workspaceRoot "topics/company/sample/_models/2026-01-01-3-statement-model-historical-pass.xlsx"
+    $threeStatementHistoricalMissingPath = Join-Path $workspaceRoot "topics/company/sample/_models/2026-01-01-3-statement-model-historical-missing.xlsx"
+    $threeStatementDriverCoveragePassPath = Join-Path $workspaceRoot "topics/company/sample/_models/2026-01-01-3-statement-model-driver-coverage-pass.xlsx"
+    $threeStatementDriverCoverageFailPath = Join-Path $workspaceRoot "topics/company/sample/_models/2026-01-01-3-statement-model-driver-coverage-fail.xlsx"
     $dcfPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model.xlsx"
     $dcfNoBridgePath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model-no-bridge.xlsx"
     $dcfNoSensitivityPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model-no-sensitivity.xlsx"
     $compsPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-comps-analysis.xlsx"
+    $financialDataInternal = Join-Path $workspaceRoot "topics/company/sample/_cache/financial-data/internal"
+    $driverMapInternal = Join-Path $workspaceRoot "topics/company/sample/_cache/driver-map/internal"
+    New-Item -ItemType Directory -Path $financialDataInternal -Force | Out-Null
+    New-Item -ItemType Directory -Path $driverMapInternal -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $financialDataInternal "actuals-resolved.json") -Encoding UTF8 -Value @'
+{
+  "schema_version": 1,
+  "status": "ok",
+  "statements": {
+    "income_statement": [
+      { "label": "Revenue", "confidence": "model-ready", "values": { "FY2023A": 100, "FY2024A": 120 } },
+      { "label": "Gross Profit", "confidence": "model-ready", "values": { "FY2023A": 40, "FY2024A": 50 } },
+      { "label": "Net Income", "confidence": "model-ready", "values": { "FY2023A": 10, "FY2024A": 15 } }
+    ],
+    "balance_sheet": [
+      { "label": "Cash and Cash Equivalents", "confidence": "model-ready", "values": { "FY2023A": 20, "FY2024A": 25 } },
+      { "label": "Total Assets", "confidence": "model-ready", "values": { "FY2023A": 200, "FY2024A": 220 } },
+      { "label": "Inventory", "confidence": "review-only", "values": { "FY2023A": 30, "FY2024A": 35 } }
+    ],
+    "cash_flow": [
+      { "label": "Operating Cash Flow", "confidence": "model-ready", "values": { "FY2023A": 15, "FY2024A": 18 } },
+      { "label": "Capital Expenditures", "confidence": "model-ready", "values": { "FY2023A": -5, "FY2024A": -6 } },
+      { "label": "Ending Cash", "confidence": "model-ready", "values": { "FY2023A": 20, "FY2024A": 25 } }
+    ]
+  },
+  "completeness": [
+    { "data_item": "income_statement", "status": "available", "model_usable": "true" },
+    { "data_item": "balance_sheet", "status": "available", "model_usable": "true" },
+    { "data_item": "cash_flow", "status": "available", "model_usable": "true" }
+  ]
+}
+'@
+    Set-Content -LiteralPath (Join-Path $financialDataInternal "evidence-pack.json") -Encoding UTF8 -Value @'
+{
+  "schema_version": 1,
+  "completeness": [
+    { "data_item": "income_statement", "status": "available", "model_usable": "true" },
+    { "data_item": "balance_sheet", "status": "available", "model_usable": "true" },
+    { "data_item": "cash_flow", "status": "available", "model_usable": "true" }
+  ]
+}
+'@
+    Set-Content -LiteralPath (Join-Path $driverMapInternal "driver-map.json") -Encoding UTF8 -Value @'
+{
+  "company": "Sample Co",
+  "segment_geography_treatment": {
+    "model_structure": "Driver-based segment model",
+    "filing_native_segments": [
+      { "reported_bucket": "Defense", "model_bucket": "Defense" },
+      { "reported_bucket": "Aerospace", "model_bucket": "Aerospace" }
+    ]
+  },
+  "revenue_drivers": [
+    {
+      "driver": "Defense revenue conversion",
+      "business_bucket": "Defense",
+      "evidence_status": "company disclosed",
+      "confidence": "High",
+      "model_treatment": "base case"
+    },
+    {
+      "driver": "Aerospace deliveries",
+      "business_bucket": "Aerospace",
+      "evidence_status": "company disclosed",
+      "confidence": "Medium",
+      "model_treatment": "base case"
+    }
+  ],
+  "margin_drivers": [
+    {
+      "driver": "Defense export mix",
+      "evidence_status": "company disclosed",
+      "confidence": "Medium",
+      "model_treatment": "base case margin bridge"
+    }
+  ],
+  "confidence_source_status": {
+    "financial_data_status": "available"
+  }
+}
+'@
+    $threeStatementChecksPassSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Audit Checks &amp; Model Integrity</t></is></c></row>
+<row r="2"><c r="B2" t="inlineStr"><is><t>FY2026E</t></is></c><c r="C2" t="inlineStr"><is><t>FY2027E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Balance Sheet Balance</t></is></c><c r="B3"><v>0</v></c><c r="C3"><v>0</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Cash Tie-Out</t></is></c><c r="B4"><v>0</v></c><c r="C4"><v>0</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Retained Earnings Roll-Forward</t></is></c><c r="B5"><v>0</v></c><c r="C5"><v>-0</v></c></row>
+<row r="6"><c r="A6" t="inlineStr"><is><t>Master Check</t></is></c><c r="B6" t="inlineStr"><is><t>ALL CHECKS PASS</t></is></c><c r="C6" t="inlineStr"><is><t>ALL CHECKS PASS</t></is></c></row>
+</sheetData></worksheet>
+"@
+    $threeStatementChecksNonZeroSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Checks</t></is></c></row>
+<row r="2"><c r="B2" t="inlineStr"><is><t>FY2026E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Balance Sheet Balance</t></is></c><c r="B3"><v>1</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Cash Tie-Out</t></is></c><c r="B4"><v>0</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Master Status</t></is></c><c r="B5" t="inlineStr"><is><t>ERRORS DETECTED</t></is></c></row>
+</sheetData></worksheet>
+"@
+    $threeStatementChecksFormulaSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Audit Checks</t></is></c></row>
+<row r="2"><c r="B2" t="inlineStr"><is><t>FY2026E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Balance Sheet Balance</t></is></c><c r="B3"><f>BS!E19-BS!E35-BS!E43</f></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Cash Tie-Out</t></is></c><c r="B4"><f>CF!E22-BS!E50</f></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Master Check</t></is></c><c r="B5"><f>IF(TRUE,&quot;ALL CHECKS PASS&quot;,&quot;ERRORS DETECTED&quot;)</f></c></row>
+</sheetData></worksheet>
+"@
+    $historicalIncomePassSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Income Statement</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2023A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2025E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Revenue</t></is></c><c r="B3"><v>100</v></c><c r="C3"><v>120</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Gross Profit</t></is></c><c r="B4"><v>40</v></c><c r="C4"><v>50</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Net Income</t></is></c><c r="B5"><v>10</v></c><c r="C5"><v>15</v></c></row>
+</sheetData></worksheet>
+"@
+    $historicalIncomeMissingSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Income Statement</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2023A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2025E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Revenue</t></is></c><c r="B3"><v>100</v></c><c r="C3"><v>120</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Gross Profit</t></is></c><c r="B4"><v>40</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Net Income</t></is></c><c r="B5"><v>10</v></c><c r="C5"><v>15</v></c></row>
+</sheetData></worksheet>
+"@
+    $historicalBalanceSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Balance Sheet</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2023A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2025E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Cash and Cash Equivalents</t></is></c><c r="B3"><v>20</v></c><c r="C3"><v>25</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Total Assets</t></is></c><c r="B4"><v>200</v></c><c r="C4"><v>220</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Inventory</t></is></c></row>
+</sheetData></worksheet>
+"@
+    $historicalCashFlowXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Cash Flow Statement</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2023A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2025E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Operating Cash Flow</t></is></c><c r="B3"><v>15</v></c><c r="C3"><v>18</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Capital Expenditures</t></is></c><c r="B4"><v>-5</v></c><c r="C4"><v>-6</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Ending Cash</t></is></c><c r="B5"><v>20</v></c><c r="C5"><v>25</v></c></row>
+</sheetData></worksheet>
+"@
+    $driverCoveragePassIsSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Income Statement</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2025A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2026E</t></is></c><c r="E2" t="inlineStr"><is><t>FY2027E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Defense</t></is></c><c r="B3" t="inlineStr"><is><t>--</t></is></c><c r="C3"><v>100</v></c><c r="D3"><f>SUM(C3)</f></c><c r="E3"><f>SUM(D3)</f></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B4" t="inlineStr"><is><t>--</t></is></c><c r="C4"><v>50</v></c><c r="D4"><f>SUM(C4)</f></c><c r="E4"><f>SUM(D4)</f></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Total Revenue</t></is></c><c r="B5"><v>150</v></c><c r="C5"><v>150</v></c><c r="D5"><f>SUM(D3:D4)</f></c><c r="E5"><f>SUM(E3:E4)</f></c></row>
+<row r="6"><c r="A6" t="inlineStr"><is><t>YoY Growth %</t></is></c><c r="C6"><f>C5/B5-1</f></c><c r="D6"><f>D5/C5-1</f></c><c r="E6"><f>E5/D5-1</f></c></row>
+<row r="7"><c r="A7" t="inlineStr"><is><t>Gross Margin %</t></is></c><c r="B7"><f>0.3</f></c><c r="C7"><f>0.31</f></c><c r="D7"><f>0.32</f></c><c r="E7"><f>0.33</f></c></row>
+<row r="8"><c r="A8" t="inlineStr"><is><t>EBIT Margin %</t></is></c><c r="B8"><f>0.1</f></c><c r="C8"><f>0.11</f></c><c r="D8"><f>0.12</f></c><c r="E8"><f>0.13</f></c></row>
+<row r="9"><c r="A9" t="inlineStr"><is><t>NI Margin %</t></is></c><c r="B9"><f>0.08</f></c><c r="C9"><f>0.09</f></c><c r="D9"><f>0.1</f></c><c r="E9"><f>0.11</f></c></row>
+</sheetData></worksheet>
+"@
+    $driverCoveragePassAssumptionsSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Assumptions</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2025A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2026E</t></is></c><c r="D2" t="inlineStr"><is><t>FY2027E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Defense</t></is></c><c r="B3" t="inlineStr"><is><t>--</t></is></c><c r="C3"><v>0.12</v></c><c r="D3"><v>0.10</v></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B4" t="inlineStr"><is><t>--</t></is></c><c r="C4"><v>0.08</v></c><c r="D4"><v>0.07</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Downside Growth</t></is></c></row>
+<row r="6"><c r="A6" t="inlineStr"><is><t>Defense</t></is></c><c r="B6"><v>0.22</v></c><c r="C6"><v>0.20</v></c><c r="D6"><v>0.20</v></c></row>
+<row r="7"><c r="A7" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B7"><v>0.10</v></c><c r="C7"><v>0.11</v></c><c r="D7"><v>0.11</v></c></row>
+<row r="8"><c r="A8" t="inlineStr"><is><t>Upside Margin</t></is></c></row>
+</sheetData></worksheet>
+"@
+    $driverCoverageFailIsSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Income Statement</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2024A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2025A</t></is></c><c r="D2" t="inlineStr"><is><t>FY2026E</t></is></c><c r="E2" t="inlineStr"><is><t>FY2027E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Defense</t></is></c><c r="B3" t="inlineStr"><is><t>--</t></is></c><c r="C3" t="inlineStr"><is><t>--</t></is></c><c r="D3" t="inlineStr"><is><t>--</t></is></c><c r="E3" t="inlineStr"><is><t>--</t></is></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B4" t="inlineStr"><is><t>--</t></is></c><c r="C4"><v>50</v></c><c r="D4"><f>SUM(C4)</f></c><c r="E4"><f>SUM(D4)</f></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Total Revenue</t></is></c><c r="B5"><v>50</v></c><c r="C5"><v>50</v></c><c r="D5"><f>SUM(D3:D4)</f></c><c r="E5"><f>SUM(E3:E4)</f></c></row>
+<row r="6"><c r="A6" t="inlineStr"><is><t>YoY Growth %</t></is></c><c r="C6"><f>C5/B5-1</f></c><c r="D6"></c><c r="E6"><f>E5/D5-1</f></c></row>
+<row r="7"><c r="A7" t="inlineStr"><is><t>Gross Margin %</t></is></c><c r="B7"><f>0.3</f></c><c r="C7"><f>0.31</f></c><c r="D7"><f>0.32</f></c><c r="E7"><f>0.33</f></c></row>
+<row r="8"><c r="A8" t="inlineStr"><is><t>EBIT Margin %</t></is></c><c r="B8"><f>0.1</f></c><c r="C8"><f>0.11</f></c><c r="D8"><f>0.12</f></c><c r="E8"><f>0.13</f></c></row>
+<row r="9"><c r="A9" t="inlineStr"><is><t>NI Margin %</t></is></c><c r="B9"><f>0.08</f></c><c r="C9"><f>0.09</f></c><c r="D9"><f>0.1</f></c><c r="E9"><f>0.11</f></c></row>
+</sheetData></worksheet>
+"@
+    $driverCoverageFailAssumptionsSheetXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>Assumptions</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>Line Item</t></is></c><c r="B2" t="inlineStr"><is><t>FY2025A</t></is></c><c r="C2" t="inlineStr"><is><t>FY2026E</t></is></c><c r="D2" t="inlineStr"><is><t>FY2027E</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>Defense</t></is></c><c r="B3" t="inlineStr"><is><t>--</t></is></c><c r="C3" t="inlineStr"><is><t>--</t></is></c><c r="D3" t="inlineStr"><is><t>--</t></is></c></row>
+<row r="4"><c r="A4" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B4" t="inlineStr"><is><t>--</t></is></c><c r="C4"><v>0.08</v></c><c r="D4"><v>0.07</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>Downside Growth</t></is></c></row>
+<row r="6"><c r="A6" t="inlineStr"><is><t>Aerospace</t></is></c><c r="B6"><v>0.10</v></c><c r="C6"><v>0.11</v></c><c r="D6"><v>0.11</v></c></row>
+<row r="7"><c r="A7" t="inlineStr"><is><t>Upside Margin</t></is></c></row>
+</sheetData></worksheet>
+"@
 
     New-SmokeWorkbook -Path $threeStatementPassPath -SheetNames @(
         "Historical Actuals",
@@ -615,6 +832,56 @@ The hurdle and beat-and-raise framing.
         "Retained Earnings Roll-Forward",
         "Revenue"
     )
+    New-SmokeWorkbook -Path $threeStatementChecksPassPath -SheetNames @(
+        "Income Statement",
+        "Audit Checks"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Audit Checks" = $threeStatementChecksPassSheetXml
+    }
+    New-SmokeWorkbook -Path $threeStatementChecksNonZeroPath -SheetNames @(
+        "Income Statement",
+        "Checks"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Checks" = $threeStatementChecksNonZeroSheetXml
+    }
+    New-SmokeWorkbook -Path $threeStatementChecksFormulaPath -SheetNames @(
+        "Balance Sheet",
+        "Audit Checks"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Audit Checks" = $threeStatementChecksFormulaSheetXml
+    }
+    New-SmokeWorkbook -Path $threeStatementHistoricalPassPath -SheetNames @(
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Income Statement" = $historicalIncomePassSheetXml
+        "Balance Sheet" = $historicalBalanceSheetXml
+        "Cash Flow Statement" = $historicalCashFlowXml
+    }
+    New-SmokeWorkbook -Path $threeStatementHistoricalMissingPath -SheetNames @(
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Income Statement" = $historicalIncomeMissingSheetXml
+        "Balance Sheet" = $historicalBalanceSheetXml
+        "Cash Flow Statement" = $historicalCashFlowXml
+    }
+    New-SmokeWorkbook -Path $threeStatementDriverCoveragePassPath -SheetNames @(
+        "Income Statement",
+        "Assumptions"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Income Statement" = $driverCoveragePassIsSheetXml
+        "Assumptions" = $driverCoveragePassAssumptionsSheetXml
+    }
+    New-SmokeWorkbook -Path $threeStatementDriverCoverageFailPath -SheetNames @(
+        "Income Statement",
+        "Assumptions"
+    ) -SharedStrings @() -SheetXmlByName @{
+        "Income Statement" = $driverCoverageFailIsSheetXml
+        "Assumptions" = $driverCoverageFailAssumptionsSheetXml
+    }
     New-SmokeWorkbook -Path $dcfPassPath -SheetNames @(
         "Market Data & Key Inputs",
         "Scenario Assumptions",
@@ -699,6 +966,22 @@ The hurdle and beat-and-raise framing.
         cwd = $workspaceRoot
         tool_name = "Write"
         tool_input = @{ path = $threeStatementPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_checks_result_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        smoke_test = $true
+        tool_input = @{ path = $threeStatementChecksPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/historical_actuals_fill_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementHistoricalPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/driver_breakdown_coverage_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementDriverCoveragePassPath }
     } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
     Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/dcf_structure_floor.ps1") -PayloadJson (@{
         cwd = $workspaceRoot
@@ -896,6 +1179,34 @@ Only buy-side bar.
         tool_name = "Write"
         tool_input = @{ path = $threeStatementNoDriverPath }
     } | ConvertTo-Json -Depth 10) -ExpectedMessage "structured revenue/driver breakdown" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_checks_result_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        smoke_test = $true
+        tool_input = @{ path = $threeStatementChecksNonZeroPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must resolve to 0" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_checks_result_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        smoke_test = $true
+        tool_input = @{ path = $threeStatementChecksFormulaPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "still shows formula text" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_checks_result_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        smoke_test = $true
+        tool_input = @{ path = $threeStatementNoMasterPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "recognizable checks-like block" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/historical_actuals_fill_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementHistoricalMissingPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "leaves source-mapped model-usable historical actuals blank" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/driver_breakdown_coverage_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementDriverCoverageFailPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "leaves driver-map-backed revenue breakdown or margin/growth blocks as placeholders" -WorkspaceRoot $workspaceRoot
     Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/dcf_audit_floor.ps1") -PayloadJson (@{
         cwd = $workspaceRoot
         tool_name = "Write"

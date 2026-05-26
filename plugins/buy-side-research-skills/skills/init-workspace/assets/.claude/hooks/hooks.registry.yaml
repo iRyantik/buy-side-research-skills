@@ -131,6 +131,18 @@ hooks:
     events: [PostToolUse, Stop]
     scope: [3-statement-model, dcf-model, model-update]
     severity: block
+  - name: historical_actuals_fill_floor
+    file: modeling/historical_actuals_fill_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: driver_breakdown_coverage_floor
+    file: modeling/driver_breakdown_coverage_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
   - name: valuation_basis_required
     file: modeling/valuation_basis_required.ps1
     layer: modeling
@@ -153,6 +165,12 @@ hooks:
     file: modeling/three_statement_driver_floor.ps1
     layer: modeling
     events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: three_statement_checks_result_floor
+    file: modeling/three_statement_checks_result_floor.ps1
+    layer: modeling
+    events: [Stop]
     scope: [3-statement-model]
     severity: block
   - name: dcf_structure_floor

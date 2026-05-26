@@ -12,7 +12,10 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 - Hook-enforced workbook legality, structure floors, formula discipline, and sub-agent boundary rules live in workspace hooks and are not restated here.
 - Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- Historical actuals that are source-mapped and model-usable must be populated into visible historical slots when the template provides them.
+- When machine-readable driver-map inputs exist, visible revenue breakdown and margin/growth driver blocks must be populated rather than left as placeholders.
 - Use bounded QA sub-agents only; the main agent owns the final workbook, forecast architecture, and delivery.
+- Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
 
 ## Research Workspace Adapter
 
@@ -43,7 +46,7 @@ Complete and populate integrated financial model templates with proper linkages 
 
 **Environment — Office JS vs Python:**
 - **If running inside Excel (Office Add-in / Office JS):** Use Office JS directly. Write formulas via `range.formulas = [["=D14*(1+Assumptions!$B$5)"]]` — never `range.values` for derived cells. No separate recalc; Excel computes natively. Use `context.workbook.worksheets.getItem(...)` to navigate tabs.
-- **If generating a standalone .xlsx file:** Use Python/openpyxl. Write `ws["D15"] = "=D14*(1+Assumptions!$B$5)"`, then run `recalc.py` before delivery.
+- **If generating a standalone .xlsx file:** Use Python/openpyxl. Write `ws["D15"] = "=D14*(1+Assumptions!$B$5)"`, then ensure the workbook is reopened and recalculated by native Microsoft Excel before delivery so the checks block exposes readable final results.
 - **Office JS merged cell pitfall:** Do NOT call `.merge()` then set `.values` on the merged range — throws `InvalidArgument` because the range still reports its pre-merge dimensions. Instead write value to top-left cell alone, then merge + format the full range: `ws.getRange("A1").values = [["INCOME STATEMENT"]]; const h = ws.getRange("A1:G1"); h.merge(); h.format.fill.color = "#1F4E79";`
 - All principles below apply identically in either environment.
 
