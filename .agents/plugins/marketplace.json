@@ -7,8 +7,8 @@
     {
       "name": "buy-side-research-skills",
       "source": {
-        "source": "local",
-        "path": "./plugins/buy-side-research-skills"
+        "source": "github",
+        "repo": "iRyantik/buy-side-research-skills"
       },
       "policy": {
         "installation": "AVAILABLE"
