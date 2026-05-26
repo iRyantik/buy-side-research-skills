@@ -20,7 +20,7 @@ from typing import Any
 REPO_URL = "https://github.com/iRyantik/buy-side-research-skills.git"
 LATEST_RELEASE_API = "https://api.github.com/repos/iRyantik/buy-side-research-skills/releases/latest"
 PLUGIN_NAME = "buy-side-research-skills"
-MARKETPLACE_NAME = "buy-side-research"
+MARKETPLACE_NAME = "buy-side-research-skills"
 LOCAL_CLAUDE_PLUGIN_ID = f"{PLUGIN_NAME}@local-desktop-app-uploads"
 GITHUB_CLAUDE_PLUGIN_ID = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 PLUGIN_MARKERS = (".claude-plugin", ".codex-plugin", "skills")
@@ -327,7 +327,7 @@ def ensure_claude_marketplace(cli: str, report: Report) -> None:
         run_command([cli, "plugins", "marketplace", "add", REPO_URL, "--scope", "user"]),
         "claude plugin marketplace add",
     )
-    report.host_actions.append("added Claude marketplace buy-side-research")
+    report.host_actions.append(f"added Claude marketplace {MARKETPLACE_NAME}")
 
 
 def claude_plugins_list(cli: str) -> list[dict[str, Any]]:
@@ -408,7 +408,7 @@ def update_codex_host(cli: str, release: ReleaseInfo, report: Report) -> None:
     config_text = codex_config_text()
     if not codex_has_marketplace(config_text):
         ensure_ok(run_command([cli, "plugin", "marketplace", "add", REPO_URL]), "codex plugin marketplace add")
-        report.host_actions.append("added Codex marketplace buy-side-research")
+        report.host_actions.append(f"added Codex marketplace {MARKETPLACE_NAME}")
 
     ensure_ok(run_command([cli, "plugin", "marketplace", "upgrade", MARKETPLACE_NAME]), "codex plugin marketplace upgrade")
     report.host_actions.append("upgraded Codex marketplace snapshot")
@@ -418,7 +418,7 @@ def update_codex_host(cli: str, release: ReleaseInfo, report: Report) -> None:
 
     final_config = codex_config_text()
     if not codex_has_marketplace(final_config):
-        raise UpdateRuntimeError("Codex marketplace buy-side-research missing after update")
+        raise UpdateRuntimeError(f"Codex marketplace {MARKETPLACE_NAME} missing after update")
     if not codex_plugin_enabled(final_config):
         raise UpdateRuntimeError(f"{PLUGIN_NAME}@{MARKETPLACE_NAME} is not enabled in Codex config after update")
 

@@ -22,7 +22,7 @@ Responsible for:
 
 - Detecting whether the current execution context is Claude Code or Codex.
 - Updating only that host by default.
-- Switching Claude installs to the GitHub `buy-side-research` marketplace channel when needed.
+- Switching Claude installs to the GitHub `buy-side-research-skills` marketplace channel when needed.
 - Refreshing Codex marketplace snapshots and reinstalling the plugin from the official marketplace snapshot.
 - Repairing current workspace runtime assets through the latest packaged `init-workspace` helper.
 - Patching managed sections of workspace `CLAUDE.md` and `AGENTS.md` conservatively.
@@ -72,8 +72,8 @@ When `host=auto`, update only the current host. Do not scan and mutate the other
 
 Use the official `claude plugin` CLI only:
 
-- ensure marketplace `buy-side-research`
-- install or update `buy-side-research-skills@buy-side-research`
+- ensure marketplace `buy-side-research-skills`
+- install or update `buy-side-research-skills@buy-side-research-skills`
 - if the current install is `buy-side-research-skills@local-desktop-app-uploads`, move it to the GitHub marketplace channel
 - verify `.claude/plugins/installed_plugins.json` and enabled plugin state
 
@@ -81,9 +81,9 @@ Use the official `claude plugin` CLI only:
 
 Use the official Codex plugin CLI only:
 
-- ensure marketplace `buy-side-research`
-- `plugin marketplace upgrade buy-side-research`
-- `plugin add buy-side-research-skills@buy-side-research`
+- ensure marketplace `buy-side-research-skills`
+- `plugin marketplace upgrade buy-side-research-skills`
+- `plugin add buy-side-research-skills@buy-side-research-skills`
 - verify `.codex/config.toml` and the latest cache directory
 
 Codex does not have a `plugin update` subcommand. The official update path is marketplace refresh plus plugin add.
