@@ -164,6 +164,8 @@ Longbridge 有独立插件，提供了行情、估值、共识、持仓、自选
 > **Codex**：`codex plugin marketplace add longbridge/skills`
 
 > Marketplace 地址：[https://github.com/longbridge/skills](https://github.com/longbridge/skills)
+>
+> 安装插件后，`longbridge` 命令行工具会自动下载到你的电脑。
 
 **第二步：登录 Longbridge**
 
@@ -195,11 +197,20 @@ longbridge auth login
 
 **如果你只做对话类研究（分析、写 thesis、做 peer comparison），跳过这一步。**
 
-只有当你要处理 PDF/Excel 文件，或拉取结构化财务数据时，才需要。在 Claude Code 里说：
+只有当你要用到以下功能时，才需要对应的 Python 包。在 Claude Code 里说：
 
 > "帮我检查 ingest 和 financial-data 的 Python 依赖是否齐全，缺什么就帮我装上"
 
-Claude 会自动检查并安装。这是一次性的。
+Claude 会自动检查并安装。这是一次性的。具体包含：
+
+| 用到什么功能 | 会装哪些 Python 包 |
+|---|---|
+| **处理 PDF/Excel/PPT/Word 文件**（ingest） | docling, edgartools, pymupdf4llm, openpyxl, python-pptx, python-docx, pdfplumber, pypdf, Pillow |
+| **拉取美股/A股/港股/日股/韩股财务数据**（financial-data） | edgartools, akshare, edinet-tools, dart-fss, openesef |
+| **看 Reddit 情绪**（reddit-sentiment） | scrapi-reddit |
+| **生成 DCF Excel 模型**（dcf-model） | openpyxl, requests |
+
+> **可选环境变量**：`env-setup.ps1.template` 还包含 `EDGAR_LOCAL_DATA_DIR`（EDGAR 缓存路径）、`HF_ENDPOINT`（中国用户 HuggingFace 镜像）和 `VLM_API_URL`（图片描述视觉模型），这些通常不需要手动设置，Claude 会按需配置。
 
 ---
 
@@ -396,10 +407,6 @@ Claude 会自动检查并安装。这是一次性的。
 - 链接标注了 `[link 待补]` → Claude 不确定 URL 是否存在，需手动查证。
 - 链接标注了 `[agent-provided, 未验证]` → AI 提供的 URL，需抽查。
 - 插件遵循严格的反幻觉规则，宁可标注"不确定"也不编造链接。
-
-### Q6：我连 Python 都不会装
-
-去 python.org，点黄色大按钮下载，安装时**一定勾选 "Add Python to PATH"**，然后一路下一步。装好之后告诉 Claude：*"帮我检查并安装 ingest 和 financial-data 的 Python 依赖"*。
 
 ---
 
