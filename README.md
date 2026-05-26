@@ -205,9 +205,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ## 4. 快速入门
 
-以下所有场景，你都是在用中文跟 Claude 对话。不需要写代码，不需要敲命令。
-
-### 场景 A：快速看一家不熟的公司
+假设你想快速看一家公司：**Vertiv（VRT）**。
 
 **你**：帮我新建一个 Vertiv 的研究 session
 
@@ -221,7 +219,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-### 场景 B：有主题想法，找受益股
+再比如你有一个主题想法，想找受益股：
 
 **你**：帮我新建一个 AI 数据中心电力的研究 session
 
@@ -230,76 +228,6 @@ Claude 会自动检查并安装。这是一次性的。
 **你**：用 candidate-screener 找 AI 数据中心电力的受益股
 
 **你**：（筛选出几家后）用 peer-deep-dive 比较 VRT、GEV、SMCI
-
----
-
-### 场景 C：认真研究一家公司，搭模型
-
-**你**：帮我新建一个 Rocket Lab 的研究 session
-
-**你**：用 financial-data 拉 RKLB 美股数据
-
-**你**：用 company-primer 深度看 RKLB
-
-**你**：用 driver-map 拆 RKLB 的 revenue driver
-
-**你**：用 3-statement-model 给 RKLB 搭历史+预测三表模型
-
-**你**：用 dcf-model 给 RKLB 做估值
-
-**你**：用 alpha-thesis 写 RKLB 做多 thesis
-
-**你**：用 bear-pre-mortem 打一下这个做多 thesis
-
----
-
-### 场景 D：财报季来了
-
-**你**：帮我新建一个 GE Q1 2026 财报的研究 session
-
-**你**：用 earnings-setup 准备下周 GE 的财报
-
-**你**：（财报出了后）用 model-update 把最新数据更新进 GE 的模型
-
-**你**：用 research-journal 记录 post-earnings 的判断更新
-
----
-
-### 场景 E：搞懂一个陌生行业
-
-**你**：帮我新建一个燃气轮机行业的研究 session
-
-**你**：用 industry-quickread 看燃气轮机行业
-
-**你**：用 mechanism-map 解释燃气轮机
-
-**你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上找上市公司
-
-**你**：用 peer-deep-dive 比较 GE Vernova、西门子能源、三菱重工
-
----
-
-### 场景 F：突发新闻来了
-
-**你**：我刚刚看到——"美国商务部提议限制 AI 芯片出口"。用 information-impact 分析这条消息
-
-**你**：（根据分析结果）用 candidate-screener 按这个消息的逻辑找受益股
-
----
-
-### 场景 G：想做空一只股票
-
-**你**：帮我新建一个 IONQ 做空的研究 session
-
-**你**：用 consensus-map 看市场对 IONQ 的预期
-
-**你**：用 driver-map 拆 IONQ 的 revenue driver
-
-**你**：用 alpha-thesis 写 IONQ 做空 thesis
-
-**你**：用 bear-pre-mortem 反打这份做空 thesis（检验你的做空逻辑）
-
----
 
 **整个过程你没有写一行代码，也没有敲任何命令。你只是在用中文跟 Claude 对话。**
 
@@ -319,44 +247,44 @@ Claude 会自动检查并安装。这是一次性的。
 
 ### 运维类
 
-| 我想做什么 | 跟 Claude 说 | 要 Python 吗 |
-|---|---|---|
-| 创建/修复研究 workspace | "帮我初始化研究 workspace" | 否 |
-| 新建一个研究主题 | "帮我新建一个 XXX 的研究 session" | 否 |
-| 把 PDF/Excel/PPT 转成可搜索文本 | "帮我用 ingest 处理 \_inbox 里的文件" | **是** |
-| 拉取美股/A股/港股/日股/韩股财务数据 | "用 financial-data 拉 AAPL 美股数据" | **是** |
-| 获取实时行情/估值/共识（A股/港股/美股） | "用 trusted-market-bridge 拉 NVDA 市场数据" | 否 |
-| 更新插件到最新版 | "用 update-agent-runtime 更新插件" | 否 |
-| 合并子 topic | "帮我把子 topic 合并到父 topic" | 否 |
-| 把行业里的公司研究沉淀到 company 目录 | "把 XXX 的 RKLB 研究 promote 到 company" | 否 |
+| 我想做什么 | 跟 Claude 说 |
+|---|---|
+| 创建/修复研究 workspace | "帮我初始化研究 workspace" |
+| 新建一个研究主题 | "帮我新建一个 XXX 的研究 session" |
+| 把 PDF/Excel/PPT 转成可搜索文本 | "帮我用 ingest 处理 \_inbox 里的文件" |
+| 拉取美股/A股/港股/日股/韩股财务数据 | "用 financial-data 拉 AAPL 美股数据" |
+| 获取实时行情/估值/共识（A股/港股/美股） | "用 trusted-market-bridge 拉 NVDA 市场数据" |
+| 更新插件到最新版 | "用 update-agent-runtime 更新插件" |
+| 合并子 topic | "帮我把子 topic 合并到父 topic" |
+| 把行业里的公司研究沉淀到 company 目录 | "把 XXX 的 RKLB 研究 promote 到 company" |
 
 ### 研究类
 
-| 我想做什么 | 跟 Claude 说 | 大概耗时 |
-|---|---|---|
-| 快速看一家公司 | "用 stock-quickread 看 VRT" | 15-30 分钟 |
-| 快速了解一个行业 | "用 industry-quickread 看核电行业" | 20-40 分钟 |
-| 从主题出发找受益股 | "用 candidate-screener 找 AI 电力的受益股" | 30-60 分钟 |
-| 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" | 10-15 分钟 |
-| 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" | 15-45 分钟 |
-| 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | 10 分钟 |
-| 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" | 1-2 小时 |
-| 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" | 1-2 小时 |
-| 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" | 1-2 小时 |
-| 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" | 1-3 小时 |
-| 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" | 1-2 小时 |
-| 横向比较同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" | 2-4 小时 |
-| 写做多/做空 thesis | "用 alpha-thesis 写 IONQ 做空 thesis" | 2-4 小时 |
-| 找 thesis 漏洞/压测 | "用 bear-pre-mortem 压测我对 RKLB 的多头 thesis" | 1-2 小时 |
-| 准备财报季 | "用 earnings-setup 准备下周 GE 的财报" | 1-2 小时 |
-| 分析 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" | 2-3 小时 |
-| 设计专家访谈/调研计划 | "用 primary-research-plan 设计验证方案" | 1-2 小时 |
-| 搭三表财务预测模型 | "用 3-statement-model 给 Rocket Lab 搭模型" | 2-4 小时 |
-| 做 DCF 估值 | "用 dcf-model 给 GE Vernova 做估值" | 2-4 小时 |
-| 做可比公司估值 | "用 comps-analysis 做核电行业的可比分析" | 1-3 小时 |
-| 更新已有模型（财报后） | "用 model-update 更新 GE 的模型" | 1-2 小时 |
-| 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" | 30 分钟 |
-| 把研究文做成 HTML 图表 | "用 research-viz 把这篇做成 capability map" | 20-60 分钟 |
+| 我想做什么 | 跟 Claude 说 |
+|---|---|
+| 快速看一家公司 | "用 stock-quickread 看 VRT" |
+| 快速了解一个行业 | "用 industry-quickread 看核电行业" |
+| 从主题出发找受益股 | "用 candidate-screener 找 AI 电力的受益股" |
+| 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" |
+| 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" |
+| 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" |
+| 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" |
+| 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" |
+| 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" |
+| 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" |
+| 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" |
+| 横向比较同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" |
+| 写做多/做空 thesis | "用 alpha-thesis 写 IONQ 做空 thesis" |
+| 找 thesis 漏洞/压测 | "用 bear-pre-mortem 压测我对 RKLB 的多头 thesis" |
+| 准备财报季 | "用 earnings-setup 准备下周 GE 的财报" |
+| 分析 pair trade | "用 pair-trade 分析做多 VRT 做空 SMCI" |
+| 设计专家访谈/调研计划 | "用 primary-research-plan 设计验证方案" |
+| 搭三表财务预测模型 | "用 3-statement-model 给 Rocket Lab 搭模型" |
+| 做 DCF 估值 | "用 dcf-model 给 GE Vernova 做估值" |
+| 做可比公司估值 | "用 comps-analysis 做核电行业的可比分析" |
+| 更新已有模型（财报后） | "用 model-update 更新 GE 的模型" |
+| 把研究结论沉淀下来 | "用 research-journal 总结这轮研究" |
+| 把研究文做成 HTML 图表 | "用 research-viz 把这篇做成 capability map" |
 
 ---
 
@@ -415,5 +343,5 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-**版本**：v4.3.1
+**版本**：v4.3.0
 **最后更新**：2026-05-26
