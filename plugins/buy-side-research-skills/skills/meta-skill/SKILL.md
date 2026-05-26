@@ -473,7 +473,7 @@ Artifact policy：
 
 ### 8. Source 政策（runtime shared rules 摘要）
 
-Research skill 的通用 source / anti-hallucination 规则放在开头的 canonical medium capsule，`Source 政策` 节只写 skill-specific 增量。
+Research skill 的通用 source / anti-hallucination 规则放在开头的 canonical medium capsule，`Source 政策` 节只写 skill-specific 增量。通用 source legality、anchor / `## Resources` 合法性、no orphan truth claim 和 fabrication prohibition 这类 binary source rule 属于 hooks-first runtime law，不应在 skill-level `Source 政策` 里重复展开。
 
 Claim-level source contract：
 - 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟 inline clickable short source anchor，如 `[S1](link)`、`[P1](link)`、`[I1](link)`。

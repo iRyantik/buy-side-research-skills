@@ -11,21 +11,13 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、quickread verdict、下一步研究判断、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
+本 skill 独立运行时也必须携带最小必要的 runtime 摘要。详细 authoring baseline 仍在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设该文件会被自动读取。
+- 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
+- Source stance 分两条 track：disclosure-fact fields 优先 `workspace-local > primary public > trusted third-party > web`；market-snapshot fields 优先 `workspace-local / financial-data > trusted third-party > web`。同一质量层内优先 `home-market / local-language source`；`internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口，不冒充 company-disclosed fact。
+- 最终 synthesis、source conflict handling、quickread verdict 和 routing 由主 agent 统一负责。只有用户明确要求 `sub-agent`、`delegate` 或并行时，才允许 sub-agent 做 bounded evidence gathering / QA。
+- 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
+- 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-map`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
+- 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
 # Stock Quickread
 
@@ -39,25 +31,15 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 ## Source 政策
 
-- Claim-Level Source Contract：正文里的每个 truth-like claim（业务事实、财务数字、valuation clue、price action、市场数据）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`，不只表格 `Ev` 要挂证据。
-- No Orphan Truth Claim：输出前检查数字、业务事实、segment claim、`market expects` / `company disclosed` 等表述是否都有 anchor；没有就补 source、降级为 gap，或删除。
+通用 binary source legality 由 workspace hooks 执行，本节只保留 quickread-specific source behavior。
+- 受控 fallback 只适用于 market-snapshot 字段，例如 valuation anchor、price action、market multiple、FCF yield、capital-cycle ratio、近期股价或板块表现。本地 `_cache/` 或 `financial-data` 缺失时，才按 trusted third-party 再到 public web 的顺序回退；business fact、segment profit、company-disclosed KPI、未披露分部事实不走这条路径。
+- market-snapshot fallback 顺序固定为 `workspace-local / financial-data > trusted third-party > web`。如果使用 web fallback，在 `Ev` 保留 `[I1](link)` 这类锚点，并在 `## Resources` 展开 provider、as-of、URL 和 fallback reason。
+- 涉及 `market_quote`、`valuation_snapshot`、`price_action`、`consensus` 或 `financial_snapshot` 时，可优先调用 `trusted-market-bridge`。bridge 命中的字段使用 `[LBG1](link)` 这类锚点，并在 `## Resources` 展开 provider、symbol、market、as-of 和 fallback reason。
+- `trusted-market-bridge` 只补市场判断层和 quick context，不上升为 company-disclosed truth，也不替代 `financial-data`。如果 bridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，除非用户明确要求 `longbridge_only`，否则回到正常的 trusted-third-party / web 路径。
+- 不允许把 web source 或 `trusted-market-bridge` 结果写成 business description、segment economics、customer / product / backlog facts 或 disclosure wording。相关 gap 继续 handoff 到 `company-primer`、`driver-map` 或 `consensus-map`。
+- 本 quickread 首次使用 internet fallback 时，正文需加一句：`以下标记为 internet source 的字段，是本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
+- locality-aware event / news 规则在本 skill 仍然成立：同一 source-quality tier 内优先 home-market / local-language event source；如果使用 global 或 English fallback，在最终 `## Resources` 里写清 fallback reason。
 
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 quickread-specific 要求。
-
-快速提醒：
-- 每条事实、数字、引语必须贴可点击 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 允许对 market 型 section 做受控 fallback：估值锚、price action、市场倍数、FCF yield、capital-cycle ratio 所需市场端数据、近期股价 / 板块表现，在本地 `_cache` / `financial-data` 缺失时可补公开网页数据，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 用 `[I1](link)` 表示。
-- 对这些 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 trusted third-party，最后才是公开网页 fallback；公司理解层和披露事实层仍优先 `primary public`，不沿这条 market-snapshot 轨降级。
-- 如果对象属于 A股 / 港股 / 美股，且本节需要 `market_quote`、`valuation_snapshot`、`price_action`、`consensus` 或 `financial_snapshot`，可先调用 `trusted-market-bridge`；bridge 命中字段使用 `[LBG1](link)` 风格锚点，在 `## Resources` 展开 provider、symbol、market、as-of 与 fallback reason。
-- `trusted-market-bridge` 在本 skill 里只补市场判断层和 quick context：当前价格、估值位置、区间表现、consensus framing、最新财务快照。`financial_snapshot` 不能上升为 company-disclosed truth，也不能替代 `financial-data`。
-- 如果 Longbridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，默认继续回退到既有 web / internet source；正文不需要展开解释，只在最终 `## Resources` 写清 fallback reason。只有用户明确要求 `longbridge_only` 时才不回退。
-- 不允许用 internet source 补 business fact、segment 利润、company-disclosed KPI、未披露分部事实；这些缺口继续写 `[需查证]` / `[来源待补]` / `not disclosed`。
-- 不允许把 `trusted-market-bridge` 结果写成 business description、segment economics、customer / product / backlog facts 或 disclosure wording；发现公司理解层缺口时，继续 handoff 到 `company-primer`、`driver-map` 或 `consensus-map`。
-- 若本 quickread 首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-- 表格必须保留 `Ev` / `证据` 短链接列；完整 source metadata 放文末 `## Resources`。不确定 URL 是否存在时写 `[link 待补]`，不得编造。
-- sub-agent 返回的 URL 只能当线索，抽查匹配后才能写成 verified source。
-
-- Locality-aware news / event evidence: at the same source-quality tier, prefer home-market / local-language sources for event claims; if using global or English fallback, state the fallback reason in the final `## Resources` list.
 ## Parallel Evidence Pass
 
 只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
