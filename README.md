@@ -116,6 +116,14 @@ Claude Code / Codex（你的 AI 助手）
 
 > **macOS 用户注意**：workspace 的 hooks 和辅助脚本依赖 PowerShell 7（`pwsh`）。如果你还没装，先跑 `brew install powershell` 再继续下一步。
 
+### 第四步：更新插件
+
+当有新版本发布时，在 Claude Code 里说：
+
+> "用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"
+
+它会自动拉取最新版本、修复 hooks 和 `_scripts/`、同步 `CLAUDE.md` 的 managed sections。不会覆盖你自定义的内容。
+
 ---
 
 ## 3. 配置
@@ -233,17 +241,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-## 5. 更新插件
-
-当有新版本发布时，在 Claude Code 里说：
-
-> "用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"
-
-它会自动拉取最新版本、修复 hooks 和 `_scripts/`、同步 `CLAUDE.md` 的 managed sections。不会覆盖你自定义的内容。
-
----
-
-## 6. Skill 速查表
+## 5. Skill 速查表
 
 ### 运维类
 
