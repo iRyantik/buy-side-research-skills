@@ -7,27 +7,11 @@ description: Map consensus buy-side bar priced-in assumptions revisions and vari
 
 Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、consensus conclusion、variant-view judgment、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
-
-# Consensus Map
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把单股、peer cluster、行业或主题的市场预期摊开：sell-side numbers 是什么，buy-side bar 可能在哪里，价格已经隐含了什么，核心 debate 卡在哪些假设上，哪里才可能有真正的 variant view。
 
@@ -40,36 +24,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：可见的 sell-side consensus、不可见但可推断的 buy-side bar、以及价格 / 估值 / 仓位已经隐含的 assumptions。三者不一致时，机会或风险通常就在缝里。
 
 本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-quickread` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（consensus 数字、revision、price reaction、implied move、multiple、crowding 线索）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`，不只表格 `Ev` 要挂证据。
-- No Orphan Truth Claim：输出前检查 `market expects`、`consensus implies`、provider 数字、管理层或公司披露 claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 consensus-map-specific 要求。
-
-特别强调：
-- **consensus 数字必须写 provider / as-of / metric definition**：例如 Visible Alpha、FactSet、Bloomberg、CapIQ、company-collected consensus；没有可靠 provider 时写 `[需查证]`，不要估。
-- **A股 / 港股 / 美股可优先借用 `trusted-market-bridge`**：当对象属于 `US/HK/SH/SZ`，且缺的是 `market_quote`、`price_action`、`valuation_snapshot`、`news`、`filings`、`consensus` 或 `financial_snapshot` 时，可先调用 `trusted-market-bridge` 拉取 Longbridge 证据包；对这些 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 `trusted-market-bridge`，最后才是 web fallback。正文和表格沿用 `[LBG1](link)` 这类短锚点，并在 `## Resources` 展开 `Longbridge Securities | domain | symbol.market | as-of | fallback reason`。这仍然是 provider-derived evidence，不升级为 company-disclosed fact。
-- **本 skill 允许 market-data fallback**：当本地 consensus pack 或结构化 cache 缺失时，可对 consensus provider 数字、revision、price reaction、multiple、options implied move、short interest、crowding 线索补公开网页 source，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
-- **bridge 失败默认回退到 web fallback**：若 `trusted-market-bridge` 返回 `scope_restricted`、`unsupported_market`、`unavailable` 或 `ambiguous`，按本 skill 既有的 source hierarchy 和 fallback 逻辑继续回退；其中 `scope_restricted` 默认降级到现有 web / internet market source，正文不必额外展开，只需在最终 `## Resources` 写清 fallback reason。只有用户明确要求 `longbridge_only` 时才不回退。
-- **broker notes 只能证明 narrative，不等于 consensus dataset**：可以引用为"某类多空论点"，但不能用 2-3 篇报告冒充市场一致预期。
-- **buy-side bar 必须标为推断**：用 price reaction、revision breadth、multiple expansion、options implied move、short interest、crowding、call transcript Q&A 等推断时，必须写"推断依据"和不确定性。
-- **market-implied assumptions 必须说明方法**：倍数反推、reverse DCF、required CAGR、implied margin、bear-implied downside 不能只给结论；如果没有模型支撑，写成 clue 并 handoff 到 `3-statement-model / dcf-model / comps-analysis / model-update`。
-- **revision direction 要有时间窗**：3M / 6M / since last print / since investor day，不要写"最近上修"却没有 as-of。
-- **没有数据时不要假装完整**：表格允许出现 `[需查证]`、`[来源待补]`、`not disclosed`，但不能填 AI 猜测。
-- **不要把 internet source 冒充 company fact**：管理层原话、company-disclosed KPI、业务事实和未披露 driver 缺口不适用自动 fallback，缺口继续标 `[需查证]` / `[来源待补]` / `not disclosed`。
-- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
-## Parallel Evidence Pass
-
-只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：consensus numbers / as-of、revision direction、buy-side bar evidence、market-implied assumption inputs、debate map sources。
-- sub-agent 不得写最终 consensus conclusion、priced-in verdict、variant-view gap、thesis handoff 或 earnings setup decision；这些必须由主 agent 综合。
-- 主 agent 必须抽查关键 URL / claim，并统一 provider、metric definition、as-of、time window 和 inference label 后再写 conclusion。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限
 
@@ -143,10 +97,9 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|
-| Revenue / EBITDA / EPS / FCF / KPI | [number] | [up/down/flat] | [range/stdev if available] | [S1](link) | [投资含义] |
+| Revenue / EBITDA / EPS / FCF / KPI | [number] | [up/down/flat] | [range/stdev if available] | [S1](./_cache/sources/consensus-pack.md) | [投资含义] |
 
-
-正文 claim 示例：`Consensus FY26 EBITDA has moved down 6% over three months, while dispersion widened from 8% to 14%. [S1](link)`
+正文 claim 示例：`Consensus FY26 EBITDA has moved down 6% over three months, while dispersion widened from 8% to 14%. [S1](./_cache/sources/consensus-pack.md)`
 
 **Takeaway**: [市场数字共识到底集中在哪个 operating assumption]
 
@@ -156,7 +109,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 |---|---|---|---|
 | Price reaction | [e.g. stock rallies despite inline prints] | [events + source] | High/Medium/Low |
 | Multiple / valuation | [current multiple implies X] | [Bloomberg / CapIQ / 自算] | [confidence] |
-| Options / short interest / crowding | [implied move / SI / flow clue] | [source] | [confidence] |
+| Options / short interest / crowding | [implied move / SI / flow clue] | [I4](https://example.com/options-and-si) | [confidence] |
 | Narrative | [what holders likely need to believe] | [broker / calls / media] | [confidence] |
 
 **Discipline**: buy-side bar 是推断，不要写成事实。
@@ -171,18 +124,17 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Assumption ladder | What consensus needs | Observable KPI | Ev | Handoff if unclear |
 |---|---|---|---|---|
-| Revenue | [growth / orders / conversion] | [KPI] | [S1](link) | `driver-map` if mapping unclear |
-| Margin | [mix / pricing / utilization] | [KPI] | [S1](link) | `driver-map` |
+| Revenue | [growth / orders / conversion] | [KPI] | [S1](./_cache/sources/consensus-pack.md) | `driver-map` if mapping unclear |
+| Margin | [mix / pricing / utilization] | [KPI] | [S1](./_cache/sources/consensus-pack.md) | `driver-map` |
 
-
-正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](link)`
-| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [source] | `3-statement-model / dcf-model / comps-analysis / model-update` |
+正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](./_cache/sources/consensus-pack.md)`
+| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `3-statement-model / dcf-model / comps-analysis / model-update` |
 
 ## 6. Where Consensus Could Be Wrong
 
 | Variant slot | Direction | Why it may be mispriced | Needed proof | Next source |
 |---|---|---|---|---|
-| [slot] | Long / Short | [reason] | [evidence] | [source/action] |
+| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `next-step` |
 
 ## 7. What Would Change Consensus
 
@@ -229,7 +181,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Anchor | Role in theme | What market seems to price | Key KPI | Ev |
 |---|---|---|---|---|
-| [name] | [stage] | [growth / margin / scarcity / policy] | [KPI] | [S1](link) 或 GAP |
+| [name] | [stage] | [growth / margin / scarcity / policy] | [KPI] | [S1](./_cache/sources/consensus-pack.md) 或 GAP |
 
 ```
 

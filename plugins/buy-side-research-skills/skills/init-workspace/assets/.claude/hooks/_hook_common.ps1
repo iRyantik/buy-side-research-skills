@@ -229,6 +229,221 @@ function Test-IsArtifactLikeText {
     return $false
 }
 
+function Get-ResourcesSectionText {
+    param([string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { return $null }
+    $match = [regex]::Match($Text, '(?is)^##\s*Resources\b(.*)$', [System.Text.RegularExpressions.RegexOptions]::Multiline)
+    if (-not $match.Success) { return $null }
+    return $match.Groups[1].Value.Trim()
+}
+
+function Get-BodyWithoutResources {
+    param([string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { return "" }
+    return ([regex]::Replace($Text, '(?is)^##\s*Resources\b.*$', '', [System.Text.RegularExpressions.RegexOptions]::Multiline)).Trim()
+}
+
+function Get-ShortAnchorMatches {
+    param([string]$Text)
+
+    $results = New-Object System.Collections.Generic.List[object]
+    if ([string]::IsNullOrWhiteSpace($Text)) { return @() }
+
+    $pattern = '\[((?:S|P|I|LBG)\d+)([^\]]*)\]\(([^)]+)\)'
+    foreach ($match in [regex]::Matches($Text, $pattern)) {
+        [void]$results.Add([pscustomobject]@{
+            Code = $match.Groups[1].Value
+            LabelSuffix = $match.Groups[2].Value
+            Target = $match.Groups[3].Value.Trim()
+            FullMatch = $match.Value
+        })
+    }
+
+    return $results.ToArray()
+}
+
+function Get-ResourcesEntries {
+    param([string]$ResourcesText)
+
+    $results = New-Object System.Collections.Generic.List[object]
+    if ([string]::IsNullOrWhiteSpace($ResourcesText)) { return @() }
+
+    $pattern = '(?im)^\s*-\s*\[((?:S|P|I|LBG)\d+)([^\]]*)\]\(([^)]+)\)\s*=\s*(.*)$'
+    foreach ($match in [regex]::Matches($ResourcesText, $pattern)) {
+        [void]$results.Add([pscustomobject]@{
+            Code = $match.Groups[1].Value
+            LabelSuffix = $match.Groups[2].Value
+            Target = $match.Groups[3].Value.Trim()
+            Metadata = $match.Groups[4].Value.Trim()
+            Line = $match.Value.Trim()
+        })
+    }
+
+    return $results.ToArray()
+}
+
+function Test-IsValidSourceTarget {
+    param([string]$Target)
+
+    if ([string]::IsNullOrWhiteSpace($Target)) { return $false }
+
+    $clean = $Target.Trim()
+    if ($clean -match '^(?i:link|url)$') { return $false }
+    if ($clean.StartsWith('#') -or $clean.StartsWith('?') -or $clean.StartsWith('&')) { return $false }
+
+    $absoluteUri = $null
+    if ([System.Uri]::TryCreate($clean, [System.UriKind]::Absolute, [ref]$absoluteUri)) {
+        return $absoluteUri.Scheme -in @('http', 'https')
+    }
+
+    if ([System.IO.Path]::IsPathRooted($clean)) {
+        try {
+            [void][System.IO.Path]::GetFullPath($clean)
+            return $true
+        } catch {
+            return $false
+        }
+    }
+
+    if ($clean -match '^[A-Za-z][A-Za-z0-9+\.-]*:') {
+        return $false
+    }
+
+    $invalidChars = [System.IO.Path]::GetInvalidPathChars()
+    if ($clean.IndexOfAny($invalidChars) -ge 0) { return $false }
+
+    $looksLikeRelativePath =
+        ($clean -match '^[.]{1,2}[\\/]') -or
+        ($clean -match '[\\/]') -or
+        ($clean -match '^[^\\/:*?""<>|]+\.[A-Za-z0-9]{1,10}$')
+
+    if (-not $looksLikeRelativePath) { return $false }
+
+    try {
+        [void][System.IO.Path]::GetFullPath((Join-Path (Get-Location).Path $clean))
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Get-SourceContractState {
+    param([string]$Text)
+
+    $body = Get-BodyWithoutResources -Text $Text
+    $resources = Get-ResourcesSectionText -Text $Text
+    $bodyAnchors = @(Get-ShortAnchorMatches -Text $body)
+    $resourceEntries = @(Get-ResourcesEntries -ResourcesText $resources)
+
+    $resourceMap = @{}
+    foreach ($entry in $resourceEntries) {
+        if (-not $resourceMap.ContainsKey($entry.Code)) {
+            $resourceMap[$entry.Code] = @()
+        }
+        $resourceMap[$entry.Code] += $entry
+    }
+
+    [pscustomobject]@{
+        Body = $body
+        Resources = $resources
+        BodyAnchors = $bodyAnchors
+        ResourceEntries = $resourceEntries
+        ResourceMap = $resourceMap
+    }
+}
+
+function Get-PrimaryHeading {
+    param([string]$Text)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { return $null }
+    $match = [regex]::Match($Text, '(?im)^#\s+(.+?)\s*$')
+    if (-not $match.Success) { return $null }
+    return $match.Groups[1].Value.Trim()
+}
+
+function Test-MarkdownTargetIdentity {
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [string]$PathLeafPattern,
+        [string]$HeadingPattern
+    )
+
+    if ($Target.kind -eq "file" -and $Target.path -and $PathLeafPattern) {
+        $leaf = [System.IO.Path]::GetFileName($Target.path)
+        if ($leaf -match $PathLeafPattern) { return $true }
+    }
+
+    if ($HeadingPattern) {
+        $heading = Get-PrimaryHeading -Text ([string]$Target.text)
+        if ($heading -and $heading -match $HeadingPattern) { return $true }
+    }
+
+    return $false
+}
+
+function Test-IsMarkdownTableSeparatorLine {
+    param([string]$Line)
+
+    if ([string]::IsNullOrWhiteSpace($Line)) { return $false }
+    return $Line -match '^\s*\|?(?:\s*:?-{3,}:?\s*\|)+(?:\s*:?-{3,}:?\s*)\|?\s*$'
+}
+
+function Get-MarkdownTableColumnCount {
+    param([string]$Line)
+
+    if ([string]::IsNullOrWhiteSpace($Line)) { return 0 }
+
+    $clean = $Line.Trim()
+    if ($clean.StartsWith('|')) { $clean = $clean.Substring(1) }
+    if ($clean.EndsWith('|')) { $clean = $clean.Substring(0, $clean.Length - 1) }
+    if ([string]::IsNullOrWhiteSpace($clean)) { return 0 }
+
+    return @($clean -split '(?<!\\)\|').Count
+}
+
+function Get-MarkdownPipeTables {
+    param([string]$Text)
+
+    $tables = New-Object System.Collections.Generic.List[object]
+    if ([string]::IsNullOrWhiteSpace($Text)) { return @() }
+
+    $lines = $Text -split "`r?`n"
+    $index = 0
+    while ($index -lt ($lines.Count - 1)) {
+        $header = [string]$lines[$index]
+        $separator = [string]$lines[$index + 1]
+
+        if ($header -match '\|' -and (Test-IsMarkdownTableSeparatorLine -Line $separator)) {
+            $blockLines = New-Object System.Collections.Generic.List[string]
+            [void]$blockLines.Add($header)
+            [void]$blockLines.Add($separator)
+
+            $cursor = $index + 2
+            while ($cursor -lt $lines.Count) {
+                $line = [string]$lines[$cursor]
+                if ([string]::IsNullOrWhiteSpace($line)) { break }
+                if ($line -notmatch '\|') { break }
+                [void]$blockLines.Add($line)
+                $cursor += 1
+            }
+
+            [void]$tables.Add([pscustomobject]@{
+                StartLine = $index + 1
+                Lines = $blockLines.ToArray()
+            })
+
+            $index = $cursor
+            continue
+        }
+
+        $index += 1
+    }
+
+    return $tables.ToArray()
+}
+
 function Test-IsTopicArtifactRootFile {
     param(
         [Parameter(Mandatory = $true)][string]$Path,

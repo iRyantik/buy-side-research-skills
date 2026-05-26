@@ -5,6 +5,12 @@ hooks:
     events: [PostToolUse, Stop]
     scope: [markdown_artifact, html_artifact]
     severity: block
+  - name: table_render_integrity
+    file: global/table_render_integrity.ps1
+    layer: global
+    events: [PostToolUse, Stop]
+    scope: [markdown_artifact]
+    severity: block
   - name: workspace_guard
     file: global/workspace_guard.ps1
     layer: global
@@ -29,6 +35,42 @@ hooks:
     events: [PostToolUse]
     scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, bear-pre-mortem]
     severity: block
+  - name: next_step_anchored_facts_only
+    file: narrative/next_step_anchored_facts_only.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [next-step]
+    severity: block
+  - name: pair_structure_floor
+    file: narrative/pair_structure_floor.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [pair-trade]
+    severity: block
+  - name: thesis_catalyst_floor
+    file: narrative/thesis_catalyst_floor.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [alpha-thesis, bear-pre-mortem]
+    severity: block
+  - name: earnings_decision_contract
+    file: narrative/earnings_decision_contract.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [earnings-setup]
+    severity: block
+  - name: peer_matrix_floor
+    file: narrative/peer_matrix_floor.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [peer-deep-dive]
+    severity: block
+  - name: consensus_floor
+    file: narrative/consensus_floor.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [consensus-map]
+    severity: block
   - name: claim_qualification
     file: narrative/claim_qualification.ps1
     layer: narrative
@@ -52,6 +94,18 @@ hooks:
     layer: provider
     events: [PostToolUse, Stop]
     scope: [reddit-sentiment]
+    severity: block
+  - name: disclosure_fact_source_boundary
+    file: provider/disclosure_fact_source_boundary.ps1
+    layer: provider
+    events: [PostToolUse, Stop]
+    scope: [company-primer, mechanism-map, driver-map, primary-research-plan, information-impact]
+    severity: block
+  - name: market_snapshot_source_boundary
+    file: provider/market_snapshot_source_boundary.ps1
+    layer: provider
+    events: [PostToolUse, Stop]
+    scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, alpha-thesis, bear-pre-mortem, peer-deep-dive, industry-quickread, cross-market-compare, candidate-screener, information-impact]
     severity: block
   - name: model_statement_presence
     file: modeling/model_statement_presence.ps1

@@ -1,6 +1,6 @@
-﻿# Buy-Side Research Skills —— 零基础完全上手指南
+# Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`4.0.1`
+> 当前版本：`4.1.0`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -47,7 +47,7 @@ research-workspace/
 ### 本地缺数时的 market data fallback
 
 - research skills 默认先查本地 `_cache/`、`financial-data` 和已 ingest 的 source-tracked markdown。
-- 市场/快照类字段默认走双轨顺序：先 `workspace-local / financial-data`，再 `trusted third-party`，最后才是 web / internet fallback。
+- 市场/快照类字段默认走双轨顺序：先 `topic-local evidence cache / financial-data`，再 `trusted third-party`，最后才是 web / internet fallback。
 - 如果对象是 A股 / 港股 / 美股，且当前 skill 显式借用 `trusted-market-bridge`，则 market-snapshot track 可先通过 Longbridge 拉取 `market_quote`、`price_action`、`valuation_snapshot`、`fx_snapshot`、`adr_ah_premium`、`news`、`filings`、`consensus`、`financial_snapshot` 或高层 `market_screen` 信号；这类字段必须显式保留 `Longbridge Securities`、symbol、market、as-of 和 fallback reason，不冒充公司披露原文。
 - 如果 Longbridge 对某个域 `scope_restricted`，默认自动降级到现有 web / internet market source fallback；正文不必额外展开，最终只需在 `## Resources` 写明 `fallback reason`。
 - 当前显式消费这层 bridge 的 skill 包括：`consensus-map`、`earnings-setup`、`peer-deep-dive`、`pair-trade`、`cross-market-compare`、`stock-quickread`、`candidate-screener`、`alpha-thesis`、`bear-pre-mortem` 和 `industry-quickread`。 
@@ -57,13 +57,15 @@ research-workspace/
 
 ### 本地语言 / 本地市场 source 优先
 
-- source 不是单行总顺序，而是双轨：披露事实轨 `workspace-local > primary public > trusted third-party > web`；市场快照轨 `workspace-local / financial-data > trusted third-party > web`。
+- source 不是单行总顺序，而是双轨：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
 - 同一可信度层级内，研究和新闻默认优先 home-market / local-language source；市场数据默认优先主要上市地 / 交易市场的数据源。
 - 不维护任何市场专属 provider 白名单；如果使用全球、英文或非本地市场 fallback，必须在文末 `## Resources` 写明 fallback reason。
 
 ---
 
 ### Claim-level source contract
+
+- workspace hooks 会拦截坏 short anchor、伪 target、坏表格和已 hook 化的结构性缺口；单个 research skill 不再本地重复这些 binary rule。
 
 - 新 research output 默认把每个可验证的 truth-like claim 都挂 inline clickable short source anchor，例如 `[S1](./source.md)` / `[P1](https://...)` / `[I1](https://...)`。
 - 正文不堆长链接；正文和表格只显示短码，但短码本身必须可点击。provider、as-of / filed date、page / location 统一放在文末 `## Resources`；不要在表格下方默认展开完整 source metadata。
@@ -866,5 +868,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v4.0.1
+**版本**：v4.1.0
 **最后更新**：2026-05-22

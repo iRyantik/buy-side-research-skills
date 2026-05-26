@@ -7,27 +7,11 @@ description: Prepare for or react to earnings and decide whether thesis drivers 
 
 Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
-
-# Earnings Setup
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 处理两个相关但不同的任务：
 1. **财报前**：构建 setup——这单 print 的 risk/reward 是不是值得调整仓位
@@ -40,34 +24,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 - 市场反应能不能给我一次机会（多 / 空）？
 
 卖方 preview 的特征：consensus 数字 + 历年 beat/miss 概率 + "关注点"。**全部不要**，这些都是公开信息，没有 alpha。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（KPI baseline、consensus、implied move、revision、peer reaction、price action）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`，不只表格 `Ev` 要挂证据。
-- No Orphan Truth Claim：输出前检查财报数据、市场预期、管理层表述、`company disclosed` / `market expects` claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 earnings-specific 要求。
-
-Earnings setup 对 source 时效性要求极高。快速提醒：
-- Consensus、隐含 move、IV skew、SI、borrow、股价数据必须标注 provider 和获取时点。
-- KPI 基线、管理层 commentary、同业已报数据必须给具体 source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 当本地 cache 缺失时，可对 implied move、IV、SI、borrow、近 1-3M revision、peer print reaction、板块 price action 补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
-- **A股 / 港股 / 美股可优先借用 `trusted-market-bridge`**：当对象属于 `US/HK/SH/SZ`，且缺的是 `market_quote`、`price_action`、`kline_snapshot`、`consensus`、`news`、`filings` 或 `financial_snapshot` 时，可先调用 `trusted-market-bridge` 拉取 Longbridge 证据包；对这些 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 `trusted-market-bridge`，最后才是 web fallback。正文和表格沿用 `[LBG1](link)` 这类短锚点，并在 `## Resources` 展开 `Longbridge Securities | domain | symbol.market | as-of | fallback reason`。这仍然是 provider-derived evidence，不升级为 company-disclosed fact；`financial_snapshot` 只作快照和上下文，不替代 `financial-data`。
-- **bridge 失败默认回退到 web fallback**：若 `trusted-market-bridge` 返回 `scope_restricted`、`unsupported_market`、`unavailable` 或 `ambiguous`，按本 skill 既有 source hierarchy 继续回退；其中 `scope_restricted` 默认降级到现有 web / internet market source，正文不必额外展开，只需在最终 `## Resources` 写清 fallback reason。只有用户明确要求 `longbridge_only` 时才不回退。
-- KPI baseline、management commentary、company-disclosed threshold 仍优先 local / filing；这些不是自动 internet fallback 的范围。
-- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-- 不确定 URL 是否存在时写 `[link 待补]`，不得编造；sub-agent URL 抽查匹配后才可使用。
-
-- Locality-aware news / event evidence: at the same source-quality tier, prefer home-market / local-language sources for event claims; if using global or English fallback, state the fallback reason in the final `## Resources` list.
-## Parallel Evidence Pass
-
-本 skill 默认必须按财报 setup 组件启动 sub-agent / delegate worker 并行查证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：consensus / buy-side bar 线索、last print baseline、guidance / KPI thresholds、peer read-through、options / implied move / borrow / SI timestamp。
-- sub-agent 不得写最终 asymmetric setup、pre-print decision tree、post-print thesis update 或 position decision；这些必须由主 agent 综合。
-- 主 agent 必须抽查关键 URL / claim，并统一所有时效性数据的 timestamp。
-- 财报后模式中，sub-agent 可摘 press release / transcript / KPI actuals，但主 agent 必须亲自对照 pre-print setup 后写决策。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ---
 
@@ -101,14 +57,13 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 
 | 维度 | 当前值 | 解读 | Ev |
 |---|---|---|---|
-| 隐含 move | ±7% | 期权市场对这次 print 的隐含波动 | [S1](link) |
+| 隐含 move | ±7% | 期权市场对这次 print 的隐含波动 | [S1](https://example.com/options-implied-move) |
 
-
-正文 claim 示例：`Options imply a 7.5% move into earnings, above the trailing eight-quarter realized median of 5.2%. [I1](link)`
-| 财报前 1-3M 股价 vs 板块 | +12% vs XLE +3% | 跑赢 → buy-side 预期已偏高 | [Bloomberg / Yahoo](url) |
-| Short Interest | 4.5% of float | 绝对水平 + 近 1M 趋势 | [Bloomberg SI 2024-XX-XX](url) |
-| Borrow rate | 35bps | 是否便宜（无空头压力） | [borrow desk](url) |
-| 卖方修订频率（近 30 天） | 7 上修 / 1 下修 | 上修势头 → 已 priced | [Visible Alpha 2024-XX-XX](url) |
+正文 claim 示例：`Options imply a 7.5% move into earnings, above the trailing eight-quarter realized median of 5.2%. [I1](https://example.com/options-implied-move)`
+| 财报前 1-3M 股价 vs 板块 | +12% vs XLE +3% | 跑赢 → buy-side 预期已偏高 | [I1](https://example.com/price-vs-sector) |
+| Short Interest | 4.5% of float | 绝对水平 + 近 1M 趋势 | [I2](https://example.com/short-interest) |
+| Borrow rate | 35bps | 是否便宜（无空头压力） | [I3](https://example.com/borrow-rate) |
+| 卖方修订频率（近 30 天） | 7 上修 / 1 下修 | 上修势头 → 已 priced | [I4](https://example.com/revision-breadth) |
 
 ### 2. Sell-Side 数字 vs Buy-Side Bar
 - Sell-side consensus（收入、毛利、EBITDA、EPS、关键 KPI）
@@ -124,12 +79,11 @@ Earnings setup 对 source 时效性要求极高。快速提醒：
 
 | KPI | 上次基线 + Ev | 这次的关键阈值 | 含义 |
 |---|---|---|---|
-| Permian rig count 2H 指引 | 12 台 [S1](link) | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
+| Permian rig count 2H 指引 | 12 台 [S1](./_cache/sources/permian-rig-guidance.md) | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
 
-
-正文 claim 示例：`Management kept FY26 revenue guidance unchanged but narrowed the margin range by 50 bps. [S1](link)`
-| Buyback pace | Q2 完成 $300M [Q2 2024 10-Q cash flow](url) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
-| OpEx per BOE | $9.5 [Q2 2024 supplementals p.3](url) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
+正文 claim 示例：`Management kept FY26 revenue guidance unchanged but narrowed the margin range by 50 bps. [S1](./_cache/sources/company-annual-report.md)`
+| Buyback pace | Q2 完成 $300M [S1](./_cache/sources/q2-2024-cashflow.md) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
+| OpEx per BOE | $9.5 [S2](./_cache/sources/q2-2024-supplementals.md) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
 
 每一个都要有**具体数字阈值**，不是"看趋势"。基线数字必须 source 到具体上次 call / 10-Q 的具体位置。
 

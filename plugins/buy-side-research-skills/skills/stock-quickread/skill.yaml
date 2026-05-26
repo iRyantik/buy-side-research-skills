@@ -34,7 +34,7 @@ capabilities:
   requirements:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
-    - 'market-snapshot fields default to workspace-local / financial-data then trusted-market-bridge then web fallback'
+    - 'market-snapshot fields default to topic-local evidence cache / financial-data then trusted-market-bridge then web fallback'
     - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action consensus and financial_snapshot'
     - 'financial_snapshot from trusted-market-bridge is quick context only, not company-truth or financial-data replacement'
     - 'scope_restricted unsupported_market ambiguous and unavailable may fall back to existing web or internet source logic unless longbridge_only is explicitly requested'

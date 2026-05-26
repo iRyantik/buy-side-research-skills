@@ -7,25 +7,11 @@ description: Collect label and summarize Reddit sentiment as clue-only social ev
 
 Collect label and summarize Reddit sentiment as clue-only social evidence for a research topic.
 
-Deterministic binary guardrails for source legality, social clue-only boundary, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、sentiment verdict、routing、thesis、valuation 或 model treatment；主 agent 必须完成 source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
-
-# Reddit Sentiment
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把 Reddit 从噪音池变成可用的买方研究线索：抓取相关帖子，标注 narrative clusters，识别社区分层、拥挤叙事、误导性 social claims、下一步验证任务，并给出 10-15 个最值得读的帖子。
 
@@ -36,15 +22,6 @@ Deterministic binary guardrails for source legality, social clue-only boundary, 
 Reddit sentiment 不是为了证明公司基本面，而是为了回答：市场边缘人群在相信什么、哪些叙事正在传播、哪些误解可能影响价格、哪些帖子值得研究员亲自读。它是 `consensus-map` / `earnings-setup` / `alpha-thesis` 的输入，不是替代。
 
 最有价值的输出不是情绪分数，而是三件事：第一，社区之间的分歧；第二，bull / bear 各自需要后续 source 验证的命题；第三，Recommended Reading，让研究员可以快速进入原始讨论语境。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（样本数、core posts 数、usable comments、cluster 占比、某 subreddit 的情绪、某帖子代表什么叙事）都必须紧跟 inline clickable short anchor，如 `[C1](./_cache/.../coverage-summary.md)` / `[R014](https://www.reddit.com/...)`。
-- Reddit 是 `reddit social source / clue only`。它可以证明"Reddit 上有人这么说"或"某社区里这个叙事出现"，不能证明公司事实、财务事实、S-1 内容、客户关系或管理层真实意图。
-- 原文引用要短，只保留足以识别叙事的片段；长段评论不要整段搬运。若措辞本身不重要，用中文概述并挂 Reddit post anchor。
-- `## Resources` 里必须展开每个高信号帖子：`- [R014](link) = reddit social source | r/subreddit | title | collected/as-of [date] | caveat: clue only`。
-- 结构化数据和本地 evidence pack 用 `[C1](path)` / `[C2](path)`：coverage summary、evidence cards、cluster-counts、manifest 都要能点到。
-- No Orphan Truth Claim：输出前检查样本规模、cluster 百分比、community segment、Recommended Reading 理由、social claims to verify 是否都有 anchor；没有就补 anchor、降级为 `[来源待补]`，或删除。
 
 ## 环境与工具
 
@@ -176,16 +153,16 @@ _cache/datasets/reddit-sentiment/[run_id]/
 ```markdown
 ## Verdict
 
-[2-4 句结论先行：Reddit 情绪是什么、最大分歧是什么、这对研究下一步意味着什么。样本数 / 时间窗 / 最大 cluster 必须挂 `[C1](link)`。]
+[2-4 句结论先行：Reddit 情绪是什么、最大分歧是什么、这对研究下一步意味着什么。样本数 / 时间窗 / 最大 cluster 必须挂 `[C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
 
 ## 1. Coverage & Caveats
 
 | Item | Setting / Result | Ev |
 |---|---|---|
-| Time window | [from-to] | [C1](link) |
-| Collection route | search + subreddit scan | [C4](link) |
-| Core posts / usable comments | [n posts / n comments] | [C1](link) |
-| Biggest limitation | [coverage caveat] | [C4](link) |
+| Time window | [from-to] | [C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
+| Collection route | search + subreddit scan | [C4](./_raw/datasets/reddit-sentiment/[run_id]/manifest.json) |
+| Core posts / usable comments | [n posts / n comments] | [C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
+| Biggest limitation | [coverage caveat] | [C4](./_raw/datasets/reddit-sentiment/[run_id]/manifest.json) |
 
 **Takeaway**: Reddit 是 clue-only social source；下文只说明叙事和情绪，不把评论当公司事实。
 
@@ -193,14 +170,14 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 | Segment | Subreddits | Sample / signal | Bias caveat | Ev |
 |---|---|---|---|---|
-| Trader / meme | r/wallstreetbets 等 | [核心情绪] | 夸大短期价格和 options | [R001](link) [C2](link) |
-| Fundamental / value | r/investing 等 | [核心情绪] | 样本少、偏谨慎 | [R002](link) [C2](link) |
+| Trader / meme | r/wallstreetbets 等 | [核心情绪] | 夸大短期价格和 options | [R001](https://www.reddit.com/r/wallstreetbets/comments/example) [C2](./_cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
+| Fundamental / value | r/investing 等 | [核心情绪] | 样本少、偏谨慎 | [R002](https://www.reddit.com/r/investing/comments/example) [C2](./_cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
 
 ## 3. Narrative Clusters
 
 | Cluster | Share / count | Where it shows up | Research meaning | Ev |
 |---|---:|---|---|---|
-| valuation_skepticism | [x comments / y%] | [subreddits] | [对 buy-side bar 的含义] | [C3](link) [R014](link) |
+| valuation_skepticism | [x comments / y%] | [subreddits] | [对 buy-side bar 的含义] | [C3](./_raw/datasets/reddit-sentiment/[run_id]/cluster-counts.json) [R014](https://www.reddit.com/r/stocks/comments/example) |
 
 ## 4. Bull/Bear Burden Of Proof
 
@@ -217,7 +194,7 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 ## 6. Excluded Material
 
-[说明 false positives、tiny posts、deleted/removed comments、低质量板块，必须挂 `[C1](link)`。]
+[说明 false positives、tiny posts、deleted/removed comments、低质量板块，必须挂 `[C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
 
 ## 7. Phase 1 Routing
 
@@ -234,7 +211,7 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 | # | Post | Subreddit | Why read | Ev |
 |---:|---|---|---|---|
-| 1 | [R014](link) | r/stocks | [一句话：最大讨论 / 最扎实分析 / 最尖锐 bear / 最典型 FOMO] | [R014](link) |
+| 1 | [R014](https://www.reddit.com/r/stocks/comments/example) | r/stocks | [一句话：最大讨论 / 最扎实分析 / 最尖锐 bear / 最典型 FOMO] | [R014](https://www.reddit.com/r/stocks/comments/example) |
 
 ## Resources
 

@@ -7,21 +7,11 @@ description: Create memo-ready and screenshot-ready HTML research visualizations
 
 Create memo-ready and screenshot-ready HTML research visualizations paired with a saved topic artifact.
 
-Deterministic binary guardrails for stem-bound delivery, self-contained HTML, source-line presence, source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 每一条事实声明、数字、引语都必须有 source link 或明确 source 描述；图表上的结论、callout、标签、subtitle 和 footer 也算 truth-like claim。图可以压缩文字，但不能压掉可追溯性。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. 图表引用的市场快照、估值、price action、peer 数据仍遵守现有 market fallback 口径，不得因为“只是图表”就降低 source 纪律。
-- 本 skill 不创造新的公司事实、财务事实或市场事实；它只把用户提供的、topic 内已有的、或运行时明确取到的 source-backed data 可视化。缺数据时要标 `n/a`、`[需查证]` 或在图表 footer 说明缺口，不要补想当然的数。
-- 文末 / 图底必须保留 source line；如果图表旁有短说明或 markdown 包装文，也要继续使用 inline clickable short anchor 和统一 `## Resources`。
-- 本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启并行辅助收集图表数据或 source；sub-agent 只能回 source-backed evidence 或 data prep notes，不得替主 agent写最终图表结论。
-- 不写 sell-side 花活：不要做 marketing 风格落地页、渐变炫技、无约束动画、装饰性 hero、品牌海报、纯 aesthetic chartjunk。目标是 PM / IC memo，不是营销素材。
-- 研究启动时先看 topic 里已有 markdown 主文、`_cache/` 和 source-tracked tables；优先复用现成研究产物，而不是重新造一份并行 narrative。
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 ## 定位
 

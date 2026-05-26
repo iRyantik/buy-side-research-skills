@@ -7,27 +7,11 @@ description: Turn a theme event or screen into a sourced long or short candidate
 
 Turn a theme event or screen into a sourced long or short candidate funnel.
 
-Deterministic binary guardrails for source legality, claim qualification, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
-
-# Candidate Screener
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把 hypothesis 转化成具体的可投资 candidate basket。LS 默认 long + short 双向。**核心价值不是列 ticker**——Bloomberg screener 比 AI 更准。AI 的差异化价值在于：
 
@@ -50,36 +34,10 @@ Deterministic binary guardrails for source legality, claim qualification, subage
 - 最终 funnel：从 brainstorm 出的 N 个 candidates 收敛到 1-2 个值得做 deep research 的
 
 **最重要的纪律**：AI 不假装是 universe screener。本 skill 的输出是 **inferential brainstorm**，是研究员的 starting point，不是 final list。研究员必须 cross-check Bloomberg / 行业数据，并主动问"我可能漏了什么"。
-- 对 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 trusted third-party，最后才是公开网页 fallback。若对象属于 A股 / 港股 / 美股，且筛选需要 `market_quote`、`valuation_snapshot`、`price_action`、`fx_snapshot`、`adr_ah_premium` 或 `market_screen`，可先调用 `trusted-market-bridge`。
+- 对 market-snapshot 字段，默认顺序是先 `topic-local evidence cache / financial-data`，再 trusted third-party，最后才是公开网页 fallback。若对象属于 A股 / 港股 / 美股，且筛选需要 `market_quote`、`valuation_snapshot`、`price_action`、`fx_snapshot`、`adr_ah_premium` 或 `market_screen`，可先调用 `trusted-market-bridge`。
 - 本 skill 中的 `market_screen` 是高层筛选便利层：它可以承载 scanner / anomaly 命中、候选优先级和简短触发理由，但它不是 thesis，也不是 business fact。业务关联、客户/供应链关系、披露事实仍需单独 source-backed。
-- bridge 命中字段使用 `[LBG1](link)` 风格锚点；若 Longbridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，默认回退到既有 web / internet source 或保留 gap。正文不展开，只在最终 `## Resources` 写 fallback reason。
+- bridge 命中字段使用 `[LBG1](https://longbridge.example.com/quote/NVDA.US)` 风格锚点；若 Longbridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，默认回退到既有 web / internet source 或保留 gap。正文不展开，只在最终 `## Resources` 写 fallback reason。
 - `borrow`、`bid-ask`、`accounting basis`、`conversion mechanics`、`share-class truth` 等高风险字段，不因 bridge 存在而自动放宽；无高质量 source 时继续写 `[需查证]` / `[来源待补]`。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（候选公司、业务关联、客户 / 供应链关系、筛选指标、市场数据）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
-- No Orphan Truth Claim：输出前检查每个 candidate 的业务关联、受益机制、screen metric 和排除理由是否都有 anchor；无 source 时只能留 gap，不得升级为 verified。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 screener-specific 要求。
-
-特别强调：
-- **每个 candidate 的"业务 / 受益机制"必须有 source link**——不允许 AI 编造业务关联
-- **找不到 source 的关联标 `[需查证]`**——不能因为"听说过"就当 verified
-- **本 skill 不用自动 internet fallback 把业务关联、客户 / 供应链关系或受益机制升级成 verified fact**：缺本地 / 一手 source 时继续保留 `[需查证]` 线索状态。
-- **卖方研报中的"概念股归类"不算 source**——卖方分类有 marketing 嫌疑，要找原始 disclosure（10-K、IR 资料、合同公告）
-- **估值数据必须有 as-of 时间戳**——AI 数据可能 stale，明确标注获取时点
-- **Sub-agent 返回的 ticker / 业务关联必须按 capsule 的反幻觉硬规则抽查**——这个 skill 高度依赖 web search，URL / 公司事实假冒是真实风险
-
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
-## Parallel Evidence Pass
-
-本 skill 默认必须按候选公司或主题链路启动 sub-agent / delegate worker 并行查证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：候选 ticker 的业务关联、合同 / 客户 / 供应链证据、估值 / liquidity as-of、priced-in 线索、short candidate 受损机制。
-- sub-agent 不得写最终 tier、Top Candidates、Recommended for Deep Research 或 long / short basket 判断；这些必须由主 agent 去重、抽查、排序。
-- 主 agent 必须抽查关键 URL / claim，尤其是供应链、客户关系、主题受益机制和最新业务变化。
-- 找不到原始披露的候选只能保留为 `[需查证]` 线索，不能进入 Tier 1 verified list。
-- 如果当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限（必读，前置警告）
 
@@ -188,16 +146,15 @@ Deterministic binary guardrails for source legality, claim qualification, subage
 
 | Ticker | Market | 业务 / 受益机制 | 受益强度 | Liquidity (ADV) | 估值锚 | Priced-in | Ev |
 |---|---|---|---|---|---|---|---|
-| AAA US | NYSE | 100% 数据中心运营核电；35% 容量已签 hyperscaler PPA $80/MWh | High | $150M | EV/EBITDA 12x (vs 5Y mean 8x) | 部分 | [S1](link) [S2](link) |
+| AAA US | NYSE | 100% 数据中心运营核电；35% 容量已签 hyperscaler PPA $80/MWh | High | $150M | EV/EBITDA 12x (vs 5Y mean 8x) | 部分 | [S1](./_cache/sources/ppa-disclosure.md) [S2](https://example.com/aaa-valuation) |
 | BBB | A 股 | 60% 收入来自数据中心 HVAC | High | $80M | PE 25x (vs 同业 18x) | Mostly | S3@FY25 |
-
 
 **Tier 1 判断**：受益机制 direct 且 quantifiable；普遍 priced-in 较多；alpha 来自基本面 vs 估值的 spread
 
 ## Tier 2 — Indirect / Supply Chain (Tier-N supplier / 30-50% 收入受益)
 
 | Ticker | ... | ... | Medium | ... | ... | Less | ... |
-| CCC | NYSE | Tier-1 配电设备给数据中心，但 60% 收入仍是工业 | Medium | $200M | EV/EBITDA 10x (vs 5Y 8x) | Partial | [10-K segment](url) |
+| CCC | NYSE | Tier-1 配电设备给数据中心，但 60% 收入仍是工业 | Medium | $200M | EV/EBITDA 10x (vs 5Y 8x) | Partial | [S3](./_cache/sources/ccc-segment-note.md) |
 
 **Tier 2 判断**：受益机制 indirect；priced-in 通常较少（市场没把它当 AI 概念股）；但需 verify 受益的实际 magnitude
 
@@ -213,7 +170,6 @@ Deterministic binary guardrails for source legality, claim qualification, subage
 
 | Ticker | Market | 受损机制 | 受损强度 | Liquidity | 估值 | Already-shorting? | Ev |
 |---|---|---|---|---|---|---|---|
-
 
 **Short Candidate 关键判断**：
 - Priced-in 评估更重要——明显的 short 多数已 priced（high SI、负面 sentiment）
@@ -296,10 +252,10 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 
 | Ticker | Market | EV/EBITDA | FCF yield | Capex/D&A | All criteria met? | Ev |
 |---|---|---|---|---|---|---|
-| AAA | US | 6.5x | 11% | 0.5 | ✅ | [S1](link) [S2](link) |
+| AAA | US | 6.5x | 11% | 0.5 | ✅ | [S1](https://example.com/aaa-multiples) [S2](./_cache/sources/aaa-cashflow-bridge.md) |
 
-| BBB | A 股 | 7.8x | 9% | 0.6 | ✅ | 2025 Q4 | [年报](url) |
-| CCC | HK | 8.2x ❌ | 10% | 0.65 | ❌ (EV/EBITDA fail by 0.2x) | 2026 Q1 | [年报](url) |
+| BBB | A 股 | 7.8x | 9% | 0.6 | ✅ | 2025 Q4 | [S4](./_cache/sources/bbb-annual-report.md) |
+| CCC | HK | 8.2x ❌ | 10% | 0.65 | ❌ (EV/EBITDA fail by 0.2x) | 2026 Q1 | [S5](./_cache/sources/ccc-annual-report.md) |
 
 **Note**: 包括 ❌ 但接近的 candidates（边缘合格）—— 给研究员判断空间。
 

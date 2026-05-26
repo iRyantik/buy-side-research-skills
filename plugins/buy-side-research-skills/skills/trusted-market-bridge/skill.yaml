@@ -106,9 +106,9 @@ capabilities:
       - 'topic'
   requirements:
     - 'keep Longbridge as provider-derived evidence, not company-disclosed fact'
-    - 'act as the default trusted third-party layer for market-snapshot fields after workspace-local and financial-data'
+    - 'act as the default trusted third-party layer for market-snapshot fields after topic-local evidence cache and financial-data'
     - 'preserve provider, symbol, market, as-of, and fallback provenance'
-    - 'use [LBG1](link) style clickable source anchors for bridge-derived evidence'
+    - 'use [LBG1](https://longbridge.example.com/quote/NVDA.US) style clickable source anchors for bridge-derived evidence'
     - 'treat market_screen as a convenience screening layer rather than company-truth authority'
     - 'reject unsupported domains and unsupported markets honestly'
     - 'return scope_restricted when the current Longbridge account lacks authorization for an otherwise supported domain'

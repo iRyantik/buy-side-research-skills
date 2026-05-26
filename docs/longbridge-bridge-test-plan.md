@@ -112,8 +112,8 @@ Not yet live-checked as a bridge domain:
 
 ### `peer-deep-dive`
 
-- market / valuation / price fields in the peer matrix may use `[LBGx](link)` anchors
-- `news` with `scope_restricted` may fall back to `[I1](link)` style web source
+- market / valuation / price fields in the peer matrix may use `[LBG1](https://longbridge.example.com/quote/0700.HK)` style anchors
+- `news` with `scope_restricted` may fall back to `[I1](https://example.com/news)` style web source
 - `filings`, if used, remain event-index or disclosure-entry evidence only
 - peer business/disclosure comparison still follows the existing higher-grade source discipline
 
@@ -197,8 +197,8 @@ Not yet live-checked as a bridge domain:
 
 Check every consumer output for the following:
 
-- bridge evidence uses `[LBG1](link)` style anchors
-- web fallback uses existing `[I1](link)` style anchors
+- bridge evidence uses `[LBG1](https://longbridge.example.com/quote/NVDA.US)` style anchors
+- web fallback uses existing `[I1](https://example.com/quote)` style anchors
 - `## Resources` makes it clear:
   - which fields came from Longbridge
   - which fields came from web fallback

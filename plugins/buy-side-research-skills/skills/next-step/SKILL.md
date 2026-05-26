@@ -7,27 +7,11 @@ description: Choose the highest-value next research question when a thread feels
 
 Choose the highest-value next research question when a thread feels stuck or incomplete.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行检查 research bottleneck、source gap 和可选下一步；sub-agent 只能返回 evidence card，不得写最终 next-step verdict、routing decision、research priority、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在输出中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
-
-# Next Step
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把当前研究卡点压缩成一个最高杠杆问题。**核心价值不是安排任务**，而是判断现在最可能改变业务实质、model driver、市场预期、peer framing 或研究优先级的那个问题是什么，并决定是直接追问，还是先 handoff 到上游 primitive。
 
@@ -38,30 +22,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 `next-step` 是研究瓶颈路由器，不是研究执行器。它服务 v3 核心循环里的 `Better AI Question`：把模糊的不对劲、卡住、想继续挖，变成 1 个能推进判断框架的问题。
 
 最好的 next step 通常很小，但杠杆很高：它不是“再多收集信息”，而是能验证一个关键机制、driver、source、peer 口径或 consensus framing 是否被误读。默认只给一个问题，因为问题太多会把研究员重新推回信息淹没。
-
-## Source 政策
-
-- Claim-Level Source Contract：本 skill 默认不新增裸事实；若必须引用 truth-like claim（已知事实、数字、披露变化、市场数据），必须紧跟已有inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
-- No Orphan Truth Claim：输出前检查每个建议依赖的事实是否已有 anchor；没有 source 的只能写成 hypothesis / `[来源待补]`，不能写成确定事实。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 next-step-specific 要求。
-
-特别强调：
-- 本 skill 默认不新增事实，只基于用户给的材料诊断下一步；若必须引用事实、数字、KPI、新闻或管理层说法，必须有 source 或标 `[来源待补]`。
-- 本 skill 不自动抓 internet market data 补事实；默认只诊断 gap 和 research priority，不负责把缺口补成新事实。
-- 用户给的 unsourced claim 不能被当成事实；写成“如果这个 claim 成立”或标 `[需查证]`。
-- 生成 AI 问题时，不要把未验证事实写进问题前提；应把验证动作写进问题本身。
-- 不确定 link 是否存在时写 `[link 待补]`，不要为了让 prompt 看起来完整而造链接。
-
-- Locality-aware provenance: if this skill cites upstream facts or market data, preserve the source locality labels and fallback reasons instead of washing them into generic sources.
-## Parallel Evidence Pass
-
-只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：source-gap audit、mechanism / driver bottleneck evidence、peer / consensus framing evidence、routing alternatives、highest-leverage-question candidates。
-- sub-agent 不得写最终结论、next-step verdict、routing decision、research priority、question ranking、thesis implication 或 model treatment；这些必须由主 agent 综合。
-- 主 agent 必须抽查关键 URL / claim，并统一 source gap、primitive blocker、routing tradeoff 和 leverage 判断后，只给出一个最高杠杆下一步。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限
 

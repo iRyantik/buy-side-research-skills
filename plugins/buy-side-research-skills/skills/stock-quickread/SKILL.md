@@ -7,19 +7,19 @@ description: Run a fast sourced first pass on an unfamiliar company and decide w
 
 Run a fast sourced first pass on an unfamiliar company and decide whether to dig deeper.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
+
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 本 skill 独立运行时也必须携带最小必要的 runtime 摘要。详细 authoring baseline 仍在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设该文件会被自动读取。
 - 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
-- Source stance 分两条 track：disclosure-fact fields 优先 `workspace-local > primary public > trusted third-party > web`；market-snapshot fields 优先 `workspace-local / financial-data > trusted third-party > web`。同一质量层内优先 `home-market / local-language source`；`internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口，不冒充 company-disclosed fact。
+- Source stance 分两条 track：disclosure-fact fields 优先 `topic-local evidence cache > primary public > trusted third-party > web`；market-snapshot fields 优先 `topic-local evidence cache / financial-data > trusted third-party > web`。同一质量层内优先 `home-market / local-language source`；`internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口，不冒充 company-disclosed fact。
 - 最终 synthesis、source conflict handling、quickread verdict 和 routing 由主 agent 统一负责。只有用户明确要求 `sub-agent`、`delegate` 或并行时，才允许 sub-agent 做 bounded evidence gathering / QA。
 - 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
 - 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-map`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
-
-# Stock Quickread
 
 让一个买方研究员在 30 分钟内对一家陌生公司从零起步，达到"能问出像样的下一层问题"的状态。**不是**全面了解公司——全面了解是浪费时间，因为 90% 的细节最终不会进入决策。
 
@@ -28,26 +28,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 买方读公司不是为了"懂公司"，而是为了：(1) 判断这是不是一个值得花更多时间的标的；(2) 找到下一层要问的具体问题。所以 quickread 的产出必须直奔决策有用的信息。
 
 如果你写出来的东西像卖方初次覆盖报告，就是失败的。卖方覆盖报告的特征：业务分部按章节展开、管理层简历、5 年历史财务表、罗列所有近期事件。这些**全部不要**。
-
-## Source 政策
-
-通用 binary source legality 由 workspace hooks 执行，本节只保留 quickread-specific source behavior。
-- 受控 fallback 只适用于 market-snapshot 字段，例如 valuation anchor、price action、market multiple、FCF yield、capital-cycle ratio、近期股价或板块表现。本地 `_cache/` 或 `financial-data` 缺失时，才按 trusted third-party 再到 public web 的顺序回退；business fact、segment profit、company-disclosed KPI、未披露分部事实不走这条路径。
-- market-snapshot fallback 顺序固定为 `workspace-local / financial-data > trusted third-party > web`。如果使用 web fallback，在 `Ev` 保留 `[I1](link)` 这类锚点，并在 `## Resources` 展开 provider、as-of、URL 和 fallback reason。
-- 涉及 `market_quote`、`valuation_snapshot`、`price_action`、`consensus` 或 `financial_snapshot` 时，可优先调用 `trusted-market-bridge`。bridge 命中的字段使用 `[LBG1](link)` 这类锚点，并在 `## Resources` 展开 provider、symbol、market、as-of 和 fallback reason。
-- `trusted-market-bridge` 只补市场判断层和 quick context，不上升为 company-disclosed truth，也不替代 `financial-data`。如果 bridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，除非用户明确要求 `longbridge_only`，否则回到正常的 trusted-third-party / web 路径。
-- 不允许把 web source 或 `trusted-market-bridge` 结果写成 business description、segment economics、customer / product / backlog facts 或 disclosure wording。相关 gap 继续 handoff 到 `company-primer`、`driver-map` 或 `consensus-map`。
-- 本 quickread 首次使用 internet fallback 时，正文需加一句：`以下标记为 internet source 的字段，是本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-- locality-aware event / news 规则在本 skill 仍然成立：同一 source-quality tier 内优先 home-market / local-language event source；如果使用 global 或 English fallback，在最终 `## Resources` 里写清 fallback reason。
-
-## Parallel Evidence Pass
-
-只有在用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，本 skill 才按相同的 evidence bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：business / segment reality、financial snapshot、valuation / market data、recent events、counterparty assumptions。
-- sub-agent 不得写最终 quickread verdict、是否值得继续研究、对手盘判断、routing recommendation 或 thesis seed；这些必须由主 agent 统一口径后综合。
-- 主 agent 必须抽查关键 URL / claim，并把 business reality、financial facts、market expectations 和下一步问题统一成一个 quickread verdict。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## 输出结构（严格按这个走）
 
@@ -68,17 +48,16 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Ev |
 |---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [S1](link) |
+| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [S1](./_cache/sources/company-annual-report.md) |
 
-
-正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](link)`
-| 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [10-Q Q1 2025 p.15](url) |
-| 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [10-K 2024 p.42](url) |
-| 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [10-Q Q1 2025 p.15](url) |
-| 分部 C | FY2024 | 20% | -8% | 10% | -30% | 10% | -300 bps | [10-K 2024 p.42](url) |
-| 分部 C | Q1 2025 | 21% | -6% | 14% | -22% | 12% | -200 bps | [10-Q Q1 2025 p.15](url) |
-| **整体** | **FY2024** | **100%** | **+5%** | **100%** | **+8%** | **19%** | **+50 bps** | [10-K 2024 income statement](url) |
-| **整体** | **Q1 2025** | **100%** | **+4%** | **100%** | **+6%** | **18%** | **-20 bps** | [10-Q Q1 2025 income statement](url) |
+正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
+| 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| 分部 C | FY2024 | 20% | -8% | 10% | -30% | 10% | -300 bps | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 C | Q1 2025 | 21% | -6% | 14% | -22% | 12% | -200 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| **整体** | **FY2024** | **100%** | **+5%** | **100%** | **+8%** | **19%** | **+50 bps** | [S11](./_cache/sources/fy2024-income-statement.md) |
+| **整体** | **Q1 2025** | **100%** | **+4%** | **100%** | **+6%** | **18%** | **-20 bps** | [S12](./_cache/sources/q1-2025-income-statement.md) |
 
 **取舍说明**：
 - "利润"用什么口径要明确——优先 segment EBIT / EBITDA（公司一般会披露），其次是 segment operating income。**不要混用口径**。
@@ -105,12 +84,12 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|
-| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S1](link) |
+| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S1](./_cache/sources/cashflow-statement.md) |
 
-| FCF / 净利润 | 0.6 | 现金转化质量；持续 < 0.7 是警告 | [10-K 2024 cash flow stmt](url) |
-| 净负债 / EBITDA | 2.5x | 绝对水平 + 近 2 年变化方向 | [10-K 2024 balance sheet + EBITDA reconciliation](url) |
-| 资本返还 / FCF | 30% | 派息 + 回购占 FCF 比；判断股东回报 willingness | [10-K 2024 cash flow stmt + 8-K 回购公告](url) |
-| ROIC vs WACC | 14% vs 9% | 是否 value-creating（500bps 以上才算 meaningful） | [WACC: Bloomberg WACC function 或自算](url)；ROIC: filing |
+| FCF / 净利润 | 0.6 | 现金转化质量；持续 < 0.7 是警告 | [S1](./_cache/sources/cashflow-statement.md) |
+| 净负债 / EBITDA | 2.5x | 绝对水平 + 近 2 年变化方向 | [S2](./_cache/sources/net-debt-ebitda-bridge.md) |
+| 资本返还 / FCF | 30% | 派息 + 回购占 FCF 比；判断股东回报 willingness | [S3](./_cache/sources/capital-return-bridge.md) |
+| ROIC vs WACC | 14% vs 9% | 是否 value-creating（500bps 以上才算 meaningful） | [S4](https://example.com/wacc-method) [S5](./_cache/sources/roic-bridge.md) |
 
 ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但不创造价值。
 
@@ -138,10 +117,10 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 
 | 关键变量 | 证据 | 为什么是当前 regime 的关键 | Ev |
 |---|---|---|---|
-| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | [S1](link) [S2](link) |
+| EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | [S1](https://example.com/eia-inventory) [S2](https://example.com/price-reaction-study) |
 
-| 单井 EUR 公布数 | Q1/Q2 2024 财报后股价跌 8%/6%，EUR 数据均低于预期 | 市场在 reprice Permian 储量耗尽担忧 | [Q1/Q2 2024 earnings release](url)；EUR: [Enverus / Rystad](url) |
-| 单位 OpEx | 上调 OpEx 指引那次股价 -12% | 投资人当前对成本通胀极度敏感 | [Q3 2024 call transcript Q&A 段](url) |
+| 单井 EUR 公布数 | Q1/Q2 2024 财报后股价跌 8%/6%，EUR 数据均低于预期 | 市场在 reprice Permian 储量耗尽担忧 | [S6](https://example.com/q1-q2-earnings-release) [S7](https://example.com/eur-data) |
+| 单位 OpEx | 上调 OpEx 指引那次股价 -12% | 投资人当前对成本通胀极度敏感 | [S8](https://example.com/q3-2024-call-transcript) |
 
 **研究方法提示**：
 - 看近 8 个季度财报后 ±5 个交易日的股价反应，对应是哪个 KPI 的 surprise
@@ -162,12 +141,11 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 | 倍数 | 当前 | 自身 5 年中位 | 同业当前 | 解读 | Ev |
 |---|---|---|---|---|---|
-| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | [S1](link) |
+| EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | [S1](https://example.com/valuation-comps) |
 
-
-正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1](link)`
-| P/E | 18x | 14x | 16x | ... | [Bloomberg / CapIQ](url) |
-| FCF yield | 5% | 7% | 6% | ... | [Bloomberg / CapIQ + 自算](url) |
+正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1](https://example.com/valuation-comps)`
+| P/E | 18x | 14x | 16x | ... | [I1](https://example.com/pe-comps) |
+| FCF yield | 5% | 7% | 6% | ... | [I2](https://example.com/fcf-yield-comps) |
 
 倍数选择和**第 3 节的资本周期阶段判断要一致**——不要在第 3 节说"收割期"，第 5 节用 EV/Sales。
 

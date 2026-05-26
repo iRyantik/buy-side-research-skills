@@ -65,7 +65,7 @@ Current bridge consumers:
 - `bear-pre-mortem`
 - `industry-quickread`
 
-For these skills, `trusted-market-bridge` is the default trusted third-party layer for the market-snapshot track after `workspace-local / financial-data` and before generic web fallback. It is currently best suited to market-data-heavy use cases such as quote, valuation, price-action, FX normalization, ADR/AH premium framing, quick consensus context, financial snapshots, and high-level `market_screen` signals for candidate generation. Disclosure-fact fields still prefer `primary public` and do not get downgraded into provider truth. If Longbridge returns `scope_restricted`, the default behavior is to fall back to the existing web / internet market-source path and record the fallback reason in `## Resources`.
+For these skills, `trusted-market-bridge` is the default trusted third-party layer for the market-snapshot track after `topic-local evidence cache / financial-data` and before generic web fallback. It is currently best suited to market-data-heavy use cases such as quote, valuation, price-action, FX normalization, ADR/AH premium framing, quick consensus context, financial snapshots, and high-level `market_screen` signals for candidate generation. Disclosure-fact fields still prefer `primary public` and do not get downgraded into provider truth. If Longbridge returns `scope_restricted`, the default behavior is to fall back to the existing web / internet market-source path and record the fallback reason in `## Resources`.
 
 Maintainer acceptance coverage for this bridge lives in `docs/longbridge-bridge-test-plan.md`.
 

@@ -1,4 +1,4 @@
-﻿# CLAUDE.md - Buy-Side Research Workspace 宪法模板
+# CLAUDE.md - Buy-Side Research Workspace 宪法模板
 
 > 本文件是当前 research workspace 的本地宪法。
 > 它负责 workspace 高层原则、topic 结构和 source stance，不负责每个 skill 的细 procedure。
@@ -11,7 +11,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `4.0.1`
+- Current system generation: `4.1.0`
 
 本 workspace 用于 buy-side equity research。目标不是"了解公司"，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
 
@@ -109,12 +109,12 @@
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。
 - 每个 truth-like claim 默认使用 inline clickable short anchor。
 - 每篇 research artifact 文末统一保留一个 `## Resources`。
-- source quality follows two tracks：披露事实轨 `workspace-local > primary public > trusted third-party > web`；市场快照轨 `workspace-local / financial-data > trusted third-party > web`。
+- source quality follows two tracks：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
 - 同一质量层级内，优先 `home-market / local-language source`。
-- `financial-data` 视为 `workspace-local` 里最高价值的结构化财务缓存；市场/快照字段先看它和本地 `_cache`，再看 trusted third-party，最后才是 web。
+- `financial-data` 视为 `topic-local evidence cache` 里最高价值的结构化财务缓存；市场/快照字段先看它和本地 `_cache`，再看 trusted third-party，最后才是 web。
 - `internet source` 只补 market-snapshot track 的缺口，不冒充 company-disclosed fact；公司/披露事实仍优先 `primary public`。
 
-更完整的 claim-level source contract、fallback taxonomy、sub-agent protocol 和 skill-specific 边界，由被调用的 active skill 决定。
+更完整的 claim-level source contract、fallback taxonomy、shared hook law 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
 
 ---
 

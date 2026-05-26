@@ -7,27 +7,11 @@ description: Map an unfamiliar company's business segments customers history and
 
 Map an unfamiliar company's business segments customers history and disclosure evolution.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
-
-# Company Primer
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把一家公司的业务基础和披露演变讲清楚，让后续 `driver-map`、`stock-quickread`、`alpha-thesis`、`peer-deep-dive` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 不建立在错的公司理解上。核心价值不是写“公司介绍”，而是识别这家公司到底卖什么、谁付钱、业务边界如何变化、披露口径哪里断裂，以及哪些历史变化会污染后续 driver 或 thesis 判断。
 
@@ -40,32 +24,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 本 skill 只回答“这家公司现在到底是什么、怎么变成今天这样、披露口径能不能直接拿来比较”。它不是 quickread 的投资判断，也不是 driver-map 的模型变量拆分。它把公司事实和披露历史整理到足够可靠，让下一层 skill 可以安全工作。
 
 好的 primer 应该让读者少问泛泛背景问题，多问具体研究问题：这个 segment 是并购来的还是内生长出来的？这个 KPI 前后口径是否连续？这个业务现在还是利润核心，还是只是收入噪音？这些问题比“公司成立于哪一年”更接近 buy-side edge。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（business snapshot、segment reality、客户 / 项目关系、披露口径变化、M&A 影响）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
-- No Orphan Truth Claim：输出前检查所有业务事实、客户关系、segment / KPI / disclosure evolution claim 是否都有 anchor；未披露内容只能写 gap、proxy 或 assumption，不能用 internet source 伪补。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 company-primer-specific 要求。
-
-特别强调：
-- 公司业务、产品、客户、segment、KPI、并购、剥离、recast、rename、discontinued operations 和重大历史时间点必须有 source / as-of。
-- 优先使用最新 10-K / annual report、10-Q、20-F、IR deck、earnings call、press release、transaction filing、公司官网业务页；二手资料只能补线索，不能替代公司披露。
-- 本 skill 不使用自动 internet market data fallback 来补 business snapshot、segment reality、disclosure evolution、M&A 影响或 KPI 口径。缺本地 / 一手 source 时继续写 `[需查证]` / `[来源待补]` / `unknown`。
-- 历史事件只写影响当前业务理解的部分；每个历史事件必须说明它改变了什么业务边界或披露口径。
-- Segment / KPI 前后口径不一致时必须标注，不得把不同定义的时间序列拼成一个 trend。
-- 多个 source 对 segment、产品边界或交易影响说法冲突时，必须标注冲突并说明暂用哪个口径。
-
-- Locality-aware company facts: business facts still prioritize filings, IR, regulator, and company sources; home-market / local-language preference does not allow ordinary webpages to replace disclosed facts.
-## Parallel Evidence Pass
-
-本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行做公司事实取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：当前 business snapshot、segment / product reality、material M&A / divestiture、KPI / disclosure evolution、customer / end-market evidence。
-- sub-agent 不得写最终 company primer、业务边界判断、downstream handoff 或披露连续性结论；这些必须由主 agent 综合。
-- 主 agent 必须抽查关键 URL / claim，并统一“当前业务事实”和“历史披露变化”的时间口径。
-- 如果 sub-agent 找到的历史 source 与最新 filing / IR deck 冲突，主 agent 必须标注 source conflict，不能直接把旧事实写成当前业务。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限
 
@@ -194,21 +152,19 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | 维度 | 当前理解 | Ev | Gap |
 |---|---|---|---|
-| What it sells | [...] | [S1](link) | [...] |
-| Who pays | [...] | [S1](link) | [...] |
-| Revenue model | [...] | [S1](link) | [...] |
-| Core business bucket | [...] | [S1](link) | [...] |
+| What it sells | [...] | [S1](./_cache/sources/company-annual-report.md) | [...] |
+| Who pays | [...] | [S1](./_cache/sources/company-annual-report.md) | [...] |
+| Revenue model | [...] | [S1](./_cache/sources/company-annual-report.md) | [...] |
+| Core business bucket | [...] | [S1](./_cache/sources/company-annual-report.md) | [...] |
 
-
-正文 claim 示例：`The company reports two operating segments, but the customer economics map more cleanly to equipment sales and lifecycle services. [S1](link)`
+正文 claim 示例：`The company reports two operating segments, but the customer economics map more cleanly to equipment sales and lifecycle services. [S1](./_cache/sources/company-annual-report.md)`
 
 ## Segment / Product Reality
 
 | Reported segment / product | Business reality | Customer / end-market | Why it matters | Ev |
 |---|---|---|---|---|
 
-
-正文 claim 示例：`Management changed the disclosed KPI definition in FY24, so pre-FY24 growth is not directly comparable without a bridge. [S1](link)`
+正文 claim 示例：`Management changed the disclosed KPI definition in FY24, so pre-FY24 growth is not directly comparable without a bridge. [S1](./_cache/sources/company-annual-report.md)`
 
 ## What Actually Changed
 
@@ -241,7 +197,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 | Date / period | Event | What changed | Current research implication | Ev |
 |---|---|---|---|---|
 
-
 ## Non-comparable History
 
 - [...]
@@ -261,7 +216,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | Period | Reported segment / KPI | Definition / scope | Change vs prior | Comparability | Ev |
 |---|---|---|---|---|---|
-
 
 ## Source Reconciliation
 

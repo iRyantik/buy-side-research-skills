@@ -7,27 +7,11 @@ description: Compare companies in one industry with sourced KPI matrices and res
 
 Compare companies in one industry with sourced KPI matrices and research ranking.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
-
-# Peer Deep Dive
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 产出**不是** N 份独立的公司分析拼在一起。如果你写出来的内容是 N 个 stock-quickread 串联，就是失败的。
 
@@ -42,34 +26,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 如果做完只输出"以下是这几家公司的并排对比"，等于没做横向研究——你只是节约了打字时间。
 
 **核心检验**：把"行业 lens"和"cross-cut insight"两节抽掉，剩下的内容是不是 N 份精简 quickread？如果是，重写。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（peer KPI、valuation、liquidity、business model、segment / disclosure comparison）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[I1](link)`，不只横向矩阵 `Ev` 要挂证据。
-- No Orphan Truth Claim：输出前检查 peer matrix 外的正文事实、ranking 依据、source conflict 和 market data claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 peer-deep-dive-specific 要求。
-
-快速提醒：
-- 横向矩阵每行 / 每个关键数据点必须给 Source；没有可靠 source 就标记 `[需查证]` / `[来源待补]`。
-- 横向矩阵里的 market / valuation / liquidity 列允许在本地缺失时补公开网页 market data，但必须显式标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
-- **A股 / 港股 / 美股可优先借用 `trusted-market-bridge`**：当对象属于 `US/HK/SH/SZ`，且缺的是 `market_quote`、`price_action`、`valuation_snapshot`、`kline_snapshot`、`consensus`、`news` 或 `financial_snapshot` 时，可先调用 `trusted-market-bridge` 拉取 Longbridge 证据包；对这些 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 `trusted-market-bridge`，最后才是 web fallback。正文和横向矩阵沿用 `[LBG1](link)` 这类短锚点，并在 `## Resources` 展开 `Longbridge Securities | domain | symbol.market | as-of | fallback reason`。这仍然是 provider-derived evidence，不升级为 company-disclosed fact；`financial_snapshot` 只作 peer market context，不替代 source-tracked actuals。
-- **bridge 失败默认回退到 web fallback**：若 `trusted-market-bridge` 返回 `scope_restricted`、`unsupported_market`、`unavailable` 或 `ambiguous`，按本 skill 既有 source hierarchy 继续回退；其中 `scope_restricted` 默认降级到现有 web / internet market source，正文不必额外展开，只需在最终 `## Resources` 写清 fallback reason。`filings` 若被借用，也只作事件索引或披露入口，不代替 peer business / disclosure comparison。
-- 经营、KPI、机制、客户 / 项目、company-disclosed fact 仍保持原有 source discipline，不因 fallback 放宽。
-- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-- Cross-cut 矛盾信号必须给两边的具体引语和定位；sub-agent URL 抽查匹配后才可使用。
-- 跨公司比较必须确认口径可比；不确定 URL 是否存在时写 `[link 待补]`，不得编造。
-
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
-## Parallel Evidence Pass
-
-本 skill 默认必须按公司或 source bucket 启动 sub-agent / delegate worker 并行收集 evidence；只能让 sub-agent 产出 evidence card：
-
-- 每个 sub-agent 负责 1 家公司或 1 个明确 source bucket（filing、IR deck、earnings call、KPI table、recent event），返回 claim、source title、URL / source location、quote / metric、as-of、confidence、caveat、suggested use。
-- sub-agent 不得写 peer ranking、industry lens、cross-cut insight、resource allocation 或最终结论；这些必须由主 agent 汇总完成。
-- 主 agent 必须抽查至少 2-3 个关键 URL / claim，统一口径后再写矩阵、differential profile 和 ranking。
-- 如果 sub-agent evidence 之间冲突，主 agent 必须标注冲突并说明暂用口径；不能让 sub-agent 自行裁决。
-- 如果当前 host / runner 真的无法 spawn，主 agent 必须在 Evidence Protocol Notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## 输出结构（严格按这个走）
 
@@ -104,7 +60,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 - Inputs needed: [需要补的 filing / call / KPI definition / mechanism source]
 ```
 
-
 ### 结论先行（放在行业 Lens 之前，~200-400 字）
 
 **这是给 PM 看的 — 这个版块必须足够完整，让读者不需要翻后面的第 1-7 节就能做出方向性判断。** 后面各节是支撑论据。
@@ -138,7 +93,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 - ❌ 排名没有方向（「有待观察」）— 必须给方向
 - ❌ 排名表缺乏理由（只列公司名+方向但不说为什么）— 必须有一句话理由
 
-
 ### 1. 行业 Lens（共享坐标系，~300-400 字）
 
 **这是 skill 的灵魂之一**——这部分写**一次**，N 家公司**共享**这套坐标系，避免在每家公司里重复行业背景。
@@ -163,10 +117,9 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 sourc
 | 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金） | 净负债/EBITDA | Capex/D&A | FCF yield | EV/EBITDA(当前 vs 5Y 中位) | 资本返还/FCF | Ev |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
-每行 `Ev` 标注主要数据来源（典型：`[S1](link) [S2](link)`）；文末 `## Resources` 统一展开：`- [S1](link) = local source | 10-K FY2025 | filed [date]`、`- [S2](link) = market data source | Bloomberg/CapIQ | as-of [date]`。
+每行 `Ev` 标注主要数据来源（典型：`[S1](./_cache/sources/peer-a-10k.md) [S2](https://example.com/peer-market-data)`）；文末 `## Resources` 统一展开：`- [S1](./_cache/sources/peer-a-10k.md) = local source | 10-K FY2025 | filed [date]`、`- [S2](https://example.com/peer-market-data) = market data source | Bloomberg/CapIQ | as-of [date]`。
 
-正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. [S1](link) [S2](link)`
-
+正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. [S1](./_cache/sources/peer-a-annual-report.md) [S2](./_cache/sources/peer-b-annual-report.md)`
 
 **ROIC（除现金）计算公式**：NOPAT / (Invested Capital - 现金及等价物)。闲置现金不参与经营但会拉低分母，剔除后反映经营业务的真实投入回报。口径说明：如现金超过总资产的 20%，差异可能显著，需在表下单独标注各家的现金占比。
 
@@ -255,7 +208,7 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 sourc
 
 **关键 differential**（3-5 条，**只列和同业不同的**）
 - 用具体数字描述这家**偏离同业**的地方，每条要给 Source
-- 例："EBITDA margin 32% vs 同业 24% [10-K 2024 segment data](url)，来自 X 区块成本优势"
+- 例："EBITDA margin 32% vs 同业 24% [S1](./_cache/sources/2024-segment-margin-note.md)，来自 X 区块成本优势"
 - ❌ 不要列这家自己的全貌（"收入构成 60% A、40% B"——不是 differential）
 
 **特有驱动因素**（1-3 条）
@@ -285,8 +238,8 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 sourc
 N 家管理层 commentary 哪里**互相对立**？这是 alpha 最丰沃的土壤——因为一定有一边错了。
 
 格式：
-> **[矛盾点]**：X 公司 [具体引语] [Q3 2024 call 时间戳](url)；Y 公司同期说 [对立引语] [Y Q3 2024 call 位置](url)。
-> **背景**：两家终端市场重叠 X% [10-K segment overlap](url) / 都属于上游 Permian / 都做某细分应用 — 解释为什么这两家应该说同一件事
+> **[矛盾点]**：X 公司 [具体引语] [S2](./_cache/sources/x-q3-2024-call-note.md)；Y 公司同期说 [对立引语] [S3](./_cache/sources/y-q3-2024-call-note.md)。
+> **背景**：两家终端市场重叠 X% [S4](./_cache/sources/segment-overlap-note.md) / 都属于上游 Permian / 都做某细分应用 — 解释为什么这两家应该说同一件事
 > **解读**：可能解释（一边在 sandbagging？区域差异？时点错位？）+ 哪边的位置更可信 + 怎么验证
 
 如果**完全没有**矛盾信号，明确说"未发现明显矛盾——N 家在 [核心 narrative] 上保持高度一致，可能意味着行业 commentary 被锚定在 X，或者真实差异要从数据而非言论中找"。
@@ -303,7 +256,7 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 回看第 2 节矩阵：估值 spread 和基本面 spread **匹配吗**？错配处是机会或陷阱。
 
 格式：
-> **错配点**：X EV/EBITDA 12x，Y 8x [Bloomberg 同时点](url)——X 增长 18% / Y 14% [各自 LTM 收入](url)
+> **错配点**：X EV/EBITDA 12x，Y 8x [I1](https://example.com/same-time-multiples)——X 增长 18% / Y 14% [S5](./_cache/sources/ltm-revenue-bridge.md)
 > **预期 spread**：增速差 ~30%，估值正常 spread 应该多少
 > **实际 spread**：50%
 > **解读**：可能（市场担心 Y 的某具体问题 / X 有非可比的优势 / 时点定价不充分）。研究方向是验证哪个解释最对

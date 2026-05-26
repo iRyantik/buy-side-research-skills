@@ -7,27 +7,11 @@ description: Compare local listings ADRs or cross-market peers across valuation 
 
 Compare local listings ADRs or cross-market peers across valuation currency liquidity and access.
 
-Deterministic binary guardrails for source legality, cross-market parity, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule uses two tracks. Disclosure-fact fields follow `workspace-local > primary public > trusted third-party > web`; market-snapshot fields follow `workspace-local / financial-data > trusted third-party > web`. Within the same quality tier, prefer `home-market / local-language source`. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
-
-# Cross-Market Compare
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 处理 A/H、ADR、本地股、跨市场 peer 的估值和可交易差异。**核心价值不是罗列哪里上市**，而是判断价差来自可交易错配、流动性 / 会计 / 监管差异，还是基本合理。
 
@@ -43,37 +27,6 @@ Deterministic binary guardrails for source legality, cross-market parity, subage
 - 最后才判断 spread 是可交易错配、结构性折价，还是需要继续研究的 market misread。
 
 **最重要的纪律**：A/H discount、ADR discount、跨市场估值差都不是天然 alpha。必须先解释为什么存在，以及是否真的能交易。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（price、FX、market cap、EV、ADV、borrow、spread、share class / ADR ratio）都必须紧跟 inline clickable short anchor，如 `[P1](link)` / `[I1](link)`，不只表格 `Ev` 要挂证据。
-- No Orphan Truth Claim：输出前检查市场字段、上市结构、交易限制、liquidity / access claim 是否都有 anchor；没有就补 source、降级为 gap，或删除。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 cross-market-specific 要求。
-
-特别强调：
-- **价格、FX、market cap、EV、share count、ADR ratio、borrow、成交量必须有 source / as-of**。
-- **本 skill 允许 market-data fallback**：price、FX、market cap、EV、ADV、bid-ask、borrow、spread history、ADR / local listing 的市场字段，在本地缺失时可补公开网页 source，但必须标 `internet source`、provider、as-of、URL / source location，并在 `Ev` 使用 `[I1](link)`。
-- **A股 / 港股 / 美股可优先借用 `trusted-market-bridge`**：当对象属于 `US/HK/SH/SZ`，且缺的是 `market_quote`、`valuation_snapshot`、`price_action`、`fx_snapshot` 或 `adr_ah_premium` 时，可先调用 `trusted-market-bridge` 拉取 Longbridge 证据包；对这些 market-snapshot 字段，默认顺序是先 `workspace-local / financial-data`，再 `trusted-market-bridge`，最后才是 web fallback。正文和表格沿用 `[LBG1](link)` 这类短锚点，并在 `## Resources` 展开 `Longbridge Securities | domain | symbol.market | as-of | fallback reason`。这仍然是 provider-derived evidence，不升级为 company-disclosed fact。
-- **bridge 失败默认回退到 web fallback**：若 `trusted-market-bridge` 返回 `scope_restricted`、`unsupported_market`、`unavailable` 或 `ambiguous`，按本 skill 既有 source hierarchy 继续回退；其中 `scope_restricted` 默认降级到现有 web / internet market source，正文不必额外展开，只需在最终 `## Resources` 写清 fallback reason。只有用户明确要求 `longbridge_only` 时才不回退。
-- **同一公司多地上市必须确认 share class 和经济权益**，不能假设 1 ADR = 1 ordinary。
-- **share class / ADR ratio 无权威可验证 source 时不得硬填**：宁可写 `[来源待补]` 或 qualitative framing，也不要拿 quote page 猜 conversion。
-- **跨市场 peer 比较必须确认会计口径**：GAAP / IFRS / 中国会计准则、Non-GAAP 调整项、报表频率。
-- **历史 spread / z-score 必须说明计算窗口**（1Y / 3Y / 5Y）和数据源。
-- **可交易性是事实问题**：转换机制、资本管制、short borrow、港股通 / 沪深股通、OTC liquidity 都要 source。
-- **bridge 不能放宽高风险字段纪律**：`share class / ADR ratio / economic equivalence`、`borrow / liquidity`、`conversion mechanics`、`capital-control`、`accounting basis` 若没有权威 source，继续按原有规则保留 gap 或写 `[来源待补]`，不要因为 Longbridge bridge 存在而硬填。
-- 若首次使用 internet fallback，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
-
-- Locality-aware market data: valuation, liquidity, price action, borrow, FX, consensus, and cross-market fields should prefer the primary listing / trading-market source at the same quality tier; global or non-home-market fallback requires a reason in the final `## Resources` list.
-## Parallel Evidence Pass
-
-本 skill 默认必须按市场 / listing / peer leg 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：instrument map、ADR ratio / share class、FX / price / market cap、liquidity / borrow、accounting basis、peer comparability source。
-- sub-agent 不得写最终 spread interpretation、trade verdict、hedge recommendation 或 pair logic；这些必须由主 agent normalization 后判断。
-- 主 agent 必须抽查关键 URL / claim，并确认 share class、currency、ADR ratio 和 accounting basis 之后才能计算强结论。
-- 任一 listing 关键字段缺 source 时，主 agent 必须降级为 `[来源待补]` 或只给 qualitative framing。
-- 如果当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限（必读，前置警告）
 
@@ -138,19 +91,17 @@ Deterministic binary guardrails for source legality, cross-market parity, subage
 | Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Ev |
 |---|---|---|---|---|---|---|---|
 
-
 **Step 2: Price / valuation normalization**
 
 统一币种、share count、EV、cash/debt、ADR ratio：
 
 | Metric | Listing A | Listing B | Spread | Ev |
 |---|---:|---:|---:|---|
-| Price local | | | | [S1](link) |
-| Price USD-eq | | | | [S1](link) |
-| Market cap USD-eq | | | | [S1](link) |
+| Price local | | | | [S1](https://example.com/local-line-quote) |
+| Price USD-eq | | | | [S1](https://example.com/local-line-quote) |
+| Market cap USD-eq | | | | [S1](https://example.com/local-line-quote) |
 
-
-正文 claim 示例：`The ADR trades at a 2.4% premium to the local line after FX and ratio adjustment, while local ADV is 3.1x the ADR ADV. [I1](link)`
+正文 claim 示例：`The ADR trades at a 2.4% premium to the local line after FX and ratio adjustment, while local ADV is 3.1x the ADR ADV. [I1](https://example.com/adr-premium)`
 | EV USD-eq | | | | |
 | P/E NTM | | | | |
 | EV/EBITDA NTM | | | | |
@@ -258,12 +209,10 @@ Deterministic binary guardrails for source legality, cross-market parity, subage
 | Dimension | A | B | Comparable? | Ev |
 |---|---|---|---|---|
 
-
 ## Normalized Valuation Table
 
 | Metric | A local | A USD-eq | B local | B USD-eq | Spread | History / z-score | Ev |
 |---|---:|---:|---:|---:|---:|---:|---|
-
 
 ## Adjustment Layers
 

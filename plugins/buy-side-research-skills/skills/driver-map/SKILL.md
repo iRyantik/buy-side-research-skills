@@ -7,27 +7,11 @@ description: Decompose revenue margin backlog price volume mix and segment drive
 
 Decompose revenue margin backlog price volume mix and segment drivers before modeling.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认必须启动 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。若是单公司研究，同时检查相关 `topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md` 和 `internal/actuals-resolved.json`；需要审计或查原文时再进入 `internal/evidence-pack.json`、`internal/source-map.json` 或 `internal/full-filing.md`。
-
-# Driver Map
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把公司披露口径翻译成真实业务和可建模 driver。**核心价值不是写一个收入拆分表**，而是防止研究员和 AI 把会计 segment、管理层 narrative、卖方分类或概念股标签误当成经济实质。
 
@@ -41,20 +25,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（driver、segment、backlog、price / volume / mix、margin bridge、披露口径变化）都必须紧跟 inline clickable short anchor，如 `[S1](link)` / `[P1](link)`。
-- No Orphan Truth Claim：输出前检查 driver fact、company-disclosed KPI、管理层表述和 proxy 依据是否都有 anchor；未披露 driver 只能写 proxy / assumption / gap。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 driver-map-specific 要求。
-
-特别强调：
-- **每个 reported bucket、segment revenue、KPI、orders、backlog、margin、price / volume / mix 判断都必须有 source / as-of**。
-- **未披露 driver 只能写成 proxy 或 assumption**，必须标 `[来源待补]` / `[需查证]`，不能写成 company fact。
-- **本 skill 不使用自动 internet market data fallback 来补未披露 driver**：缺口继续只能写 proxy、assumption、`[需查证]`、`[来源待补]` 或 `not-disclosed`。
-- **卖方拆分、行业图谱、专家访谈可以作线索**，但关键 driver 仍要回到 filing、IR、earnings call、transcript、监管文件或明确数据源。
-- **多个 source 冲突时必须标冲突**，尤其是 10-K vs IR deck、press release vs call、公司口径 vs peer 口径。
-
 ## Financial-Data 联动
 
 `financial-data` 是本 skill 的 preferred upstream input，但不能替代 driver 判断。
@@ -67,17 +37,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 4. 如果原文也没有披露，标为 `not-disclosed`；不能编造 segment、product 或 geography split。
 
 本 skill 可以改变收入 bucket 的建模处理方式，但不能覆盖 `financial-data` 的 completeness。`provider-structured`、`provider-table-review`、`provider-normalized-review`、`llm-extracted-review` 和 `not-disclosed` 必须在 `driver-map.md` 和 `internal/driver-map.json` 中分清。若 `revenue_split` row 标有 `review_required: true`，必须由 LLM 解释 axis/member 并映射 model bucket，不能直接当作最终建模口径。
-
-- Locality-aware company facts: business facts still prioritize filings, IR, regulator, and company sources; home-market / local-language preference does not allow ordinary webpages to replace disclosed facts.
-## Parallel Evidence Pass
-
-本 skill 默认必须按 driver 证据启动 sub-agent / delegate worker 并行拆分；sub-agent 只能返回 evidence card：
-
-- 可拆任务：segment / revenue bucket evidence、geography split、orders / backlog、price-volume-mix、margin bridge、KPI definition、IR / call quote。
-- sub-agent 不得写最终 driver tree、model treatment、valuation method recommendation 或 thesis implication；这些必须由主 agent 从证据中综合。
-- 主 agent 必须抽查关键 URL / claim，并把 reported bucket、business reality、model driver 三层统一到一个口径。
-- 未披露的 segment / geography / driver 只能进入 proxy / assumption / `[来源待补]`，不能因为 sub-agent 推测而写成公司披露事实。
-- 如果当前 host / runner 真的无法 spawn，主 agent 必须在 driver-map 的 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限
 
@@ -132,8 +91,7 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
-| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](link) | [缺口] |
-
+| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](./_cache/sources/company-annual-report.md) | [缺口] |
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -205,7 +163,6 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
 
-
 ## Business Reality → Model Driver
 
 | Business bucket | Primary driver | Secondary driver | Observable KPI | Confidence |
@@ -215,7 +172,6 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 | Driver | Rating | Why | Ev | What would improve confidence |
 |---|---|---|---|---|
-
 
 ## Disclosure vs Inference / Proxy Strategy
 

@@ -9,7 +9,7 @@ Fetch A-share, Hong Kong, and US market evidence via Longbridge for market data,
 
 This is an operations bridge, not a research conclusion skill. It can be invoked directly by the user or used implicitly by research skills that need a clean provider boundary.
 
-In the global source policy, this bridge is the default trusted third-party layer for market-snapshot fields after `workspace-local / financial-data` and before generic web fallback. It does not replace `primary public` for disclosure-fact truth.
+In the global source policy, this bridge is the default trusted third-party layer for market-snapshot fields after `topic-local evidence cache / financial-data` and before generic web fallback. It does not replace `primary public` for disclosure-fact truth.
 
 ## What This Skill Is For
 
@@ -139,7 +139,7 @@ Bridge-derived evidence must preserve:
 - domain
 - fallback reason when fallback is used
 
-Use clickable short anchors in the form `[LBG1](link)` in body tables or bullets. Expand full metadata only once in the final `## Resources` section.
+Use clickable short anchors in the form `[LBG1](https://longbridge.example.com/quote/NVDA.US)` in body tables or bullets. The body anchor target must exactly match the `## Resources` target. Expand full metadata only once in the final `## Resources` section.
 
 Example:
 
@@ -184,10 +184,10 @@ Return an evidence bundle, not a research artifact:
 - as-of: [timestamp]
 
 ## Evidence
-- [domain-specific facts with [LBGx](link) anchors]
+- [domain-specific facts with [LBG1](https://longbridge.example.com/quote/NVDA.US) anchors]
 
 ## Resources
-- [LBG1](link) = ...
+- [LBG1](https://longbridge.example.com/quote/NVDA.US) = Longbridge Securities | market_quote | NVDA.US | as-of 2026-05-25 09:30 ET | fallback reason: topic-local market snapshot cache unavailable
 ```
 
 When unsupported or unavailable, say so plainly and include the reason. When the bridge is `scope_restricted`, the default user-facing behavior is web fallback plus a short fallback note in `## Resources`, not a hard stop.

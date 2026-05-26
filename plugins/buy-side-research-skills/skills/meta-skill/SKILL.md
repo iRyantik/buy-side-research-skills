@@ -110,21 +110,14 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-active research skill 必须内嵌 canonical medium capsule。
+active research skill 现在只允许极短 capsule，不再本地复制长版公共 runtime / source prose。
 
-公共 capsule 至少覆盖：
-- 默认中文、结论先行
-- truth-like claim 必须挂 clickable short anchor
-- 文末唯一 `## Resources`
-- 无 source 就 honest degrade
-- source quality first
-- 同层优先 local-language / home-market source
-- `internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口
-- `internet source` 不冒充 company-disclosed fact
-- 默认单线或默认并行的一句话规则
-- 主 agent 负责最终 synthesis
+研究 capsule 只保留：
+- 一句 hooks-first 提醒
+- 一句 shared runtime/source baseline 指向
+- 2-4 条非机检的 skill-specific judgment / workflow / routing delta
 
-这套 capsule 文案优先复用已验证过的原文规则，不要为了“统一腔调”而把规则改写成另一套说法。
+已经 hook 化的 source legality、anchor / `## Resources` contract、subagent binary boundary、section floor、table render 完整性，不得继续写回单个 research `SKILL.md`。
 
 ### Modeling skills
 
@@ -173,9 +166,10 @@ modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`�
 hooks-first 补充 hard gate：
 
 5. 新的 deterministic runtime rule，如能脚本化，优先进 workspace hooks，而不是继续堆进 `SKILL.md` prose。
-6. hooks 共享脚本与宿主 adapter 必须同步维护；不允许只改 Claude 或只改 Codex 一侧配置。
-7. hooks 的正式交付面是 `init-workspace` scaffold；不允许把 plugin dev repo 局部文件误当成宿主自动加载面。
-8. 默认 subagent 策略继续属于 `skill.yaml` / `SKILL.md` 的 workflow 设计，不属于 hook。
+6. 规则一旦 hook 化，对应 `SKILL.md` 中的同类 binary rule prose 必须在同一个 change 删除。
+7. hooks 共享脚本与宿主 adapter 必须同步维护；不允许只改 Claude 或只改 Codex 一侧配置。
+8. hooks 的正式交付面是 `init-workspace` scaffold；不允许把 plugin dev repo 局部文件误当成宿主自动加载面。
+9. skill-specific hook 新增后，review 仍保留旧 prose 的，视为治理失败。
 
 命名规则补充 hard gate：
 
@@ -361,7 +355,7 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 2. 开头定义本 skill 的失败标准
 3. `心法`
 4. `Global Rules Capsule`
-5. `Source 政策`
+5. `Research Runtime Capsule`
 6. `AI 的局限`
 7. `触发场景`
 8. `输入澄清要求`
@@ -373,7 +367,7 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 14. `篇幅基准`
 15. `与相邻 skill 的边界`
 
-短 coach 型 research skill 的用户可见输出可以短，但 runtime 结构不能省：`心法`、`Source 政策`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。
+短 coach 型 research skill 的用户可见输出可以短，但 runtime 结构不能省：`心法`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。`Source 政策` 不再作为 skill-local 必填段。
 
 Research frontmatter：
 
@@ -471,49 +465,15 @@ Artifact policy：
 - `optional_qualifier`：`consensus-map`、`industry-quickread`、`peer-deep-dive`、`cross-market-compare`、`candidate-screener`、`primary-research-plan`
 - `required_qualifier`：`mechanism-map`、`reddit-sentiment`
 
-### 8. Source 政策（runtime shared rules 摘要）
+### 8. Shared Runtime / Source Baseline
 
-Research skill 的通用 source / anti-hallucination 规则放在开头的 canonical medium capsule，`Source 政策` 节只写 skill-specific 增量。通用 source legality、anchor / `## Resources` 合法性、no orphan truth claim 和 fabrication prohibition 这类 binary source rule 属于 hooks-first runtime law，不应在 skill-level `Source 政策` 里重复展开。
+Research skill 的通用 source / anti-hallucination 规则现在由 shared baseline + workspace hooks 承接，不再要求每个 skill 本地复制 `Source 政策`。
 
-Claim-level source contract：
-- 新增或修改 research skill 时，必须写明：每个 truth-like claim（事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化）都要紧跟 inline clickable short source anchor，如 `[S1](link)`、`[P1](link)`、`[I1](link)`。
-- 模板示例必须展示正文 claim anchor，而不是只在段末写笼统 `Sources used`；正文和表格只显示短码，但短码本身必须可点击，provider、as-of、source type 放进文末 `## Resources`；不要在表格下方默认展开完整 source metadata。
-- `judgment` / `synthesis` / `概率判断` 可以不逐句挂 source，但它依赖的事实 claim 必须已经 source-backed。
-- 所有 research skill 必须包含 `No Orphan Truth Claim` 或等价自检：输出前查数字、业务事实、客户关系、segment claim、`market expects` / `management said` / `company disclosed` 是否有 anchor；没有就补 source、降级为 gap，或删除。
-
-必须有 source：
-
-- 财务数字、估值、市场数据、价格、as-of 数据。
-- KPI / 运营数据：产量、客户数、ARR、库存、orders、backlog 等。
-- 行业数据：市占率、价格、产能、需求量、TAM。
-- 管理层引语、专家访谈、监管表态、第三方判断。
-- 历史事件和时间点。
-
-若启用 `internet source` fallback，必须同时写清：
-- 只在 local source 缺失时触发。
-- 只补 market / consensus / valuation / liquidity / price-action 字段。
-- 业务事实、公司披露 KPI、客户 / 项目 / 管理层原话、未披露 driver 缺口不可 fallback。
-- `Ev` / `证据` 列使用 `[L1](link)`、`[P1](link)`、`[I1](link)` 这类 inline clickable 来源层级码，且 `[I1](link)` 必须在文末 `## Resources` 展开 provider、as-of、`internet source` 标签和 fallback reason；真实 link 必须挂在短码本身。
-
-新增或修改 research skill 时，必须遵守 locality-aware source selection：
-- Source quality order is `workspace-local > primary public > reputable provider/news > internet market source`.
-- Within the same quality tier, prefer `home-market / local-language source`.
-- News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market data source.
-- Do not add market-specific provider whitelists unless every major covered market is maintained in the same matrix; by default, use the principle and require fallback reason in the final `## Resources` list.
-
-Source 质量：
-
-1. 一手原始：SEC filings、交易所公告、IR、监管 / 政府数据。
-2. 二手权威：transcripts、Bloomberg / CapIQ / FactSet、行业研究机构、专家访谈平台。
-3. 三手解读：Reuters、Bloomberg News、FT、WSJ、卖方研究。
-4. 谨慎使用：推特 / 论坛 / 个人博客 / 公司新闻稿。
-
-反幻觉硬规则：
-
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- 没找到具体 source 的事实，标 `[需查证]` 或 `[来源待补]`。
-- 不确定 URL 是否存在时写 `[link 待补]`。
-- Sub-agent 返回的 URL 视为 `[agent-provided, 未验证]`，关键 link 必须人工抽查。
+authoring hard rules：
+- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
+- 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `[S1](link)`、`[I1](url)` 之类 placeholder。
+- 一旦某条 binary source / structure / boundary 规则进入 hook，对应 `SKILL.md` 中同类规则 prose 必须删除，而不是继续双份保留。
+- `Source 政策` 若保留，只能写 skill-specific non-binary edge；不能复述 shared legality。
 
 ### 9. 反模式 Catalog
 
@@ -622,7 +582,7 @@ Research skill：
 - `skill.yaml` 有 `category: research` 和合法 `research_layer`。
 - 心法 1-3 段。
 - 包含当前版本 `Global Rules Capsule`。
-- Source 政策只写 skill-specific 增量。
+- 若保留 `Source 政策`，只能写 skill-specific non-binary 增量；shared legality 不得回流。
 - 触发场景具体。
 - 输出结构章节级 + 字段级。
 - Artifact / 保存策略与 `skill.yaml` 一致。
@@ -642,7 +602,7 @@ Operations skill：
 - 文件安全、幂等、fail honestly、边界清楚。
 - Artifact policy 与正文一致。
 - 不创建 research artifact，除非该 operations skill 的职责就是创建 scaffold / cache。
-- 不强制 research capsule / Source 政策 / 篇幅基准。
+- 不强制 research capsule / skill-local Source 政策 / 篇幅基准。
 - Validator、docs、manifest count 同步。
 
 Supporting visualization skill：
@@ -656,7 +616,7 @@ Supporting visualization skill：
 ### 13. 不要做的事
 
 - 不要让 research skill 只引用 `CLAUDE.md`；插件运行时可能不读 `CLAUDE.md`。
-- 不要给 operations skill 硬加 research capsule、Source 政策或篇幅基准。
+- 不要给 operations skill 硬加 research capsule、skill-local Source 政策或篇幅基准。
 - 不要默认 long-only。
 - 不要把 skill 设计成 sell-side report 模板。
 - 不要 silently 做 assumption；不确定就 flag。

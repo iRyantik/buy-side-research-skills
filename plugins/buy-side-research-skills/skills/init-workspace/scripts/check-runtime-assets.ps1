@@ -74,6 +74,41 @@ function Invoke-HookSmokeTest {
     }
 }
 
+function Invoke-HookSmokeFailureTest {
+    param(
+        [string]$HookPath,
+        [string]$PayloadJson,
+        [string]$ExpectedMessage
+    )
+
+    $temp = [System.IO.Path]::GetTempFileName()
+    $stdoutPath = [System.IO.Path]::GetTempFileName()
+    $stderrPath = [System.IO.Path]::GetTempFileName()
+    try {
+        Set-Content -LiteralPath $temp -Value $PayloadJson -Encoding UTF8
+        $process = Start-Process -FilePath "powershell" -ArgumentList @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", $HookPath,
+            "-InputPath", $temp
+        ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+        if ($process.ExitCode -eq 0) {
+            throw "Smoke failure test unexpectedly passed for $HookPath"
+        }
+        $joined = @(
+            Get-Content -Raw -LiteralPath $stdoutPath -ErrorAction SilentlyContinue
+            Get-Content -Raw -LiteralPath $stderrPath -ErrorAction SilentlyContinue
+        ) -join "`n"
+        if ($joined -notmatch [regex]::Escape($ExpectedMessage)) {
+            throw "Smoke failure test for $HookPath did not emit expected message fragment: $ExpectedMessage"
+        }
+    } finally {
+        Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $stdoutPath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $stderrPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $workspaceRoot = Convert-ToFullPath $WorkspacePath
 $claudeSettings = Join-Path $workspaceRoot ".claude\settings.json"
 $codexHooks = Join-Path $workspaceRoot ".codex\hooks.json"
@@ -146,6 +181,286 @@ if ($SmokeTest) {
         tool_name = "Write"
         transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-stock-quickread.md")
     } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "provider\market_snapshot_source_boundary.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-stock-quickread.md")
+        last_assistant_message = @"
+# Stock Quickread
+
+以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。
+
+## 1. Snapshot
+
+| Field | Value | Ev |
+|---|---|---|
+| market_quote | 100 | [I1](https://example.com/quote) |
+
+## Resources
+- [I1](https://example.com/quote) = internet source | Example Quote Provider | as-of 2026-05-26 | fallback reason: local market snapshot cache unavailable
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "global\source_contract.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = $markdownPath
+        last_assistant_message = "## Verdict`nEvidence cache snapshot. [I1](topics/company/sample/evidence/quote.pdf)`n`n## Resources`n- [I1](topics/company/sample/evidence/quote.pdf) = local file | sample cache | as-of 2026-05-26 | note"
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "global\table_render_integrity.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = $markdownPath
+        last_assistant_message = @"
+# Table Sample
+
+| Field | Value | Ev |
+|---|---|---|
+| revenue | 10 | [S1](https://example.com/revenue) |
+
+## Resources
+- [S1](https://example.com/revenue) = web | sample | as-of 2026-05-26 | note
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "provider\disclosure_fact_source_boundary.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-information-impact.md")
+        last_assistant_message = @"
+# Information Impact
+
+## Impact
+
+| Field | Value | Ev |
+|---|---|---|
+| market_reaction | shares moved +4% | [I1](https://example.com/quote) |
+
+## Resources
+- [I1](https://example.com/quote) = internet source | Example quote page | as-of 2026-05-26 | fallback reason: local market snapshot cache unavailable
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\next_step_anchored_facts_only.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-next-step.md")
+        last_assistant_message = @"
+# Next Step
+
+- Highest-leverage next question: Did management guide gross margin above 35%? [S1](https://example.com/guidance)
+
+## Resources
+- [S1](https://example.com/guidance) = primary public | earnings call | as-of 2026-05-26 | note
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\pair_structure_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-pair-note.md")
+        last_assistant_message = @"
+# Pair Trade
+
+## Long / Short
+Long leg versus short leg framing.
+
+## Spread
+Spread definition and percentile context.
+
+## Triggers
+Entry trigger, exit trigger, and stop basis.
+
+## Sizing
+Sizing basis and hedge ratio.
+
+## Risk
+Pre-mortem and failure mode.
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\thesis_catalyst_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-alpha-thesis.md")
+        last_assistant_message = @"
+# Alpha Thesis
+
+## Variant View
+What market misses and the debate gap.
+
+## Catalyst
+Catalyst and trigger path.
+
+## Kill Criteria
+Kill criteria and disconfirming signal.
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\earnings_decision_contract.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-earnings-setup.md")
+        last_assistant_message = @"
+# Earnings Setup
+
+## Market Expectation
+Consensus and buy-side bar.
+
+## Observation Points
+Key watch items.
+
+## Decision Tree
+If / then scenario tree.
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\peer_matrix_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-peer-deep-dive.md")
+        last_assistant_message = @"
+# Peer Deep Dive
+
+## Peer Matrix
+Core peer snapshot table.
+
+## Cross-Cut
+Cross-cut comparison and what matters across peers.
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "narrative\consensus_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-consensus-map.md")
+        last_assistant_message = @"
+# Consensus Map
+
+## Market Expectation
+Buy-side bar and market expectation framing.
+
+## Consensus
+Street consensus baseline.
+
+## Variant Gap
+Gap versus consensus and what is missed.
+
+## Bar
+The hurdle and beat-and-raise framing.
+"@
+    } | ConvertTo-Json -Depth 10)
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "global\source_contract.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = $markdownPath
+        last_assistant_message = "## Verdict`nMismatch. [S1](https://example.com/a)`n`n## Resources`n- [S1](https://example.com/b) = web | sample | as-of | note"
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must keep inline [S1] target identical"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "global\source_contract.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = $markdownPath
+        last_assistant_message = "## Verdict`nBad target. [S1](foo)`n`n## Resources`n- [S1](foo) = web | sample | as-of | note"
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "invalid ## Resources target"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "provider\market_snapshot_source_boundary.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-stock-quickread.md")
+        last_assistant_message = @"
+# Stock Quickread
+
+Below uses internet source as a fallback snapshot.
+
+## 1. Snapshot
+
+| Field | Value | Ev |
+|---|---|---|
+| market_quote | 100 | [I1](https://example.com/quote) |
+
+## Resources
+- [I1](https://example.com/quote) = internet source | Example Quote Provider | as-of 2026-05-26
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must expand each [I1] entry with provider, as-of, and fallback reason"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "global\table_render_integrity.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = $markdownPath
+        last_assistant_message = @"
+# Table Failure
+
+| Field | Value | Ev |
+|---|---|---|
+| revenue | 10 |
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "table row with 2 columns but expected 3"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "provider\disclosure_fact_source_boundary.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-company-primer.md")
+        last_assistant_message = @"
+# Company Primer
+
+Customer relationship confirmed. [I1](https://example.com/blog)
+
+## Resources
+- [I1](https://example.com/blog) = internet source | Example blog | as-of 2026-05-26 | fallback reason: local cache unavailable
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "uses internet source or trusted-market-bridge fallback in a disclosure-fact workflow"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\next_step_anchored_facts_only.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-next-step.md")
+        last_assistant_message = @"
+# Next Step
+
+- Next move: company disclosed 35% gross margin and backlog doubled, so meet management next.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "introduces an assertive fact"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\pair_structure_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-pair-note.md")
+        last_assistant_message = @"
+# Pair Trade
+
+Relative-value idea with no structure.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must explicitly include long/short leg framing"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\thesis_catalyst_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-alpha-thesis.md")
+        last_assistant_message = @"
+# Alpha Thesis
+
+## Variant View
+Only a debate gap.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must explicitly include catalyst"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\earnings_decision_contract.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-earnings-setup.md")
+        last_assistant_message = @"
+# Earnings Setup
+
+## Market Expectation
+Consensus only.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must explicitly include observation points"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\peer_matrix_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-peer-deep-dive.md")
+        last_assistant_message = @"
+# Peer Deep Dive
+
+Only prose, no matrix.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must include a core peer matrix"
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "narrative\consensus_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics\company\sample\2026-01-01-consensus-map.md")
+        last_assistant_message = @"
+# Consensus Map
+
+## Market Expectation
+Only buy-side bar.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must explicitly include consensus baseline"
 }
 
 [ordered]@{

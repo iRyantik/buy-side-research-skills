@@ -7,27 +7,11 @@ description: Explain industry mechanisms engineering principles equipment chains
 
 Explain industry mechanisms engineering principles equipment chains and process flows.
 
-Deterministic binary guardrails for source legality, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Research Runtime Capsule
 
-本 skill 独立运行时也必须遵守以下 runtime 规则；详细维护基线在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设会自动读取该文件，因此本 skill 自身必须携带可执行的规则摘要。
-
-- 默认用中文自然语言输出；ticker、公司名、产品名、source title、URL、YAML / JSON key、财务和行业术语可以保留英文。所有分析必须结论先行，不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 非中文 / 英文公司披露项按最小必要原则保留源语言锚点：首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
-- 全中文即可：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording。管理层原话只有在措辞本身影响判断时保留短原文；否则用中文概述并贴 source。
-- 表格优先用 `Ev` / `证据` 短列承载 inline clickable short source anchor 和例外状态。默认 `[S1](link)`；例外状态追加 `:REV` / `:GAP` / `:ND` / `:EST` / `:CON`，干净值不写 `OK`；完整 source metadata 不在表后展开，每篇 artifact 文末统一写 `## Resources`，用 `- [S1](link) = source type | source title/provider | as-of/filed | page/location | fallback reason` 保持可追溯。
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。财务数字、估值、市场数据、KPI、运营数据、行业数据、管理层引语、专家访谈、监管表态、第三方判断、历史事件和时间点必须有 source。研究员判断本身不需要 source，但判断依据的事实必须有 source。
-- 能用一手原始 source 就不用二手；多个 source 冲突时必须标注冲突，不要挑一个顺手的用。不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`；不确定 URL 是否存在时写 `[link 待补]`。
-- 绝对不能编造 URL、页码、引语、数字、人名、日期。
-- Source locality rule: use source quality first (`workspace-local > primary public > reputable provider/news > internet market source`), then prefer `home-market / local-language source` within the same quality tier. News / event evidence should prefer local-language sources for the issuer, main listing venue, regulator, or operating country; market data should prefer the primary listing / trading-market source. Do not maintain market-specific provider whitelists in skill rules; if using a global, English, or non-home-market fallback, state the fallback reason in the final `## Resources` list.
-- Sub-Agent Evidence Protocol：本 skill 默认单线执行。只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时，才开启 sub-agent / delegate worker 并行查 source；sub-agent 只能返回 evidence card，不得写最终结论、mechanism implication、value-capture conclusion、thesis、valuation 或 model treatment；主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis。若用户明确要求并行而当前 host / runner 真的无法 spawn，必须在 artifact 中明示 `sub-agent unavailable`、原因和 coverage caveat。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-- 不要写 sell-side 流水账：公司历史、管理层履历、行业科普、通用 SWOT、无数据定性、表格复述。数据表必须有 takeaway，且 takeaway 必须给结构性洞察，不要复读表格。
-- 主动执行 Senior Analyst Radar：当疑点可能改变业务实质理解、model driver、市场预期 / consensus framing、peer group / 估值框架或下一步研究优先级时，直接点破。
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`；遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- 研究启动时先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的材料；如有，优先引用 cache 中的 source-tracked markdown。
-
-# Mechanism Map
+- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
+- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把行业机制、工程原理、设备链条和关键术语翻译成投研含义。**核心价值不是写科普**，而是防止研究员和 AI 在没搞懂“东西怎么运作”的情况下，直接跳到 driver、model、thesis 或 peer compare。
 
@@ -38,30 +22,6 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 很多工业、能源、核电、航天和先进制造研究的真正 edge，不在“知道一个名词”，而在知道这个名词背后的系统怎么工作、瓶颈在哪里、谁捕获价值、哪些环节会传导到 revenue / margin / backlog driver。`mechanism-map` 的工作是把 know-how gap 变成可研究、可追问、可沉淀的结构。
 
 本 skill 是 `driver-map` 的上游补充：`mechanism-map` 解释“机制怎么运作、价值在哪里捕获”；`driver-map` 再解释“这些机制如何进入收入、利润率、backlog、price / volume / mix driver”。不要用机制解释替代 driver-map，也不要在本 skill 里直接做 DCF、comps、workbook 或完整 thesis。
-
-## Source 政策
-
-- Claim-Level Source Contract：正文里的每个 truth-like claim（工程机制、设备链、工艺参数、行业事实、公司业务事实）都必须紧跟 inline clickable short anchor，如 `[P1](link)` / `[S1](link)`。
-- No Orphan Truth Claim：输出前检查技术事实、行业事实、公司披露 claim 是否都有 anchor；机制解释可做综合判断，但支撑事实必须可追溯。
-
-全局 source / anti-hallucination 规则已内嵌在 `Research Runtime Capsule`。本节只补充 mechanism-map-specific 要求。
-
-特别强调：
-- **工程机制、设备功能、工艺流程**可以使用公司技术白皮书、工程资料、监管/行业机构资料、教材型资料或明确 source；如果不确定，标 `[需查证]`。
-- **本 skill 不引入自动 internet market data fallback**：工程机制解释可引用公开技术 / 工程资料，但公司事实和运营事实仍按现有 source discipline 处理。
-- **产能、成本、效率、订单、价格、客户、装机量、市场规模、项目时间表**必须有 source / as-of。
-- **“可以用于某场景”不等于“已经被某客户采用”**；任何客户、供应链、项目落地 claim 必须回到 `information-impact` 或可靠 source。
-- **行业常识可以作为解释背景，但不能冒充公司事实**。把 mechanism read-through 写成 researcher inference，而不是 company disclosure。
-
-- Locality-aware company facts: business facts still prioritize filings, IR, regulator, and company sources; home-market / local-language preference does not allow ordinary webpages to replace disclosed facts.
-## Parallel Evidence Pass
-
-本 skill 默认必须按机制证据 bucket 启动 sub-agent / delegate worker 并行取证；sub-agent 只能返回 evidence card：
-
-- 可拆任务：technical mechanism source、equipment / process flow、control point / value capture、company read-through evidence。
-- sub-agent 不得写最终 mechanism implication、value-capture conclusion、driver-map handoff、thesis implication 或 model treatment；这些必须由主 agent 综合。
-- 主 agent 必须抽查关键 URL / claim，并统一术语边界、流程图、capability vs adoption、company read-through 和 source 冲突后再写机制判断。
-- 如果用户明确要求并行而当前 host / runner 真的无法 spawn，主 agent 必须在 evidence notes 中写明 `sub-agent unavailable`、失败原因、实际单线程取证范围和 source coverage caveat；不能把未并行执行伪装成已完成并行取证。
 
 ## AI 的局限
 
@@ -130,8 +90,7 @@ Deterministic binary guardrails for source legality, subagent boundary, and work
 
 | Term / part | Plain meaning | Boundary / not this | Why it matters | Ev |
 |---|---|---|---|---|
-| [term] | [一句话解释] | [容易混淆对象] | [投研意义] | [S1](link) 或 GAP |
-
+| [term] | [一句话解释] | [容易混淆对象] | [投研意义] | [S1](./_cache/sources/company-annual-report.md) 或 GAP |
 
 ### Step 3: How it works
 
@@ -207,7 +166,6 @@ Rating hard standards:
 
 | Term / part | Plain meaning | Boundary / not this | Why it matters | Ev |
 |---|---|---|---|---|
-
 
 ## How it works
 
