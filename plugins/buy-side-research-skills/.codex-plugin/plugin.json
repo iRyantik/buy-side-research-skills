@@ -1,7 +1,7 @@
 {
   "name": "buy-side-research-skills",
   "version": "4.3.1",
-  "description": "Journal-first buy-side equity research skill suite for Claude/Cowork and Codex: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
+  "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
   },
@@ -136,7 +136,6 @@
     "plugin-update",
     "runtime-upgrade",
     "workspace-repair",
-    "claude-code",
     "codex"
   ],
   "skills": "./skills/",

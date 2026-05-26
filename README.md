@@ -91,14 +91,20 @@ Claude Code / Codex（你的 AI 助手）
 
 ### 第二步：安装本插件
 
+**方法一：通过 Marketplace 安装（推荐）**
+
+直接在 Claude Code 或 Codex 里说：
+
+> **Claude Code**：`/plugin marketplace add iRyantik/buy-side-research-skills`，然后 `/plugin install buy-side-research-skills`
+
+> **Codex**：`codex plugin marketplace add iRyantik/buy-side-research-skills`
+
+**方法二：从 Release 下载本地安装**
+
 1. 打开 [GitHub Release 页面](https://github.com/iRyantik/buy-side-research-skills/releases)
 2. 下载最新版本的 `buy-side-research-skills-X.X.X.zip`
 3. 解压到你电脑上的一个文件夹（记下路径）
 4. 在 Claude Code 里说：**"帮我安装本地插件，路径是 xxx"**（把 xxx 换成你解压的文件夹路径）
-
-Claude 会帮你完成安装。你只需要确认即可。
-
-> 如果你用的是 Codex，把对白里的 "Claude" 换成 "Codex" 即可，操作完全一样。
 
 ### 第三步：验证安装成功
 
@@ -147,9 +153,21 @@ Claude 会自动帮你创建如下骨架：
 
 #### Longbridge 市场数据（可选，但推荐）
 
-Longbridge（长桥证券）提供 **A股 / 港股 / 美股** 的实时行情、估值、分析师共识、财务快照等市场数据。research skills 会自动通过它补市场数据缺口，如果 Longbridge 不可用，会自动降级到公开互联网数据。
+Longbridge（长桥证券）提供 **A股 / 港股 / 美股** 的实时行情、估值、分析师共识、财务快照等市场数据。本插件的 research skills 会通过 `trusted-market-bridge` 自动补市场数据缺口，如果 Longbridge 不可用，会自动降级到公开互联网数据。
 
-**你需要**：一个 [Longbridge](https://longbridge.com) 账号。不需要 API key，只需在终端登录一次：
+**第一步：安装 Longbridge 插件**
+
+Longbridge 有独立插件，提供了行情、估值、共识、持仓、自选等全套技能。在 Claude Code 或 Codex 里安装：
+
+> **Claude Code**：`/plugin marketplace add longbridge/skills`，然后 `/plugin install longbridge-skills`
+
+> **Codex**：`codex plugin marketplace add longbridge/skills`
+
+> Marketplace 地址：[https://github.com/longbridge/skills](https://github.com/longbridge/skills)
+
+**第二步：登录 Longbridge**
+
+你需要一个 [Longbridge](https://longbridge.com) 账号。装好插件后，在终端登录一次：
 
 ```bash
 longbridge auth login
@@ -187,7 +205,9 @@ Claude 会自动检查并安装。这是一次性的。
 
 ## 4. 快速入门
 
-假设你想快速看一家公司：**Vertiv（VRT）**。
+以下所有场景，你都是在用中文跟 Claude 对话。不需要写代码，不需要敲命令。
+
+### 场景 A：快速看一家不熟的公司
 
 **你**：帮我新建一个 Vertiv 的研究 session
 
@@ -201,7 +221,7 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-再比如你有一个主题想法，想找受益股：
+### 场景 B：有主题想法，找受益股
 
 **你**：帮我新建一个 AI 数据中心电力的研究 session
 
@@ -210,6 +230,76 @@ Claude 会自动检查并安装。这是一次性的。
 **你**：用 candidate-screener 找 AI 数据中心电力的受益股
 
 **你**：（筛选出几家后）用 peer-deep-dive 比较 VRT、GEV、SMCI
+
+---
+
+### 场景 C：认真研究一家公司，搭模型
+
+**你**：帮我新建一个 Rocket Lab 的研究 session
+
+**你**：用 financial-data 拉 RKLB 美股数据
+
+**你**：用 company-primer 深度看 RKLB
+
+**你**：用 driver-map 拆 RKLB 的 revenue driver
+
+**你**：用 3-statement-model 给 RKLB 搭历史+预测三表模型
+
+**你**：用 dcf-model 给 RKLB 做估值
+
+**你**：用 alpha-thesis 写 RKLB 做多 thesis
+
+**你**：用 bear-pre-mortem 打一下这个做多 thesis
+
+---
+
+### 场景 D：财报季来了
+
+**你**：帮我新建一个 GE Q1 2026 财报的研究 session
+
+**你**：用 earnings-setup 准备下周 GE 的财报
+
+**你**：（财报出了后）用 model-update 把最新数据更新进 GE 的模型
+
+**你**：用 research-journal 记录 post-earnings 的判断更新
+
+---
+
+### 场景 E：搞懂一个陌生行业
+
+**你**：帮我新建一个燃气轮机行业的研究 session
+
+**你**：用 industry-quickread 看燃气轮机行业
+
+**你**：用 mechanism-map 解释燃气轮机
+
+**你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上找上市公司
+
+**你**：用 peer-deep-dive 比较 GE Vernova、西门子能源、三菱重工
+
+---
+
+### 场景 F：突发新闻来了
+
+**你**：我刚刚看到——"美国商务部提议限制 AI 芯片出口"。用 information-impact 分析这条消息
+
+**你**：（根据分析结果）用 candidate-screener 按这个消息的逻辑找受益股
+
+---
+
+### 场景 G：想做空一只股票
+
+**你**：帮我新建一个 IONQ 做空的研究 session
+
+**你**：用 consensus-map 看市场对 IONQ 的预期
+
+**你**：用 driver-map 拆 IONQ 的 revenue driver
+
+**你**：用 alpha-thesis 写 IONQ 做空 thesis
+
+**你**：用 bear-pre-mortem 反打这份做空 thesis（检验你的做空逻辑）
+
+---
 
 **整个过程你没有写一行代码，也没有敲任何命令。你只是在用中文跟 Claude 对话。**
 
@@ -325,5 +415,5 @@ Claude 会自动检查并安装。这是一次性的。
 
 ---
 
-**版本**：v4.3.0
+**版本**：v4.3.1
 **最后更新**：2026-05-26

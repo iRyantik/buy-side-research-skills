@@ -41,7 +41,6 @@
         "plugin-update",
         "runtime-upgrade",
         "workspace-repair",
-        "claude-code",
         "codex"
       ]
     }
