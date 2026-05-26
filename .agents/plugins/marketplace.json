@@ -1,0 +1,48 @@
+{
+  "name": "buy-side-research",
+  "interface": {
+    "displayName": "Buy-Side Research"
+  },
+  "plugins": [
+    {
+      "name": "buy-side-research-skills",
+      "source": {
+        "source": "local",
+        "path": "./plugins/buy-side-research-skills"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Research",
+      "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
+      "version": "4.3.1",
+      "author": {
+        "name": "buy-side-research-system"
+      },
+      "license": "MIT",
+      "keywords": [
+        "buy-side",
+        "research",
+        "equity",
+        "journal-first",
+        "sub-agent",
+        "parallel-evidence",
+        "reddit-sentiment",
+        "social-sentiment",
+        "financial-data",
+        "structured-financials",
+        "trusted-market-bridge",
+        "longbridge",
+        "research-viz",
+        "visualization",
+        "chart",
+        "html",
+        "update-agent-runtime",
+        "plugin-update",
+        "runtime-upgrade",
+        "workspace-repair",
+        "codex"
+      ]
+    }
+  ]
+}
