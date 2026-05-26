@@ -111,6 +111,41 @@
                                                  },
                                                  {
                                                      "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_structure_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_audit_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_driver_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_structure_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_audit_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/comps_structure_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_update_change_map_floor.ps1",
+                                                     "timeout":  20
+                                                 },
+                                                 {
+                                                     "type":  "command",
                                                      "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
                                                      "timeout":  20
                                                  },
@@ -233,6 +268,41 @@
                                                         {
                                                             "type":  "command",
                                                             "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_structure_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_audit_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_driver_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_structure_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_audit_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/comps_structure_floor.ps1",
+                                                            "timeout":  20
+                                                        },
+                                                        {
+                                                            "type":  "command",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_update_change_map_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {

@@ -7,14 +7,12 @@ description: Build source-tracked 3-statement models with historical actuals and
 
 Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.
 
-Deterministic binary guardrails for statement presence, balance integrity, formula discipline, missing-actuals handling, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Modeling Runtime Capsule
 
-- 本 skill 使用单独的 modeling capsule，不吃 research capsule。
-- 建模前先检查 actuals completeness、source-map、review flag 和 evidence-pack。
-- missing / unmapped actuals 不能静默写成 0。
-- 可使用 bounded QA 型 sub-agent，但主 agent 负责 final workbook、valuation treatment 和 delivery。
+- Hook-enforced workbook legality, structure floors, formula discipline, and sub-agent boundary rules live in workspace hooks and are not restated here.
+- Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- Use bounded QA sub-agents only; the main agent owns the final workbook, forecast architecture, and delivery.
 
 ## Research Workspace Adapter
 
@@ -33,14 +31,9 @@ If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cas
 
 ## Model Sub-Agent Protocol
 
-This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, formula architecture, model treatment, valuation handoff, and delivery decision.
-
-Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-Useful 3-statement sub-agent QA buckets:
-- actuals mapping audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness
-- IS / BS / CF linkage check and balance check
-- missing or unmapped actuals review; never coerce missing or unmapped actuals to zero
+- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation conclusions.
+- Close QA sub-agents once notes return; the main agent owns formula architecture, balance integrity, and delivery.
+- Useful QA buckets: actuals mapping audit, IS / BS / CF linkage and balance checks, and missing-actuals review.
 
 # 3-Statement Financial Model Template Completion
 

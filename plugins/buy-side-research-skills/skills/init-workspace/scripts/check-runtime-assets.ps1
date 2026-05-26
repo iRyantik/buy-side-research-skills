@@ -178,6 +178,68 @@ function Start-HookLauncherProcess {
     ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $StdoutPath -RedirectStandardError $StderrPath
 }
 
+function New-SmokeWorkbook {
+    param(
+        [string]$Path,
+        [string[]]$SheetNames,
+        [string[]]$SharedStrings
+    )
+
+    Add-Type -AssemblyName System.IO.Compression | Out-Null
+    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+    $parent = Split-Path -Parent $Path
+    if ($parent -and -not (Test-Path -LiteralPath $parent)) {
+        New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    }
+    if (Test-Path -LiteralPath $Path) {
+        Remove-Item -LiteralPath $Path -Force
+    }
+
+    $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::CreateNew)
+    try {
+        $archive = New-Object System.IO.Compression.ZipArchive($stream, [System.IO.Compression.ZipArchiveMode]::Create, $false)
+        try {
+            $sheetsXml = New-Object System.Text.StringBuilder
+            $relsXml = New-Object System.Text.StringBuilder
+            for ($i = 0; $i -lt $SheetNames.Count; $i++) {
+                $sheetId = $i + 1
+                $sheetName = [System.Security.SecurityElement]::Escape($SheetNames[$i])
+                [void]$sheetsXml.Append("<sheet name=`"$sheetName`" sheetId=`"$sheetId`" r:id=`"rId$sheetId`" />")
+                [void]$relsXml.Append("<Relationship Id=`"rId$sheetId`" Type=`"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet`" Target=`"worksheets/sheet$sheetId.xml`" />")
+            }
+
+            $workbookXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><workbook xmlns=`"http://schemas.openxmlformats.org/spreadsheetml/2006/main`" xmlns:r=`"http://schemas.openxmlformats.org/officeDocument/2006/relationships`"><sheets>$($sheetsXml.ToString())</sheets></workbook>"
+            $workbookRelsXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><Relationships xmlns=`"http://schemas.openxmlformats.org/package/2006/relationships`">$($relsXml.ToString())</Relationships>"
+
+            $sharedItems = @($SharedStrings | ForEach-Object {
+                "<si><t>$([System.Security.SecurityElement]::Escape($_))</t></si>"
+            }) -join ""
+            $sharedStringsXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><sst xmlns=`"http://schemas.openxmlformats.org/spreadsheetml/2006/main`" count=`"$($SharedStrings.Count)`" uniqueCount=`"$($SharedStrings.Count)`">$sharedItems</sst>"
+
+            foreach ($entrySpec in @(
+                @{ Path = "xl/workbook.xml"; Content = $workbookXml }
+                @{ Path = "xl/_rels/workbook.xml.rels"; Content = $workbookRelsXml }
+                @{ Path = "xl/sharedStrings.xml"; Content = $sharedStringsXml }
+            )) {
+                $entry = $archive.CreateEntry($entrySpec.Path)
+                $writer = New-Object System.IO.StreamWriter($entry.Open(), [System.Text.UTF8Encoding]::new($false))
+                try { $writer.Write($entrySpec.Content) } finally { $writer.Dispose() }
+            }
+
+            for ($i = 0; $i -lt $SheetNames.Count; $i++) {
+                $sheetXml = "<?xml version=`"1.0`" encoding=`"UTF-8`"?><worksheet xmlns=`"http://schemas.openxmlformats.org/spreadsheetml/2006/main`"><sheetData/></worksheet>"
+                $entry = $archive.CreateEntry("xl/worksheets/sheet$($i + 1).xml")
+                $writer = New-Object System.IO.StreamWriter($entry.Open(), [System.Text.UTF8Encoding]::new($false))
+                try { $writer.Write($sheetXml) } finally { $writer.Dispose() }
+            }
+        } finally {
+            $archive.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 $workspaceRoot = Convert-ToFullPath $WorkspacePath
 $claudeSettings = Join-Path $workspaceRoot ".claude/settings.json"
 $codexHooks = Join-Path $workspaceRoot ".codex/hooks.json"
@@ -419,6 +481,263 @@ Gap versus consensus and what is missed.
 The hurdle and beat-and-raise framing.
 "@
     } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    $threeStatementPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model.xlsx"
+    $threeStatementNoMasterPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-master.xlsx"
+    $threeStatementNoRetainedPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-retained.xlsx"
+    $threeStatementNoDebtTiePath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-debt-tie.xlsx"
+    $threeStatementNoDriverPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-3-statement-model-no-driver.xlsx"
+    $dcfPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model.xlsx"
+    $dcfNoBridgePath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model-no-bridge.xlsx"
+    $dcfNoSensitivityPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-dcf-model-no-sensitivity.xlsx"
+    $compsPassPath = Join-Path $workspaceRoot "topics/company/sample/2026-01-01-comps-analysis.xlsx"
+
+    New-SmokeWorkbook -Path $threeStatementPassPath -SheetNames @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "Debt Schedule"
+    ) -SharedStrings @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "ALL CHECKS PASS",
+        "Balance Sheet Balance",
+        "Assets - Liabilities - Equity = 0",
+        "Cash Tie-Out",
+        "CF ending cash = BS cash",
+        "Retained Earnings Roll-Forward",
+        "NI-dividend linkage",
+        "Debt Schedule",
+        "Debt Tie-Out",
+        "Equity issuance",
+        "APIC",
+        "Equity Raise Tie-Out",
+        "Assumptions",
+        "Revenue Growth",
+        "Segment Driver",
+        "Volume-Price-Mix"
+    )
+    New-SmokeWorkbook -Path $threeStatementNoMasterPath -SheetNames @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks"
+    ) -SharedStrings @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Balance Sheet Balance",
+        "Assets - Liabilities - Equity = 0",
+        "Cash Tie-Out",
+        "CF ending cash = BS cash",
+        "Retained Earnings Roll-Forward",
+        "Assumptions",
+        "Revenue Growth"
+    )
+    New-SmokeWorkbook -Path $threeStatementNoRetainedPath -SheetNames @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check"
+    ) -SharedStrings @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "ALL CHECKS PASS",
+        "Balance Sheet Balance",
+        "Assets - Liabilities - Equity = 0",
+        "Cash Tie-Out",
+        "CF ending cash = BS cash",
+        "Assumptions",
+        "Revenue Growth",
+        "Segment Driver"
+    )
+    New-SmokeWorkbook -Path $threeStatementNoDebtTiePath -SheetNames @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "Debt Schedule"
+    ) -SharedStrings @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "ALL CHECKS PASS",
+        "Balance Sheet Balance",
+        "Assets - Liabilities - Equity = 0",
+        "Cash Tie-Out",
+        "CF ending cash = BS cash",
+        "Retained Earnings Roll-Forward",
+        "Debt Schedule",
+        "Total Debt",
+        "Assumptions",
+        "Revenue Growth",
+        "Segment Driver"
+    )
+    New-SmokeWorkbook -Path $threeStatementNoDriverPath -SheetNames @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check"
+    ) -SharedStrings @(
+        "Historical Actuals",
+        "Income Statement",
+        "Balance Sheet",
+        "Cash Flow Statement",
+        "Audit Checks",
+        "Master Check",
+        "ALL CHECKS PASS",
+        "Balance Sheet Balance",
+        "Assets - Liabilities - Equity = 0",
+        "Cash Tie-Out",
+        "CF ending cash = BS cash",
+        "Retained Earnings Roll-Forward",
+        "Revenue"
+    )
+    New-SmokeWorkbook -Path $dcfPassPath -SheetNames @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Valuation Summary",
+        "Sensitivity Analysis"
+    ) -SharedStrings @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Bear Case",
+        "Base Case",
+        "Bull Case",
+        "Free Cash Flow",
+        "WACC",
+        "Terminal Value",
+        "Valuation Summary",
+        "Equity Value",
+        "Implied Share Price",
+        "Sensitivity Analysis",
+        "WACC vs Terminal Growth"
+    )
+    New-SmokeWorkbook -Path $dcfNoBridgePath -SheetNames @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Sensitivity Analysis"
+    ) -SharedStrings @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Free Cash Flow",
+        "WACC",
+        "Terminal Value",
+        "Sensitivity Analysis",
+        "WACC vs Terminal Growth"
+    )
+    New-SmokeWorkbook -Path $dcfNoSensitivityPath -SheetNames @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Valuation Summary"
+    ) -SharedStrings @(
+        "Market Data & Key Inputs",
+        "Scenario Assumptions",
+        "Free Cash Flow",
+        "WACC",
+        "Terminal Value",
+        "Valuation Summary",
+        "Equity Value",
+        "Implied Share Price"
+    )
+    New-SmokeWorkbook -Path $compsPassPath -SheetNames @(
+        "Comparable Company Analysis",
+        "Operating Metrics",
+        "Valuation Multiples",
+        "Statistics"
+    ) -SharedStrings @(
+        "Comparable Company Analysis",
+        "As of 2026-05-26",
+        "All figures in USD Millions",
+        "Operating Metrics",
+        "Operating Statistics",
+        "Valuation Multiples",
+        "EV/EBITDA",
+        "Statistics",
+        "Maximum",
+        "75th Percentile",
+        "Median",
+        "25th Percentile",
+        "Minimum",
+        "Notes",
+        "Methodology",
+        "Source"
+    )
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_structure_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_driver_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/dcf_structure_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $dcfPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/dcf_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $dcfPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/comps_structure_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $compsPassPath }
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeTest -HookPath (Join-Path $hooksRoot "modeling/model_update_change_map_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics/company/sample/2026-01-01-model-update.md")
+        last_assistant_message = @"
+# Model Update
+
+## What Changed
+New quarter actuals and revised demand assumptions.
+
+## Actual vs Prior
+Prior estimate versus reported actuals bridge.
+
+## Forward Revisions
+Old FY estimate versus new FY estimate.
+
+## Valuation Impact
+Updated DCF and target multiple impact.
+
+## Update Map
+Changed actuals, assumptions, and formula touchpoints.
+"@
+    } | ConvertTo-Json -Depth 10) -WorkspaceRoot $workspaceRoot
     Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "global/source_contract.ps1") -PayloadJson (@{
         cwd = $workspaceRoot
         tool_name = "Write"
@@ -557,6 +876,56 @@ Only prose, no matrix.
 Only buy-side bar.
 "@
     } | ConvertTo-Json -Depth 10) -ExpectedMessage "must explicitly include consensus baseline" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementNoMasterPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "must include a master check" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementNoRetainedPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "retained earnings roll-forward" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementNoDebtTiePath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "no explicit Debt Tie-Out" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/three_statement_driver_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $threeStatementNoDriverPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "structured revenue/driver breakdown" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/dcf_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $dcfNoBridgePath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "visible valuation bridge or valuation summary" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/dcf_audit_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        tool_input = @{ path = $dcfNoSensitivityPath }
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "visible sensitivity table evidence" -WorkspaceRoot $workspaceRoot
+    Invoke-HookSmokeFailureTest -HookPath (Join-Path $hooksRoot "modeling/model_update_change_map_floor.ps1") -PayloadJson (@{
+        cwd = $workspaceRoot
+        tool_name = "Write"
+        transcript_path = (Join-Path $workspaceRoot "topics/company/sample/2026-01-01-model-update.md")
+        last_assistant_message = @"
+# Model Update
+
+## What Changed
+Only the quarter changed.
+
+## Actual vs Prior
+Prior estimate versus actual.
+
+## Forward Revisions
+Updated FY bridge.
+
+## Valuation Impact
+Target price changed.
+"@
+    } | ConvertTo-Json -Depth 10) -ExpectedMessage "missing change-map slots: Update Map" -WorkspaceRoot $workspaceRoot
 }
 
 [ordered]@{

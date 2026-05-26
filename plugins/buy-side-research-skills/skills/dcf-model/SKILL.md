@@ -7,14 +7,12 @@ description: Build DCF valuation workbooks using source-tracked actuals drivers 
 
 Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.
 
-Deterministic binary guardrails for formula discipline, missing-actuals handling, valuation basis, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Modeling Runtime Capsule
 
-- 本 skill 使用单独的 modeling capsule，不吃 research capsule。
-- 建模前先检查 actuals completeness、source-map、review flag 和 evidence-pack。
-- missing / unmapped actuals 不能静默写成 0。
-- 可使用 bounded QA 型 sub-agent，但主 agent 负责 final workbook、valuation treatment 和 delivery。
+- Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
+- Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- Use bounded QA sub-agents only; the main agent owns the final workbook, valuation treatment, and delivery.
 
 ## Research Workspace Adapter
 
@@ -31,14 +29,9 @@ If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cas
 
 ## Model Sub-Agent Protocol
 
-This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
-
-Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-Useful DCF sub-agent QA buckets:
-- driver-map assumption audit against `driver-map.md` and `internal/driver-map.json`
-- FCF bridge QA, WACC / terminal value / sensitivity formula check
-- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation verdicts.
+- Close QA sub-agents once notes return; the main agent owns the FCF build, valuation bridge, and delivery.
+- Useful QA buckets: driver-map assumption audit, FCF / WACC / terminal value / sensitivity checks, and actuals completeness review.
 
 # DCF Model Builder
 

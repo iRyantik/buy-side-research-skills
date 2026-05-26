@@ -221,6 +221,50 @@ function Get-WorkbookTargets {
     return $targets.ToArray()
 }
 
+function Get-WorkbookSearchText {
+    param($Target)
+
+    if ($null -eq $Target) { return "" }
+
+    $sheetNames = @()
+    if ($Target.PSObject.Properties.Name -contains "sheetNames") {
+        $sheetNames = @($Target.sheetNames)
+    }
+
+    $sheetTexts = @()
+    if ($Target.PSObject.Properties.Name -contains "sheets") {
+        $sheetTexts = @($Target.sheets | ForEach-Object { [string]$_.Text })
+    }
+
+    return @(
+        ($sheetNames -join "`n")
+        [string]$Target.sharedStringsText
+        ($sheetTexts -join "`n")
+    ) -join "`n"
+}
+
+function Test-WorkbookTargetIdentity {
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [string]$PathLeafPattern,
+        [string]$SearchPattern
+    )
+
+    if ($Target.kind -ne "workbook") { return $false }
+
+    if ($Target.path -and $PathLeafPattern) {
+        $leaf = [System.IO.Path]::GetFileName($Target.path)
+        if ($leaf -match $PathLeafPattern) { return $true }
+    }
+
+    if ($SearchPattern) {
+        $searchText = Get-WorkbookSearchText -Target $Target
+        if ($searchText -match $SearchPattern) { return $true }
+    }
+
+    return $false
+}
+
 function Test-IsArtifactLikeText {
     param([string]$Text)
 

@@ -85,33 +85,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 
 ## Earned Insight Gate
 
-任何内容写进 journal 或 Boss Brief 前，都必须先过写入门槛。
-
-| Gate | Hard standard | 不满足时 |
-|---|---|---|
-| **已研究** | 用户或上游 skill 已经完成一轮 source-backed research，不只是注意到异常 | 留在对话或交给 `next-step` |
-| **可复述结论** | 能用 1-2 句话说清楚“现在我们相信什么 / 不相信什么” | 不写 settled insight，只写 open question |
-| **关键事实有 source** | 支撑结论的数字、KPI、引语、事件、source conflict 有 source / as-of | 标 `[来源待补]` 或不写入 |
-| **能改变判断** | 影响业务实质、model driver、market framing、peer group、估值框架或研究优先级 | 不写 journal，最多写 index session link |
-| **剩余不确定性明确** | 知道哪些还没搞清楚，且不会污染结论 | 写入 `Unresolved / What would change our mind` |
-
-### Handoff block
-
-如果内容未过 Gate，不要硬写 journal。输出：
-
-```markdown
-**先不写进 journal，我建议先补 `[skill-name]`。**
-
-阻塞点：
-- [...]
-
-为什么现在写入会污染记忆：
-- [...]
-
-交给 `[skill-name]` 的问题：
-1. [...]
-2. [...]
-```
+Only research that has already crossed the earned-insight and topic-index boundaries should land here. The detailed gate and index-only legality are enforced by workspace hooks; use this section only to decide whether a conclusion is mature enough to journal, brief, or leave as a follow-up.
 
 ## Mode A: Private Research Journal
 

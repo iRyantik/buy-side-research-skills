@@ -137,6 +137,48 @@ hooks:
     events: [PostToolUse, Stop]
     scope: [dcf-model, comps-analysis, model-update]
     severity: block
+  - name: three_statement_structure_floor
+    file: modeling/three_statement_structure_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: three_statement_audit_floor
+    file: modeling/three_statement_audit_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: three_statement_driver_floor
+    file: modeling/three_statement_driver_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: dcf_structure_floor
+    file: modeling/dcf_structure_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [dcf-model]
+    severity: block
+  - name: dcf_audit_floor
+    file: modeling/dcf_audit_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [dcf-model]
+    severity: block
+  - name: comps_structure_floor
+    file: modeling/comps_structure_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [comps-analysis]
+    severity: block
+  - name: model_update_change_map_floor
+    file: modeling/model_update_change_map_floor.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [model-update]
+    severity: block
   - name: earned_insight_only
     file: journal/earned_insight_only.ps1
     layer: journal

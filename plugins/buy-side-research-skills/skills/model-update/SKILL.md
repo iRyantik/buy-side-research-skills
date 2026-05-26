@@ -7,14 +7,12 @@ description: Update a financial model for earnings guidance new data or revised 
 
 Update a financial model for earnings guidance new data or revised assumptions.
 
-Deterministic binary guardrails for missing-actuals handling, valuation basis, conditional balance integrity, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Modeling Runtime Capsule
 
-- 本 skill 使用单独的 modeling capsule，不吃 research capsule。
-- 建模前先检查 actuals completeness、source-map、review flag 和 evidence-pack。
-- missing / unmapped actuals 不能静默写成 0。
-- 可使用 bounded QA 型 sub-agent，但主 agent 负责 final workbook、valuation treatment 和 delivery。
+- Hook-enforced workbook legality, change-map floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
+- Before updating, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- Use bounded QA sub-agents only; the main agent owns the final workbook or update memo, valuation treatment, and delivery.
 
 ## Research Workspace Adapter
 
@@ -31,14 +29,9 @@ If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cas
 
 ## Model Sub-Agent Protocol
 
-This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook or update map, valuation verdict, model treatment, change classification, and delivery decision.
-
-Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-Useful model-update sub-agent QA buckets:
-- reported actuals vs prior model reconciliation
-- assumption delta map, formula preservation check, and update-map QA
-- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation conclusions.
+- Close QA sub-agents once notes return; the main agent owns the update map, valuation treatment, and delivery.
+- Useful QA buckets: reported-actuals reconciliation, assumption/formula delta review, and actuals completeness review.
 
 # Model Update
 

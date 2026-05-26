@@ -7,14 +7,12 @@ description: Build comparable company valuation workbooks with peer multiples an
 
 Build comparable company valuation workbooks with peer multiples and operating metrics.
 
-Deterministic binary guardrails for source legality, valuation basis, subagent boundary, and workspace safety are enforced through workspace hooks. If a hook and prose differ on a binary check, hook enforcement wins.
-
 ## Modeling Runtime Capsule
 
-- 本 skill 使用单独的 modeling capsule，不吃 research capsule。
-- 建模前先检查 actuals completeness、source-map、review flag 和 evidence-pack。
-- missing / unmapped actuals 不能静默写成 0。
-- 可使用 bounded QA 型 sub-agent，但主 agent 负责 final workbook、valuation treatment 和 delivery。
+- Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
+- Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- Use bounded QA sub-agents only; the main agent owns the final workbook, peer-set judgment, and delivery.
 
 ## Research Workspace Adapter
 
@@ -29,14 +27,9 @@ Use `driver-map` to separate business peers, valuation peers, segment treatment,
 
 ## Model Sub-Agent Protocol
 
-This skill may spawn / delegate sub-agents for bounded model QA, but sub-agents must return only model QA notes / work-packet findings. The main agent owns the final workbook, valuation verdict, multiple selection, peer-set judgment, model treatment, and delivery decision.
-
-Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
-
-Useful comps sub-agent QA buckets:
-- peer set QA and business-peer vs valuation-peer separation
-- multiple source/as-of check, currency / fiscal-period normalization, and outlier handling review
-- actuals input audit against `actuals-resolved.json`, `evidence-pack.json`, source-map, and completeness; never coerce missing or unmapped actuals to zero
+- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation conclusions.
+- Close QA sub-agents once notes return; the main agent owns peer-set judgment, multiple selection, and delivery.
+- Useful QA buckets: peer-set QA, basis/normalization review, and actuals completeness review.
 
 # Comparable Company Analysis
 
