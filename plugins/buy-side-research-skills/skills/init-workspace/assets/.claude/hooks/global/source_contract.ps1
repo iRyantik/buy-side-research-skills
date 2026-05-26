@@ -1,6 +1,6 @@
-param([string]$InputPath)
+﻿param([string]$InputPath)
 
-. "$PSScriptRoot/_hook_common.ps1"
+. (Join-Path (Split-Path -Parent $PSScriptRoot) '_hook_common.ps1')
 
 function Test-FactualLine {
     param([string]$Line)
@@ -60,3 +60,4 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
 }
 
 exit 0
+

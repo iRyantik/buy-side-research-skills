@@ -38,6 +38,18 @@ function Convert-ToFullPath {
     return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
 }
 
+function Get-RelativePath {
+    param(
+        [string]$BasePath,
+        [string]$TargetPath
+    )
+
+    $baseUri = [System.Uri]((Resolve-Path -LiteralPath $BasePath).Path.TrimEnd('\') + '\')
+    $targetUri = [System.Uri](Resolve-Path -LiteralPath $TargetPath).Path
+    $relative = $baseUri.MakeRelativeUri($targetUri).ToString()
+    return [System.Uri]::UnescapeDataString($relative).Replace('/', '\')
+}
+
 function Add-Result {
     param(
         [System.Collections.Generic.List[string]]$List,
@@ -191,12 +203,6 @@ foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.
 
 foreach ($relativeAsset in @(
     ".claude\settings.json",
-    ".claude\hooks\_hook_common.ps1",
-    ".claude\hooks\source_contract.ps1",
-    ".claude\hooks\subagent_protocol.ps1",
-    ".claude\hooks\workspace_guard.ps1",
-    ".claude\hooks\no_filing_summary.ps1",
-    ".claude\hooks\must_state_market_expectation.ps1",
     ".codex\hooks.json"
 )) {
     $sourceAsset = Join-Path $assetsRoot $relativeAsset
@@ -208,6 +214,21 @@ foreach ($relativeAsset in @(
         Sync-ManagedFile `
             -SourcePath $sourceAsset `
             -RelativeTarget (Join-Path "_scripts\init-assets" $relativeAsset)
+    }
+}
+
+$hooksRoot = Join-Path $assetsRoot ".claude\hooks"
+if (Test-Path -LiteralPath $hooksRoot) {
+    Get-ChildItem -LiteralPath $hooksRoot -Recurse -File | ForEach-Object {
+        $relativeHook = Get-RelativePath -BasePath $hooksRoot -TargetPath $_.FullName
+        $workspaceHookTarget = Join-Path ".claude\hooks" $relativeHook
+        Sync-ManagedFile `
+            -SourcePath $_.FullName `
+            -RelativeTarget $workspaceHookTarget
+
+        Sync-ManagedFile `
+            -SourcePath $_.FullName `
+            -RelativeTarget (Join-Path "_scripts\init-assets\.claude\hooks" $relativeHook)
     }
 }
 

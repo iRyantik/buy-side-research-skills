@@ -1,6 +1,6 @@
-param([string]$InputPath)
+﻿param([string]$InputPath)
 
-. "$PSScriptRoot/_hook_common.ps1"
+. (Join-Path (Split-Path -Parent $PSScriptRoot) '_hook_common.ps1')
 
 $payload = Get-HookPayload -InputPath $InputPath
 if ($null -eq $payload) { exit 0 }
@@ -36,3 +36,4 @@ foreach ($target in (Get-WorkbookTargets $payload)) {
 }
 
 exit 0
+

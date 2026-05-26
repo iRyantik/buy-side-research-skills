@@ -88,7 +88,8 @@ Runtime assets copied by the helper:
 - `skills/init-workspace/assets/edge-radar.md`
 - `skills/init-workspace/assets/env-setup.ps1.template`
 - `skills/init-workspace/assets/.claude/settings.json`
-- `skills/init-workspace/assets/.claude/hooks/*.ps1`
+- `skills/init-workspace/assets/.claude/hooks/`
+- `skills/init-workspace/assets/.claude/hooks/hooks.registry.yaml`
 - `skills/init-workspace/assets/.codex/hooks.json`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`

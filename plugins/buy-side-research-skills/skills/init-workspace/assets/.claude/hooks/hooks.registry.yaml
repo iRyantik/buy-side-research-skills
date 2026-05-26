@@ -1,0 +1,103 @@
+hooks:
+  - name: source_contract
+    file: global/source_contract.ps1
+    layer: global
+    events: [PostToolUse, Stop]
+    scope: [markdown_artifact, html_artifact]
+    severity: block
+  - name: workspace_guard
+    file: global/workspace_guard.ps1
+    layer: global
+    events: [PreToolUse]
+    scope: [workspace_mutation]
+    severity: block
+  - name: subagent_protocol
+    file: global/subagent_protocol.ps1
+    layer: global
+    events: [SubagentStop]
+    scope: [subagent_output]
+    severity: block
+  - name: no_filing_summary
+    file: narrative/no_filing_summary.ps1
+    layer: narrative
+    events: [PostToolUse]
+    scope: [stock-quickread, peer-deep-dive, company-primer, earnings-setup, industry-quickread]
+    severity: block
+  - name: must_state_market_expectation
+    file: narrative/must_state_market_expectation.ps1
+    layer: narrative
+    events: [PostToolUse]
+    scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, bear-pre-mortem]
+    severity: block
+  - name: claim_qualification
+    file: narrative/claim_qualification.ps1
+    layer: narrative
+    events: [PostToolUse, Stop]
+    scope: [information-impact, candidate-screener]
+    severity: block
+  - name: primary_research_compliance
+    file: provider/primary_research_compliance.ps1
+    layer: provider
+    events: [PostToolUse, Stop]
+    scope: [primary-research-plan]
+    severity: block
+  - name: cross_market_parity
+    file: provider/cross_market_parity.ps1
+    layer: provider
+    events: [PostToolUse, Stop]
+    scope: [cross-market-compare]
+    severity: block
+  - name: social_clue_only
+    file: provider/social_clue_only.ps1
+    layer: provider
+    events: [PostToolUse, Stop]
+    scope: [reddit-sentiment]
+    severity: block
+  - name: model_statement_presence
+    file: modeling/model_statement_presence.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model]
+    severity: block
+  - name: model_balance_integrity
+    file: modeling/model_balance_integrity.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model, model-update]
+    severity: block
+  - name: no_hardcoded_formula_assumption
+    file: modeling/no_hardcoded_formula_assumption.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model, dcf-model]
+    severity: block
+  - name: missing_actuals_not_zero
+    file: modeling/missing_actuals_not_zero.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [3-statement-model, dcf-model, model-update]
+    severity: block
+  - name: valuation_basis_required
+    file: modeling/valuation_basis_required.ps1
+    layer: modeling
+    events: [PostToolUse, Stop]
+    scope: [dcf-model, comps-analysis, model-update]
+    severity: block
+  - name: earned_insight_only
+    file: journal/earned_insight_only.ps1
+    layer: journal
+    events: [PostToolUse, Stop]
+    scope: [research-journal]
+    severity: block
+  - name: topic_index_map_only
+    file: journal/topic_index_map_only.ps1
+    layer: journal
+    events: [PostToolUse, Stop]
+    scope: [research-journal]
+    severity: block
+  - name: viz_delivery_contract
+    file: viz/viz_delivery_contract.ps1
+    layer: viz
+    events: [PostToolUse, Stop]
+    scope: [research-viz]
+    severity: block

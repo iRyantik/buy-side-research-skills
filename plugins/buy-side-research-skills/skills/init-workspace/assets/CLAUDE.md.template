@@ -1,4 +1,4 @@
-# CLAUDE.md - Buy-Side Research Workspace 宪法模板
+﻿# CLAUDE.md - Buy-Side Research Workspace 宪法模板
 
 > 本文件是当前 research workspace 的本地宪法。
 > 它负责 workspace 高层原则、topic 结构和 source stance，不负责每个 skill 的细 procedure。
@@ -11,7 +11,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `3.10.18`
+- Current system generation: `4.0.0`
 
 本 workspace 用于 buy-side equity research。目标不是"了解公司"，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
 
