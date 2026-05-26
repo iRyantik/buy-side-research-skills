@@ -5,6 +5,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+function Write-Utf8NoBomFile {
+    param([string]$Path, [string]$Content)
+    [System.IO.File]::WriteAllText($Path, $Content, $Utf8NoBom)
+}
+
 function Convert-ToFullPath {
     param([string]$Path)
 
@@ -73,7 +80,7 @@ function Invoke-HookSmokeTest {
 
     $temp = [System.IO.Path]::GetTempFileName()
     try {
-        Set-Content -LiteralPath $temp -Value $PayloadJson -Encoding UTF8
+        [System.IO.File]::WriteAllText($temp, $PayloadJson, $Utf8NoBom)
         Invoke-HookThroughLauncher -HookPath $HookPath -InputPath $temp -WorkspaceRoot $WorkspaceRoot | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Smoke test failed for $HookPath with exit code $LASTEXITCODE"
@@ -95,7 +102,7 @@ function Invoke-HookSmokeFailureTest {
     $stdoutPath = [System.IO.Path]::GetTempFileName()
     $stderrPath = [System.IO.Path]::GetTempFileName()
     try {
-        Set-Content -LiteralPath $temp -Value $PayloadJson -Encoding UTF8
+        [System.IO.File]::WriteAllText($temp, $PayloadJson, $Utf8NoBom)
         $process = Start-HookLauncherProcess -HookPath $HookPath -InputPath $temp -WorkspaceRoot $WorkspaceRoot -StdoutPath $stdoutPath -StderrPath $stderrPath
         if ($process.ExitCode -eq 0) {
             throw "Smoke failure test unexpectedly passed for $HookPath"
@@ -506,7 +513,7 @@ The hurdle and beat-and-raise framing.
     $driverMapInternal = Join-Path $workspaceRoot "topics/company/sample/_cache/driver-map/internal"
     New-Item -ItemType Directory -Path $financialDataInternal -Force | Out-Null
     New-Item -ItemType Directory -Path $driverMapInternal -Force | Out-Null
-    Set-Content -LiteralPath (Join-Path $financialDataInternal "actuals-resolved.json") -Encoding UTF8 -Value @'
+    Write-Utf8NoBomFile (Join-Path $financialDataInternal "actuals-resolved.json") @'
 {
   "schema_version": 1,
   "status": "ok",
@@ -534,7 +541,7 @@ The hurdle and beat-and-raise framing.
   ]
 }
 '@
-    Set-Content -LiteralPath (Join-Path $financialDataInternal "evidence-pack.json") -Encoding UTF8 -Value @'
+    Write-Utf8NoBomFile (Join-Path $financialDataInternal "evidence-pack.json") @'
 {
   "schema_version": 1,
   "completeness": [
@@ -544,7 +551,7 @@ The hurdle and beat-and-raise framing.
   ]
 }
 '@
-    Set-Content -LiteralPath (Join-Path $driverMapInternal "driver-map.json") -Encoding UTF8 -Value @'
+    Write-Utf8NoBomFile (Join-Path $driverMapInternal "driver-map.json") @'
 {
   "company": "Sample Co",
   "segment_geography_treatment": {

@@ -5,6 +5,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $skillRoot = Resolve-Path (Join-Path $scriptRoot "..")
 $skillsRoot = Split-Path -Parent $skillRoot
@@ -205,7 +207,7 @@ function Write-TemplateIfMissing {
     $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $TemplatePath
     $text = $text.Replace("{{WORKSPACE_PATH}}", $fullWorkspacePath)
     $text = $text.Replace("{{DATE}}", (Get-Date -Format "yyyy-MM-dd"))
-    Set-Content -LiteralPath $TargetPath -Value $text -Encoding UTF8
+    [System.IO.File]::WriteAllText($TargetPath, $text, $Utf8NoBom)
     Add-Result $script:created $RelativeName
 }
 
@@ -293,7 +295,7 @@ function Sync-ManagedTextFile {
     }
 
     if (-not (Test-Path -LiteralPath $targetPath)) {
-        Set-Content -LiteralPath $targetPath -Value $Content -Encoding UTF8
+        [System.IO.File]::WriteAllText($targetPath, $Content, $Utf8NoBom)
         Add-Result $script:created $relativeName
         return
     }
@@ -304,7 +306,7 @@ function Sync-ManagedTextFile {
         return
     }
 
-    Set-Content -LiteralPath $targetPath -Value $Content -Encoding UTF8
+    [System.IO.File]::WriteAllText($targetPath, $Content, $Utf8NoBom)
     Add-Result $script:updated $relativeName
 }
 
