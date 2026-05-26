@@ -2,6 +2,18 @@ param([string]$InputPath)
 
 . (Join-Path (Split-Path -Parent $PSScriptRoot) '_hook_common.ps1')
 
+function Test-IsMarkdownTableLikeLine {
+    param([string]$Line)
+
+    if ([string]::IsNullOrWhiteSpace($Line)) { return $false }
+    if (Test-IsMarkdownTableSeparatorLine -Line $Line) { return $false }
+
+    $trimmed = $Line.Trim()
+    if (-not ($trimmed.StartsWith('|') -and $trimmed.EndsWith('|'))) { return $false }
+
+    return (Get-MarkdownTableColumnCount -Line $trimmed) -gt 1
+}
+
 $payload = Get-HookPayload -InputPath $InputPath
 if ($null -eq $payload) { exit 0 }
 
@@ -9,6 +21,14 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     $text = [string]$target.text
     $lines = $text -split "`r?`n"
     $tables = @(Get-MarkdownPipeTables -Text $text)
+    $coveredLines = New-Object 'System.Collections.Generic.HashSet[int]'
+
+    foreach ($table in $tables) {
+        $tableLineCount = @($table.Lines).Count
+        for ($offset = 0; $offset -lt $tableLineCount; $offset++) {
+            [void]$coveredLines.Add(($table.StartLine - 1) + $offset)
+        }
+    }
 
     for ($i = 0; $i -lt ($lines.Count - 1); $i++) {
         $line = [string]$lines[$i]
@@ -20,6 +40,18 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
         if ($prevBlank) {
             Write-Block "Blocked by table_render_integrity: $($target.display) has a pipe-table block near line $($i + 1) without a valid separator row."
         }
+    }
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($coveredLines.Contains($i)) { continue }
+
+        $line = [string]$lines[$i]
+        if (-not (Test-IsMarkdownTableLikeLine -Line $line)) { continue }
+
+        $next = if ($i + 1 -lt $lines.Count) { [string]$lines[$i + 1] } else { "" }
+        if (Test-IsMarkdownTableSeparatorLine -Line $next) { continue }
+
+        Write-Block "Blocked by table_render_integrity: $($target.display) has a table-like row near line $($i + 1) outside a valid contiguous markdown table block."
     }
 
     foreach ($table in $tables) {

@@ -2,6 +2,8 @@
 
 This repo is the source wrapper for the `buy-side-research-skills` plugin. Runtime research work happens in a user-owned research workspace created by `init-workspace`.
 
+macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapters no longer hardcode `powershell`; `init-workspace` renders Claude/Codex hook configs through a cross-platform launcher that uses `pwsh` on macOS and prefers `pwsh` on Windows before falling back to Windows PowerShell.
+
 ## Source Layout
 
 The canonical plugin payload lives under `plugins/buy-side-research-skills/`:

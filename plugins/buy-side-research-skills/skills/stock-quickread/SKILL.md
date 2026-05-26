@@ -49,8 +49,6 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 | 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Ev |
 |---|---|---|---|---|---|---|---|---|
 | 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [S1](./_cache/sources/company-annual-report.md) |
-
-正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 | 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
 | 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [S10](./_cache/sources/fy2024-segment-note.md) |
 | 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
@@ -58,6 +56,8 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 | 分部 C | Q1 2025 | 21% | -6% | 14% | -22% | 12% | -200 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
 | **整体** | **FY2024** | **100%** | **+5%** | **100%** | **+8%** | **19%** | **+50 bps** | [S11](./_cache/sources/fy2024-income-statement.md) |
 | **整体** | **Q1 2025** | **100%** | **+4%** | **100%** | **+6%** | **18%** | **-20 bps** | [S12](./_cache/sources/q1-2025-income-statement.md) |
+
+正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
 **取舍说明**：
 - "利润"用什么口径要明确——优先 segment EBIT / EBITDA（公司一般会披露），其次是 segment operating income。**不要混用口径**。
@@ -85,7 +85,6 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 | 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|
 | Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S1](./_cache/sources/cashflow-statement.md) |
-
 | FCF / 净利润 | 0.6 | 现金转化质量；持续 < 0.7 是警告 | [S1](./_cache/sources/cashflow-statement.md) |
 | 净负债 / EBITDA | 2.5x | 绝对水平 + 近 2 年变化方向 | [S2](./_cache/sources/net-debt-ebitda-bridge.md) |
 | 资本返还 / FCF | 30% | 派息 + 回购占 FCF 比；判断股东回报 willingness | [S3](./_cache/sources/capital-return-bridge.md) |
@@ -118,7 +117,6 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 | 关键变量 | 证据 | 为什么是当前 regime 的关键 | Ev |
 |---|---|---|---|
 | EIA 周度原油库存 | 近 8 季度财报后 ±1 周内股价反应 vs 库存 surprise 的相关系数 0.7 | 市场当前焦虑短期供需平衡，不是长期需求 | [S1](https://example.com/eia-inventory) [S2](https://example.com/price-reaction-study) |
-
 | 单井 EUR 公布数 | Q1/Q2 2024 财报后股价跌 8%/6%，EUR 数据均低于预期 | 市场在 reprice Permian 储量耗尽担忧 | [S6](https://example.com/q1-q2-earnings-release) [S7](https://example.com/eur-data) |
 | 单位 OpEx | 上调 OpEx 指引那次股价 -12% | 投资人当前对成本通胀极度敏感 | [S8](https://example.com/q3-2024-call-transcript) |
 
@@ -142,10 +140,10 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 | 倍数 | 当前 | 自身 5 年中位 | 同业当前 | 解读 | Ev |
 |---|---|---|---|---|---|
 | EV/EBITDA | 8.5x | 6.2x | 7.1x | 相对自身 +37%，相对同业 +20% | [S1](https://example.com/valuation-comps) |
-
-正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1](https://example.com/valuation-comps)`
 | P/E | 18x | 14x | 16x | ... | [I1](https://example.com/pe-comps) |
 | FCF yield | 5% | 7% | 6% | ... | [I2](https://example.com/fcf-yield-comps) |
+
+正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1](https://example.com/valuation-comps)`
 
 倍数选择和**第 3 节的资本周期阶段判断要一致**——不要在第 3 节说"收割期"，第 5 节用 EV/Sales。
 

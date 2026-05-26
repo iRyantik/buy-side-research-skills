@@ -1,5 +1,7 @@
 # Ingest / Financial Data 环境配置
-# 复制本文件为 env-setup.ps1，填入你的信息后运行：  .\env-setup.ps1
+# 复制本文件为 env-setup.ps1，填入你的信息后运行：
+#   Windows:  .\env-setup.ps1
+#   macOS:    pwsh ./env-setup.ps1
 
 # --- 美股 SEC Filing（必填，否则 EdgarTools 不可用）---
 # 格式: "Name email@domain.com"
@@ -44,4 +46,4 @@ if ($env:EDINET_API_KEY) {
 [Environment]::SetEnvironmentVariable("EDGAR_LOCAL_DATA_DIR", $edgarDir, "User")
 Write-Host "[OK] Edgar 数据目录: $edgarDir"
 
-Write-Host "环境配置完成。运行 _scripts/bootstrap-ingest-deps.ps1 -CheckOnly 检查状态"
+Write-Host "环境配置完成。Windows 可运行 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly；macOS 请运行 pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly。"

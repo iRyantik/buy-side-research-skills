@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`4.1.0`
+> 当前版本：`4.2.0`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -331,6 +331,8 @@ Claude 会把你的 earned insight 写成 topic journal，并生成一份 Boss B
 **你跟当前宿主说**：*"用 update-agent-runtime 更新当前宿主插件并同步这个 workspace"*。
 
 **会发生什么**：只更新当前宿主，不碰另一个宿主；自动取最新 release zip；修复 `.claude/settings.json`、`.claude/hooks/*.ps1`、`.codex/hooks.json`、`_scripts/`，并定向升级当前 workspace 的 `CLAUDE.md` / `AGENTS.md` managed sections。
+
+**macOS 前提**：workspace hooks 和 `_scripts/` 里的 `.ps1` helper 依赖 PowerShell 7（`pwsh`）。如果你只装了 zsh/bash 而没有 `pwsh`，请先装好再运行 `init-workspace` / `update-agent-runtime` 的 runtime repair 链。
 
 **不会发生什么**：不会整份覆盖你自定义的 `CLAUDE.md` / `AGENTS.md`，不会直接按固定机器路径手改 cache，也不会默认同时更新 Claude 和 Codex 两边。
 
@@ -868,5 +870,5 @@ Modeling skills use a separate Model Sub-Agent Protocol. `3-statement-model`、`
 
 ---
 
-**版本**：v4.1.0
+**版本**：v4.2.0
 **最后更新**：2026-05-22

@@ -1,268 +1,268 @@
 {
-    "hooks":  {
-                  "PreToolUse":  [
-                                     {
-                                         "hooks":  [
-                                                       {
-                                                           "type":  "command",
-                                                           "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/workspace_guard.ps1\u0027) }\"",
-                                                           "statusMessage":  "Checking workspace guard"
-                                                       }
-                                                   ]
-                                     }
-                                 ],
-                  "Stop":  [
-                               {
-                                   "hooks":  [
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/source_contract.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final source contract"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/table_render_integrity.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final table render integrity"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/next_step_anchored_facts_only.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final next step anchored facts only"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/pair_structure_floor.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final pair structure floor"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/thesis_catalyst_floor.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final thesis catalyst floor"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/earnings_decision_contract.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final earnings decision contract"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/peer_matrix_floor.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final peer matrix floor"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/consensus_floor.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final consensus floor"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/claim_qualification.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final claim qualification"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/primary_research_compliance.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final primary research compliance"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/cross_market_parity.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final cross market parity"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/social_clue_only.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final social clue only"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/disclosure_fact_source_boundary.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final disclosure fact source boundary"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/market_snapshot_source_boundary.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final market snapshot source boundary"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/model_statement_presence.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final model statement presence"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/model_balance_integrity.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final model balance integrity"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/no_hardcoded_formula_assumption.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final no hardcoded formula assumption"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/missing_actuals_not_zero.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final missing actuals not zero"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/valuation_basis_required.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final valuation basis required"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/journal/earned_insight_only.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final earned insight only"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/journal/topic_index_map_only.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final topic index map only"
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/viz/viz_delivery_contract.ps1\u0027) }\"",
-                                                     "statusMessage":  "Checking final viz delivery contract"
-                                                 }
-                                             ]
-                               }
-                           ],
-                  "PostToolUse":  [
-                                      {
-                                          "hooks":  [
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/source_contract.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking source contract"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/table_render_integrity.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking table render integrity"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/no_filing_summary.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking no filing summary"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/must_state_market_expectation.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking must state market expectation"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/next_step_anchored_facts_only.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking next step anchored facts only"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/pair_structure_floor.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking pair structure floor"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/thesis_catalyst_floor.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking thesis catalyst floor"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/earnings_decision_contract.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking earnings decision contract"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/peer_matrix_floor.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking peer matrix floor"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/consensus_floor.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking consensus floor"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/narrative/claim_qualification.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking claim qualification"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/primary_research_compliance.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking primary research compliance"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/cross_market_parity.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking cross market parity"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/social_clue_only.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking social clue only"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/disclosure_fact_source_boundary.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking disclosure fact source boundary"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/provider/market_snapshot_source_boundary.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking market snapshot source boundary"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/model_statement_presence.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking model statement presence"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/model_balance_integrity.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking model balance integrity"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/no_hardcoded_formula_assumption.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking no hardcoded formula assumption"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/missing_actuals_not_zero.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking missing actuals not zero"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/modeling/valuation_basis_required.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking valuation basis required"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/journal/earned_insight_only.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking earned insight only"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/journal/topic_index_map_only.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking topic index map only"
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/viz/viz_delivery_contract.ps1\u0027) }\"",
-                                                            "statusMessage":  "Checking viz delivery contract"
-                                                        }
-                                                    ]
-                                      }
-                                  ],
-                  "SubagentStop":  [
-                                       {
-                                           "hooks":  [
-                                                         {
-                                                             "type":  "command",
-                                                             "command":  "powershell -NoProfile -ExecutionPolicy Bypass -Command \"\u0026 { $root = git rev-parse --show-toplevel; \u0026 (Join-Path $root \u0027.claude/hooks/global/subagent_protocol.ps1\u0027) }\"",
-                                                             "statusMessage":  "Checking subagent protocol"
-                                                         }
-                                                     ]
-                                       }
-                                   ]
-              }
+    "hooks": {
+        "PreToolUse": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/workspace_guard.ps1",
+                        "statusMessage": "Checking workspace guard"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
+                        "statusMessage": "Checking final source contract"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
+                        "statusMessage": "Checking final table render integrity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
+                        "statusMessage": "Checking final next step anchored facts only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
+                        "statusMessage": "Checking final pair structure floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
+                        "statusMessage": "Checking final thesis catalyst floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
+                        "statusMessage": "Checking final earnings decision contract"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
+                        "statusMessage": "Checking final peer matrix floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
+                        "statusMessage": "Checking final consensus floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
+                        "statusMessage": "Checking final claim qualification"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
+                        "statusMessage": "Checking final primary research compliance"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
+                        "statusMessage": "Checking final cross market parity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
+                        "statusMessage": "Checking final social clue only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
+                        "statusMessage": "Checking final disclosure fact source boundary"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
+                        "statusMessage": "Checking final market snapshot source boundary"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
+                        "statusMessage": "Checking final model statement presence"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
+                        "statusMessage": "Checking final model balance integrity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
+                        "statusMessage": "Checking final no hardcoded formula assumption"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
+                        "statusMessage": "Checking final missing actuals not zero"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
+                        "statusMessage": "Checking final valuation basis required"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
+                        "statusMessage": "Checking final earned insight only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
+                        "statusMessage": "Checking final topic index map only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
+                        "statusMessage": "Checking final viz delivery contract"
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
+                        "statusMessage": "Checking source contract"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
+                        "statusMessage": "Checking table render integrity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/no_filing_summary.ps1",
+                        "statusMessage": "Checking no filing summary"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/must_state_market_expectation.ps1",
+                        "statusMessage": "Checking must state market expectation"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
+                        "statusMessage": "Checking next step anchored facts only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
+                        "statusMessage": "Checking pair structure floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
+                        "statusMessage": "Checking thesis catalyst floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
+                        "statusMessage": "Checking earnings decision contract"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
+                        "statusMessage": "Checking peer matrix floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
+                        "statusMessage": "Checking consensus floor"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
+                        "statusMessage": "Checking claim qualification"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
+                        "statusMessage": "Checking primary research compliance"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
+                        "statusMessage": "Checking cross market parity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
+                        "statusMessage": "Checking social clue only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
+                        "statusMessage": "Checking disclosure fact source boundary"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
+                        "statusMessage": "Checking market snapshot source boundary"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
+                        "statusMessage": "Checking model statement presence"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
+                        "statusMessage": "Checking model balance integrity"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
+                        "statusMessage": "Checking no hardcoded formula assumption"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
+                        "statusMessage": "Checking missing actuals not zero"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
+                        "statusMessage": "Checking valuation basis required"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
+                        "statusMessage": "Checking earned insight only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
+                        "statusMessage": "Checking topic index map only"
+                    },
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
+                        "statusMessage": "Checking viz delivery contract"
+                    }
+                ]
+            }
+        ],
+        "SubagentStop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "{{HOOK_RUNNER}} .claude/hooks/global/subagent_protocol.ps1",
+                        "statusMessage": "Checking subagent protocol"
+                    }
+                ]
+            }
+        ]
+    }
 }

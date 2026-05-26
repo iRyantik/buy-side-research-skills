@@ -70,9 +70,10 @@ function Get-RelativeDisplayPath {
         [Parameter(Mandatory = $true)][string]$Root
     )
 
+    $separator = [System.IO.Path]::DirectorySeparatorChar
     $uriPath = New-Object System.Uri([System.IO.Path]::GetFullPath($Path))
-    $uriRoot = New-Object System.Uri(([System.IO.Path]::GetFullPath($Root).TrimEnd('\') + '\'))
-    return ($uriRoot.MakeRelativeUri($uriPath).ToString() -replace '/', '\')
+    $uriRoot = New-Object System.Uri(([System.IO.Path]::GetFullPath($Root).TrimEnd($separator) + $separator))
+    return ($uriRoot.MakeRelativeUri($uriPath).ToString() -replace '/', $separator)
 }
 
 function Get-ToolName {

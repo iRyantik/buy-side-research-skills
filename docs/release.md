@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `4.1.0`.
+Current release version: `4.2.0`.
 
 ## Source And Runtime Shape
 
@@ -63,8 +63,11 @@ Release zip must include skill-owned runtime resources, especially:
 skills/init-workspace/assets/CLAUDE.md.template
 skills/init-workspace/assets/AGENTS.md.template
 skills/init-workspace/scripts/init-research-workspace.ps1
+skills/init-workspace/assets/.claude/hooks/run-hook.cmd
+skills/init-workspace/assets/.claude/hooks/run-hook.sh
 skills/ingest/assets/requirements-ingest.txt
 skills/ingest/scripts/bootstrap-ingest-deps.ps1
+skills/ingest/scripts/bootstrap-ingest-deps.sh
 skills/ingest/scripts/ingest.py
 skills/ingest/scripts/ingest_xlsx.py
 skills/ingest/scripts/ingest_table_crosscheck.py
@@ -95,7 +98,7 @@ skills/promote-company/scripts/promote_company.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-4.1.0.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-4.2.0.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 
@@ -120,4 +123,4 @@ rtk rg -n '^(# |## Research Runtime Capsule|## Modeling Runtime Capsule)' plugin
 
 ## Dependency Policy
 
-The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, dart-fss, openesef, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running `_scripts/bootstrap-ingest-deps.ps1` or `_scripts/financial-data/bootstrap-financial-data-deps.ps1`.
+The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, dart-fss, openesef, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running the platform-appropriate bootstrap helpers: Windows may use `powershell ... .ps1`, while macOS requires `pwsh` for `.ps1` helpers and may use `_scripts/bootstrap-ingest-deps.sh` where that shell helper exists.

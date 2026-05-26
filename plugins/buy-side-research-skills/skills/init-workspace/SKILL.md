@@ -8,6 +8,8 @@ description: Initialize or repair a buy-side research workspace root scaffold an
 `init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, copies ingest / financial-data helper scripts into `_scripts/`, and installs project-local Claude / Codex hook config so both hosts can load the same binary runtime guardrails.
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
+macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapters are rendered through a cross-platform launcher; `.ps1` helpers are not promised to run in pure zsh/bash without `pwsh`.
+
 It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
 
 ## Mental Model
@@ -90,11 +92,14 @@ Runtime assets copied by the helper:
 - `skills/init-workspace/assets/.claude/settings.json`
 - `skills/init-workspace/assets/.claude/hooks/`
 - `skills/init-workspace/assets/.claude/hooks/hooks.registry.yaml`
+- `skills/init-workspace/assets/.claude/hooks/run-hook.cmd`
+- `skills/init-workspace/assets/.claude/hooks/run-hook.sh`
 - `skills/init-workspace/assets/.codex/hooks.json`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
 - `skills/ingest/scripts/bootstrap-ingest-deps.ps1`
+- `skills/ingest/scripts/bootstrap-ingest-deps.sh`
 - `skills/ingest/assets/requirements-ingest.txt`
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
@@ -161,8 +166,8 @@ When blocked:
 | User needs structured financial data | Hand off to `financial-data` |
 | User needs to promote company workbench files from an industry/theme topic | Hand off to `promote-company` |
 | User wants to merge whole topic directories | Hand off to `integrate` |
-| User lacks ingest dependencies | Suggest `_scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
-| User lacks financial-data dependencies | Suggest `_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
+| User lacks ingest dependencies | Suggest Windows `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; suggest macOS `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly` or `_scripts/bootstrap-ingest-deps.sh --check-only`; run install variants only after explicit opt-in |
+| User lacks financial-data dependencies | Suggest Windows `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; suggest macOS `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
 
 Artifact policy:
 

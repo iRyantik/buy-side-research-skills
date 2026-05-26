@@ -170,6 +170,7 @@ hooks-first 补充 hard gate：
 7. hooks 共享脚本与宿主 adapter 必须同步维护；不允许只改 Claude 或只改 Codex 一侧配置。
 8. hooks 的正式交付面是 `init-workspace` scaffold；不允许把 plugin dev repo 局部文件误当成宿主自动加载面。
 9. skill-specific hook 新增后，review 仍保留旧 prose 的，视为治理失败。
+10. 新增 runtime hook / repair script / install command 时，禁止再硬编码 `powershell ... .ps1`；必须走跨平台 launcher，或明确给出 Windows `powershell` 与 macOS `pwsh` 双写命令。
 
 命名规则补充 hard gate：
 

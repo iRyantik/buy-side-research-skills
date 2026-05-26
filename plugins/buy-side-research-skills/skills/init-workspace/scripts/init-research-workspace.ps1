@@ -11,10 +11,10 @@ $skillsRoot = Split-Path -Parent $skillRoot
 $pluginAssetsRoot = Join-Path $skillRoot "assets"
 $localAssetsRoot = Join-Path $scriptRoot "init-assets"
 $assetsRoot = if (Test-Path -LiteralPath $pluginAssetsRoot) { $pluginAssetsRoot } else { $localAssetsRoot }
-$ingestScriptsRoot = Join-Path $skillsRoot "ingest\scripts"
-$ingestAssetsRoot = Join-Path $skillsRoot "ingest\assets"
-$financialDataScriptsRoot = Join-Path $skillsRoot "financial-data\scripts"
-$financialDataAssetsRoot = Join-Path $skillsRoot "financial-data\assets"
+$ingestScriptsRoot = Join-Path $skillsRoot "ingest/scripts"
+$ingestAssetsRoot = Join-Path $skillsRoot "ingest/assets"
+$financialDataScriptsRoot = Join-Path $skillsRoot "financial-data/scripts"
+$financialDataAssetsRoot = Join-Path $skillsRoot "financial-data/assets"
 if (-not (Test-Path -LiteralPath $ingestScriptsRoot)) {
     $ingestScriptsRoot = $scriptRoot
 }
@@ -44,10 +44,11 @@ function Get-RelativePath {
         [string]$TargetPath
     )
 
-    $baseUri = [System.Uri]((Resolve-Path -LiteralPath $BasePath).Path.TrimEnd('\') + '\')
+    $separator = [System.IO.Path]::DirectorySeparatorChar
+    $baseUri = [System.Uri]((Resolve-Path -LiteralPath $BasePath).Path.TrimEnd($separator) + $separator)
     $targetUri = [System.Uri](Resolve-Path -LiteralPath $TargetPath).Path
     $relative = $baseUri.MakeRelativeUri($targetUri).ToString()
-    return [System.Uri]::UnescapeDataString($relative).Replace('/', '\')
+    return [System.Uri]::UnescapeDataString($relative).Replace('/', $separator)
 }
 
 function Add-Result {
@@ -59,6 +60,96 @@ function Add-Result {
     [void]$List.Add($Value)
 }
 
+function Test-IsWindowsHost {
+    return [System.IO.Path]::DirectorySeparatorChar -eq '\'
+}
+
+function Convert-ToPosixPath {
+    param([string]$Path)
+
+    return $Path -replace '\\', '/'
+}
+
+function Convert-ToPlatformRelativePath {
+    param([string]$Path)
+
+    if (Test-IsWindowsHost) {
+        return $Path -replace '/', '\'
+    }
+
+    return $Path -replace '\\', '/'
+}
+
+function Get-HookLauncherCommand {
+    param(
+        [string]$WorkspaceRoot,
+        [string]$RelativeHookPath
+    )
+
+    $hookPath = Join-Path $WorkspaceRoot (Convert-ToPlatformRelativePath $RelativeHookPath)
+    if (Test-IsWindowsHost) {
+        $runner = Join-Path $WorkspaceRoot ".claude/hooks/run-hook.cmd"
+        return ('"{0}" "{1}"' -f $runner, $hookPath)
+    }
+
+    $runner = Convert-ToPosixPath (Join-Path $WorkspaceRoot ".claude/hooks/run-hook.sh")
+    $hookPath = Convert-ToPosixPath $hookPath
+    return ('sh "{0}" "{1}"' -f $runner, $hookPath)
+}
+
+function Convert-FromJsonCompat {
+    param([string]$RawJson)
+
+    $convertCommand = Get-Command ConvertFrom-Json -ErrorAction Stop
+    if ($convertCommand.Parameters.ContainsKey("Depth")) {
+        return $RawJson | ConvertFrom-Json -Depth 100
+    }
+
+    return $RawJson | ConvertFrom-Json
+}
+
+function Resolve-HookConfigNode {
+    param(
+        [object]$Node,
+        [string]$WorkspaceRoot
+    )
+
+    if ($Node -is [string]) {
+        if ($Node -match '^\{\{HOOK_RUNNER\}\}\s+([^\s"]+\.ps1)$') {
+            return Get-HookLauncherCommand -WorkspaceRoot $WorkspaceRoot -RelativeHookPath $Matches[1]
+        }
+        return $Node
+    }
+
+    if ($Node -is [System.Collections.IList]) {
+        foreach ($item in $Node) {
+            [void](Resolve-HookConfigNode -Node $item -WorkspaceRoot $WorkspaceRoot)
+        }
+        return $Node
+    }
+
+    if ($Node -is [psobject]) {
+        foreach ($property in $Node.PSObject.Properties) {
+            $property.Value = Resolve-HookConfigNode -Node $property.Value -WorkspaceRoot $WorkspaceRoot
+        }
+        return $Node
+    }
+
+    return $Node
+}
+
+function Render-HookConfigText {
+    param(
+        [string]$SourcePath,
+        [string]$WorkspaceRoot
+    )
+
+    $text = Get-Content -Raw -Encoding UTF8 -LiteralPath $SourcePath
+    $jsonObject = Convert-FromJsonCompat -RawJson $text
+    $rendered = Resolve-HookConfigNode -Node $jsonObject -WorkspaceRoot $WorkspaceRoot
+    return ($rendered | ConvertTo-Json -Depth 100)
+}
+
 $fullWorkspacePath = Convert-ToFullPath $WorkspacePath
 $created = New-Object System.Collections.Generic.List[string]
 $updated = New-Object System.Collections.Generic.List[string]
@@ -66,8 +157,8 @@ $skipped = New-Object System.Collections.Generic.List[string]
 
 if (Test-Path -LiteralPath $fullWorkspacePath) {
     $existingMarkers = @(
-        ".claude-plugin\plugin.json",
-        ".codex-plugin\plugin.json",
+        ".claude-plugin/plugin.json",
+        ".codex-plugin/plugin.json",
         "skills"
     )
 
@@ -188,51 +279,84 @@ function Sync-ManagedFile {
     Add-Result $script:updated $relativeName
 }
 
+function Sync-ManagedTextFile {
+    param(
+        [string]$Content,
+        [string]$RelativeTarget
+    )
+
+    $targetPath = Join-Path $fullWorkspacePath $RelativeTarget
+    $relativeName = $RelativeTarget.Replace("\", "/")
+    $targetParent = Split-Path -Parent $targetPath
+    if (-not (Test-Path -LiteralPath $targetParent)) {
+        New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+    }
+
+    if (-not (Test-Path -LiteralPath $targetPath)) {
+        Set-Content -LiteralPath $targetPath -Value $Content -Encoding UTF8
+        Add-Result $script:created $relativeName
+        return
+    }
+
+    $targetContent = Get-Content -Raw -Encoding UTF8 -LiteralPath $targetPath
+    if ($targetContent -eq $Content) {
+        Add-Result $script:skipped $relativeName
+        return
+    }
+
+    Set-Content -LiteralPath $targetPath -Value $Content -Encoding UTF8
+    Add-Result $script:updated $relativeName
+}
+
 Sync-ManagedFile `
     -SourcePath $MyInvocation.MyCommand.Path `
-    -RelativeTarget "_scripts\init-research-workspace.ps1"
+    -RelativeTarget "_scripts/init-research-workspace.ps1"
 
 foreach ($assetName in @("CLAUDE.md.template", "AGENTS.md.template", "gitignore.template", "edge-radar.md", "env-setup.ps1.template")) {
     $sourceAsset = Join-Path $assetsRoot $assetName
     if (Test-Path -LiteralPath $sourceAsset) {
         Copy-ScriptIfMissing `
             -SourcePath $sourceAsset `
-            -RelativeTarget (Join-Path "_scripts\init-assets" $assetName)
+            -RelativeTarget (Join-Path "_scripts/init-assets" $assetName)
     }
 }
 
 foreach ($relativeAsset in @(
-    ".claude\settings.json",
-    ".codex\hooks.json"
+    ".claude/settings.json",
+    ".codex/hooks.json"
 )) {
     $sourceAsset = Join-Path $assetsRoot $relativeAsset
     if (Test-Path -LiteralPath $sourceAsset) {
-        Sync-ManagedFile `
+        $renderedConfig = Render-HookConfigText `
             -SourcePath $sourceAsset `
+            -WorkspaceRoot $fullWorkspacePath
+
+        Sync-ManagedTextFile `
+            -Content $renderedConfig `
             -RelativeTarget $relativeAsset
 
-        Sync-ManagedFile `
-            -SourcePath $sourceAsset `
-            -RelativeTarget (Join-Path "_scripts\init-assets" $relativeAsset)
+        Sync-ManagedTextFile `
+            -Content $renderedConfig `
+            -RelativeTarget (Join-Path "_scripts/init-assets" $relativeAsset)
     }
 }
 
-$hooksRoot = Join-Path $assetsRoot ".claude\hooks"
+$hooksRoot = Join-Path $assetsRoot ".claude/hooks"
 if (Test-Path -LiteralPath $hooksRoot) {
     Get-ChildItem -LiteralPath $hooksRoot -Recurse -File | ForEach-Object {
         $relativeHook = Get-RelativePath -BasePath $hooksRoot -TargetPath $_.FullName
-        $workspaceHookTarget = Join-Path ".claude\hooks" $relativeHook
+        $workspaceHookTarget = Join-Path ".claude/hooks" $relativeHook
         Sync-ManagedFile `
             -SourcePath $_.FullName `
             -RelativeTarget $workspaceHookTarget
 
         Sync-ManagedFile `
             -SourcePath $_.FullName `
-            -RelativeTarget (Join-Path "_scripts\init-assets\.claude\hooks" $relativeHook)
+            -RelativeTarget (Join-Path "_scripts/init-assets/.claude/hooks" $relativeHook)
     }
 }
 
-foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosscheck.py", "bootstrap-ingest-deps.ps1")) {
+foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosscheck.py", "bootstrap-ingest-deps.ps1", "bootstrap-ingest-deps.sh")) {
     $sourceScript = Join-Path $ingestScriptsRoot $scriptName
     if (Test-Path -LiteralPath $sourceScript) {
         Copy-ScriptIfMissing `
@@ -245,7 +369,7 @@ $requirementsPath = Join-Path $ingestAssetsRoot "requirements-ingest.txt"
 if (Test-Path -LiteralPath $requirementsPath) {
     Copy-ScriptIfMissing `
         -SourcePath $requirementsPath `
-        -RelativeTarget "_scripts\requirements-ingest.txt"
+        -RelativeTarget "_scripts/requirements-ingest.txt"
 }
 
 $financialDataRoot = Join-Path "_scripts" "financial-data"
@@ -280,7 +404,7 @@ $result = [ordered]@{
     created = @($created)
     updated = @($updated)
     skipped = @($skipped)
-    note = "No git init, no dependency install, and no ingest execution were performed. No financial-data execution was performed. To enable toolchains, run _scripts/bootstrap-ingest-deps.ps1 -CheckOnly and _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly first."
+    note = "No git init, no dependency install, and no ingest execution were performed. No financial-data execution was performed. To enable toolchains, run the platform-appropriate bootstrap checks first: Windows may use powershell for .ps1, while macOS requires pwsh for .ps1 helpers and may use _scripts/bootstrap-ingest-deps.sh where provided."
 }
 
 $result | ConvertTo-Json -Depth 4

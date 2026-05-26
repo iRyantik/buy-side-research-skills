@@ -261,13 +261,19 @@ def patch_agents_md(target: Path, template_path: Path) -> WorkspacePatchResult:
 
 
 def resolve_powershell() -> list[str]:
+    if os.name != "nt":
+        pwsh = shutil.which("pwsh")
+        if pwsh:
+            return [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
+        raise UpdateRuntimeError("PowerShell 7 (pwsh) is required on macOS to repair workspace runtime assets")
+
     pwsh = shutil.which("pwsh")
     if pwsh:
         return [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
     powershell = shutil.which("powershell")
     if powershell:
         return [powershell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
-    raise UpdateRuntimeError("unable to locate pwsh or powershell for init-workspace repair")
+    raise UpdateRuntimeError("unable to locate pwsh or powershell for init-workspace repair; install PowerShell 7 (pwsh) or ensure Windows PowerShell is available on PATH")
 
 
 def repair_workspace(release_root: Path, workspace: Path, report: Report) -> None:

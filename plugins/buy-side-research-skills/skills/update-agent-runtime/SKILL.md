@@ -101,6 +101,8 @@ The script must:
 
 Managed docs are patched conservatively. They must not be overwritten wholesale.
 
+On macOS, workspace repair and runtime `.ps1` helpers require PowerShell 7 (`pwsh`). This skill does not promise a pure shell-only repair path.
+
 ## Tool Resources
 
 Use the helper script when mutating files:

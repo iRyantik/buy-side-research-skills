@@ -1,11 +1,11 @@
-{
+﻿{
     "hooks":  {
                   "PreToolUse":  [
                                      {
                                          "hooks":  [
                                                        {
                                                            "type":  "command",
-                                                           "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/workspace_guard.ps1\"",
+                                                           "command":  "{{HOOK_RUNNER}} .claude/hooks/global/workspace_guard.ps1",
                                                            "timeout":  15
                                                        }
                                                    ]
@@ -16,112 +16,112 @@
                                    "hooks":  [
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/source_contract.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/table_render_integrity.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/next_step_anchored_facts_only.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/pair_structure_floor.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/thesis_catalyst_floor.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/earnings_decision_contract.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/peer_matrix_floor.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/consensus_floor.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/claim_qualification.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/primary_research_compliance.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/cross_market_parity.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/social_clue_only.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/disclosure_fact_source_boundary.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/market_snapshot_source_boundary.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/model_statement_presence.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/model_balance_integrity.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/no_hardcoded_formula_assumption.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/missing_actuals_not_zero.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/valuation_basis_required.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal/earned_insight_only.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal/topic_index_map_only.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
                                                      "timeout":  20
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/viz/viz_delivery_contract.ps1\"",
+                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
                                                      "timeout":  20
                                                  }
                                              ]
@@ -132,122 +132,122 @@
                                           "hooks":  [
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/source_contract.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/table_render_integrity.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/no_filing_summary.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/no_filing_summary.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/must_state_market_expectation.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/must_state_market_expectation.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/next_step_anchored_facts_only.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/pair_structure_floor.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/thesis_catalyst_floor.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/earnings_decision_contract.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/peer_matrix_floor.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/consensus_floor.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/narrative/claim_qualification.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/primary_research_compliance.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/cross_market_parity.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/social_clue_only.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/disclosure_fact_source_boundary.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/provider/market_snapshot_source_boundary.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/model_statement_presence.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/model_balance_integrity.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/no_hardcoded_formula_assumption.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/missing_actuals_not_zero.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/modeling/valuation_basis_required.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal/earned_insight_only.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/journal/topic_index_map_only.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
                                                             "type":  "command",
-                                                            "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/viz/viz_delivery_contract.ps1\"",
+                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
                                                             "timeout":  20
                                                         }
                                                     ]
@@ -258,7 +258,7 @@
                                            "hooks":  [
                                                          {
                                                              "type":  "command",
-                                                             "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PROJECT_DIR}/.claude/hooks/global/subagent_protocol.ps1\"",
+                                                             "command":  "{{HOOK_RUNNER}} .claude/hooks/global/subagent_protocol.ps1",
                                                              "timeout":  20
                                                          }
                                                      ]

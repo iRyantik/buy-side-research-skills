@@ -39,6 +39,8 @@ codex plugin marketplace add iRyantik/buy-side-research-skills
 
 `init-workspace` 之后，如需创建或定位 topic root 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
 
+> macOS 支持要求先安装 PowerShell 7（`pwsh`）。workspace hooks 和所有 `.ps1` helper 都通过 `pwsh` 运行；不保证无 `pwsh` 的纯 zsh/bash 路径。
+
 ## Ingest 依赖
 
 `init-workspace` 将 ingest 辅助脚本复制到 research workspace 的 `_scripts/` 目录。先检查依赖：
@@ -48,10 +50,21 @@ python _scripts/ingest.py --check-deps
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 ```
 
+```bash
+python3 _scripts/ingest.py --check-deps
+pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
+./_scripts/bootstrap-ingest-deps.sh --check-only
+```
+
 确认无误后再显式安装：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
+```
+
+```bash
+pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
+./_scripts/bootstrap-ingest-deps.sh --yes
 ```
 
 Python 包默认安装到当前用户。此脚本不会在 `init-workspace` 期间自动运行。
@@ -65,10 +78,19 @@ python _scripts/financial-data/financial_data.py --check-deps
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
+```bash
+python3 _scripts/financial-data/financial_data.py --check-deps
+pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+```
+
 确认需要后再显式安装：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+```
+
+```bash
+pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
 US SEC route 需要 `EDGAR_IDENTITY`；韩国 DART route 需要 `DART_API_KEY`；日本 EDINET route 需要 `EDINET_API_KEY`。欧洲 ESEF route 使用 `openesef`，V1 可靠输入是 filing URL 或 local ESEF package，ticker-only discovery 仍是 experimental。
