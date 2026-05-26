@@ -155,22 +155,19 @@ Claude 会自动帮你创建如下骨架：
 
 Longbridge（长桥证券）提供 **A股 / 港股 / 美股** 的实时行情、估值、分析师共识、财务快照等市场数据。本插件的 research skills 会通过 `trusted-market-bridge` 自动补市场数据缺口，如果 Longbridge 不可用，会自动降级到公开互联网数据。
 
-**第一步：安装 Longbridge 插件**
+对 Claude 说以下 prompt 即可一键完成 Longbridge 安装和登录：
 
-Longbridge 有独立插件，提供了行情、估值、共识、持仓、自选等全套技能。在 Claude Code 或 Codex 里安装：
-
-> **Claude Code**：`/plugin marketplace add longbridge/skills`，然后 `/plugin install longbridge@longbridge-skills`
-
-> **Codex**：`codex plugin marketplace add longbridge/skills`
-
-> 官方页面：[https://open.longbridge.com/zh-CN/skill/](https://open.longbridge.com/zh-CN/skill/)
-
-**第二步：安装 longbridge CLI 并登录**
-
-按照官方安装指南完成 CLI 安装和登录授权：
-[https://longbridge.com/skill-install.md](https://longbridge.com/skill-install.md)
-
-完成后跟 Claude 说 "帮我查一下 TSLA 的最新行情" 确认可用。
+> 请按照以下指南安装 Longbridge AI toolkit：
+>
+> **Claude Code 用户（插件方式）：**
+> `/plugin marketplace add longbridge/skills`，然后 `/plugin install longbridge@longbridge-skills`
+>
+> **Codex 用户（插件方式）：**
+> `codex plugin marketplace add longbridge/skills`
+>
+> 安装指南：https://open.longbridge.com/skill/install.md
+>
+> 安装完成后，完成登录授权，查询一支股票行情确认可用。
 
 > Longbridge 覆盖 US / HK / SH / SZ 四个市场。日股、韩股、欧股不在覆盖范围，会自动使用公开互联网 fallback。
 
