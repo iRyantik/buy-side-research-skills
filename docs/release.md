@@ -37,6 +37,8 @@ Release zip includes only runtime/install materials copied from the payload plus
 - `plugins/buy-side-research-skills/skills/` -> `skills/`
 - `README.md`
 
+Each release also ships `longbridge-skills.zip` as a companion asset (Longbridge market-data plugin, 80+ skills). Download the zip from the same GitHub Release page and install as a local plugin.
+
 Release zip must not include source-repo maintenance files:
 
 - `plugins/`
