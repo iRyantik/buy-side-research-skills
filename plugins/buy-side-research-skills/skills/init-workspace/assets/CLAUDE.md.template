@@ -8,7 +8,7 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `4.5.4`
+- Current system generation: `4.5.5`
 
 This workspace is for buy-side equity research. The goal is not to "understand a company in full." The goal is to produce source-tracked outputs that sharpen investment judgment and next-step research priority.
 
