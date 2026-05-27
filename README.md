@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`4.4.0`
+> 当前版本：`4.5.2`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -404,5 +404,5 @@ longbridge auth login
 
 ---
 
-**版本**：v4.4.0
-**最后更新**：2026-05-26
+**版本**：v4.5.2
+**最后更新**：2026-05-27
