@@ -3,21 +3,10 @@ setlocal
 
 set "SCRIPT_PATH=%~1"
 if "%SCRIPT_PATH%"=="" (
-    1>&2 echo Blocked by hook launcher: missing target hook path.
+    1>&2 echo Blocked by hook launcher: missing target .ps1 path.
     exit /b 64
 )
 shift
-
-:: Prefer Python version if available (cross-platform)
-set "PY_PATH=%SCRIPT_PATH:.ps1=.py%"
-if exist "%PY_PATH%" (
-    for %%I in (python3.exe) do if not "%%~$PATH:I"=="" set "HAS_PYTHON=1"
-    if not defined HAS_PYTHON for %%I in (python.exe) do if not "%%~$PATH:I"=="" set "HAS_PYTHON=1"
-    if defined HAS_PYTHON (
-        python "%PY_PATH%" %*
-        exit /b %ERRORLEVEL%
-    )
-)
 
 set "PS_EXE="
 if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PS_EXE=%ProgramFiles%\PowerShell\7\pwsh.exe"
@@ -33,7 +22,7 @@ if not defined PS_EXE (
 )
 
 if not defined PS_EXE (
-    1>&2 echo Blocked by hook launcher: unable to locate python or powershell. Install Python 3.10+ or PowerShell to enable workspace hooks.
+    1>&2 echo Blocked by hook launcher: unable to locate PowerShell. Install PowerShell 7 (`pwsh`) or ensure Windows PowerShell is available on PATH.
     exit /b 2
 )
 
