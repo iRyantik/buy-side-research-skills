@@ -72,6 +72,7 @@ Release zip must include skill-owned runtime resources, especially:
 skills/init-workspace/assets/CLAUDE.md.template
 skills/init-workspace/assets/AGENTS.md.template
 skills/init-workspace/scripts/init-research-workspace.ps1
+skills/init-workspace/scripts/init-research-workspace.sh
 skills/init-workspace/assets/.claude/hooks/run-hook.cmd
 skills/init-workspace/assets/.claude/hooks/run-hook.sh
 skills/ingest/assets/requirements-ingest.txt
