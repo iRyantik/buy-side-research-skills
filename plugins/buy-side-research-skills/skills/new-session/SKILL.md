@@ -213,6 +213,7 @@ Blocked output:
 | Workspace is initialized and user wants a new topic | Use `new-session` |
 | Research skill needs a save path | Use `new-session` to resolve dated filename |
 | User drops files into a topic | `new-session` provides `_inbox/`; `ingest` creates `_raw/` and `_cache/` on conversion |
+| Market environment overlay needs its own dated artifact | Save as `YYYY-MM-DD-market-lens.md` or `YYYY-MM-DD-market-lens-<qualifier>.md` |
 | Industry workbench produces company-specific files | Save as `YYYY-MM-DD-<company-slug>-<artifact>.md` |
 | Company becomes canonical | Use `promote-company` |
 | User wants to merge whole topic directories | Use `integrate` |

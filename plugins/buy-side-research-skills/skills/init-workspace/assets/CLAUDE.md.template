@@ -1,126 +1,158 @@
-# CLAUDE.md - Buy-Side Research Workspace 宪法模板
+# CLAUDE.md - Buy-Side Research Workspace Template
 
-> 本文件是当前 research workspace 的本地宪法。
-> 它负责 workspace 高层原则、topic 结构和 source stance，不负责每个 skill 的细 procedure。
-> 如果本文件与被调用 skill 的具体执行细则冲突，采用更严格且更贴近 runtime 的 skill 规则。
-
----
+> This file governs the local research workspace.
+> It sets workspace-level defaults and routing stance, not per-skill execution detail.
 
 ## 1. Workspace Context
 
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `4.5.3`
+- Current system generation: `4.5.4`
 
-本 workspace 用于 buy-side equity research。目标不是"了解公司"，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
+This workspace is for buy-side equity research. The goal is not to "understand a company in full." The goal is to produce source-tracked outputs that sharpen investment judgment and next-step research priority.
 
----
+## 2. Default Reader And Tone
 
-## 2. Researcher Context
+Default reader assumption:
+- understands stocks, valuation, orders, and cash flow
+- does not already understand the target industry's products, mechanisms, or jargon
 
-- **身份**：Buy-side equity researcher，hedge fund / long-short 语境。
-- **主要覆盖**：industrials、aerospace and defense、advanced manufacturing、oil & gas、renewable、nuclear、emerging tech themes。
-- **工作目标**：判断要不要投、怎么投、何时退；不是写 sell-side 风格公司介绍。
+Default output behavior:
+- explain first
+- interpret second
+- deepen third
+- conclude last
 
----
+Do not produce sell-side filler.
 
-## 3. Output Style
+Avoid:
+- management biography filler
+- textbook industry intros
+- empty SWOT language
+- long tables without takeaways
 
-### 3.1 Language
+## 3. Fixed Layers
 
-> `LANG-default = zh`
+Narrative research outputs use fixed layers rather than fixed titles.
 
-默认中文自然语言输出。
+Rules:
+- titles may vary naturally
+- sections may merge
+- layer order may not be broken
+- layer responsibility may not disappear
 
-**始终保留英文（不翻译）**：
+Archetypes:
+- `Primer`
+  - `Foundation Layer`
+  - `Interpretation Layer`
+  - `Research Layer`
+  - `Decision Layer`
+- `Compare`
+  - `Comparison Frame`
+  - `Difference Layer`
+  - `Priority Layer`
+  - `Research Layer`
+- `Market`
+  - `Market State Layer`
+  - `Expectation Layer`
+  - `Proof Layer`
+  - `Decision Layer`
+- `Thesis`
+  - `Core View Layer`
+  - `Support Layer`
+  - `Failure Layer`
+  - `Action Layer`
 
-- **股票代码**：`2330 TT`、`AAPL US`、`9988.HK`、`005930 KS`、`7203.T`
-- **财务比率 / 科目缩写**：PE、P/B、EV/EBITDA、EV/Sales、FCF、ROIC、ROE、ROA、NRR、GRR、ARR、GMV、LTV、CAC、IRR、WACC、NPV、SOTP、DCF
-- **会计 / 流程缩写**：GAAP、Non-GAAP、IFRS、M&A、IPO、SPAC、LBO、PIPE、ESOP、CapEx、OpEx、D&A
-- **行业 / 技术 jargon**：SaaS、IaaS、DTC、BNPL、Fab、EUV、ASIC、HBM、CoWoS、LLM、RAG（圈内默认英文或无统一中译的术语保留英文）
-- **货币代码**：USD、JPY、KRW、CNY、EUR、SGD、HKD、TWD、INR、GBP
-- **监管 / 政府机构**：SEC、FDA、CFIUS、FOMC、ECB、MAS、PBoC、CSRC、CMA、JFTC、FSC
-- **单位**：`x`（倍数）、`bps`、`pp`（百分点）、`bn`、`m`、`k`、`tn`、`wpm`、`kwh`
-- **路径 / 系统识别**：source title、URL、文件路径、YAML / JSON key、skill name、产品代号
-- **Buy-side jargon**：batting average、refi wall、underwater、guide-down、whisper number、tape、book、bid、ask、long、short、cover、squeeze、bagger、re-rate
+## 4. Language And Output Style
 
-**公司名**：
+Default body language is Chinese.
 
-- 有公认中文名 → 用中文名：苹果、三星、丰田、台积电、宁德时代、腾讯、阿里巴巴、丰田、本田、索尼、现代、起亚
-- 圈内默认说英文 / 无标准中译 / 翻了拗口 → 直接英文：Salesforce、Shopify、Snowflake、Datadog、LVMH、Hermès、Nvidia、AMD、Stripe、Cloudflare、Atlassian、Palantir
-- 中国大陆 / 港 / 台公司 → 用原中文名：台积电、宁德时代、腾讯、阿里巴巴、美团、京东、比亚迪
-- 日韩公司用汉字写法 → 用原汉字：任天堂、三菱商事、三井物産、現代自動車（也可写"现代汽车"）、三星電子（也可写"三星电子"）
-- 日韩公司用假名 / 谚文 → 首次出现 `中文名（原文）`，后续仅中文：迅销（ファーストリテイリング）→ 后续 "迅销"；起亚（기아）→ 后续 "起亚"；尼得科（ニデック）→ 后续 "尼得科"
+Default title style:
+- English section titles are allowed and preferred for structure
+- body text remains Chinese unless the user asks otherwise
 
-**非中文 / 英文公司披露项**：按最小必要原则保留源语言锚点。首次出现的官方 segment、product、KPI、project、program、披露 bucket、订单 / backlog 分类、监管 / 合同术语、客户 / 终端市场名、source title，以及任何后续可能回源检索的词，写成 `源语言（中文译名）`；后续默认用中文短名，除非同一表内存在多个易混淆原文 bucket。
+Writing rules:
+- first use of jargon must be explained plainly
+- every table needs an investment takeaway
+- unsupported facts must be labeled `[需查证]`, `[来源待补]`, `not disclosed`, or `working hypothesis`
+- give the conclusion first
 
-**全中文即可**：普通分析句、takeaway、通用会计 / 商业概念、已在前文定义过的重复项、非关键 source wording、图表标题 / 副标题 / 坐标轴 / tooltip / callout / 控件按钮等 user-facing 文本（财务术语本身除外，按上文规则保留英文）。
+## 5. Visual Routing
 
-**管理层原话**：只有措辞本身影响判断时保留短原文并贴 source；否则用中文概述并贴 source。
+Markdown is always the main research artifact.
 
-**override**：用户明确说 "用英文输出" / "use English" 时切换英文，覆盖范围至本轮对话结束（除非用户再次声明）。用户在某一段明示用日 / 韩 / 其他语言时，仅该段切换。
+When visuals are simple:
+- embed them directly in Markdown
 
-### 3.2 Directness
+When visuals become structurally heavy:
+- route to `research-viz`
+- generate a companion HTML artifact bound to the base Markdown stem
 
-- 所有分析必须结论先行：第一段先给判断 / action / verdict，再给依据。
-- 不要写 "Great question"、"你说得对"、"It depends" 这类空铺垫。
-- 不确定时直接说不确定，并标 `[需查证]` 或 `[来源待补]`。
+`research-viz` is the only formal visual companion route in this workspace.
 
-### 3.3 Data First
+The companion HTML:
+- does not replace the Markdown research artifact
+- does not introduce a separate thesis
+- exists to improve readability
 
-- 判断必须有数字、数据表、source-backed evidence 或明确推理链支撑。
-- 无 source 的事实不能伪装成事实，只能 honest degrade。
-- 数据表必须有 takeaway；takeaway 必须给结构性洞察，不要复读表格。
+## 6. Visual Selection
 
-### 3.4 Numbers, Currency, Dates, Units
+Use visuals when they reduce confusion.
 
-> `NUM-default = western`
+Visual families:
+- understanding visuals
+  - product image
+  - scene image
+  - product map
+  - mechanism diagram
+  - value chain
+  - footprint or capability map
+- comparison visuals
+  - product exposure matrix
+  - peer scatter
+  - revenue or profit mix comparison
+  - margin or return comparison
+  - backlog or order comparison
+  - valuation comparison
+  - relative price performance
+  - correlation matrix
+- investment visuals
+  - valuation band
+  - reasonable vs FOMO track
+  - price plus events overlay
+  - catalyst timeline
+  - consensus revisions
+  - waterfall or bridge
+  - margin walk
+  - SOTP
+  - sensitivity heatmap
+  - concentration or Pareto
+  - debt maturity or capital stack
 
-**数字**：千位分隔符西式 `1,234,567`。默认不用"万 / 亿 / 万亿"为单位；用户明示用中式单位（"几十亿"、"万亿规模"、"市值几千亿"）或语境上明显是中文金融行话时才切。
+Selection rules:
+- use visuals because they help understanding
+- do not add visuals for decoration
+- use real images for real products or facilities where possible
+- AI-generated visuals are only for mechanism, structure, overview, or analytical diagrams and must be labeled as such
 
-**货币**：
+## 7. Source Stance
 
-- 美元 → `$24bn`、`$45m`、或 `USD 28.5bn`
-- 非美元 → ISO 货币代码前缀：`JPY 3,200bn`、`CNY 12bn`、`KRW 4,500bn`、`HKD 850m`、`TWD 1,250bn`、`EUR 2.4bn`
-- 多币种对比 / 跨市场公司时，统一注明换算汇率与日期：`USD 24bn（以 JPY/USD = 152、2024-09-30 汇率换算）`
+Every truth-like claim must have a source anchor or explicit uncertainty label.
 
-**百分比 / 倍数 / bps**：`14.2%`、`+45bps`、`22.4x`、`0.8x`、`-3.1pp`。注意 `pp`（百分点）≠ `%`（相对变化）。
+Source hierarchy:
+- disclosure-fact track: `topic-local evidence cache > primary public > trusted third-party > web`
+- market-snapshot track: `topic-local evidence cache / financial-data > trusted third-party > web`
 
-**日期 / 期间**：
+Within the same quality tier:
+- prefer home-market sources
+- prefer local-language sources
 
-- prose 中文："2024 年 3 月"、"2024 财年"、"上半年"、"季度环比"
-- 表格 / 图表 axis / 数据列保留英文简写：`Mar '24`、`1Q24`、`FY24E`、`4Q23A`、`CY2024`、`YTD`
-- 财年口径不明时显式标注："（CY24 ≈ AAPL FY24，对应 2023-09 至 2024-09）"
-- 用户提到的相对时间 ("过去一年"、"最近一个季度") 转成绝对期间再分析，避免回看时间锚点漂移
+The final artifact should end with one `## Resources` section.
 
-**数量级简写**：`bn` / `m` / `k` 而非 `B` / `M` / `K`（避免与 mega- 等单位前缀混淆）。`tn` 用于 trillion。
+## 8. Workspace Structure
 
-**精度**：
-
-- 百分比 1 位小数为默认（`14.2%`），margin 类要紧时给 2 位（`28.45%`）
-- 倍数 1 位小数（`22.4x`），ROIC / ROE 类指标可给 2 位
-- 不要假装精度：调研 / 估算来的数 round 到合理 sig fig，例如 `~$2bn` 而非 `$2.13bn`，并标 `[估算]` 或来源
-
----
-
-## 4. Source Stance
-
-- 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。
-- 每个 truth-like claim 默认使用 inline clickable short anchor。
-- 每篇 research artifact 文末统一保留一个 `## Resources`。
-- source quality follows two tracks：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
-- 同一质量层级内，优先 `home-market / local-language source`。
-- `financial-data` 视为 `topic-local evidence cache` 里最高价值的结构化财务缓存；市场/快照字段先看它和本地 `_cache`，再看 trusted third-party，最后才是 web。
-- `internet source` 只补 market-snapshot track 的缺口，不冒充 company-disclosed fact；公司/披露事实仍优先 `primary public`。
-
-更完整的 claim-level source contract、fallback taxonomy、shared hook law 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
-
----
-
-## 5. Workspace Structure
-
-本 workspace 采用 topic-centric 组织，不回到 ticker-centric state tracker：
+Topic-centric structure:
 
 ```text
 topics/
@@ -132,45 +164,24 @@ topics/
     _models/
 ```
 
-基本约束：
-- `_cache/` 存放 source-tracked 解析材料、evidence pack、结构化数据
-- `_raw/` 存放原始输入或外部导入包
-- `_models/` 存放模型与相关工作簿
-- dated artifact 归属 topic root，不在 workspace 根目录乱放
-- topic artifact 命名由 `new-session` 统一解析；高频问题卡片型 skill 可以使用 `artifact + qualifier`，不要手写随意 dated 文件名，也不要把 `-2/-3` 当主命名策略。
-- workspace hooks（`.claude/settings.json`、`.claude/hooks/`、`.codex/hooks.json`）属于 runtime contract；不要手改或删除，除非同步更新插件治理和共享 hook 脚本。
+Cache guidance:
+- reusable visuals and source packs may live in topic shared cache
+- one-off analytical visuals may live in artifact-local cache
 
----
+## 9. Routing Stance
 
-## 6. Routing Stance
+High-level routing:
+- unfamiliar company first pass -> `stock-quickread`
+- company business and disclosure history -> `company-primer`
+- revenue, margin, backlog, and model-driver structure -> `driver-map`
+- expectations and priced-in analysis -> `consensus-map`
+- industry mechanism and equipment chain -> `mechanism-map`
+- multi-company comparison -> `candidate-screener`, `peer-deep-dive`, `pair-trade`, `cross-market-compare`
+- market environment overlay -> `market-lens`
+- thesis formation -> `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `next-step`
 
-skill 是决策工具，不是装饰性模板。
+Specific execution detail belongs to the invoked skill.
 
-高层 routing 提示：
-- 陌生公司 first pass -> `stock-quickread`
-- 业务 / 分部 / 披露历史 -> `company-primer`
-- revenue / margin / backlog / price-volume-mix driver -> `driver-map`
-- 市场预期 / priced-in / variant-view gap -> `consensus-map`
-- 行业机制 / 工程原理 / 设备链条 -> `mechanism-map`
-- 多公司筛选 / 比较 -> `candidate-screener` / `peer-deep-dive` / `cross-market-compare` / `pair-trade`
-- 结构化 actuals pack -> `financial-data`
-- durable journal / boss-ready memory -> `research-journal`
+## 10. UTF-8 Discipline
 
-具体 procedure、fallback 边界和并行策略，以被调用 skill 为准。
-
----
-
-## 7. UTF-8 文本纪律
-
-中文或多语言文本文件统一使用 **UTF-8 无 BOM**。
-
-- `.md` / `.yaml` / `.json` 默认按 UTF-8 无 BOM 维护。
-- 修改中文文件时必须显式使用 UTF-8 写回。
-- 批量脚本改写文本时必须指定 UTF-8，避免 mojibake。
-
----
-
-## 8. Boundary
-
-- 本文件服务用户 research workspace。
-- 插件开发治理维护在 plugin dev repo root `CLAUDE.md`，不在本文件展开。
+Chinese and multilingual text files in this workspace should remain UTF-8 without BOM.

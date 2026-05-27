@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "4.5.3",
+  "version": "4.5.4",
   "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
@@ -59,6 +59,7 @@
     "industry-profit-pool",
     "value-chain",
     "consensus-map",
+    "market-lens",
     "consensus-mapping",
     "priced-in",
     "buy-side-bar",
@@ -127,6 +128,8 @@
     "filings",
     "price-data",
     "research-viz",
+    "fixed-layers",
+    "visual-companion",
     "visualization",
     "chart",
     "html",
@@ -156,6 +159,7 @@
       "Run a stock quickread on this company.",
       "Fetch source-tracked financial data before modeling.",
       "Use trusted-market-bridge to pull A-share Hong Kong and US market evidence.",
+      "Use market-lens to map the current market style and FOMO conditions.",
       "Turn this research artifact into a memo-ready HTML chart.",
       "Use update-agent-runtime to update the current host plugin and sync this workspace."
     ]

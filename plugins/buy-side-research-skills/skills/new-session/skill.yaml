@@ -65,6 +65,7 @@ workflow:
     - 'promote-company'
     - 'industry-quickread'
     - 'consensus-map'
+    - 'market-lens'
     - 'primary-research-plan'
     - 'company-primer'
     - 'mechanism-map'

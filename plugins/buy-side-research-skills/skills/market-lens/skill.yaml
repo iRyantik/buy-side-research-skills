@@ -1,0 +1,88 @@
+metadata_schema_version: 1
+name: 'market-lens'
+id: 'market-lens'
+display_name: 'Market Lens'
+version: '1.0.0'
+system_generation: '4.5.4'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'research'
+research_layer: 'foundation'
+summary: 'Map current market style risk appetite theme crowding and FOMO expansion conditions.'
+description: 'Map current market style risk appetite theme crowding and FOMO expansion conditions.'
+tags:
+  - 'market-lens'
+  - 'market-style'
+  - 'risk-appetite'
+  - 'theme-crowding'
+  - 'fomo'
+  - 'market'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'market-lens'
+    - '市场风格'
+    - '市场现在奖励什么'
+    - '当前是什么环境'
+    - 'fomo 扩张'
+    - 'theme crowding'
+  description: '当用户需要一个市场环境 overlay 来判断当前风格、拥挤度和 FOMO 扩张条件时触发'
+capabilities:
+  archetype: 'Market'
+  fixed_layers:
+    - 'Market State Layer'
+    - 'Expectation Layer'
+    - 'Proof Layer'
+    - 'Decision Layer'
+  generates: 'market environment overlay with style preference, crowding, and FOMO conditions'
+  output_format: 'markdown-first market note with optional visual companion'
+  time_estimate: '20-45 minutes'
+  includes:
+    - 'Global Risk Appetite'
+    - 'Local Market Style'
+    - 'Theme Crowding'
+    - '1-3M Tape / Style'
+    - '6-12M Fundamental Setup'
+    - 'FOMO Expansion Test'
+  requirements:
+    - 'follow CLAUDE.md source policy'
+    - 'treat this skill as market overlay, not single-name thesis replacement'
+    - 'market-snapshot fields default to topic-local evidence cache / financial-data then trusted-market-bridge then web fallback'
+    - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action consensus and financial_snapshot where applicable'
+    - 'markdown is the primary artifact and research-viz is companion-only'
+    - 'upgrade to research-viz only when several market visuals clearly improve readability'
+artifact_policy:
+  save_policy: 'optional_topic_result'
+  default_artifact: 'market-lens.md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-market-lens[-qualifier].md'
+  naming_mode: 'optional_qualifier'
+  save_trigger: 'save only when user asks to preserve the market overlay as dated topic research result'
+workflow:
+  stage: 'market-foundation'
+  can_follow:
+    - 'new-session'
+    - 'industry-quickread'
+    - 'stock-quickread'
+    - 'next-step'
+  feeds_into:
+    - 'stock-quickread'
+    - 'candidate-screener'
+    - 'peer-deep-dive'
+    - 'consensus-map'
+    - 'alpha-thesis'
+    - 'research-viz'
+  decision_point: 'what kind of stocks the market is rewarding now and what would invalidate that setup'
+required_layers:
+  - 'Market State Layer'
+  - 'Expectation Layer'
+  - 'Proof Layer'
+  - 'Decision Layer'
+quality_gates:
+  anti_patterns:
+    - 'style_only_without_proof'
+    - 'single_name_thesis_written_inside_market_lens'
+    - 'missing_fomo_expansion_test'
+  data_requirements:
+    - 'global_local_theme_split'
+    - 'near_term_vs_medium_term_setup'
+    - 'proof_and_failure_signals'

@@ -2,8 +2,8 @@ metadata_schema_version: 1
 name: 'earnings-setup'
 id: 'earnings-setup'
 display_name: 'Earnings Setup'
-version: '1.0.2'
-system_generation: '3.10.0'
+version: '1.1.0'
+system_generation: '4.5.4'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
@@ -14,89 +14,25 @@ tags:
   - 'earnings'
   - 'event-driven'
   - 'catalyst'
-  - 'buy-side'
-  - 'tactical'
+  - 'thesis'
 trigger:
   type: 'keyword'
   keywords:
-    - '下周财报'
     - 'earnings setup'
-    - '怎么 trade'
-    - '刚出了财报'
-    - '快速判断 thesis'
+    - '下周财报'
     - '这季财报'
     - 'print'
-  description: '当用户谈到财报窗口的 setup 或后视时触发'
+  description: '当用户要做财报前后 setup 或快速后视判断时触发'
 capabilities:
-  generates: 'Two separate workflows: pre-print setup OR post-print quick read'
-  output_format: 'pre: 500-900 字; post: 400-700 字'
-  includes:
-    - 'consensus-vs-buy-side-bar'
-    - 'decision-tree'
-    - 'KPI-tracking'
-  time_criticality: 'extremely high - consensus/IV/stock data must include timestamp'
-  requirements:
-    - 'source links with timestamps'
-    - 'follow CLAUDE.md source policy'
-    - 'may use trusted-market-bridge for A-share Hong Kong and US market quote price action kline consensus news filings and financial snapshot support when local evidence is missing'
-    - 'scope_restricted from trusted-market-bridge should normally fall back to web or internet market sources and be disclosed in final resources'
-    - 'sub-agent outputs must be evidence_cards_only'
-    - 'main_agent_synthesis_required for setup judgment and position decision'
-    - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
-  post_print_handoff:
-    - 'research_update'
-    - 'model_update'
-    - 'journal_handoff'
-    - 'next_step_trigger'
+  archetype: 'Thesis'
+  fixed_layers:
+    - 'Core View Layer'
+    - 'Support Layer'
+    - 'Failure Layer'
+    - 'Action Layer'
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'earnings-setup.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md'
   naming_mode: 'plain'
   save_trigger: 'save only when user asks to preserve the pre-print setup or post-print read as dated topic research result'
-workflow:
-  stage: 'execution'
-  prerequisites:
-    - 'alpha-thesis'
-  feeds_back_to:
-    - 'alpha-thesis (research view update)'
-  can_trigger:
-    - 'bear-pre-mortem (if thesis severely undermined)'
-    - 'model-update (if model drivers change)'
-    - 'research-journal (if insight is earned)'
-    - 'next-step (if weirdness appears)'
-  two_modes:
-    pre_print: 'Setup - assemble before earnings'
-    post_print: 'Quick read - fast decision after earnings'
-required_sections:
-  pre_print:
-    - 'current_setup_table_with_timestamps'
-    - 'sell_side_vs_buy_side_bar'
-    - '3_kpis_with_thresholds'
-    - 'asymmetric_setup_judgment'
-    - 'pre_print_decision_tree'
-  post_print:
-    - 'beat_miss_vs_reaction_classification'
-    - 'kpi_actual_vs_setup_comparison'
-    - 'thesis_assumptions_checklist'
-    - 'catalyst_status_update'
-    - 'immediate_decision_execution'
-quality_gates:
-  anti_patterns:
-    - 'only_consensus_numbers_no_buy_side_bar'
-    - 'generic_focus_points_without_thresholds'
-    - 'no_pre_print_decision_tree'
-    - 'post_print_is_line_by_line_recap'
-    - 'post_print_no_thesis_connection'
-    - 'no_explicit_position_decision'
-    - 'sub-agent evidence card pasted as pre-print decision tree or post-print decision'
-  source_requirements:
-    - 'consensus_with_provider_and_timestamp'
-    - 'implied_move_with_source_and_timestamp'
-    - 'SI_borrow_rate_with_timestamp'
-    - 'KPI_baselines_with_specific_filing_references'
-    - 'no_chat_sourced_whisper_without_flag'
-critical_notes:
-  - '时效性极高 - consensus/IV/股价数据必须标注获取时点'
-  - '财报前决策树必须提前写，中间不改'
-  - '财报后决策必须立即执行，不要事后追悔'
