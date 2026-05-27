@@ -45,7 +45,7 @@ function Test-IsCasualChat {
     if ($null -eq $Payload) { return $true }
     $toolName = Get-ToolName -Payload $Payload
     if ($toolName -notin @('Write', 'Edit', 'MultiEdit')) { return $true }
-    $candidates = Get-CandidatePaths -Payload $Payload
+    $candidates = @(Get-CandidatePaths -Payload $Payload)
     if ($candidates.Count -eq 0) { return $true }
     foreach ($c in $candidates) {
         $pathStr = if ($c -is [string]) { $c } else { [string]$c }
@@ -211,6 +211,12 @@ function Get-CandidatePaths {
             $resolved = Convert-ToWorkspacePath -WorkspaceRoot $workspaceRoot -Path $value
             if ($resolved) { [void]$paths.Add($resolved) }
         }
+    }
+
+    $ts = Get-StringProperty $Payload "transcript_path"
+    if ($ts) {
+        $resolved = Convert-ToWorkspacePath -WorkspaceRoot $workspaceRoot -Path $ts
+        if ($resolved) { [void]$paths.Add($resolved) }
     }
 
     $command = Get-CommandText $Payload
