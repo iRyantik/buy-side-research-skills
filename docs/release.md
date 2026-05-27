@@ -83,6 +83,7 @@ skills/ingest/scripts/ingest_table_crosscheck.py
 skills/financial-data/assets/requirements-financial-data.txt
 skills/financial-data/scripts/financial_data.py
 skills/financial-data/scripts/bootstrap-financial-data-deps.ps1
+skills/financial-data/scripts/bootstrap-financial-data-deps.sh
 skills/financial-data/scripts/providers/*.py
 skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt
 skills/reddit-sentiment/assets/default-clusters.json

@@ -260,12 +260,12 @@ def patch_agents_md(target: Path, template_path: Path) -> WorkspacePatchResult:
     return WorkspacePatchResult(status="updated", details=["updated managed AGENTS.md body"])
 
 
-def resolve_powershell() -> list[str]:
+def resolve_powershell() -> list[str] | None:
     if os.name != "nt":
         pwsh = shutil.which("pwsh")
         if pwsh:
             return [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
-        raise UpdateRuntimeError("PowerShell 7 (pwsh) is required on macOS to repair workspace runtime assets")
+        return None
 
     pwsh = shutil.which("pwsh")
     if pwsh:
@@ -277,11 +277,16 @@ def resolve_powershell() -> list[str]:
 
 
 def repair_workspace(release_root: Path, workspace: Path, report: Report) -> None:
+    ps = resolve_powershell()
+    if ps is None:
+        report.workspace_actions.append("skipped workspace scaffold repair (pwsh not found; install PowerShell 7 to enable workspace repair on macOS)")
+        return
+
     init_script = release_root / "skills" / "init-workspace" / "scripts" / "init-research-workspace.ps1"
     if not init_script.exists():
         raise UpdateRuntimeError(f"packaged init-workspace helper missing: {init_script}")
 
-    cmd = [*resolve_powershell(), str(init_script), "-WorkspacePath", str(workspace)]
+    cmd = [*ps, str(init_script), "-WorkspacePath", str(workspace)]
     ensure_ok(run_command(cmd), "workspace scaffold repair")
     report.workspace_actions.append("repaired workspace scaffold from latest release package")
 
