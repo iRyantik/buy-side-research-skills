@@ -109,7 +109,8 @@ function Render-HookConfigText {
     $regex = [regex]'\{\{HOOK_RUNNER\}\}\s+([^\s"\\]+\.ps1)'
     $sb = {
         param($m)
-        return Get-HookLauncherCommand -WorkspaceRoot $WorkspaceRoot -RelativeHookPath $m.Groups[1].Value
+        $raw = Get-HookLauncherCommand -WorkspaceRoot $WorkspaceRoot -RelativeHookPath $m.Groups[1].Value
+        return $raw.Replace('\', '\\').Replace('"', '\"')
     }
     return $regex.Replace($text, $sb)
 }
