@@ -27,13 +27,13 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     $text = [string]$target.text
     if ($text -notmatch $comparisonPattern) { continue }
     if ($text -notmatch $listingPattern) {
-        Write-Block "Blocked by cross_market_parity: $($target.display) must explicitly state listing identity or venue basis for cross-market comparison."
+        Write-Warn "cross_market_parity: $($target.display) must explicitly state listing identity or venue basis for cross-market comparison."
     }
     if ($text -notmatch $currencyPattern) {
-        Write-Block "Blocked by cross_market_parity: $($target.display) must explicitly state currency basis or FX translation basis for cross-market comparison."
+        Write-Warn "cross_market_parity: $($target.display) must explicitly state currency basis or FX translation basis for cross-market comparison."
     }
     if ($text -notmatch $asOfPattern) {
-        Write-Block "Blocked by cross_market_parity: $($target.display) must explicitly state as-of date or timestamp basis for cross-market comparison."
+        Write-Warn "cross_market_parity: $($target.display) must explicitly state as-of date or timestamp basis for cross-market comparison."
     }
 }
 

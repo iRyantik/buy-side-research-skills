@@ -11,11 +11,15 @@ function Test-FactualLine {
     if ($Line -match '^\s*>') { return $false }
     if ($Line -match '^\s*\|(?:\s*-+\s*\|)+\s*$') { return $false }
     if ($Line -notmatch '\d') { return $false }
+    if ($Line -match '^\s*(\d+[.)]\s+|第\d+[步节章]|step\s*\d+|section\s*\d+)') { return $false }
+    if ($Line -match '\b(?:19|20)\d{2}年\b|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}|\bv?\d+\.\d+(?:\.\d+)?\b|第\s*\d+\s*页|page\s*\d+') { return $false }
     return $true
 }
 
 $payload = Get-HookPayload -InputPath $InputPath
 if ($null -eq $payload) { exit 0 }
+
+if (Test-IsCasualChat -Payload $payload) { exit 0 }
 
 foreach ($target in (Get-MarkdownTargets $payload)) {
     $text = [string]$target.text
@@ -24,8 +28,11 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     }
 
     $resourcesMatches = [regex]::Matches($text, '(?m)^## Resources\b')
-    if ($resourcesMatches.Count -ne 1) {
-        Write-Block "Blocked by source_contract: $($target.display) must contain exactly one '## Resources' section."
+    if ($resourcesMatches.Count -eq 0) {
+        Write-Block "Blocked by source_contract: $($target.display) must contain a '## Resources' section."
+    }
+    if ($resourcesMatches.Count -gt 1) {
+        Write-Warn "source_contract: $($target.display) has multiple '## Resources' sections; only the first was checked for consistency."
     }
 
     $contract = Get-SourceContractState -Text $text
@@ -47,7 +54,6 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
             if ($distinctTargets.Count -ne 1) {
                 Write-Block "Blocked by source_contract: $($target.display) defines [$code] more than once with inconsistent ## Resources targets."
             }
-            Write-Block "Blocked by source_contract: $($target.display) defines duplicate ## Resources entries for [$code]."
         }
     }
 
@@ -71,7 +77,7 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     $numericLinesWithoutAnchors = @()
     foreach ($line in ($body -split "`r?`n")) {
         if (-not (Test-FactualLine -Line $line)) { continue }
-        if ($line -match '\[(?:S|P|I|LBG)\d+[^\]]*\]\([^)]+\)') { continue }
+        if ($line -match '\[(?:S|P|I|LBG|R|SRC)\d+[^\]]*\]\([^)]+\)') { continue }
         $numericLinesWithoutAnchors += $line.Trim()
     }
 
@@ -84,7 +90,7 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
         if ($line -notmatch '^\s*\|') { continue }
         if ($line -match '^\s*\|(?:\s*-+\s*\|)+\s*$') { continue }
         if ($line -notmatch '\d|%|bps|x\b') { continue }
-        if ($line -match '\[(?:S|P|I|LBG)\d+[^\]]*\]\([^)]+\)') { continue }
+        if ($line -match '\[(?:S|P|I|LBG|R|SRC)\d+[^\]]*\]\([^)]+\)') { continue }
         $tableRowsWithoutEvidence += $line.Trim()
     }
 

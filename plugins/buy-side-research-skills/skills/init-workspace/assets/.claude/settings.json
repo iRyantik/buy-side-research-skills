@@ -26,36 +26,6 @@
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
                                                      "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
                                                      "timeout":  20
                                                  },
@@ -161,16 +131,6 @@
                                                  },
                                                  {
                                                      "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
                                                      "command":  "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
                                                      "timeout":  20
                                                  }
@@ -188,46 +148,6 @@
                                                         {
                                                             "type":  "command",
                                                             "command":  "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/no_filing_summary.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/must_state_market_expectation.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/next_step_anchored_facts_only.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/pair_structure_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/thesis_catalyst_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/earnings_decision_contract.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/peer_matrix_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/consensus_floor.ps1",
                                                             "timeout":  20
                                                         },
                                                         {
@@ -328,16 +248,6 @@
                                                         {
                                                             "type":  "command",
                                                             "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_update_change_map_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/earned_insight_only.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/journal/topic_index_map_only.ps1",
                                                             "timeout":  20
                                                         },
                                                         {

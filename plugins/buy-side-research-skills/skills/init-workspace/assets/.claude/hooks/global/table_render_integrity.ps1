@@ -30,9 +30,15 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
         }
     }
 
+    $inCodeFence = $false
     for ($i = 0; $i -lt ($lines.Count - 1); $i++) {
         $line = [string]$lines[$i]
         $next = [string]$lines[$i + 1]
+        if ($line.TrimStart() -match '^```') {
+            $inCodeFence = -not $inCodeFence
+            continue
+        }
+        if ($inCodeFence) { continue }
         if ($line -notmatch '\|') { continue }
         if ($next -notmatch '\|' -or (Test-IsMarkdownTableSeparatorLine -Line $next)) { continue }
 
@@ -42,7 +48,14 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
         }
     }
 
+    $inCodeFence = $false
     for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = [string]$lines[$i]
+        if ($line.TrimStart() -match '^```') {
+            $inCodeFence = -not $inCodeFence
+            continue
+        }
+        if ($inCodeFence) { continue }
         if ($coveredLines.Contains($i)) { continue }
 
         $line = [string]$lines[$i]

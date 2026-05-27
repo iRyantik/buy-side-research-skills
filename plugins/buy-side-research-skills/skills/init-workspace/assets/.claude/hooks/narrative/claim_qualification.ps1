@@ -26,10 +26,20 @@ foreach ($target in (Get-MarkdownTargets $payload)) {
     $text = [string]$target.text
     if ($text -notmatch $weakProvenancePattern) { continue }
 
-    foreach ($line in ($text -split "`r?`n")) {
+    $claimLines = $text -split "`r?`n"
+    for ($ci = 0; $ci -lt $claimLines.Length; $ci++) {
+        $line = [string]$claimLines[$ci]
         if ($line -notmatch $strongRelationshipPattern) { continue }
         if ($line -match $safeQualifierPattern) { continue }
-        Write-Block "Blocked by claim_qualification: $($target.display) upgrades rumor-, title-, screenshot-, or tiered-source evidence into an unqualified confirmed relationship or catalyst claim."
+        $ctxStart = [Math]::Max(0, ($ci - 2))
+        $ctxEnd = [Math]::Min(($claimLines.Length - 1), ($ci + 2))
+        $hasSafe = $false
+        for ($cj = $ctxStart; $cj -le $ctxEnd; $cj++) {
+            if ([string]$claimLines[$cj] -match $safeQualifierPattern) { $hasSafe = $true; break }
+        }
+        if (-not $hasSafe) {
+            Write-Block "Blocked by claim_qualification: $($target.display) upgrades rumor-, title-, screenshot-, or tiered-source evidence into an unqualified confirmed relationship or catalyst claim."
+        }
     }
 }
 

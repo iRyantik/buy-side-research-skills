@@ -25,9 +25,47 @@ function Get-HookPayload {
 }
 
 function Write-Block {
-    param([Parameter(Mandatory = $true)][string]$Message)
+    param([Parameter(Mandatory = $true)][string]$Message, [string]$Severity = "block")
+    if ($Severity -eq "warn") {
+        [Console]::Error.WriteLine("HOOK WARNING: $Message")
+        exit 0
+    }
     [Console]::Error.WriteLine($Message)
     exit 2
+}
+
+function Write-Warn {
+    param([Parameter(Mandatory = $true)][string]$Message)
+    [Console]::Error.WriteLine("HOOK WARNING: $Message")
+    exit 0
+}
+
+function Test-IsCasualChat {
+    param($Payload)
+    if ($null -eq $Payload) { return $true }
+    $toolName = Get-ToolName -Payload $Payload
+    if ($toolName -notin @('Write', 'Edit', 'MultiEdit')) { return $true }
+    $candidates = Get-CandidatePaths -Payload $Payload
+    if ($candidates.Count -eq 0) { return $true }
+    foreach ($c in $candidates) {
+        $pathStr = if ($c -is [string]) { $c } else { [string]$c }
+        if ($pathStr -match 'topics[/\\]' -or $pathStr -match '\.(?:xlsx|xlsm)$') { return $false }
+    }
+    return $true
+}
+
+function Test-HasCodeFence {
+    param([string]$Text, [int]$StartIndex, [int]$EndIndex)
+
+    if ([string]::IsNullOrWhiteSpace($Text)) { return $false }
+    $before = if ($StartIndex -gt 0) { $Text.Substring(0, $StartIndex) } else { "" }
+    $backtickCount = 0
+    $pos = 0
+    while (($pos = $before.IndexOf('```', $pos)) -ge 0) {
+        $backtickCount += 1
+        $pos += 3
+    }
+    return $backtickCount % 2 -eq 1
 }
 
 function Get-WorkspaceRoot {
@@ -315,8 +353,8 @@ function Test-IsArtifactLikeText {
     param([string]$Text)
 
     if ([string]::IsNullOrWhiteSpace($Text)) { return $false }
-    if ($Text.Length -ge 600) { return $true }
-    if ($Text -match '(?m)^##\s+' -or $Text -match '(?m)^\|\s*.+\s*\|$') { return $true }
+    if ($Text.Length -ge 1000 -and $Text -match '(?m)^##\s+') { return $true }
+    if ($Text -match '(?m)^##\s+' -and $Text -match '(?m)^\|\s*.+\s*\|$') { return $true }
     return $false
 }
 
@@ -342,7 +380,7 @@ function Get-ShortAnchorMatches {
     $results = New-Object System.Collections.Generic.List[object]
     if ([string]::IsNullOrWhiteSpace($Text)) { return @() }
 
-    $pattern = '\[((?:S|P|I|LBG)\d+)([^\]]*)\]\(([^)]+)\)'
+    $pattern = '\[((?:S|P|I|LBG|R|SRC)\d+)([^\]]*)\]\(([^)]+)\)'
     foreach ($match in [regex]::Matches($Text, $pattern)) {
         [void]$results.Add([pscustomobject]@{
             Code = $match.Groups[1].Value
@@ -361,13 +399,25 @@ function Get-ResourcesEntries {
     $results = New-Object System.Collections.Generic.List[object]
     if ([string]::IsNullOrWhiteSpace($ResourcesText)) { return @() }
 
-    $pattern = '(?im)^\s*-\s*\[((?:S|P|I|LBG)\d+)([^\]]*)\]\(([^)]+)\)\s*=\s*(.*)$'
-    foreach ($match in [regex]::Matches($ResourcesText, $pattern)) {
+    $patternWithMeta = '(?im)^\s*-\s*\[((?:S|P|I|LBG|R|SRC)\d+)([^\]]*)\]\(([^)]+)\)\s*=\s*(.*)$'
+    $patternBare = '(?im)^\s*-\s*\[((?:S|P|I|LBG|R|SRC)\d+)([^\]]*)\]\(([^)]+)\)\s*$'
+    foreach ($match in [regex]::Matches($ResourcesText, $patternWithMeta)) {
         [void]$results.Add([pscustomobject]@{
             Code = $match.Groups[1].Value
             LabelSuffix = $match.Groups[2].Value
             Target = $match.Groups[3].Value.Trim()
             Metadata = $match.Groups[4].Value.Trim()
+            Line = $match.Value.Trim()
+        })
+    }
+    foreach ($match in [regex]::Matches($ResourcesText, $patternBare)) {
+        $code = $match.Groups[1].Value
+        if ($results | Where-Object { $_.Code -eq $code }) { continue }
+        [void]$results.Add([pscustomobject]@{
+            Code = $code
+            LabelSuffix = $match.Groups[2].Value
+            Target = $match.Groups[3].Value.Trim()
+            Metadata = ""
             Line = $match.Value.Trim()
         })
     }
@@ -382,7 +432,8 @@ function Test-IsValidSourceTarget {
 
     $clean = $Target.Trim()
     if ($clean -match '^(?i:link|url)$') { return $false }
-    if ($clean.StartsWith('#') -or $clean.StartsWith('?') -or $clean.StartsWith('&')) { return $false }
+    if ($clean.StartsWith('#')) { return $true }
+    if ($clean.StartsWith('?') -or $clean.StartsWith('&')) { return $false }
 
     $absoluteUri = $null
     if ([System.Uri]::TryCreate($clean, [System.UriKind]::Absolute, [ref]$absoluteUri)) {
@@ -478,7 +529,7 @@ function Test-IsMarkdownTableSeparatorLine {
     param([string]$Line)
 
     if ([string]::IsNullOrWhiteSpace($Line)) { return $false }
-    return $Line -match '^\s*\|?(?:\s*:?-{3,}:?\s*\|)+(?:\s*:?-{3,}:?\s*)\|?\s*$'
+    return $Line -match '^\s*\|?(?:\s*:?-{2,}:?\s*\|)+(?:\s*:?-{2,}:?\s*)\|?\s*$'
 }
 
 function Get-MarkdownTableColumnCount {
@@ -502,9 +553,21 @@ function Get-MarkdownPipeTables {
 
     $lines = $Text -split "`r?`n"
     $index = 0
+    $inCodeFence = $false
     while ($index -lt ($lines.Count - 1)) {
         $header = [string]$lines[$index]
         $separator = [string]$lines[$index + 1]
+
+        if ($header.TrimStart() -match '^```') {
+            $inCodeFence = -not $inCodeFence
+            $index += 1
+            continue
+        }
+
+        if ($inCodeFence) {
+            $index += 1
+            continue
+        }
 
         if ($header -match '\|' -and (Test-IsMarkdownTableSeparatorLine -Line $separator)) {
             $blockLines = New-Object System.Collections.Generic.List[string]

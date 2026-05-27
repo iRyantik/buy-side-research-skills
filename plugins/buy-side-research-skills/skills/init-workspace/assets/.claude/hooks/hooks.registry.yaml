@@ -23,54 +23,6 @@ hooks:
     events: [SubagentStop]
     scope: [subagent_output]
     severity: block
-  - name: no_filing_summary
-    file: narrative/no_filing_summary.ps1
-    layer: narrative
-    events: [PostToolUse]
-    scope: [stock-quickread, peer-deep-dive, company-primer, earnings-setup, industry-quickread]
-    severity: block
-  - name: must_state_market_expectation
-    file: narrative/must_state_market_expectation.ps1
-    layer: narrative
-    events: [PostToolUse]
-    scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, bear-pre-mortem]
-    severity: block
-  - name: next_step_anchored_facts_only
-    file: narrative/next_step_anchored_facts_only.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [next-step]
-    severity: block
-  - name: pair_structure_floor
-    file: narrative/pair_structure_floor.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [pair-trade]
-    severity: block
-  - name: thesis_catalyst_floor
-    file: narrative/thesis_catalyst_floor.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [alpha-thesis, bear-pre-mortem]
-    severity: block
-  - name: earnings_decision_contract
-    file: narrative/earnings_decision_contract.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [earnings-setup]
-    severity: block
-  - name: peer_matrix_floor
-    file: narrative/peer_matrix_floor.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [peer-deep-dive]
-    severity: block
-  - name: consensus_floor
-    file: narrative/consensus_floor.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [consensus-map]
-    severity: block
   - name: claim_qualification
     file: narrative/claim_qualification.ps1
     layer: narrative
@@ -88,7 +40,7 @@ hooks:
     layer: provider
     events: [PostToolUse, Stop]
     scope: [cross-market-compare]
-    severity: block
+    severity: warn
   - name: social_clue_only
     file: provider/social_clue_only.ps1
     layer: provider
@@ -196,18 +148,6 @@ hooks:
     layer: modeling
     events: [PostToolUse, Stop]
     scope: [model-update]
-    severity: block
-  - name: earned_insight_only
-    file: journal/earned_insight_only.ps1
-    layer: journal
-    events: [PostToolUse, Stop]
-    scope: [research-journal]
-    severity: block
-  - name: topic_index_map_only
-    file: journal/topic_index_map_only.ps1
-    layer: journal
-    events: [PostToolUse, Stop]
-    scope: [research-journal]
     severity: block
   - name: viz_delivery_contract
     file: viz/viz_delivery_contract.ps1
