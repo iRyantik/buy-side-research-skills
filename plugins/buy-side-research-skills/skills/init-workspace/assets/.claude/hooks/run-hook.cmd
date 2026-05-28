@@ -22,7 +22,7 @@ if not defined PS_EXE (
 )
 
 if not defined PS_EXE (
-    1>&2 echo Blocked by hook launcher: unable to locate PowerShell. Install PowerShell 7 (`pwsh`) or ensure Windows PowerShell is available on PATH.
+    1>&2 echo Blocked by hook launcher: unable to locate PowerShell. Install PowerShell 7 ^(`pwsh`^) or ensure Windows PowerShell is available on PATH.
     exit /b 2
 )
 

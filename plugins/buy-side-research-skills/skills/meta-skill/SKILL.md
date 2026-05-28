@@ -5,24 +5,6 @@ description: Create review or update buy-side research skills metadata docs mani
 
 # Meta Skill
 
-## Archetype Rule
-
-Narrative research skills should now be authored as `output archetype + fixed layers`, not as isolated section-first templates.
-
-Default archetypes:
-- `Primer`
-- `Compare`
-- `Market`
-- `Thesis`
-
-Rules:
-- layers are mandatory
-- titles may vary slightly
-- sections may merge
-- layer responsibility may not disappear
-
-`research-viz` is the only formal visual-companion route and should be treated as supporting visualization rather than a parallel thesis surface.
-
 Agent and plugin runtime upgrades belong to `update-agent-runtime`; `init-workspace` remains responsible for workspace scaffold and repair only.
 
 `meta-skill` 是本插件唯一的 active skill-authoring guide。它维护 `research / operations` 双轨：research skill 保留严格投研结构，operations skill 使用更轻的执行结构。

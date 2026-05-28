@@ -260,12 +260,12 @@ def patch_agents_md(target: Path, template_path: Path) -> WorkspacePatchResult:
     return WorkspacePatchResult(status="updated", details=["updated managed AGENTS.md body"])
 
 
-def resolve_powershell() -> list[str] | None:
+def resolve_powershell() -> list[str]:
     if os.name != "nt":
         pwsh = shutil.which("pwsh")
         if pwsh:
             return [pwsh, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]
-        return None
+        raise UpdateRuntimeError("PowerShell 7 (pwsh) is required on macOS to repair workspace runtime assets")
 
     pwsh = shutil.which("pwsh")
     if pwsh:
@@ -277,27 +277,11 @@ def resolve_powershell() -> list[str] | None:
 
 
 def repair_workspace(release_root: Path, workspace: Path, report: Report) -> None:
-    ps = resolve_powershell()
-    if ps is None:
-        sh_script = release_root / "skills" / "init-workspace" / "scripts" / "init-research-workspace.sh"
-        if sh_script.exists():
-            cmd = ["bash", str(sh_script), "--workspace-path", str(workspace)]
-            ensure_ok(run_command(cmd), "workspace scaffold repair (bash)")
-            report.workspace_actions.append("repaired workspace scaffold from latest release package (bash)")
-        else:
-            report.workspace_actions.append("skipped workspace scaffold repair (pwsh not found; install PowerShell 7 to enable workspace repair on macOS)")
-        # Continue with doc patching regardless
-        claude_template = release_root / "skills" / "init-workspace" / "assets" / "CLAUDE.md.template"
-        agents_template = release_root / "skills" / "init-workspace" / "assets" / "AGENTS.md.template"
-        report.claude_md = patch_claude_md(workspace / "CLAUDE.md", claude_template)
-        report.agents_md = patch_agents_md(workspace / "AGENTS.md", agents_template)
-        return
-
     init_script = release_root / "skills" / "init-workspace" / "scripts" / "init-research-workspace.ps1"
     if not init_script.exists():
         raise UpdateRuntimeError(f"packaged init-workspace helper missing: {init_script}")
 
-    cmd = [*ps, str(init_script), "-WorkspacePath", str(workspace)]
+    cmd = [*resolve_powershell(), str(init_script), "-WorkspacePath", str(workspace)]
     ensure_ok(run_command(cmd), "workspace scaffold repair")
     report.workspace_actions.append("repaired workspace scaffold from latest release package")
 

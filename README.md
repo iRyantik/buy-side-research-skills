@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`4.5.5`
+> 当前版本：`4.5.6`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -28,7 +28,6 @@
 | 搞清楚一家公司到底靠什么赚钱 | "用 driver-map 拆 Rocket Lab 的收入 driver" |
 | 搞懂一个行业的技术原理 | "用 mechanism-map 解释燃气轮机产业链" |
 | 拉美股/A股/港股/日股/韩股/欧股的财务数据 | "用 financial-data 拉 AAPL 美股数据" |
-| 判断当前市场偏好和 FOMO 环境 | "用 market-lens 看现在市场在奖励什么" |
 | 搭三表财务预测模型 | "用 3-statement-model 给 GE 搭模型" |
 | 做 DCF 估值 | "用 dcf-model 给 Rocket Lab 做 DCF" |
 | 看市场对一只股票的预期 | "用 consensus-map 看市场对 IONQ 的预期" |
@@ -336,7 +335,6 @@ longbridge auth login
 | 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | `next-step` |
 | 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" | `company-primer` |
 | 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" | `consensus-map` |
-| 看当前市场风格和主题拥挤度 | "用 market-lens 看现在市场在奖励什么" | `market-lens` |
 | 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" | `mechanism-map` |
 | 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" | `driver-map` |
 | 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" | `cross-market-compare` |
@@ -406,14 +404,5 @@ longbridge auth login
 
 ---
 
-**版本**：v4.5.5
+**版本**：v4.5.6
 **最后更新**：2026-05-27
-## Output Model Update
-
-The current generation uses four narrative research archetypes:
-- `Primer`
-- `Compare`
-- `Market`
-- `Thesis`
-
-Narrative skills now follow `fixed layers`, not rigid fixed titles. Markdown remains the primary research artifact. When visual complexity clearly exceeds Markdown readability, `research-viz` generates a stem-bound companion HTML instead of replacing the Markdown note. The suite also now includes `market-lens` as the dedicated market-style and FOMO-overlay skill.
