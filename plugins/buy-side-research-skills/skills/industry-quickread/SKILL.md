@@ -31,32 +31,41 @@ It should answer:
 
 Must make the industry understandable before jargon.
 
-Expected section responsibilities:
+Reality Page responsibilities:
 - `Understand The Industry First`
-- `Product Map`
-- `Industry In Plain English`
+- `Product / Value Chain Cards`
+- `Industry Map`
 
 Hard requirement:
-- `Product Map` must appear before deep regime analysis when product form is not already intuitive
+- card-style product or value-chain explanation must appear before deep regime analysis when product form is not already intuitive
+- `Industry Map` is mandatory and should bridge product understanding to stock relevance
+- preferred `Industry Map` columns:
+  - product bucket or value-chain step
+  - who pays
+  - how money is made
+  - what is easiest to notice
+  - what matters more for the stock
 
 ### Interpretation Layer
 
 Must explain why the industry matters now.
 
-Expected section responsibilities:
+Investment Bridge Page responsibilities:
 - `Why This Matters Now`
 - `Most Likely Misread`
 - `Current Regime / Bottleneck`
 - `Value Pool / Value Capture`
+- `What Actually Drives This Theme`
 
 ### Research Layer
 
 Must narrow the next research step.
 
-Expected section responsibilities:
+Research Page responsibilities:
 - `KPI / Source Map`
 - `Anchor Names`
 - `What To Check Next`
+- `Bottom Line`
 
 This skill should route to:
 - `mechanism-map` when the chain itself is not understood
@@ -69,7 +78,6 @@ This skill should route to:
 Must end with a compact industry verdict.
 
 Expected section responsibilities:
-- `Bottom Line`
 - `Resources`
 
 ## Visual Guidance

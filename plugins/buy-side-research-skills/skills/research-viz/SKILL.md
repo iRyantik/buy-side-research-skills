@@ -42,6 +42,40 @@ Typical chart families:
 - comparison visuals
 - investment visuals
 
+Template routing should follow:
+1. archetype template
+2. skill delta
+3. artifact-specific override only when clearly needed
+
+For `Primer` companions, default to a three-screen reading path:
+1. `Reality`
+2. `Investment Bridge`
+3. `Research`
+
+For `Primer` first screens:
+- start with a plain-language reality definition, not a market summary
+- use card-style explanation for the key business, product, or mechanism buckets
+- include one bridge table that connects understanding to stock relevance
+- avoid opening with abstract shorthand such as `profit pool`, `option value`, or `re-rating`
+
+For `Primer` bridge tables, prefer:
+- bucket
+- who buys / who is affected
+- how money is made / how value transmits
+- what is easiest to notice
+- what matters more for the stock
+
+For `stock-quickread` companions specifically, default blocks are:
+- `Business Cards`
+- `Business Map`
+- `Why This Matters Now`
+- `Most Likely Misread`
+- `Business Type + Market Phase`
+- `What Actually Drives The Stock`
+- `Reasonable Track vs FOMO Track`
+- `research-viz` is mandatory when `stock-quickread` escalates to `Level 2`
+- the companion should not be hand-built outside this route
+
 ## Save Contract
 
 HTML must:

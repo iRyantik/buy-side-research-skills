@@ -77,6 +77,29 @@ Writing rules:
 - every table needs an investment takeaway
 - unsupported facts must be labeled `[需查证]`, `[来源待补]`, `not disclosed`, or `working hypothesis`
 - give the conclusion first
+- write like a buy-side internal note, not a sell-side initiation
+- start with concrete business reality before abstract market shorthand
+- avoid first-screen phrases that sound like research shorthand but do not explain the business
+
+For `Primer` outputs, prefer a three-step reading flow:
+1. `Reality`
+2. `Investment Bridge`
+3. `Research`
+
+`Primer` first screen defaults:
+- one plain-language definition
+- bucket cards
+- one bridge table
+
+Primer card contract:
+- what it sells or does
+- who pays or who is affected
+- how money is made or value is transmitted
+- why it matters
+
+Primer bridge-table intent:
+- connect business understanding to stock understanding
+- do not simply restate the cards
 
 ## 5. Visual Routing
 

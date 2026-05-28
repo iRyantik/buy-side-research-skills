@@ -38,9 +38,10 @@ It should not become:
 
 Must make the business legible in plain language.
 
-Expected section responsibilities:
+Reality Page responsibilities:
 - `Understand The Business First`
-- `Business In Plain English`
+- `Business Cards`
+- `Business Map`
 
 Questions to answer:
 - what is this company in real life
@@ -48,15 +49,47 @@ Questions to answer:
 - who buys it
 - how does money get made
 
+First-screen contract:
+- start with a plain-language business definition, not a market summary
+- use one card per important business bucket, usually `2-4`
+- each card should answer:
+  - what it sells
+  - who buys
+  - how money is made
+  - why that bucket matters
+- `Business Map` is mandatory and should bridge business understanding to stock understanding
+- preferred `Business Map` columns:
+  - business bucket
+  - who buys
+  - how money is made
+  - what is easiest to notice
+  - what matters more for the stock
+- do not open with market shorthand or valuation framing
+
 ### Interpretation Layer
 
 Must explain why the stock matters now and what people most often misunderstand.
 
-Expected section responsibilities:
+Investment Bridge Page responsibilities:
 - `Why This Matters Now`
 - `Most Likely Misread`
 - `Business Type + Market Phase`
-- `Business Snapshot`
+- `What Actually Drives The Stock`
+
+Hard requirement:
+- `Business Type + Market Phase` is mandatory
+- `What Actually Drives The Stock` is mandatory
+- `What Actually Drives The Stock` should default to a compact table:
+  - driver
+  - why it matters
+  - current state
+- valuation framing must distinguish `Reasonable Track` and `FOMO Track` when the stock is actively investable
+
+### Research Layer
+
+Must narrow the next research question.
+
+Research Page responsibilities:
 - `Financial Snapshot`
 - `Capital Cycle`
 - `Market Lens`
@@ -64,16 +97,6 @@ Expected section responsibilities:
 - `Valuation Framing`
 - `Key Catalysts`
 - `Risks`
-
-Hard requirement:
-- `Business Type + Market Phase` is mandatory
-- valuation framing must distinguish `Reasonable Track` and `FOMO Track` when the stock is actively investable
-
-### Research Layer
-
-Must narrow the next research question.
-
-Expected section responsibilities:
 - `What To Check Next`
 
 Typical handoffs:
@@ -101,7 +124,9 @@ Default visual behavior:
 
 Good visuals for this skill:
 - product or asset image
-- small product map when multiple products define the business
+- business-bucket cards when multiple products or revenue buckets define the company
+- business map table
+- stock-driver table
 - valuation band
 - reasonable vs FOMO track visual
 - compact bridge or margin trend when it clarifies the stock

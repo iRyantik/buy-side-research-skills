@@ -104,6 +104,39 @@ The first visible screen should answer some combination of:
 - why it matters now
 - what people most often misread
 
+For `Primer` outputs, the first screen should default to a `Reality -> Investment Bridge -> Research` reading path:
+- `Reality`
+  - one plain-language definition
+  - card-style explanation of the key business, product, or mechanism buckets
+  - one bridge table that connects understanding to stock relevance
+- `Investment Bridge`
+  - why the name matters now
+  - what is most likely misread
+  - the core framing
+  - what actually drives the stock, theme, or mechanism
+- `Research`
+  - what the market or reader is already assuming
+  - what to check next
+  - a compact bottom line
+
+For `Primer` cards:
+- use one card per important bucket, usually `2-4`
+- each card should answer:
+  - what it sells or does
+  - who pays or who is affected
+  - how money is made or value is transmitted
+  - why that bucket matters
+
+For `Primer` bridge tables:
+- they are mandatory
+- they should connect reality to investing, not repeat the cards
+- preferred column pattern:
+  - bucket
+  - who pays / who is affected
+  - how money is made / how value transmits
+  - what is easiest to notice
+  - what matters more for the stock
+
 Interpretive writing rules:
 - jargon must be explained on first use
 - tables need a takeaway, not restatement
@@ -116,6 +149,8 @@ Anti-patterns:
 - section-by-section restatement of disclosed segments with no judgment
 - generic SWOT
 - decorative charts with no analytical job
+- opening with market shorthand before the reader understands the real business
+- using abstract buy-side shorthand such as `profit pool`, `option value`, `re-rating`, or `risk appetite` as first-screen explanations
 
 ## 5. Source And Truth Contract
 

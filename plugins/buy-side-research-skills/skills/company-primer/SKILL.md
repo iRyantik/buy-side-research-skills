@@ -20,15 +20,30 @@ Map an unfamiliar company's business segments customers history and disclosure e
 - what the company actually does
 - what products or segments matter
 - who pays
+- use bucket cards before narrative summary
+- each card should answer:
+  - what it sells
+  - who buys
+  - how money is made
+  - why that bucket matters
+- include a mandatory `Business Map` bridge table with:
+  - business bucket
+  - who buys
+  - how money is made
+  - what is easiest to notice
+  - what matters more for the stock
 
 ### Interpretation Layer
 - how the business changed
 - what disclosure or segment continuity can mislead the reader
 - what the most likely business misread is
+- use this as the `Investment Bridge Page`
 
 ### Research Layer
 - what business or disclosure question still blocks judgment
 - where to route next: `driver-map`, `mechanism-map`, or `information-impact`
+- this is the lighter `Research Page`
+- it should end with `What To Check Next` and `Bottom Line`
 
 ### Decision Layer
 - whether the business foundation is now clear enough for deeper work

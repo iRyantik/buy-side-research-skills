@@ -36,29 +36,47 @@ It should not become:
 
 Must make the mechanism legible in plain language.
 
-Expected section responsibilities:
+Reality Page responsibilities:
 - `Understand The Mechanism First`
-- `Mechanism In Plain English`
+- `Mechanism Step Cards`
+- `Mechanism Map`
 - `Terms That Matter`
 - `How It Works`
+
+First-screen contract:
+- explain the mechanism through card-style steps before deep interpretation
+- each mechanism card should answer:
+  - what this step does
+  - who pays or who is affected
+  - how value transmits
+  - why this step matters
+- `Mechanism Map` is mandatory and should bridge process understanding to stock relevance
+- preferred `Mechanism Map` columns:
+  - mechanism step
+  - who is affected
+  - how value transmits
+  - what is easiest to notice
+  - what matters more for the stock
 
 ### Interpretation Layer
 
 Must explain why the mechanism matters economically.
 
-Expected section responsibilities:
+Investment Bridge Page responsibilities:
 - `Why This Mechanism Matters`
 - `Most Likely Misread`
 - `Bottleneck / Control Point`
 - `Where Value Is Captured`
+- `What Actually Matters In This Mechanism`
 
 ### Research Layer
 
 Must connect the mechanism to downstream research.
 
-Expected section responsibilities:
+Research Page responsibilities:
 - `Research Read-Through`
 - `What To Check Next`
+- `Bottom Line`
 
 Typical handoffs:
 - `driver-map` for revenue, margin, backlog, or model-driver implications
@@ -70,7 +88,6 @@ Typical handoffs:
 Must leave a compact conclusion.
 
 Expected section responsibilities:
-- `Bottom Line`
 - `Resources`
 
 ## Visual Guidance
