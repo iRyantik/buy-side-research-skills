@@ -52,11 +52,11 @@ capabilities:
     - 'current conversation thesis'
     - 'research-journal notes'
 artifact_policy:
-  save_policy: 'optional_topic_result'
+  save_policy: 'default_topic_result'
   default_artifact: 'bear-pre-mortem.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md'
   naming_mode: 'plain'
-  save_trigger: 'save only when user asks to preserve the pressure test as dated topic research result'
+  save_trigger: 'always save to current topic'
 workflow:
   stage: 'validation'
   prerequisites:

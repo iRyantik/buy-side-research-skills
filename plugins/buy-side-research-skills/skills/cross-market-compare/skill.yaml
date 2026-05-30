@@ -62,8 +62,8 @@ capabilities:
     - 'main_agent_synthesis_required for spread interpretation and trade verdict'
     - 'url_claim_spot_check_required before using sub-agent sources'
 artifact_policy:
-  save_policy: 'optional_topic_result'
+  save_policy: 'default_topic_result'
   default_artifact: 'cross-market-compare.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'save only when user asks to preserve the cross-market comparison as dated topic research result'
+  save_trigger: 'always save to current topic'

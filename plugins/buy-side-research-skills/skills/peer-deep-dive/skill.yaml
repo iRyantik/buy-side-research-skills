@@ -51,11 +51,11 @@ capabilities:
     max: 8
     overflow_action: '先自由对话预筛，或按子行业 / business model 分子组'
 artifact_policy:
-  save_policy: 'optional_topic_result'
+  save_policy: 'default_topic_result'
   default_artifact: 'peer-deep-dive.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'save only when user asks to preserve the peer work as dated topic research result'
+  save_trigger: 'always save to current topic'
 workflow:
   stage: 'deep-dive'
   prerequisites:

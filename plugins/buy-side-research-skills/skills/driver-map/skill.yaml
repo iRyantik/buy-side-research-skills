@@ -66,7 +66,7 @@ artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: 'driver-map.md'
   canonical_location: 'topics/company/[company-slug]/_cache/driver-map/driver-map.md and internal/driver-map.json'
-  save_trigger: 'save only when user asks to preserve driver mapping as model-readable company cache'
+  save_trigger: 'always save to current topic'
 workflow:
   stage: 'research-primitive'
   can_follow:

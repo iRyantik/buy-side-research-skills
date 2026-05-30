@@ -43,7 +43,7 @@ capabilities:
     - 'interactive variants should also load references/interaction-patterns.md'
     - 'does not replace the base research artifact or create unsupported thesis claims'
 artifact_policy:
-  save_policy: 'optional_topic_result'
+  save_policy: 'default_topic_result'
   default_artifact: 'base-research-stem.html'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[base-research-stem][-qualifier].html'
   save_trigger: 'save when the user wants a topic-side html visualization paired with a specific markdown research artifact'

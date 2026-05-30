@@ -60,11 +60,11 @@ capabilities:
     - 'main_agent_synthesis_required for mechanism implication and value-capture conclusion'
     - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
 artifact_policy:
-  save_policy: 'optional_topic_result'
+  save_policy: 'default_topic_result'
   default_artifact: 'mechanism-map.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map.md'
   naming_mode: 'required_qualifier'
-  save_trigger: 'save only when user asks to preserve mechanism mapping as dated topic research result'
+  save_trigger: 'always save to current topic'
 workflow:
   stage: 'research-primitive'
   can_follow:
