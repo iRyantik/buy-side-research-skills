@@ -25,17 +25,6 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 
 本 skill 只做到行业 triage。它不替代 `mechanism-map` 的工程 / 产业链机制拆解，不替代 `candidate-screener` 的系统找票，也不替代 `driver-map` 的公司 / segment / 披露口径到 model driver 映射。
 
-## AI 的局限
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| 行业边界模糊 | AI 容易把相邻产业链和下游应用混成一个市场 | 先定义行业边界：产品 / 客户 / 地域 / value chain stage |
-| 最新供需数据滞后 | 产能、价格、库存和订单可能 1-2 个季度内大变 | 所有数据写 as-of；必要时标 `[需查证]` |
-| 概念股记忆污染 | AI 容易把热门 names 当成真实 anchor | anchor names 只作定位，必须写 exposure 类型和 source 状态 |
-| 行业机制幻觉 | 对工艺、设备链条、工程约束可能过度自信 | 遇到 know-how gap 交给 `mechanism-map` |
-| 利润池误判 | 主题热不代表利润留在最直观环节 | 必须单独写 value capture 和 margin pressure |
-| Consensus 模糊 | AI 不一定掌握最新卖方一致预期或仓位拥挤 | 只能写 clue；无 verified data 时标 `[需查证]` |
-
 ## 触发场景
 
 使用本 skill 当用户问：
@@ -68,7 +57,7 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 
 如果行业词本身可能有两种含义，先定义。例如 “nuclear” 可能指 uranium miners、conversion/enrichment、reactor operators、SMR equipment 或 utilities；必须先拆边界。
 
-## Mode A: Standard Industry First-Pass
+## 使用方式
 
 用于用户给出一个行业、主题或 value chain，希望快速判断研究入口。
 
@@ -79,9 +68,30 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 
 [2-4 句结论先行：这个行业当前最重要的经济现实、是否值得继续研究、下一步最高杠杆动作]
 
-## 1. 一句话行业经济现实
+## 1. 这个行业是什么
 
-[谁付钱、买什么、为什么现在买、行业用什么方式变现、利润通常留在哪一段]
+3-5 句大白话。不需要行业知识就能懂——谁在卖、谁在买、钱的流向。像跟朋友解释一样。
+
+#### 产业链长这样
+
+Mermaid 4-6 个节点，把主要环节标出来。不是公司列表——是行业的结构骨架。
+
+```mermaid
+flowchart LR
+    A[<原材料/技术>] --> B[<加工/制造>] --> C[<核心组件>] --> D[<集成/组装>] --> E[<终端应用>]
+```
+
+> 用日常词汇。每个节点一句话描述——"谁在卖什么给谁"。
+
+#### 长这样
+
+1 张行业代表性产品/设备图。不是具体某家公司的产品——是这个行业在造的东西。
+
+| ![行业图](_cache/images/<topic>-product.png) |
+|---|
+| *<产品/设备名> — <功能（≤15字）>* |
+
+> ① web search "<行业关键词> product photo" → ② 搜不到就不放。下载到 `_cache/images/<topic>-product.png`。
 
 ## 2. 当前 Regime / Cycle / Bottleneck
 
@@ -123,13 +133,21 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 |---|---|---|---|---|---|
 | [ticker/company] | [US/A/HK/etc.] | [stage] | direct / indirect / thematic / [需查证] | [定位作用] | [S1](./_cache/sources/industry-demand-pack.md) 或 GAP |
 
-**Discipline**: anchor names 最多 3-5 个；不要在这里写完整公司分析。
+**Discipline**: anchor names 最多 3-5 个；不要在这里写完整公司分析。每个 anchor 的 market cap 和 PE 通过 yfinance .info 获取，标注 as-of。可选加公司 logo（15px 小图）——搜得到就放，搜不到算了。logo 下载到 `_cache/images/<ticker>-logo.png`。
 
 ## 7. Priced-in / Consensus Clue
 
 [当前市场可能在 price 什么：growth、margin、capacity tightness、policy、rate、cycle turn。没有 verified consensus / valuation 数据时，明确写 `[需查证]`。]
 
-## 8. Routing
+## 8. 不懂的词先看这
+
+| 术语 | 大白话 |
+|---|---|
+| <术语> | <一句话> |
+
+> 最多 5-8 个。不是词典，是聊天时怎么讲。
+
+## 9. Routing
 
 | 发现 | 下一步 |
 |---|---|
@@ -140,32 +158,10 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 | 行业 / 主题的 priced-in、buy-side bar 或 consensus debate 不清 | `consensus-map` |
 | 某家公司 / segment / bucket 到 model driver 不清 | `driver-map` |
 
-## 9. 下一步 5 个具体问题
+## 10. 下一步 5 个具体问题
 
 1. [具体到某个 KPI / source / 文件 / 数据集能回答]
 ```
-
-## Mode B: Tight Triage
-
-用于用户只需要判断“值不值得继续看”。输出压缩为：
-- Verdict
-- 当前 regime
-- value capture
-- 3 个关键 KPI / source
-- 3 个 anchor names
-- 下一步最高杠杆动作
-
-低于 600 字时必须牺牲细节但不能牺牲 source discipline；没有 source 就标 `[需查证]`。
-
-## Mixed Mode
-
-当用户同时问“行业怎么看 + 有哪些票”时，不要把本 skill 扩展成完整 screener。
-
-处理顺序：
-1. 先用 Industry First-Pass 定义行业经济现实、regime、value pool。
-2. 只给 3-5 个 anchor names 作地图定位。
-3. 如果用户要完整 candidate list，明确 handoff 到 `candidate-screener`。
-4. 如果用户已经给了一组 companies，handoff 到 `peer-deep-dive`。
 
 ## Artifact / 保存策略
 
@@ -226,11 +222,7 @@ new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
 
 ## 篇幅基准
 
-| Mode | 篇幅 | 表格 |
-|---|---|---|
-| Standard Industry First-Pass | 1200-1800 字 | 3-4 张 |
-| Tight Triage | 600-900 字 | 1-2 张 |
-| Mixed Mode | 1500-2200 字 | 3-5 张 |
+标准 1200-1800 字，3-4 张表格。低于 600 字通常 source / regime / value pool 不全。
 
 低于 600 字通常 source / regime / value pool 不足；超过 2200 字通常已经越界到 `mechanism-map`、`candidate-screener` 或 `peer-deep-dive`。
 
