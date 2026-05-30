@@ -1,17 +1,19 @@
 ---
 name: candidate-screener
-description: Turn a theme event or screen into a sourced long or short candidate funnel.
+description: Turn a theme, event, or screen into a sourced long/short candidate funnel with tiered exposure and priced-in assessment.
 ---
 
 # Candidate Screener
 
-Turn a theme event or screen into a sourced long or short candidate funnel.
+Turn a theme, event, or screen into a sourced long/short candidate funnel with tiered exposure and priced-in assessment.
 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+- Use this skill for hypothesis engineering, candidate funneling, and priced-in triage; unresolved facts stay as gap, hypothesis, or follow-up.
+- Market-snapshot fields default to `topic-local evidence cache / financial-data` then trusted third-party then web fallback. A-share / HK / US screening that needs market_quote, valuation_snapshot, or market_screen may call `trusted-market-bridge` first; bridge misses fall back to web. Borrow, bid-ask, accounting basis, and share-class truth stay at `[需查证]` without high-quality source.
+- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, tiers, and ranks.
 
 把 hypothesis 转化成具体的可投资 candidate basket。LS 默认 long + short 双向。**核心价值不是列 ticker**——Bloomberg screener 比 AI 更准。AI 的差异化价值在于：
 
@@ -34,25 +36,6 @@ Turn a theme event or screen into a sourced long or short candidate funnel.
 - 最终 funnel：从 brainstorm 出的 N 个 candidates 收敛到 1-2 个值得做 deep research 的
 
 **最重要的纪律**：AI 不假装是 universe screener。本 skill 的输出是 **inferential brainstorm**，是研究员的 starting point，不是 final list。研究员必须 cross-check Bloomberg / 行业数据，并主动问"我可能漏了什么"。
-- 对 market-snapshot 字段，默认顺序是先 `topic-local evidence cache / financial-data`，再 trusted third-party，最后才是公开网页 fallback。若对象属于 A股 / 港股 / 美股，且筛选需要 `market_quote`、`valuation_snapshot`、`price_action`、`fx_snapshot`、`adr_ah_premium` 或 `market_screen`，可先调用 `trusted-market-bridge`。
-- 本 skill 中的 `market_screen` 是高层筛选便利层：它可以承载 scanner / anomaly 命中、候选优先级和简短触发理由，但它不是 thesis，也不是 business fact。业务关联、客户/供应链关系、披露事实仍需单独 source-backed。
-- bridge 命中字段使用 `[LBG1](https://longbridge.example.com/quote/NVDA.US)` 风格锚点；若 Longbridge 返回 `scope_restricted`、`unsupported_market`、`ambiguous` 或 `unavailable`，默认回退到既有 web / internet source 或保留 gap。正文不展开，只在最终 `## Resources` 写 fallback reason。
-- `borrow`、`bid-ask`、`accounting basis`、`conversion mechanics`、`share-class truth` 等高风险字段，不因 bridge 存在而自动放宽；无高质量 source 时继续写 `[需查证]` / `[来源待补]`。
-
-## AI 的局限（必读，前置警告）
-
-这个 skill 比其他 skills 更容易失败。研究员**必须**理解 AI 的局限再用结果：
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **Universe 偏差** | AI 主要覆盖 mid/large cap（前 1000-2000 主流名单）；small cap、最新上市、最新重组公司大量缺失 | 输出末尾必须建议研究员 Bloomberg / 行业 screen 补充；主动问"我可能漏了哪些 names" |
-| **知识 cutoff** | AI 不知道最近 6-12 个月的业务变化、并购、重组、IPO | 涉及最新动态时主动 web_search 验证；标注数据 as-of |
-| **编造业务关联风险** | AI 倾向于把"听过"的关联当作 verified（特别是供应链、客户关系） | 每条关联强制 source link；不确定标 `[需查证]` |
-| **概念股堆砌惯性** | AI 容易给主流市场已知 candidates（NVDA / MSFT 类）→ 没差异化 alpha | 反模式自查：是否只列已被 priced 的 obvious names |
-| **估值数据 stale** | AI 知道的估值倍数可能滞后数月 | 明确标注 as-of；推荐研究员二次验证 |
-| **Tier-N 供应链 mapping 不可靠** | AI 对 Tier-2/3 供应链关系常出错 | Tier 2/3 必须有 source；多个 source corroboration |
-
-**输出末尾必须包含一段"AI 候选 ≠ 全市场"的 caveat**，提示研究员补充。
 
 ## 触发场景
 
@@ -136,13 +119,13 @@ Turn a theme event or screen into a sourced long or short candidate funnel.
 
 ---
 
-## Mechanism Analysis
+## 1. Mechanism Analysis
 
 [Step 1-2 的输出：拆解 mechanism + 翻译业务特征]
 
 ---
 
-## Tier 1 — Direct Exposure (Pure-play / 主营 > 50% 受益)
+## 2. Tier 1 — Direct Exposure (Pure-play / 主营 > 50% 受益)
 
 | Ticker | Market | 业务 / 受益机制 | 受益强度 | Liquidity (ADV) | 估值锚 | Priced-in | Ev |
 |---|---|---|---|---|---|---|---|
@@ -151,20 +134,20 @@ Turn a theme event or screen into a sourced long or short candidate funnel.
 
 **Tier 1 判断**：受益机制 direct 且 quantifiable；普遍 priced-in 较多；alpha 来自基本面 vs 估值的 spread
 
-## Tier 2 — Indirect / Supply Chain (Tier-N supplier / 30-50% 收入受益)
+## 3. Tier 2 — Indirect / Supply Chain (Tier-N supplier / 30-50% 收入受益)
 
 | Ticker | ... | ... | Medium | ... | ... | Less | ... |
 | CCC | NYSE | Tier-1 配电设备给数据中心，但 60% 收入仍是工业 | Medium | $200M | EV/EBITDA 10x (vs 5Y 8x) | Partial | [S3](./_cache/sources/ccc-segment-note.md) |
 
 **Tier 2 判断**：受益机制 indirect；priced-in 通常较少（市场没把它当 AI 概念股）；但需 verify 受益的实际 magnitude
 
-## Tier 3 — Spillover / Theme Association (< 30% 收入受益 / 弱关联)
+## 4. Tier 3 — Spillover / Theme Association (< 30% 收入受益 / 弱关联)
 
 | Ticker | ... | ... | Low | ... | ... | Variable | ... |
 
 **Tier 3 判断**：弱关联但市场可能 trade it as theme stock；high beta to theme but low fundamental link；short candidate 高发区
 
-## Short Candidates
+## 5. Short Candidates
 
 [同样的表格结构，方向反过来]
 
@@ -176,21 +159,21 @@ Turn a theme event or screen into a sourced long or short candidate funnel.
 - 受益于 thematic-priced-up 但基本面不变的 candidates 是优质 short
 - 列 short borrow availability + rate（如可获取）
 
-## Recommended for Deep Research (1-2 家)
+## 6. Recommended for Deep Research (1-2 家)
 
 按 (机制清晰度 × 50%) + (priced-in 反向 × 30%) + (流动性 × 10%) + (catalyst 临近 × 10%) 综合 score：
 
 - **AAA US** (Tier 1, score 8/10): 机制最清晰 + 临近 Q3 PPA 公告 catalyst + 估值仅 partial priced-in → 触发 `stock-quickread`
 - **CCC** (Tier 2, score 7/10): 受益 magnitude 待 verify 但 priced-in 几乎为 0 → 触发 `stock-quickread` 验证 segment exposure
 
-## Hypothesis 漏洞自检
+## 7. Hypothesis 漏洞自检
 
 [必填，至少 3 条——这是 LS 研究员防止 over-confidence 的关键]
 1. **Hypothesis 弱点**：AI 数据中心电力 demand 假设依赖 hyperscaler capex 持续——历史 base rate：tech capex 周期通常 2-3 年，2024-2026 已是 capex 高峰期，受益股 priced 充分
 2. **Tier 风险**：Tier 1 已普遍 priced，alpha 主要来自 Tier 2-3 的 mispricing，但 Tier 2-3 的 mechanism 验证更难
 3. **反向风险**：如果 inference cost 下降快于预期（→ datacenter capex 不需要 ramp 这么快），整个 hypothesis 大幅 weakening
 
-## AI 候选 ≠ 全市场（caveat）
+## 8. AI 候选 ≠ 全市场（caveat）
 
 本输出基于 AI 已知的 mid/large cap 主流 universe（约 1000-2000 names）。可能漏：
 - Small cap / micro cap（< $1B 市值）
@@ -242,13 +225,13 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 
 ---
 
-## Conditions Translation
+## 1. Conditions Translation
 
 [Step 1 的输出：翻译条件成业务 profile]
 
 ---
 
-## Matched Candidates
+## 2. Matched Candidates
 
 | Ticker | Market | EV/EBITDA | FCF yield | Capex/D&A | All criteria met? | Ev |
 |---|---|---|---|---|---|---|
@@ -259,27 +242,27 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 
 **Note**: 包括 ❌ 但接近的 candidates（边缘合格）—— 给研究员判断空间。
 
-## Top Candidates by Match Quality
+## 3. Top Candidates by Match Quality
 
 按 (满足条件数 × 50%) + (额外 attractive 维度 × 30%) + (流动性 × 20%) 排序：
 
 1. **AAA**: 全部条件满足 + ROIC 18% (extra)
 2. **BBB**: 全部条件满足 + 股息 yield 6% (extra)
 
-## Recommended for Deep Research (1-2)
+## 4. Recommended for Deep Research (1-2)
 
-[同 Mode A]
+[同 Mode A §6]
 
-## Hypothesis 漏洞自检
+## 5. Hypothesis 漏洞自检
 
 [即使是 quant screening，也要质疑条件本身是否 capture 想要的 thesis]
 - 你的条件可能筛出 value trap（FCF yield 高但因为基本面持续恶化）
 - Capex/D&A < 0.7 在 emerging tech 行业可能意味着错过增长（不是 attractive）
 - 建议加 ROIC vs WACC > 200bps 过滤 value trap
 
-## AI 候选 ≠ 全市场 (caveat)
+## 6. AI 候选 ≠ 全市场 (caveat)
 
-[同 Mode A]
+[同 Mode A §8]
 ```
 
 ### Mode B 输出篇幅
@@ -338,11 +321,9 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 ### 4. **AI universe caveat**
 固定模板提示用户 AI 不是 universe screener。
 
-## Workflow 联动
+## Artifact / 保存策略
 
-## Artifact 输出契约
-
-默认写入当前日期化保存路径：
+写入当前日期化保存路径：
 
 ```text
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
@@ -354,7 +335,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 
 这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`research-journal`、`next-step` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
 
-如果用户只是自由 brainstorm 且明确不需要留痕，可以只在对话中输出；否则默认保存筛选结果，避免下次重新从同一个 hypothesis 开始。
+## Workflow 联动
 
 | 场景 | 触发的下游 skill |
 |---|---|
@@ -412,10 +393,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 | Mode A: Thematic | 1500-2500 | 4-5（含 short 表 + 推荐表） |
 | Mode B: Quant | 1200-2000 | 1-2（matched candidates 表 + 推荐表） |
 | Mixed Mode | 2000-3000 | 5-6 |
-
-**篇幅触发的 trade-off**：
-- 低于下限 → 推理不深 / candidates 太少 / 漏洞自检敷衍
-- 超过上限 → 在堆 candidates 而非筛选；应该收紧 Tier / 减少 candidate 数
 
 **Candidate 数量基准**：
 - Tier 1: 3-5 家（pure-play 通常少）
