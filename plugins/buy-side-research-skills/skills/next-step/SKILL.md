@@ -89,7 +89,7 @@ Choose the highest-value next research question when a thread feels stuck or inc
 |---|---|---|
 | **mechanism / know-how gap** | 行业机制、工程原理、设备链条、工艺流程、术语、value capture 不清 | 先 handoff `mechanism-map` |
 | **driver / disclosure gap** | revenue、margin、backlog、price-volume-mix、KPI 定义、reported bucket、披露口径不清 | 先 handoff `driver-map` |
-| **company foundation / disclosure evolution gap** | 公司到底卖什么、业务边界如何演变、segment / KPI rename 或 recast 历史不清 | 先 handoff `company-primer` |
+| **company foundation / disclosure evolution gap** | 公司到底卖什么、业务边界如何演变、segment / KPI rename 或 recast 历史不清 | 先 handoff `company-history` |
 | **source / claim gap** | 关键事实、客户关系、新闻、卖方观点、专家说法未验证 | 先 handoff `information-impact` |
 | **field evidence / channel validation gap** | 关键假设需要 expert call、客户 / 供应商 channel check、survey 或 fieldwork 验证 | 先 handoff `primary-research-plan` |
 | **peer comparability gap** | peer group、KPI 口径、业务机制或 value-capture 不可比 | 先 handoff `peer-deep-dive`，必要时先 `mechanism-map` / `driver-map` |
@@ -217,7 +217,7 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 |---|---|
 | 高价值疑点是行业机制、工程原理、设备链条、工艺流程或术语 | `mechanism-map` |
 | 高价值疑点是 revenue / margin / backlog / price-volume-mix 或 KPI 口径 | `driver-map` |
-| 高价值疑点是公司业务基础、业务演变、segment / KPI rename 或 disclosure evolution | `company-primer` |
+| 高价值疑点是公司业务基础、业务演变、segment / KPI rename 或 disclosure evolution | `company-history` |
 | 高价值疑点依赖一条 claim、新闻、供应链关系或卖方观点真假 | `information-impact` |
 | 高价值疑点需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 下一步是横向比较多家公司，且需要比较机制或 KPI 可比性 | `peer-deep-dive` |
@@ -266,7 +266,7 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 
 - `mechanism-map` 解释机制、设备链条、工程原理、工艺流程和 know-how；本 skill 只判断是否应该先交给它。
 - `driver-map` 拆 revenue、margin、backlog、price-volume-mix、KPI 和披露口径；本 skill 只识别 driver gap。
-- `company-primer` 打牢公司业务基础、业务演变和披露口径历史；本 skill 只识别是否需要先补公司地基。
+- `company-history` 打牢公司业务基础、业务演变和披露口径历史；本 skill 只识别是否需要先补公司地基。
 - `information-impact` 验证 claim 可信度；本 skill 不做 source hunting。
 - `primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只识别是否需要 primary evidence。
 - `peer-deep-dive` 做横向研究和排序；本 skill 不替代 peer compare。

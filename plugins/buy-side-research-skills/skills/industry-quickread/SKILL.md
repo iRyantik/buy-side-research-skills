@@ -37,7 +37,7 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 - “AI data center power infrastructure / humanoid robotics / nuclear fuel cycle 这种主题先怎么切”
 
 不要用于：
-- 已经锁定某家公司，要看它卖什么、客户是谁、segment 怎么变：用 `company-primer`。
+- 已经锁定某家公司，要看它卖什么、客户是谁、segment 怎么变：用 `company-history`。
 - 要解释工艺、设备链、工程原理、行业术语：用 `mechanism-map`。
 - 要拆某家公司收入、margin、backlog、price/volume/mix、披露 bucket：用 `driver-map`。
 - 要系统找一篮子 long / short candidates：用 `candidate-screener`。
@@ -191,7 +191,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
 | 已有一组 anchor companies，需要横向比较 | `peer-deep-dive` |
 | 单个公司值得快速判断 | `stock-quickread` |
 | 行业 / 主题 market expectations、priced-in assumptions 或 variant gap 不清 | `consensus-map` |
-| 公司业务基础、segment / KPI 演变不清 | `company-primer` |
+| 公司业务基础、segment / KPI 演变不清 | `company-history` |
 | 公司 / segment / 产品线 / 披露 bucket 到 model driver 不清 | `driver-map` |
 | 行业判断已经形成 thesis 差异 | `alpha-thesis` |
 | 行业判断需要量化进模型 | `3-statement-model / dcf-model / comps-analysis / model-update` |
@@ -240,6 +240,6 @@ new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
 | `peer-deep-dive` | 对 3-8 家公司做横向深研、排序和 cross-cut insight；本 skill 不做完整 peer comparison。 |
 | `stock-quickread` | 快速看单家公司；本 skill 只判断行业和 anchor。 |
 | `consensus-map` | 系统拆行业 / 主题的 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；本 skill 只给 clue。 |
-| `company-primer` | 梳理单家公司业务基础、历史演变和 disclosure evolution；本 skill 不写公司基础研究。 |
+| `company-history` | 梳理单家公司业务基础、历史演变和 disclosure evolution；本 skill 不写公司基础研究。 |
 | `alpha-thesis` | 写 variant view、catalyst、kill criteria；本 skill 只提供 thesis 起点。 |
 | `primary-research-plan` | 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只识别需要 primary evidence 的假设。 |

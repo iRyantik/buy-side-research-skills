@@ -51,7 +51,7 @@ workflow:
   stage: 'supporting-visualization'
   can_follow:
     - 'stock-quickread'
-    - 'company-primer'
+    - 'company-history'
     - 'mechanism-map'
     - 'driver-map'
     - 'consensus-map'

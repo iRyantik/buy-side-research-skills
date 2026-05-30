@@ -54,11 +54,11 @@ workflow:
     - 'candidate-screener'
     - 'peer-deep-dive'
     - 'stock-quickread'
-    - 'company-primer'
+    - 'company-history'
     - 'driver-map'
   feeds_into:
     - 'financial-data'
-    - 'company-primer'
+    - 'company-history'
     - 'driver-map'
     - '3-statement-model'
     - 'dcf-model'

@@ -66,7 +66,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 - 用户只是问下一步怎么研究 → `next-step`。
 - 用户只有一个未验证 claim、新闻、截图或卖方观点 → `information-impact`。
 - 用户机制、工程原理、设备链条还没搞懂 → `mechanism-map`。
-- 用户公司基础、业务演变、segment / KPI 历史口径还没搞清 → `company-primer`。
+- 用户公司基础、业务演变、segment / KPI 历史口径还没搞清 → `company-history`。
 - 用户 revenue / margin / backlog / KPI 口径还没拆清 → `driver-map`。
 - 用户要写完整 thesis / pair / model → 对应 `alpha-thesis`、`pair-trade`、`3-statement-model / dcf-model / comps-analysis / model-update`。
 
@@ -288,7 +288,7 @@ topics/[topic-namespace]/[topic-slug]/index.md
 |---|---|
 | 研究只发现了疑点，还没形成问题 | `next-step` |
 | source / claim 未验证 | `information-impact` |
-| 公司基础、业务演变、segment / KPI disclosure evolution 未搞清 | `company-primer` |
+| 公司基础、业务演变、segment / KPI disclosure evolution 未搞清 | `company-history` |
 | 机制、工程原理、设备链条或术语未搞清 | `mechanism-map` |
 | revenue / margin / backlog / KPI / disclosure driver 未搞清 | `driver-map` |
 | Journal 暴露出可写成 thesis 的 variant view | `alpha-thesis` |
@@ -338,7 +338,7 @@ topics/[topic-namespace]/[topic-slug]/index.md
 ## 与相邻 skill 的边界
 
 - `next-step` 负责把未解决疑点变成更好的问题；本 skill 只沉淀已研究过的 insight。
-- `company-primer` 打牢公司业务基础、业务演变和披露口径历史；本 skill 只消费已经 source-backed 的 primer insight。
+- `company-history` 打牢公司业务基础、业务演变和披露口径历史；本 skill 只消费已经 source-backed 的 primer insight。
 - `mechanism-map` 解释行业机制、工程原理、设备链条和术语；本 skill 只消费已经想清楚的机制结论。
 - `driver-map` 拆业务实质和 model driver；本 skill 只记录已验证或清楚标注置信度的 driver insight。
 - `information-impact` 验证消息和 claim；本 skill 不做 claim check。

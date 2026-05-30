@@ -49,7 +49,7 @@ capabilities:
     - 'route unresolved mechanism gaps to mechanism-map'
     - 'route unresolved driver and KPI gaps to driver-map'
     - 'route unresolved source or claim gaps to information-impact'
-    - 'route unresolved company foundation or disclosure evolution gaps to company-primer'
+    - 'route unresolved company foundation or disclosure evolution gaps to company-history'
     - 'maintain topic index as an evolutionary map, not a state tracker'
     - 'boss brief is high-density, not simplified'
     - 'follow Global Rules Capsule source policy'

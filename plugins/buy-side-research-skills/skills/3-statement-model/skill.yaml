@@ -63,7 +63,7 @@ workflow:
   can_follow:
     - 'financial-data'
     - 'driver-map'
-    - 'company-primer'
+    - 'company-history'
     - 'mechanism-map'
   feeds_into:
     - 'dcf-model'

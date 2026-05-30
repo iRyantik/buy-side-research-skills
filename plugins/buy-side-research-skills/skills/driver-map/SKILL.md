@@ -9,11 +9,10 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Research Runtime Capsule
 
-
-**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+- Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
+- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
 
 把公司披露口径翻译成真实业务和可建模 driver。**核心价值不是写一个收入拆分表**，而是防止研究员和 AI 把会计 segment、管理层 narrative、卖方分类或概念股标签误当成经济实质。
 
@@ -40,16 +39,6 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 本 skill 可以改变收入 bucket 的建模处理方式，但不能覆盖 `financial-data` 的 completeness。`provider-structured`、`provider-table-review`、`provider-normalized-review`、`llm-extracted-review` 和 `not-disclosed` 必须在 `driver-map.md` 和 `internal/driver-map.json` 中分清。若 `revenue_split` row 标有 `review_required: true`，必须由 LLM 解释 axis/member 并映射 model bucket，不能直接当作最终建模口径。
 
-## AI 的局限
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **披露名称诱导** | AI 会把 `Solutions`、`Systems`、`Industrial` 这类名称当成真实业务 | 强制做 `Reported Bucket → Business Reality`，不让 bucket 名称直接进入模型 |
-| **未披露 driver 编造** | AI 容易把行业常识写成公司披露事实 | 未披露一律标 proxy / assumption / `[来源待补]` |
-| **KPI 口径错配** | orders、backlog、book-to-bill、installed base 在不同行业含义不同 | 每个 KPI 写 source、definition、as-of |
-| **peer 类比过度** | 同业有 driver 不代表目标公司也披露或适用 | peer driver 只能作假设，不可替代公司 source |
-| **概念暴露误读** | 主题相关不等于 revenue driver | 区分 direct revenue driver、indirect proxy、theme association |
-
 ## 触发场景
 
 - "帮我拆一下这家公司 revenue driver"
@@ -66,7 +55,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 ### 不应触发
 
 - "帮我搭 model / 做 DCF / comps" → `3-statement-model / dcf-model / comps-analysis / model-update`，但它应消费或先产出 driver-map。
-- "这家公司到底做什么 / 业务怎么演变 / segment 或 KPI 历史口径怎么变" → `company-primer`，先打牢公司基础和 disclosure evolution。
+- "这家公司到底做什么 / 业务怎么演变 / segment 或 KPI 历史口径怎么变" → `company-history`，先对齐披露口径。
 - "这个设备链条 / 工艺流程怎么连接" → `mechanism-map`，先搞清机制再拆 driver。
 - "快速看一家公司值不值得研究" → `stock-quickread`，若 driver 不清再进入本 skill。
 - "几家公司一起看、排序" → `peer-deep-dive`，若 KPI 口径不可比再引用本 skill。
@@ -81,7 +70,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 | **时间口径** | 最新年报、最新季度、过去 3-5 年趋势 | 最新可验证披露 + 必要历史对比 |
 | **driver 范围** | revenue / margin / backlog / price-volume-mix / installed base | revenue-first，必要时扩到 margin |
 | **source cutoff** | 使用哪份 filing / call / IR deck | 最新可验证 source；不确定标 `[来源待补]` |
-| **保存需求** | 只在对话输出 / 写入 company driver-map cache | 默认对话；用户要求保存为建模输入时外显 `driver-map.md`，机器 JSON 写 `internal/driver-map.json` |
+| **保存需求** | 写入 company driver-map cache + topic artifact | 默认保存；外显 `driver-map.md`，机器 JSON 写 `internal/driver-map.json` |
 
 如果用户只说"拆 driver"，至少确认公司 / 业务范围；如果用户明确给出业务 bucket，则直接开始拆，不要把问题扩大成完整公司研究。
 
@@ -218,7 +207,7 @@ topics/company/<company-slug>/_cache/driver-map/
 | 场景 | 下一步 |
 |---|---|
 | 用户要继续搭 operating model / DCF / comps | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| driver work 发现公司业务边界、segment rename、KPI recast 或 material M&A 历史不清 | `company-primer` |
+| driver work 发现 segment rename、KPI recast 或 material M&A 历史不清 | `company-history` |
 | driver map 暴露 variant view | `alpha-thesis` |
 | driver 假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
 | 多家公司 driver 需要横向比较 | `peer-deep-dive` |
@@ -262,7 +251,7 @@ topics/company/<company-slug>/_cache/driver-map/
 
 - `3-statement-model / dcf-model / comps-analysis / model-update` 做 operating model、DCF、comps、workbook update；本 skill 只做 driver-map。
 - `primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只指出哪些 driver assumption 需要 field evidence。
-- `company-primer` 处理公司业务基础、业务演变和 disclosure evolution；本 skill 在这些基础清楚后才把 bucket 映射成 model driver。
+- `company-history` 审计业务演变和披露口径可比性；本 skill 在口径已对齐后做 driver mapping。
 - `stock-quickread` 快速判断是否值得继续看；本 skill 深挖 revenue / margin driver。
 - `peer-deep-dive` 做横向排序和 cross-cut insight；本 skill 提供可比较的 driver 口径。
 - `mechanism-map` 处理行业 know-how、工程机制、设备链条、工艺流程和术语；本 skill 只处理公司业务到 model driver 的映射。

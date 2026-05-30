@@ -42,7 +42,7 @@ capabilities:
     - 'route driver and KPI gaps to driver-map'
     - 'route source or claim gaps to information-impact'
     - 'route field evidence or channel validation gaps to primary-research-plan'
-    - 'route company foundation or disclosure evolution gaps to company-primer'
+    - 'route company foundation or disclosure evolution gaps to company-history'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for next question and routing decision'
     - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'

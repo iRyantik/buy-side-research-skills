@@ -244,7 +244,7 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
 
 ```text
 new-session -> ingest -> stock-quickread -> consensus-map
--> company-primer / mechanism-map / driver-map
+-> company-history / mechanism-map / driver-map
 -> primary-research-plan / peer-deep-dive
 -> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
 ```

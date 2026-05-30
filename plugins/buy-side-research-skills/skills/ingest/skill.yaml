@@ -61,7 +61,7 @@ workflow:
     - 'new-session'
   feeds_into:
     - 'industry-quickread'
-    - 'company-primer'
+    - 'company-history'
     - 'mechanism-map'
     - 'driver-map'
     - 'information-impact'

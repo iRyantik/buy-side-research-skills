@@ -244,7 +244,7 @@ longbridge auth login
 
 **你**：用 financial-data 拉 RKLB 美股数据
 
-**你**：用 company-primer 深度看 RKLB
+**你**：用 company-history 深度看 RKLB
 
 **你**：用 driver-map 拆 RKLB 的 revenue driver
 
@@ -333,7 +333,7 @@ longbridge auth login
 | 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" | `information-impact` |
 | 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" | `reddit-sentiment` |
 | 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | `next-step` |
-| 深度拆解一家公司业务 | "用 company-primer 深度看 GE Vernova" | `company-primer` |
+| 深度拆解一家公司业务 | "用 company-history 深度看 GE Vernova" | `company-history` |
 | 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" | `consensus-map` |
 | 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" | `mechanism-map` |
 | 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" | `driver-map` |

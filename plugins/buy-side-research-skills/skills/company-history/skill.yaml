@@ -1,0 +1,77 @@
+metadata_schema_version: 1
+name: company-history
+id: company-history
+display_name: Company History
+version: 1.0.0
+system_generation: 4.5.7
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: foundation
+summary: Audit business evolution and disclosure comparability through M&A timelines,
+  segment recasts, and KPI definition changes.
+description: Audit business evolution and disclosure comparability through M&A timelines,
+  segment recasts, and KPI definition changes.
+tags:
+- company-history
+- business-evolution
+- disclosure-evolution
+- segment-history
+- kpi-history
+- disclosure-map
+- comparability-audit
+- source-reconciliation
+trigger:
+  type: keyword
+  keywords:
+  - company history
+  - 公司历史
+  - 业务演变
+  - 披露口径变化
+  - segment 口径
+  - KPI 口径
+  - recast
+  - rename
+  - segment history
+  - disclosure evolution
+  - business evolution
+  - 并购改变了什么
+  - 业务边界变过吗
+  - 口径是不是变过
+  description: 当用户要审计公司业务演变（M&A/剥离改变了什么）或披露口径可比性（segment rename/recast/KPI 定义变化）时触发
+capabilities:
+  modes:
+  - Business Evolution Audit
+  - Disclosure Evolution Audit
+  output_path: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history-<qualifier>.md
+  requirements:
+  - audit material M&A, divestiture, business exit, and segment reshuffle
+  - audit segment/KPI rename, recast, definition change, reporting unit change
+  - 'rate comparability: comparable / partially comparable / not comparable / unknown'
+  - source every event and disclosure change with as-of
+  - do not write company introduction or model drivers
+  - sub-agent outputs must be evidence_cards_only
+  - main_agent_synthesis_required for comparability judgment
+  - sub-agent_opt_in_only unless user explicitly requests parallel
+artifact_policy:
+  save_policy: default_topic_result
+  default_artifact: company-history.md
+  canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history-<qualifier>.md
+  naming_mode: required_qualifier
+  save_trigger: always save to current topic
+workflow:
+  stage: company-foundation
+  can_follow:
+  - stock-quickread
+  - driver-map
+  - next-step
+  - information-impact
+  feeds_into:
+  - driver-map
+  - peer-deep-dive
+  - alpha-thesis
+  - research-journal
+  can_trigger:
+  - driver-map
+  - peer-deep-dive
+  decision_point: 业务演变和披露口径是否已对齐，能否安全进入 driver mapping 和 peer compare

@@ -70,7 +70,7 @@ workflow:
   can_follow:
     - 'industry-quickread'
     - 'stock-quickread'
-    - 'company-primer'
+    - 'company-history'
     - 'information-impact'
   feeds_into:
     - 'driver-map'

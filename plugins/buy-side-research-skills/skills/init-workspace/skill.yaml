@@ -58,7 +58,7 @@ workflow:
     - 'new-session'
     - 'ingest'
     - 'financial-data'
-    - 'company-primer'
+    - 'company-history'
     - 'stock-quickread'
     - 'next-step'
     - 'research-journal'
@@ -66,7 +66,7 @@ workflow:
     - 'new-session'
     - 'ingest'
     - 'financial-data'
-    - 'company-primer'
+    - 'company-history'
     - 'stock-quickread'
     - 'next-step'
 quality_gates:

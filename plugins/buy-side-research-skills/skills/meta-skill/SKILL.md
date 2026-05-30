@@ -318,7 +318,7 @@ Research layers：
 | Layer | Skills | 用途 |
 |---|---|---|
 | `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `reddit-sentiment`, `next-step` | 过滤信息、找候选、行业 first-pass、social sentiment、快速判断、识别下一步最高杠杆问题 |
-| `foundation` | `company-primer`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
+| `foundation` | `company-history`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
 | `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model / dcf-model / comps-analysis / model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
 | `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
 
@@ -461,7 +461,7 @@ Artifact policy：
 - `promote-company` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
 
 默认 naming tier：
-- `plain`：`stock-quickread`、`company-primer`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`
+- `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`
 - `optional_qualifier`：`consensus-map`、`industry-quickread`、`peer-deep-dive`、`cross-market-compare`、`candidate-screener`、`primary-research-plan`
 - `required_qualifier`：`mechanism-map`、`reddit-sentiment`
 

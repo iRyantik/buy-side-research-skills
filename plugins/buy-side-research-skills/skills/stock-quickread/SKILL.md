@@ -305,7 +305,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 |---|---|
 | quickread 判断这家公司值得继续研究，且需要形成 long / short 观点 | `alpha-thesis` |
 | 需要系统拆 sell-side consensus、buy-side bar、priced-in assumptions 或 variant-view gap | `consensus-map` |
-| 公司基础、业务演变、segment / KPI 历史口径或 material M&A / divestiture 影响当前理解 | `company-primer` |
+| 公司基础、业务演变、segment / KPI 历史口径或 material M&A / divestiture 影响当前理解 | `company-history` |
 | 收入结构复杂、segment bucket 怪、model driver 不清楚 | `driver-map` |
 | 业务机制、设备链条、工艺流程或术语不清 | `mechanism-map` |
 | 需要和一组 peer 横向比较 | `peer-deep-dive` |
@@ -323,4 +323,4 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 ## 篇幅基准
 
-- 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-primer` 或 `driver-map` 干活，应拆分或去重。
+- 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。

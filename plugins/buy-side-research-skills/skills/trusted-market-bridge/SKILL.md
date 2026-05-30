@@ -257,7 +257,7 @@ Downstream consumers may use `market_screen` to narrow the funnel or explain why
 | Need downside valuation and crowding context | `bear-pre-mortem` + this bridge |
 | Need industry market clues without full screening | `industry-quickread` + this bridge |
 | Need source-tracked actuals | `financial-data` |
-| Need business/segment truth | `company-primer` / `driver-map` / `mechanism-map` |
+| Need business/segment truth | `company-history` / `driver-map` / `mechanism-map` |
 
 ## Failure Discipline
 

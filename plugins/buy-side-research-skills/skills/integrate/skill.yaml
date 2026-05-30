@@ -41,7 +41,7 @@ workflow:
     - 'new-session'
     - 'research-journal'
   feeds_into:
-    - 'company-primer'
+    - 'company-history'
     - 'driver-map'
     - 'alpha-thesis'
   can_trigger: []

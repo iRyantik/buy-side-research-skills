@@ -12,7 +12,7 @@
 
 | Signal | 典型症状 | 下一步 |
 |---|---|---|
-| Business reality gap | 披露名称和真实经济实质不一致 | `company-primer` |
+| Business reality gap | 披露名称和真实经济实质不一致 | `company-history` |
 | Know-how gap | 工艺、设备链、工程原理或术语没搞清楚 | `mechanism-map` |
 | Driver gap | revenue / margin / backlog / price-volume-mix 没拆清 | `driver-map` |
 | Consensus gap | 市场预期、priced-in assumptions 或 buy-side bar 没拆清 | `consensus-map` |

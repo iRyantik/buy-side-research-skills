@@ -32,7 +32,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 不负责：
 
-- 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-primer` / `driver-map`。
+- 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-history` / `driver-map`。
 - 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
 - 不拉 consensus、price、EV、FX、peer multiples 或 market data。
 - 不把 `_cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
@@ -229,7 +229,7 @@ Revenue split rule:
 
 - 不覆盖已有 run-id 目录；同一时间重复运行必须生成新 run-id 或 fail。
 - 不写空的 successful pack；数据缺失时写 `provider-gap` / `partial`，或 hard fail，不伪装完整。
-- 不创建 `research-journal.md`、`company-primer.md`、`driver-map.md` 或 workbook。
+- 不创建 `research-journal.md`、`company-history.md`、`driver-map.md` 或 workbook。
 - 不把 current topic snapshot 当 canonical company data。
 - 不移动用户已有 `_raw/` 文件。
 - 缺 dependency 或 credential 时不写假 cache。
@@ -283,7 +283,7 @@ Revenue split rule:
 | 用户要解释 revenue bucket 或 driver | `financial-data` 后交给 `driver-map` |
 | 用户要建模、DCF、comps、更新 workbook | `financial-data` 可作为 optional input 给 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | theme / industry 需要一篮子公司数据 | 用 `current_topic_snapshot`，并链接 canonical company pack |
-| 数据缺口影响模型或研究优先级 | `next-step` / `driver-map` / `company-primer` |
+| 数据缺口影响模型或研究优先级 | `next-step` / `driver-map` / `company-history` |
 
 Artifact policy：
 

@@ -70,7 +70,7 @@ workflow:
     - 'init-workspace'
   feeds_into:
     - 'stock-quickread'
-    - 'company-primer'
+    - 'company-history'
     - 'driver-map'
     - 'earnings-setup'
     - 'peer-deep-dive'

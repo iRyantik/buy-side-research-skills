@@ -38,7 +38,7 @@ capabilities:
     - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action consensus and financial_snapshot'
     - 'financial_snapshot from trusted-market-bridge is quick context only, not company-truth or financial-data replacement'
     - 'scope_restricted unsupported_market ambiguous and unavailable may fall back to existing web or internet source logic unless longbridge_only is explicitly requested'
-    - 'route company foundation and disclosure evolution gaps to company-primer'
+    - 'route company foundation and disclosure evolution gaps to company-history'
     - 'route systematic consensus and priced-in analysis to consensus-map'
     - 'sub-agent outputs must be evidence_cards_only'
     - 'main_agent_synthesis_required for quickread verdict and routing'
@@ -53,7 +53,7 @@ workflow:
   stage: 'discovery'
   next_steps:
     - 'consensus-map'
-    - 'company-primer'
+    - 'company-history'
     - 'alpha-thesis'
   decision_point: '值不值得花时间深入研究'
 quality_gates:

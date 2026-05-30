@@ -75,7 +75,7 @@ topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
 同类文件也应移动，例如：
 
 - `2026-05-18-rklb-driver-map.md`
-- `2026-05-18-rklb-company-primer.md`
+- `2026-05-18-rklb-company-history.md`
 - `2026-05-18-rklb-alpha-thesis.md`
 - 其他 `YYYY-MM-DD-<company-slug>-*.md`
 
