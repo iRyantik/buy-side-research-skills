@@ -357,16 +357,15 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 3. `心法`
 4. `Global Rules Capsule`
 5. `Research Runtime Capsule`
-6. `AI 的局限`
-7. `触发场景`
-8. `输入澄清要求`
-9. `Mode A / Mode B / Mixed Mode`
-10. `输出结构`
-11. `Artifact / 保存策略`
-12. `Workflow 联动`
-13. `反模式自查`
-14. `篇幅基准`
-15. `与相邻 skill 的边界`
+6. `触发场景`
+7. `输入澄清要求`
+8. `Mode A / Mode B / Mixed Mode`
+9. `输出结构`
+10. `Artifact / 保存策略`
+11. `Workflow 联动`
+12. `反模式自查`
+13. `篇幅基准`
+14. `与相邻 skill 的边界`
 
 短 coach 型 research skill 的用户可见输出可以短，但 runtime 结构不能省：`心法`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。`Source 政策` 不再作为 skill-local 必填段。
 
