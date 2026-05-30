@@ -55,19 +55,15 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 
 如果用户只给一个很泛的主题，先把机制范围缩成 1-2 个最可能有投研价值的系统链条，不要展开成行业百科。
 
-## 输出结构
+## 输出结构（严格按这个走）
 
-```markdown
-## Mechanism Map: [机制名]
+每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。
 
-**结论先行**
-[一句话说明这个机制最重要的投研含义]
-
-## 1. Mechanism in One Sentence
+### 1. Mechanism in One Sentence
 
 [这个机制是什么 + 在系统里做什么 + 影响哪个投研变量]
 
-## 2. 关键术语
+### 2. 关键术语
 
 | Term / part | Plain meaning | Boundary / not this | Why it matters | Ev |
 |---|---|---|---|---|
@@ -75,7 +71,7 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 
 > 5-8 个术语。不是词典——是聊天时怎么讲。
 
-## 3. 怎么运作
+### 3. 怎么运作
 
 Mermaid 流程图 4-6 个节点，把设备链 / 工艺流程的主干标出来：
 
@@ -88,7 +84,7 @@ flowchart LR
 
 [3-6 步解释，不要超过机制本身所需深度]
 
-## 4. 瓶颈 & Control Point
+### 4. 瓶颈 & Control Point
 
 | 维度 | 判断 | 为什么重要 | Ev |
 |---|---|---|---|
@@ -101,13 +97,13 @@ flowchart LR
 
 **Takeaway**: [不是复述表格；写哪个 bottleneck 对投资判断最重要]
 
-## 5. Value Capture — 钱被谁赚了
+### 5. Value Capture — 钱被谁赚了
 
 | Value capture point | Who captures value | Revenue / margin channel | Evidence quality | Research read-through |
 |---|---|---|---|---|
 | [equipment / service / controls / integration] | [company type] | [equipment sale / service / parts / software / EPC] | High / Medium / Low | [why it matters] |
 
-## 6. Mechanism → Driver Bridge
+### 6. Mechanism → Driver Bridge
 
 | Mechanism implication | Driver-map link | Model / thesis implication | Confidence |
 |---|---|---|---|
@@ -121,7 +117,7 @@ Rating hard standards:
 | **Medium** | 机制和商业关系合理，但公司层面披露不完整，需要 peer / industry proxy |
 | **Low** | 主要是研究员推断或主题关联，必须标 `[来源待补]` / `[需查证]` |
 
-## 7. Driver-Map Handoff
+### 7. Driver-Map Handoff
 
 机制解释完后，必须明确交给 `driver-map` 验证什么。不要只说"这个机制可能影响收入"；要指出收入或 margin 假设需要哪类披露、proxy 或后续验证。
 
@@ -129,7 +125,7 @@ Rating hard standards:
 |---|---|---|---|
 | [机制结论] | [可能进入的 revenue / margin / backlog driver] | [下一步必须验证的公司披露 / KPI / proxy] | disclosed / implied / proxy / unknown |
 
-## 8. What NOT to Infer
+### 8. What NOT to Infer
 
 列出不能从该机制外推的东西：
 
@@ -141,12 +137,11 @@ Rating hard standards:
 - `industry bottleneck` vs `company-specific revenue driver`
 - `technical importance` vs `pricing power`
 
-## 9. 下一步 3 个具体问题
+### 9. 下一步 3 个具体问题
 
 1. [具体到某个 KPI / source / 公司披露能回答]
 2. [具体到某个 driver-map 变量需要验证]
 3. [具体到某个 peer 或 cross-check 能验证]
-```
 
 ## Artifact / 保存策略
 
