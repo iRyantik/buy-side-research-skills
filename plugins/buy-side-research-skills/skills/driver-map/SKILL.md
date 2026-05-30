@@ -149,40 +149,41 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 **结论先行**
 [一句话说明这家公司 / 业务最应该按什么 driver 理解，最大披露缺口在哪里]
 
-## Reported Bucket → Business Reality
+## 1. Reported Bucket → Business Reality
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
 
-## Business Reality → Model Driver
+## 2. Business Reality → Model Driver
 
 | Business bucket | Primary driver | Secondary driver | Observable KPI | Confidence |
 |---|---|---|---|---|
 
-## Driver Quality
+## 3. Driver Quality
 
 | Driver | Rating | Why | Ev | What would improve confidence |
 |---|---|---|---|---|
 
-## Disclosure vs Inference / Proxy Strategy
+## 4. Disclosure vs Inference / Proxy Strategy
 
 | Driver claim | Evidence status | Proxy to use | Risk of proxy | Model treatment |
 |---|---|---|---|---|
 
-## Weird Buckets / Senior Analyst Radar
+## 5. Weird Buckets / Senior Analyst Radar
 
 **这里值得深挖**
 - 怪异点：[披露 / bucket / KPI 哪里不自然]
 - 可能说明：[1-2 个解释]
-- 可以问 AI：[1-2 个最关键问题]
 
-## Implications for model / thesis
+## 6. Implications
 
 - [这个 driver map 会如何改变 model / thesis / peer compare]
 
-## 可以问 AI
+## 7. 下一步 3 个具体问题
 
-- [1-2 个下一步问题]
+1. [具体到某个 driver / source / 公司披露能回答]
+2. [具体到某个 model / thesis 变量需要验证]
+3. [具体到哪个 peer 或 cross-check 能验证]
 ```
 
 ## 可选保存
