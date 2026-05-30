@@ -245,7 +245,7 @@ topics/company/<company-slug>/_cache/driver-map/
 ## 篇幅基准
 
 - 标准 driver-map：900-1600 字 + 3-4 张表。
-- 低于 700 字通常 driver 拆解不深或遗漏 proxy strategy；超过 1800 字通常应拆给 `peer-deep-dive`、modeling skills 或多个 segment。
+- 低于 700 字通常 driver 拆解不深或遗漏 proxy strategy；超过 1800 字通常说明范围过大，应收窄到核心 segment 或确认已覆盖所有关键 driver 后停止。
 
 ## 与相邻 skill 的边界
 
