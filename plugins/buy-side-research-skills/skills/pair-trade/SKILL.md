@@ -9,6 +9,8 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** peer set / pair 中每个标的必须先有 financial-data。缺少的标的 → 先执行 /financial-data --lite <ticker>
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -128,6 +130,17 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 **底线判断**：终端市场重叠 ≥ 60% + 客户重叠 ≥ 50% + 共同 macro 因子 ≥ 2 个 → 才算相关。否则不是真 pair。
 
 #### 3. 估值 Spread 历史
+
+
+### 价差与相关性公式
+
+| # | 计算 | 公式 | 输入来源 |
+|---|---|---|---|
+| 1 | Z-Score | (当前价差 - 均值) ÷ 标准差 | MKT — 须标回溯窗口 |
+| 2 | 价差百分位 | rank(当前价差) ÷ N | MKT |
+| 3 | Beta | Cov(stock, index) ÷ Var(index) | MKT — 须标参照指数+回溯窗口 |
+| 4 | 比率价差 | ln(Price_Long ÷ Price_Short) | MKT |
+
 
 必须有具体 percentile / sigma，不允许 "spread 偏离历史"这种含糊判断。
 

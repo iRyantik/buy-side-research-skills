@@ -9,6 +9,8 @@ Build comparable company valuation workbooks with peer multiples and operating m
 
 ## Modeling Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
 - Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
@@ -236,6 +238,25 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 ---
 
 ## Section 3: Valuation Multiples & Investment Metrics
+
+
+
+## 估值倍数公式
+
+科目多语对照见 `skills/_shared/statement-line-items.md`。
+
+| # | 倍数 | 公式 | 输入来源 | 常见陷阱 |
+|---|---|---|---|---|
+| 1 | EV | Mkt Cap + Total Debt + Pref + Minority - Cash | MKT, FS | 受限资金是否剔除；优先用账面 debt |
+| 2 | EV/EBITDA | EV ÷ EBITDA | DER, FS | 非经常性损益需调整；中国公司常缺 segment EBITDA |
+| 3 | EV/Sales | EV ÷ Revenue | DER, FS | 毛利差异大时误导；成长股适用，成熟股更适合 EV/EBITDA |
+| 4 | P/E | Price ÷ EPS (diluted) | MKT, FS | GAAP vs non-GAAP；亏损公司无意义 |
+| 5 | P/B | Price ÷ BV per Share | MKT, FS | 商誉大时虚高；金融/地产适用，制造/科技偏离大 |
+| 6 | FCF Yield | (OCF - CapEx) ÷ Mkt Cap | DER, MKT | CapEx 优先取 total，不拆 maintenance |
+| 7 | PEG | P/E ÷ EPS Growth Rate | DER, CON | Growth 用 3Y CAGR 还是 consensus？必须注明口径 |
+
+倍数选择和公司的资本周期阶段要一致。
+
 
 ### Core Valuation Columns (Start with these)
 1. **Company** - Same order as operating section

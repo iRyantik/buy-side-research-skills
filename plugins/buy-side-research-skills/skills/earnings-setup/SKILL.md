@@ -9,6 +9,8 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -50,6 +52,18 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 - Handoff: `mechanism-map` / `driver-map`
 - Inputs needed: [需要补的 filing / call / KPI definition / segment data]
 ```
+
+
+
+## 隐含波动与压力
+
+| # | 计算 | 公式 | 输入来源 |
+|---|---|---|---|
+| 1 | Implied Move | ATM straddle 价格 ÷ 股价 | MKT — 期权市场；A 股标的少时用历史 earnings move |
+| 2 | 历史 Earnings Move | 过去 N 次财报日 ±1 天平均涨跌幅 | MKT — 须标回看次数 |
+| 3 | Short Interest | 融券余额 ÷ 流通市值 | MKT — 港股/美股可用，A 股不透明 |
+| 4 | Short Squeeze Score | Short Interest ÷ Avg Daily Volume | MKT — 高 = 业绩 beat 时空头被迫平仓 |
+
 
 ### 1. 当前 Setup（市场怎么定价这次 print）
 

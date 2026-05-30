@@ -9,6 +9,8 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** peer set / pair 中每个标的必须先有 financial-data。缺少的标的 → 先执行 /financial-data --lite <ticker>
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.

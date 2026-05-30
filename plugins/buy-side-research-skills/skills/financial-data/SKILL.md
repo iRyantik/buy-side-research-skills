@@ -132,6 +132,32 @@ topics/company/<company-slug>/
 
 如果 `topics/company/<company-slug>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
 
+
+### Lite Mode Fetch（研究前置快速抓取）
+
+触发语： 或 
+
+Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 。目标是 **stock-quickread / bear-pre-mortem / comps-analysis / earnings-setup / consensus-map / alpha-thesis / cross-market-compare** 启动前的最少必要数据。
+
+**数据获取逻辑**：
+
+
+
+**Lite 写入的最小字段**（22 个三表科目 + 分部 + 补充 + 市场数据）详见 。
+
+**数据完整性规则**：
+
+- ADR/双重股权/H+A：写入  字段
+- 数据新鲜度：存 ，超 6 个月标 
+- 未覆盖市场（SG/AU/IN/SEA）：yfinance 先拉，缺的标 
+- 单位归一化：AKShare 万元→元、EDINET 百万円→円、韩网 억원→원
+
+**输出**（精简版）：
+
+
+
+Lite 不写 、、、。
+
 ### Current Topic Snapshot
 
 用于 theme / industry / peer 工作流：

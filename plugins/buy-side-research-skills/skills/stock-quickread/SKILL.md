@@ -9,6 +9,8 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -46,24 +48,26 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个单季度**两行的数据（含同比变化）。期间拆行为独立行。
 
-| 分部 | 期间 | 收入占比 | 收入 YoY | 利润占比 | 利润 YoY | 利润率 | 利润率 YoY 变化 | Ev |
+| 分部 | 期间 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | Ev |
 |---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | 65% | +25% | 28% | +250 bps | [S1](./_cache/sources/company-annual-report.md) |
-| 分部 A | Q1 2025 | 43% | +8% | 62% | +15% | 26% | +100 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| 分部 B | FY2024 | 35% | +3% | 25% | -5% | 14% | -120 bps | [S10](./_cache/sources/fy2024-segment-note.md) |
-| 分部 B | Q1 2025 | 36% | +2% | 24% | -6% | 13% | -150 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| 分部 C | FY2024 | 20% | -8% | 10% | -30% | 10% | -300 bps | [S10](./_cache/sources/fy2024-segment-note.md) |
-| 分部 C | Q1 2025 | 21% | -6% | 14% | -22% | 12% | -200 bps | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| **整体** | **FY2024** | **100%** | **+5%** | **100%** | **+8%** | **19%** | **+50 bps** | [S11](./_cache/sources/fy2024-income-statement.md) |
-| **整体** | **Q1 2025** | **100%** | **+4%** | **100%** | **+6%** | **18%** | **-20 bps** | [S12](./_cache/sources/q1-2025-income-statement.md) |
+| 分部 A | FY2024 | 45% | +12% | EBIT | 65% | 28% | [S1](./_cache/sources/company-annual-report.md) |
+| 分部 A | Q1 2025 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 B | Q1 2025 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 C | Q1 2025 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| **整体** | **FY2024** | **100%** | **+5%** | Net Income | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
+| **整体** | **Q1 2025** | **100%** | **+4%** | Net Income | **100%** | **18%** | [S12](./_cache/sources/q1-2025-income-statement.md) |
 
 正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
 **取舍说明**：
-- "利润"用什么口径要明确——优先 segment EBIT / EBITDA（公司一般会披露），其次是 segment operating income。**不要混用口径**。
-- 列**只放最近一期 + 同比**——不放 5 年历史，那是流水账。如果想看趋势是否加速 / 反转，写在 (b) 的 takeaway 里。
-- 如果分部数据公司不披露，要明确写"公司未披露分部利润"——这本身就是信息（披露质量差 = 估值压力 / 治理疑虑）。
-- 数据有缺漏（某分部利润口径变了 / 重组中）要标注，不要假装连续。
+- **利润口径必须统一**：所有分部优先使用同一口径（优先 segment EBIT，其次 Gross Profit / Net Income）。公司披露了哪个口径就用哪个统一口径；如果某个分部没有该口径数据，标  并说明。不要把不同口径混在一张表里比。
+- **推导优先于 [ND]**：能算出来的就不要标未披露。推导逻辑：(1) 整体利润已知 + 某个分部利润已知 → 其他分部 = 整体 - 已知；(2) 分部收入已知 + 分部利润率已知 → 分部利润 ≈ 收入 × 利润率（利润率优先取年报精确披露值，不要用概数反推）；(3) 两步都用上了还是算不出来 → 标 `[ND]`。计算过程写在备注里，标 `[推算]`，不要假装是披露数据。
+- **哪个有就写哪个，没有的标 [ND]**：分部利润未披露 → 利润列写 `[ND]——公司未披露分部利润`。毛利率披露了但 EBIT 没披露 → 利润口径写 Gross Profit，数值写毛利额。什么都不披露 → 全部留空并声明。
+- **期间顺序**：先写 FY（完整年度），再写 Q（单季度）。不放 5 年历史。
+- **数据推算要标**：凡是从整体扣减、同业参照、管理层暗示等推算出来的数据，标 `[推算]` 并写推算依据。不标 = 在假装披露数据。
+- 数据有缺漏（口径变了 / 重组中）要标注，不要假装连续。
 
 **(b) Takeaway（2-3 句）**
 
@@ -81,6 +85,28 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 只写"在收割期"是定性印象。判断必须用关键比率支撑，否则研究员的判断和读者的判断没有区别。
 
 **(a) 关键比率（最少给出以下 4 项）**
+
+
+每个比率从三张表计算，不依赖第三方数据库。科目多语对照见 `skills/_shared/statement-line-items.md`。
+
+| # | 比率 | 公式 | 输入来源 | 报表位置 | 用途 |
+|---|---|---|---|---|---|
+| 1 | Capex / D&A | CapEx ÷ (折旧+摊销) | FS, FS | CF 投资 + CF 补充 | 投资强度。>1.5 重投资 / ~1.0 维持 / <0.7 收割 |
+| 2 | FCF / 净利润 | (经营性CF - CapEx) ÷ NI | FS, FS, FS | CF + IS | 利润现金转化。持续 < 0.7 是警告 |
+| 3 | OCF / 收入 | 经营性CF ÷ Revenue | FS, FS | CF + IS | 收入现金质量。持续 < 1 说明应收堆积 |
+| 4 | 净负债 / EBITDA | (有息负债 - Cash) ÷ (EBIT + D&A) | FS, FS, DER | BS + IS + CF | 杠杆水平 |
+| 5 | 有息负债 / EBITDA | (短期+长期借款+应付债券) ÷ (EBIT + D&A) | FS, DER | BS + IS | 杠杆（保守口径，仅计有息） |
+| 6 | 资本返还 / FCF | (分红+回购) ÷ (经营性CF - CapEx) | FS, DER | CF 筹资 | 股东回报意愿 |
+| 7 | ROIC vs WACC | EBIT×(1-t) ÷ (总资产 - 流动负债 - Cash) | DER | IS + BS | 价值创造。差距 < 200bps 警惕"伪成长" |
+| 8 | DSO | 应收 × 365 ÷ Revenue | FS, FS | BS + IS | 应收质量。YoY +30% 或 > 同行 2x 是红旗 |
+| 9 | Gross Margin | (Revenue - COGS) ÷ Revenue | DER | IS | 定价权。趋势比绝对值重要 |
+| 10 | OpEx / 收入 | (销售+管理+研发) ÷ Revenue | FS, FS | IS | 经营杠杆。收购整合期飙升 → 利润率何时恢复 |
+| 11 | 商誉 / 净资产 | Goodwill ÷ Equity (Parent) | FS, FS | BS | M&A 风险。>50% 单独看减值风险 |
+
+**所有数值必须从三张表取数计算，不得随手拍。** 拿不到具体科目的 → 标 `[需查证]` 并去翻年报附注；附注也找不到的 → 标 `[ND]`。`[估算]` 只允许在推算依据明确时使用（如"整体 - 分部A"扣减法、收入 × 利润率反推毛利），且必须在备注里写出推算过程。不标推算依据的数字 = 在假装是披露数据。
+
+若某比率因净利润亏损或数据缺失无法计算，标 `[ND]` 并说明原因，不要编数字。
+
 
 | 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|

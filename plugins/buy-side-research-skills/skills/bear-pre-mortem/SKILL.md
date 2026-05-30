@@ -9,6 +9,8 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -73,6 +75,21 @@ Stress test an investment thesis and build the strongest opposing case with sour
 - 折旧政策：实际资产寿命真的有这么长吗？capex / D&A 长期比例是否暴露了问题？
 
 ### 3. 会计 / 财务红旗清单
+
+
+## 会计红旗公式
+
+科目多语对照见 `skills/_shared/statement-line-items.md`。
+
+| # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
+|---|---|---|---|---|---|
+| 1 | DSO 恶化 | 应收 × 365 ÷ Revenue | FS, FS | BS + IS | YoY +30% / > 同业 2x |
+| 2 | 存货积压 | COGS ÷ 平均存货 | FS, FS | IS + BS | YoY 显著下降 |
+| 3 | 利润无现金支撑 | OCF ÷ NI | FS, FS | CF + IS | 持续 < 0.7 |
+| 4 | 资产老化 | CapEx ÷ D&A | FS, FS | CF | 持续 < 0.7 |
+| 5 | M&A 减值风险 | Goodwill ÷ Equity | FS, FS | BS | > 50% |
+| 6 | 股权稀释 | SBC ÷ Revenue | FS, FS | 附注 + IS | > 10% |
+
 
 逐项扫，每条要给：当前数 / 警戒阈值 / 状态 / Ev。有问题的那几条单独展开论证。
 

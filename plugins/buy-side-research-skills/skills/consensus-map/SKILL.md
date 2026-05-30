@@ -9,6 +9,8 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -93,7 +95,18 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Takeaway**: [本 map 最可靠和最薄弱的地方]
 
-## 2. Sell-Side Consensus Numbers
+## 2. 
+
+### 预期差公式
+
+| # | 计算 | 公式 | 输入来源 |
+|---|---|---|---|
+| 1 | Surprise | (Actual - Consensus) ÷ \|Consensus\| | FS, CON |
+| 2 | Revision Breadth | (上调数 - 下调数) ÷ 总覆盖数 | CON |
+| 3 | Implied Growth (from PE) | ROE × (1 - payout ratio) | DER |
+
+
+Sell-Side Consensus Numbers
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|

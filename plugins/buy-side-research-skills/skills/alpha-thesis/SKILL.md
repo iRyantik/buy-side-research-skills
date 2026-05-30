@@ -9,6 +9,8 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 ## Research Runtime Capsule
 
+
+**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -27,7 +29,19 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 ### Primitive Preflight（先判断能不能直接写 thesis）
 
-在写 Variant View、Bull / Base / Bear、Kill Criteria 之前，先判断 thesis 依赖的关键 driver 是否已经拆清楚。不要因为用户要求"写 thesis"就跳过这个检查。
+在写 Variant View、
+
+## 情景回报计算
+
+| # | 计算 | 公式 | 输入来源 |
+|---|---|---|---|
+| 1 | 情景回报率 | (目标价 - 当前价) ÷ 当前价 | DER, MKT |
+| 2 | 目标价 (P/E法) | EPS × Target P/E | FS, CON |
+| 3 | 目标价 (EV/EBITDA法) | (EBITDA × Target Multiple - Net Debt) ÷ Shares | FS, FS |
+| 4 | 加权期望回报 | Σ (概率 × 情景回报) | DER |
+
+
+Bull / Base / Bear、Kill Criteria 之前，先判断 thesis 依赖的关键 driver 是否已经拆清楚。不要因为用户要求"写 thesis"就跳过这个检查。
 
 | 检查项 | 通过标准 | 不通过时动作 |
 |---|---|---|

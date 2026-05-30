@@ -134,7 +134,19 @@ Compare local listings ADRs or cross-market peers across valuation currency liqu
 | Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Ev |
 |---|---|---|---|---|---|---|---|
 
-## Normalized Valuation
+## 
+
+## 归一化估值公式
+
+| # | 计算 | 公式 | 输入来源 |
+|---|---|---|---|
+| 1 | 归一化 EV | Local EV × FX Rate → common currency | FS, MKT (FX) |
+| 2 | 归一化 Shares | basic shares → diluted (ADR × ratio) | FS |
+| 3 | Spread | (多地 PE 差) ÷ max PE | MKT — ≥ 20% 才是 meaningful gap |
+| 4 | 流动性折价 | 低流动性端 volume ÷ 高流动性端 volume | MKT — < 10% 标出来 |
+
+
+Normalized Valuation
 
 | Metric | Listing A | Listing B | Spread | Ev |
 |---|---:|---:|---:|---|
