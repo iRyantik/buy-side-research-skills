@@ -244,9 +244,8 @@ topics/company/<company-slug>/_cache/driver-map/
 
 ## 篇幅基准
 
-- Quick driver check：400-700 字 + 1-2 张表。
-- Full company / segment driver-map：900-1600 字 + 3-4 张表。
-- 超过 1800 字通常说明范围过大，应拆成 `peer-deep-dive`、`3-statement-model / dcf-model / comps-analysis / model-update` 或多个 segment。
+- 标准 driver-map：900-1600 字 + 3-4 张表。
+- 低于 700 字通常 driver 拆解不深或遗漏 proxy strategy；超过 1800 字通常应拆给 `peer-deep-dive`、modeling skills 或多个 segment。
 
 ## 与相邻 skill 的边界
 
