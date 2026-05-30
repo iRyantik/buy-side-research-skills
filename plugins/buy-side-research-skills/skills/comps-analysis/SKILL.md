@@ -10,7 +10,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 ## Modeling Runtime Capsule
 
 
-**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
+**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
 - Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
 - Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.

@@ -10,7 +10,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 
-**三表数据前置：** 1. 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → 先执行 /financial-data --lite <ticker>，等它完成再继续本 skill 3. 存在 → 从 actuals 取所需科目
+**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -18,7 +18,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 本 skill 独立运行时也必须携带最小必要的 runtime 摘要。详细 authoring baseline 仍在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设该文件会被自动读取。
 - 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
 - Source stance 分两条 track：disclosure-fact fields 优先 `topic-local evidence cache > primary public > trusted third-party > web`；market-snapshot fields 优先 `topic-local evidence cache / financial-data > trusted third-party > web`。同一质量层内优先 `home-market / local-language source`；`internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口，不冒充 company-disclosed fact。
-- 最终 synthesis、source conflict handling、quickread verdict 和 routing 由主 agent 统一负责。只有用户明确要求 `sub-agent`、`delegate` 或并行时，才允许 sub-agent 做 bounded evidence gathering / QA。
+- 最终 synthesis、source conflict handling、quickread verdict 和 routing 由主 agent 统一负责。financial-data 获取**默认委托 subagent 执行**（不限用户显式要求）；其他 evidence gathering / QA 类 sub-agent 仅在用户明确要求 `sub-agent`、`delegate` 或并行时才启用。
 - 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
 - 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-map`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
@@ -35,12 +35,47 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
-### 1. 一句话生意（≤ 2 句）
-他们到底在卖什么、谁在付钱、付的是什么钱（一次性 / 订阅 / 运营 / 产品）。撕掉营销语言。
-- 反例（PR 腔）："是一家领先的、致力于通过创新技术为客户提供价值的能源解决方案提供商"
-- 正例："开采美国二叠纪盆地的页岩油，按现货油价卖给中游管道公司；上游 E&P，纯粹的油价 beta"
+### 1. 一眼看懂
 
-### 2. 钱从哪里来、利润从哪里来（必须包含数据表 + takeaway）
+#### 打个比方（≤2 句）
+
+用日常物品做类比。不需要行业知识就能懂。
+
+- 反例（PR 腔）："是一家领先的、致力于通过创新技术为客户提供价值的能源解决方案提供商"
+- 正例："好比一个超精密的激光打印机，但它是给芯片厂在光掩膜上'刻电路图'用的。一台 $4-30M。"
+
+#### 产品长这样
+
+每个主要产品线 1 张图。① 公司官网 Media Kit → ② web search `<产品名> 产品图片` 找新闻稿配图 → ③ 搜不到就不放图。存到 `_cache/images/<slug>-<product>.png`。
+
+| ![产品A](_cache/images/<slug>-a.png) | ![产品B](_cache/images/<slug>-b.png) |
+|---|---|
+| *产品名 — 功能（≤15字）* | *产品名 — 功能（≤15字）* |
+
+#### 在产业链哪一环
+
+```mermaid
+flowchart LR
+    A[上游：<卖什么的>] --> B[**<公司>**<br/><做什么>] --> C[下游：<谁买单>]
+```
+
+#### 怎么收钱（≤1 句）
+
+> 一次性设备 / 设备+耗材 / 订阅制 / 维护服务费
+
+#### 说人话
+
+> 说白了就是 <最简单的类比>。
+
+### 2. 不懂的词先看这
+
+| 术语 | 大白话 |
+|---|---|
+| <术语> | <一句话> |
+
+> 最多 5-8 个。不是词典，是聊天时怎么讲。
+
+### 3. 钱从哪里来（数据表 + takeaway）
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
@@ -51,18 +86,18 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 | 分部 | 期间 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | Ev |
 |---|---|---|---|---|---|---|---|---|
 | 分部 A | FY2024 | 45% | +12% | EBIT | 65% | 28% | [S1](./_cache/sources/company-annual-report.md) |
-| 分部 A | Q1 2025 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/q1-2025-segment-note.md) |
 | 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
-| 分部 B | Q1 2025 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/q1-2025-segment-note.md) |
 | 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
+| **整体** | **FY2024** | **100%** | **+5%** | EBIT | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
+| 分部 A | Q1 2025 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/q1-2025-segment-note.md) |
+| 分部 B | Q1 2025 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/q1-2025-segment-note.md) |
 | 分部 C | Q1 2025 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| **整体** | **FY2024** | **100%** | **+5%** | Net Income | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
-| **整体** | **Q1 2025** | **100%** | **+4%** | Net Income | **100%** | **18%** | [S12](./_cache/sources/q1-2025-income-statement.md) |
+| **整体** | **Q1 2025** | **100%** | **+4%** | EBIT | **100%** | **18%** | [S12](./_cache/sources/q1-2025-income-statement.md) |
 
 正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
 **取舍说明**：
-- **利润口径必须统一**：所有分部优先使用同一口径（优先 segment EBIT，其次 Gross Profit / Net Income）。公司披露了哪个口径就用哪个统一口径；如果某个分部没有该口径数据，标  并说明。不要把不同口径混在一张表里比。
+- **利润口径必须统一**：分段和整体用同一个口径。优先 segment EBIT（公司一般披露），其次 Gross Profit，最后 Net Income。分段没口径 → 标 [ND] 并说明；整体口径随分段。不要分段用 EBIT、整体用 Net Income 混着来。
 - **推导优先于 [ND]**：能算出来的就不要标未披露。推导逻辑：(1) 整体利润已知 + 某个分部利润已知 → 其他分部 = 整体 - 已知；(2) 分部收入已知 + 分部利润率已知 → 分部利润 ≈ 收入 × 利润率（利润率优先取年报精确披露值，不要用概数反推）；(3) 两步都用上了还是算不出来 → 标 `[ND]`。计算过程写在备注里，标 `[推算]`，不要假装是披露数据。
 - **哪个有就写哪个，没有的标 [ND]**：分部利润未披露 → 利润列写 `[ND]——公司未披露分部利润`。毛利率披露了但 EBIT 没披露 → 利润口径写 Gross Profit，数值写毛利额。什么都不披露 → 全部留空并声明。
 - **期间顺序**：先写 FY（完整年度），再写 Q（单季度）。不放 5 年历史。
@@ -80,7 +115,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 > 反例（流水账）："公司分为 A、B、C 三个分部，A 主要做 X，收入占比 45%，B 主要做 Y..."——这是把表格用文字念了一遍
 > 正例："公司表面是 A+B+C 三业务，但 A 贡献 65% 利润且利润率持续扩张，B/C 在量价双杀；从买方视角这其实是个 A 业务的纯标的，B/C 是干扰项"
 
-### 3. 当前所处的资本周期阶段（必须用关键比率支撑判断）
+### 4. 关键比率
 
 只写"在收割期"是定性印象。判断必须用关键比率支撑，否则研究员的判断和读者的判断没有区别。
 
@@ -124,15 +159,15 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 
 **(c) 估值框架含义**
 
-不同阶段决定看什么估值锚点——这一节是在为第 5 节的 valuation 工作做铺垫：
+不同阶段决定看什么估值锚点——这一节是在为第 6 节的 valuation 工作做铺垫：
 - 重投资期 → 看 capex 效率、ROIC 趋势；估值锚 EV/Sales 或 EV/EBITDA + 增长
 - 维持 / 成熟期 → 看 FCF yield、资本返还 yield；估值锚 P/FCF
 - 收割期 → 看资本返还节奏、剩余资产价值；估值锚 NAV / liquidation
 - 困境期 → 看流动性、refinancing 能力、resilience；估值锚 EV/restructured EBITDA
 
-如果你的"判断"和后面第 5 节用的估值框架对不上，说明这一节没真做。
+如果你的"判断"和后面第 6 节用的估值框架对不上，说明这一节没真做。
 
-### 4. 实证驱动因素：这只股票在当前 regime 下真正在跟着什么动
+### 5. 什么在驱动股价
 
 **这一节最容易退化成"驱动因素：油价、产量、成本"——这是教科书答案，零信息含量。**
 
@@ -153,7 +188,7 @@ ROIC vs WACC 如果差距小于 200bps，要警惕"伪成长"——投得多但�
 
 如果你最后输出的变量是"油价、产量、成本"，回去重做。这是教科书答案，**任何看 5 分钟年报的人都能写出来**。要找的是当前 regime 特有的、不普通的那个变量。
 
-### 5. 当前 consensus 在哪里、什么被 priced in（必须包含反向工程）
+### 6. 市场在交易什么（consensus + 反向工程）
 
 写"PE 25x vs 历史 18x，偏贵"是卖方水平。买方要回答的是**以当前估值，市场在隐含什么假设**——然后判断"我同意 / 不同意这个假设"。这是 alpha 的起点。
 
@@ -171,7 +206,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 正文 claim 示例：`The stock trades at 8.5x EV/EBITDA versus its 5-year median of 6.2x and peers at 7.1x. [I1](https://example.com/valuation-comps)`
 
-倍数选择和**第 3 节的资本周期阶段判断要一致**——不要在第 3 节说"收割期"，第 5 节用 EV/Sales。
+倍数选择和**第 4 节的资本周期阶段判断要一致**——不要在第 4 节说"收割期"，第 6 节用 EV/Sales。
 
 **(c) 反向工程：当前估值在隐含什么（这是必填、最关键）**
 
@@ -184,12 +219,12 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 **示例输出**：
 > "当前 EV/EBITDA 8.5x 隐含 5 年 EBITDA CAGR ~ 12%。公司过去 5 年实际 CAGR 是 7%，行业最好的同行做到 10%。要相信当前估值，需要相信 [具体假设 X 发生]。这是当前的多空分歧点。"
 
-如果第 5 节没有反向工程，研究员只能得出"贵了 / 便宜了"的判断，无法定位**贵在哪个假设上**——而 alpha 通常就藏在某个具体的隐含假设里。
+如果第 6 节没有反向工程，研究员只能得出"贵了 / 便宜了"的判断，无法定位**贵在哪个假设上**——而 alpha 通常就藏在某个具体的隐含假设里。
 
-### 6. 当下市场在争论什么（3-5 句）
+### 7. 多空在争论什么
 **不是**通用 SWOT。是"现在多空双方实际在 argue 什么"——具体到某个数据点、某个假设、某个事件。如果一时不知道，至少给出"需要查清楚的争论点"。
 
-### 7. 对手盘需要相信什么（3-5 句）
+### 8. 对手盘需要相信什么
 
 快速写清楚反方需要相信的核心假设：
 - 如果初步倾向多，空头 / 观望者必须相信什么才会继续压低估值？
@@ -198,10 +233,10 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 这一节不是完整 thesis，只是把后续 `alpha-thesis` 的 variant view 起点暴露出来。
 
-### 8. 最近 1-3 个月叙事变化（2-4 句）
+### 9. 最近在发生什么
 为什么现在这只股在 radar 上？发生了什么？股价反应是什么？
 
-### 9. 下一层要问的 5 个具体问题
+### 10. 下一层要问的 5 个问题
 不是"管理层质量如何"这种空泛问题。要具体——具体到一个数字、一个事件、一份文件能回答。
 - 反例："业务可持续性如何？"
 - 正例："Permian 老井 decline rate 从 2023 年的 X% 是否已加速到 Y%？哪份数据可以验证（公司 Q 表 / Enverus / Rystad）？"
@@ -215,8 +250,8 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 **通用**
 - ❌ 出现"成立于 XXXX 年""总部位于 XXXX""管理层经验丰富"——直接删
 - ❌ 引用了 5 年前的财务数据但没有给出当前结论——删
-- ❌ 第 4、5、6 节看起来差不多——这三节问的是不同问题，重写
-- ❌ 第 9 节的问题"再多查点资料"就能回答——太浅，重写
+- ❌ 第 5、6、7 节看起来差不多——这三节问的是不同问题，重写
+- ❌ 第 10 节的问题"再多查点资料"就能回答——太浅，重写
 
 **Source 专项**
 - ❌ 出现具体数字 / 引语但无 source link → 标记 `[需查证]` 或删
@@ -230,16 +265,16 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 - ❌ 数据表但没有 takeaway——表格不是终点
 - ❌ Takeaway 用文字把表格内容念了一遍——重复劳动
 
-**第 3 节专项**
+**第 4 节专项**
 - ❌ 关键比率不全 / 没给数字判断（"capex 较高"而不是"capex/D&A = 1.8x，重投资期"）
-- ❌ 第 3 节判断的资本周期阶段，和第 5 节用的估值锚点对不上——说明判断没真做
+- ❌ 第 4 节判断的资本周期阶段，和第 6 节用的估值锚点对不上——说明判断没真做
 
 **第 4 节专项**
 - ❌ 输出的变量是"油价 / 产量 / 成本"等教科书答案——回去找当前 regime 特有的变量
 - ❌ 没有具体证据（没引用具体季度的股价反应、没给相关性数据）
 - ❌ 发现 driver / bucket 怪但在 quickread 里硬写完整模型拆分 → 触发错层级，应该交给 `driver-map`
 
-**第 5 节专项**
+**第 6 节专项**
 - ❌ 只写了"贵 / 便宜"，没做反向工程——无法定位市场到底在 pricing 哪个假设，必须重写。
 
 ## Workflow 联动

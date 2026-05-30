@@ -143,7 +143,17 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三�
 
 
 
-**Lite 写入的最小字段**（22 个三表科目 + 分部 + 补充 + 市场数据）详见 。
+****Lite 写入的最小字段**：
+
+| 类别 | 内容 | 状态 |
+|---|---|---|
+| 三表 | 22 个核心科目（IS/BS/CF） | 必填 |
+| 分部 | 分部收入 + 利润（如有） | 必填 |
+| 市场数据 | 股价、市值、PE/PB/PS、Beta | 必填——yfinance |
+| 股价历史 | 1 年期日线（驱动因素分析） | 必填——yfinance |
+| Consensus | EPS/Revenue 预期 | best-effort——缺则标 [ND] |
+| 补充 | 股本、SBC、backlog | 有则抓 |
+
 
 **数据完整性规则**：
 
@@ -157,6 +167,15 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三�
 
 
 Lite 不写 、、、。
+
+
+### Fill-Gaps Mode（补 Layer 3 缺口）
+
+触发语：
+
+读完  后，只对  的字段调 provider API 补填。不做 full filing 解析，不建 evidence pack。
+
+流程：读 actuals → 遍历 null 字段 → 按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值 → 写回。填不了的标 [ND]。5-10 秒/公司。
 
 ### Current Topic Snapshot
 
