@@ -76,10 +76,7 @@ Run a first pass on an industry theme value chain demand pocket or profit pool.
 
 Mermaid 4-6 个节点，把主要环节标出来。不是公司列表——是行业的结构骨架。
 
-```mermaid
-flowchart LR
-    A[<原材料/技术>] --> B[<加工/制造>] --> C[<核心组件>] --> D[<集成/组装>] --> E[<终端应用>]
-```
+[插入 Mermaid flowchart — 4-6 节点，标注产业链主要环节。示例见下方。]
 
 > 用日常词汇。每个节点一句话描述——"谁在卖什么给谁"。
 
@@ -161,6 +158,13 @@ flowchart LR
 ## 10. 下一步 5 个具体问题
 
 1. [具体到某个 KPI / source / 文件 / 数据集能回答]
+```
+
+> Mermaid 示例（放在 fence 外做参考，agent 输出时替换 §1 的 placeholder）：
+
+```mermaid
+flowchart LR
+    A[<原材料/技术>] --> B[<加工/制造>] --> C[<核心组件>] --> D[<集成/组装>] --> E[<终端应用>]
 ```
 
 ## Artifact / 保存策略
