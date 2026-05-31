@@ -66,7 +66,7 @@ artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: 'driver-map.md'
   canonical_location: 'topics/company/[company-slug]/_cache/driver-map/driver-map.md and internal/driver-map.json'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'research-primitive'
   can_follow:

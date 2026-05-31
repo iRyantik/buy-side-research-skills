@@ -20,8 +20,8 @@ In this research workspace, prefer source-tracked company-topic inputs before ex
 - `_cache/financial-data/financial-data-summary.md` for human/LLM review
 - `_cache/financial-data/internal/actuals-resolved.json` for machine historical actuals
 - `_cache/financial-data/internal/evidence-pack.json` for completeness/source-map/cross-check
-- `_cache/driver-map/driver-map.md` for human/LLM driver treatment
-- `_cache/driver-map/internal/driver-map.json` for machine driver inputs
+- `industry/<industry>/companies/<ticker>/_cache/driver-map/driver-map.md` for human/LLM driver treatment
+- `industry/<industry>/companies/<ticker>/_cache/driver-map/internal/driver-map.json` for machine driver inputs
 
 Separate reported actuals, revised assumptions, and formula changes. Do not plug missing or unmapped actuals as zero, and do not overwrite a workbook without a visible update map.
 

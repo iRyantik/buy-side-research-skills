@@ -165,20 +165,14 @@ flowchart LR
     A[<原材料/技术>] --> B[<加工/制造>] --> C[<核心组件>] --> D[<集成/组装>] --> E[<终端应用>]
 ```
 
+
+
 ## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
+写入行业 topic：
+    industry/<industry>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。topic 级 first-pass 默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只覆盖某个 demand pocket、value-chain slice 或子行业问题，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
-
-保存后的 `industry-quickread.md` 是 triage artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

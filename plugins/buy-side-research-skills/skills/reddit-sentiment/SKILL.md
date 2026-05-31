@@ -230,18 +230,14 @@ _cache/datasets/reddit-sentiment/[run_id]/
 - 每个 ID 必须直接点击到 Reddit permalink。
 - 不要把 Recommended Reading 变成 source dump；它是研究员阅读路线。
 
+
+
 ## Artifact / 保存策略
 
-本 skill 属于 `default_topic_result`。因为运行会产生 dated raw/cache evidence pack，默认保存最终报告：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = required_qualifier`。默认应由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`，用事件、话题或叙事锚点区分不同 sentiment 报告，而不是只靠同日后缀。
-
-如果同日同 topic 已存在，保留历史并追加最低可用序号，例如 `2026-05-22-reddit-sentiment-2.md`。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

@@ -176,6 +176,14 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ---
 
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
+
 ## 反模式自查
 
 - ❌ Setup 里只列了 consensus 数字、没有 buy-side bar 推断 → 没价值
@@ -198,15 +206,3 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - Post-print read：400-700 字
 
 超长就是抓不住重点。
-
-## 可选保存
-
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
-
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；print-specific setup / read-through 仍视为一篇完整 dated deliverable，而不是默认拆成 qualifier 卡片。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。

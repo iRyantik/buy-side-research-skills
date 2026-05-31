@@ -421,6 +421,14 @@ flowchart TD
 ---
 
 
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
+
 ## 反模式自查
 
 写完 Builder 必须自检：

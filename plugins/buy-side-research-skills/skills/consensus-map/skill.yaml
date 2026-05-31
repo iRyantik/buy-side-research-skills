@@ -46,7 +46,7 @@ capabilities:
     - 'Single-Name Consensus Map'
     - 'Industry / Theme Consensus Map'
     - 'Tight Expectations Check'
-  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md when user asks to save'
+  output_path: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md when user asks to save'
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'
@@ -72,9 +72,9 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'consensus-map.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'expectations-foundation'
   can_follow:

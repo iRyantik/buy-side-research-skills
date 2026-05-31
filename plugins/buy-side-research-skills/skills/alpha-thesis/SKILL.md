@@ -189,6 +189,14 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 - 每条假设的反证信号。
 - 哪些假设应在下一次财报或行业数据更新时复查。
 
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
+
 ## 反模式自查
 
 - ❌ 第 0 节没明确 trade structure → 整个 thesis 模糊，重写。

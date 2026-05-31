@@ -52,7 +52,7 @@ capabilities:
 artifact_policy:
   save_policy: 'topic_scaffold'
   default_artifact: 'topic root + inbox + dated result file'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   save_trigger: 'create or locate a topic root only when the user asks to open a topic, resolve a save path, or touch a topic index'
 workflow:
   stage: 'topic-root-setup'
@@ -62,7 +62,6 @@ workflow:
     - 'research-artifact-save-request'
   feeds_into:
     - 'ingest'
-    - 'promote-company'
     - 'industry-quickread'
     - 'consensus-map'
     - 'primary-research-plan'

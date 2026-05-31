@@ -150,17 +150,14 @@ timeline
 - `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
 ```
 
+
+
 ## Artifact / 保存策略
 
-写入当前日期化保存路径：
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history.md
-```
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-本 skill 的 `artifact_policy.naming_mode = required_qualifier`。
-
-如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

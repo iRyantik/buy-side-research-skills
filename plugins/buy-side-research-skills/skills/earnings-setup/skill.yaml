@@ -51,9 +51,9 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'earnings-setup.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   naming_mode: 'plain'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'execution'
   prerequisites:

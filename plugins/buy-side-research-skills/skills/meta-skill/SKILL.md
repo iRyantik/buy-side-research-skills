@@ -330,7 +330,7 @@ Operations skills：
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
 | `new-session` | 创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 artifact save path |
-| `promote-company` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic |
+| `new-session` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -432,7 +432,7 @@ capabilities: ...
 artifact_policy:
   save_policy: optional_topic_result
   default_artifact: skill-name.md
-  canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-skill-name.md
+  canonical_location: industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-skill-name.md
   naming_mode: plain
   save_trigger: save only when user asks
 ```
@@ -451,14 +451,14 @@ Artifact policy：
 
 - `save_policy` 只能是 `none`、`optional_topic_result`、`default_topic_result`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_scaffold`。
 - 不落盘的 skill 写 `conversation-only`。
-- Topic artifact 必须落在 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`。
+- Topic artifact 必须落在 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-[artifact].md`。
 - 只有会落 topic markdown 的 research skill 才声明 `artifact_policy.naming_mode`；可选值只允许 `plain`、`optional_qualifier`、`required_qualifier`。
 - `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
 - `new-session` 使用 `topic_scaffold`，只创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 result path，并轻量更新 `index.md`，不写研究结论。
-- `promote-company` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
+- `new-session` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
 
 默认 naming tier：
 - `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`

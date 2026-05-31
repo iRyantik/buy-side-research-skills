@@ -111,17 +111,14 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 用于客户/供应商/分销商批量验证。在 Mode A 基础上加 sample plan（目标 n≥10、persona split、地域 split）和 bias controls（不只看 happy customers / recent buyers）。篇幅 800-1400 字。
 
+
+
 ## Artifact / 保存策略
 
-写入当前日期化保存路径：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md
-```
-
-naming_mode = optional_qualifier。如果当前路径不明确，先 handoff 到 `new-session`。
-
-保存后是 research plan，不是 primary evidence。只有调研完成形成 earned insight 后才进 `research-journal`。
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

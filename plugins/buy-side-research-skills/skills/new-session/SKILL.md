@@ -1,160 +1,137 @@
 ---
 name: new-session
-description: Create or locate a topic root and resolve a dated research result filename.
+description: Create or locate an industry topic and resolve a dated research result path for a company or industry artifact.
 ---
 
 # New Session
 
-`new-session` solves one narrow operations problem: where should this research live? It creates or locates a long-lived topic root, ensures the topic has an `index.md` and `_inbox/`, and resolves a dated Markdown result path. It does not run research, ingest files, build models, or create cache/raw/model folders.
+`new-session` solves one narrow operations problem: where should this research live? It creates or locates an industry topic, ensures `index.md` and `_inbox/` exist, registers the company in `coverage.md` and industry `index.md`, and resolves a dated result path. It does not run research, ingest files, or build models.
 
 ## 心法
 
-Topic is the long-lived container. Research outputs are dated files in that topic root.
+所有研究落在行业 topic 下。公司是行业的子目录——一个公司一个窝，跨行业只 reference，不搬文件。
 
-Use an industry or theme topic as the early workbench when screening many companies. If a single company later deserves canonical tracking, use `promote-company` to move the company-scoped research into `topics/company/<company-slug>/`.
+```
+industry/<industry-slug>/
+  index.md                              # 行业 overview + 公司注册表
+  companies/<ticker>/                   # 公司子目录
+  _inbox/
+coverage.md                             # 全局主表
+```
 
-`index.md` is a lightweight topic map: current question, dated result links, related topics, open questions, and provenance. It is not a journal, checklist, transcript, or earned insight store.
+`coverage.md` 是唯一映射层——行业 × 公司的全局索引。公司首次研究时注册，跨行业时追加 reference。
 
 ## 职责边界
 
 负责：
-- Create or locate `topics/<topic-namespace>/<topic-slug>/`.
-- Ensure `index.md` exists without overwriting existing content.
-- Ensure `_inbox/` exists so users can drop raw material into the topic.
-- Resolve one requested dated result path.
-- Support namespaces: `company`, `industry`, `theme`, `pair`.
-- Support company-scoped files inside industry/theme workbench topics.
-- Lightly update topic index links when explicitly requested.
+- 创建或定位 `industry/<industry-slug>/`
+- 确保 `index.md` + `_inbox/` 存在
+- 在 `coverage.md` 和行业 `index.md` 注册公司
+- 解析 dated result path
+- 支持 `qualifier` 命名（required/optional/plain）
 
 不负责：
-- Do not create `_raw/`, `_cache/`, or `_models/`; `ingest`, `financial-data`, `driver-map`, and modeling skills create those on demand.
-- Do not precreate research output Markdown files.
-- Do not create dated session folders.
-- Do not write research conclusions, thesis, driver judgments, or earned insight.
-- Do not recommend next research steps; use `next-step`.
-- Do not move company research out of an industry topic; use `promote-company`.
+- 创建 `_cache/`（financial-data, driver-map 等按需自建）
+- 写研究结论
+- 预建目录
 
 ## 触发与输入
 
-Trigger phrases:
-- "new session"
-- "create topic"
-- "open topic"
-- "resolve save path"
-- "where should this artifact be saved"
-- "update topic index"
+Trigger: "new session", "create topic", "open topic", "resolve save path", "where should this artifact be saved"
 
-Inputs:
-
-| Input | Purpose | Default |
+| Input | 用途 | 默认 |
 |---|---|---|
-| `topic_namespace` | `company`, `industry`, `theme`, or `pair` | infer from user wording |
-| `topic_slug` | directory slug | kebab-case from topic name |
-| `date` | result date | current date as `YYYY-MM-DD` |
-| `artifact_name` | artifact to save | required for path resolution |
-| `company_slug` | company prefix when saving single-company research inside industry/theme | optional |
-| `workspace_path` | research workspace root | if unclear, output relative path only |
+| `industry_slug` | 行业目录名 | agent 从 ticker 业务推断；推断不了问用户 |
+| `ticker` | 公司标识 | 公司级 artifact 必填 |
+| `date` | 日期 | 当前 YYYY-MM-DD |
+| `artifact_name` | 保存的 artifact | 必填 |
+| `qualifier` | 子主题/事件锚点 | 按 upstream skill 的 naming_mode |
 
-## 执行模式
+## 场景矩阵
 
-### New Topic Root
+### 公司级 artifact
 
-Create or locate:
+| # | 场景 | 行为 |
+|---|---|---|
+| 1 | 新行业 + 新公司 | 建 `industry/<industry>/` + `index.md` + `companies/<ticker>/` → 注册 `coverage.md` |
+| 2 | 已有行业 + 新公司 | 建 `companies/<ticker>/` → 注册行业 `index.md` + `coverage.md` |
+| 3 | 已有公司 + 同行业继续研究 | 直接落原 `companies/<ticker>/` |
+| 4 | 已有公司 + 进新行业 | **文件不搬**——接着原目录写。新行业 `index.md` 注册 reference → `coverage.md` 更新 |
+| 5 | agent 判断行业错了 | 文件 <3 个 → 搬家；≥3 → reference 不搬。用户确认 |
+| 6 | 用户没指定行业 | agent 从 ticker 业务推断 → 不确定时问用户"放哪个行业？" |
+| 7 | 公司改名/重组 | `coverage.md` + 行业 `index.md` 更新名称。目录不改——路径稳定性优先 |
+| 8 | 退市/放弃覆盖 | `coverage.md` 标 `archived`，文件不删 |
 
-```text
-topics/<topic-namespace>/<topic-slug>/
-  index.md
-  _inbox/
-```
+### 行业级 artifact
 
-Do not create:
+| # | 场景 | 行为 |
+|---|---|---|
+| 9 | 行业 quickread / consensus-map 等 | 落 `industry/<industry>/YYYY-MM-DD-<artifact>.md` |
+| 10 | 先行业 quickread，后筛公司 | 行业已存在 → 加 `companies/<ticker>/`，按 #2 |
 
-```text
-_raw/
-_cache/
-_models/
-```
+### 跨公司 artifact
 
-### Resolve Dated Result Path
+| # | 场景 | 行为 |
+|---|---|---|
+| 11 | peer-deep-dive 同行业 | 落该行业根 |
+| 12 | peer-deep-dive / pair-trade 跨行业 | 落**主驱动行业**（thesis 核心 driver 在哪侧）。另一行业 `index.md` 注册 reference |
 
-Company canonical topic:
+## 路径解析
 
-```text
-topics/company/rklb/2026-05-18-stock-quickread.md
-topics/company/rklb/2026-05-18-driver-map.md
-```
-
-Industry/theme topic research about the industry/theme itself:
-
-```text
-topics/industry/space-launch/2026-05-18-industry-quickread.md
-topics/industry/space-launch/2026-05-18-peer-deep-dive.md
-```
-
-Industry/theme workbench research about one company:
+### 公司级
 
 ```text
-YYYY-MM-DD-<company-slug>-<artifact>.md
-topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
-topics/industry/space-launch/2026-05-18-rklb-driver-map.md
+industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>-<qualifier>.md
 ```
 
-If a file already exists, preserve history with the lowest available suffix:
+公司级 skill（stock-quickread, driver-map, company-history, alpha-thesis, earnings-setup, bear-pre-mortem, consensus-map Single-Name）默认 `required_qualifier`，qualifier = ticker。
+
+### 行业级
 
 ```text
-2026-05-18-rklb-driver-map.md
-2026-05-18-rklb-driver-map-2.md
-2026-05-18-rklb-driver-map-3.md
+industry/<industry>/YYYY-MM-DD-<artifact>.md
 ```
 
-### Qualifier-aware Naming
+行业级 skill（industry-quickread）默认 `optional_qualifier`。
 
-When the upstream research skill declares `artifact_policy.naming_mode`, resolve dated filenames with the following runtime decision tree:
-
-- `plain`
-  - use `YYYY-MM-DD-<artifact>.md`
-- `optional_qualifier`
-  - use `YYYY-MM-DD-<artifact>.md` for topic-level overview saves
-  - use `YYYY-MM-DD-<artifact>-<qualifier>.md` for sub-question slices, same-day repeat saves, or topics that already contain many same-skill artifacts
-- `required_qualifier`
-  - use `YYYY-MM-DD-<artifact>-<qualifier>.md` by default
-
-Industry/theme workbench files keep the same rule with a company prefix:
+### peer / pair
 
 ```text
-YYYY-MM-DD-<company-slug>-<artifact>.md
-YYYY-MM-DD-<company-slug>-<artifact>-<qualifier>.md
+industry/<industry>/YYYY-MM-DD-<artifact>-<qualifier>.md
 ```
 
-`qualifier` should be a short kebab-case subtopic, event, or question anchor. Its primary role is topic-level readability and retrieval, not only same-day de-duplication. `-2`, `-3`, etc. remain collision fallback only.
+默认 `optional_qualifier`。
 
-### Index Touch
+### 碰撞处理
 
-Only append or lightly update:
-- current question
-- dated result links
-- open questions
-- related topics
-- promoted-company provenance links
+同名文件追加 `-2`, `-3`，不覆盖。
 
-Do not rewrite the whole index unless the user explicitly asks.
+## Index Touch
 
-## 工具资源
+轻量更新，不重写：
 
-No required script. Use filesystem operations and text edits carefully. Reference:
-- workspace `CLAUDE.md`
-- `skills/init-workspace/assets/CLAUDE.md.template`
-- `promote-company` for moving company-scoped research into company canonical topics
-- `ingest` for creating `_raw/` and `_cache/` on first material conversion
+```markdown
+# <Industry Name> — 研究 index
 
-## 文件安全
+## Companies
 
-- Never overwrite an existing `index.md`.
-- Never overwrite an existing dated result file.
-- Never create `_raw/`, `_cache/`, or `_models/` in `new-session`.
-- Never move or delete research files.
-- If workspace path is unclear, output a suggested relative path and do not write.
-- Do not create research workspace topics inside the plugin source repo unless the user explicitly says it is an example workspace.
+| 公司 | Ticker | 主行业 | 文件位置 | 状态 |
+|---|---|---|---|---|
+| GE Vernova | GEV | ✅ | companies/ge-vernova/ | active |
+| 西门子能源 | ENR.DE | — | → power-generation/companies/siemens-energy/ | monitor |
+```
+
+## coverage.md
+
+```markdown
+# Coverage Map
+
+| 行业 | 公司 | 主行业 | 最新 artifact | 状态 |
+|---|---|---|---|---|
+| nuclear | GE Vernova | ✅ | 2026-05-31 stock-quickread | active |
+| power-generation | GE Vernova | — | → nuclear | active |
+| nuclear | 西门子能源 | ✅ | 2026-05-30 peer-deep-dive | active |
+```
 
 ## 运行输出契约
 
@@ -162,73 +139,29 @@ No required script. Use filesystem operations and text edits carefully. Referenc
 ## New Session Result
 
 **结论先行**
-已创建 / 已定位 topic root: [...]
+已创建 / 已定位行业 topic: industry/<industry-slug>/
 
 ## Topic
-- namespace: [...]
-- slug: [...]
-- root: [...]
-- index: [...]
-- inbox: [...]
+- industry: <slug>
+- company: <ticker>
 - mode: created / located
+- industry index: <path>
 
 ## Result Path
-- requested artifact: [...]
-- company prefix: [... or none]
-- path: [... or artifact name needed]
-- conflict handling: no conflict / suffixed to `-2`
-
-## Index Touch
-- index path: [...]
-- added result link: yes / no
-- updated current question: yes / no
-```
-
-Blocked output:
-
-```markdown
-## New Session Blocked
-
-**结论先行**
-还不能创建 / 定位 topic root。
-
-- missing: [...]
-- suggested_path: [...]
-- needed_input: [...]
+- artifact: <artifact>
+- path: industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 ```
 
 ## 失败处理
 
-- Missing `topic_slug`: propose candidate slug, do not write.
-- Missing workspace path: output relative path only.
-- Existing topic: report located; do not recreate existing files.
-- Existing result path: suffix with `-2`, `-3`, etc.
-- Existing `index.md` with unusual structure: append a small section; do not rewrite.
-- User asks for research conclusions: refuse within this skill and route to the appropriate research skill.
-
-## Workflow 联动
-
-| Scenario | Handling |
-|---|---|
-| Workspace is initialized and user wants a new topic | Use `new-session` |
-| Research skill needs a save path | Use `new-session` to resolve dated filename |
-| User drops files into a topic | `new-session` provides `_inbox/`; `ingest` creates `_raw/` and `_cache/` on conversion |
-| Industry workbench produces company-specific files | Save as `YYYY-MM-DD-<company-slug>-<artifact>.md` |
-| Company becomes canonical | Use `promote-company` |
-| User wants to merge whole topic directories | Use `integrate` |
-
-Artifact policy:
-- `save_policy`: `topic_scaffold`
-- `default_artifact`: `topic root + inbox + dated result file`
-- `canonical_location`: `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-[artifact].md`
-- `naming_mode`: read from the upstream saved research skill when present; do not invent a different naming tier inside `new-session`
+- 缺 industry_slug：propose candidate，不写
+- 缺 ticker（公司级 artifact）：追问
+- 已有 topic：report located，不重建
+- 已有文件：suffix `-2`
 
 ## 安全自查
 
-- ❌ Created `_raw/`, `_cache/`, or `_models/`.
-- ❌ Created a dated session directory.
-- ❌ Precreated a full set of research output Markdown files.
-- ❌ Wrote investment conclusions or earned insight.
-- ❌ Recommended next research skill.
-- ❌ Overwrote `index.md` or a dated result file.
-- ❌ Moved company files from industry/theme workbench; use `promote-company`.
+- ❌ 创建 `_cache/`
+- ❌ 覆盖 `index.md`
+- ❌ 覆盖已有文件
+- ❌ 不注册就写文件

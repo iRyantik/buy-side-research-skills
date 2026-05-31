@@ -146,6 +146,14 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 这一节让你提前知道**亏损路径**长什么样，避免到时候被叙事 reframe（"这只是技术性回调""市场情绪过度"）。
 
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
+
 ## 反模式自查
 
 - ❌ 第 1 节读起来像"另一方面也有人认为"——重写，把空头当成你
@@ -165,17 +173,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
 
 
-## 可选保存
-
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
-
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；pre-mortem 作为完整 thesis pressure test，不把 qualifier 当默认命名。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 篇幅基准
 

@@ -59,4 +59,4 @@ artifact_policy:
   save_policy: 'none'
   default_artifact: 'conversation-only'
   canonical_location: 'conversation-only'
-  save_trigger: 'do not save by default; hand off researched insights to research-journal after source and claim work is complete'
+  save_trigger: 'always save to industry topic'

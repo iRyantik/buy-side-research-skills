@@ -173,6 +173,11 @@ Action 只能是：
 `Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。
 
 
+
+## Artifact / 保存策略
+
+对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
+
 ## 反模式自查
 
 ### Source 类

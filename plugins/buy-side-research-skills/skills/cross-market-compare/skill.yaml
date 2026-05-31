@@ -66,4 +66,4 @@ artifact_policy:
   default_artifact: 'cross-market-compare.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'

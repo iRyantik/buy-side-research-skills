@@ -255,31 +255,17 @@ topics/[topic-namespace]/[topic-slug]/index.md
 ```
 
 
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
+
 ## 反模式自查
 
-### 写入门槛类
-- ❌ 把“刚注意到的怪异点”写进 journal，而不是先交给 `next-step`。
-- ❌ 把未验证的 source / claim 写成事实。
-- ❌ 把 Low confidence driver 写成 settled business reality。
-- ❌ 把 mechanism guess 写成 settled know-how。
-- ❌ 不能用 1-2 句话复述结论，却强行写入。
-
-### Journal 质量类
-- ❌ 按聊天顺序复述，变成 transcript。
-- ❌ 只写“我们看了 X / Y / Z”，没有说明判断改变了什么。
-- ❌ 数据表没有 takeaway，或 takeaway 复述表格。
-- ❌ Journal 里出现公司历史、管理层履历、通用 SWOT、行业入门。
-- ❌ 所有内容都写成 `deep`，没有区分 skim / standard / deep。
-
-### Boss Brief 类
-- ❌ 把 Boss Brief 叫“简略版”或“轻量摘要”。
-- ❌ 删除 debate / variant view，只留下单边结论。
-- ❌ 删除关键 source / as-of，让 PM 无法复查。
-- ❌ Takeaways 超过 5 条，或者每条都是背景介绍。
-
-### Index / Workflow 类
-- ❌ `index.md` 变成任务 checklist、coverage tracker、decision-journal 或 thesis-tracker。
-
+#
 ## 篇幅基准
 
 - 写入判断表：100-250 字 + 1 张表。

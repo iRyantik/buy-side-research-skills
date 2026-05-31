@@ -56,7 +56,7 @@ artifact_policy:
   default_artifact: 'bear-pre-mortem.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md'
   naming_mode: 'plain'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'validation'
   prerequisites:

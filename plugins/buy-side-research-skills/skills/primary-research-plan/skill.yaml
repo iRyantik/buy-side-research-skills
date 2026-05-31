@@ -73,7 +73,7 @@ artifact_policy:
   default_artifact: 'primary-research-plan.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'primary-research-design'
   can_follow:

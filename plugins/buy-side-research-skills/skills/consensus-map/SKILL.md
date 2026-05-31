@@ -204,20 +204,14 @@ flowchart TD
 
 600-900 字；低于 600 字通常不能同时覆盖 source、bar 和 routing。
 
+
+
 ## Artifact / 保存策略
 
-写入当前日期化保存路径：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。topic 总览默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只回答一个子问题、同日重复保存，或当前 topic 下已经堆了很多 `consensus-map`，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录，不要未解析路径就写入。
-
-保存后的 `consensus-map.md` 是 foundation artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

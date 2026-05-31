@@ -64,7 +64,7 @@ artifact_policy:
   default_artifact: 'mechanism-map.md'
   canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md'
   naming_mode: 'required_qualifier'
-  save_trigger: 'always save to current topic'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'research-primitive'
   can_follow:

@@ -186,6 +186,11 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 ```
 
 
+
+## Artifact / 保存策略
+
+对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
+
 ## 反模式自查
 
 ### Output 类

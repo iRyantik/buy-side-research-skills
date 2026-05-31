@@ -154,18 +154,14 @@ flowchart LR
     D --> E
 ```
 
+
+
 ## Artifact / 保存策略
 
-默认输出到对话。同时写入当前日期化保存路径：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = required_qualifier`。保存时默认应由 `new-session` 解析成带 qualifier 的文件名，例如围绕具体机制点、设备链条、工艺步骤或 value-capture 问题命名，而不是 `mechanism-map-2/-3`。
-
-如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

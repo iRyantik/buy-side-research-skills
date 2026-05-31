@@ -51,4 +51,4 @@ artifact_policy:
   save_policy: 'none'
   default_artifact: 'conversation-only'
   canonical_location: 'conversation-only'
-  save_trigger: 'never create standalone next-step files; hand off earned insights to research-journal'
+  save_trigger: 'always save to industry topic'

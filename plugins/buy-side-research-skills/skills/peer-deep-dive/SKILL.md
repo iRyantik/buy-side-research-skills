@@ -360,17 +360,6 @@ quadrantChart
 ```
 
 
-## Artifact / 保存策略
-
-写入当前日期化保存路径：
-
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。完整 peer set 深挖默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只比较某个子群组、listing 角度或局部 debate，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
 
 ## 输出篇幅基准（线性 scale）
 
@@ -392,6 +381,14 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md
 - 排序 + 问题 + 下一步：300-500（不随 N 显著变）
 
 如果产出**显著超过**上限，通常是落入"N 份 quickread 拼贴"陷阱——回头删 differential profile 节里复述的内容。
+
+
+## Artifact / 保存策略
+
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

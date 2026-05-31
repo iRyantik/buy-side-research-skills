@@ -36,11 +36,11 @@ capabilities:
     - 'Collect + Label + Report'
     - 'Label Existing ScrapiReddit Output'
     - 'Report From Existing Evidence Pack'
-  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md'
+  output_path: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   writes:
     - 'topics/[topic-namespace]/[topic-slug]/_raw/datasets/reddit-sentiment/[run-id]/'
     - 'topics/[topic-namespace]/[topic-slug]/_cache/datasets/reddit-sentiment/[run-id]/'
-    - 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md'
+    - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   feeds_into:
     - 'information-impact'
     - 'consensus-map'
@@ -60,9 +60,9 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'reddit-sentiment.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   naming_mode: 'required_qualifier'
-  save_trigger: 'save Reddit sentiment reports by default because the workflow creates dated raw/cache evidence packs'
+  save_trigger: 'always save to industry topic'
 workflow:
   stage: 'social-sentiment-triage'
   can_follow:

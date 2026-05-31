@@ -167,23 +167,14 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 ```
 
+
+
 ## Artifact / 保存策略
 
-写入 company topic cache：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/company/<company-slug>/_cache/driver-map/
-  driver-map.md
-  internal/
-    driver-map.json
-```
-
-`driver-map.md` 是人和 LLM 的默认入口，必须明确推荐模型类型：DCF、comps、sum-of-the-parts、3-statement only、update existing model，或“不适合建模 / 先补数据”。`internal/driver-map.json` 至少包含 `segment_geography_treatment`、`revenue_drivers`、`margin_drivers`、`model_treatment`、`recommended_model_modules`、`valuation_methods`、`confidence_source_status`。
-
-如果使用了 `financial-data`，`internal/driver-map.json` 还必须在 `confidence_source_status` 或相邻字段中记录收入拆分来源：`provider-structured`、`provider-table-review`、`llm-extracted-review` 或 `not-disclosed`。
-
-如果当前没有 company topic，先 handoff 到 `new-session` 创建 / 解析路径，不要自行发明大量目录。theme / industry / pair topic 只链接或摘要 company cache，不保存第二套 canonical company driver-map。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

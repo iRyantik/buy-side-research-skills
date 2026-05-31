@@ -342,20 +342,14 @@ LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively cha
 ### 4. **AI universe caveat**
 固定模板提示用户 AI 不是 universe screener。
 
+
+
 ## Artifact / 保存策略
 
-写入当前日期化保存路径：
+写入行业 topic：
+    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
-```
-
-本 skill 的 `artifact_policy.naming_mode = optional_qualifier`。完整候选漏斗默认继续使用 `YYYY-MM-DD-<artifact>.md`；如果这次只针对某个 screen、主题篮子或事件筛选，则应改由 `new-session` 解析成 `YYYY-MM-DD-<artifact>-<qualifier>.md`。
-
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
-
-这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`research-journal`、`next-step` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
-
+路径不明 → new-session 解析行业。
 
 ## 反模式自查
 

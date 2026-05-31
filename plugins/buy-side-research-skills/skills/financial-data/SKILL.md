@@ -22,7 +22,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 负责：
 
 - 按 `market`、`identifier`、`identifier_type`、`company_slug` 拉取或解析结构化财务数据。
-- 默认写入 canonical company topic：`topics/company/<company-slug>/_cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/`。
+- 默认写入 canonical company topic：`industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/`。
 - 保存 raw provider payload 到 `_raw/datasets/financial-data/`，保存 normalized evidence pack 到 `_cache/datasets/financial-data/`。
 - raw evidence 层至少包含 `provider_payload.json`、`identity-source.json`；存在真实 filing source 时还要写 `filings/<filing-id>/source.*`、`source-metadata.json`、`source.sha256`。
 - 生成 public `financial-data-summary.md`；机器文件进入 `internal/`，包括 `evidence-pack.json`、`actuals-resolved.json`、`full-filing.md`、`manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json`、`source-map.json` 和 `cross-check.json`。

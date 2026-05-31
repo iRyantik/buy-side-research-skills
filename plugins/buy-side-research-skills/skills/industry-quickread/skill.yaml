@@ -44,7 +44,7 @@ capabilities:
   - Standard Industry First-Pass
   - Tight Triage
   - Mixed Mode
-  output_path: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
+  output_path: industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
     when user asks to save
   feeds_into:
   - mechanism-map
@@ -82,7 +82,7 @@ capabilities:
 artifact_policy:
   save_policy: default_topic_result
   default_artifact: industry-quickread.md
-  canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
   naming_mode: optional_qualifier
   save_trigger: always save to current topic
 workflow:
