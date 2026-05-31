@@ -22,22 +22,19 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 很多投研错误不是发生在 DCF、comps 或 thesis 结论，而是发生在更前面：你以为你知道这家公司靠什么增长，但其实只是接受了公司给的 bucket 名称。`driver-map` 的工作是把披露口径拆成业务实质，再把业务实质压缩成少数可验证、可跟踪、可建模的 driver。
 
-本 skill 复用 `3-statement-model / dcf-model / comps-analysis / model-update` 的 `Reported segment → Business reality → Model driver` 逻辑，也复用 `Research Runtime Capsule` 的 Senior Analyst Radar。它是研究原语：后续可以 feed `3-statement-model / dcf-model / comps-analysis / model-update`、`alpha-thesis`、`primary-research-plan`、`peer-deep-dive`、`pair-trade` 和 `research-journal`，但它自己不做估值、不写完整 thesis，也不设计访谈计划。
+举个例子：公司披露叫 "Industrial Solutions"，实际是燃气轮机设备+长期服务捆在一起。坏的分析写 "Industrial Solutions 收入 $3.2bn"——那是复读财报。好的分析拆出来：设备销售 $1.3bn 毛利率 22%、服务 $1.9bn 毛利率 45%，服务装机利用率是核心 driver。这才是 `driver-map` 的价值。
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
 ## Financial-Data 联动
 
-`financial-data` 是本 skill 的 preferred upstream input，但不能替代 driver 判断。
+从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
 
-读取顺序：
+1. revenue_split 存在 → 按 source_type 归类：`official-xbrl-dimension` = provider-structured，`filing-table-extracted` = provider-table-review → 转 model bucket
+2. revenue_split 缺失 → 读 `full-filing.md`，LLM 抽 disclosed split → 标 `llm-extracted-review`
+3. 原文无披露 → 标 `not-disclosed`，不编造
 
-1. 先读 `topics/company/<company-slug>/_cache/financial-data/internal/actuals-resolved.json`。
-2. 如果 `statements.revenue_split` 存在且非空，直接 review 其披露口径：`source_type = official-xbrl-dimension` 标为 `provider-structured`，`source_type = filing-table-extracted-review` 标为 `provider-table-review`，再转成 model bucket。
-3. 如果 `revenue_split` 缺失或为空，读 `internal/evidence-pack.json` / `internal/completeness.json` 确认缺口，再读 `internal/full-filing.md`，用 LLM 从原文抽 disclosed revenue split，并标为 `llm-extracted-review`。
-4. 如果原文也没有披露，标为 `not-disclosed`；不能编造 segment、product 或 geography split。
-
-本 skill 可以改变收入 bucket 的建模处理方式，但不能覆盖 `financial-data` 的 completeness。`provider-structured`、`provider-table-review`、`provider-normalized-review`、`llm-extracted-review` 和 `not-disclosed` 必须在 `driver-map.md` 和 `internal/driver-map.json` 中分清。若 `revenue_split` row 标有 `review_required: true`，必须由 LLM 解释 axis/member 并映射 model bucket，不能直接当作最终建模口径。
+`review_required: true` 的 row 需 LLM 解释 axis/member 映射，不能直接当最终口径。不覆盖 `financial-data` 的 completeness。
 
 ## 触发场景
 
@@ -73,7 +70,11 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
+| [segment] | [实际卖什么 / 做什么] | [客户或应用] | [S1](url) | [缺口] |
+
 | [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](./_cache/sources/company-annual-report.md) | [缺口] |
+
+> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.png`——① 公司 Media Kit → ② web search 产品图 → ③ 找不到用行业代表图 → ④ 标 [缺图]。
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -86,14 +87,17 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 | Equipment | units / MW / MTPA / orders | price / mix | orders, backlog, shipments | High / Medium / Low |
 | Services | installed base | utilization / attach rate | service revenue, fleet hours | High / Medium / Low |
 
-常用 driver library：
-- **Volume**：unit shipment、capacity、MTPA、MW、rig count、installed base、customer count。
-- **Price**：ASP、contract escalation、commodity pass-through、pricing index。
-- **Mix**：equipment vs services、newbuild vs aftermarket、large frame vs aero-derivative、project vs recurring。
-- **Backlog / orders**：order intake、book-to-bill、backlog conversion、project timing。
-- **Utilization**：fleet utilization、factory load、service hours、capacity factor。
-- **Installed base / attach**：service attach rate、replacement cycle、parts intensity。
-- **End-market proxy**：LNG FID、data center power demand、aerospace build rate、grid capex。
+常用 driver 速查：
+
+| 类型 | 指标 | 适用场景 |
+|---|---|---|
+| Volume | unit shipment、capacity、MW、MTPA、rig count、installed base | 制造/能源/设备 |
+| Price | ASP、contract escalation、commodity pass-through | 定价权分析 |
+| Mix | equipment vs services、newbuild vs aftermarket、project vs recurring | 利润率结构 |
+| Backlog/orders | order intake、book-to-bill、backlog conversion | 项目制/长周期 |
+| Utilization | fleet utilization、factory load、service hours、capacity factor | 服务/运维 |
+| Installed base | service attach rate、replacement cycle、parts intensity | aftermarket |
+| End-market proxy | LNG FID、data center power demand、aerospace build rate | 需求前瞻 |
 
 ### Step 3: Driver Quality
 
@@ -122,16 +126,6 @@ Evidence status 只能用：
 
 Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case；只能进入 sensitivity、scenario 或标 `[来源待补]`，直到有更强 source。
 
-### Step 5: Implications
-
-说明这个 driver map 如何影响后续研究：
-- 对 `3-statement-model / dcf-model / comps-analysis / model-update`：哪些 line item 应该按 driver 建模。
-- 对 `alpha-thesis`：variant view 应该落在哪个 driver。
-- 对 `primary-research-plan`：哪些 driver 假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证。
-- 对 `peer-deep-dive`：哪些 KPI 才可比，哪些不可比。
-- 对 `pair-trade`：两腿是否受同一 driver 驱动，还是只是主题相似。
-- 对 `research-journal`：哪些认知已经想清楚、值得沉淀。
-
 ## 输出结构
 
 ```markdown
@@ -144,6 +138,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
+> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.png`——① 公司 Media Kit → ② web search 产品图 → ③ 找不到用行业代表图 → ④ 标 [缺图]。
 
 ## 2. Business Reality → Model Driver
 
@@ -172,9 +167,9 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 ```
 
-## 可选保存
+## Artifact / 保存策略
 
-默认只输出到对话。用户明确要求保存为建模输入时，写入 company topic cache：
+写入 company topic cache：
 
 ```text
 topics/company/<company-slug>/_cache/driver-map/
@@ -216,8 +211,7 @@ topics/company/<company-slug>/_cache/driver-map/
 
 ## 篇幅基准
 
-- 标准 driver-map：900-1600 字 + 3-4 张表。
-- 低于 700 字通常 driver 拆解不深或遗漏 proxy strategy；超过 1800 字通常说明范围过大，应收窄到核心 segment 或确认已覆盖所有关键 driver 后停止。
+- 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
 
 ## 与相邻 skill 的边界
 
