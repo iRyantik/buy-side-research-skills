@@ -81,6 +81,12 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 注意：这张表和后面第 5 节不冲突 — 这里是结论高度浓缩（每家公司仅一行），第 5 节才是完整排序+时间分配+研究深度
 
+**一眼定位**
+
+[插入 Mermaid scatter chart — N 家公司在增长 vs 估值坐标系的位置。示例见下方。]
+
+> 横轴 = 收入 YoY（LTM，越高增长越快），纵轴 = EV/EBITDA（LTM，越贵越往上）。左上象限 = 快增+便宜 🔥，右下 = 慢增+贵。
+
 **2-3 个最核心的 cross-cut 发现**（每条 1-2 句）
 - 从第 4 节提前提取的最关键 insight — 矛盾信号 / 估值错配 / 极端值中的最 decisive 发现
 - 例：「Hyundai Rotem 的 Greenblatt ROC ~44% 但 PER 仅 23.5x — 是板块内唯一同时满足『最便宜+最赚钱』的；Hanwha Systems 的 PA 109x 对应 OP -46% — 估值和基本面方向完全相反」
@@ -203,6 +209,9 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 sourc
 
 #### [公司名]
 
+| ![logo](当前 topic 的 _cache/images/<ticker>-logo.png) |
+|---|
+
 **一句话定位**：在同业里的位置（10-15 字）
 > 例："同业里成本最低生产商，但增长最慢"
 > 例："唯一一家把 60% 收入投回 capex 的，其他都在收割"
@@ -230,6 +239,8 @@ N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 sourc
 - ❌ 复述业务模式 / 收入构成（quickread 的事）
 - ❌ "管理层经验丰富 / 团队稳定"（不是 differential）
 - ❌ Thesis 苗头给"看情况" / "有待观察"（必须给方向，没方向就写"不感兴趣"）
+
+> 每家公司加 logo（15px 小图），下载到 `当前 topic 的 _cache/images/<ticker>-logo.png`——找不到标 [缺 logo]。
 
 ### 4. Cross-Cut Insight 层（核心，500-800 字）
 
@@ -330,6 +341,24 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 - 如果横向比较暴露行业机制、工程原理、设备链条或术语口径不清，明确先用 `mechanism-map` 统一 mechanism / value-capture 理解，再继续比较。
 - 如果横向比较暴露 revenue / margin / backlog / price-volume-mix 口径不可比，明确先用 `driver-map` 统一业务实质和 driver，再继续比较。
 
+> Mermaid 散点图示例（放在这里做参考，agent 输出时替换结论先行 §一眼定位 的 placeholder）：
+
+```mermaid
+quadrantChart
+    title Peer Positioning: Growth vs Value
+    x-axis "Slow Growth" --> "Fast Growth"
+    y-axis "Expensive" --> "Cheap"
+    quadrant-1 "慢增+贵"
+    quadrant-2 "快增+贵"
+    quadrant-3 "慢增+便宜"
+    quadrant-4 "快增+便宜 🔥"
+    "Company A": [0.72, 0.35]
+    "Company B": [0.55, 0.62]
+    "Company C": [0.38, 0.48]
+    "Company D": [0.15, 0.72]
+    "Company E": [0.60, 0.25]
+```
+
 ## Workflow 联动
 
 | 场景 | 下一步 |
@@ -341,9 +370,9 @@ N 家都在强调什么？高度一致信号可信度高，是行业层面判断
 | 已经形成可复用行业 lens、peer map 或研究排序 | `research-journal` |
 | 仍不知道下一轮最值得追哪个问题 | `next-step` |
 
-## 可选保存
+## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
+写入当前日期化保存路径：
 
 ```text
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md
