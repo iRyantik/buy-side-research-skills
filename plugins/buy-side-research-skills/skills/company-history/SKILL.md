@@ -172,13 +172,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history.md
 
 - Mode A (Business Evolution)：600-1200 字 + 1 张事件表；超过 1400 字说明把 non-material history 写进来了。
 - Mode B (Disclosure Evolution)：700-1400 字 + 1 张口径表；超过 1600 字通常应拆给 `driver-map`。
-
-
-## 与相邻 skill 的边界
-
-- `stock-quickread` 30min 判断值不值得继续看。
-- `driver-map` 处理公司当期业务理解 + model driver 映射；本 skill 只审计历史和口径可比性，不建 driver map。
-- `mechanism-map` 解释行业机制和工程原理。
-- `alpha-thesis` 写 variant view 和 thesis。
-- `peer-deep-dive` 横向比较；本 skill 先判断各公司 KPI 口径是否可比。
-- `research-journal` 沉淀已研究清楚的 insight。

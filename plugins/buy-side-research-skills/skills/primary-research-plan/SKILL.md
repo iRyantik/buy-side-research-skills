@@ -143,13 +143,3 @@ naming_mode = optional_qualifier。如果当前路径不明确，先 handoff 到
 | Channel Check | 800-1400 |
 
 低于下限通常漏了 hypothesis 或 decision gate；超过上限在写 execution handbook。
-
-## 与相邻 skill 的边界
-
-| Skill | 边界 |
-|---|---|
-| `information-impact` | 先验证单条 claim 可信度；本 skill 设计多源验证计划 |
-| `consensus-map` | 拆市场预期；本 skill 在 variant gap 需要 field evidence 时接管 |
-| `driver-map` | 拆 model driver；本 skill 设计如何验证 driver 假设 |
-| `alpha-thesis` | 写投资观点；本 skill 验证关键假设，不写 thesis |
-| `research-journal` | 沉淀已验证 insight；本 skill 的计划不是 earned memory |

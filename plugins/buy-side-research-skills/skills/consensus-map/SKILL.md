@@ -247,17 +247,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
 | Industry/Theme | 1300-2000 |
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
-
-## 与相邻 skill 的边界
-
-| Skill | 边界 |
-|---|---|
-| `stock-quickread` | 给单家公司 first-pass 和简版 consensus clue；本 skill 系统拆 expectations stack。 |
-| `industry-quickread` | 给行业 first-pass 和 priced-in clue；本 skill 深拆行业 / 主题 consensus、bar 和 debate。 |
-| `alpha-thesis` | 形成 long / short variant view、catalyst、scenario、kill criteria；本 skill 只定位 gap 和 proof burden。 |
-| `3-statement-model / dcf-model / comps-analysis / model-update` | 量化 reverse DCF、三表、scenario valuation 和 sensitivity；本 skill 只做轻量 market-implied framing。 |
-| `earnings-setup` | 处理 next print / post-print 的 bar、implied move 和 setup；本 skill 处理非 print-specific 的共识地图。 |
-| `driver-map` | 处理公司 / segment / 产品线 / 披露 bucket 到 revenue、margin、backlog、price/volume/mix model driver；本 skill 不重写 driver 拆解。 |
-| `mechanism-map` | 解释行业机制、工程原理、设备链条、工艺流程和 value-capture 机制；本 skill 只标出机制 gap。 |
-| `peer-deep-dive` | 对多家公司做横向深研和排序；本 skill 只在需要时比较 peer consensus / revision / valuation expectations。 |
-| `research-journal` | 只吸收已经验证、会改变判断的 earned insight；本 skill 的 map 本身不是 memory。 |

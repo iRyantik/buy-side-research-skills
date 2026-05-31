@@ -201,17 +201,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
 标准 1200-1800 字，3-4 张表格。低于 600 字通常 source / regime / value pool 不全。
 
 低于 600 字通常 source / regime / value pool 不足；超过 2200 字通常已经越界到 `mechanism-map`、`candidate-screener` 或 `peer-deep-dive`。
-
-## 与相邻 skill 的边界
-
-| Skill | 边界 |
-|---|---|
-| `mechanism-map` | 解释行业机制、工程原理、设备链条、工艺流程、术语和 value-capture 机制；本 skill 只识别是否需要它。 |
-| `driver-map` | 处理公司 / segment / 产品线 / 披露 bucket 到 revenue、margin、backlog、price/volume/mix model driver；不是泛行业 driver 拆解。 |
-| `candidate-screener` | 从 hypothesis / industry logic 系统找 long / short candidates；本 skill 只给 3-5 个 anchor names。 |
-| `peer-deep-dive` | 对 3-8 家公司做横向深研、排序和 cross-cut insight；本 skill 不做完整 peer comparison。 |
-| `stock-quickread` | 快速看单家公司；本 skill 只判断行业和 anchor。 |
-| `consensus-map` | 系统拆行业 / 主题的 sell-side consensus、buy-side bar、priced-in assumptions 和 variant-view gap；本 skill 只给 clue。 |
-| `company-history` | 梳理单家公司业务基础、历史演变和 disclosure evolution；本 skill 不写公司基础研究。 |
-| `alpha-thesis` | 写 variant view、catalyst、kill criteria；本 skill 只提供 thesis 起点。 |
-| `primary-research-plan` | 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只识别需要 primary evidence 的假设。 |

@@ -194,15 +194,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md
 
 - 标准 mechanism-map：1000-1500 字 + 1-2 张 Mermaid 图 + 3-5 张表。
 - 低于 800 字通常机制没拆透或漏了 value capture / driver bridge；超过 1500 字说明塞了多个机制，应拆成独立 artifact。
-
-## 与相邻 skill 的边界
-
-| Skill | 边界 |
-|---|---|
-| `driver-map` | 处理 Business Reality → Model Driver；本 skill 处理机制、设备链条、术语和 know-how。 |
-| `industry-quickread` | 做行业 triage、regime 判断、anchor names；本 skill 深挖单个机制或设备链。 |
-| `3-statement-model / dcf-model / comps-analysis / model-update` | 做 operating model、DCF、comps、reverse DCF；本 skill 只提供机制到模型变量的桥。 |
-| `information-impact` | 验证 claim 真假；本 skill 解释 claim 若成立会如何进入技术链条或商业机制。 |
-| `next-step` | 提出下一步研究问题；本 skill 可以给具体问题，但不生成完整研究任务清单。 |
-| `peer-deep-dive` | 横向比较多家公司；本 skill 只解释机制层面的 peer 差异来源。 |
-| `research-journal` | 沉淀已研究清楚的机制认知。 |

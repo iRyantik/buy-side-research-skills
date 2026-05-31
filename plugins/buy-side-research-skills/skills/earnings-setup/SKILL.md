@@ -189,10 +189,6 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - ❌ Consensus 数字无 provider（Visible Alpha / Bloomberg）和获取时点 → 数据可能已过期，必须补
 - ❌ 隐含 move / IV / SI 数据无时点标注 → 这些是分钟级变化的数据，必须标注
 - ❌ KPI 基线（"上次说 12 台"）无具体上次 call / filing 的位置 source → 补
-- ❌ 用了"chat 群里说"的 whisper 但未标记"chat-sourced" → 必须标记，不能伪装成硬数据
-- ❌ 出现具体数字 / 引语但无 source link → 标记 `[需查证]` 或删
-- ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
-- ❌ 把 sub-agent evidence card 直接写成 pre-print decision tree / post-print position decision，而没有主 agent 抽查时点、统一口径和综合判断
 
 ## 篇幅基准
 

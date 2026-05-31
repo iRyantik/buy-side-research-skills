@@ -297,11 +297,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md
 | Hedge candidate | 700-1200 |
 
 超过 1800 字通常应拆给 `peer-deep-dive` 或 `pair-trade`。
-
-## 与相邻 skill 的边界
-
-- `peer-deep-dive` 做同业横向；本 skill 专注跨市场 normalization 和 access adjustment。
-- `driver-map` 拆业务实质和 model driver；当跨市场价差来自 driver 差异时，先用它统一口径。
-- `pair-trade` 做完整 long/short setup；本 skill 只判断跨市场 spread 是否可能成为 pair。
-- `alpha-thesis` 写投资论点；本 skill 只提供跨市场估值 / access read-through。
-- `next-step` 把价差背后的怪异点变成研究问题。

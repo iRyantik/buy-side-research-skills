@@ -200,15 +200,3 @@ topics/company/<company-slug>/_cache/driver-map/
 ## 篇幅基准
 
 - 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
-
-## 与相邻 skill 的边界
-
-| Skill | 边界 |
-|---|---|
-| `mechanism-map` | 解释行业机制和工程原理；本 skill 处理公司业务 → model driver |
-| `company-history` | 审计口径演变和可比性；本 skill 在口径对齐后做 mapping |
-| `stock-quickread` | 快速 triage；本 skill 深挖 driver |
-| `peer-deep-dive` | 横向排序；本 skill 提供可比 driver 口径 |
-| modeling skills | 做 DCF/comps/workbook；本 skill 只提供 driver 输入 |
-| `primary-research-plan` | 设计 field verification；本 skill 标出哪些 driver 需要验证 |
-| `research-journal` | 沉淀 earned insight |
