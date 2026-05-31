@@ -23,7 +23,11 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 
 很多投研错误是因为把 recast 后的 segment 当成连续历史、把并购带来的结构变化当成 organic trend、把 renamed KPI 当成同一口径。本 skill 的任务是把这些断点讲清楚：什么时候变的、变了什么、对后续 driver-map / model / peer compare 有什么影响。
 
-本 skill 不写公司介绍、不拆 model driver、不画产品价值链。它是 `driver-map` 和 `peer-deep-dive` 的口径上游——在 driver mapping 之前先确保数据能连着看。## 触发场景
+本 skill 不写公司介绍、不拆 model driver、不画产品价值链。它是 `driver-map` 和 `peer-deep-dive` 的口径上游——在 driver mapping 之前先确保数据能连着看。
+
+举个例子：某公司 2022 年收购了 A 业务、2023 年剥离 B 部门、2024 年把 3 个 segment 重新划分成 2 个。如果不画出来，后面所有 driver 分析都建在错的基础上——你以为 revenue 在涨，其实是并购塞进来的；你以为 margin 在扩张，其实是低利润部门被剥离了。
+
+## 触发场景
 
 ### Mode A 触发（Business Evolution Audit）
 
@@ -99,6 +103,8 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 **结论先行**
 [业务演变中最影响当前判断的 1 个变化]
 
+[插入 Mermaid timeline — 按年标注 M&A/剥离/segment 变化，标注改变了什么业务边界。示例见下方。]
+
 | Date / period | Event | What changed | Current research implication | Ev |
 |---|---|---|---|---|
 
@@ -109,6 +115,17 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 ## Next Handoff
 
 - [...]
+```
+
+> Mermaid timeline 示例（agent 输出时替换 Mode A 的 placeholder）：
+
+```mermaid
+timeline
+    title Company Business Evolution
+    2022 : 收购 A 业务 ($Xbn) : 进入 Y 市场
+    2023 : 剥离 B 部门 : segment 从 4 个减到 3 个
+    2024 : segment 重新划分 : Legacy → Core + Growth
+           : KPI 口径变更 (EBIT → Adj EBITDA)
 ```
 
 ### Disclosure Evolution Audit
