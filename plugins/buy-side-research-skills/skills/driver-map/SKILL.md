@@ -187,27 +187,15 @@ topics/company/<company-slug>/_cache/driver-map/
 
 ## 反模式自查
 
-### Source 类
-- ❌ Reported bucket、segment revenue、orders、backlog、margin 没有 source / as-of。
-- ❌ 用卖方拆分替代公司披露，却没标注为 assumption。
-- ❌ 把合理推断、peer proxy 或 researcher assumption 写成 company disclosed fact。
-- ❌ 多个 source 口径冲突但只挑一个顺手的用。
-- ❌ 把 workbook 里的旧数字当 source。
-- ❌ 把 sub-agent evidence card 直接写成 final driver tree / model treatment，而没有主 agent 抽查 URL、处理冲突和统一口径。
-
-### Logic 类
-- ❌ 只复述 segment 名称，没有翻译 business reality。
-- ❌ 只写 revenue driver，不问 margin driver 是否不同。
-- ❌ Low confidence driver 没有进入 sensitivity / scenario，却直接进入 base case。
+- ❌ 只复述 segment 名称，没有翻译 business reality——看到 Solutions / Systems / Industrial 不追问。
+- ❌ Reported bucket、revenue、margin、backlog 没有 source / as-of；用卖方拆分替代公司披露未标 assumption。
+- ❌ 把 peer proxy 或 researcher assumption 写成 company disclosed fact。
+- ❌ Low confidence driver 直接进入 base case，没有进入 sensitivity / scenario。
+- ❌ 只写 revenue driver，不问 margin driver 是否不同；用历史 CAGR 代替 driver。
 - ❌ 把 theme association 写成 direct revenue driver。
-- ❌ 用历史 CAGR 代替 driver。
-- ❌ 看到 `Other / Solutions / Systems / Industrial` 这种 bucket 不追问。
-
-### Workflow 类
-- ❌ 用户只是要 driver-map，却输出完整 DCF / comps。
-- ❌ 用户要搭 model，却停在 driver-map，不 handoff 到 `3-statement-model / dcf-model / comps-analysis / model-update`。
-- ❌ driver confidence 是 Low，却被后续 thesis 当作核心事实。
-- ❌ 形成清楚认知后没有建议 `research-journal` 沉淀。
+- ❌ sub-agent evidence card 未经主 agent 抽查 URL 和口径统一直接当 final driver tree。
+- ❌ 用户只要 driver-map 却输出 DCF / comps；要搭 model 却不 handoff 到 modeling skills。
+- ❌ driver confidence Low 被后续 thesis 当核心事实；清楚认知未进 `research-journal`。
 
 ## 篇幅基准
 
@@ -215,9 +203,12 @@ topics/company/<company-slug>/_cache/driver-map/
 
 ## 与相邻 skill 的边界
 
-- `3-statement-model / dcf-model / comps-analysis / model-update` 做 operating model、DCF、comps、workbook update；本 skill 只做 driver-map。
-- `primary-research-plan` 设计合规 expert call、channel check、survey 和 fieldwork 计划；本 skill 只指出哪些 driver assumption 需要 field evidence。
-- `company-history` 审计业务演变和披露口径可比性；本 skill 在口径已对齐后做 driver mapping。
-- `stock-quickread` 快速判断是否值得继续看；本 skill 深挖 revenue / margin driver。
-- `peer-deep-dive` 做横向排序和 cross-cut insight；本 skill 提供可比较的 driver 口径。
-- `mechanism-map` 处理行业 know-how、工程机制、设备链条、工艺流程和术语；本 skill 只处理公司业务到 model driver 的映射。
+| Skill | 边界 |
+|---|---|
+| `mechanism-map` | 解释行业机制和工程原理；本 skill 处理公司业务 → model driver |
+| `company-history` | 审计口径演变和可比性；本 skill 在口径对齐后做 mapping |
+| `stock-quickread` | 快速 triage；本 skill 深挖 driver |
+| `peer-deep-dive` | 横向排序；本 skill 提供可比 driver 口径 |
+| modeling skills | 做 DCF/comps/workbook；本 skill 只提供 driver 输入 |
+| `primary-research-plan` | 设计 field verification；本 skill 标出哪些 driver 需要验证 |
+| `research-journal` | 沉淀 earned insight |
