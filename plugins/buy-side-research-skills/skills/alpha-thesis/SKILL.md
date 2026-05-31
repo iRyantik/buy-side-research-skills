@@ -25,6 +25,8 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 没有 variant view 的"多头逻辑"不是 thesis，是叙事。叙事不赚钱。
 
+举个例子——坏的 thesis："ASML 是 EUV 垄断龙头，长期看好。"好的 thesis："Consensus 2026 EUV 订单 $17bn，我认为是 $22bn——因为高 NA 单价 +20% 且 TSMC/Intel 先进制程 capex 没有放缓迹象。Q3 财报订单数就是第一个 catalyst。如果订单 <$15bn，我错，买这个 thesis 的人亏钱。"
+
 ## 必填章节（缺一不可，缺一项就重写）
 
 ### Primitive Preflight（先判断能不能直接写 thesis）
