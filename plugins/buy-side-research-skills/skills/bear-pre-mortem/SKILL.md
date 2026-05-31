@@ -25,6 +25,8 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 不是问"有什么风险"——这种问题只会得到淡化的、形式化的回答。要问"如果我错了，最可能是哪种错法"——这个问题让大脑去搜索具体场景，得到的答案才有用。
 
+比如你做多 ASML："一年后这单 trade 亏了 30%。回头看——TSMC 把 2026 capex 从 $38bn 砍到 $28bn，EUV 订单直接蒸发。高 NA 太贵了，客户发现用旧 EUV 多 pattering 也能凑合。这不是风险清单——是具体场景。"
+
 ## 输入与双向用法
 
 - 默认输入是 `alpha-thesis` 输出、当前对话中的 thesis 草稿，或 topic journal 里已经沉淀的研究结论。

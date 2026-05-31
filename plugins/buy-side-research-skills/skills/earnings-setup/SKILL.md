@@ -27,6 +27,8 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 卖方 preview 的特征：consensus 数字 + 历年 beat/miss 概率 + "关注点"。**全部不要**，这些都是公开信息，没有 alpha。
 
+好的 setup 只盯 2-3 个关键观察点——比如 GE Vernova 的 H2 services orders growth 和 gas turbine backlog conversion。这两个数告诉你 margin mix 是不是在改善，比 EPS beat/miss 有用得多。财报前把 thesis 假设列出来，财报后 10 分钟就能判断 thesis 还活不活。
+
 ---
 
 ## A. 财报前 Setup（如果用户问的是 preview）
