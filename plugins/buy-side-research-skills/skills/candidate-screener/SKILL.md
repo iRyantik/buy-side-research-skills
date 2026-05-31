@@ -35,6 +35,11 @@ Turn a theme, event, or screen into a sourced long/short candidate funnel with t
 - 研究员验证：每个 name 的业务关联必须有 source；估值 / 流动性 / priced-in 必须有 quantitative anchor
 - 最终 funnel：从 brainstorm 出的 N 个 candidates 收敛到 1-2 个值得做 deep research 的
 
+**举个例子**：如果你问"AI 数据中心电力受益股"——
+
+- ❌ 坏的输出：列一堆你听过的名字——NVDA、MSFT、VRT、GE Vernova、西门子能源。这是概念股堆砌。
+- ✅ 好的输出：先拆 mechanism——建设期（EPC/设备）、运营期（电力供应商/输配电）、长期转型（SMR/储能）。然后按 mechanism 去找真正 exposure 的公司——有些你未必听过，比如某家核电运营商 35% 的容量签了 hyperscaler PPA，这才是差异化 alpha。
+
 **最重要的纪律**：AI 不假装是 universe screener。本 skill 的输出是 **inferential brainstorm**，是研究员的 starting point，不是 final list。研究员必须 cross-check Bloomberg / 行业数据，并主动问"我可能漏了什么"。
 
 ## 触发场景
@@ -117,6 +122,10 @@ Turn a theme, event, or screen into a sourced long/short candidate funnel with t
 [一句话重新表述用户给的 hypothesis，确认理解正确]
 [列出澄清的 6 维度参数]
 
+#### 筛选漏斗
+
+[插入 Mermaid flowchart — hypothesis → mechanism → 业务特征 → Tier 1/2/3/Short → Deep Research。示例见下方。]
+
 ---
 
 ## 1. Mechanism Analysis
@@ -168,12 +177,16 @@ Turn a theme, event, or screen into a sourced long/short candidate funnel with t
 
 ## 7. Hypothesis 漏洞自检
 
+> 这是在问：**你的 thesis 哪里最可能翻车？** 不是挑小毛病——是找致命伤。至少 3 条。
+
 [必填，至少 3 条——这是 LS 研究员防止 over-confidence 的关键]
 1. **Hypothesis 弱点**：AI 数据中心电力 demand 假设依赖 hyperscaler capex 持续——历史 base rate：tech capex 周期通常 2-3 年，2024-2026 已是 capex 高峰期，受益股 priced 充分
 2. **Tier 风险**：Tier 1 已普遍 priced，alpha 主要来自 Tier 2-3 的 mispricing，但 Tier 2-3 的 mechanism 验证更难
 3. **反向风险**：如果 inference cost 下降快于预期（→ datacenter capex 不需要 ramp 这么快），整个 hypothesis 大幅 weakening
 
 ## 8. AI 候选 ≠ 全市场（caveat）
+
+> AI 不认识小票和刚上市的公司。这个列表一定有漏——你应该自己补。
 
 本输出基于 AI 已知的 mid/large cap 主流 universe（约 1000-2000 names）。可能漏：
 - Small cap / micro cap（< $1B 市值）
@@ -184,9 +197,20 @@ Turn a theme, event, or screen into a sourced long/short candidate funnel with t
 [然后 chat 直接 prompt 用户：是否要补充某些 names？]
 ```
 
-### Mode A 输出篇幅
+> Mermaid 漏斗示例（放在 fence 外做参考，agent 输出时替换 §Hypothesis 的 placeholder）：
 
-1500-2500 字 + 4-5 张 candidate 表格。低于 1500 大概率推理不深；超过 2500 在水。
+```mermaid
+flowchart TD
+    H["Hypothesis<br/>假设/主题/条件"] --> M["Mechanism 拆解<br/>受益/受损机制 × N"]
+    M --> B["业务特征<br/>什么公司能 expose"]
+    B --> T1["Tier 1: Direct<br/>主营 > 50% 受益"]
+    B --> T2["Tier 2: Indirect<br/>30-50% 受益"]
+    B --> T3["Tier 3: Spillover<br/>< 30% 弱关联"]
+    T1 --> S["Short Candidates<br/>反向受损"]
+    T2 --> DR["Deep Research<br/>推荐 1-2 家"]
+    T3 --> DR
+    S --> DR
+```
 
 ---
 
@@ -265,10 +289,6 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 [同 Mode A §8]
 ```
 
-### Mode B 输出篇幅
-
-1200-2000 字 + 1-2 张 candidate 表。Mode B 比 Mode A 少推理多列表，但 caveat 和漏洞自检不能省。
-
 ---
 
 ## Mixed Mode（最常见）
@@ -285,7 +305,6 @@ Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（
 7. Recommended for deep research
 8. Hypothesis 漏洞 + AI universe caveat
 
-输出篇幅：2000-3000 字（混合最复杂）
 
 ## 共同输出元素（无论 mode）
 
@@ -388,11 +407,8 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 
 ## 篇幅基准
 
-| Mode | 字数 | 表格数 |
-|---|---|---|
-| Mode A: Thematic | 1500-2500 | 4-5（含 short 表 + 推荐表） |
-| Mode B: Quant | 1200-2000 | 1-2（matched candidates 表 + 推荐表） |
-| Mixed Mode | 2000-3000 | 5-6 |
+- 标准 candidate-screener：1200-3000 字 + 对应表格数（Mode A 4-5 / Mode B 1-2 / Mixed 5-6）。
+- 低于 1000 字通常推理不深或 candidates 太少；超过 3000 字说明在堆 ticker 而非筛选，应收紧 Tier 标准。
 
 **Candidate 数量基准**：
 - Tier 1: 3-5 家（pure-play 通常少）
