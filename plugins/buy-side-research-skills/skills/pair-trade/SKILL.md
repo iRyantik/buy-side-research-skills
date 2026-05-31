@@ -103,6 +103,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 | | Long | Short |
 |---|---|---|
+| Logo | ![logo](当前 topic 的 _cache/images/asml-logo.png) | ![logo](当前 topic 的 _cache/images/amat-logo.png) |
 | Ticker | ASML.NA | AMAT |
 | 业务定位 | EUV/DUV monopoly | Diversified WFE |
 | 当前估值（NTM EV/EBITDA） | 22x | 18x |
@@ -111,6 +112,8 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
+
+[插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 
 #### 2. 为什么这两家可比（Why are these two correlated）
 
@@ -263,6 +266,8 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 **Pair 总 sizing 原则**：单 pair 不超过 portfolio 5% gross，新建 pair 默认从 2-3% 开始 averaging in。
 
+> 两腿 logo 下载到当前 topic 的 ——找不到标 [缺 logo]。
+
 ### A.6 Tracking Table（默认研究记录）
 
 在 `pair-note.md` 里记录一条 tracking snapshot。它不是自动维护的状态日志；后续 Monitor 依赖这条 baseline，否则 **No baseline, no monitor**。
@@ -284,11 +289,24 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 | thesis_health | active / watch / impaired / broken |
 | research_action | monitor / re-underwrite / close study / convert to single-name |
 
+> Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
+
+
+
+> Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
+
+```mermaid
+flowchart TD
+    E["Entry: spread z < -1.5σ"] --> C["Converge: Q3 earnings catalyst"]
+    C --> T["Target: spread → 0σ"]
+    C --> K["Kill: spread → +2σ"]
+    T --> X["Close / Trim"]
+    K --> X
+```
+
 ### A.7 Builder 输出篇幅
 
-1200-2000 字 + 5 张表（setup、相关性、spread 历史、beta/correlation、风险矩阵）。
-
-低于 1200 字大概率是论点不够具体；超过 2000 字开始水。
+1200-2000 字。低于 1200 字大概率论点不够具体；超过 2000 字开始水。
 
 ---
 
