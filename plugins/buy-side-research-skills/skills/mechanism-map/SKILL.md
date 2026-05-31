@@ -91,7 +91,7 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 |---|
 | *<设备/工艺名> — <功能（≤15字）>* |
 
-> ① web search "<设备关键词> product photo" → ② 搜不到跳过。
+> ① 公司官网 Media Kit → ② web search "<设备关键词> product photo" → ③ 找不到用行业代表性设备图 → ④ 实在没有标 [缺图]。下载到 `_cache/images/<slug>-<equipment>.png`。
 
 ## 4. 瓶颈 & Control Point
 
