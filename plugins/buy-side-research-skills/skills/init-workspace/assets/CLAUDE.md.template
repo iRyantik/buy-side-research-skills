@@ -120,25 +120,27 @@
 
 ## 5. Workspace Structure
 
-本 workspace 采用 topic-centric 组织，不回到 ticker-centric state tracker：
+本 workspace 以行业 topic 为核心组织，公司是行业子目录：
 
 ```text
-topics/
-  [topic-namespace]/[topic-slug]/
-    index.md
-    [YYYY-MM-DD]-*.md
+industry/
+  <industry-slug>/
+    index.md                  # 行业 overview + 公司注册表
+    companies/
+      <ticker>/               # 公司子目录——一个公司一个窝
+        [YYYY-MM-DD]-*.md
+        _cache/
+    [YYYY-MM-DD]-*.md        # 行业级 artifact
     _cache/
-    _raw/
-    _models/
+coverage.md                   # 全局主表——行业 × 公司映射
 ```
 
 基本约束：
+- 公司 artifact 落 `industry/<industry>/companies/<ticker>/`，行业 artifact 落行业根
+- 跨行业公司在多个行业 `index.md` 注册 reference，文件不搬
 - `_cache/` 存放 source-tracked 解析材料、evidence pack、结构化数据
-- `_raw/` 存放原始输入或外部导入包
-- `_models/` 存放模型与相关工作簿
-- dated artifact 归属 topic root，不在 workspace 根目录乱放
-- topic artifact 命名由 `new-session` 统一解析；高频问题卡片型 skill 可以使用 `artifact + qualifier`，不要手写随意 dated 文件名，也不要把 `-2/-3` 当主命名策略。
-- workspace hooks（`.claude/settings.json`、`.claude/hooks/`、`.codex/hooks.json`）属于 runtime contract；不要手改或删除，除非同步更新插件治理和共享 hook 脚本。
+- topic artifact 命名由 `new-session` 统一解析
+- workspace hooks 属于 runtime contract，不要手改或删除
 
 ---
 
