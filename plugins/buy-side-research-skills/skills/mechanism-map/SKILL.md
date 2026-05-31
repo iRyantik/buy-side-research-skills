@@ -19,9 +19,11 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 
 ## 心法
 
-很多工业、能源、核电、航天和先进制造研究的真正 edge，不在"知道一个名词"，而在知道这个名词背后的系统怎么工作、瓶颈在哪里、谁捕获价值、哪些环节会传导到 revenue / margin / backlog driver。`mechanism-map` 的工作是把 know-how gap 变成可研究、可追问、可沉淀的结构。
+研究工业、能源、航天、先进制造的公司，真正卡住你的不是"没听过这个词"——而是你不知道这玩意怎么赚钱。
 
-本 skill 是 `driver-map` 的上游补充：`mechanism-map` 解释"机制怎么运作、价值在哪里捕获"；`driver-map` 再解释"这些机制如何进入收入、利润率、backlog、price / volume / mix driver"。不要用机制解释替代 driver-map，也不要在本 skill 里直接做 DCF、comps、workbook 或完整 thesis。
+举个例子：燃气轮机。卖一台设备是 $50m 的一次性收入，但后面 30 年的 service agreement 才是真正的钱——零部件、检修、性能升级，利润率是设备的 2-3 倍。更关键的是 controls 系统是闭源的，只有原厂能修。所以你看 GE Vernova 的财报，equipment 和 services 是两个完全不同的 economics。
+
+`mechanism-map` 就是帮你把这种链条画出来、讲清楚、标出钱卡在谁手里。它是 `driver-map` 的上游——先搞懂"东西怎么运作、谁赚钱"，再去拆"这些收入怎么进模型"。不要在 mechanism-map 里做 DCF、comps 或 thesis。
 
 ## 触发场景
 
@@ -79,28 +81,38 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 
 ## 3. 怎么运作
 
-[插入 Mermaid flowchart — 4-6 节点，标注设备链/工艺流程主干。示例结构见下方。]
+[插入 Mermaid flowchart — 4-6 节点，标注设备链/工艺流程主干。用真实设备和公司名，不要写"上游→制造→下游"这类空壳。示例结构见下方。]
 
-[3-6 步解释，不要超过机制本身所需深度]
+[3-6 步解释，每步 1-2 句大白话。不要写教材，像跟同事解释一样。]
+
+#### 长这样
+
+| ![设备图](_cache/images/<slug>-<equipment>.png) |
+|---|
+| *<设备/工艺名> — <功能（≤15字）>* |
+
+> ① web search "<设备关键词> product photo" → ② 搜不到跳过。
 
 ## 4. 瓶颈 & Control Point
 
-| 维度 | 判断 | 为什么重要 | Ev |
+系统里哪里最卡脖子？只填有实际约束的维度，没约束的跳过。
+
+| 维度 | 判断 | 为什么重要（举例） | Ev |
 |---|---|---|---|
-| Capacity / throughput | [判断] | [投资含义] | [S1](url) |
-| Uptime / reliability | [判断] | [投资含义] | [...] |
-| Efficiency | [判断] | [投资含义] | [...] |
-| Capex intensity | [判断] | [投资含义] | [...] |
-| Service intensity | [判断] | [投资含义] | [...] |
-| Regulatory / safety | [判断] | [投资含义] | [...] |
+| 产能/吞吐量 | [判断] | [比如：GT 产能只有 GE Vernova、西门子、三菱三家，全球年产能 ~50 台/年] | [S1](url) |
+| 可靠性/开工率 | [判断] | [比如：停机一天损失 $2m 电费，客户愿付溢价买可靠性] | [...] |
+| 效率 | [判断] | [比如：燃机效率差 1pp = 30 年燃料成本差 $50m+] | [...] |
+| 资本开支强度 | [判断] | [比如：新建一条 turbine 产线 $3bn+，但维护只需要一台服务车] | [...] |
+| 服务/维护粘性 | [判断] | [比如：controls 闭源，第三方修不了 → 原厂服务垄断] | [...] |
+| 监管/安全壁垒 | [判断] | [比如：核电需要 NRC 许可，新进入者 ~10 年周期] | [...] |
 
 **Takeaway**: [不是复述表格；写哪个 bottleneck 对投资判断最重要]
 
 ## 5. Value Capture — 钱被谁赚了
 
-| Value capture point | Who captures value | Revenue / margin channel | Evidence quality | Research read-through |
+| 谁赚钱 | 怎么收钱 | 利润率特征 | 证据质量 | 投研含义 |
 |---|---|---|---|---|
-| [equipment / service / controls / integration] | [company type] | [equipment sale / service / parts / software / EPC] | High / Medium / Low | [why it matters] |
+| [设备商/服务商/系统集成商/零部件商] | [一次性设备/长期服务合同/耗材/软件订阅/EPC 项目] | [比如：设备毛利率 25%、服务毛利率 45%] | High / Medium / Low | [这个环节被市场低估/高估了吗？] |
 
 ## 6. Mechanism → Driver Bridge
 
@@ -143,13 +155,15 @@ Rating hard standards:
 3. [具体到某个 peer 或 cross-check 能验证]
 ```
 
-> Mermaid 示例（放在 fence 外做参考，agent 输出时替换 §3 的 placeholder）：
+> Mermaid 示例——燃气轮机设备+服务链条（放在 fence 外做参考，agent 输出时用真实行业替换）：
 
 ```mermaid
 flowchart LR
-    A[<输入/原材料>] --> B[<核心设备/工艺>] --> C[<输出>]
-    B --> D[<瓶颈/控制点>]
-    D --> E[<价值捕获环节>]
+    A["燃气轮机 OEM<br/>GE Vernova / 西门子 / 三菱"] --> B["设备销售<br/>$50m/台，毛利率~25%"]
+    A --> C["长期服务协议<br/>30年，毛利率~45%"]
+    A --> D["闭源控制系统<br/>只有原厂能修"]
+    C --> E["装机基数 × 利用率<br/>= 服务收入"]
+    D --> E
 ```
 
 ## Artifact / 保存策略
@@ -202,9 +216,8 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md
 
 ## 篇幅基准
 
-- Quick mechanism check：500-900 字 + 1 张 Mermaid 图。
-- Full mechanism map：1000-1800 字 + 2-4 张表 + 1-2 张 Mermaid 图。
-- 超过 2000 字通常说明范围过大，应拆成多个机制，或转入 `peer-deep-dive` / `driver-map`。
+- 标准 mechanism-map：1000-1500 字 + 1-2 张 Mermaid 图 + 3-5 张表。
+- 低于 800 字通常机制没拆透或漏了 value capture / driver bridge；超过 1500 字说明塞了多个机制，应拆成独立 artifact。
 
 ## 与相邻 skill 的边界
 
