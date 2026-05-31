@@ -59,7 +59,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 **长这样**（焦点产品图 1-2 张）
 
-| ![产品](_cache/images/<slug>-<product>.png) |
+| ![产品](当前 topic 的 _cache/images/<slug>-<product>.png) |
 |---|
 | *产品名 — 功能（≤15字）* |
 
@@ -77,7 +77,7 @@ flowchart LR
 
 （同上结构——为什么重要 / 长这样 / 在什么位置 / 怎么收钱。焦点业务必须放图——找不到标 [缺图]，不能跳过。）
 
-> 图片只放焦点业务的。其他业务不配图。① 公司官网 Media Kit → ② web search 产品图 → ③ 找不到用行业代表性图 → ④ 实在没有标 [缺图]。下载到 `_cache/images/<slug>-<product>.png`。
+> 图片只放焦点业务的。其他业务不配图。① 公司官网 Media Kit → ② web search 产品图 → ③ 找不到用行业代表性图 → ④ 实在没有标 [缺图]。下载到 `当前 topic 的 _cache/images/<slug>-<product>.png`。
 
 #### 其他业务
 

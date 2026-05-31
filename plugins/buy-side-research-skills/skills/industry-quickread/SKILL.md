@@ -84,11 +84,11 @@ Mermaid 4-6 个节点，把主要环节标出来。不是公司列表——是�
 
 1 张行业代表性产品/设备图。不是具体某家公司的产品——是这个行业在造的东西。
 
-| ![行业图](_cache/images/<topic>-product.png) |
+| ![行业图](当前 topic 的 _cache/images/<topic>-product.png) |
 |---|
 | *<产品/设备名> — <功能（≤15字）>* |
 
-> ① web search "<行业关键词> product photo" → ② 找不到用行业代表性图 → ③ 实在没有标 [缺图]。下载到 `_cache/images/<topic>-product.png`。
+> ① web search "<行业关键词> product photo" → ② 找不到用行业代表性图 → ③ 实在没有标 [缺图]。下载到 `当前 topic 的 _cache/images/<topic>-product.png`。
 
 ## 2. 当前 Regime / Cycle / Bottleneck
 
@@ -130,7 +130,7 @@ Mermaid 4-6 个节点，把主要环节标出来。不是公司列表——是�
 |---|---|---|---|---|---|
 | [ticker/company] | [US/A/HK/etc.] | [stage] | direct / indirect / thematic / [需查证] | [定位作用] | [S1](./_cache/sources/industry-demand-pack.md) 或 GAP |
 
-**Discipline**: anchor names 最多 3-5 个；不要在这里写完整公司分析。每个 anchor 的 market cap 和 PE 通过 yfinance .info 获取，标注 as-of。加公司 logo（15px 小图），下载到 `_cache/images/<ticker>-logo.png`——找不到标 [缺 logo]。
+**Discipline**: anchor names 最多 3-5 个；不要在这里写完整公司分析。每个 anchor 的 market cap 和 PE 通过 yfinance .info 获取，标注 as-of。加公司 logo（15px 小图），下载到 `当前 topic 的 _cache/images/<ticker>-logo.png`——找不到标 [缺 logo]。
 
 ## 7. Priced-in / Consensus Clue
 
