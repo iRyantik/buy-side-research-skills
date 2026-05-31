@@ -30,19 +30,6 @@ Compare local listings ADRs or cross-market peers across valuation currency liqu
 
 **最重要的纪律**：A/H discount、ADR discount、跨市场估值差都不是天然 alpha。必须先解释为什么存在，以及是否真的能交易。
 
-## AI 的局限（必读，前置警告）
-
-跨市场数据比普通单票更容易 stale 或口径错：
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **ADR ratio / share class 错配** | 市值、EV、价差全部算错 | 必须 source ADR ratio / ordinary equivalence |
-| **FX stale** | USD-eq 估值错 | 所有换算写 FX as-of |
-| **会计口径不一致** | EBITDA、FCF、ROIC 不可比 | 明确 GAAP / IFRS / local accounting 和调整项 |
-| **A/H 不可套利误判** | 把结构性价差当可交易机会 | 明确资本流动限制和转换机制 |
-| **OTC / local liquidity 被忽略** | 理论 spread 无法实际交易 | 列 ADV、bid-ask、borrow availability |
-| **跨市场 peer group 错配** | 把不同业务、不同监管风险硬比 | 先做 comparability check |
-
 ## 触发场景
 
 ### Mode A 触发（Same-company Cross-Listing）
@@ -136,7 +123,7 @@ Compare local listings ADRs or cross-market peers across valuation currency liqu
 | Ticker | Exchange | Currency | Share class | ADR ratio / conversion | ADV | Borrow | Ev |
 |---|---|---|---|---|---|---|---|
 
-## 
+[插入 Mermaid flowchart — 归一化流程：本地数据 → FX换算 → ADR ratio → 会计调整 → 可比估值。示例见下方。]
 
 ## 归一化估值公式
 
@@ -161,6 +148,17 @@ Normalized Valuation
 ## Action
 
 - Ignore / Monitor / Research edge / Hedge candidate
+```
+
+> Mermaid 归一化流程图示例（放在 fence 外做参考，agent 输出时替换 Mode A 的 placeholder）：
+
+```mermaid
+flowchart LR
+    A["本地数据<br/>价格/市值/倍数"] --> B["FX 换算<br/>统一为 USD-eq"]
+    B --> C["ADR Ratio<br/>share count 对齐"]
+    C --> D["会计调整<br/>GAAP/IFRS 对齐"]
+    D --> E["可比估值"]
+    E --> F["Spread 解释<br/>流动性/监管/税/错配"]
 ```
 
 ## Mode B: Cross-Market Peer Compare
@@ -265,9 +263,9 @@ Normalized Valuation
 | 估值差改变单票 thesis | `alpha-thesis` |
 | 研究后形成认知增量 | `research-journal` |
 
-## 写入
+## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
+写入当前日期化保存路径：
 
 ```text
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md
@@ -302,10 +300,13 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md
 
 ## 篇幅基准
 
-- Same-company quick compare：500-900 字 + 2 张表。
-- Cross-market peer compare：900-1600 字 + comparability / valuation / adjustment 表。
-- Hedge / pair candidate：700-1200 字；若进入完整 pair，应 handoff 到 `pair-trade`。
-- 超过 1800 字通常说明需要拆成 `peer-deep-dive` 或 `pair-trade`。
+| Mode | 字数 |
+|---|---|
+| Same-company | 500-900 |
+| Cross-market peer | 900-1600 |
+| Hedge candidate | 700-1200 |
+
+超过 1800 字通常应拆给 `peer-deep-dive` 或 `pair-trade`。
 
 ## 与相邻 skill 的边界
 
