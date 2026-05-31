@@ -27,17 +27,6 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-quickread` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
 
-## AI 的局限
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| 最新 consensus 可能不可得 | VA / FactSet / Bloomberg 数据变化快，AI 记忆滞后 | 所有 consensus 数字标 provider 和 as-of；缺失写 `[需查证]` |
-| buy-side bar 不可直接观测 | 容易把 sell-side consensus 当真实市场预期 | 明确区分 observed consensus 和 inferred bar |
-| 价格隐含假设需要模型 | AI 容易凭倍数喊 expensive / cheap | 只做轻量反推；详细量化交给 `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 行业 / 主题 consensus 分散 | 没有统一 EPS consensus，容易写成叙事汇总 | 用 KPI、anchor names、basket / peer multiple 和 debate map 代替伪精确 |
-| Narrative 容易受热门主题污染 | 市场热词不代表真正 priced-in | 必须回到 KPI、revision、multiple、price reaction 和 source |
-| Consensus 和 thesis 容易混在一起 | 输出会过早站队 | 只定位 gap，不写完整投资结论 |
-
 ## 触发场景
 
 使用本 skill 当用户问：
@@ -95,18 +84,11 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Takeaway**: [本 map 最可靠和最薄弱的地方]
 
-## 2. 
+## 2. 预期堆叠
 
-### 预期差公式
+[插入 Mermaid waterfall — 三层预期怎么叠成当前价格。示例见下方。]
 
-| # | 计算 | 公式 | 输入来源 |
-|---|---|---|---|
-| 1 | Surprise | (Actual - Consensus) ÷ \|Consensus\| | FS, CON |
-| 2 | Revision Breadth | (上调数 - 下调数) ÷ 总覆盖数 | CON |
-| 3 | Implied Growth (from PE) | ROE × (1 - payout ratio) | DER |
-
-
-Sell-Side Consensus Numbers
+### Sell-Side Consensus Numbers
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|
@@ -172,6 +154,19 @@ Sell-Side Consensus Numbers
 1. [具体到 metric / provider / filing / dataset / call transcript 能回答]
 ```
 
+> Mermaid 预期瀑布图示例（放在 fence 外做参考，agent 输出时替换 §2 的 placeholder）：
+
+```mermaid
+flowchart TD
+    SC["Sell-Side Consensus<br/>EPS $5.20 / Rev $12bn"]
+    BB["Buy-Side Bar (inferred)<br/>EPS $5.50+ / Rev $12.5bn+"]
+    MI["Market-Implied<br/>EV/EBITDA 18x → 12% FCF CAGR"]
+    P["Current Price<br/>$85"]
+    SC -->|"+6% gap"| BB
+    BB -->|"priced?"| MI
+    MI -->|"="| P
+```
+
 ## Mode B: Industry / Theme Consensus Map
 
 用于行业、主题、value chain 或 demand pocket 的共识地图。不要伪造单一 EPS consensus；用可观察 KPI 和 anchor-name expectation 来替代。
@@ -213,7 +208,7 @@ Sell-Side Consensus Numbers
 
 ## Artifact / 保存策略
 
-默认输出到对话。用户明确要求保存时，写入当前日期化保存路径：
+写入当前日期化保存路径：
 
 ```text
 topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
@@ -280,13 +275,13 @@ new-session -> ingest -> industry-quickread -> consensus-map
 
 ## 篇幅基准
 
-| Mode | 篇幅 | 表格 |
-|---|---|---|
-| Single-Name Consensus Map | 1200-1800 字 | 4-6 张 |
-| Industry / Theme Consensus Map | 1300-2000 字 | 4-6 张 |
-| Tight Expectations Check | 600-900 字 | 1-2 张 |
+| Mode | 字数 |
+|---|---|
+| Tight Check | 600-900 |
+| Single-Name | 1200-1800 |
+| Industry/Theme | 1300-2000 |
 
-低于 600 字通常 source、bar、debate 或 routing 不足；超过 2200 字通常已经越界到 `alpha-thesis`、`3-statement-model / dcf-model / comps-analysis / model-update`、`earnings-setup` 或 `peer-deep-dive`。
+低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
 
 ## 与相邻 skill 的边界
 
