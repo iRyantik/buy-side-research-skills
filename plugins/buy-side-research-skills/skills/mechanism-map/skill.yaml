@@ -48,7 +48,7 @@ trigger:
 capabilities:
   modes:
     - 'Unified Mechanism-to-Research Map'
-  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md'
+  output_path: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-mechanism-map-<qualifier>.md'
   requirements:
     - 'follow shared source hierarchy and workspace hook rules'
     - 'explain terms, equipment chains, and process flows'
@@ -62,7 +62,7 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'mechanism-map.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-mechanism-map-<qualifier>.md'
   naming_mode: 'required_qualifier'
   save_trigger: 'always save to industry topic'
 workflow:

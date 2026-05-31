@@ -47,7 +47,7 @@ capabilities:
     - '_models/<ticker>-3statement-model.xlsx'
     - '_models/<ticker>-3statement-dcf-model.xlsx'
     - '_models/<ticker>-comps-analysis.xlsx'
-  output_path: 'topics/[topic]/_models/[ticker]-model-update.xlsx or [ticker]-update-map.md'
+  output_path: 'industry/<industry>/_models/[ticker]-model-update.xlsx or [ticker]-update-map.md'
   requirements:
     - 'Prefer new financial-data actuals and driver-map changes before external or manual data.'
     - 'Separate reported actuals, revised assumptions, and formula changes.'
@@ -60,7 +60,7 @@ capabilities:
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-model-update.xlsx | <ticker>-update-map.md'
-  canonical_location: 'topics/[topic]/_models/[ticker]-model-update.xlsx or [ticker]-update-map.md'
+  canonical_location: 'industry/<industry>/_models/[ticker]-model-update.xlsx or [ticker]-update-map.md'
   save_trigger: 'write update map by default; write updated workbook only when user explicitly asks or provides target'
 workflow:
   stage: 'model-maintenance'

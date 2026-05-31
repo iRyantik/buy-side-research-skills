@@ -41,7 +41,7 @@ capabilities:
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   updates:
-    - 'topics/[topic-namespace]/[topic-slug]/index.md'
+    - 'industry/<industry>/companies/<ticker>/index.md'
   requirements:
     - 'preserve solved research insight, not raw reminders'
     - 'apply Earned Insight Gate before writing'
@@ -59,6 +59,6 @@ capabilities:
 artifact_policy:
   save_policy: 'earned_memory'
   default_artifact: 'research-journal.md | boss-brief.md | index.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md or [YYYY-MM-DD]-boss-brief.md; topic index at topics/[topic-namespace]/[topic-slug]/index.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md or [YYYY-MM-DD]-boss-brief.md; topic index at industry/<industry>/companies/<ticker>/index.md'
   naming_mode: 'plain'
   save_trigger: 'always save to industry topic'

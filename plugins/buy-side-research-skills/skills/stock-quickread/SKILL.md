@@ -10,7 +10,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 
-**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -97,7 +97,7 @@ flowchart LR
 > 最多 5-8 个。不是词典，是聊天时怎么讲。
 
 ### 3. 钱从哪里来（数据表 + takeaway）
-> 数字来源：`topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json`
+> 数字来源：`industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json`
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 

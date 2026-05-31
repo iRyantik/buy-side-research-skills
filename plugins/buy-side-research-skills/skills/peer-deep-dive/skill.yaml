@@ -53,7 +53,7 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'peer-deep-dive.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-peer-deep-dive.md'
   naming_mode: 'optional_qualifier'
   save_trigger: 'always save to industry topic'
 workflow:

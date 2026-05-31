@@ -43,7 +43,7 @@ capabilities:
     - 'ADR ratio'
     - 'valuation multiples'
     - 'liquidity'
-  writes_optional: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md'
+  writes_optional: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-cross-market-compare.md'
   feeds_into:
     - 'alpha-thesis'
     - 'peer-deep-dive'
@@ -64,6 +64,6 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'cross-market-compare.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-cross-market-compare.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-cross-market-compare.md'
   naming_mode: 'optional_qualifier'
   save_trigger: 'always save to industry topic'

@@ -52,7 +52,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: '[source-filename].md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
   save_trigger: 'write cache only when converting a source file for an existing topic'
 workflow:
   stage: 'source-material-ingest'
@@ -81,6 +81,6 @@ quality_gates:
     - 'silent_dependency_install'
     - 'recursive_ingest_without_explicit_request'
   required_paths:
-    - 'topics/[topic-namespace]/[topic-slug]/index.md'
-    - 'topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md'
-    - 'topics/[topic-namespace]/[topic-slug]/_raw/[category]/'
+    - 'industry/<industry>/companies/<ticker>/index.md'
+    - 'industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
+    - 'industry/<industry>/companies/<ticker>/_raw/[category]/'

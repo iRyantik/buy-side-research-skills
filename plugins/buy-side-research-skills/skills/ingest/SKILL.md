@@ -174,7 +174,7 @@ Cache header must include:
 Artifact policy:
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `[source-filename].md`
-- `canonical_location`: `topics/[topic-namespace]/[topic-slug]/_cache/[source-filename].md`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/[source-filename].md`
 
 ## 安全自查
 

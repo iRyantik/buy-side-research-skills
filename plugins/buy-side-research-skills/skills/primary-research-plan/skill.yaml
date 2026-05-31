@@ -48,7 +48,7 @@ capabilities:
     - 'Standard Primary Research Plan'
     - 'Expert Call Guide'
     - 'Channel Check / Survey Plan'
-  output_path: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md when user asks to save'
+  output_path: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-primary-research-plan.md when user asks to save'
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'
@@ -71,7 +71,7 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'primary-research-plan.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-primary-research-plan.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-primary-research-plan.md'
   naming_mode: 'optional_qualifier'
   save_trigger: 'always save to industry topic'
 workflow:

@@ -43,7 +43,7 @@ capabilities:
     - '_cache/driver-map/driver-map.md'
     - '_cache/driver-map/internal/driver-map.json'
     - '_models/<ticker>-3statement-model.xlsx'
-  output_path: 'topics/[topic]/_models/[ticker]-comps-analysis.xlsx'
+  output_path: 'industry/<industry>/_models/[ticker]-comps-analysis.xlsx'
   requirements:
     - 'Prefer source-tracked actuals and driver-map business treatment before external or manual data.'
     - 'Document differences between qualitative peer universe and valuation peer set.'
@@ -55,7 +55,7 @@ capabilities:
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-comps-analysis.xlsx'
-  canonical_location: 'topics/[topic]/_models/[ticker]-comps-analysis.xlsx'
+  canonical_location: 'industry/<industry>/_models/[ticker]-comps-analysis.xlsx'
   save_trigger: 'write workbook only when the user asks for comps output or provides a workbook target'
 workflow:
   stage: 'valuation'

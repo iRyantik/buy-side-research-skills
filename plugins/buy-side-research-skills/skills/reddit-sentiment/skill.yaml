@@ -38,8 +38,8 @@ capabilities:
     - 'Report From Existing Evidence Pack'
   output_path: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   writes:
-    - 'topics/[topic-namespace]/[topic-slug]/_raw/datasets/reddit-sentiment/[run-id]/'
-    - 'topics/[topic-namespace]/[topic-slug]/_cache/datasets/reddit-sentiment/[run-id]/'
+    - 'industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run-id]/'
+    - 'industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run-id]/'
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   feeds_into:
     - 'information-impact'

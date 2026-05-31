@@ -43,7 +43,7 @@ capabilities:
     - '_cache/driver-map/driver-map.md'
     - '_cache/driver-map/internal/driver-map.json'
     - '_models/<ticker>-3statement-model.xlsx'
-  output_path: 'topics/[topic]/_models/[ticker]-3statement-dcf-model.xlsx'
+  output_path: 'industry/<industry>/_models/[ticker]-3statement-dcf-model.xlsx'
   requirements:
     - 'Prefer source-tracked financial-data and driver-map assumptions before external or manual data.'
     - 'Use 3-statement-model outputs when available for forecast base statements.'
@@ -56,7 +56,7 @@ capabilities:
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-3statement-dcf-model.xlsx'
-  canonical_location: 'topics/[topic]/_models/[ticker]-3statement-dcf-model.xlsx'
+  canonical_location: 'industry/<industry>/_models/[ticker]-3statement-dcf-model.xlsx'
   save_trigger: 'write workbook only when the user asks for DCF output or provides a workbook target'
 workflow:
   stage: 'valuation'

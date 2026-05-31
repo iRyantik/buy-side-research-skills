@@ -54,7 +54,7 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'bear-pre-mortem.md'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-bear-pre-mortem.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-bear-pre-mortem.md'
   naming_mode: 'plain'
   save_trigger: 'always save to industry topic'
 workflow:

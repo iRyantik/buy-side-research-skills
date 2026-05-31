@@ -10,7 +10,7 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 ## Research Runtime Capsule
 
 
-**三表数据前置（由 subagent 并行执行）：** pair 中每个标的必须先有 financial-data——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。两腿可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
+**三表数据前置（由 subagent 并行执行）：** pair 中每个标的必须先有 financial-data——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。两腿可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -57,7 +57,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
 
 如果当前没有明确 dated result path：
-- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-pair-note.md`。
+- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。
 - 让用户确认 topic / slug 后再保存。
 - 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 

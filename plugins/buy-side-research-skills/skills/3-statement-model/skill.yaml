@@ -43,7 +43,7 @@ capabilities:
     - '_cache/financial-data/internal/evidence-pack.json'
     - '_cache/driver-map/driver-map.md'
     - '_cache/driver-map/internal/driver-map.json'
-  output_path: 'topics/[topic]/_models/[ticker]-3statement-model.xlsx'
+  output_path: 'industry/<industry>/_models/[ticker]-3statement-model.xlsx'
   requirements:
     - 'Prefer source-tracked actuals from financial-data before external or manual data.'
     - 'Prefer driver-map assumptions for segment, geography, revenue, and margin treatment.'
@@ -56,7 +56,7 @@ capabilities:
 artifact_policy:
   save_policy: 'external_workbook'
   default_artifact: '<ticker>-3statement-model.xlsx'
-  canonical_location: 'topics/[topic]/_models/[ticker]-3statement-model.xlsx'
+  canonical_location: 'industry/<industry>/_models/[ticker]-3statement-model.xlsx'
   save_trigger: 'write workbook only when the user asks to create/update a model or provides a workbook target'
 workflow:
   stage: 'model-build'

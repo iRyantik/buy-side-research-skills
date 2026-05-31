@@ -10,7 +10,7 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 ## Research Runtime Capsule
 
 
-**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -225,7 +225,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前日期化保存路径的研究材料保存为：
 
 ```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-alpha-thesis.md
+industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
 ```
 
 本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `new-session` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。

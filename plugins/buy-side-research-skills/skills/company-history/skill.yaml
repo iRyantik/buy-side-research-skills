@@ -43,7 +43,7 @@ capabilities:
   modes:
   - Business Evolution Audit
   - Disclosure Evolution Audit
-  output_path: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history-<qualifier>.md
+  output_path: industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-company-history-<qualifier>.md
   requirements:
   - audit material M&A, divestiture, business exit, and segment reshuffle
   - audit segment/KPI rename, recast, definition change, reporting unit change
@@ -56,7 +56,7 @@ capabilities:
 artifact_policy:
   save_policy: default_topic_result
   default_artifact: company-history.md
-  canonical_location: topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history-<qualifier>.md
+  canonical_location: industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-company-history-<qualifier>.md
   naming_mode: required_qualifier
   save_trigger: always save to current topic
 workflow:

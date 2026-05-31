@@ -45,7 +45,7 @@ capabilities:
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'base-research-stem.html'
-  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[base-research-stem][-qualifier].html'
+  canonical_location: 'industry/<industry>/companies/<ticker>/[base-research-stem][-qualifier].html'
   save_trigger: 'save when the user wants a topic-side html visualization paired with a specific markdown research artifact'
 workflow:
   stage: 'supporting-visualization'

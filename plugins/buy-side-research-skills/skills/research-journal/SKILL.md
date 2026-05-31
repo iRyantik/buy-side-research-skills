@@ -93,7 +93,7 @@ Value tags：
 写入路径：
 
 ```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-research-journal.md
+industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-research-journal.md
 ```
 
 `research-journal` 的 `artifact_policy.naming_mode = plain`。earned memory 默认继续使用 `YYYY-MM-DD-<artifact>.md`；Boss Brief 也维持同一 dated deliverable 口径，不把 qualifier 当默认命名。
@@ -112,7 +112,7 @@ Boss Brief 是给 PM / boss 的高密度 transfer，不是简略版。
 写入路径：
 
 ```text
-topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-boss-brief.md
+industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-boss-brief.md
 ```
 
 写前先确认或从材料中提取：
@@ -142,7 +142,7 @@ Topic `index.md` 是演进式地图，不是状态库。只维护当前 topic �
 写入路径：
 
 ```text
-topics/[topic-namespace]/[topic-slug]/index.md
+industry/<industry>/companies/<ticker>/index.md
 ```
 
 不要补历史，不要强行重构所有旧 session；只更新本次 session 对 topic 地图的增量。

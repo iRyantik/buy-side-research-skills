@@ -15,7 +15,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 本 skill 的工作逻辑是 **provenance first + completeness before model use**。先保存 raw provider payload，再保存 normalized evidence pack；日常外显只给 `financial-data-summary.md`，机器输入和审计文件进入 `internal/`；先告诉研究员缺什么，再让 `driver-map` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 判断能否建模。
 
-`financial-data` 服务 topic-centric 架构：单公司数据默认落在 `topics/company/<company-slug>/`；theme / industry topic 只保存 snapshot 或 links，不变成第二套公司主档。
+`financial-data` 服务 topic-centric 架构：单公司数据默认落在 `industry/<industry>/companies/<ticker>/`；theme / industry topic 只保存 snapshot 或 links，不变成第二套公司主档。
 
 ## 职责边界
 
@@ -94,7 +94,7 @@ _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 默认写入：
 
 ```text
-topics/company/<company-slug>/
+industry/<industry>/companies/<ticker>/
   _raw/datasets/financial-data/<market>/<canonical-id>/<run-id>/
     provider_payload.json
     identity-source.json
@@ -130,7 +130,7 @@ topics/company/<company-slug>/
 
 `_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
-如果 `topics/company/<company-slug>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
+如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
 
 
 ### Lite Mode Fetch（研究前置快速抓取）
@@ -271,7 +271,7 @@ Revenue split rule:
 - 缺 `EDGAR_IDENTITY`：US SEC route failed，不声称 SEC/XBRL 可用。
 - 缺 `DART_API_KEY`：KR route failed，不写假 DART 数据。
 - EU ticker-only 无法 discovery：输出 `provider-gap`，提示改用 `filing_url` 或 `local_esef_package`。
-- Topic 不存在：block，提示先用 `new-session` 创建 `topics/company/<company-slug>/` 或目标 topic。
+- Topic 不存在：block，提示先用 `new-session` 创建 `industry/<industry>/companies/<ticker>/` 或目标 topic。
 - Provider 返回字段缺失：写 partial pack 和 completeness matrix，不推断未披露 revenue split。
 
 ## Workflow 联动
