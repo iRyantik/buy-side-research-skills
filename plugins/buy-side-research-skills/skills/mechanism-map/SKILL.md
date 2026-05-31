@@ -38,13 +38,6 @@ Explain industry mechanisms, engineering principles, equipment chains, and proce
 - "这个业务 bucket 背后的机制是什么，为什么这么拆"
 - "先讲清楚这个机制，再告诉我哪些公司类型可能受益"
 
-**不应触发**：
-- 公司收入 driver → `driver-map`
-- 搭 model / DCF / comps → `3-statement-model / dcf-model / comps-analysis / model-update`
-- 验证某公司是否进客户供应链 → `information-impact`
-- 下一步怎么研究 → `next-step`
-- 写 long / short thesis → `alpha-thesis`
-
 ## 输入澄清要求
 
 | 维度 | 含义 | 默认假设 |
@@ -148,11 +141,6 @@ Rating hard standards:
 - industry bottleneck vs company-specific revenue driver
 - technical importance vs pricing power
 
-## 9. 下一步 3 个具体问题
-
-1. [具体到某个 KPI / source / 公司披露能回答]
-2. [具体到某个 driver-map 变量需要验证]
-3. [具体到某个 peer 或 cross-check 能验证]
 ```
 
 > Mermaid 示例——燃气轮机设备+服务链条（放在 fence 外做参考，agent 输出时用真实行业替换）：
@@ -178,18 +166,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-mechanism-map-<qualifier>.md
 
 如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径，不要自行创建一堆目录。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 机制已经讲清，需要拆收入 / margin / backlog driver | `driver-map` |
-| 机制影响 operating model、DCF、comps 或 workbook update | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 机制暴露高价值疑点但还不知道怎么问 | `next-step` |
-| 机制解释了 peer 差异或 KPI 不可比 | `peer-deep-dive` |
-| 两家公司是否受同一机制驱动 | `pair-trade` |
-| 技术 / 客户 / 供应链 claim 需要先验真 | `information-impact` |
-| 已经研究清楚，值得沉淀 | `research-journal` |
-| 机制形成 long / short variant view | `alpha-thesis` |
 
 ## 反模式自查
 

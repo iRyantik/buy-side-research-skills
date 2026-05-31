@@ -155,9 +155,7 @@ Mermaid 4-6 个节点，把主要环节标出来。不是公司列表——是�
 | 行业 / 主题的 priced-in、buy-side bar 或 consensus debate 不清 | `consensus-map` |
 | 某家公司 / segment / bucket 到 model driver 不清 | `driver-map` |
 
-## 10. 下一步 5 个具体问题
 
-1. [具体到某个 KPI / source / 文件 / 数据集能回答]
 ```
 
 > Mermaid 示例（放在 fence 外做参考，agent 输出时替换 §1 的 placeholder）：
@@ -181,31 +179,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-industry-quickread.md
 
 保存后的 `industry-quickread.md` 是 triage artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 行业 / 主题刚进入 radar，需要 first-pass | `industry-quickread` |
-| 行业机制、工程原理、设备链、工艺、术语不清 | `mechanism-map` |
-| 需要从行业逻辑找 long / short candidates | `candidate-screener` |
-| 已有一组 anchor companies，需要横向比较 | `peer-deep-dive` |
-| 单个公司值得快速判断 | `stock-quickread` |
-| 行业 / 主题 market expectations、priced-in assumptions 或 variant gap 不清 | `consensus-map` |
-| 公司业务基础、segment / KPI 演变不清 | `company-history` |
-| 公司 / segment / 产品线 / 披露 bucket 到 model driver 不清 | `driver-map` |
-| 行业判断已经形成 thesis 差异 | `alpha-thesis` |
-| 行业判断需要量化进模型 | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 行业 / 主题关键假设需要 expert call、channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
-| 形成可复用认知增量 | `research-journal` |
-
-推荐行业路径：
-
-```text
-new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
--> candidate-screener / peer-deep-dive -> stock-quickread
--> driver-map -> primary-research-plan
--> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
-```
 
 ## 反模式自查
 
@@ -222,7 +195,6 @@ new-session -> ingest -> industry-quickread -> consensus-map -> mechanism-map
 - 写 “长期受益 / 空间广阔 / 景气上行” 但没有 KPI。
 - 写 “priced in / not priced” 但没有估值、consensus、股价反应或 `[需查证]`。
 - 把卖方主题归类当作业务关联 source。
-- 没有给下一步 5 个具体问题，导致研究员不知道怎么继续。
 
 ## 篇幅基准
 

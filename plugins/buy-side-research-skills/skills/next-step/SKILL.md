@@ -23,16 +23,6 @@ Choose the highest-value next research question when a thread feels stuck or inc
 
 最好的 next step 通常很小，但杠杆很高：它不是“再多收集信息”，而是能验证一个关键机制、driver、source、peer 口径或 consensus framing 是否被误读。默认只给一个问题，因为问题太多会把研究员重新推回信息淹没。
 
-## AI 的局限
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **任务清单惯性** | AI 容易输出 5-10 个 generic next steps | 强制选 1 个最高杠杆问题，除非用户明确要 plan |
-| **把 interesting 当成 important** | 怪异点很多，但不一定改变投资判断 | 只保留能影响业务实质、driver、市场预期、peer framing 或研究优先级的问题 |
-| **机制 / driver gap 下硬推进** | 还没搞懂机制或 driver 就写 thesis、model、peer compare | 先触发 `mechanism-map` 或 `driver-map` |
-| **source gap 被忽略** | 把传闻、卖方转述或未验证 claim 当作研究起点 | 先触发 `information-impact` 或在问题中要求 source 验证 |
-| **问题太宽** | “研究一下行业”无法执行，也无法判断答案质量 | 问题必须指向一个可验证对象、口径或假设 |
-| **过度落盘** | 把未研究的灵感写进 journal，制造维护负担 | 本 skill 不默认创建文件；只有研究清楚后才交给 `research-journal` |
 
 ## 触发场景
 
@@ -51,22 +41,6 @@ Choose the highest-value next research question when a thread feels stuck or inc
 - "这段研究哪里不对劲"
 - "帮我回溯一下"
 - "帮我 audit 一下这个研究"
-- "这段结论最弱的地方在哪"
-
-### Mode C: Question Rewriter
-
-- "这个问题该怎么问"
-- "帮我改成可以问 AI 的问题"
-- "帮我把这个 vague idea 改尖"
-- "我要问 mechanism / driver / source，怎么问"
-
-### 不应触发
-
-- 用户要验证一条新闻、供应链 claim、卖方观点或截图真假 → `information-impact`。
-- 用户要解释行业机制、工程原理、设备链条、工艺流程或术语 → `mechanism-map`。
-- 用户要拆 revenue、margin、backlog、price / volume / mix、KPI 或披露口径 → `driver-map`。
-- 用户要写完整 long / short thesis → `alpha-thesis`，但若 driver 未拆清，先 `driver-map`。
-- 用户要沉淀已经研究清楚的认知 → `research-journal`。
 
 ## 输入澄清要求
 
@@ -211,21 +185,6 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 - [...]
 ```
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 高价值疑点是行业机制、工程原理、设备链条、工艺流程或术语 | `mechanism-map` |
-| 高价值疑点是 revenue / margin / backlog / price-volume-mix 或 KPI 口径 | `driver-map` |
-| 高价值疑点是公司业务基础、业务演变、segment / KPI rename 或 disclosure evolution | `company-history` |
-| 高价值疑点依赖一条 claim、新闻、供应链关系或卖方观点真假 | `information-impact` |
-| 高价值疑点需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
-| 下一步是横向比较多家公司，且需要比较机制或 KPI 可比性 | `peer-deep-dive` |
-| driver 已清楚，下一步要写 variant view、catalyst、kill criteria | `alpha-thesis` |
-| 要压测现有 thesis 的隐含假设 | `bear-pre-mortem` |
-| 下一步是财报前后需要看什么 | `earnings-setup` |
-| 已经形成清楚认知增量，值得沉淀 | `research-journal` |
-| 用户只是卡住，不知道怎么问 | 留在本 skill，输出 1 个问题 |
 
 ## 反模式自查
 
@@ -251,8 +210,6 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 ### Workflow 类
 - ❌ 用户要 next-step，却输出完整 research report。
 - ❌ 用户要 audit 研究卡点，却逐段润色文本。
-- ❌ primitive handoff 后又继续给普通 next-step，削弱阻塞判断。
-- ❌ 创建 standalone next-step 文件或恢复 v2 state tracker。
 
 ## 篇幅基准
 

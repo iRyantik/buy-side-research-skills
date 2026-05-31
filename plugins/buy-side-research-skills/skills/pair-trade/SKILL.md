@@ -420,20 +420,6 @@ flowchart TD
 
 ---
 
-## Workflow 联动
-
-| 场景 | 触发的下游 skill |
-|---|---|
-| Builder 发现高价值疑点 | `next-step`（提出 1-2 个最值得问 AI 的问题） |
-| Builder 完成且形成研究结论 | `research-journal`（沉淀 pair thesis / spread insight） |
-| Monitor 发现 thesis 失效 | `bear-pre-mortem`（重审 pair） |
-| 来自其他 skill 的 pair 候选 | `peer-deep-dive` 的 Long X / Short Y 建议接入 Builder |
-| 跨市场 pair / hedge | `cross-market-compare` 输出 hedge idea 后接入 Builder |
-| Earnings 后调整 | `earnings-setup` post-print read-through 触发 Monitor |
-| 两腿是否受同一工程机制 / 设备链条驱动不清楚 | `mechanism-map`（比较 mechanism / value-capture 是否同源） |
-| 两腿 driver 是否同源不清楚 | `driver-map`（比较 revenue / margin / backlog driver，判断是真 pair 还是主题相似） |
-
----
 
 ## 反模式自查
 
@@ -455,30 +441,6 @@ flowchart TD
 **Spread 量化**
 - ❌ "估值有差距" → 没给 z-score / percentile。
 - ❌ Spread 在 mean 附近（z < ±0.5σ）仍建议建仓 → entry 不 attractive。
-- ❌ Spread 在 ±3σ 极端但没考虑 regime change → 可能 spread 不会回归。
-
-**Sizing**
-- ❌ Dollar-neutral 但两腿 beta 差异 > 0.3 → 没 hedge macro。
-- ❌ 单 pair > 5% portfolio → sizing 过大。
-- ❌ 没考虑 borrow cost → 可能侵蚀全部预期回报。
-
-**风险 / 失败 mode**
-- ❌ 风险只列两三条 → pair 失败 mode 很多，没认真想。
-- ❌ 每条风险无 mitigation → 等于知道但不行动。
-
-**Source / 反幻觉**
-- ❌ Spread 数字无 as-of 时间戳。
-- ❌ Beta / correlation 无具体计算窗口。
-- ❌ Long thesis 和 short thesis 用了不同 cutoff 数据。
-- ❌ Borrow rate 无 source。
-
-Monitor 必须自检：
-- ❌ P/L 没拆解到 long / short / spread / carry → 看不出 alpha 来源。
-- ❌ Thesis health 默认 "still valid" 没具体复查 → 装作 thesis 不变。
-- ❌ Action 是 "monitor" 但没说下次 review 触发条件 → 没具体下一步。
-- ❌ Pair 失效可能来自 driver divergence，但没有回到 `driver-map` 复查两腿 driver。
-
----
 
 ## 篇幅基准
 

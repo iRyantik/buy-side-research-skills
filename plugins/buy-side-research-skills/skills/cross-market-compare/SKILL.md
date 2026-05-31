@@ -252,16 +252,6 @@ flowchart LR
 
 若 pair 逻辑成立，handoff 到 `pair-trade`；否则只作为 cross-market observation。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 跨市场价差暴露研究问题 | `next-step` |
-| 差异来自 business / peer mismatch | `peer-deep-dive` |
-| 差异来自 revenue / margin / backlog driver 不同 | `driver-map` |
-| 价差可形成 hedge / pair 候选 | `pair-trade` |
-| 估值差改变单票 thesis | `alpha-thesis` |
-| 研究后形成认知增量 | `research-journal` |
 
 ## Artifact / 保存策略
 

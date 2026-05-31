@@ -40,16 +40,6 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 - "为什么披露口径断了"
 - "这家公司 rename / recast 后怎么对齐"
 - "把 segment / KPI 历史口径梳理一下"
-- "这个 disclosure map 会不会影响后续 driver"
-
-### 不应触发
-
-- 用户要快速判断值不值得看 -> `stock-quickread`。
-- 用户要拆 revenue、margin、backlog、price-volume-mix 或 model driver -> `driver-map`。
-- 用户要解释工艺、工程原理、设备链条 -> `mechanism-map`。
-- 用户要写 thesis -> `alpha-thesis`。
-- 用户要横向比较多家公司 -> `peer-deep-dive`。
-- 用户只是了解公司现在卖什么 -> `driver-map` 的 Step 1 已覆盖。
 
 ## 输入澄清要求
 
@@ -154,19 +144,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history.md
 
 如果当前没有 dated result path，先 handoff 到 `new-session` 创建 / 解析路径。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| history audit 发现业务演变或披露断点仍不清 | 继续留在 `company-history` |
-| 产品、工艺、设备链条、工程原理或 know-how 不清 | `mechanism-map` |
-| revenue / margin / backlog / price-volume-mix driver 不清 | `driver-map` |
-| segment / KPI 口径断裂影响 model driver | 先 `driver-map`，再回到 thesis / model |
-| source 冲突或关键 claim 未验证 | `information-impact` |
-| 需要快速判断是否值得继续研究 | `stock-quickread` |
-| 基础已清楚，要形成 long / short 观点 | `alpha-thesis` |
-| 多家公司业务边界或 KPI 要横向比较 | `peer-deep-dive` |
-| history audit 形成已研究清楚的认知增量 | `research-journal` |
 
 ## 反模式自查
 
@@ -190,14 +167,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-company-history.md
 - ❌ 把 discontinued ops、spin-off、divestiture 前后的数据连成连续趋势。
 - ❌ 把 acquired revenue 当成 organic growth。
 - ❌ 把 reported segment 名称直接当成 business reality。
-- ❌ 把 disclosure gap 当成 driver conclusion，在 primer 里硬拆 model driver。
-
-### Workflow 类
-- ❌ 用户要 quick triage，却输出完整 primer。
-- ❌ 用户要 driver-map，却先写长篇公司背景。
-- ❌ 发现 engineering / know-how gap 但不触发 `mechanism-map`。
-- ❌ 发现 source conflict 但不触发 `information-impact`。
-- ❌ 把未研究清楚的 history audit 草稿直接写进 `research-journal`。
 
 ## 篇幅基准
 

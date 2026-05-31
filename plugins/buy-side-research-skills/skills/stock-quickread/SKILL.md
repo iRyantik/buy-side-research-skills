@@ -299,19 +299,6 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 **§6 反向工程**
 - ❌ 只写了"贵 / 便宜"，没做反向工程——必须重写
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| quickread 判断这家公司值得继续研究，且需要形成 long / short 观点 | `alpha-thesis` |
-| 需要系统拆 sell-side consensus、buy-side bar、priced-in assumptions 或 variant-view gap | `consensus-map` |
-| 公司基础、业务演变、segment / KPI 历史口径或 material M&A / divestiture 影响当前理解 | `company-history` |
-| 收入结构复杂、segment bucket 怪、model driver 不清楚 | `driver-map` |
-| 业务机制、设备链条、工艺流程或术语不清 | `mechanism-map` |
-| 需要和一组 peer 横向比较 | `peer-deep-dive` |
-| 需要把估值隐含假设量化成 model / reverse DCF | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 只是不知道下一层问题怎么问 | `next-step` |
-| 已经形成可复用认知增量 | `research-journal` |
 
 ## 保存
 

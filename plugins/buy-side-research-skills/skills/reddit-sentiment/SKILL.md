@@ -242,17 +242,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-reddit-sentiment.md
 
 如果同日同 topic 已存在，保留历史并追加最低可用序号，例如 `2026-05-22-reddit-sentiment-2.md`。
 
-## Workflow 联动
-
-| 发现 | 下一步 |
-|---|---|
-| Reddit claim 可能是事实错误或供应链传闻 | `information-impact` |
-| Reddit 叙事和 market expectations 可能错位 | `consensus-map` |
-| 财报前 Reddit 关注点影响 print setup | `earnings-setup` |
-| 反复争论某个 KPI / driver | `driver-map` |
-| 情绪揭示 thesis 起点 | `alpha-thesis` |
-| 需要压测 popular bull case | `bear-pre-mortem` |
-| 形成可复用认知增量 | `research-journal` |
 
 ## 反模式自查
 

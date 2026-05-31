@@ -149,9 +149,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Mechanism / value-capture premise unclear | `mechanism-map` |
 | Need field checks / channel work | `primary-research-plan` |
 
-## 9. 下一步 5 个具体问题
 
-1. [具体到 metric / provider / filing / dataset / call transcript 能回答]
 ```
 
 > Mermaid 预期瀑布图示例（放在 fence 外做参考，agent 输出时替换 §2 的 placeholder）：
@@ -220,39 +218,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-consensus-map.md
 
 保存后的 `consensus-map.md` 是 foundation artifact，不是 earned memory。只有研究清楚、source-backed、会改变判断的认知增量，才进入 `research-journal`。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 公司或行业 first-pass 只给了 consensus clue，需要系统摊开预期 | `consensus-map` |
-| 需要快速判断陌生公司是否值得看 | `stock-quickread` |
-| 需要快速判断行业 / 主题是否值得看 | `industry-quickread` |
-| consensus gap 已清楚且 driver 已拆清 | `alpha-thesis` |
-| market-implied assumptions 需要模型量化 | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| print-specific bar、implied move 或 post-print read-through 是核心问题 | `earnings-setup` |
-| company / segment / disclosed KPI 到 model driver 不清 | `driver-map` |
-| 行业机制、工程原理、设备链、工艺或 value-capture 机制不清 | `mechanism-map` |
-| 需要专家访谈、客户 / 供应链验证或渠道检查 | `primary-research-plan` |
-| 形成可复用认知增量 | `research-journal` |
-
-推荐单股路径：
-
-```text
-new-session -> ingest -> stock-quickread -> consensus-map
--> company-history / mechanism-map / driver-map
--> primary-research-plan / peer-deep-dive
--> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update -> research-journal
-```
-
-推荐行业 / 主题路径：
-
-```text
-new-session -> ingest -> industry-quickread -> consensus-map
--> mechanism-map / candidate-screener / peer-deep-dive
--> stock-quickread -> driver-map -> primary-research-plan
--> alpha-thesis / 3-statement-model / dcf-model / comps-analysis / model-update
--> research-journal
-```
 
 ## 反模式自查
 

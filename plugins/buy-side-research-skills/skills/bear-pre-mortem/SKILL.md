@@ -162,15 +162,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ 用了管理层减持 / 内部人交易作为论据但无 Form 4 / 披露 source → 补
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
 
-## Workflow 联动
-
-写完空头压力测试后，对原 multi-thesis 做以下处理：
-
-1. **空头点你之前完全没想过 → 必须停下，回去重审 thesis**。说明研究有 blind spot。
-2. **空头点你想过但低估了 → 调整 sizing，或者把对应的观察点写进 kill criteria**
-3. **所有空头点都已经在原 thesis 里 framed，且你有具体回应 → conviction 是真的，可以推进**
-
-如果最强反方攻击的是收入、margin、backlog、price / volume / mix driver，而原 thesis 没有清楚拆 driver，先触发 `driver-map`。优先攻击 `driver-map` 中 confidence 低、source 弱、披露缺口大的 driver，不要只写宏观或估值风险。
 
 ## 可选保存
 

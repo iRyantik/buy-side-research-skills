@@ -356,18 +356,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 
 这个文件是 candidate funnel 的留痕，不是最终 thesis；后续 `stock-quickread`、`peer-deep-dive`、`research-journal`、`next-step` 可以读取其中的 recommended candidates、mechanism、source map 和 rejected names。
 
-## Workflow 联动
-
-| 场景 | 触发的下游 skill |
-|---|---|
-| 推荐 1-2 家 deep research | `stock-quickread` |
-| 推荐 3-8 家批量研究 | `peer-deep-dive` |
-| Hypothesis 跨市场（如"中国 vs 美国 类似 names"） | `cross-market-compare` |
-| 推荐 candidate 的受益机制依赖复杂工程原理 / 设备链条 / know-how | `mechanism-map` |
-| 推荐 candidate 的受益机制依赖复杂 revenue / margin driver | `driver-map` |
-| 推荐结果暴露 hypothesis 弱点 | 重新评估 hypothesis 或触发 `bear-pre-mortem` 反向思考 |
-| 筛选暴露高价值怪异点 | `next-step` |
-| 筛选完成后需要沉淀 | `research-journal` |
 
 ## 反模式自查
 
@@ -388,24 +376,6 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-candidate-screener.md
 - ❌ Hypothesis 太 vague 但 AI 没主动澄清就开始 list → 应该 push back
 - ❌ Candidate 的受益机制依赖复杂工程原理 / 设备链条，却没有建议 `mechanism-map` 先讲清楚机制
 - ❌ Candidate 的受益机制依赖复杂 revenue / margin driver，却没有建议 `driver-map` 验证量级
-
-**LS 双向**
-- ❌ 方向 = both 但 short candidates 缺失或硬凑 → 真没就明说"无明显 short"
-- ❌ Short candidates 不评估 priced-in → 多数明显 short 已 priced
-- ❌ Long / short basket 的 priced-in 评估不对称 → 双向都要做
-
-**Priced-in / 估值数据**
-- ❌ Priced-in 评估全部默认 "Partial" → 偷懒
-- ❌ 估值数据无 as-of → AI 数据可能 stale
-- ❌ 没说明数据 source（Bloomberg / 自算） → 无法 verify
-
-**Universe / Caveat**
-- ❌ 输出末尾没 "AI 候选 ≠ 全市场" caveat → 用户可能误以为这是 universe screen
-- ❌ 没主动问"我漏了哪些 names" → 错失研究员补充机会
-
-**漏斗收口**
-- ❌ 推荐 deep research > 3 家 → 漏斗没收口，研究员还是 overwhelmed
-- ❌ 推荐 0 家（"没有合适的"）但也没解释为什么 → 应该说明 hypothesis 本身的问题
 
 ## 篇幅基准
 

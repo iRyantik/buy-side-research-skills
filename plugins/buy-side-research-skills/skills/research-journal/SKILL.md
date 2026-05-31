@@ -23,16 +23,6 @@ Summarize completed research into durable topic notes and boss brief outputs.
 
 Journal 的写法要像一个认真研究员给未来自己的笔记：结论先行、source 清楚、保留争议和未解决问题，但不复述聊天过程。Boss Brief 则是给 PM / boss 的高密度 transfer，不是 journal 的简略版，而是把最重要的判断压缩成可讨论的 memo。
 
-## AI 的局限
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **transcript 压缩惯性** | AI 容易把对话顺序复述成 journal | 强制按研究问题和结论重组，不按聊天顺序写 |
-| **灵感仓库化** | 未研究的怪异点被写成 journal，未来维护成本上升 | 先过 `Earned Insight Gate`，不达标就 handoff |
-| **source 遗失** | 总结时丢掉 source / as-of，未来无法复查 | 关键事实必须保留 source / as-of |
-| **把 guess 写成 fact** | driver / mechanism 推断被沉淀成确定结论 | 强制区分 settled insight、working hypothesis、open question |
-| **Boss Brief 变摘要** | 给 PM 的版本只变短，没保留判断密度 | Boss Brief 必须保留核心结论、关键数据、debate 和 implication |
-| **index 变状态库** | topic index 被写成 checklist / tracker | 只维护自然演进地图，不恢复 v2 state system |
 
 ## 触发场景
 
@@ -51,24 +41,6 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 - "做一版给老板看的"
 - "给 PM 的版本"
 - "boss brief"
-- "发给别人看的研究结论"
-- "把这轮研究压成 memo"
-
-### Mode C: Topic Index Update
-
-- "更新 topic index"
-- "把这次 session 加到 index"
-- "整理这个 topic 的演进地图"
-- "把已经研究过的问题串起来"
-
-### 不应触发
-
-- 用户只是问下一步怎么研究 → `next-step`。
-- 用户只有一个未验证 claim、新闻、截图或卖方观点 → `information-impact`。
-- 用户机制、工程原理、设备链条还没搞懂 → `mechanism-map`。
-- 用户公司基础、业务演变、segment / KPI 历史口径还没搞清 → `company-history`。
-- 用户 revenue / margin / backlog / KPI 口径还没拆清 → `driver-map`。
-- 用户要写完整 thesis / pair / model → 对应 `alpha-thesis`、`pair-trade`、`3-statement-model / dcf-model / comps-analysis / model-update`。
 
 ## 输入澄清要求
 
@@ -282,21 +254,6 @@ topics/[topic-namespace]/[topic-slug]/index.md
 - [...]
 ```
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 研究只发现了疑点，还没形成问题 | `next-step` |
-| source / claim 未验证 | `information-impact` |
-| 公司基础、业务演变、segment / KPI disclosure evolution 未搞清 | `company-history` |
-| 机制、工程原理、设备链条或术语未搞清 | `mechanism-map` |
-| revenue / margin / backlog / KPI / disclosure driver 未搞清 | `driver-map` |
-| Journal 暴露出可写成 thesis 的 variant view | `alpha-thesis` |
-| Journal 暴露出 thesis 关键反方风险 | `bear-pre-mortem` |
-| Journal 需要横向比较 peer 或重排研究优先级 | `peer-deep-dive` |
-| Journal 需要量化到 model / valuation | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 已有完整研究，需要给 PM / boss transfer | Boss Brief mode |
-| 需要把本次 session 放进 topic 演进地图 | Topic Index Update mode |
 
 ## 反模式自查
 
@@ -322,10 +279,6 @@ topics/[topic-namespace]/[topic-slug]/index.md
 
 ### Index / Workflow 类
 - ❌ `index.md` 变成任务 checklist、coverage tracker、decision-journal 或 thesis-tracker。
-- ❌ 补历史 topic index，超出本次 session 增量。
-- ❌ 写入新文件却不更新 session link。
-- ❌ 未过 Gate 的内容仍然写入，只在末尾标“待验证”。
-- ❌ 恢复 v2 state files、standalone next-step、portfolio tracker 或 pair spread-log。
 
 ## 篇幅基准
 

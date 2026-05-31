@@ -359,16 +359,6 @@ quadrantChart
     "Company E": [0.60, 0.25]
 ```
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| peer group 机制、value-capture 或 KPI 口径不可比 | 先 `mechanism-map` 或 `driver-map`，再回到本 skill |
-| 横向比较暴露单一公司的 variant view | `alpha-thesis` |
-| 横向比较暴露 long / short cluster 或 hedge candidate | `pair-trade` |
-| 需要把 peer 差异量化进 operating model 或 valuation | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 已经形成可复用行业 lens、peer map 或研究排序 | `research-journal` |
-| 仍不知道下一轮最值得追哪个问题 | `next-step` |
 
 ## Artifact / 保存策略
 

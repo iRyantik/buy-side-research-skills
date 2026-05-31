@@ -205,11 +205,6 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 **Source 专项**
 - ❌ Variant view 引用 consensus 数字但无 source → 标记或补。
 - ❌ Catalyst 提到的事件（财报、监管会议、investor day）无具体日期 source → 补。
-- ❌ Kill criteria 引用了"当前 X 是 Y"但 Y 没有 source → 补。
-- ❌ Bull/Bear 假设引用了类比案例（"上次类似情况股票跌 30%"）但无 source → 补。
-- ❌ 出现具体数字 / 引语但无 source link → 标记 `[需查证]` 或删。
-- ❌ Source 是"据报道""有传言""有人说" → 不是 source，找出处或删。
-- ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装。
 
 ## 篇幅基准
 
@@ -230,14 +225,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-alpha-thesis.md
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Research Runtime Capsule` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
-
-## Workflow 联动
-
-- 在 `stock-quickread` 之后用——quickread 帮你判断这家公司值不值得花时间，alpha-thesis 是真正建立单股观点。
-- 如果 sell-side consensus、buy-side bar、priced-in assumptions 或 variant-view gap 还没有拆清，先用 `consensus-map`，不要在 thesis 里临时补一张粗糙预期表。
-- 如果 variant view、scenario 或 kill criteria 依赖某个 revenue / margin driver，但该 driver 尚未拆清楚，先触发 `driver-map`，再继续写 thesis。
-- 如果关键假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证，先用 `primary-research-plan` 设计合规验证计划；不要把未执行访谈写成 evidence。
-- 写完之后用 `bear-pre-mortem` 做空头压力测试。
-- 第 8 节的假设清单是 `earnings-setup` 中 thesis 假设核对的输入。
-- 如果用户要求 Long X + Short Y、hedge candidate、pair monitor，改用 `pair-trade`。
-- 若本轮研究已经形成可复用认知增量，后续用 `research-journal` 沉淀；若仍有高价值疑点，用 `next-step` 生成下一轮研究问题。

@@ -52,15 +52,6 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 - "price / volume / mix 哪个在驱动"
 - "这个业务口径是不是有点怪"
 
-### 不应触发
-
-- "帮我搭 model / 做 DCF / comps" → `3-statement-model / dcf-model / comps-analysis / model-update`，但它应消费或先产出 driver-map。
-- "这家公司到底做什么 / 业务怎么演变 / segment 或 KPI 历史口径怎么变" → `company-history`，先对齐披露口径。
-- "这个设备链条 / 工艺流程怎么连接" → `mechanism-map`，先搞清机制再拆 driver。
-- "快速看一家公司值不值得研究" → `stock-quickread`，若 driver 不清再进入本 skill。
-- "几家公司一起看、排序" → `peer-deep-dive`，若 KPI 口径不可比再引用本 skill。
-- "写 long / short thesis" → `alpha-thesis`，若 thesis 依赖未拆清的 driver 再回到本 skill。
-
 ## 输入澄清要求
 
 | 维度 | 含义 | 默认假设 |
@@ -179,11 +170,6 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 - [这个 driver map 会如何改变 model / thesis / peer compare]
 
-## 7. 下一步 3 个具体问题
-
-1. [具体到某个 driver / source / 公司披露能回答]
-2. [具体到某个 model / thesis 变量需要验证]
-3. [具体到哪个 peer 或 cross-check 能验证]
 ```
 
 ## 可选保存
@@ -203,20 +189,6 @@ topics/company/<company-slug>/_cache/driver-map/
 
 如果当前没有 company topic，先 handoff 到 `new-session` 创建 / 解析路径，不要自行发明大量目录。theme / industry / pair topic 只链接或摘要 company cache，不保存第二套 canonical company driver-map。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| 用户要继续搭 operating model / DCF / comps | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| driver work 发现 segment rename、KPI recast 或 material M&A 历史不清 | `company-history` |
-| driver map 暴露 variant view | `alpha-thesis` |
-| driver 假设需要 expert call、customer / supplier channel check、survey 或 fieldwork 验证 | `primary-research-plan` |
-| 多家公司 driver 需要横向比较 | `peer-deep-dive` |
-| 两家公司是否受同一 driver 驱动 | `pair-trade` |
-| driver 质量低或 bucket 怪，需要更好问题 | `next-step` |
-| 已经研究清楚，想沉淀认知 | `research-journal` |
-| 供应链 / 客户 claim 影响收入 driver | 先 `information-impact`，再回到本 skill |
-| 业务 bucket 背后涉及工程机制 / 设备链条 / know-how gap | 先 `mechanism-map`，再回到本 skill |
 
 ## 反模式自查
 

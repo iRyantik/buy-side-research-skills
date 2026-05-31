@@ -212,10 +212,3 @@ topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-earnings-setup.md
 本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；print-specific setup / read-through 仍视为一篇完整 dated deliverable，而不是默认拆成 qualifier 卡片。
 
 如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
-
-## Workflow 联动
-
-- 输入来自 `alpha-thesis`（第 4 节 catalyst、第 8 节假设清单）
-- 输出反过来更新 `alpha-thesis`（thesis 是否还成立，假设是否需要修订）
-- 如果 post-print 显示 thesis 严重削弱，触发回到 `bear-pre-mortem` 重新压测
-- 如果 post-print 暴露高价值疑点，触发 `next-step`；如果已经形成认知增量，触发 `research-journal`；如果暴露机制 / know-how gap，先触发 `mechanism-map`；如果数字改变 model driver，先触发 `driver-map`，再按需要触发 `3-statement-model / dcf-model / comps-analysis / model-update`。

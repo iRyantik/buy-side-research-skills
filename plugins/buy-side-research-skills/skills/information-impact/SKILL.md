@@ -28,18 +28,6 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 **最重要的纪律**：`product can be used`、`theme association`、`tier-2 supplier` 不能写成 `direct supplier`。
 
-## AI 的局限（必读，前置警告）
-
-这个 skill 很容易在供应链和新闻标题上出错：
-
-| 局限 | 影响 | Mitigation |
-|---|---|---|
-| **标题党误导** | 标题把弱 claim 写成强事实 | 必须追原文，不用标题做 evidence |
-| **供应链关系幻觉** | AI 会把"产品可用"写成"已供货" | 强制区分 direct / tier-2 / product can be used / theme association |
-| **卖方转述污染** | 卖方把 market rumor 写成行业观点 | 把 sell-side 观点和 fact 分开 |
-| **时间点错配** | 老合同 / 老客户被误当成最新关系 | 所有关系写 timeframe / as-of |
-| **低质量 source 放大** | 社媒截图被反复转载，看起来像多 source | 判断 source 原始性，不按转发数量加权 |
-| **宏观数据过度外推** | 单个数据点被写成趋势 | 数据点只说明它能说明的范围 |
 
 ## 触发场景
 
@@ -56,15 +44,6 @@ Check whether a news claim rumor note or data point is credible and research-rel
 - "这条新闻值得继续看吗"
 - "这件事对研究有什么增量"
 - "这个数据点下一步该问什么"
-- "某卖方报告哪些点需要验证"
-- "刚出的行业 / 宏观数据值得继续看什么"
-
-### Batch Mode 触发
-- "今天早报过一遍"
-- "这几条新闻帮我筛一下"
-- "把这些信息按可信度和研究价值过一下"
-
-不要用于深度 thesis、建模、财报 setup、peer 横向比较或研究总结。若信息已经变成一个值得深挖的问题，交给 `next-step`；若研究后形成认知增量，交给 `research-journal`。
 
 ## 输入澄清要求（必填 6 维度）
 
@@ -193,18 +172,6 @@ Action 只能是：
 
 `Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。
 
-## Workflow 联动
-
-| 场景 | 下一步 |
-|---|---|
-| Claim 本身不可信 | Drop |
-| Claim 可信但没有研究增量 | 结束，不强行扩展 |
-| Claim 暴露高价值疑点 | `next-step` |
-| Claim 需要建模验证影响量级 | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| Claim 可信且可能改变收入 / margin / backlog driver | `driver-map` |
-| Claim 可信但首先需要理解技术链条、设备关系或行业机制 | `mechanism-map` |
-| Claim 涉及一组潜在受益 / 受损公司 | `candidate-screener` |
-| Claim 研究后形成认知增量 | `research-journal` |
 
 ## 反模式自查
 
