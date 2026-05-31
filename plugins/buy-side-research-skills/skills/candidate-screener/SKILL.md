@@ -15,6 +15,8 @@ Turn a theme, event, or screen into a sourced long/short candidate funnel with t
 - Market-snapshot fields default to `topic-local evidence cache / financial-data` then trusted third-party then web fallback. A-share / HK / US screening that needs market_quote, valuation_snapshot, or market_screen may call `trusted-market-bridge` first; bridge misses fall back to web. Borrow, bid-ask, accounting basis, and share-class truth stay at `[需查证]` without high-quality source.
 - Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, tiers, and ranks.
 
+**三表数据前置（按需调用）：** priced-in 评估和估值锚需要 market_data——主 agent 先从 actuals-resolved.json 取市场数据；如需为未覆盖 ticker 拉数据，委托 subagent 执行 /financial-data --lite <ticker>。
+
 把 hypothesis 转化成具体的可投资 candidate basket。LS 默认 long + short 双向。**核心价值不是列 ticker**——Bloomberg screener 比 AI 更准。AI 的差异化价值在于：
 
 1. 把 vague hypothesis 拆解成具体 mechanism（hypothesis 工程化）
