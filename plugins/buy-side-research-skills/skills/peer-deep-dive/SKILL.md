@@ -10,7 +10,7 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 ## Research Runtime Capsule
 
 
-**三表数据前置：** peer set / pair 中每个标的必须先有 financial-data。缺少的标的 → 先执行 /financial-data --lite <ticker>
+**三表数据前置（由 subagent 并行执行）：** peer set 中每个标的必须先有 financial-data——1. subagent 检查 topics/company/<slug>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。N 家可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
