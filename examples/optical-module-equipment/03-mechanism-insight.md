@@ -70,3 +70,8 @@
 ---
 
 📄 **完整产出**: [2026-06-01-mechanism-insight-coupling.md](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-mechanism-insight-coupling.md)
+
+📄 **完整产出**:
+- [耦合设备竞争格局](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-mechanism-insight-coupling.md)
+- [固晶设备竞争格局](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-mechanism-insight-die-bonder.md)
+- [非核心设备(Burn-in/终测/键合)](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-mechanism-insight-non-core.md)

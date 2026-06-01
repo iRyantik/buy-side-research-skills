@@ -78,3 +78,5 @@ teach-in → industry-landscape → mechanism-insight → candidate-screener →
 ```
 
 3 个在 foundation、1 个在 deep-work、1 个在 supporting。**关键是：AI 做了数据收集和初稿，研究员做了判断和验证。**
+
+> ⚠️ scenario-model 是本 session 中设计的新 skill，未实际运行过。上面的测算摘录来自对话中的手动推算。安装 v5.0.0 后，`/scenario-model` 可自动执行两 Phase 流程。
