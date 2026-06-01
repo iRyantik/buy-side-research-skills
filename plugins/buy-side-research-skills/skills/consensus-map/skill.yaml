@@ -55,7 +55,7 @@ capabilities:
     - 'model-update'
     - 'earnings-setup'
     - 'driver-map'
-    - 'mechanism-map'
+    - 'mechanism-insight'
     - 'primary-research-plan'
     - 'research-journal'
   requirements:
@@ -81,7 +81,7 @@ workflow:
     - 'new-session'
     - 'ingest'
     - 'stock-quickread'
-    - 'industry-quickread'
+    - 'industry-landscape'
     - 'peer-deep-dive'
     - 'next-step'
   feeds_into:
@@ -92,7 +92,7 @@ workflow:
     - 'model-update'
     - 'earnings-setup'
     - 'driver-map'
-    - 'mechanism-map'
+    - 'mechanism-insight'
     - 'primary-research-plan'
     - 'research-journal'
   decision_point: '市场、卖方和买方当前到底相信什么，以及是否存在足够清晰的 variant-view gap 进入 thesis、model、earnings setup 或 primary research'

@@ -40,8 +40,7 @@ SCHEMA_RUNTIME_CONTRACT = _load_schema_runtime_contract()
 COMPANY_SKILLS = {
     "stock-quickread", "company-history", "driver-map",
     "alpha-thesis", "consensus-map", "earnings-setup",
-    "bear-pre-mortem", "comps-analysis", "peer-deep-dive", "cross-market-compare",
-}
+    "bear-pre-mortem", "comps-analysis", "peer-deep-dive",}
 
 SLUG_RE = re.compile(
     r'^\d{4}-\d{2}-\d{2}-(?:' +

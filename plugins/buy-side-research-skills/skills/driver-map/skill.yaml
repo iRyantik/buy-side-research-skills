@@ -12,7 +12,7 @@ summary: 'Decompose revenue margin backlog price volume mix and segment drivers 
 description: 'Decompose revenue margin backlog price volume mix and segment drivers before modeling.'
 tags:
   - 'driver-map'
-  - 'mechanism-map'
+  - 'mechanism-insight'
   - 'revenue-driver'
   - 'margin-driver'
   - 'segment-drivers'
@@ -70,7 +70,7 @@ artifact_policy:
 workflow:
   stage: 'research-primitive'
   can_follow:
-    - 'mechanism-map'
+    - 'mechanism-insight'
     - 'company-history'
     - 'stock-quickread'
     - 'information-impact'

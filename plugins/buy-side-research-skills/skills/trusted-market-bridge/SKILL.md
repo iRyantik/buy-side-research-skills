@@ -250,14 +250,14 @@ Downstream consumers may use `market_screen` to narrow the funnel or explain why
 | Need pre/post earnings setup | `earnings-setup` + this bridge |
 | Need peer market context | `peer-deep-dive` + this bridge |
 | Need pair spread monitoring | `pair-trade` + this bridge |
-| Need cross-market FX and premium context | `cross-market-compare` + this bridge |
+
 | Need quick market and consensus context on a new name | `stock-quickread` + this bridge |
 | Need candidate generation or anomaly-aware prioritization | `candidate-screener` + this bridge |
 | Need thesis market-pricing inputs | `alpha-thesis` + this bridge |
 | Need downside valuation and crowding context | `bear-pre-mortem` + this bridge |
-| Need industry market clues without full screening | `industry-quickread` + this bridge |
+| Need industry market clues without full screening | `industry-landscape` + this bridge |
 | Need source-tracked actuals | `financial-data` |
-| Need business/segment truth | `company-history` / `driver-map` / `mechanism-map` |
+| Need business/segment truth | `company-history` / `driver-map` / `mechanism-insight` |
 
 ## Failure Discipline
 

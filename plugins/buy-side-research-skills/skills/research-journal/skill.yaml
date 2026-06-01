@@ -46,7 +46,7 @@ capabilities:
     - 'preserve solved research insight, not raw reminders'
     - 'apply Earned Insight Gate before writing'
     - 'do not record unresolved mechanism or driver guesses as settled facts'
-    - 'route unresolved mechanism gaps to mechanism-map'
+    - 'route unresolved mechanism gaps to mechanism-insight'
     - 'route unresolved driver and KPI gaps to driver-map'
     - 'route unresolved source or claim gaps to information-impact'
     - 'route unresolved company foundation or disclosure evolution gaps to company-history'

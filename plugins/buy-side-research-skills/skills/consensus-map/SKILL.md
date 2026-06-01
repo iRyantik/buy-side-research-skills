@@ -27,7 +27,7 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：可见的 sell-side consensus、不可见但可推断的 buy-side bar、以及价格 / 估值 / 仓位已经隐含的 assumptions。三者不一致时，机会或风险通常就在缝里。
 
-本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-quickread` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
+本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-landscape` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
 
 ## 触发场景
 
@@ -42,7 +42,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 不要用于：
 - 只是陌生公司 first-pass：先用 `stock-quickread`。
-- 只是陌生行业 / 主题 first-pass：先用 `industry-quickread`。
+- 只是陌生行业 / 主题 first-pass：先用 `industry-landscape`。
 - 要写完整 long / short thesis、catalyst、kill criteria：用 `alpha-thesis`。
 - 要做财报前后 print bar、implied move、beat / miss setup：用 `earnings-setup`。
 - 要量化 reverse DCF、三表、comps、scenario valuation：用 `3-statement-model / dcf-model / comps-analysis / model-update`。
@@ -148,7 +148,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Price-implied assumptions need quantification | `3-statement-model / dcf-model / comps-analysis / model-update` |
 | Next print bar / implied move matters | `earnings-setup` |
 | Revenue / margin / KPI mapping unclear | `driver-map` |
-| Mechanism / value-capture premise unclear | `mechanism-map` |
+| Mechanism / value-capture premise unclear | `mechanism-insight` |
 | Need field checks / channel work | `primary-research-plan` |
 
 

@@ -39,7 +39,7 @@ hooks:
     file: provider/cross_market_parity.ps1
     layer: provider
     events: [PostToolUse, Stop]
-    scope: [cross-market-compare]
+    scope: []
     severity: warn
   - name: social_clue_only
     file: provider/social_clue_only.ps1
@@ -51,13 +51,13 @@ hooks:
     file: provider/disclosure_fact_source_boundary.ps1
     layer: provider
     events: [PostToolUse, Stop]
-    scope: [company-history, mechanism-map, driver-map, primary-research-plan, information-impact]
+    scope: [company-history, mechanism-insight, driver-map, primary-research-plan, information-impact]
     severity: block
   - name: market_snapshot_source_boundary
     file: provider/market_snapshot_source_boundary.ps1
     layer: provider
     events: [PostToolUse, Stop]
-    scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, alpha-thesis, bear-pre-mortem, peer-deep-dive, industry-quickread, cross-market-compare, candidate-screener, information-impact]
+    scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, alpha-thesis, bear-pre-mortem, peer-deep-dive, industry-landscape, candidate-screener, information-impact]
     severity: block
   - name: model_statement_presence
     file: modeling/model_statement_presence.ps1

@@ -15,7 +15,7 @@ Create memo-ready and screenshot-ready HTML research visualizations paired with 
 
 ## 定位
 
-`research-viz` 是 **supporting visualization skill**，不是主 research flow skill。它服务 `stock-quickread`、`mechanism-map`、`peer-deep-dive`、`alpha-thesis`、`research-journal` 等研究产物的可视化后处理，让已有研究更容易被 PM / IC 快速读懂。
+`research-viz` 是 **supporting visualization skill**，不是主 research flow skill。它服务 `stock-quickread`、`mechanism-insight`、`peer-deep-dive`、`alpha-thesis`、`research-journal` 等研究产物的可视化后处理，让已有研究更容易被 PM / IC 快速读懂。
 
 它可以把：
 
@@ -58,7 +58,7 @@ Create memo-ready and screenshot-ready HTML research visualizations paired with 
 当用户已经有研究产物或明确研究问题，并且想：
 
 - “把这篇研究文做成图”
-- “把 mechanism-map 配一张系统图 / capability map”
+- “把 mechanism-insight 配一张系统图 / capability map”
 - “把 peer compare 变成可贴 memo 的 chart”
 - “把 DCF / SOTP / sensitivity 结果可视化”
 - “把 price action、催化剂、估值 band 或 consensus 变化画出来”
@@ -80,16 +80,16 @@ Create memo-ready and screenshot-ready HTML research visualizations paired with 
 例如：
 
 ```text
-2026-05-25-mechanism-map-korea-vs-global-system-dossier.md
-2026-05-25-mechanism-map-korea-vs-global-system-dossier.html
+2026-05-25-mechanism-insight-korea-vs-global-system-dossier.md
+2026-05-25-mechanism-insight-korea-vs-global-system-dossier.html
 ```
 
 如果同一篇基准研究需要多张不同图，用最小 qualifier 追加在 stem 后，再保留 `.html`：
 
 ```text
-2026-05-25-mechanism-map-korea-vs-global-system-dossier-peer-scatter.html
-2026-05-25-mechanism-map-korea-vs-global-system-dossier-global-map.html
-2026-05-25-mechanism-map-korea-vs-global-system-dossier-global-map-interactive.html
+2026-05-25-mechanism-insight-korea-vs-global-system-dossier-peer-scatter.html
+2026-05-25-mechanism-insight-korea-vs-global-system-dossier-global-map.html
+2026-05-25-mechanism-insight-korea-vs-global-system-dossier-global-map-interactive.html
 ```
 
 默认不要发明平行命名，如 `research-viz.html` 或 `YYYY-MM-DD-research-viz.html`。

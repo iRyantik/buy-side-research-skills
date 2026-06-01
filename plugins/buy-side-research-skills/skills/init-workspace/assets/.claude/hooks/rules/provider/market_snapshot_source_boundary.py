@@ -7,7 +7,7 @@ ANCHOR_INTERNET = re.compile(r'\[I\d+\]\([^)]+\)')
 ANCHOR_BRIDGE = re.compile(r'\[LBG\d+\]\([^)]+\)')
 ALLOWED_FIELD = re.compile(r'(?i)(market[_ -]?quote|valuation[_ -]?snapshot|price[_ -]?action|consensus|financial[_ -]?snapshot|liquidity|borrow|short interest|implied move|fx|premium|discount|spread|multiple|p/e|p/b|ev/ebitda|ev/sales|fcf yield|market multiple|crowding|股价|估值|流动性|借券|做空|隐含波动|预期|一致预期|溢价|折价|点差|倍数|汇率)')
 FORBIDDEN_FIELD = re.compile(r'(?i)(business description|segment economics|customer|product|backlog|company disclosed|management said|disclosure wording|业务描述|分部经济|客户|产品|积压订单|积压|公司披露|管层表示|披露口径)')
-SKILL_FILE = re.compile(r'stock-quickread|consensus-map|earnings-setup|pair-trade|pair-note|alpha-thesis|bear-pre-mortem|peer-deep-dive|industry-(?:quickread|landscape)|cross-market-compare|candidate-screener|information-impact')
+SKILL_FILE = re.compile(r'stock-quickread|consensus-map|earnings-setup|pair-trade|pair-note|alpha-thesis|bear-pre-mortem|peer-deep-dive|industry-(?:quickread|landscape)|candidate-screener|information-impact')
 SKILL_HEADING = re.compile(r'(?im)^#\s*(Stock Quickread|Consensus Map|Earnings Setup|Pair Trade|Pair Snapshot|Pair Note|Alpha Thesis|Bear Pre-Mortem|Peer Deep Dive|Industry (?:Quickread|Landscape)|Cross-Market Compare|Candidate Screener|Information Impact)\b')
 
 def check(ctx):

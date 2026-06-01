@@ -75,7 +75,7 @@ workflow:
     - 'driver-map'
     - 'earnings-setup'
     - 'peer-deep-dive'
-    - 'cross-market-compare'
+
     - '3-statement-model'
     - 'dcf-model'
     - 'comps-analysis'

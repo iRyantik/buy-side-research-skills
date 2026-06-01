@@ -120,7 +120,7 @@ Source 质量：
 
 ## 5. Sub-Agent Evidence Protocol（shared baseline, not skill-local boilerplate）
 
-- 默认执行 Parallel Evidence Pass 的 research skill 现在只保留：`peer-deep-dive`、`candidate-screener`、`cross-market-compare`、`pair-trade`、`driver-map`。这些 shortlist skill 默认启动 sub-agent / delegate worker 并行查 source；以下 8 个 company-level skill 的 financial-data 获取**默认委托 subagent 执行**（不等待用户显式授权）：`stock-quickread`、`company-history`、`driver-map`、`alpha-thesis`、`consensus-map`、`earnings-setup`、`bear-pre-mortem`、`comps-analysis`。其它 research skill 默认单线执行，只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时才开启并行。sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+- 默认执行 Parallel Evidence Pass 的 research skill 现在只保留：`peer-deep-dive`、`candidate-screener`、`pair-trade`、`driver-map`。这些 shortlist skill 默认启动 sub-agent / delegate worker 并行查 source；以下 8 个 company-level skill 的 financial-data 获取**默认委托 subagent 执行**（不等待用户显式授权）：`stock-quickread`、`company-history`、`driver-map`、`alpha-thesis`、`consensus-map`、`earnings-setup`、`bear-pre-mortem`、`comps-analysis`。其它 research skill 默认单线执行，只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时才开启并行。sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
 - 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
 - If a default-parallel shortlist skill or a user-explicit parallel request cannot spawn sub-agents on the current host / runner, the main agent must state `sub-agent unavailable`, the reason, the single-thread evidence-card fallback used instead, and the resulting source coverage caveat. Do not silently downgrade.
@@ -160,7 +160,7 @@ Source 质量：
 ## 8. Primitive Routing
 
 - Workspace routing: `new-session` creates only `index.md` + `_inbox/`; `ingest` creates `_raw/<category>/` and `_cache/` on first conversion. Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`; use `promote-company` to move deterministic company-scoped files into `industry/<industry>/companies/<ticker>/<company-slug>/`. `integrate` remains whole-topic directory merge.
-- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-map`。
+- 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-insight`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
 - ingest 前确保 topic root 已存在（`topics/<topic>/index.md` 必须存在）。若缺失，先触发 `new-session` 创建 topic root + `_inbox/`，再将文件放入 `topics/<topic>/_inbox/` 后执行 ingest。
 - 研究 skill 启动时，先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。

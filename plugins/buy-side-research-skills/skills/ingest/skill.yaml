@@ -60,9 +60,9 @@ workflow:
     - 'init-workspace'
     - 'new-session'
   feeds_into:
-    - 'industry-quickread'
+    - 'industry-landscape'
     - 'company-history'
-    - 'mechanism-map'
+    - 'mechanism-insight'
     - 'driver-map'
     - 'information-impact'
     - '3-statement-model'

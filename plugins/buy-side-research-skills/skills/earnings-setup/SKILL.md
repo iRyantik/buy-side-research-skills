@@ -40,7 +40,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 | 检查项 | 通过标准 | 不通过时动作 |
 |---|---|---|
-| KPI 机制含义 | 要看的 KPI 背后的行业机制、设备链条、产能单位或工艺流程已清楚 | 先 handoff 到 `mechanism-map` |
+| KPI 机制含义 | 要看的 KPI 背后的行业机制、设备链条、产能单位或工艺流程已清楚 | 先 handoff 到 `mechanism-insight` |
 | KPI / segment 口径 | KPI、segment、backlog、orders、book-to-bill 的定义和收入确认关系清楚 | 先 handoff 到 `driver-map` |
 | Buy-side bar | buy-side 实际期待能映射到 revenue / margin / backlog / price-volume-mix driver | 先 handoff 到 `driver-map` |
 | Thesis linkage | 这次 print 的 3 个观察点能对应 `alpha-thesis` 的假设或 catalyst | 若问题是研究方向不清，触发 `next-step` |
@@ -52,7 +52,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 - Blocker: [哪个 KPI / mechanism / driver 没拆清]
 - Why it blocks earnings setup: [它会影响 buy-side bar / 关键阈值 / 决策树的哪一节]
-- Handoff: `mechanism-map` / `driver-map`
+- Handoff: `mechanism-insight` / `driver-map`
 - Inputs needed: [需要补的 filing / call / KPI definition / segment data]
 ```
 
@@ -132,7 +132,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 财报后先判断 surprise 是普通 beat / miss，还是暴露了机制或 driver 口径问题。不要在口径没拆清时直接给 thesis health。
 
 - 若公司绕开关键 KPI、改披露口径、重分 segment、backlog / orders 与收入脱钩，先触发 `driver-map`。
-- 若新信息涉及设备链条、工程约束、产能单位、工艺流程或 know-how gap，先触发 `mechanism-map`。
+- 若新信息涉及设备链条、工程约束、产能单位、工艺流程或 know-how gap，先触发 `mechanism-insight`。
 - 若只是实际数 vs 预设阈值的普通偏差，继续执行 post-print quick read。
 
 ### 1. 一句话定性
@@ -170,10 +170,10 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 | `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | 是否已经形成值得沉淀或给老板看的判断增量 |
 | `next_step_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `next-step` 继续拆 |
-| `mechanism_map_trigger` | `no` / `yes` | 是否因为设备链条、工程约束、产能单位、工艺流程或 know-how gap 需要触发 `mechanism-map` |
+| `mechanism_map_trigger` | `no` / `yes` | 是否因为设备链条、工程约束、产能单位、工艺流程或 know-how gap 需要触发 `mechanism-insight` |
 | `driver_map_trigger` | `no` / `yes` | 是否因为 segment、KPI 口径、backlog、orders、margin、price / volume / mix 变化需要触发 `driver-map` |
 
-如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若 surprise 是机制 / know-how 问题，先触发 `mechanism-map`；若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `3-statement-model / dcf-model / comps-analysis / model-update`。
+如果财报暴露披露口径、driver、margin、source 冲突等怪异信号，按 Senior Analyst Radar 直接点破。若 surprise 是机制 / know-how 问题，先触发 `mechanism-insight`；若数字改变的是 revenue / margin / backlog / price-volume-mix 口径，先触发 `driver-map`；若已经进入模型更新，再触发 `3-statement-model / dcf-model / comps-analysis / model-update`。
 
 ---
 
@@ -193,7 +193,7 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - ❌ Post-print 是逐行数字复盘 → 这是卖方流水账，重写
 - ❌ Post-print 没回到 thesis 的具体假设 → 没接上前面的工作
 - ❌ Post-print 没有给出明确仓位决策 → 只是叙述了财报，没产生决策
-- ❌ KPI 背后的机制 / 设备链条没搞清楚却硬设阈值 → 先触发 `mechanism-map`
+- ❌ KPI 背后的机制 / 设备链条没搞清楚却硬设阈值 → 先触发 `mechanism-insight`
 - ❌ segment、backlog、orders、price / volume / mix 口径变化却直接更新 thesis → 先触发 `driver-map`
 
 **Source 专项**

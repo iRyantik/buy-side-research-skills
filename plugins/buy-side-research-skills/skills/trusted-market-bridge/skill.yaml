@@ -127,23 +127,23 @@ workflow:
     - 'earnings-setup'
     - 'peer-deep-dive'
     - 'pair-trade'
-    - 'cross-market-compare'
+
     - 'stock-quickread'
     - 'candidate-screener'
     - 'alpha-thesis'
     - 'bear-pre-mortem'
-    - 'industry-quickread'
+    - 'industry-landscape'
   feeds_into:
     - 'consensus-map'
     - 'earnings-setup'
     - 'peer-deep-dive'
     - 'pair-trade'
-    - 'cross-market-compare'
+
     - 'stock-quickread'
     - 'candidate-screener'
     - 'alpha-thesis'
     - 'bear-pre-mortem'
-    - 'industry-quickread'
+    - 'industry-landscape'
   can_trigger: []
 quality_gates:
   anti_patterns:

@@ -15,7 +15,7 @@ This test plan covers `trusted-market-bridge` and its 10 current consumer skills
 - `candidate-screener`
 - `alpha-thesis`
 - `bear-pre-mortem`
-- `industry-quickread`
+- `industry-landscape`
 
 The goal is not to validate every Longbridge API. The goal is to verify 6 repo-level behaviors:
 
@@ -182,7 +182,7 @@ Not yet live-checked as a bridge domain:
 - accounting, governance, Form 4, base-rate case support, and disclosure facts still follow the existing higher-grade source discipline
 - `scope_restricted` does not block the pressure test; it only changes the source mix in `## Resources`
 
-### `industry-quickread`
+### `industry-landscape`
 
 - may use bridge for:
   - `valuation_snapshot`
@@ -226,7 +226,7 @@ Validate these edge cases explicitly:
   - does not upgrade into `financial-data` source-of-record
 - `market_screen`
   - does not upgrade into company-truth or verified business linkage
-- `industry-quickread` boundary
+- `industry-landscape` boundary
   - does not upgrade into `candidate-screener`
   - does not consume `market_screen`, `consensus`, or `financial_snapshot`
 - cross-market high-risk fields
@@ -266,7 +266,7 @@ Run at least these 15 manual checks:
    - expected: `valuation_snapshot`, `price_action`, and `consensus` may come from bridge in variant-view / priced-in sections without leaking into company-truth fields
 12. `bear-pre-mortem` with a covered US/HK/A name
    - expected: downside valuation / market expectation / price setup may come from bridge while accounting / governance / base-rate still use the existing higher-grade source path
-13. `industry-quickread` with an A/H/US-linked theme
+13. `industry-landscape` with an A/H/US-linked theme
    - expected: board performance, valuation anchor, FX, and premium framing may come from bridge without turning the skill into `candidate-screener`
 14. `7203.JP` or a Korean listing with any consumer
    - expected: `unsupported_market`, then fallback to existing web / internet source logic
@@ -290,4 +290,4 @@ Run at least these 15 manual checks:
   - `candidate-screener`
   - `alpha-thesis`
   - `bear-pre-mortem`
-  - `industry-quickread`
+  - `industry-landscape`

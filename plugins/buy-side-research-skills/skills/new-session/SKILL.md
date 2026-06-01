@@ -92,7 +92,7 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>-<qualifier>.md
 industry/<industry>/YYYY-MM-DD-<artifact>.md
 ```
 
-行业级 skill（industry-quickread）默认 `optional_qualifier`。
+行业级 skill（industry-landscape）默认 `optional_qualifier`。
 
 ### peer / pair
 

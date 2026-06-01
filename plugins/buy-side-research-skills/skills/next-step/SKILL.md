@@ -61,12 +61,12 @@ Choose the highest-value next research question when a thread feels stuck or inc
 
 | 瓶颈类型 | 判断标准 | 下一步 |
 |---|---|---|
-| **mechanism / know-how gap** | 行业机制、工程原理、设备链条、工艺流程、术语、value capture 不清 | 先 handoff `mechanism-map` |
+| **mechanism / know-how gap** | 行业机制、工程原理、设备链条、工艺流程、术语、value capture 不清 | 先 handoff `mechanism-insight` |
 | **driver / disclosure gap** | revenue、margin、backlog、price-volume-mix、KPI 定义、reported bucket、披露口径不清 | 先 handoff `driver-map` |
 | **company foundation / disclosure evolution gap** | 公司到底卖什么、业务边界如何演变、segment / KPI rename 或 recast 历史不清 | 先 handoff `company-history` |
 | **source / claim gap** | 关键事实、客户关系、新闻、卖方观点、专家说法未验证 | 先 handoff `information-impact` |
 | **field evidence / channel validation gap** | 关键假设需要 expert call、客户 / 供应商 channel check、survey 或 fieldwork 验证 | 先 handoff `primary-research-plan` |
-| **peer comparability gap** | peer group、KPI 口径、业务机制或 value-capture 不可比 | 先 handoff `peer-deep-dive`，必要时先 `mechanism-map` / `driver-map` |
+| **peer comparability gap** | peer group、KPI 口径、业务机制或 value-capture 不可比 | 先 handoff `peer-deep-dive`，必要时先 `mechanism-insight` / `driver-map` |
 | **thesis assembly gap** | driver 已拆清，variant view、catalyst、kill criteria 需要成稿 | handoff `alpha-thesis` |
 | **journal-ready insight** | 已研究过、想清楚、能改变后续判断 | handoff `research-journal` |
 

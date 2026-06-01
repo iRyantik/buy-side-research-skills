@@ -7,8 +7,7 @@ from common import get_primary_heading, block
 
 # 5 default-parallel skills — must have evidence cards
 DEFAULT_PARALLEL = {
-    "peer-deep-dive", "candidate-screener", "cross-market-compare",
-    "pair-trade", "driver-map",
+    "peer-deep-dive", "candidate-screener",     "pair-trade", "driver-map",
 }
 
 # 8 company-level finance skills — must have financial-data subagent evidence

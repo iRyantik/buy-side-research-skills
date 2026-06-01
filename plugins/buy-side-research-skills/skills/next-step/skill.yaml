@@ -38,7 +38,7 @@ capabilities:
   requirements:
     - 'give the highest-value research question'
     - 'ask only 1-2 AI questions by default'
-    - 'route mechanism gaps to mechanism-map'
+    - 'route mechanism gaps to mechanism-insight'
     - 'route driver and KPI gaps to driver-map'
     - 'route source or claim gaps to information-impact'
     - 'route field evidence or channel validation gaps to primary-research-plan'

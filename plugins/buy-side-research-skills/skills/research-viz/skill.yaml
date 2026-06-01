@@ -52,11 +52,11 @@ workflow:
   can_follow:
     - 'stock-quickread'
     - 'company-history'
-    - 'mechanism-map'
+    - 'mechanism-insight'
     - 'driver-map'
     - 'consensus-map'
     - 'peer-deep-dive'
-    - 'cross-market-compare'
+
     - 'alpha-thesis'
     - 'bear-pre-mortem'
     - 'research-journal'

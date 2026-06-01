@@ -64,7 +64,7 @@ workflow:
     - 'driver-map'
     - '3-statement-model'
     - 'peer-deep-dive'
-    - 'cross-market-compare'
+
   feeds_into:
     - 'dcf-model'
     - 'model-update'

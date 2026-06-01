@@ -50,8 +50,8 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 
 - 单条新闻、客户关系、供应链 claim 真假验证：用 `information-impact`。
 - 陌生公司 first-pass：用 `stock-quickread`。
-- 行业 first-pass、profit pool 和 KPI/source map：用 `industry-quickread`。
-- 工程机制、设备链条、工艺流程不清：先用 `mechanism-map`。
+- 行业 first-pass、profit pool 和 KPI/source map：用 `industry-landscape`。
+- 工程机制、设备链条、工艺流程不清：先用 `mechanism-insight`。
 - 公司 revenue / margin / backlog / price-volume-mix driver 不清：用 `driver-map`。
 
 ## 输入澄清要求
@@ -138,7 +138,7 @@ Top Ideas 必须给下一步验证路线：
 
 - 公司 first-pass：`stock-quickread`
 - 业务 / segment / KPI 到 model driver：`driver-map`
-- 复杂工程机制：`mechanism-map`
+- 复杂工程机制：`mechanism-insight`
 - 单条客户 / 订单 / 供应链 claim：`information-impact`
 - 3-8 个核心公司横向比较：`peer-deep-dive`
 
@@ -295,7 +295,7 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 |---|---|
 | Top Idea 是陌生公司 | `stock-quickread` |
 | Top Idea 的 revenue / margin / backlog driver 不清 | `driver-map` |
-| value-chain pocket 依赖工程机制、设备链、工艺 | `mechanism-map` |
+| value-chain pocket 依赖工程机制、设备链、工艺 | `mechanism-insight` |
 | 单条客户、订单、供应链、供应商关系 claim 未验证 | `information-impact` |
 | 需要横向比较 3-8 个核心 candidates | `peer-deep-dive` |
 | 主题的 priced-in、buy-side bar 或 consensus debate 不清 | `consensus-map` |
@@ -325,7 +325,7 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 ### Workflow 边界
 
 - ❌ 用户问单条 claim 靠不靠谱，却直接挖票；应先 `information-impact`。
-- ❌ 工程机制不清仍强行列 names；应先 `mechanism-map`。
+- ❌ 工程机制不清仍强行列 names；应先 `mechanism-insight`。
 - ❌ 公司 driver 不清仍写 growth thesis；应先 `driver-map`。
 - ❌ 对 `[需查证]` 的客户 / 订单 / 供应链关系做强结论外推。
 

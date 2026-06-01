@@ -444,7 +444,7 @@ flowchart TD
 - ❌ "两家都做半导体设备" → 没量化客户重叠 / 终端市场重叠。
 - ❌ Correlation < 0.7 但仍叫 pair → 不是真 pair。
 - ❌ 业务完全相同 → 没有结构性差异点产生 spread。
-- ❌ 两腿看似同主题但工程机制 / 设备链条不同 → 先用 `mechanism-map` 检查 value-capture 是否同源。
+- ❌ 两腿看似同主题但工程机制 / 设备链条不同 → 先用 `mechanism-insight` 检查 value-capture 是否同源。
 - ❌ 两腿 revenue / margin driver 没拆清楚，只说"同业" → 先用 `driver-map` 检查 driver 是否同源或分化。
 
 **Spread 量化**

@@ -139,7 +139,7 @@ industry/<industry>/companies/<ticker>/
 
 触发语：`/financial-data --lite <ticker>` 或 "快速拉 <ticker> 数据"
 
-Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / cross-market-compare / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
+Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
 
 **Consumer contract**：消费 skill 只需调用 `--lite` 然后直接从 `actuals-resolved.json` 取数。所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
 

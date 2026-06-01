@@ -42,9 +42,9 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 | 假设类型 | 要压测的问题 | 不清楚时动作 |
 |---|---|---|
-| 工程 / 设备链条 | 关键设备、工艺流程、产能单位是否真的支持 thesis 的产量 / 成本假设 | 先 handoff 到 `mechanism-map` |
-| Unit economics | 单台设备、单桶油、单项目、单客户的经济性是否成立 | 机制不清先 `mechanism-map`；财务 driver 不清先 `driver-map` |
-| Value capture | 价值到底被 OEM、供应商、服务商、渠道还是客户捕获 | 先 handoff 到 `mechanism-map` |
+| 工程 / 设备链条 | 关键设备、工艺流程、产能单位是否真的支持 thesis 的产量 / 成本假设 | 先 handoff 到 `mechanism-insight` |
+| Unit economics | 单台设备、单桶油、单项目、单客户的经济性是否成立 | 机制不清先 `mechanism-insight`；财务 driver 不清先 `driver-map` |
+| Value capture | 价值到底被 OEM、供应商、服务商、渠道还是客户捕获 | 先 handoff 到 `mechanism-insight` |
 | Driver linkage | 机制变化如何传到 revenue、margin、backlog、price-volume-mix | 先 handoff 到 `driver-map` |
 
 若机制假设不清，不要假装已经完成压力测试。先输出最小 handoff block：
@@ -54,7 +54,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 - Blocker: [哪个 mechanism assumption / driver assumption 不成立或不清楚]
 - Why it blocks pre-mortem: [它会影响空头 pitch / unit economics / path of pain 的哪一节]
-- Handoff: `mechanism-map` / `driver-map`
+- Handoff: `mechanism-insight` / `driver-map`
 - Inputs needed: [需要补的技术资料 / filing / call / KPI / segment data]
 ```
 
@@ -163,7 +163,7 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ 第 5 节没有具体可比案例，只有"很多公司这样" → 拉具体例子
 - ❌ 整篇没有具体数字、具体时间、具体事件 → 太空洞，重写
 - ❌ 每个空头点都立刻被一个对应的多头反驳"挽回"了 → 这不是 pre-mortem 是辩论赛，重写
-- ❌ thesis 依赖工程机制、设备链条、产能单位或 value capture，但没有先做 Mechanism Assumption Audit → 先触发 `mechanism-map`。
+- ❌ thesis 依赖工程机制、设备链条、产能单位或 value capture，但没有先做 Mechanism Assumption Audit → 先触发 `mechanism-insight`。
 - ❌ 最强反方攻击的是 revenue / margin / backlog / price-volume-mix，但原 thesis 没拆 driver → 先触发 `driver-map`。
 
 **Source 专项（空头压测对 source 真实性要求最高）**

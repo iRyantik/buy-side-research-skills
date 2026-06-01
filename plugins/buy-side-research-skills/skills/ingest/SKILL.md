@@ -174,7 +174,7 @@ Cache header must include:
 | Topic root is missing | Use `new-session` |
 | User has files in topic `_inbox/` | Use `ingest` |
 | Cache is annual report / 10-K / 20-F | Feed `company-history` or `driver-map` |
-| Cache is industry report / technical paper | Feed `industry-quickread` or `mechanism-map` |
+| Cache is industry report / technical paper | Feed `industry-landscape` or `mechanism-insight` |
 | Need structured financial statements by ticker | Use `financial-data` |
 | Need company promotion from industry workbench | Use `promote-company` after research files exist |
 

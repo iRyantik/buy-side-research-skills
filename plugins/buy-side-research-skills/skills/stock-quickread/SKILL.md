@@ -20,7 +20,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 - 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
 - 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
-- 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-map`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
+- 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-insight`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
 

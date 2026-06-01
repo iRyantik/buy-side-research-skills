@@ -51,7 +51,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
 | **研究成熟度** | noticed / researched / settled / disputed | 只有 researched 以上才能沉淀 |
-| **上游产物** | mechanism-map / driver-map / next-step / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
+| **上游产物** | mechanism-insight / driver-map / next-step / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
 
 如果路径缺失但用户明确要求写文件，先给出建议路径并说明需要确认；如果用户只要对话总结，则不落盘。
 
@@ -168,13 +168,13 @@ industry/<industry>/companies/<ticker>/index.md
 
 ## Primitive Consumption Rules
 
-### Consuming `mechanism-map`
+### Consuming `mechanism-insight`
 
 只有当机制结论、关键术语、流程 / value-capture logic、source / as-of 和剩余不确定性都清楚时，才能写入 journal。
 
 如果只是“看起来可能是某机制”，写成：
 - `Working hypothesis`，并标 `[需查证]`；或
-- handoff 回 `mechanism-map`。
+- handoff 回 `mechanism-insight`。
 
 ### Consuming `driver-map`
 

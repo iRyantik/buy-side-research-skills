@@ -64,7 +64,7 @@ workflow:
     - 'financial-data'
     - 'driver-map'
     - 'company-history'
-    - 'mechanism-map'
+    - 'mechanism-insight'
   feeds_into:
     - 'dcf-model'
     - 'comps-analysis'
