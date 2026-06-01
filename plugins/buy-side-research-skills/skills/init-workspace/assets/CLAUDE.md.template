@@ -154,7 +154,7 @@ skill 是决策工具，不是装饰性模板。
 - revenue / margin / backlog / price-volume-mix driver -> `driver-map`
 - 市场预期 / priced-in / variant-view gap -> `consensus-map`
 - 行业机制 / 工程原理 / 设备链条 -> `mechanism-map`
-- 多公司筛选 / 比较 -> `candidate-screener` / `peer-deep-dive` / `cross-market-compare` / `pair-trade`
+- 多公司筛选 / 比较 -> `candidate-screener` / `peer-deep-dive` / `peer-deep-dive` / `pair-trade`
 - 结构化 actuals pack -> `financial-data`
 - durable journal / boss-ready memory -> `research-journal`
 
