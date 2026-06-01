@@ -1,0 +1,276 @@
+"""Shared library for all hooks — payload parsing, markdown tools, block/warn."""
+import sys, os, json, re
+from pathlib import Path
+from typing import Any, Optional
+
+ANCHOR_CODE_RE = re.compile(r'\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)')
+
+def load_stdin_payload() -> Optional[dict]:
+    """Read and parse JSON payload from stdin."""
+    try:
+        raw = sys.stdin.read()
+        if raw.strip():
+            return json.loads(raw)
+    except Exception:
+        pass
+    return None
+
+def get_tool_name(payload: dict) -> str:
+    return (payload.get("tool_name") or payload.get("toolName") or "")
+
+def get_tool_input(payload: dict) -> dict:
+    return (payload.get("tool_input") or payload.get("toolInput") or {})
+
+def get_hook_event(payload: dict) -> str:
+    return (payload.get("hook_event_name") or payload.get("event") or "")
+
+def get_workspace_root(payload: dict) -> str:
+    cwd = payload.get("cwd", "")
+    if cwd:
+        return str(Path(cwd).resolve())
+    return str(Path.cwd().resolve())
+
+def resolve_path(path: str, cwd: str) -> Optional[str]:
+    """Resolve relative or absolute path to absolute."""
+    if not path:
+        return None
+    clean = path.strip().strip('"').strip("'")
+    if not clean:
+        return None
+    try:
+        return str(Path(clean).resolve() if os.path.isabs(clean) else (Path(cwd) / clean).resolve())
+    except Exception:
+        return None
+
+def is_under(path: str, root: str) -> bool:
+    try:
+        return Path(path).resolve().as_posix().startswith(Path(root).resolve().as_posix() + "/")
+    except Exception:
+        return False
+
+def get_relative_display(path: str, root: str) -> str:
+    try:
+        return str(Path(path).resolve().relative_to(Path(root).resolve()))
+    except Exception:
+        return path
+
+def get_last_assistant_message(payload: dict) -> str:
+    return (payload.get("last_assistant_message") or payload.get("lastAssistantMessage") or "")
+
+def get_candidate_paths(payload: dict) -> list[str]:
+    """Extract all file paths referenced in the payload."""
+    paths = []
+    root = get_workspace_root(payload)
+    ti = get_tool_input(payload)
+
+    # Direct file path fields
+    for key in ("file_path", "path", "target_file", "destination", "output_path"):
+        val = ti.get(key, "")
+        if val:
+            r = resolve_path(str(val), root)
+            if r:
+                paths.append(r)
+
+    # Bash command: parse redirections and paths
+    cmd = ti.get("command", "") or ti.get("text", "")
+    if cmd:
+        # Redirections: > file.md, >> file.md
+        for m in re.finditer(r'(?:>|>>)\s*["\']?([^"\'\s]+\.(?:md|html|xlsx))', cmd):
+            r = resolve_path(m.group(1), root)
+            if r:
+                paths.append(r)
+        # Absolute Windows paths
+        for m in re.finditer(r'["\']?([A-Z]:\\[^"\'\s]+\.(?:md|html|xlsx))', cmd):
+            r = resolve_path(m.group(1), root)
+            if r:
+                paths.append(r)
+        # Python/script write paths: r'path/file.md', 'path/file.md', open("file.md")
+        for m in re.finditer(r'''(?:r)?["']([^"'\n]+?\.(?:md|html|xlsx))["']''', cmd):
+            r = resolve_path(m.group(1), root)
+            if r and os.path.isfile(r):
+                paths.append(r)
+
+    # Embedded artifact links in assistant message
+    msg = get_last_assistant_message(payload)
+    if msg:
+        for m in re.finditer(r'\[[^\]]+\]\(([^)]+\.(?:md|html|xlsx))\)', msg):
+            r = resolve_path(m.group(1), root)
+            if r:
+                paths.append(r)
+
+    return list(dict.fromkeys(paths))  # dedupe, preserve order
+
+def is_artifact_like(text: str) -> bool:
+    """Heuristic: does this text look like a research artifact?"""
+    if not text or len(text) < 1000:
+        return False
+    return bool(re.search(r'(?m)^##\s+', text))
+
+def get_body_without_resources(text: str) -> str:
+    """Remove ## Resources section and everything after."""
+    m = re.search(r'(?im)^##\s*Resources\b.*', text)
+    if m:
+        return text[:m.start()].rstrip()
+    return text
+
+def get_resources_section_text(text: str) -> Optional[str]:
+    m = re.search(r'(?ims)^##\s*Resources\b(.*)$', text)
+    if m:
+        return m.group(1).strip()
+    return None
+
+def get_resources_entries(text: str) -> list[dict]:
+    """Parse `- [S1](url) = metadata` entries from Resources section."""
+    entries = []
+    resources = get_resources_section_text(text) or ""
+    # With metadata
+    for m in re.finditer(r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*=\s*(?P<meta>.*)$', resources):
+        entries.append({"code": m.group("code"), "target": m.group("target").strip(), "metadata": m.group("meta").strip()})
+    seen = {e["code"] for e in entries}
+    # Bare (no metadata)
+    for m in re.finditer(r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*$', resources):
+        if m.group("code") not in seen:
+            entries.append({"code": m.group("code"), "target": m.group("target").strip(), "metadata": ""})
+            seen.add(m.group("code"))
+    return entries
+
+def get_short_anchor_matches(text: str) -> list[dict]:
+    """Find all [S1](url), [P2](path), [I3](url), [LBG1](url), [R1](url), [SRC1](url) inline anchors."""
+    matches = []
+    for m in ANCHOR_CODE_RE.finditer(text):
+        matches.append({
+            "code": m.group("code"),
+            "label_suffix": m.group(0)[m.group(0).index(']') - len(m.group(0)) + m.end('code') - m.start():m.start('target') - m.start() - 1] if m.end('code') < m.start('target') else "",
+            "target": m.group("target").strip(),
+            "full_match": m.group(0),
+        })
+    return matches
+
+def get_markdown_tables(text: str) -> list[dict]:
+    """Parse GFM pipe tables, excluding code fences."""
+    lines = text.split("\n")
+    tables = []
+    in_fence = False
+    i = 0
+    while i < len(lines) - 1:
+        header = lines[i]
+        sep = lines[i + 1]
+
+        if header.lstrip().startswith("```"):
+            in_fence = not in_fence
+            i += 1
+            continue
+        if in_fence:
+            i += 1
+            continue
+        if "|" not in header or not _is_separator(sep):
+            i += 1
+            continue
+
+        block = [header, sep]
+        j = i + 2
+        while j < len(lines):
+            line = lines[j]
+            if not line.strip():
+                break
+            if "|" not in line:
+                break
+            block.append(line)
+            j += 1
+        tables.append({"start_line": i + 1, "lines": block})
+        i = j
+    return tables
+
+def _is_separator(line: str) -> bool:
+    return bool(re.match(r'^\s*\|?(?:\s*:?-{2,}:?\s*\|)+(?:\s*:?-{2,}:?\s*)\|?\s*$', line))
+
+def count_pipe_columns(line: str) -> int:
+    clean = line.strip()
+    if clean.startswith("|"):
+        clean = clean[1:]
+    if clean.endswith("|"):
+        clean = clean[:-1]
+    if not clean.strip():
+        return 0
+    return len(re.split(r'(?<!\\)\|', clean))
+
+def is_valid_source_target(target: str) -> bool:
+    """Check if target is a valid URL, file path, or #fragment."""
+    if not target or not target.strip():
+        return False
+    t = target.strip()
+    if t.lower() in ("link", "url"):
+        return False
+    if t.startswith("#"):
+        return True
+    if t.startswith("?") or t.startswith("&"):
+        return False
+    # Absolute URL
+    if re.match(r'^https?://', t):
+        return True
+    # Other URI schemes
+    if re.match(r'^[A-Za-z][A-Za-z0-9+.-]*://', t):
+        return True
+    # Absolute path
+    try:
+        if os.path.isabs(t):
+            Path(t)
+            return True
+    except Exception:
+        pass
+    # Looks like a relative path
+    if re.search(r'[\\/]', t) or re.match(r'^[^.\\/\s]+\.[A-Za-z0-9]{1,10}$', t):
+        try:
+            Path(t)
+            return True
+        except Exception:
+            pass
+    return False
+
+def is_topic_artifact_root_file(path: str, root: str) -> bool:
+    """Check if file is at industry/{ind}/companies/{ticker}/file.md (5 levels) or industry/{ind}/file.md (3 levels)."""
+    try:
+        rel = Path(path).resolve().relative_to(Path(root).resolve())
+        parts = rel.parts
+        # Company artifact: industry/<ind>/companies/<ticker>/file.md (5 levels)
+        if len(parts) == 5 and parts[0] == "industry" and parts[2] == "companies":
+            return True
+        # Industry artifact: industry/<ind>/file.md (3 levels)
+        if len(parts) == 3 and parts[0] == "industry":
+            return True
+        return False
+    except Exception:
+        return False
+
+def get_primary_heading(text: str) -> Optional[str]:
+    m = re.search(r'(?im)^#\s+(.+?)\s*$', text)
+    if m:
+        return m.group(1).strip()
+    return None
+
+def get_markdown_targets(payload: dict) -> list[dict]:
+    """Return file + inline targets for hook inspection."""
+    targets = []
+    root = get_workspace_root(payload)
+    for path in get_candidate_paths(payload):
+        if path and re.search(r'\.(md|html)$', path, re.IGNORECASE) and os.path.isfile(path):
+            try:
+                text = Path(path).read_text(encoding="utf-8")
+            except Exception:
+                continue
+            targets.append({
+                "kind": "file",
+                "path": path,
+                "display": get_relative_display(path, root),
+                "text": text,
+            })
+    return targets
+
+
+def block(msg: str):
+    sys.stderr.write(f"{msg}\n")
+    sys.exit(2)
+
+def warn(msg: str):
+    sys.stderr.write(f"HOOK WARNING: {msg}\n")
+    sys.exit(0)
