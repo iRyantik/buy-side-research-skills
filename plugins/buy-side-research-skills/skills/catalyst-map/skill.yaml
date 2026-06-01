@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: catalyst-map
+id: catalyst-map
+display_name: Catalyst Map
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: deep-work
+summary: Full timeline catalyst chain with probability-weighted impact per event.
+description: Map all catalysts on a timeline with probability, direction, magnitude, and thesis impact.
+tags: [catalyst-map, catalyst, event-timeline, catalyst-chain]
+trigger:
+  type: keyword
+  keywords: [catalyst, 催化剂, 催化剂时间线, 事件驱动, catalyst map, catalyst chain, 后续催化剂]
+  description: Trigger when user wants to map catalysts for a company.
+capabilities:
+  generates: catalyst timeline with probability-weighted impact
+  feeds_into: [alpha-thesis, candidate-screener, post-earnings-quick]
+  requirements: [each catalyst must have probability estimate, direction, and magnitude]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: catalyst-map.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYY-MM-DD-catalyst-map.md
+  naming_mode: plain
+  save_trigger: save when user asks to preserve the catalyst map

@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: capital-allocation
+id: capital-allocation
+display_name: Capital Allocation
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: deep-work
+summary: Score management capital allocation — buyback dividend M&A capex 10Y track record.
+description: Scorecard-based capital allocation analysis with 10-year track record on buyback, dividend, M&A, and capex ROI.
+tags: [capital-allocation, management-quality, buyback, dividend, M&A, capex]
+trigger:
+  type: keyword
+  keywords: [capital allocation, 资本配置, 管理层评分, buyback ROI, M&A track record, 分红记录]
+  description: Trigger when user wants to assess management capital allocation quality.
+capabilities:
+  generates: capital allocation scorecard with 10Y track record
+  feeds_into: [alpha-thesis, stock-quickread]
+  requirements: [requires 10Y cash flow data from financial-data --periods 10Y]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: capital-allocation.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYY-MM-DD-capital-allocation.md
+  naming_mode: plain
+  save_trigger: save when user asks to preserve the capital allocation analysis

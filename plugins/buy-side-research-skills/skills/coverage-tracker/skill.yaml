@@ -1,0 +1,26 @@
+metadata_schema_version: 1
+name: coverage-tracker
+id: coverage-tracker
+display_name: Coverage Tracker
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: memory
+summary: Lightweight coverage state tracking — thesis stage, last deep dive, next catalyst, priority.
+description: Track covered company states with thesis stage, last review date, next catalyst date, and priority ranking.
+tags: [coverage-tracker, coverage, tracking, research-priority]
+trigger:
+  type: keyword
+  keywords: [coverage, update coverage, coverage tracker, 覆盖跟踪, 重排优先级, coverage status]
+  description: Trigger when user wants to update or review coverage state.
+capabilities:
+  generates: coverage.md table with thesis state and priority
+  feeds_into: [candidate-screener, research-journal]
+  requirements: [each entry must have thesis_stage, last_deep_dive date, next_catalyst date, priority]
+artifact_policy:
+  save_policy: default_topic_result
+  default_artifact: coverage.md
+  canonical_location: coverage.md
+  save_trigger: save at workspace root; always update after deep research on a company

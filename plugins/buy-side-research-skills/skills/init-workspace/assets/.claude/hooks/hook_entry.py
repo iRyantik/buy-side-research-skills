@@ -31,6 +31,9 @@ POST_TOOL_USE_RULES = [
     "provider.social_clue_only",
     # Viz: delivery contract
     "viz.viz_delivery_contract",
+    # Fact governance: provenance + claim proximity
+    "fact_provenance",
+    "claim_source_proximity",
 ]
 STOP_RULES = [
     "source_contract",

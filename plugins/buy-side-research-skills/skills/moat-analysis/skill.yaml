@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: moat-analysis
+id: moat-analysis
+display_name: Moat Analysis
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: deep-work
+summary: Quantify competitive moat — type, durability, testable evidence, peer comparison.
+description: Scorecard-based competitive moat analysis with testable evidence for each moat dimension.
+tags: [moat-analysis, competitive-advantage, barrier-to-entry, moat]
+trigger:
+  type: keyword
+  keywords: [moat, 护城河, 竞争壁垒, 竞争优势, 壁垒分析, moat analysis, competitive moat]
+  description: Trigger when user wants to analyze a company's competitive moat.
+capabilities:
+  generates: moat scorecard with testable hypotheses
+  feeds_into: [alpha-thesis, peer-deep-dive, stock-quickread]
+  requirements: [each moat dimension must have observable evidence, no generic descriptions]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: moat-analysis.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYY-MM-DD-moat-analysis.md
+  naming_mode: plain
+  save_trigger: save when user asks to preserve the moat analysis

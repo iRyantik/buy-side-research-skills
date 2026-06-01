@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: market-sizing
+id: market-sizing
+display_name: Market Sizing
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: foundation
+summary: Bottom-up TAM SAM SOM estimation with source-quality annotations. Feeds scenario-model.
+description: Bottom-up TAM SAM SOM estimation with source-quality annotations. Feeds scenario-model.
+tags: [market-sizing, TAM, SAM, SOM, market-estimation, bottom-up]
+trigger:
+  type: keyword
+  keywords: [TAM, market size, market sizing, 市场空间, 市场规模, 市场有多大, 这个市场多大]
+  description: Trigger when user asks about market size or TAM estimation.
+capabilities:
+  generates: structured TAM breakdown with source quality annotation
+  feeds_into: [scenario-model, candidate-screener]
+  requirements: [TAM table must have source column per segment, must distinguish TAM vs SAM vs SOM]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: market-sizing.md
+  canonical_location: industry/<industry>/YYYY-MM-DD-market-sizing-<qualifier>.md
+  naming_mode: required_qualifier
+  save_trigger: save when user asks to preserve the sizing

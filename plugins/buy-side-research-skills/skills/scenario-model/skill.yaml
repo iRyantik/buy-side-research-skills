@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: scenario-model
+id: scenario-model
+display_name: Scenario Model
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: supporting
+summary: Quick scenario sizing — TAM x share x margin x PE = implied market cap. Phase 1 assumptions, Phase 2 calculation.
+description: Quick scenario sizing with Phase 1 assumption gathering and Phase 2 calculation. Feeds candidate-screener scenario push table.
+tags: [scenario-model, scenario-sizing, scenario-pnl, what-if]
+trigger:
+  type: keyword
+  keywords: [scenario sizing, 场景测算, 如果x会怎样, 理论市值, implied market cap, scenario P&L, 情景分析]
+  description: Trigger when user wants to size a scenario-driven investment thesis.
+capabilities:
+  generates: scenario P&L + implied market cap + upside percentage
+  feeds_into: [candidate-screener, alpha-thesis, pair-trade, bear-pre-mortem]
+  requirements: [Phase 1 must output assumption table for researcher review, Phase 2 produces sizing]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: scenario-model.md
+  canonical_location: industry/<industry>/YYYY-MM-DD-scenario-model-<qualifier>.md
+  naming_mode: required_qualifier
+  save_trigger: save when user asks to preserve the scenario sizing

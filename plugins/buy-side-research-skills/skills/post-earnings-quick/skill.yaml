@@ -1,0 +1,27 @@
+metadata_schema_version: 1
+name: post-earnings-quick
+id: post-earnings-quick
+display_name: Post Earnings Quick
+version: 1.0.0
+system_generation: 5.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: research
+research_layer: triage
+summary: Post-earnings 5-min verdict — beat/miss vs consensus, guidance check, thesis status change.
+description: Quick post-earnings assessment comparing actuals to pre-print bar from earnings-setup, with thesis impact verdict.
+tags: [post-earnings, earnings-reaction, earnings-verdict, quick-read]
+trigger:
+  type: keyword
+  keywords: [post earnings, 财报出来了, 快速看财报, after earnings, earnings quick, 财报反应]
+  description: Trigger after earnings print for quick assessment.
+capabilities:
+  generates: beat/miss verdict with thesis status change decision
+  feeds_into: [stock-quickread, coverage-tracker, driver-map]
+  requirements: [must read recent earnings-setup bar for comparison]
+artifact_policy:
+  save_policy: optional_topic_result
+  default_artifact: post-earnings-quick.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYY-MM-DD-post-earnings-quick.md
+  naming_mode: plain
+  save_trigger: save when user asks to preserve the verdict
