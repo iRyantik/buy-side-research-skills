@@ -143,36 +143,51 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三�
 
 **三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
-**市场数据获取逻辑**（四层降级链）：
+**市场数据获取逻辑**（trust-based fill，对齐 actuals）：
+
+Trust 排名：`Bridge > yfinance > WebSearch > Google Finance`
 
 ```
-Bridge → yfinance → WebSearch → Google Finance → [估值待补]
+1. 按需拉取所有可用层（Bridge 仅 US/HK/SH/SZ）
+2. 每层返回时标 [source_layer | as-of]
+3. 每个字段取最高 trust 层的非空值
+4. 高 trust 可覆盖低 trust：先拿到 yfinance PE 35x，后拿到 Bridge PE 34x → 用 Bridge
+5. 低 trust 不覆盖高 trust：yfinance 不能覆盖已有 Bridge 值
+6. 所有层都无值 → [估值待补]
 ```
 
-每层规则：
+每层 Source 说明：
 
-1. **Bridge (Longbridge)** — 仅 US/HK/SH/SZ。调 `trusted-market-bridge`，拿 `market_quote` + `valuation_snapshot` + `consensus`。返回结构化数据（price/mcap/PE/PS/PB/consensus/FX）。缺字段降级
-2. **yfinance** — 全球。Python 库 `yfinance`，US 市场最成熟；JP/KR/TW/EU 可能缺字段。缺字段降级
-3. **WebSearch** — 全球。搜 `"<ticker> PE ratio market cap stock price"`，从搜索结果摘要（StockAnalysis/MarketScreener/Yahoo Finance 等聚合站）提取 PE/PB/市值/股价。LLM 解析搜索结果文本
-4. **Google Finance** — WebFetch `https://www.google.com/finance/quote/<ticker>:<exchange>`。全球兜底，返回 PE/PB/市值。缺则标 `[估值待补]`
+1. **Bridge (Longbridge)** — 仅 US/HK/SH/SZ。调 `trusted-market-bridge`，拿 `market_quote` + `valuation_snapshot` + `consensus`。返回结构化数据
+2. **yfinance** — 全球。Python 库，US 最成熟；JP/KR/TW/EU 可能缺字段
+3. **WebSearch** — 全球。搜 `"<ticker> PE ratio market cap stock price"`，从搜索结果摘要（StockAnalysis/MarketScreener 等聚合站）提取。LLM 解析文本
+4. **Google Finance** — WebFetch 全球兜底
 
-**关键规则**：
-- 逐层降级，低层不覆盖高层
-- 每个字段独立标 `[source_layer | as-of 日期]`，不同字段可来自不同层
-- Bridge 市场不跳 yfinance——Bridge 缺字段继续往下走
-- 不设 official_web 层：交易所官网只发交易数据 PDF（开盘/收盘/量），不计算 PE/PB/市值。估值指标是数据聚合商计算产物，web 搜索本质是在搜这些聚合商
-- 拉完后将市场快照写入 `actuals-resolved.json` 的 `market_data` 字段做审计锚（不替代下次拉取）
+不设 official_web 层：交易所官网只发交易数据 PDF（开盘/收盘/量），不计算 PE/PB/市值。估值指标是数据聚合商计算产物。
+
+拉完后将市场快照写入 `actuals-resolved.json` 的 `market_data` 字段做审计锚（不替代下次拉取）。
 
 **Lite 写入的最小字段**：
 
-| 类别 | 内容 | 状态 |
-|---|---|---|
-| 三表 | 22 个核心科目（IS/BS/CF） | 必填 |
-| 分部 | 分部收入 + 利润（如有） | 必填 |
-| 市场数据 | 股价、市值、PE/PB/PS | 必填——四层降级链 |
-| 股价历史 | 1 年期日线（驱动因素分析） | 必填——yfinance |
-| Consensus | EPS/Revenue 预期 | best-effort——Bridge 覆盖 US/HK/SH/SZ，其余标 [ND] |
-| 补充 | 股本、SBC、backlog | 有则抓 |
+| 类别 | 内容 | 状态 | Trust Layer |
+|---|---|---|---|
+| 三表 | 22 个核心科目（IS/BS/CF） | 必填 | provider_api > official_web > yfinance |
+| 分部 | 分部收入 + 利润（如有） | 必填 | provider_api |
+| 股价 | 最新收盘价 | 必填 | Bridge > yfinance > WebSearch > Google Finance |
+| 市值 | 总市值（本地货币） | 必填 | 同上 |
+| PE TTM | 追踪市盈率 | 必填 | Bridge > yfinance > WebSearch > Google Finance |
+| PE NTM | 远期市盈率（1Y Forward） | 必填 | Bridge(consensus) > WebSearch > yfinance |
+| PB | 市净率 | 必填 | Bridge > yfinance > WebSearch > Google Finance |
+| PS | 市销率 | 必填 | Bridge > yfinance > Google Finance |
+| EV/EBITDA | 企业价值/EBITDA | 必填 | Bridge > yfinance > WebSearch |
+| EV/Sales | 企业价值/营收 | 必填 | Bridge > yfinance |
+| PEG | 市盈率/盈利增速 | best-effort | WebSearch > yfinance |
+| Dividend Yield | 股息率 | 选填 | yfinance > WebSearch |
+| Target Price | 一致预期目标价 | best-effort | Bridge(consensus) > WebSearch |
+| Consensus EPS | EPS 预期（NTM） | best-effort | Bridge > WebSearch |
+| Beta | 波动率 | 选填 | yfinance |
+| 股价历史 | 1 年期日线（驱动因素分析） | 必填 | yfinance |
+| 补充 | 股本、SBC、backlog | 有则抓 | provider_api > official_web |
 
 **数据完整性规则**：
 
