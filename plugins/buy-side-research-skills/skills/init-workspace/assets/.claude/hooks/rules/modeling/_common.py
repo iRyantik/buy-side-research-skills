@@ -23,8 +23,21 @@ def get_xlsx_targets(payload: dict) -> list[dict]:
 
 
 def get_sheet_names_from_payload(target: dict) -> list[str]:
-    """Get sheet names from pre-extracted payload data."""
-    return target.get("sheetNames", [])
+    """Get sheet names from pre-extracted payload data, falling back to direct xlsx read."""
+    names = target.get("sheetNames", [])
+    if names:
+        return names
+    path = target.get("path", "")
+    if path and os.path.exists(path):
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(path, read_only=True)
+            names = wb.sheetnames
+            wb.close()
+            return list(names)
+        except Exception:
+            pass
+    return []
 
 
 def get_shared_strings(target: dict) -> str:
