@@ -32,7 +32,7 @@ Agent and plugin runtime upgrades belong to `update-agent-runtime`; `init-worksp
 
 本 skill 不负责：
 
-- 不写公司研究、thesis、driver-map、mechanism-map、Boss Brief 或 topic artifact。
+- 不写公司研究、thesis、driver-map、mechanism-insight、Boss Brief 或 topic artifact。
 - 不创建 dated topic research artifact。
 - 不恢复 `meta.json` 双轨。
 - 不恢复 v2 state files、portfolio tracker、decision-journal、thesis-tracker 或 v2 pair state logs。
@@ -144,11 +144,12 @@ plugin dev repo 中的 hook 配置与脚本通过 `init-workspace` 交付到 wor
 hook 只负责 binary / machine-checkable guardrails，例如 source legality、subagent boundary、workspace path safety、明显 narrative drift。判断密度高、依赖研究品味或需要主观裁判的规则，继续留在 `SKILL.md`、`skill.yaml` 与 authoring governance 中。
 
 `information-impact` 的 claim qualification 与 `primary-research-plan` 的 compliance floor 也属于 hook-first binary rules。
-`cross-market-compare` 的 listing identity / currency basis / as-of parity floor 也属于 hook-first binary rules。
 `reddit-sentiment` 的 social clue-only boundary 也属于 hook-first binary rules。
-modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 的 statement presence、balance integrity、formula discipline、missing-actuals floor 和 valuation-basis floor 也属于 xlsx-aware hook-first binary rules；第一轮不做“逐项全量配平 / full line-item reconciliation” hook。
+`peer-deep-dive` 的 cross-market parity（上市身份 / 货币 / as-of）由 skill 自身的 §4.1 列定义强制（≥2 市场时必填 5 cross-market 列），不另设 hook。
+modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 的 statement presence、balance integrity、formula discipline、missing-actuals floor、valuation-basis floor、actuals_cross_check、driver_cross_check、internal_consistency、dcf_linked_to_3sm、dcf_input_sourcing、comps_sourced、meta_sheet 也属于 xlsx-aware hook-first binary rules。
 `research-journal` 的 earned-insight gate 与 topic index map-only boundary 也属于 hook-first binary rules。
 `research-viz` 的 stem-binding、self-contained delivery 和 source-line contract 也属于 hook-first binary rules。
+定量事实治理层（`fact_provenance`：Tier 0-3 验证，`claim_source_proximity`：强声明必有 source 锚点）也属于 hook-first binary rules。
 
 如 hook 与 prose 在 binary legality 上冲突，以 hook enforcement 为准。`research-policy-baseline.md` 继续只是 authoring baseline，不是 runtime authority。
 
@@ -205,7 +206,7 @@ hooks-first 补充 hard gate：
 |---|---|
 | `information-impact` | 强纪律、500 字硬上限、双 mode、source 判断 |
 | `candidate-screener` | AI 局限承认、反编造、Tier 分组、漏斗收口 |
-| `industry-quickread` | 行业 first-pass、value pool、KPI/source map、routing 边界 |
+| `industry-landscape` | 行业 first-pass、value pool、KPI/source map、routing 边界 |
 | `consensus-map` | sell-side consensus、buy-side bar、priced-in assumptions、variant-view gap |
 | `primary-research-plan` | 合规 primary research、expert call、channel check、survey、decision gates |
 | `stock-quickread` | 数据先行、反向工程、强制结构 |
@@ -270,8 +271,12 @@ LS 工作特征：
 |---|---|
 | 双向都看 | thesis-related research skill 默认双向考虑，不假设 long-only |
 | Pair trade 是核心工具 | 触发 long X 思路时，自然带上 short Y 候选 / hedge 选项，必要时 handoff 到 `pair-trade` |
-| Mechanism 拆解是复用原语 | 涉及行业机制、工程原理、设备链条、工艺流程、关键术语或 know-how gap 时，优先复用 `mechanism-map` |
-| Driver 拆分是复用原语 | 涉及公司 / segment / 产品线 / 披露 bucket 的 revenue / margin / backlog / price-volume-mix driver 时，优先复用 `driver-map`，不要各 skill 重写一套拆分；泛行业 first-pass 用 `industry-quickread`，机制不清用 `mechanism-map` |
+| Mechanism 拆解是复用原语 | 涉及行业机制、工程原理、设备链条、工艺流程、关键术语或 know-how gap 时，优先复用 `mechanism-insight` |
+| Driver 拆分是复用原语 | 涉及公司 / segment / 产品线 / 披露 bucket 的 revenue / margin / backlog / price-volume-mix driver 时，优先复用 `driver-map`，不要各 skill 重写一套拆分；泛行业 first-pass 用 `industry-landscape`，机制不清用 `mechanism-insight` |
+| 市场空间测算 | TAM/SAM/SOM 估算和 scenario sizing 优先复用 `market-sizing` → `scenario-model`，不要在 thesis 里临时拍数 |
+| 竞争壁垒 / 管理层 / 催化剂 | 深挖前先复用到 `moat-analysis`、`capital-allocation`、`catalyst-map`，不靠 stock-quickread 拼凑 |
+| 财报后快速判断 | post-print verdict 用 `post-earnings-quick`，读最近的 `earnings-setup` bar 做基准对比 |
+| 覆盖跟踪 | 已覆盖公司状态更新和优先级重排用 `coverage-tracker`，与 `research-journal` 分工：前者管状态，后者管认知 |
 | Consensus framing 是 foundation 原语 | 涉及 sell-side consensus、buy-side bar、priced-in assumptions、market-implied expectations 或 variant-view gap 时，优先复用 `consensus-map`，不要在 thesis 或 quickread 里临时重写 |
 | Primary evidence 需要合规计划 | 涉及 expert call、customer / supplier channel check、survey、fieldwork 或 ex-employee interview 验证关键假设时，优先复用 `primary-research-plan`，不要生成假访谈结果 |
 | 跨市场惯性 | 同一公司多重上市、跨市场 peer 比较是常态 |
@@ -317,10 +322,11 @@ Research layers：
 
 | Layer | Skills | 用途 |
 |---|---|---|
-| `triage` | `information-impact`, `candidate-screener`, `industry-quickread`, `stock-quickread`, `reddit-sentiment`, `next-step` | 过滤信息、找候选、行业 first-pass、social sentiment、快速判断、识别下一步最高杠杆问题 |
-| `foundation` | `company-history`, `consensus-map`, `mechanism-map`, `driver-map`, `cross-market-compare` | 打地基：公司基础、市场预期、行业机制、model driver、跨市场比较 |
-| `deep-work` | `peer-deep-dive`, `primary-research-plan`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `3-statement-model / dcf-model / comps-analysis / model-update` | 深度研究、primary research、thesis、财报、pair、建模 |
-| `memory` | `research-journal` | 沉淀 earned insight 和 Boss Brief |
+| `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `next-step` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
+| `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | 打地基：零基础物理直觉、行业全景、结构化财务+市场数据、TAM 估算、公司业务/披露历史、市场预期、行业机制、model driver |
+| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、建模 |
+| `supporting` | `scenario-model`, `research-viz` | 场景量化测算（被 candidate-screener/alpha-thesis 调用）、可视化后处理 |
+| `memory` | `research-journal`, `coverage-tracker` | 沉淀 earned insight、跟踪已覆盖公司状态和优先级 |
 
 Operations skills：
 
@@ -506,9 +512,9 @@ Artifact policy：
 - `new-session` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
 
 默认 naming tier：
-- `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`
-- `optional_qualifier`：`consensus-map`、`industry-quickread`、`peer-deep-dive`、`cross-market-compare`、`candidate-screener`、`primary-research-plan`
-- `required_qualifier`：`mechanism-map`、`reddit-sentiment`
+- `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`、`moat-analysis`、`catalyst-map`、`capital-allocation`、`post-earnings-quick`
+- `optional_qualifier`：`consensus-map`、`industry-landscape`、`peer-deep-dive`、`candidate-screener`、`primary-research-plan`、`scenario-model`、`market-sizing`
+- `required_qualifier`：`mechanism-insight`、`teach-in`、`reddit-sentiment`
 
 ### 8. Shared Runtime / Source Baseline
 
@@ -684,7 +690,7 @@ Supporting visualization skill：
 
 ## 文档版本
 
-- **版本**：v1.1
-- **基于**：buy-side-research-skills v3.10.8
-- **最后更新**：2026-05-22
+- **版本**：v2.0
+- **基于**：buy-side-research-skills v5.0.0
+- **最后更新**：2026-06-01
 - **维护者**：用户（user）
