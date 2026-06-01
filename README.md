@@ -1,6 +1,6 @@
 # Buy-Side Research Skills —— 零基础完全上手指南
 
-> 当前版本：`4.6.1`
+> 当前版本：`4.6.2`
 >
 > 仓库地址：[iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
@@ -24,9 +24,9 @@
 | 你想做的事 | 跟 Claude 说什么 |
 |---|---|
 | 快速看一家不熟的公司 | "用 stock-quickread 看 Vertiv" |
-| 快速了解一个陌生行业 | "用 industry-quickread 看核电行业" |
+| 快速了解一个陌生行业 | "用 industry-landscape 看核电行业" |
 | 搞清楚一家公司到底靠什么赚钱 | "用 driver-map 拆 Rocket Lab 的收入 driver" |
-| 搞懂一个行业的技术原理 | "用 mechanism-map 解释燃气轮机产业链" |
+| 搞懂一个行业的技术原理 | "用 mechanism-insight 解释燃气轮机产业链" |
 | 拉美股/A股/港股/日股/韩股/欧股的财务数据 | "用 financial-data 拉 AAPL 美股数据" |
 | 搭三表财务预测模型 | "用 3-statement-model 给 GE 搭模型" |
 | 做 DCF 估值 | "用 dcf-model 给 Rocket Lab 做 DCF" |
@@ -230,7 +230,7 @@ longbridge auth login
 
 **你**：帮我新建一个 AI 数据中心电力的研究 session
 
-**你**：用 industry-quickread 看 AI 数据中心电力行业
+**你**：用 industry-landscape 看 AI 数据中心电力行业
 
 **你**：用 candidate-screener 挖 AI 数据中心电力里纯度高、增长快、估值不贵、还没被市场充分发现的股票
 
@@ -274,9 +274,9 @@ longbridge auth login
 
 **你**：帮我新建一个燃气轮机行业的研究 session
 
-**你**：用 industry-quickread 看燃气轮机行业
+**你**：用 industry-landscape 看燃气轮机行业
 
-**你**：用 mechanism-map 解释燃气轮机
+**你**：用 mechanism-insight 解释燃气轮机
 
 **你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上挖可研究股票
 
@@ -328,14 +328,14 @@ longbridge auth login
 | 我想做什么 | 跟 Claude 说 | Skill 名字 |
 |---|---|---|
 | 快速看一家公司 | "用 stock-quickread 看 VRT" | `stock-quickread` |
-| 快速了解一个行业 | "用 industry-quickread 看核电行业" | `industry-quickread` |
+| 快速了解一个行业 | "用 industry-landscape 看核电行业" | `industry-landscape` |
 | 从主题/条件出发挖可投股票 | "用 candidate-screener 挖 AI 电力里纯度高、增长快、估值不贵的股票" | `candidate-screener` |
 | 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" | `information-impact` |
 | 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" | `reddit-sentiment` |
 | 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | `next-step` |
 | 深度拆解一家公司业务 | "用 company-history 深度看 GE Vernova" | `company-history` |
 | 拆市场预期/priced-in | "用 consensus-map 看市场对 IONQ 的预期" | `consensus-map` |
-| 搞懂行业技术/工程原理 | "用 mechanism-map 解释燃气轮机" | `mechanism-map` |
+| 搞懂行业技术/工程原理 | "用 mechanism-insight 解释燃气轮机" | `mechanism-insight` |
 | 拆收入/利润 driver | "用 driver-map 拆 Rocket Lab 的 revenue driver" | `driver-map` |
 | 跨市场估值比较（A/H/ADR） | "用 cross-market-compare 比较比亚迪 A 股和 H 股" | `cross-market-compare` |
 | 横向比较同行业公司 | "用 peer-deep-dive 比较 VRT、GEV、SMCI" | `peer-deep-dive` |
@@ -404,5 +404,5 @@ longbridge auth login
 
 ---
 
-**版本**：v4.6.1
+**版本**：v4.6.2
 **最后更新**：2026-05-27

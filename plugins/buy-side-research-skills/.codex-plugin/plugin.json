@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "4.6.1",
+  "version": "4.6.2",
   "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
@@ -55,13 +55,14 @@
     "disclosure-evolution",
     "segment-history",
     "kpi-history",
-    "mechanism-map",
+    "mechanism-insight",
     "industry-mechanism",
     "engineering-principle",
     "equipment-chain",
     "know-how-gap",
     "process-flow",
-    "industry-quickread",
+    "industry-landscape",
+    "teach-in",
     "industry-triage",
     "industry-first-pass",
     "industry-profit-pool",

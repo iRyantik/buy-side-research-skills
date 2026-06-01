@@ -92,6 +92,7 @@ If cache exists and source hash matches, skip unless `--force` is set. If cache 
 ## 工具资源
 
 Runtime scripts:
+- 如果你只是在找“整体有哪些环境要先知道”，先看 `init-workspace` 的统一环境入口与 `_scripts/init-assets/env-setup.ps1.template`。本节只保留 `ingest` 自己的 converter、bootstrap 和 SEC filing / optional VLM 边界。
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
@@ -101,6 +102,12 @@ Runtime scripts:
 - `skills/ingest/assets/requirements-ingest.txt`
 
 Core routes include Docling, PyMuPDF4LLM, EdgarTools readiness checks, openpyxl, python-pptx, python-docx, PDFPlumber, pypdf, and Pillow.
+
+Skill-local environment notes:
+
+- SEC filing ingest still requires `EDGAR_IDENTITY`; keep using the ingest bootstrap or the shared env template before converting SEC filings.
+- `describe-figures` may optionally use `VLM_API_URL`, `VLM_API_KEY`, and `VLM_MODEL`.
+- `HF_ENDPOINT` remains optional and mainly helps mirror access, not core ingest correctness.
 
 ## 文件安全
 

@@ -193,6 +193,8 @@ Snapshot 可以链接 canonical company pack，但不把单公司 canonical data
 
 本 skill 使用：
 
+- 如果你只是想先知道 workspace 里哪些共享环境变量需要配置，先看 `init-workspace` 提供的统一环境入口与 `_scripts/init-assets/env-setup.ps1.template`。本节仍然保留 `financial-data` 自己的完整 provider / dependency / bootstrap 细节，不被那份总入口替代。
+
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
 - `skills/financial-data/scripts/providers/sec_provider.py`
@@ -281,6 +283,7 @@ Segment rule:
 
 ## 失败处理
 
+- 共享环境入口可先看 `init-workspace`，但本节仍是财务数据环境配置与 honest-fail 边界的细 source of truth。
 - 缺 dependency：输出缺什么和 bootstrap 命令，不写 successful cache。
 - 缺 `EDGAR_IDENTITY`：US SEC route failed，不声称 SEC/XBRL 可用。
 - 缺 `DART_API_KEY`：KR route failed，不写假 DART 数据。

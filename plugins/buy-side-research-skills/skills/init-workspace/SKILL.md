@@ -12,6 +12,8 @@ macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapter
 
 It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
 
+`init-workspace` is also the first-stop environment guide for the most common runtime requirements. It should tell users where to configure shared items such as `pwsh`, `EDGAR_IDENTITY`, `DART_API_KEY`, `EDINET_API_KEY`, `FINMIND_TOKEN`, `EDGAR_LOCAL_DATA_DIR`, optional `VLM_*`, and optional `HF_ENDPOINT`. It does not replace skill-local dependency or honest-fail documentation: `financial-data` remains the detailed source of truth for financial-data environment setup, while `ingest` and `reddit-sentiment` keep their own skill-local bootstrap instructions.
+
 ## Mental Model
 
 The invariant is separation of concerns:
@@ -29,6 +31,7 @@ Responsible for:
 
 - Creating root `_inbox/`, `_scripts/`, and `topics/`.
 - Writing missing root `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`.
+- Copying a unified environment setup template into `_scripts/init-assets/` so users can discover common workspace, filing, and optional VLM environment variables from one place.
 - Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
 - Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
 - Copying shared workspace hook scripts into `.claude/hooks/` and host adapter config into `.claude/settings.json` and `.codex/hooks.json`.
@@ -38,6 +41,7 @@ Not responsible for:
 
 - Ingesting PDF / Excel / PPTX / DOCX materials.
 - Installing Docling, EdgarTools, Tesseract, MarkItDown, or Python packages.
+- Validating live credentials against provider APIs or silently persisting user secrets.
 - Creating dated topic research artifacts.
 - Creating topic roots; use `new-session`.
 - Creating topic-level `_raw/`, `_cache/`, or `_models/`.
@@ -108,6 +112,31 @@ Runtime assets copied by the helper:
 
 Prefer the helper script over hand-written copy logic.
 
+## Environment Entry Point
+
+`init-workspace` should be the first place a user looks for shared runtime setup. The copied `_scripts/init-assets/env-setup.ps1.template` is the canonical entry point for common workspace-level environment guidance:
+
+- Runtime / platform:
+  - `pwsh` on macOS
+- Filing / financial-data core:
+  - `EDGAR_IDENTITY`
+  - `DART_API_KEY`
+  - `EDINET_API_KEY`
+  - `FINMIND_TOKEN` (optional)
+  - `EDGAR_LOCAL_DATA_DIR`
+- Optional ingestion / figure description:
+  - `VLM_API_URL`
+  - `VLM_API_KEY`
+  - `VLM_MODEL`
+- Optional network mirror:
+  - `HF_ENDPOINT`
+
+This entry point is a navigation layer, not a replacement for skill-local detail:
+
+- `financial-data` still owns provider-by-market credential and dependency detail
+- `ingest` still owns converter dependency detail and SEC filing ingest caveats
+- `reddit-sentiment` still owns its own bootstrap and dependency guidance
+
 ## File Safety
 
 - Idempotent: reruns only add missing items.
@@ -134,6 +163,20 @@ After success or repair:
 
 ## Workspace Shape
 [root scaffold tree]
+
+## Environment Next Steps
+- shared env template: `_scripts/init-assets/env-setup.ps1.template`
+- workspace hooks on macOS require `pwsh`
+- financial-data check:
+  - Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`
+  - macOS: `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`
+- ingest check:
+  - Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
+  - macOS: `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly` or `_scripts/bootstrap-ingest-deps.sh --check-only`
+- optional figure-description env:
+  - `VLM_API_URL`
+  - `VLM_API_KEY`
+  - `VLM_MODEL`
 ```
 
 When blocked:
@@ -164,6 +207,7 @@ When blocked:
 | User wants to start a company / industry / theme / pair topic | Hand off to `new-session` |
 | User drops materials into a topic `_inbox/` | Hand off to `ingest` |
 | User needs structured financial data | Hand off to `financial-data` |
+| User wants to know which shared environment variables matter first | Use `init-workspace` as the unified entry point, then hand off to the specific skill for exact runtime detail |
 | User needs to promote company workbench files from an industry/theme topic | Hand off to `promote-company` |
 | User wants to merge whole topic directories | Hand off to `integrate` |
 | User lacks ingest dependencies | Suggest Windows `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; suggest macOS `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly` or `_scripts/bootstrap-ingest-deps.sh --check-only`; run install variants only after explicit opt-in |
