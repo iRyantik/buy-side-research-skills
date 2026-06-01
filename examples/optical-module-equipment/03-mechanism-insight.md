@@ -66,3 +66,7 @@
 ## 下一步
 
 > "搞定。现在帮我做 L/S 排序。不仅要看当前，还要分场景——Pluggable 继续主导 vs CPO 过渡 vs CPO 成为主流，每个场景下多/空方向可能不同。用 candidate-screener 做。"
+
+---
+
+📄 **完整产出**: [2026-06-01-mechanism-insight-coupling.md](artifacts/2026-06-01-mechanism-insight-coupling.md)

@@ -66,3 +66,7 @@ AI 推演出了 7 种策略原型：全场景多仓、小赌注、Flip 对冲、
 ## 下一步
 
 > "拿出 scenario-model，算 CPO>15% 场景下 AEHR 的理论市值，我需要 TAM x 份额 x PE 的量化测算"
+
+---
+
+📄 **完整产出**: [2026-06-01-candidate-screener.md](artifacts/2026-06-01-candidate-screener.md)

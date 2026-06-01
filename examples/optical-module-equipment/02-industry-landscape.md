@@ -64,3 +64,7 @@ teach-in 给了产品直觉，现在需要投资判断。关键是把"知道这�
 ## 下一步
 
 > "深挖固晶设备和耦合设备的竞争格局，用 mechanism-insight"
+
+---
+
+📄 **完整产出**: [2026-06-01-industry-landscape.md](artifacts/2026-06-01-industry-landscape.md)
