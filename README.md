@@ -64,6 +64,10 @@ Agent 会自动完成插件安装、workspace 初始化、依赖检查和环境�
 
 ---
 
+> 📖 **不想读文档？** 跟着真实案例走一遍：[/examples/optical-module-equipment/](examples/optical-module-equipment/) — 从零基础到分场景 L/S 排序，5 步对话实录。
+
+---
+
 ## 3. 完整 Skill 清单（32 个）
 
 ### Triage 层（快速判断）

@@ -1,7 +1,0 @@
-{
-  "ticker": "AAPL",
-  "company": "Apple Inc. [AAPL] CIK:320193 • Electronic Computers",
-  "latest_10K": "Filing(company='Apple Inc.', cik=320193, form='10-K', filing_date='2025-10-31', accession_no='0000320193-25-000079')",
-  "filing_date": "2025-10-31",
-  "note": "V1: company metadata only. Full XBRL statement extraction needs provider enhancement."
-}
