@@ -9,11 +9,14 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 ## Research Runtime Capsule
 
-
-**三表数据前置（由 subagent 并行执行）：** peer set 中每个标的必须先有 financial-data——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。N 家可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+- Consumer contract: treat `actuals-resolved.json.latest_quarter` as the latest `Q/H period`, not necessarily a single quarter. Always read `latest_quarter_period`, `latest_quarter_period_label`, and `latest_quarter_period_basis`; if the basis is `half_year` or `report_period`, use the true period label in tables/text and do not relabel it as `Q2/Q4` or annualize flow metrics unless explicitly marked `[年化]`.
+
+**三表数据前置（由 subagent 并行执行）：** peer set 中每个标的必须先有 financial-data——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。N 家可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
+- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in peer tables, ranking logic, or narrative comparisons.
+- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography` and `supplementary.shares_outstanding`; treat `supplementary.order_backlog` as sector-conditional.
 
 产出**不是** N 份独立的公司分析拼在一起。如果你写出来的内容是 N 个 stock-quickread 串联，就是失败的。
 
@@ -29,359 +32,272 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 **核心检验**：把"行业 lens"和"cross-cut insight"两节抽掉，剩下的内容是不是 N 份精简 quickread？如果是，重写。
 
-## 输出结构（严格按这个走）
+## 输出结构
 
-### 0. 任务定义
+### §0 任务定义 & Preflight
 
 研究员先明确：
-- **公司列表**：3-8 家（数量超过 8，先自由对话预筛，或按子行业 / business model 分子组；当前发布版不包含独立 `peer-scan` skill）
-- **研究目的**：建核心仓 / 找 hedge / 找 pair trade / 主题暴露 / 其他（这决定研究深度的分配）
-- **时间预算**：用于第 5 节的资源分配
+- **公司列表**：3-8 家（超过 8 家先自由对话预筛，或按子行业 / business model 分子组）
+- **研究目的**：建核心仓 / 找 hedge / 找 pair trade / 主题暴露 / 其他
+- **时间预算**：用于 §7 排序的资源分配
 
-如果用户没说研究目的，主动问一句——目的不同会导致 cross-cut 关注重点和资源分配完全不同。
-
-### 0A. 横向比较 Preflight（先判断能不能比）
-
-横向比较之前先确认这些公司真的能放进同一张机制 / driver / KPI 坐标系。不能因为 tickers 同行业就硬做矩阵。
+横向比较之前先确认这些公司真的能放进同一张机制 / driver / KPI 坐标系：
 
 | 检查项 | 通过标准 | 不通过时动作 |
 |---|---|---|
-| Mechanism / value-capture 可比 | N 家公司处在同一机制链条，或已明确各自在哪个环节捕获价值 | 先 handoff 到 `mechanism-map` 统一 mechanism / value-capture |
+| Mechanism / value-capture 可比 | N 家公司处在同一机制链条，或已明确各自在哪个环节捕获价值 | 先 handoff 到 `mechanism-insight` 统一机制理解 |
 | KPI 定义可比 | 核心 KPI 定义一致，或差异能 footnote / normalize | 先 handoff 到 `driver-map` 拆 KPI / disclosure 口径 |
 | Driver 口径可比 | revenue、margin、backlog、price-volume-mix 能映射到可比 driver | 先 handoff 到 `driver-map` |
-| Peer group 合理 | business model、商业化阶段、周期性和政策暴露没有大到让 cross-cut 失真 | 先重分组；机制不清时用 `mechanism-map` |
+| Peer group 合理 | business model、商业化阶段、周期性和政策暴露没有大到让 cross-cut 失真 | 先重分组 |
 
-若任一项不通过，不要硬做 ranking / matrix。先输出最小 handoff block：
+若任一项不通过，不要硬做 ranking / matrix。先输出最小 handoff block。
 
-```markdown
-## Primitive Handoff Required
+### §1 结论先行（~200-400 字）
 
-- Blocker: [mechanism / KPI / driver / peer group 哪一项不可比]
-- Why it blocks peer-deep-dive: [它会污染行业 lens / 横向矩阵 / ranking 的哪一节]
-- Handoff: `mechanism-map` / `driver-map`
-- Inputs needed: [需要补的 filing / call / KPI definition / mechanism source]
-```
-
-### 结论先行（放在行业 Lens 之前，~200-400 字）
-
-**这是给 PM 看的 — 这个版块必须足够完整，让读者不需要翻后面的第 1-7 节就能做出方向性判断。** 后面各节是支撑论据。
+**这是给 PM 看的**——这个板块必须足够完整，让读者不需要翻后面的 §2-§7 就能做出方向性判断。
 
 必含：
+- **一句话总判断**：这批公司作为一个 group，当前阶段的整体方向性判断
+- **优先级排名（微型表）**：公司 / 方向 / 一句话理由
+- **一眼定位**：插入 Mermaid scatter chart——N 家公司在增长 vs 估值坐标系的位置
+- **2-3 个最核心的 cross-cut 发现**（从 §6 提前提取的最关键 insight）
+- **第一优先行动**
 
-**一句话总判断**（1 句）
-- 这批公司作为一个 group，当前阶段的整体方向性判断
-- 例：「韩国军工板块处于出口 super-cycle，但五家之间基本面 spread 远大于估值 spread — Rotem 最便宜却最赚钱，Hanwha Systems 最贵却亏损扩大」
+### §2 行业 Lens（~300-400 字）
 
-**优先级排名（微型表）**
-| 公司 | 方向 | 一句话理由 |
-|---|---|---|
-| X | 多 | PER 最低 + ROIC 最高 + 隐藏资产被市场忽略 |
-| Y | 多 | 规模最大 + moat 最清晰，但需等回调 entry |
-| ... | ... | ... |
-
-注意：这张表和后面第 5 节不冲突 — 这里是结论高度浓缩（每家公司仅一行），第 5 节才是完整排序+时间分配+研究深度
-
-**一眼定位**
-
-[插入 Mermaid scatter chart — N 家公司在增长 vs 估值坐标系的位置。示例见下方。]
-
-> 横轴 = 收入 YoY（LTM，越高增长越快），纵轴 = EV/EBITDA（LTM，越贵越往上）。左上象限 = 快增+便宜 🔥，右下 = 慢增+贵。
-
-**2-3 个最核心的 cross-cut 发现**（每条 1-2 句）
-- 从第 4 节提前提取的最关键 insight — 矛盾信号 / 估值错配 / 极端值中的最 decisive 发现
-- 例：「Hyundai Rotem 的 Greenblatt ROC ~44% 但 PER 仅 23.5x — 是板块内唯一同时满足『最便宜+最赚钱』的；Hanwha Systems 的 PA 109x 对应 OP -46% — 估值和基本面方向完全相反」
-
-**第一优先行动**（1 句）
-- 基于上述结论，最迫切的下一步是什么
-- 例：「本周优先拆解 Rotem defense vs rail standalone 估值，验证 rail 19T 隐藏资产的真实价值」
-
-**反模式**：
-- ❌ 写「详见后面第 X 节」 — 结论先行必须自包含，不能当「预览目录」
-- ❌ 每个发现都加解释和 caveat — 这是浓缩结论，论据留给后面
-- ❌ 排名没有方向（「有待观察」）— 必须给方向
-- ❌ 排名表缺乏理由（只列公司名+方向但不说为什么）— 必须有一句话理由
-
-### 1. 行业 Lens（共享坐标系，~300-400 字）
-
-**这是 skill 的灵魂之一**——这部分写**一次**，N 家公司**共享**这套坐标系，避免在每家公司里重复行业背景。
+N 家公司共享的行业坐标系，只写一次。
 
 必含：
-- **当前 regime**：今年市场在 trade 这个行业的什么变量？（例：能源股是 capital discipline + 资本返还；半导体是 cycle + 库存；A&D 是国防预算 + commercial recovery）
-- **Capital cycle 整体阶段**：行业层面是重投资 / 维持 / 收割？这决定后续公司层估值锚点的选择
-- **行业层面实证驱动因素**：当前 regime 下行业整体股价主要跟着哪些**外部变量**动（不是公司层 KPI）
-- **行业 base rate**：这种估值 / 周期位置历史上演变路径是什么？最近一次类似阶段是哪几年？
+- **当前 regime**：今年市场在 trade 这个行业的什么变量？
+- **Capital cycle 整体阶段**：行业层面是重投资 / 维持 / 收割？
+- **行业层面实证驱动因素**：股价主要跟着哪些外部变量动？
+- **行业 base rate**：这种估值/周期位置历史上演变路径是什么？
 
-**反模式**：
-- ❌ 行业入门 / 监管科普 / 历史发展（这是百科，不是 lens）
-- ❌ 罗列行业有多少玩家 / 市占率前五（这是数据，不产生 insight）
-- ❌ "受益于 / 不利于"这种空话
+反模式：
+- 行业入门/监管科普/历史发展（这是百科，不是 lens）
+- 罗列行业有多少玩家/市占率前五（这是数据，不产生 insight）
 
-### 2. 横向矩阵（核心数据表）
+### §3 行业结构性变量
 
-N 家公司 × 关键维度的并排数据。**必须有 `Ev` 列；完整 source metadata 放文末 `## Resources`**。分两层：
+当行业面临结构性范式变化时，按从最受益到最受损排列每家公司。
 
-#### 2A. 通用维度（所有行业都列）
+当行业面临结构性范式变化（电动化/CPO/基因疗法等），按从最受益到最受损排列每家公司。
 
-| 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金） | 净负债/EBITDA | Capex/D&A | FCF yield | EV/EBITDA(当前 vs 5Y 中位) | 资本返还/FCF | Ev |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| 公司 | 范式前主力业务 | 范式后位置 | 转型进展 | 净影响 |
+|---|---|---|---|---|
+| AEHR | 晶圆 Burn-in 小市场 | CPO 创造全新品类 | 量产 | 最正面 |
+| ficonTEC | 耦合整线 | 耦合需求暴涨 | CPO 量产验证 | 最正面 |
+| 猎奇 | 中端固晶出货量大 | 精度跟不上 CPO | 无公开进展 | 负面 |
 
-每行 `Ev` 标注主要数据来源（典型：`[S1](./_cache/sources/peer-a-10k.md) [S2](https://example.com/peer-market-data)`）；文末 `## Resources` 统一展开：`- [S1](./_cache/sources/peer-a-10k.md) = local source | 10-K FY2025 | filed [date]`、`- [S2](https://example.com/peer-market-data) = market data source | Bloomberg/CapIQ | as-of [date]`。
+**净影响标签**：最正面 / 正面 / 中性 / 负面
 
-正文 claim 示例：`Peer A has the highest service mix at 42%, while Peer B still discloses services only inside the equipment segment. [S1](./_cache/sources/peer-a-annual-report.md) [S2](./_cache/sources/peer-b-annual-report.md)`
+**通用规则**：
+- 范式变化由 researcher 或 AI 定义——必须是行业当前最大的结构性变量
+- 每家公司必须填转型进展（量产/送样/在研/无公开进展）
+- 净影响必须给方向，不能写"有待观察"
 
-**ROIC（除现金）计算公式**：NOPAT / (Invested Capital - 现金及等价物)。闲置现金不参与经营但会拉低分母，剔除后反映经营业务的真实投入回报。口径说明：如现金超过总资产的 20%，差异可能显著，需在表下单独标注各家的现金占比。
+### §4 横向矩阵
 
-#### 2B. 行业特定维度（先查后建逻辑）
+#### §4.1 通用维度（所有行业都列）
 
-通用维度（2A）远不足以判断 N 家公司的差异——每个行业都有自己的核心 KPI。**用错 KPI 的横向比较是误导**。
+| 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | EV/EBITDA（当前 vs 5Y 中位） | 资本返还/FCF | Ev |
 
-**核心原则**：先查现成模板（省时间），没有就用元方法论现场推导（覆盖任何新行业）。**不依赖穷举行业**——商业航天、合成生物、空中出行、稀土永磁、core SMR 等任何冒出来的新行业都能处理。
+每行 Ev 标注主要数据来源；文末 ## Resources 统一展开。
 
-**Step 1: 检查现成模板**
+#### §4.2 行业特定 KPI
 
-`references/industries/` 目录下有现成 KPI 模板的行业（这些是 crystallized knowledge，作为高质量 reference）：
+**先查现成模板**：`references/industries/` 目录下有 crystallized KPI 模板的行业直接使用（aerospace-defense / oil-gas / renewable-energy / nuclear / advanced-manufacturing / software-ai-applications 等）。
 
-| 行业 / 板块 | 模板文件 | 覆盖范围 |
-|---|---|---|
-| Aerospace & Defense | `aerospace-defense.md` | Defense primes、commercial aero、engines、space、suppliers |
-| Oil & Gas | `oil-gas.md` | Upstream (E&P)、midstream、downstream、OFS、integrated |
-| Renewable Energy | `renewable-energy.md` | Solar、wind、battery storage、green hydrogen、IPP/developer |
-| Nuclear | `nuclear.md` | Utilities、SMR developers、fuel cycle、uranium miners |
-| Advanced Manufacturing | `advanced-manufacturing.md` | Industrial automation、机器人 (非人形)、capital equipment |
-| Humanoid Robotics | `humanoid-robotics.md` | Pure-play、supply chain、ecosystem |
-| Software / AI Applications | `software-ai-applications.md` | SaaS、AI-native 应用、AI infra、cybersecurity |
-| EPC | `epc.md` | 大型 infrastructure、energy EPC、specialty contractors |
-| Quantum | `quantum.md` | Pure-play、enterprise spillover |
+**没有现成模板时，按 5 步推导**：
+1. 定位 4 个维度：商业模式（commodity / capital equipment / project / SaaS / platform / pre-commercial）+ 周期性 + 政策依赖 + 商业化阶段
+2. 填空 5 个问题：收入来源 / unit economics / capital cycle / 风险结构 / 商业化进度
+3. 加入行业特有 KPI（不确定时主动问研究员——AI 不应假装领域专家）
+4. 精炼到 5-10 个 KPI
+5. 告知思路 + 请校准
 
-**如果 N 家公司主要属于上述行业之一**：
-- 直接读取对应模板
-- 使用模板中的 KPI 列表 + cross-cut 注意事项
-- 注意子细分匹配（A&D 模板要按 Defense primes / Commercial aero / Engines / Suppliers 选；O&G 按 Upstream / Midstream / Downstream 选）
+**口径一致性**：每个 KPI 必须确认 N 家定义一致。EBITDA 调整项、ROIC invested capital 算法、Capex 含不含 acquisition——有差异必须在表下脚注明确，不能假装可比。
 
-**Step 2: 没有现成模板时——用元方法论推导**
+#### §4.3 竞争力拆解
 
-读取 `references/industry-kpi-framework.md`，按 5 步推导：
+每家公司的主力业务单独拆一行，比较核心竞争力指标。
 
-1. **定位 4 个维度**：商业模式（commodity / capital equipment / project / SaaS / IP licensing / platform / pre-commercial deep tech / hybrid）+ 周期性 + 政策依赖 + 商业化阶段
-2. **填空 5 个问题**：收入来源 / unit economics / capital cycle / 风险结构 / 商业化进度
-3. **加入行业 idiosyncratic KPI**（如不确定，主动询问研究员——AI 不应假装领域专家）
-4. **精炼到 5-10 个 KPI**
-5. **告知用户思路 + 请校准**
+| 公司 | 主力业务 | 市占率（台数）| 市占率（金额）| 竞争力指标 | 最新进展 | 核心客户 | 护城河 | 最大软肋 |
+|---|---|---|---|---|---|---|---|
 
-**Step 3: 用户确认后选择是否保存为新模板**
+**通用规则**：
+- 竞争力指标：设备行业用精度段（如 1m），汽车用续航/自动驾驶级别，消费品用价格带/定位，半导体用制程节点
+- 台数份额  金额份额时必须在表下标注（如猎奇 21% 台数但按金额只是 Top 5）
+- 核心客户只列公开可确认的，未公开的标 `[未具名]`
+- 护城河与软肋必须来自可验证的差异，不能写通用描述
 
-推导完成后告知用户：
-> "[行业] 暂无现成模板。我根据 [4 维度] 推导出 [N 个 KPI]。你想要：
-> (a) 用这套继续  (b) 调整  (c) 重新讨论  (d) 推导后保存为 `references/industries/[name].md` 以便复用"
+**可比性提示**：每个指标必须确认 N 家口径一致。常见陷阱：市占率台数 vs 金额混用、精度段定义不同（机器精度 vs 贴装精度）、客户名字未公开却写成确认关系。
 
-如果用户选 (d)，新模板就**作为研究副产品累积**——不是主动维护负担。
+#### §4.4 产业链站位矩阵
 
-**Step 4: 现成模板"接近但不完全匹配"的情况**
+当比较对象处于同一产业链时，按分段站位对比每家公司在哪一站赚钱。
 
-经常遇到：用户研究的行业**部分**重叠现有模板（例：LNG carriers 不在 O&G 模板，但 midstream 提供部分参考）。
+**格式**：行 = 公司，列 = 产业链分段。单元格 = 暴露度标签 + 排名/份额 + 一句话定位。
 
-处理：
-- 明确告知"现有 [X] 模板提供部分参考（覆盖 Y 部分），但 [行业] 还需补 [Z]，建议结合元方法论补充"
-- 不要硬套不匹配的模板
+**暴露度标签**（纯文字，不用特殊符号）：
 
-**Step 5: N 家公司维度差异巨大时**
+| 标签 | 含义 |
+|---|---|
+| **绝对主业** | 公司绝大部分收入和利润来自这一站 |
+| **核心** | 重要板块，但非绝对主业 |
+| **主力** | 有业务，贡献明确但不是利润引擎 |
+| — | 不碰这一站 |
 
-如果 N 家公司在 4 个维度上差异显著（例：long X 是 early-scale + long Y 是 mature；或 N 家分散在不同子细分）：
-- 警告用户这不是合理的对比组
-- 建议重新分组（按子细分 / 维度 cluster）
-- 不要强行做 cross-cut——会得到无意义结论
+**示例（光模块设备链）**：
 
-#### 2C. 跨公司可比性提示
+| 公司 | 固晶 | 耦合 | Burn-in | 终测 | 晶圆测试 | 整线 |
+|---|---|---|---|---|---|---|
+| MRSI | 绝对主业 | 核心 | — | — | — | — |
+| ficonTEC | 主力 | 绝对主业 | — | 主力 | — | 核心 |
+| Keysight | — | — | 绝对主业 | 绝对主业 | 主力 | — |
 
-每个 KPI 必须确认 N 家**口径一致**。常见陷阱：
-- EBITDA 调整项不同（一家加回 SBC、一家不加）
-- ROIC 的 invested capital 算法不同
-- Production / 收入的口径不同（gross vs net、含/不含某子公司）
-- Capex 含/不含 acquisition
+**通用规则**：
+- 列头 = 那条产业链的分段名（由 researcher 或 AI 根据行业定义）
+- 每个单元格必须填暴露度标签 + 在该段的排名或份额 + 一句话核心竞争力
+- 如果某段的数据缺失，标 `[缺]`，不要留空
+- 排名必须区分台数/金额/产能口径——不能混用
 
-**有口径差异时必须在表下脚注明确**，不能假装可比。
+#### §4.5 技术路线与代际进度
 
-### 3. 各公司 Differential Profile（每家 ~250-400 字）
+当行业有清晰的代际迭代路径时，对比每家在每一代的位置。
 
-**关键警告**：这不是 mini stock-quickread。这是"和共同坐标系 / 同业相比，这家有什么特殊的"。如果你在写这家公司的业务模式 / 历史 / 管理层背景——停。那是后续 stock-quickread 的事。
+**格式**：行 = 代际里程碑，列 = 公司，单元格 = 进度标签
 
-每家用如下模板：
+| 代际 | MRSI | ficonTEC | Besi | 猎奇 |
+|---|---|---|---|---|
+| 800G | 量产 | 量产 | 量产 | 量产 |
+| 1.6T | 量产 | 量产 | 量产 | 送样 |
+| CPO | 在研 | 量产 | 量产 | — |
+
+**进度标签**：量产（已批量交付）/ 送样（客户验证中）/ 在研（有产品未送样）/ —（没有这个代际）
+
+**通用规则**：
+- 代际里程碑由 researcher 或 AI 根据行业定义
+- 进度必须有 source——年报/产品发布/客户公告/行业峰会
+- 如果某家公司跳过某代（如从 800G 直接到 CPO），标注并解释
+
+#### §4.6 客户-供应商关系图
+
+当比较对象的客户集中度是核心投资变量时，对比每家在关键客户处的绑定深度。
+
+**格式**：行 = 公司，列 = 下游核心客户。单元格 = 绑定程度
+
+| 公司 | Broadcom | NVIDIA | 中际旭创 | Google | Meta |
+|---|---|---|---|---|---|
+| ficonTEC | 独家 | 核心 | — | — | — |
+| MRSI | — | — | 送样 | — | — |
+| 猎奇 | — | — | 核心 | — | — |
+
+**绑定程度标签**：
+
+| 标签 | 含义 |
+|---|---|
+| **独家** | 该客户只用这一家供应商 |
+| **核心** | 主要供应商之一，关系稳固 |
+| **在供** | 有供货但非主力供应商 |
+| **送样** | 产品在客户处验证中 |
+| — | 无供货关系或无法确认 |
+
+**通用规则**：
+- 客户名必须是公开可确认的（年报披露/产品发布/行业峰会/客户官网）
+- 未公开的客户标 `[未具名]`，不要编造
+- 投资含义：客户越集中 = 单客户风险越高；绑定越深 = 替换成本越高 = 护城河越深
+
+> N  5 时，考虑用一张超大总览表替代 §4.3-§4.6 的分表。Markdown 控制在 12 列以内；完整 20 列版用 research-viz 输出 HTML table。
+
+### §5 各公司 Differential（每公司 ~150 字）
+
+**这不是 mini stock-quickread**——只写和同业的差异。每家公司只用以下格式：
 
 #### [公司名]
 
 | ![logo](当前 topic 的 _cache/images/<ticker>-logo.png) |
 |---|
 
-**一句话定位**：在同业里的位置（10-15 字）
-> 例："同业里成本最低生产商，但增长最慢"
-> 例："唯一一家把 60% 收入投回 capex 的，其他都在收割"
-> 例："估值便宜但 ROIC（除现金）同业最低——typical value trap 候选"
+**一句话定位**（在同业里的位置，10-15 字）
 
-**关键 differential**（3-5 条，**只列和同业不同的**）
-- 用具体数字描述这家**偏离同业**的地方，每条要给 Source
-- 例："EBITDA margin 32% vs 同业 24% [S1](./_cache/sources/2024-segment-margin-note.md)，来自 X 区块成本优势"
-- ❌ 不要列这家自己的全貌（"收入构成 60% A、40% B"——不是 differential）
+**关键 differential**（2-3 条，每条必须有数字 + Source）
+- 例：EBITDA margin 32% vs 同业 24%，来自 X 区块成本优势
 
-**特有驱动因素**（1-3 条）
-除了第 1 节列的行业共同 driver 之外，这家**独有的**驱动因素。
-- 例："这家有 30% 收入来自一个客户的 long-term contract，其续约结果是 idiosyncratic 风险"
+**方向判断**：多 / 空 / 中性 / 不感兴趣 + 一句话理由
 
-**当前最大争议**（1-2 句）
-市场在为这家纠结什么。
+> 竞争力指标、核心客户、护城河等已经在 §4.3 表里，这里不重复。每公司配 logo（下载到 _cache/images/<ticker>-logo.png），找不到标 [缺 logo]。
 
-**Thesis 苗头**：基于上面观察，给出方向性判断
-- **多 / 空 / 中性 / 不感兴趣** 之一
-- 1 句具体理由
-- 例："多——估值最便宜但 ROIC（除现金）同业最高，明显错配，需要查市场为什么折价"
-- 例："不感兴趣——同业平均水平，无明显 setup"
+### §6 Cross-Cut Insight
 
-**反模式**：
-- ❌ 复述业务模式 / 收入构成（quickread 的事）
-- ❌ "管理层经验丰富 / 团队稳定"（不是 differential）
-- ❌ Thesis 苗头给"看情况" / "有待观察"（必须给方向，没方向就写"不感兴趣"）
+**做不好这一节就失败了**。如果 cross-cut 真的找不到任何东西，必须明确写"未发现 X / Y / Z"并解释为什么，不能假装有内容。
 
-> 每家公司加 logo（15px 小图），下载到 `当前 topic 的 _cache/images/<ticker>-logo.png`——找不到标 [缺 logo]。
+#### §6.1 管理层信号交叉
 
-### 4. Cross-Cut Insight 层（核心，500-800 字）
-
-**Skill 的灵魂之二**——做不到这一节就是失败。如果你 cross-cut 真的找不到任何东西，必须明确写"未发现 X / Y / Z"，并解释为什么没有（同业同质化太强 / 数据不足 / 时点问题等）—— 不能装作有内容。
-
-#### 4A. 矛盾信号（管理层互相打脸）
-
-N 家管理层 commentary 哪里**互相对立**？这是 alpha 最丰沃的土壤——因为一定有一边错了。
+**矛盾信号**：N 家管理层 commentary 哪里互相打脸？这是 alpha 最丰沃的土壤——因为一定有一边错了。
 
 格式：
-> **[矛盾点]**：X 公司 [具体引语] [S2](./_cache/sources/x-q3-2024-call-note.md)；Y 公司同期说 [对立引语] [S3](./_cache/sources/y-q3-2024-call-note.md)。
-> **背景**：两家终端市场重叠 X% [S4](./_cache/sources/segment-overlap-note.md) / 都属于上游 Permian / 都做某细分应用 — 解释为什么这两家应该说同一件事
-> **解读**：可能解释（一边在 sandbagging？区域差异？时点错位？）+ 哪边的位置更可信 + 怎么验证
+> **[矛盾点]**：X 公司 [具体引语] [S#]；Y 公司同期说 [对立引语] [S#]。
+> **背景**：两家终端市场重叠 X% / 都属于上游 Permian / 都做某细分应用
+> **解读**：可能解释（一边 sandbagging？区域差异？时点错位？）+ 哪边的位置更可信 + 怎么验证
 
-如果**完全没有**矛盾信号，明确说"未发现明显矛盾——N 家在 [核心 narrative] 上保持高度一致，可能意味着行业 commentary 被锚定在 X，或者真实差异要从数据而非言论中找"。
+如果完全没有矛盾信号，明确说"未发现明显矛盾——N 家在 [核心 narrative] 上保持高度一致"。
 
-#### 4B. 共识信号（多家说同一件事）
+**共识信号**：N 家都在强调什么？用来校准对行业 lens 的理解，识别哪家还没认账。
 
-N 家都在强调什么？高度一致信号可信度高，是行业层面判断的基石。
-> 例："X / Y / Z 三家 H2 不约而同上调 OpEx 指引 [三家 Q3 call 各自引用 + url]——说明行业层成本通胀加速，不是单家问题。这个信号意味着第 1 节'行业 regime'里的成本敏感度判断需要加权"
+#### §6.2 估值 Spread vs 基本面 Spread
 
-共识信号的用法：用来**校准对行业 lens 的理解**，并识别哪些公司还**没认怂**（异常值，可能是 best-in-class 或下一份财报的 disappointment 候选）。
-
-#### 4C. 估值 Spread vs 基本面 Spread（错配点）
-
-回看第 2 节矩阵：估值 spread 和基本面 spread **匹配吗**？错配处是机会或陷阱。
+回看 §4 矩阵：估值 spread 和基本面 spread 匹配吗？
 
 格式：
-> **错配点**：X EV/EBITDA 12x，Y 8x [I1](https://example.com/same-time-multiples)——X 增长 18% / Y 14% [S5](./_cache/sources/ltm-revenue-bridge.md)
+> **错配点**：X EV/EBITDA 12x，Y 8x——X 增长 18% / Y 14%
 > **预期 spread**：增速差 ~30%，估值正常 spread 应该多少
 > **实际 spread**：50%
-> **解读**：可能（市场担心 Y 的某具体问题 / X 有非可比的优势 / 时点定价不充分）。研究方向是验证哪个解释最对
+> **解读**：可能（市场担心 Y 的某具体问题 / X 有非可比优势 / 时点定价不充分）
 
 至少给 2-3 个最显眼的 spread 错配。
 
-#### 4D. 极端值的故事
+#### §6.3 极端值的故事
 
-第 2 节矩阵里每个维度的 max / min 是谁？**极端值是研究起点不是结论**——为什么这么极端、是机会还是陷阱。
+§4 矩阵里每个维度的 max / min 是谁？极端值是研究起点不是结论。
 
 格式：
 > **[维度] 极端值**：max 是 X（具体数 + Source），min 是 Y（具体数 + Source）
 > **驱动**：X 这么高是因为 [基本面理由 + 是否 sustainable]
 > **判断**：是机会（市场没认识到）还是陷阱（基本面真的差，估值已合理）
 
-挑 3-5 个最有信息量的极端值——不是把每个维度的 max/min 都念一遍。
+挑 3-5 个最有信息量的极端值，不是把每个维度的 max/min 都念一遍。
 
-### 5. 研究排序 & 资源分配
-
-**这一节强制具体**——含糊的"建议先看 X"等于没排序。
-
-#### 5A. 优先级矩阵
+### §7 研究排序 & 下一步
 
 | 公司 | 优先级 | 研究深度建议 | 时间分配 | 排序理由 |
 |---|---|---|---|---|
-| X | 1 | 全套：stock-quickread → alpha-thesis → bear-pre-mortem | 2 天 | 信息密度最高（cross-cut 命中 2 个错配点）+ 临近财报（catalyst 时间敏感） |
-| Y | 2 | 简化：stock-quickread + alpha-thesis 简版 | 1 天 | hedge 候选，重点跟 spread 演变 |
-| Z | 3 | 仅 stock-quickread | 半天 | 同业 typical，无明显 setup，先建 mental model 进 watchlist |
+| X | 1 | 全套：stock-quickread  alpha-thesis | 2 天 | 信息密度最高 / 临近财报 |
+| Y | 2 | 简化：stock-quickread | 1 天 | hedge 候选 |
 | ... | ... | ... | ... | ... |
 
-排序的判断维度：
-- **信息密度**：cross-cut 命中越多，优先级越高
-- **时间敏感度**：临近财报 / 临近其他 catalyst 的优先
-- **现有覆盖深度**：从零开始的 vs 已有 mental model 的，前者更耗时
-- **估值 setup**：是否处于 asymmetric 的位置（max upside / 极端折价）
+排序维度：信息密度（cross-cut 命中越多优先级越高）、时间敏感度、现有覆盖深度、估值 setup
 
-#### 5B. Pair / Cluster 建议
+**下一步**：
+- 第一优先看哪家（具体名字 + 为什么）？
+- Pair / cluster 建议——哪几家公司适合放在一起继续跟？
+- 什么时候需要重做 peer-deep-dive（如财报集中期后、行业数据节点、政策事件后）？
+- 如果暴露行业机制/工程原理/术语不清楚，先 handoff 到 `mechanism-insight`
 
-- **适合放在一起继续研究的几家**：基于业务重叠 / 估值错配 / driver 差异，哪几家适合一起跟踪。
-- **相对错配候选**：如果有 Long / Short 的研究苗头，只说明错配逻辑和需要继续验证的问题，不生成交易状态。
-- 默认必须输出 cluster 判断；如果**没有合适的 cluster**，明确说"无明显 cluster 机会——同业同质化高 / 估值已 priced / N 家相关性过高"。
-- 若 cross-cut 暴露业务实质错读、peer mismatch 或 market misread，触发 Senior Analyst Radar，并建议用 `next-step` 继续拆。
-
-### 6. 跨公司的关键问题
-
-这次扫描产生的问题，分两类：
-
-#### 6A. 公司层面问题（每家单独研究时要重点回答）
-
-按公司分组列出。这些问题会成为后续每家 stock-quickread 的"下一层要问的具体问题"输入。
-- **X 公司**：
-  1. 具体问题 1（基于 cross-cut 4A 矛盾信号产生的）
-  2. 具体问题 2
-- **Y 公司**：...
-
-#### 6B. 行业层面问题（任一家答出都影响所有 N 家）
-
-- 例："如果北美页岩 break-even 在 H2 真的回升到 $X，这套行业 lens 整体需要重新校准——X / Y / Z 都受影响"
-- 例："如果 OpEx 通胀是结构性的（不是周期），所有 N 家的中长期 margin 假设都偏高"
-
-这些问题是**未来主动找信息**的方向，不是被动等的。
-
-### 7. 下一步
-
-明确指出：
-- **第一个进 stock-quickread 的公司**（具体名字 + 为什么是这家）
-- **行业层面要追的具体研究方向**（基于第 6B）
-- **本次 peer-deep-dive 可能需要重做的时机**：例如 N 家集中财报后、行业某个数据节点、政策事件后
-- 如果横向比较暴露行业机制、工程原理、设备链条或术语口径不清，明确先用 `mechanism-map` 统一 mechanism / value-capture 理解，再继续比较。
-- 如果横向比较暴露 revenue / margin / backlog / price-volume-mix 口径不可比，明确先用 `driver-map` 统一业务实质和 driver，再继续比较。
-
-> Mermaid 散点图示例（放在这里做参考，agent 输出时替换结论先行 §一眼定位 的 placeholder）：
+> Mermaid 散点图示例——agent 输出时替换为真实数据：
 
 ```mermaid
 quadrantChart
     title Peer Positioning: Growth vs Value
-    x-axis "Slow Growth" --> "Fast Growth"
-    y-axis "Expensive" --> "Cheap"
-    quadrant-1 "慢增+贵"
-    quadrant-2 "快增+贵"
-    quadrant-3 "慢增+便宜"
-    quadrant-4 "快增+便宜 🔥"
-    "Company A": [0.72, 0.35]
-    "Company B": [0.55, 0.62]
-    "Company C": [0.38, 0.48]
-    "Company D": [0.15, 0.72]
-    "Company E": [0.60, 0.25]
+    x-axis Slow Growth --> Fast Growth
+    y-axis Expensive --> Cheap
+    Company A: [0.72, 0.35]
+    Company B: [0.55, 0.62]
 ```
 
+## 篇幅基准
 
-
-## 输出篇幅基准（线性 scale）
-
-| N | 目标字数 | 矩阵表数量 | Cross-cut 字数 |
-|---|---|---|---|
-| 3 | ~2500 字 | 2 张 | 400-600 |
-| 4 | ~3000 字 | 2 张 | 500-700 |
-| 5 | ~3500 字 | 2-3 张 | 500-800 |
-| 6 | ~4000 字 | 3 张 | 600-900 |
-| 7 | ~4500 字 | 3 张 | 600-900 |
-| 8 | ~5000 字 | 3 张 | 700-1000 |
-| >8 | — | — | 先自由对话预筛，或按子行业 / business model 分子组 |
-
-各节字数大致分配：
-- 行业 lens：300-400（不随 N 变）
-- 矩阵表：本身字数小（数据为主）
-- Differential profiles：250-400 × N（线性增长）
-- **Cross-cut**：500-1000（轻度增长——N 大不一定 insight 多）
-- 排序 + 问题 + 下一步：300-500（不随 N 显著变）
-
-如果产出**显著超过**上限，通常是落入"N 份 quickread 拼贴"陷阱——回头删 differential profile 节里复述的内容。
-
+- 3-5 家：~3000 字 / 6-8 家：~5000 字 / >8 家：先按子行业/business model 分组
+- 超过上限通常是落入了"N 份 quickread 拼贴"陷阱——回头删 §5 differential 里复述的内容
 
 ## Artifact / 保存策略
 
@@ -392,18 +308,24 @@ quadrantChart
 
 ## 反模式自查
 
-写完后必须自检：
-
 **通用**
-- ❌ 抽掉"行业 lens"和"cross-cut"两节后，剩下的是 N 份精简 quickread → 失败的 peer-deep-dive，重写
-- ❌ 任何一节有"成立于 / 总部位于 / 管理层经验丰富" → 删
-- ❌ 出现行业入门 / 监管科普 / 行业历史 → 删
-- ❌ 结论埋在后半部分，需要翻好几页才能看到方向判断 → 「结论先行」节没写或写得像「预览目录」
+- 抽掉"行业 lens"和"cross-cut"两节后，剩下的是 N 份精简 quickread → 失败，重写
+- 任何一节出现"成立于/总部位于/管理层经验丰富" → 删
+- 结论埋在文档后半部 → §1 结论先行节没写或写得像"预览目录"
 
-**第 1 节（行业 lens）专项**
-- ❌ 描述行业有多少玩家 / 市占率结构（不是 lens 是数据）
-- ❌ "受益于 X" 这种万能空话
-- ❌ 没说当前 regime 在 trade 什么变量
+**§2（行业 lens）**
+- 描述行业有多少玩家/市占率结构（不是 lens 是数据）
+- "受益于 X"这种万能空话
+- 没说当前 regime 在 trade 什么变量
 
-**第 2 节（矩阵）专项**
-- ❌ 表格无 `Ev` 列或文末 `## Resources` 缺失 → 加上
+**§4（矩阵）**
+- 表格无 Ev 列或文末无 ## Resources → 加上
+
+**§5（differential）**
+- 复述业务模式/收入构成（quickread 的事）
+- "管理层经验丰富/团队稳定"（不是 differential）
+- 方向判断写"有待观察"——必须给方向
+
+**§6（cross-cut）**
+- 找不到 insight 却硬写——必须说"未发现 X，"并解释原因
+- 估值比较只说"偏贵/便宜"不做反向工程

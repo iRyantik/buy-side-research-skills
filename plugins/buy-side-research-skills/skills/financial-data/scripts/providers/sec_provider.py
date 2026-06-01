@@ -12,6 +12,7 @@ import math
 import os
 import re
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import Any
 
 
@@ -96,6 +97,10 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
         return _err("credential-gap", "Missing EDGAR_IDENTITY")
+    if not os.getenv("EDGAR_LOCAL_DATA_DIR"):
+        cache_dir = Path.cwd() / ".financial-data-cache" / "edgar"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        os.environ["EDGAR_LOCAL_DATA_DIR"] = str(cache_dir)
 
     import edgar
     try:
@@ -239,12 +244,29 @@ def _flatten(items, periods):
                 out.append({
                     "concept": getattr(node, "concept", None),
                     "label": getattr(node, "label", None),
-                    "values": vals, "depth": depth,
+                    "values": vals,
+                    "period_basis_by_period": {str(period): _default_period_basis(period) for period in vals},
+                    "depth": depth,
                 })
             if hasattr(node, "children") and node.children:
                 out.extend(_walk(node.children, depth + 1))
         return out
     return _walk(items)
+
+
+def _default_period_basis(period: Any) -> str:
+    text = str(period or "").strip()
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})", text):
+        return "annual"
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})Q[1-4]", text):
+        return "quarter"
+    if text.endswith("-03-31") or text.endswith("-09-30"):
+        return "quarter"
+    if text.endswith("-06-30"):
+        return "half_year"
+    if text.endswith("-12-31"):
+        return "annual"
+    return "unknown"
 
 
 def _extract_revenue_split(filing: Any | None) -> tuple[list[dict[str, Any]], dict[str, Any]]:

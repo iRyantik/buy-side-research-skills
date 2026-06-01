@@ -2,14 +2,14 @@ metadata_schema_version: 1
 name: 'peer-deep-dive'
 id: 'peer-deep-dive'
 display_name: 'Peer Deep Dive'
-version: '1.0.2'
-system_generation: '4.5.7'
+version: '1.0.3'
+system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Compare companies in one industry with sourced KPI matrices and research ranking.'
-description: 'Compare companies in one industry with sourced KPI matrices and research ranking.'
+description: 'Compare companies in one industry with sourced KPI matrices, value chain position mapping, paradigm shift exposure ranking, and research ranking.'
 tags:
   - 'peer-deep-dive'
   - 'cross-cut'
@@ -17,6 +17,8 @@ tags:
   - 'buy-side'
   - 'equity-research'
   - 'industry-lens'
+  - 'value-chain-matrix'
+  - 'paradigm-shift-exposure'
 trigger:
   type: 'keyword'
   keywords:
@@ -51,11 +53,11 @@ capabilities:
     max: 8
     overflow_action: '先自由对话预筛，或按子行业 / business model 分子组'
 artifact_policy:
-  save_policy: 'default_topic_result'
+  save_policy: 'optional_topic_result'
   default_artifact: 'peer-deep-dive.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-peer-deep-dive.md'
+  canonical_location: 'topics/[topic-namespace]/[topic-slug]/[YYYY-MM-DD]-peer-deep-dive.md'
   naming_mode: 'optional_qualifier'
-  save_trigger: 'always save to industry topic'
+  save_trigger: 'save only when user asks to preserve the peer work as dated topic research result'
 workflow:
   stage: 'deep-dive'
   prerequisites:

@@ -11,9 +11,12 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 
 **三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in downside cases, stress assumptions, or risk writeups.
+- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography`, `supplementary.shares_outstanding`, growth/margin fields, `operating_cf`, and `capex`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than downside blockers.
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+- Consumer contract: treat `actuals-resolved.json.latest_quarter` as the latest `Q/H period`, not necessarily a single quarter. Always read `latest_quarter_period`, `latest_quarter_period_label`, and `latest_quarter_period_basis`; if the basis is `half_year` or `report_period`, use the true period label in tables/text and do not relabel it as `Q2/Q4` or annualize flow metrics unless explicitly marked `[年化]`.
 
 这个 skill **故意**单边。它不是"全面风险分析"——那是卖方风险章节的活儿。它是模拟 short side 的最强大脑，对一个多头 thesis 做最大化压力测试。
 

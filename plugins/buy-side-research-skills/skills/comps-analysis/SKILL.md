@@ -11,10 +11,13 @@ Build comparable company valuation workbooks with peer multiples and operating m
 
 
 **三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in comp tables, multiple calculations, or conclusions.
+- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography` and `supplementary.shares_outstanding`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than comparison blockers. When segment data exists, keep dimensions separate by `type` instead of forcing one normalized split. Preserve optional quantitative fields such as `pct_of_total`, `yoy_pct`, `sequential_pct`, `margin_pct`, and `ratio` when present.
 - Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
 - Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - Use bounded QA sub-agents only; the main agent owns the final workbook, peer-set judgment, and delivery.
+- Consumer contract: treat `actuals-resolved.json.latest_quarter` as the latest `Q/H period`, not necessarily a single quarter. Always read `latest_quarter_period`, `latest_quarter_period_label`, and `latest_quarter_period_basis`; if the basis is `half_year` or `report_period`, use the true period label in tables/text and do not relabel it as `Q2/Q4` or annualize flow metrics unless explicitly marked `[年化]`.
 
 ## Research Workspace Adapter
 

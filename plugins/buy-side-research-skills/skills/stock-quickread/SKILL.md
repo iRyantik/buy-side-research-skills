@@ -11,6 +11,8 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 
 **三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in tables, ratio commentary, or narrative takeaways.
+- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography` and `supplementary.shares_outstanding`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than quickread blockers. `segments.segments` may include multiple dimensions such as `business_line`, `geography`, and `end_market`; do not flatten them into a single pseudo-split or ignore disclosed geography just because a business-line split is absent. Preserve optional quantitative fields such as `pct_of_total`, `yoy_pct`, `sequential_pct`, `margin_pct`, and `ratio` when present.
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
@@ -103,7 +105,7 @@ flowchart LR
 
 **(a) 关键财务数据表（必填）**
 
-按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个单季度**两行的数据（含同比变化）。期间拆行为独立行。
+按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个 Q/H period**两行的数据（含同比变化）。期间拆行为独立行；period label 必须读取 `actuals-resolved.json` 的真实标签 / basis，不得把 HK H1 写成 Q2 或 Q4。
 
 | 分部 | 期间 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | Ev |
 |---|---|---|---|---|---|---|---|---|
@@ -111,16 +113,16 @@ flowchart LR
 | 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
 | 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
 | **整体** | **FY2024** | **100%** | **+5%** | EBIT | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
-| 分部 A | Q1 2025 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| 分部 B | Q1 2025 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| 分部 C | Q1 2025 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/q1-2025-segment-note.md) |
-| **整体** | **Q1 2025** | **100%** | **+4%** | EBIT | **100%** | **18%** | [S12](./_cache/sources/q1-2025-income-statement.md) |
+| 分部 A | H1 FY2025 / Q1 2026 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 B | H1 FY2025 / Q1 2026 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 C | H1 FY2025 / Q1 2026 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/qh-segment-note.md) |
+| **整体** | **H1 FY2025 / Q1 2026** | **100%** | **+4%** | EBIT | **100%** | **18%** | [S12](./_cache/sources/qh-income-statement.md) |
 
 正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
 **取舍说明**：
 
-1. **口径统一**：分段和整体用同一个口径（优先 segment EBIT > Gross Profit > Net Income）。分段没口径就标 [ND]，整体随分段。期间先 FY 后 Q，每分部两行。
+1. **口径统一**：分段和整体用同一个口径（优先 segment EBIT > Gross Profit > Net Income）。分段没口径就标 [ND]，整体随分段。期间先 FY 后 Q/H，每分部两行。
 2. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
 3. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
 
@@ -139,6 +141,8 @@ flowchart LR
 > 数字从 actuals-resolved.json 取值计算
 
 以下 6 个比率全部计算并输出，拿不到的标 [ND]。所有数字从三张表算，不得随手拍。科目对照见 。
+
+若 latest period 是 H1，流量指标按 H1 口径展示，不 annualize；只有明确写 `[年化]` 时才可年化。
 
 | # | 比率 | 公式 | 用途 |
 |---|---|---|---|

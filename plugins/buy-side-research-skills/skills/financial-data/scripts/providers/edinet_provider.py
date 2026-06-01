@@ -172,6 +172,7 @@ def _extract_from_parsed(parsed: Any, item_key: str, document_meta: dict[str, An
             ("Operating income", "operating_income", "prior_operating_income"),
             ("Ordinary income", "ordinary_income", "prior_ordinary_income"),
             ("Net income", "net_income", "prior_net_income"),
+            ("Profit loss", "profit_loss", None),
             ("Income before taxes", "income_before_taxes", None),
             ("Non-operating income", "non_operating_income", None),
             ("Non-operating expenses", "non_operating_expenses", None),
@@ -210,10 +211,15 @@ def _extract_from_parsed(parsed: Any, item_key: str, document_meta: dict[str, An
         if include_prior and prior_field and data.get(prior_field) is not None:
             values[prior_period] = data.get(prior_field)
         if values:
+            period_basis_by_period = {
+                period: _edinet_period_basis(period, document_meta)
+                for period in values
+            }
             rows.append({
                 "label": label,
                 "concept": current_field,
                 "values": values,
+                "period_basis_by_period": period_basis_by_period,
                 "currency": "JPY",
                 "source_type": "official-parser",
                 "provider": PROVIDER,
@@ -231,11 +237,13 @@ def _merge_statement_row(grouped: dict[str, dict[str, Any]], row: dict[str, Any]
         "label": row.get("label"),
         "concept": row.get("concept"),
         "values": {},
+        "period_basis_by_period": {},
         "currency": row.get("currency"),
         "source_type": row.get("source_type"),
         "provider": row.get("provider"),
     })
     item["values"].update(row.get("values", {}) or {})
+    item["period_basis_by_period"].update(row.get("period_basis_by_period", {}) or {})
 
 
 def _get_filing_text(entity: Any, parsed: Any, document_meta: dict[str, Any],
@@ -562,6 +570,13 @@ def _period_from_document(document_meta: dict[str, Any], data: dict[str, Any]) -
     period_end = str(document_meta.get("period_end") or data.get("fiscal_year_end") or "")
     if doc_type == "120":
         return _period_from_end(period_end)
+    fiscal_year = _fiscal_year_from_period_end(period_end)
+    if doc_type == "160" and fiscal_year:
+        return f"FY{fiscal_year}H1"
+    if doc_type == "140":
+        quarter_label = _quarter_label_from_document(document_meta)
+        if fiscal_year and quarter_label:
+            return f"FY{fiscal_year}{quarter_label}"
     date_match = re.search(r"(20\d{2}|19\d{2})[-/.]\d{1,2}[-/.]\d{1,2}", period_end)
     if date_match:
         return date_match.group(0).replace("/", "-").replace(".", "-")
@@ -576,11 +591,48 @@ def _period_from_end(value: Any) -> str:
     return "FYunknown"
 
 
+def _fiscal_year_from_period_end(value: Any) -> str | None:
+    text = str(value or "")
+    match = re.search(r"(20\d{2}|19\d{2})", text)
+    return match.group(1) if match else None
+
+
 def _prior_period(period: str) -> str:
     match = __import__("re").search(r"(20\d{2}|19\d{2})", period)
     if not match:
         return "FYprior"
     return f"FY{int(match.group(1)) - 1}"
+
+
+def _edinet_period_basis(period: str, document_meta: dict[str, Any]) -> str:
+    text = str(period or "").strip()
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})H1", text):
+        return "half_year"
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})Q[1-4]", text):
+        return "quarter"
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})", text):
+        return "annual"
+    if text.endswith("-03-31") or text.endswith("-09-30"):
+        return "quarter"
+    if text.endswith("-06-30"):
+        return "half_year"
+    if text.endswith("-12-31"):
+        return "annual"
+    doc_type = str(document_meta.get("doc_type_code") or "")
+    if doc_type == "120":
+        return "annual"
+    if doc_type in {"140", "160"}:
+        return "quarter"
+    return "unknown"
+
+
+def _quarter_label_from_document(document_meta: dict[str, Any]) -> str | None:
+    description = str(document_meta.get("doc_description") or "")
+    compact = description.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
+    match = re.search(r"第\s*([13])\s*四半期", compact)
+    if match:
+        return f"Q{match.group(1)}"
+    return None
 
 
 def _elapsed(start: float) -> float:

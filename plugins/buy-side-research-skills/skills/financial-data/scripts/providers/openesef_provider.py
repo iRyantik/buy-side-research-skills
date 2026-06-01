@@ -51,7 +51,6 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
         )
         return result
 
-    # --- source provenance ---
     if "filing_index" in items or "latest_full_filing" in items:
         try:
             filing_info = {"provider": PROVIDER, "identifier_type": identifier_type}
@@ -66,25 +65,23 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             else:
                 filing_info["filing_url"] = identifier
 
-            # Try to parse and extract markdown text
             try:
                 _try_extract_filing_text(filing_info, identifier, identifier_type)
-            except Exception as e:
-                result["errors"].append(f"parse_extract: {e}")
+            except Exception as exc:
+                result["errors"].append(f"parse_extract: {exc}")
 
             result["filing"] = filing_info
             result["items_extracted"].append("filing_index")
             if "latest_full_filing" in items and filing_info.get("markdown"):
                 result["items_extracted"].append("latest_full_filing")
-        except Exception as e:
-            result["errors"].append(f"source: {e}")
+        except Exception as exc:
+            result["errors"].append(f"source: {exc}")
 
     result["status"] = "partial" if result["items_extracted"] else "provider-gap"
     return result
 
 
 def _try_extract_filing_text(filing_info: dict, identifier: str, identifier_type: str) -> None:
-    """Attempt to parse ESEF package and extract markdown text."""
     if not dependency_available():
         return
 

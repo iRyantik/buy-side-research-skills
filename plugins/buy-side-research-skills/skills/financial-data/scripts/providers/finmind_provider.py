@@ -100,8 +100,10 @@ def _dataset_to_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "label": label,
             "concept": str(rec.get("type") or ""),
             "values": {},
+            "period_basis_by_period": {},
         })
         item["values"][period] = value
+        item["period_basis_by_period"][period] = _period_basis(period)
     return [row for row in grouped.values() if row.get("values")]
 
 
@@ -128,3 +130,18 @@ def _clean_value(value: Any) -> Any:
     if text.lower() in {"", "nan", "none", "nat", "--"}:
         return None
     return value
+
+
+def _period_basis(period: Any) -> str:
+    text = str(period or "").strip()
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})", text):
+        return "annual"
+    if re.fullmatch(r"FY(19\d{2}|20\d{2})Q[1-4]", text):
+        return "quarter"
+    if text.endswith("-03-31") or text.endswith("-09-30"):
+        return "quarter"
+    if text.endswith("-06-30"):
+        return "half_year"
+    if text.endswith("-12-31"):
+        return "annual"
+    return "unknown"

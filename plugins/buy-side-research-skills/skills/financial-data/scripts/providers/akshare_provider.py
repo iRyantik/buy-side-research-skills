@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import math
+import re
 from typing import Any
 
 
@@ -217,8 +218,10 @@ def _long_amount_rows(df) -> list[dict[str, Any]]:
             "label": label,
             "concept": str(rec.get("STD_ITEM_CODE") or ""),
             "values": {},
+            "period_basis_by_period": {},
         })
         item["values"][period] = value
+        item["period_basis_by_period"][period] = _period_basis(period)
     return [row for row in grouped.values() if row.get("values")]
 
 
@@ -352,6 +355,23 @@ def _period_label(rec: dict[str, Any]) -> str:
         or _clean_period(rec.get("REPORT_DATE"))
         or _clean_period(rec.get("STD_REPORT_DATE"))
     )
+
+
+def _period_basis(period: str) -> str:
+    text = str(period or "")
+    if re.search(r"-(03-31|09-30)$", text):
+        return "quarter"
+    if re.search(r"-(06-30)$", text):
+        return "half_year"
+    if re.search(r"-(12-31)$", text):
+        return "annual"
+    if re.search(r"\b[Qq][1-4]\b", text):
+        return "quarter"
+    if re.search(r"\b[Hh][12]\b|半年|半期|中报", text):
+        return "half_year"
+    if re.search(r"年报|年度|annual|FY", text, flags=re.IGNORECASE):
+        return "annual"
+    return "unknown"
 
 
 def _clean_period(value: Any) -> str:

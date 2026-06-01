@@ -516,6 +516,18 @@ def build_financials_markdown(financials: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def period_basis_summary(rows: list[dict[str, Any]]) -> str:
+    counts: dict[str, int] = {}
+    for row in rows:
+        basis_by_period = row.get("period_basis_by_period", {}) if isinstance(row, dict) else {}
+        if not isinstance(basis_by_period, dict):
+            continue
+        for basis in basis_by_period.values():
+            key = str(basis or "unknown")
+            counts[key] = counts.get(key, 0) + 1
+    return ", ".join(f"{basis}={count}" for basis, count in sorted(counts.items()))
+
+
 def build_financial_data_summary(evidence_pack: dict[str, Any],
                                  actuals_resolved: dict[str, Any],
                                  internal_dir: Path) -> str:
@@ -575,7 +587,9 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
                 for row in rows
                 for period in (row.get("values", {}) if isinstance(row, dict) else {}).keys()
             })
-            lines.append(f"- `{statement}`: {len(rows)} rows; periods: {', '.join(periods) if periods else 'none'}")
+            basis = period_basis_summary(rows)
+            basis_text = f"; period basis: {basis}" if basis else ""
+            lines.append(f"- `{statement}`: {len(rows)} rows; periods: {', '.join(periods) if periods else 'none'}{basis_text}")
         derived_rows = {
             key: statements.get(key, [])
             for key in ("income_statement_quarterly_derived", "cash_flow_quarterly_derived")

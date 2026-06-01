@@ -208,10 +208,10 @@ Provider matrix：
 |---|---|---|
 | US | EdgarTools / SEC | 三表 + filing markdown + SEC XBRL dimension `revenue_split` when available; split completeness is review-only |
 | CN A-share | AKShare / Eastmoney | 三表 + `stock_zygc_em` 收入拆分；provider-normalized route |
-| HK | Eastmoney HKF10 direct | 三表；结构化收入拆分默认 `provider-gap` |
+| HK | Eastmoney HKF10 direct | 三表；正式披露频率通常是 FY + H1/H2，provider rows must keep `period_basis_by_period`; segment / geography split best-effort, prefer provider_api then official_web |
 | JP | EDINET official / edinet-tools | EDINET-only route; no J-Quants/Yahoo fallback; `latest4q` can be partial but must not hang or fake complete coverage |
 | KR | OpenDART official + local corp_code metadata cache | requires `DART_API_KEY`; ticker -> corp_code uses a 30-day local metadata cache, while statements and full filings are fetched live from official APIs |
-| TW | FinMind public API | 三表 best-effort；结构化收入拆分默认 `provider-gap` |
+| TW | FinMind public API | 三表 best-effort；segment / geography split best-effort, prefer provider_api then official_web |
 | EU | openesef | ESEF/iXBRL parser route; ticker-only discovery experimental |
 
 KR / JP source policy:
@@ -219,11 +219,25 @@ KR / JP source policy:
 - KR uses OpenDART official APIs only: a local 30-day metadata cache may store ticker -> corp_code identity mapping under `%LOCALAPPDATA%\buy-side-research-skills\financial-data-cache\dart-corp-code\`, but `fnlttSinglAcntAll.json` statements and `document.xml` full filing ZIP/Markdown are always fetched live. Set `BSRS_DART_CORP_CACHE_REFRESH=1` to force a corp_code metadata refresh. Do not cache KR statements, filing receipt numbers, ZIPs, Markdown, or research results.
 - JP uses EDINET official APIs only. Daily document-list metadata may be cached locally to avoid repeated discovery scans, but the source filing remains the EDINET type=1 ZIP and full filing Markdown is only evidence-ready when that ZIP exists.
 - Yahoo/yfinance is not a source-tracked `financial-data` provider for JP/KR three statements or filings.
+- HK statements use Eastmoney HKF10 direct as the formal statement route. Do not use Longbridge as the HK statement source; Longbridge may supplement market data or consensus only.
+- Layer 3 web fallback is priority-split into `official_web -> trusted_web -> broad_web`. `official_web` includes company IR/results pages plus official filing portals such as SEC, EDINET, DART, MOPS, and CNINFO when they are found via search/browser/PDF parsing rather than fetched through a stable provider route.
+- Query-chain precedence must reflect that contract: for example `site:sec.gov`, `site:hkexnews.hk`, `site:disclosure.edinet-fsa.go.jp`, `site:dart.fss.or.kr`, `site:mops.twse.com.tw`, and `site:cninfo.com.cn` belong in `official_web`, not `trusted_web`.
+- EU `openesef` currently requires a local ESEF package or explicit filing URL for deterministic parsing. If no local ESEF package is available, Lite should skip the `openesef` Layer 2 route and move directly to `official_web` fallback instead of treating the missing local package as a normal statement-provider failure.
+- Source-trust ranking is formal: `provider_api + official_web > yfinance > trusted_web + broad_web`. Lower-trust sources must not overwrite higher-trust sources. Provider-fetched official filing caches remain `provider_api`; official company IR/results pages and official filing portals discovered via search remain `official_web`.
+- Non-finite numeric placeholders such as `NaN` / `inf` are invalid in `actuals-resolved.json` and must be normalized back to missing before coverage, overwrite, or consumer use. They must not count as filled fields.
+- `official_web` may also be materialized as a curated machine-readable cache at `industry/<industry>/companies/<ticker>/_cache/financial-data/internal/_raw/official_web_cache.json` when a company IR/results page or attached official PDF has already been source-read and normalized. Those cache entries stay `official_web`, not `provider_api`, and may carry scalar fields plus structured `segments.status` / `segments.segments`.
+- `yfinance` may bootstrap statement fields when provider routes are absent, but only as a lower-trust fill layer. It should not displace existing `provider_api` or `official_web` values.
+- Lite consumer-success coverage should optimize `provider_api + official_web` first. Do not rely on `trusted_web` / `broad_web` to make surface-level coverage look complete.
+- `provider-gap` must be reasoned rather than generic. Use `provider_unavailable`, `official_source_available_not_extracted`, or `not_disclosed` instead of a single ambiguous gap label.
+- Growth-first consumer profile: prioritize revenue, margin, segments, geography, `operating_cf`, and `capex`. Coarse usable debt fields such as `short_term_debt` and `long_term_debt` still matter when they change funding risk or runway; only finer debt detail should be treated as best-effort. Treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than universal Lite blockers.
 
-Revenue split rule:
+Segment rule:
 
-- 能结构化抓到：写入 `actuals-resolved.json` 的 `statements.revenue_split`，并在 `completeness.json` / `source-map.json` 标明来源。
-- 不能结构化抓到：不新增假 split，不新增 `revenue-split.json`；只在 completeness 里标 `provider-gap`，由 `driver-map` 读取 `full-filing.md` 用 LLM 抽 disclosed split。
+- 只要公司披露了可结构化的 split，优先写回 `actuals-resolved.json` 的 `segments.status` + `segments.segments`，不要只留 pending query。
+- `segments.segments` 是通用容器，允许同时承载 `business_line`、`geography`、`end_market` 等不同维度，由 `type` 区分。
+- `segments.segments` 可选携带 `pct_of_total`、`yoy_pct`、`sequential_pct`、`margin_pct`、`ratio` 等数量型辅助字段。如果官方披露给的是比例、同比、环比或 margin 而不是绝对值，允许先按这些字段落盘；当 period total、prior-year、prior-period 或 denominator 已知时，runtime 应尽量做可逆推算并补齐缺失锚点。
+- `supplementary.revenue_by_geography` 是 geography split 的 consumer convenience view；若披露 geography split，应同步写回或派生。
+- 不能结构化抓到时，不新增假 split；明确标 `pending_official_extraction`、`provider_unavailable` 或 `not_disclosed`，不要把不同缺口原因混成单一 `provider-gap`。
 
 ## 文件安全
 
