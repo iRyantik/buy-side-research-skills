@@ -59,7 +59,7 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 必含：
 - **一句话总判断**：这批公司作为一个 group，当前阶段的整体方向性判断
 - **优先级排名（微型表）**：公司 / 方向 / 一句话理由
-- **一眼定位**：插入 Mermaid scatter chart——N 家公司在增长 vs 估值坐标系的位置
+- **一眼定位**：插入 Mermaid scatter chart——N 家公司在增长 vs 估值（PE TTM）坐标系的位置
 - **2-3 个最核心的 cross-cut 发现**（从 §6 提前提取的最关键 insight）
 - **第一优先行动**
 
@@ -100,7 +100,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.1 通用维度（所有行业都列）
 
-| 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | EV/EBITDA（当前 vs 5Y 中位） | 资本返还/FCF | Ev |
+| 公司 | 市值 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
 
 每行 Ev 标注主要数据来源；文末 ## Resources 统一展开。
 
@@ -249,10 +249,10 @@ N 家公司共享的行业坐标系，只写一次。
 回看 §4 矩阵：估值 spread 和基本面 spread 匹配吗？
 
 格式：
-> **错配点**：X EV/EBITDA 12x，Y 8x——X 增长 18% / Y 14%
-> **预期 spread**：增速差 ~30%，估值正常 spread 应该多少
-> **实际 spread**：50%
-> **解读**：可能（市场担心 Y 的某具体问题 / X 有非可比优势 / 时点定价不充分）
+> **错配点**：X PE 28x TTM，Y PE 18x TTM——X 增长 25% / Y 增长 22%
+> **预期 spread**：增速差 ~14%，PE 正常 spread 应 ~20-30%
+> **实际 spread**：PE gap 55%（X 比 Y 贵 55%）
+> **解读**：市场可能给了 X 过高的 CPO 溢价，或 Y 有未 price in 的风险。EV/EBITDA（X 35x vs Y 22x）同样指向这个 gap
 
 至少给 2-3 个最显眼的 spread 错配。
 
