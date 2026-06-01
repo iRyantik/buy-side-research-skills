@@ -2,14 +2,14 @@ metadata_schema_version: 1
 name: candidate-screener
 id: candidate-screener
 display_name: Candidate Screener
-version: 1.3.0
+version: 1.4.0
 system_generation: 4.6.0
 author: buy-side-research-system
 namespace: research.equity
 category: research
 research_layer: triage
-summary: Turn a theme, event, or screen into a sourced candidate-mining funnel for mispriced high-purity stock ideas.
-description: Turn a theme, event, or screen into a sourced candidate-mining funnel for mispriced high-purity stock ideas.
+summary: Turn a theme, event, or screen into a sourced candidate-mining funnel with dynamic L/S scenario-driven ranking.
+description: Turn a theme, event, or screen into a sourced candidate-mining funnel with dynamic L/S scenario-driven ranking.
 tags:
 - candidate-screener
 - candidate-mining
@@ -23,6 +23,10 @@ tags:
 - pure-play
 - hidden-winners
 - long-short
+- scenario-driven
+- L/S-ranking
+- regime-aware
+- scenario-bets
 trigger:
   type: keyword
   keywords:

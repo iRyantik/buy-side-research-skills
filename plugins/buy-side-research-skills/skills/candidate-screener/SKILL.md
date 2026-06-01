@@ -24,9 +24,11 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 
 ## 心法
 
-研究员说“挖票”时，真正要的不是更多名字，而是一个可检验的买方漏斗：主题在哪里有真实经济暴露，哪一段价值链最可能被错价，哪些公司同时满足 **纯度高、增长快、估值不贵、市场还没完全发现**。
+研究员说”挖票”时，真正要的不是更多名字，而是一个可检验的买方漏斗：主题在哪里有真实经济暴露，哪一段价值链最可能被错价，哪些公司同时满足 **纯度高、增长快、估值不贵、市场还没完全发现**。
 
-AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge 等工具在全市场覆盖上更可靠。AI 的差异化价值是把 vague theme 翻译成可验证业务特征，再把候选分成 Top Ideas、Watchlist、Already Priced 和 Rejects，帮助研究员少追热门概念股。
+**没有 regime 不变的排序。** 同一家公司在 Pluggable 时代是 Top Idea，CPO 时代可能是 Reject。排序必须绑定场景，且必须同时给出 L/S 两个方向——不能只推多仓不管空仓。静态漏斗 = 单场景假设 = 漏掉最大的风险。
+
+AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge 等工具在全市场覆盖上更可靠。AI 的差异化价值是把 vague theme 翻译成可验证业务特征，再把候选按场景分成立体漏斗：**稳健多仓、场景赌注、方向翻转型、事件驱动、估值收敛对**。帮助研究员少追热门概念股，并在 regime 切换时有预案。
 
 **最重要的纪律**：`还没被市场发现` 不是事实，只能用 proxy 判断。低 sell-side coverage、估值未重估、股价未反映、主题归类缺失、叙事尚未扩散都必须有 source 或标 `[需查证]`。
 
@@ -41,6 +43,9 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 - "从 [事件 / 政策 / capex 周期] 找 long / short candidates"
 - "找 EV/EBITDA < 8x、FCF yield > 8%、增长没塌的公司"
 - "类似 [X 公司] 但估值更便宜 / 市场还没发现的标的"
+- "分场景排序 / L/S 排序 / 按场景推票"
+- "[CPO/电动化/关税/...] 场景下应该多什么空什么"
+- "动态 LS 视角 / regime-aware 挖票"
 
 不要用于：
 
@@ -78,9 +83,23 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 
 ### 推理路径（必须显式）
 
-**Step 1: 定义主题边界和 value-chain pockets**
+**Step 1: 定义场景 + 主题边界**
 
-把用户输入拆成 3-6 个可投 pocket。例：`光模块设备` 不能直接等于“光模块概念股”，应拆成 optical transceiver、laser / EML、DSP / switch ASIC、testing equipment、packaging / connector、capex equipment / automation 等 pocket，并标出哪一段最可能 capture profit。
+**1a. 场景定义**（新增）
+
+把主题拆成 2-3 个宏观 regime，每个 regime 标概率 + 关键 catalyst trigger 阈值。regime 是排序的前提——同一家公司在不同 regime 下的 L/S 方向可能相反。
+
+| Regime | 定义 | 概率 | Catalyst Trigger |
+|---|---|---|---|
+| R1: 当前主导 | 现有技术路线主导 | 60% | — |
+| R2: 过渡期 | 新范式开始渗透 | 30% | [具体事件] 规模出货 |
+| R3: 新范式主流 | 新范式 > 15% 渗透 | 10% | [具体事件] 量产 |
+
+regime ≥ 3 时考虑为不同阶段推不同的票。不定义场景就直接排序 = 隐含”当前 regime 不变”的假设，必须显式化。
+
+**1b. 主题边界和 value-chain pockets**
+
+把用户输入拆成 3-6 个可投 pocket。例：`光模块设备` 不能直接等于”光模块概念股”，应拆成 coupling equipment、die bonding、burn-in / test、automation 等 pocket，并标出哪一段最可能 capture profit。
 
 **Step 2: 主题 -> 可验证业务特征**
 
@@ -93,21 +112,23 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 
 **Step 3: 叠加挖票条件**
 
-默认用五维评分，不允许只按主题热度排序：
+默认用六维评分，不允许只按主题热度排序：
 
 | 维度 | 权重 | 高分标准 |
 |---|---:|---|
-| Business purity | 25% | 主题相关业务对 revenue / profit / backlog 有可验证占比，最好 >50% |
-| Growth evidence | 20% | 有 revenue / order / backlog / capacity / margin acceleration 的 source |
-| Valuation appeal | 20% | 相对历史、同业或增长质量不贵；便宜但恶化要降为 value trap |
-| Discovery edge | 20% | 低覆盖、分类错误、非主流上市地、估值未重估、股价未反映等 proxy |
-| Catalyst / liquidity / tradability | 15% | 3-12M 有验证节点，流动性可交易，borrow / squeeze 风险可控 |
+| Business purity | 22% | 主题相关业务对 revenue / profit / backlog 有可验证占比，最好 >50% |
+| Growth evidence | 18% | 有 revenue / order / backlog / capacity / margin acceleration 的 source |
+| Valuation appeal | 18% | 相对历史、同业或增长质量不贵；便宜但恶化要降为 value trap |
+| Discovery edge | 18% | 低覆盖、分类错误、非主流上市地、估值未重估、股价未反映等 proxy |
+| **Scenario sensitivity** | **12%** | 多场景 work 或 regime flip 时方向清晰；估值 flip 幅度可量化；不是每个 regime 都"中性偏正面" |
+| Catalyst / liquidity / tradability | 12% | 3-12M 有验证节点，流动性可交易，borrow / squeeze 风险可控 |
 
-**Step 4: 候选分层**
+**Step 4: 候选分层（五层）**
 
 | Bucket | 定义 | 处理 |
 |---|---|---|
-| **Top Ideas** | 同时满足纯度、增长、估值、discovery edge 的 1-3 个 names | 推荐进入 deep research |
+| **Top Ideas** | 同时满足纯度、增长、估值、discovery edge 的 1-3 个 names（当前 regime 下） | 推荐进入 deep research |
+| **Scenario Bets** | 只在某一个场景下成立，当前 regime 不 work。确认后再买已经翻倍 | 小仓位 2-5%，按归零承受力定仓位，不按估值便宜加仓 |
 | **Watchlist** | 机制对，但估值、source、流动性或催化还不够 | 等待验证，不强推 |
 | **Obvious / Already Priced** | 主题相关但 market 已经明显 price 或 crowding 高 | 用作 peer / hedge / avoid chasing |
 | **Rejects / Value Traps** | 便宜但增长塌、纯度低、关联未证实、主题 beta 高但基本面弱 | 明确拒绝原因 |
@@ -125,66 +146,89 @@ Top Ideas 必须给下一步验证路线：
 ## 输出结构
 
 ```markdown
-## Candidate Mining Verdict
+## §1 结论先行
 
-[2-4 句结论先行：这个主题最可能错价的 pocket、Top Ideas 数量、最重要 caveat]
+[当前 regime 判断 + 跨场景最稳健的 L/S 组合 + 最核心的场景估值洞察]
 
-## 1. Signal Translation
+## §2 场景定义
 
-| Input signal | Translation | Default / caveat |
-|---|---|---|
-| Theme signal | [主题边界 + value-chain pocket] | [...] |
-| Fundamental / valuation filter | [增长 / 估值 / 现金流条件] | [...] |
-| Discovery edge | [未发现 proxy] | [需查证 / source-backed] |
-
-## 2. Value-Chain Pockets
-
-| Pocket | Why it can capture value | What to verify | Likely public names | Source status |
+| Regime | 定义 | 概率 | Catalyst Trigger | 估值环境 |
 |---|---|---|---|---|
-| [pocket] | [利润池 / 瓶颈 / 认证 / capex] | [KPI / source] | [names or GAP] | sourced / [需查证] |
+| R1: [当前主导] | ... | 60% | — | PE 15-30x |
+| R2: [过渡期] | ... | 30% | [事件+阈值] | 稀缺溢价 |
+| R3: [新范式] | ... | 10% | [事件+阈值] | 杀旧业务估值 |
 
-**Pocket takeaway**: [最可能产生 mispriced name 的 1-2 个 pocket]
+## §3 场景推票矩阵（主表）
 
-## 3. Candidate Funnel
+行 = 公司，列 = 3 regime。格子格式：**方向 权重 | 当前估值 | 场景重估方向 | 一句话**
 
-| Name | Market | Pocket / exposure | Purity | Growth proof | Valuation | Discovery edge | Score | Bucket | Ev |
-|---|---|---|---|---|---|---|---:|---|---|
-| AAA | US | [业务暴露] | High | [具体证据] | [倍数 / 相对] | [proxy] | 8.1 | Top Idea | [S1](...) |
+| 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度 |
+|---|---|---|---|---|---|
+| AAA | TICKER | Long 高 | PE 18x | ↑ | 逻辑 | Long 高 | → ↑ | 逻辑 | Long 高 | → ↑↑ | 逻辑 | +60% |
 
-## 4. Top Ideas (1-3)
+估值 Flip = R1→R3 的重估幅度，必须量化。负值 = regime 切换时空仓收益。
 
-### 1. [Ticker / Company] - [一句话 idea]
+## §4 跨场景合成
 
-- **Why it fits**: [纯度 + 增长 + 估值 + discovery edge]
-- **What market may be missing**: [只能写 proxy，不写成确定事实]
-- **Key source / gap**: [source 或 `[需查证]`]
-- **Why not obvious**: [不是热门概念股 / 非主流分类 / 估值未重估 / 覆盖低]
-- **Next verification**: `stock-quickread` / `driver-map` / `information-impact`
+### §4.1 稳健多仓（全场景 work）
 
-## 5. Watchlist
+| 票 | 当前估值 | 全场景逻辑 | 上行 | 下行 |
+|---|---|---|---|---|
 
-| Name | Why close | Missing proof | Next trigger |
+### §4.2 场景推票表（反向索引：场景→动作→票）
+
+| 场景触发 | 动作 | 票 | 仓位 | 策略原型 | 当前估值 | 目标估值 | 逻辑 |
+|---|---|---|---|---|---|---|---|
+| 当前 base | Long | AAA | 核心 | 代际升级 | PE 18x | PE 25x | ... |
+| CPO>15% | Long | BBB | 小赌注 | 小赌注 | PS 8x | PS 20x | 0→1 |
+
+**策略原型**（7 种）：全场景多仓 / 小赌注 / Flip 对冲 / 事件驱动 / 估值收敛 / 代际升级 / 叙事套利
+
+### §4.3 方向翻转型（估值 flip 最大）
+
+| 票 | R1→R3 估值路径 | Flip 幅度 | 核心逻辑 |
 |---|---|---|---|
 
-## 6. Obvious / Already Priced
+### §4.4 估值收敛对（spread trade，可选）
 
-| Name | Why relevant | Why not Top Idea |
+| Long | Short | 当前 spread | 合理 spread | 收敛催化剂 |
+|---|---|---|---|---|
+
+## §5 Base Case 漏斗（当前 regime 下）
+
+### Top Ideas (1-3)
+
+| # | 票 | 一句话 | Purity | Growth | 估值 | Discovery | Scenario | 总分 |
+|---|---|---|---|---|---|---|---|---|
+
+### Scenario Bets（小赌注层）
+
+| 票 | 赌的场景 | 当前估值 | 目标估值 | 为什么不等确认后再买 |
+|---|---|---|---|---|
+
+### Watchlist
+
+| 票 | 缺什么 |
+|---|---|
+
+### Rejects
+
+| 票 | 当前估值 | 为什么拒 |
 |---|---|---|
 
-## 7. Rejects / Value Traps
+## §6 Catalyst 日历 + 估值触发点
 
-| Name | Looks attractive because | Reject reason |
+| 时间 | 事件 | 影响票 | 估值触发 | 场景切换 |
+|---|---|---|---|---|
+
+## §7 Kill Criteria（平仓条件）
+
+| 票 | 平仓信号 | 估值底线 |
 |---|---|---|
 
-## 8. Hypothesis Fragility
+## AI Universe Caveat
 
-- [主题本身最可能错在哪里]
-- [哪些 Top Ideas 的 source / driver 最脆弱]
-- [什么情况会让该主题变成 crowded / fully priced]
-
-## 9. AI Universe Caveat
-
-AI 不是 universe screener。本列表可能漏掉 small cap、最近 IPO / spin-off、非英语市场、低覆盖本地上市公司。你应该 cross-check Bloomberg / FactSet / Longbridge / 本地交易所 screen，并主动问“我可能漏了哪些 names”。
+[同上]
 ```
 
 ## 共同硬标准
@@ -227,12 +271,12 @@ AI 不是 universe screener。本列表可能漏掉 small cap、最近 IPO / spi
 - "低估"但没有估值或价格反应 anchor。
 - "纯度高"但没有收入 / 利润 / backlog / segment 证据。
 
-### 5. Top Ideas 数量必须收口
+### 5. 分层数量必须收口
 
-- Top Ideas：1-3 个。
+- Top Ideas：1-3 个（当前 regime 下）。
+- Scenario Bets：1-3 个（只在特定场景成立的小赌注）。
 - Watchlist：3-7 个。
-- Obvious / Already Priced：最多 5 个。
-- Rejects / Value Traps：至少 2 个，除非 universe 极窄。
+- Rejects：至少 2 个，除非 universe 极窄。
 
 如果候选太多，先按 purity 和 discovery edge 收紧；不要输出 20 个 ticker 让用户自己筛。
 
@@ -286,13 +330,17 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 - ❌ 公司 driver 不清仍写 growth thesis；应先 `driver-map`。
 - ❌ 对 `[需查证]` 的客户 / 订单 / 供应链关系做强结论外推。
 
+### 场景相关
+
+- ❌ 不定义场景就排序——隐含"当前 regime 不变"是最大的假设漏洞。
+- ❌ 把单场景推荐当全场景推荐——Top Idea 只在当前 regime 成立必须标清楚。
+- ❌ Scenario Bets 不设仓位上限，按估值便宜加仓而不是按归零承受力定仓位。
+
 ## 篇幅基准
 
-- 标准 Candidate Mining：1200-2500 字 + 3-5 张表。
-- 快速挖票：800-1200 字，Top Ideas 最多 2 个。
-- 深度 universe pass：2500-4000 字，但必须按 pocket 分组，不能变成 ticker dump。
-
-低于 800 字通常没有完成 source / purity / valuation / discovery 四件事；超过 4000 字通常说明没有收口，应缩减候选或 handoff `peer-deep-dive`。
+- 标准 Candidate Mining（含场景）：2000-3500 字 + 4-6 张表。
+- 快速挖票：800-1500 字，Top Ideas 最多 2 个，场景定义可简化。
+- 深度 universe pass（含完整 L/S 分场景）：3500-5000 字，按 regime 分组。
 
 ## 与 information-impact 的边界
 
