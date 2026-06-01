@@ -226,13 +226,13 @@ longbridge auth login
 
 ---
 
-### 场景 B：有主题想法，找受益股
+### 场景 B：有主题想法，挖可投股票
 
 **你**：帮我新建一个 AI 数据中心电力的研究 session
 
 **你**：用 industry-quickread 看 AI 数据中心电力行业
 
-**你**：用 candidate-screener 找 AI 数据中心电力的受益股
+**你**：用 candidate-screener 挖 AI 数据中心电力里纯度高、增长快、估值不贵、还没被市场充分发现的股票
 
 **你**：（筛选出几家后）用 peer-deep-dive 比较 VRT、GEV、SMCI
 
@@ -278,7 +278,7 @@ longbridge auth login
 
 **你**：用 mechanism-map 解释燃气轮机
 
-**你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上找上市公司
+**你**：（搞清机制后）用 candidate-screener 在燃气轮机价值链上挖可研究股票
 
 **你**：用 peer-deep-dive 比较 GE Vernova、西门子能源、三菱重工
 
@@ -288,7 +288,7 @@ longbridge auth login
 
 **你**：我刚刚看到——"美国商务部提议限制 AI 芯片出口"。用 information-impact 分析这条消息
 
-**你**：（根据分析结果）用 candidate-screener 按这个消息的逻辑找受益股
+**你**：（根据分析结果）用 candidate-screener 按这个消息的逻辑挖可能还没被市场充分发现的候选股
 
 ---
 
@@ -329,7 +329,7 @@ longbridge auth login
 |---|---|---|
 | 快速看一家公司 | "用 stock-quickread 看 VRT" | `stock-quickread` |
 | 快速了解一个行业 | "用 industry-quickread 看核电行业" | `industry-quickread` |
-| 从主题出发找受益股 | "用 candidate-screener 找 AI 电力的受益股" | `candidate-screener` |
+| 从主题/条件出发挖可投股票 | "用 candidate-screener 挖 AI 电力里纯度高、增长快、估值不贵的股票" | `candidate-screener` |
 | 判断一条新闻靠不靠谱 | "用 information-impact 分析这条消息" | `information-impact` |
 | 看 Reddit 上的股票情绪 | "用 reddit-sentiment 查 IONQ 在 Reddit 上怎么看" | `reddit-sentiment` |
 | 研究卡住了问下一步 | "用 next-step 帮我判断下一步研究什么" | `next-step` |

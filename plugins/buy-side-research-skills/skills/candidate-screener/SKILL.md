@@ -1,403 +1,311 @@
 ---
 name: candidate-screener
-description: Turn a theme, event, or screen into a sourced long/short candidate funnel with tiered exposure and priced-in assessment.
+description: Turn a theme, event, or screen into a sourced candidate-mining funnel for mispriced high-purity stock ideas.
 ---
 
 # Candidate Screener
 
-Turn a theme, event, or screen into a sourced long/short candidate funnel with tiered exposure and priced-in assessment.
+Turn a theme, event, or screen into a sourced candidate-mining funnel for mispriced high-purity stock ideas.
 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for hypothesis engineering, candidate funneling, and priced-in triage; unresolved facts stay as gap, hypothesis, or follow-up.
+- Use this skill for hypothesis engineering, candidate mining, priced-in triage, and idea funneling; unresolved facts stay as gap, hypothesis, or follow-up.
 - Market-snapshot fields default to `topic-local evidence cache / financial-data` then trusted third-party then web fallback. A-share / HK / US screening that needs market_quote, valuation_snapshot, or market_screen may call `trusted-market-bridge` first; bridge misses fall back to web. Borrow, bid-ask, accounting basis, and share-class truth stay at `[需查证]` without high-quality source.
-- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, tiers, and ranks.
+- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 **三表数据前置（按需调用）：** priced-in 评估和估值锚需要 market_data——主 agent 先从 actuals-resolved.json 取市场数据；如需为未覆盖 ticker 拉数据，委托 subagent 执行 /financial-data --lite <ticker>。
 
-把 hypothesis 转化成具体的可投资 candidate basket。LS 默认 long + short 双向。**核心价值不是列 ticker**——Bloomberg screener 比 AI 更准。AI 的差异化价值在于：
+把主题、事件、value-chain pocket 或财务 / 估值条件转化成可研究股票漏斗。默认偏 long-biased idea mining，但保留 LS 纪律：obvious / fully priced / 低纯度高 beta 的 names 要进 watchlist、reject 或 possible short，不要硬塞进 Top Ideas。
 
-1. 把 vague hypothesis 拆解成具体 mechanism（hypothesis 工程化）
-2. 强制双向（long / short basket，sell-side 不会做）
-3. 强制每个 candidate 给 hypothesis-relevant 的受益机制 + source
-4. 强制评估 priced-in 程度（避免推荐已被 reprice 的概念股）
-5. 强制识别 hypothesis 本身的弱点（自我 challenge）
-6. 推荐 1-2 家进入 deep research（漏斗收口）
-
-如果输出只是 ticker list 没有上述任何一项，本 skill 就失败了。
+如果输出只是受益股列表、概念股堆砌、卖方报告 tickers 汇总，或者没有解释为什么市场可能还没 price，本 skill 就失败了。
 
 ## 心法
 
-研究员产生新 hypothesis 是有 alpha 的——但找具体 candidates 这一步常常退化成"列已知概念股 + 抄卖方报告"。这是浪费 hypothesis 的过程。
+研究员说“挖票”时，真正要的不是更多名字，而是一个可检验的买方漏斗：主题在哪里有真实经济暴露，哪一段价值链最可能被错价，哪些公司同时满足 **纯度高、增长快、估值不贵、市场还没完全发现**。
 
-本 skill 的工作逻辑是 **brainstorm + 验证**：
-- AI 推理：从 hypothesis 推导**应该 expose 到什么 mechanism** → 应该有什么**业务特征** → 哪些**公司类型** → 具体 **names**
-- 研究员验证：每个 name 的业务关联必须有 source；估值 / 流动性 / priced-in 必须有 quantitative anchor
-- 最终 funnel：从 brainstorm 出的 N 个 candidates 收敛到 1-2 个值得做 deep research 的
+AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge 等工具在全市场覆盖上更可靠。AI 的差异化价值是把 vague theme 翻译成可验证业务特征，再把候选分成 Top Ideas、Watchlist、Already Priced 和 Rejects，帮助研究员少追热门概念股。
 
-**举个例子**：如果你问"AI 数据中心电力受益股"——
-
-- ❌ 坏的输出：列一堆你听过的名字——NVDA、MSFT、VRT、GE Vernova、西门子能源。这是概念股堆砌。
-- ✅ 好的输出：先拆 mechanism——建设期（EPC/设备）、运营期（电力供应商/输配电）、长期转型（SMR/储能）。然后按 mechanism 去找真正 exposure 的公司——有些你未必听过，比如某家核电运营商 35% 的容量签了 hyperscaler PPA，这才是差异化 alpha。
-
-**最重要的纪律**：AI 不假装是 universe screener。本 skill 的输出是 **inferential brainstorm**，是研究员的 starting point，不是 final list。研究员必须 cross-check Bloomberg / 行业数据，并主动问"我可能漏了什么"。
+**最重要的纪律**：`还没被市场发现` 不是事实，只能用 proxy 判断。低 sell-side coverage、估值未重估、股价未反映、主题归类缺失、叙事尚未扩散都必须有 source 或标 `[需查证]`。
 
 ## 触发场景
 
-### Mode A 触发（Thematic / Event-driven）
-- "推荐受益于 [事件] 的股票"
-- "[主题] 怎么参与"
-- "[现象] 哪些 names 受益 / 受损"
-- "找类似 [X 公司] 在 [Y 市场] 的标的"
-- "[政策事件] 的 long / short basket"
-- "如果 [假设场景] 发生，谁最敏感"
+使用本 skill 当用户问：
 
-### Mode B 触发（Quant / Conditional）
-- "找 [财务条件] 的标的"
-- "screening: [估值条件 + 业务条件]"
-- "[行业] 中 ROIC > X% / capex 强度 < Y / FCF yield > Z 的"
-- "类似 [X] 但估值 < [Y]"
+- "用 candidate-screener 挖 [主题 / 产业链 / value-chain pocket]"
+- "挖票 / 找票 / 找还没被市场发现的股票"
+- "找纯度高、增长快、估值便宜的 [主题] 标的"
+- "[主题] 里有没有 hidden winners / mispriced pure-play"
+- "从 [事件 / 政策 / capex 周期] 找 long / short candidates"
+- "找 EV/EBITDA < 8x、FCF yield > 8%、增长没塌的公司"
+- "类似 [X 公司] 但估值更便宜 / 市场还没发现的标的"
 
-### Mixed Mode 触发（最常见）
-- "受益于某主题 demand 的股票，PE < 30"
-- "某行业中 capex/CFO < 0.5 + 高质量资源年限 > 8 年"
-- "某软件子行业中 ARR 增速 > 30% + Rule of 40 > 50 + 不依赖单一平台 API"
+不要用于：
 
-混合是常态——不要强行划分 mode。但内部推理要清楚哪些条件是 thematic 派生（mechanism 推导），哪些是 quant 过滤（pattern matching）。
+- 单条新闻、客户关系、供应链 claim 真假验证：用 `information-impact`。
+- 陌生公司 first-pass：用 `stock-quickread`。
+- 行业 first-pass、profit pool 和 KPI/source map：用 `industry-quickread`。
+- 工程机制、设备链条、工艺流程不清：先用 `mechanism-map`。
+- 公司 revenue / margin / backlog / price-volume-mix driver 不清：用 `driver-map`。
 
-## 输入澄清要求（必填 6 维度）
+## 输入澄清要求
 
-如果用户给的 hypothesis 缺以下任一关键维度，**主动澄清而不是硬猜**。澄清耗时但避免输出走偏：
+如果用户输入足够明确，直接声明默认假设并开始，不要用长问卷拖慢挖票。只有缺失项会改变候选方向时才追问。
 
-| 维度 | 含义 | 默认假设（用户没说时） |
+| 维度 | 含义 | 默认假设 |
 |---|---|---|
-| **时间窗口** | 3M / 12M / 24M+，决定 catalyst 急迫性 | 12M（中期） |
-| **受益机制范围** | Direct（pure-play）/ Indirect（供应链）/ Spillover（associated）/ All | All（但分 Tier 输出） |
-| **方向** | Long / Short / Both | Both（LS 默认双向） |
-| **市场偏好** | US / 大中华（A股+港股+ADR）/ 日韩 / 全球 / 不限 | 用户主要覆盖市场（默认偏大中华 + 全球工业 / 科技主题） |
-| **流动性 / size 约束** | 最小日均成交量 / 最小市值 | 大中华 ≥ 100M USD ADV / 美股 ≥ 50M USD ADV |
-| **风格偏好** | Value / Growth / 不限 | 不限 |
+| **主题 / 信号** | 光模块设备、AI 电力、核燃料、某政策事件、某财务条件 | 按用户原词最窄可投边界定义 |
+| **时间窗口** | 3M / 12M / 24M+ | 12M，兼顾 3M catalyst |
+| **方向** | Long / Short / Both | Long-biased，但保留 possible short / reject |
+| **市场偏好** | US / 大中华 A-H-ADR / 日韩 / 全球 / 不限 | 用户覆盖市场：大中华 + 全球工业 / 科技主题 |
+| **纯度要求** | 主营 >50%、segment >30%、indirect / supply-chain | 优先 direct / pure-play，indirect 降权 |
+| **增长要求** | revenue / backlog / order / capacity / margin inflection | 没有 source 时标 `[需查证]` |
+| **估值要求** | PE、EV/EBITDA、FCF yield、SOTP、相对同业 | 用可得市场快照；缺失则标 `[需查证]` |
+| **Discovery edge** | 为什么可能没被 market price | 用 proxy，不写成事实 |
+| **流动性 / size** | 最小 ADV / market cap | 大中华 >= 100M USD ADV；美股 >= 50M USD ADV；小票另列风险 |
 
-如果用户说"AI 受益股"——这远不够。至少澄清"时间窗口（capex 周期不同）"、"机制（GPU manufacturer / cloud / AI app / 电力 / 供应链）"、"方向（long only 还是含 short）"。
+## Candidate Mining / 挖票
 
-**关键判断**：如果 hypothesis 本身在你听来都模糊（如"科技股推荐"），主动 push back 而不是给"FAANG + 几个 hot names"。
+统一处理主题、事件、screen 和混合条件。内部把输入拆成三种信号，而不是让用户选择 mode：
 
-## Mode A: Thematic / Event-driven
+| Signal | 说明 | 例子 |
+|---|---|---|
+| **Theme signal** | 主题、事件、政策、capex 周期、value-chain pocket | 光模块设备、AI data-center power、出口管制 |
+| **Fundamental / valuation filter** | 增长、利润率、现金流、估值、ROIC、capex 强度 | EV/EBITDA < 8x、FCF yield > 8%、backlog 加速 |
+| **Discovery edge** | 为什么市场可能没完全 price | 低覆盖、分类错误、非主流上市地、估值未重估、叙事未扩散 |
 
-### A.1 推理路径（必须显式）
+### 推理路径（必须显式）
 
-按 4 步推理，每步输出给用户看（让用户校准）：
+**Step 1: 定义主题边界和 value-chain pockets**
 
-**Step 1: 拆解 hypothesis → 受益 mechanism**
+把用户输入拆成 3-6 个可投 pocket。例：`光模块设备` 不能直接等于“光模块概念股”，应拆成 optical transceiver、laser / EML、DSP / switch ASIC、testing equipment、packaging / connector、capex equipment / automation 等 pocket，并标出哪一段最可能 capture profit。
 
-例（hypothesis: "AI 数据中心电力 demand 受益股"）：
-> Mechanism 拆解：
-> 1. 数据中心新建 → 设备 / EPC / 选址用地受益（建设期 1-3 年 capex 周期）
-> 2. 数据中心运营 → 电力供应商 / 输配电设备受益（运营期 10-30 年）
-> 3. 电力 supply 紧张 → 现存核电 / 燃气电厂 PPA 涨价（短期 1-3 年）
-> 4. 长期电力转型 → SMR / 储能 / 可再生 capex（5-15 年）
-> 反向 mechanism（受损）：
-> 1. 利率敏感的 utility（成本上升）
-> 2. 电力大用户工业股（电费上行）
+**Step 2: 主题 -> 可验证业务特征**
 
-**Step 2: Mechanism → 业务特征**
+每个 pocket 翻译成 observable business traits：
 
-每个 mechanism 翻译成"什么样的公司能 expose"：
-> Mechanism 1（建设期）→ 业务特征：数据中心 EPC、HVAC、配电设备、地产开发
-> Mechanism 3（PPA 涨价）→ 业务特征：现存核电运营、被低估的火电 IPP、长期 PPA 锁价 < spot 的资产
+- revenue purity：相关收入占比或 segment exposure。
+- growth proof：订单、backlog、shipment、capacity、客户 capex、价格 / mix、margin inflection。
+- value capture：稀缺工艺、客户认证、供应瓶颈、installed base、aftermarket、议价力。
+- disclosure handle：公司用什么 segment / KPI 披露，哪里容易错读。
 
-**Step 3: 业务特征 → 具体 candidates**
+**Step 3: 叠加挖票条件**
 
-按 Tier 分组（见 §A.2）。每个 candidate 给：ticker / 市场 / 业务关联 + source / priced-in 评估。
+默认用五维评分，不允许只按主题热度排序：
 
-**Step 4: 候选漏斗 → 推荐 1-2 家深入**
+| 维度 | 权重 | 高分标准 |
+|---|---:|---|
+| Business purity | 25% | 主题相关业务对 revenue / profit / backlog 有可验证占比，最好 >50% |
+| Growth evidence | 20% | 有 revenue / order / backlog / capacity / margin acceleration 的 source |
+| Valuation appeal | 20% | 相对历史、同业或增长质量不贵；便宜但恶化要降为 value trap |
+| Discovery edge | 20% | 低覆盖、分类错误、非主流上市地、估值未重估、股价未反映等 proxy |
+| Catalyst / liquidity / tradability | 15% | 3-12M 有验证节点，流动性可交易，borrow / squeeze 风险可控 |
 
-基于（机制清晰度 + priced-in 程度 + 流动性 + 临近 catalyst）四维 score，推荐 1-2 家进入 stock-quickread / peer-deep-dive。
+**Step 4: 候选分层**
 
-### A.2 输出结构
+| Bucket | 定义 | 处理 |
+|---|---|---|
+| **Top Ideas** | 同时满足纯度、增长、估值、discovery edge 的 1-3 个 names | 推荐进入 deep research |
+| **Watchlist** | 机制对，但估值、source、流动性或催化还不够 | 等待验证，不强推 |
+| **Obvious / Already Priced** | 主题相关但 market 已经明显 price 或 crowding 高 | 用作 peer / hedge / avoid chasing |
+| **Rejects / Value Traps** | 便宜但增长塌、纯度低、关联未证实、主题 beta 高但基本面弱 | 明确拒绝原因 |
 
-```
-## Hypothesis (restated by AI)
+**Step 5: Next verification**
 
-[一句话重新表述用户给的 hypothesis，确认理解正确]
-[列出澄清的 6 维度参数]
+Top Ideas 必须给下一步验证路线：
 
-#### 筛选漏斗
+- 公司 first-pass：`stock-quickread`
+- 业务 / segment / KPI 到 model driver：`driver-map`
+- 复杂工程机制：`mechanism-map`
+- 单条客户 / 订单 / 供应链 claim：`information-impact`
+- 3-8 个核心公司横向比较：`peer-deep-dive`
 
-[插入 Mermaid flowchart — hypothesis → mechanism → 业务特征 → Tier 1/2/3/Short → Deep Research。示例见下方。]
+## 输出结构
 
----
+```markdown
+## Candidate Mining Verdict
 
-## 1. Mechanism Analysis
+[2-4 句结论先行：这个主题最可能错价的 pocket、Top Ideas 数量、最重要 caveat]
 
-[Step 1-2 的输出：拆解 mechanism + 翻译业务特征]
+## 1. Signal Translation
 
----
+| Input signal | Translation | Default / caveat |
+|---|---|---|
+| Theme signal | [主题边界 + value-chain pocket] | [...] |
+| Fundamental / valuation filter | [增长 / 估值 / 现金流条件] | [...] |
+| Discovery edge | [未发现 proxy] | [需查证 / source-backed] |
 
-## 2. Tier 1 — Direct Exposure (Pure-play / 主营 > 50% 受益)
+## 2. Value-Chain Pockets
 
-| Ticker | Market | 业务 / 受益机制 | 受益强度 | Liquidity (ADV) | 估值锚 | Priced-in | Ev |
-|---|---|---|---|---|---|---|---|
-| AAA US | NYSE | 100% 数据中心运营核电；35% 容量已签 hyperscaler PPA $80/MWh | High | $150M | EV/EBITDA 12x (vs 5Y mean 8x) | 部分 | [S1](./_cache/sources/ppa-disclosure.md) [S2](https://example.com/aaa-valuation) |
-| BBB | A 股 | 60% 收入来自数据中心 HVAC | High | $80M | PE 25x (vs 同业 18x) | Mostly | S3@FY25 |
+| Pocket | Why it can capture value | What to verify | Likely public names | Source status |
+|---|---|---|---|---|
+| [pocket] | [利润池 / 瓶颈 / 认证 / capex] | [KPI / source] | [names or GAP] | sourced / [需查证] |
 
-**Tier 1 判断**：受益机制 direct 且 quantifiable；普遍 priced-in 较多；alpha 来自基本面 vs 估值的 spread
+**Pocket takeaway**: [最可能产生 mispriced name 的 1-2 个 pocket]
 
-## 3. Tier 2 — Indirect / Supply Chain (Tier-N supplier / 30-50% 收入受益)
+## 3. Candidate Funnel
 
-| Ticker | ... | ... | Medium | ... | ... | Less | ... |
-| CCC | NYSE | Tier-1 配电设备给数据中心，但 60% 收入仍是工业 | Medium | $200M | EV/EBITDA 10x (vs 5Y 8x) | Partial | [S3](./_cache/sources/ccc-segment-note.md) |
+| Name | Market | Pocket / exposure | Purity | Growth proof | Valuation | Discovery edge | Score | Bucket | Ev |
+|---|---|---|---|---|---|---|---:|---|---|
+| AAA | US | [业务暴露] | High | [具体证据] | [倍数 / 相对] | [proxy] | 8.1 | Top Idea | [S1](...) |
 
-**Tier 2 判断**：受益机制 indirect；priced-in 通常较少（市场没把它当 AI 概念股）；但需 verify 受益的实际 magnitude
+## 4. Top Ideas (1-3)
 
-## 4. Tier 3 — Spillover / Theme Association (< 30% 收入受益 / 弱关联)
+### 1. [Ticker / Company] - [一句话 idea]
 
-| Ticker | ... | ... | Low | ... | ... | Variable | ... |
+- **Why it fits**: [纯度 + 增长 + 估值 + discovery edge]
+- **What market may be missing**: [只能写 proxy，不写成确定事实]
+- **Key source / gap**: [source 或 `[需查证]`]
+- **Why not obvious**: [不是热门概念股 / 非主流分类 / 估值未重估 / 覆盖低]
+- **Next verification**: `stock-quickread` / `driver-map` / `information-impact`
 
-**Tier 3 判断**：弱关联但市场可能 trade it as theme stock；high beta to theme but low fundamental link；short candidate 高发区
+## 5. Watchlist
 
-## 5. Short Candidates
+| Name | Why close | Missing proof | Next trigger |
+|---|---|---|---|
 
-[同样的表格结构，方向反过来]
+## 6. Obvious / Already Priced
 
-| Ticker | Market | 受损机制 | 受损强度 | Liquidity | 估值 | Already-shorting? | Ev |
-|---|---|---|---|---|---|---|---|
+| Name | Why relevant | Why not Top Idea |
+|---|---|---|
 
-**Short Candidate 关键判断**：
-- Priced-in 评估更重要——明显的 short 多数已 priced（high SI、负面 sentiment）
-- 受益于 thematic-priced-up 但基本面不变的 candidates 是优质 short
-- 列 short borrow availability + rate（如可获取）
+## 7. Rejects / Value Traps
 
-## 6. Recommended for Deep Research (1-2 家)
+| Name | Looks attractive because | Reject reason |
+|---|---|---|
 
-按 (机制清晰度 × 50%) + (priced-in 反向 × 30%) + (流动性 × 10%) + (catalyst 临近 × 10%) 综合 score：
+## 8. Hypothesis Fragility
 
-- **AAA US** (Tier 1, score 8/10): 机制最清晰 + 临近 Q3 PPA 公告 catalyst + 估值仅 partial priced-in → 触发 `stock-quickread`
-- **CCC** (Tier 2, score 7/10): 受益 magnitude 待 verify 但 priced-in 几乎为 0 → 触发 `stock-quickread` 验证 segment exposure
+- [主题本身最可能错在哪里]
+- [哪些 Top Ideas 的 source / driver 最脆弱]
+- [什么情况会让该主题变成 crowded / fully priced]
 
-## 7. Hypothesis 漏洞自检
+## 9. AI Universe Caveat
 
-> 这是在问：**你的 thesis 哪里最可能翻车？** 不是挑小毛病——是找致命伤。至少 3 条。
-
-[必填，至少 3 条——这是 LS 研究员防止 over-confidence 的关键]
-1. **Hypothesis 弱点**：AI 数据中心电力 demand 假设依赖 hyperscaler capex 持续——历史 base rate：tech capex 周期通常 2-3 年，2024-2026 已是 capex 高峰期，受益股 priced 充分
-2. **Tier 风险**：Tier 1 已普遍 priced，alpha 主要来自 Tier 2-3 的 mispricing，但 Tier 2-3 的 mechanism 验证更难
-3. **反向风险**：如果 inference cost 下降快于预期（→ datacenter capex 不需要 ramp 这么快），整个 hypothesis 大幅 weakening
-
-## 8. AI 候选 ≠ 全市场（caveat）
-
-> AI 不认识小票和刚上市的公司。这个列表一定有漏——你应该自己补。
-
-本输出基于 AI 已知的 mid/large cap 主流 universe（约 1000-2000 names）。可能漏：
-- Small cap / micro cap（< $1B 市值）
-- 最近 12 个月 IPO / spin-off / 重组的公司
-- 主要在新兴市场上市的标的
-- 你应该 cross-check：[1] Bloomberg theme screen [2] 行业研究机构（Wood Mac / Gartner / IDC） [3] 主动问"我漏了哪些 names"
-
-[然后 chat 直接 prompt 用户：是否要补充某些 names？]
-```
-
-> Mermaid 漏斗示例（放在 fence 外做参考，agent 输出时替换 §Hypothesis 的 placeholder）：
-
-```mermaid
-flowchart TD
-    H["Hypothesis<br/>假设/主题/条件"] --> M["Mechanism 拆解<br/>受益/受损机制 × N"]
-    M --> B["业务特征<br/>什么公司能 expose"]
-    B --> T1["Tier 1: Direct<br/>主营 > 50% 受益"]
-    B --> T2["Tier 2: Indirect<br/>30-50% 受益"]
-    B --> T3["Tier 3: Spillover<br/>< 30% 弱关联"]
-    T1 --> S["Short Candidates<br/>反向受损"]
-    T2 --> DR["Deep Research<br/>推荐 1-2 家"]
-    T3 --> DR
-    S --> DR
+AI 不是 universe screener。本列表可能漏掉 small cap、最近 IPO / spin-off、非英语市场、低覆盖本地上市公司。你应该 cross-check Bloomberg / FactSet / Longbridge / 本地交易所 screen，并主动问“我可能漏了哪些 names”。
 ```
 
----
+## 共同硬标准
 
-## Mode B: Quant / Conditional Screening
+### 1. 每个业务关联必须有 source 或 gap 标记
 
-### B.1 推理路径
+每个 candidate 的 exposure / purity / customer / product / value-chain role 必须有 source link 或明确 `[需查证]`。卖方主题分类、社媒列表、概念股文章只能当线索，不能当业务关联证据。
 
-Mode B 的核心是 pattern matching，但 AI 仍需要做 inferential 工作（不是真 quant screen）：
+### 2. 增长必须有可验证证据
 
-**Step 1: 翻译条件 → 业务特征**
+增长证据优先级：
 
-例（条件: "EV/EBITDA < 8x + FCF yield > 8% + capex/D&A < 0.7"）：
-> 翻译：
-> - EV/EBITDA < 8x → 价值股 / 周期股 / 困境股
-> - FCF yield > 8% → mature 业务、capital return 重于 reinvestment
-> - capex/D&A < 0.7 → 收割期资本周期，不再大投资
-> 综合 profile：mature cyclical 收割期公司
+| 证据类型 | 可支持什么 |
+|---|---|
+| 公司披露 revenue / segment / backlog / order / shipment / capacity / margin | 可进入 Top Ideas |
+| 客户 capex、行业 shipment、价格 / utilization proxy | 可支持 pocket 或 watchlist |
+| 卖方预测、第三方行业报告 | 可作线索，需标 source quality |
+| 市场传闻 / 社媒 / 截图 | 只能作 follow-up，不进 Top Ideas |
 
-**Step 2: Pattern matching**
+### 3. 估值便宜必须和增长质量一起判断
 
-在 AI universe 里识别匹配 profile 的 names。**关键**：必须区分以下三种来源：
-- AI 通过具体数字 verified 匹配
-- AI 推测匹配但需 verify
-- AI 不确定（潜在 candidate 但 score 偏弱）
+- **Cheap + growth intact**：可进 Top Ideas。
+- **Cheap + growth uncertain**：Watchlist。
+- **Cheap + growth deteriorating**：Reject / Value Trap。
+- **High growth + fully priced**：Obvious / Already Priced，除非有明确 variant view。
 
-**Step 3: 数据验证**
+### 4. Discovery edge 只能写 proxy
 
-对每个匹配 candidate 给具体数字（带 source）。AI 数据可能 stale，主动 web_search 最新季度数据。
+允许的 proxy：
 
-### B.2 输出结构
+- sell-side coverage 少或主流模型未覆盖该 segment。
+- 估值倍数未相对主题 peers 重估。
+- 股价没有跟随主题 basket 反应。
+- 公司被错误归类在传统行业，主题 exposure 藏在 segment / subsidiary。
+- 非主流上市地、本地语言披露、ADR/A/H 结构导致 coverage gap。
 
-```
-## Screening Criteria (restated)
+禁止写成：
 
-[列出用户的具体条件 + 澄清的维度]
+- "市场还没发现"但没有任何 proxy。
+- "低估"但没有估值或价格反应 anchor。
+- "纯度高"但没有收入 / 利润 / backlog / segment 证据。
 
----
+### 5. Top Ideas 数量必须收口
 
-## 1. Conditions Translation
+- Top Ideas：1-3 个。
+- Watchlist：3-7 个。
+- Obvious / Already Priced：最多 5 个。
+- Rejects / Value Traps：至少 2 个，除非 universe 极窄。
 
-[Step 1 的输出：翻译条件成业务 profile]
-
----
-
-## 2. Matched Candidates
-
-| Ticker | Market | EV/EBITDA | FCF yield | Capex/D&A | All criteria met? | Ev |
-|---|---|---|---|---|---|---|
-| AAA | US | 6.5x | 11% | 0.5 | ✅ | [S1](https://example.com/aaa-multiples) [S2](./_cache/sources/aaa-cashflow-bridge.md) |
-
-| BBB | A 股 | 7.8x | 9% | 0.6 | ✅ | 2025 Q4 | [S4](./_cache/sources/bbb-annual-report.md) |
-| CCC | HK | 8.2x ❌ | 10% | 0.65 | ❌ (EV/EBITDA fail by 0.2x) | 2026 Q1 | [S5](./_cache/sources/ccc-annual-report.md) |
-
-**Note**: 包括 ❌ 但接近的 candidates（边缘合格）—— 给研究员判断空间。
-
-## 3. Top Candidates by Match Quality
-
-按 (满足条件数 × 50%) + (额外 attractive 维度 × 30%) + (流动性 × 20%) 排序：
-
-1. **AAA**: 全部条件满足 + ROIC 18% (extra)
-2. **BBB**: 全部条件满足 + 股息 yield 6% (extra)
-
-## 4. Recommended for Deep Research (1-2)
-
-[同 Mode A §6]
-
-## 5. Hypothesis 漏洞自检
-
-[即使是 quant screening，也要质疑条件本身是否 capture 想要的 thesis]
-- 你的条件可能筛出 value trap（FCF yield 高但因为基本面持续恶化）
-- Capex/D&A < 0.7 在 emerging tech 行业可能意味着错过增长（不是 attractive）
-- 建议加 ROIC vs WACC > 200bps 过滤 value trap
-
-## 6. AI 候选 ≠ 全市场 (caveat)
-
-[同 Mode A §8]
-```
-
----
-
-## Mixed Mode（最常见）
-
-混合查询的关键：内部推理要明确**哪些条件是 thematic（mechanism 推导）+ 哪些是 quant（pattern matching）**。
-
-输出顺序：
-1. Restate hypothesis + 6 维度
-2. Mechanism analysis（thematic 部分）
-3. Conditions translation（quant 部分）
-4. **同时满足 mechanism + conditions 的 candidates**
-5. Tier 分组（Direct / Indirect / Spillover）+ Quant pass/fail 双轴
-6. Short candidates（如方向 = both）
-7. Recommended for deep research
-8. Hypothesis 漏洞 + AI universe caveat
-
-
-## 共同输出元素（无论 mode）
-
-每次输出必须包含：
-
-### 1. **Source for every business linkage**
-每个 candidate 的"业务 / 受益机制"列必须有 source link。常见 source 类型：
-- 10-K / 10-Q segment data
-- IR presentation（注意 marketing spin）
-- 8-K / 公告（M&A、合同）
-- 卖方 deep dive 报告（**作为线索**，原始 source 还是 filing）
-- 行业研究（IHS / Wood Mac / IDC）—— 用于 supply chain mapping
-
-不确定的关联标 `[需查证]` —— **不能编造**。
-
-### 2. **Priced-in 评估（quick estimate）**
-不需要 AI 做 reverse DCF（太重）。简化为 3 级：
-- **Fully priced**: 估值倍数 vs 5Y mean 已 +30% 以上 / 同业溢价 >20% / 已被卖方主推为 thematic name
-- **Partial priced**: 估值倍数 vs 5Y mean +10-30% / 部分 thematic 溢价
-- **Not priced (yet)**: 估值倍数 vs 5Y mean 持平或更低 / 市场还没 link 到 thematic
-
-每个 candidate 必须给 priced-in 评估 + 简短理由。**Alpha 来自 not-priced 或 partial-priced 的 names**——fully priced 的 candidates 列出来主要是 short 候选或防漏。
-
-### 3. **Hypothesis 漏洞自检**
-LS 研究员最大风险是 self-reinforcing hypothesis。AI 必须 actively challenge：
-- Hypothesis 本身的弱点（依赖什么 assumption）
-- Base rate（历史上类似 hypothesis 的成功率）
-- Tier 风险（Tier 1 priced / Tier 2 难 verify / Tier 3 weak link）
-- 反向风险（什么发生会让 hypothesis 失效）
-
-至少 3 条具体的 challenge，不允许"hypothesis 看起来 sound"这种空话。
-
-### 4. **AI universe caveat**
-固定模板提示用户 AI 不是 universe screener。
-
-
+如果候选太多，先按 purity 和 discovery edge 收紧；不要输出 20 个 ticker 让用户自己筛。
 
 ## Artifact / 保存策略
 
 写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+```text
+industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+```
+
+路径不明 -> `new-session` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
+
+## Workflow 联动
+
+| 发现 | 下一步 |
+|---|---|
+| Top Idea 是陌生公司 | `stock-quickread` |
+| Top Idea 的 revenue / margin / backlog driver 不清 | `driver-map` |
+| value-chain pocket 依赖工程机制、设备链、工艺 | `mechanism-map` |
+| 单条客户、订单、供应链、供应商关系 claim 未验证 | `information-impact` |
+| 需要横向比较 3-8 个核心 candidates | `peer-deep-dive` |
+| 主题的 priced-in、buy-side bar 或 consensus debate 不清 | `consensus-map` |
+| Top Ideas 需要形成 long / short thesis | `alpha-thesis` / `bear-pre-mortem` |
 
 ## 反模式自查
 
-写完必须自检：
+写完必须自检，命中就重写：
 
-**编造 / 概念股堆砌**
-- ❌ Candidate 的"业务 / 受益机制"列无 source link → 必须补
-- ❌ 列了一堆 obvious names（NVDA / MSFT / GOOG）但没差异化分析 → 重新做
-- ❌ Tier-2/3 关联只写"供应链相关"无具体 supplier link → 没 verify
-- ❌ 把卖方研报的"概念股归类"当作业务关联依据 → 卖方分类有 marketing 嫌疑
-- ❌ AI 依据"听过"或推测列 candidate 但没标 [需查证] → 编造嫌疑
-- ❌ 把 sub-agent evidence card 直接当成最终 Tier / Top Candidates → 必须由主 agent 抽查、去重、分层和排序
+### 编造 / 概念股堆砌
 
-**Hypothesis / Tiering**
-- ❌ 没拆解 mechanism 直接列 candidates → AI 推理价值丢失
-- ❌ Tier 1/2/3 划分没有具体标准（收入占比 % 等） → 无法 verify
-- ❌ Hypothesis 漏洞自检写空话（"thesis 看起来 sound"）→ 必须给具体 challenge
-- ❌ Hypothesis 太 vague 但 AI 没主动澄清就开始 list → 应该 push back
-- ❌ Candidate 的受益机制依赖复杂工程原理 / 设备链条，却没有建议 `mechanism-map` 先讲清楚机制
-- ❌ Candidate 的受益机制依赖复杂 revenue / margin driver，却没有建议 `driver-map` 验证量级
+- ❌ 只列热门 ticker，没有解释 value-chain pocket 和 purity。
+- ❌ Candidate 的业务暴露无 source link，也没标 `[需查证]`。
+- ❌ 把卖方主题归类、社媒列表、概念股文章当作业务关联依据。
+- ❌ Tier-N 供应链只写"相关"，没有说明 supplier link、product、timeframe。
+- ❌ 把 sub-agent evidence card 直接当最终 Top Idea；主 agent 必须抽查、去重、分层和排序。
+
+### 挖票质量
+
+- ❌ 没有说明为什么 market 可能没 price。
+- ❌ 只因估值便宜就推荐，没检查增长是否恶化。
+- ❌ 只因增长快就推荐，没检查估值是否 fully priced。
+- ❌ Top Ideas 超过 3 个，说明没有收口。
+- ❌ 没有列 Obvious / Already Priced，导致用户追热门概念股。
+- ❌ 没有列 Rejects / Value Traps，导致 cheap screen 变成 value trap list。
+
+### Workflow 边界
+
+- ❌ 用户问单条 claim 靠不靠谱，却直接挖票；应先 `information-impact`。
+- ❌ 工程机制不清仍强行列 names；应先 `mechanism-map`。
+- ❌ 公司 driver 不清仍写 growth thesis；应先 `driver-map`。
+- ❌ 对 `[需查证]` 的客户 / 订单 / 供应链关系做强结论外推。
 
 ## 篇幅基准
 
-- 标准 candidate-screener：1200-3000 字 + 对应表格数（Mode A 4-5 / Mode B 1-2 / Mixed 5-6）。
-- 低于 1000 字通常推理不深或 candidates 太少；超过 3000 字说明在堆 ticker 而非筛选，应收紧 Tier 标准。
+- 标准 Candidate Mining：1200-2500 字 + 3-5 张表。
+- 快速挖票：800-1200 字，Top Ideas 最多 2 个。
+- 深度 universe pass：2500-4000 字，但必须按 pocket 分组，不能变成 ticker dump。
 
-**Candidate 数量基准**：
-- Tier 1: 3-5 家（pure-play 通常少）
-- Tier 2: 3-5 家
-- Tier 3: 1-3 家（如有）
-- Short basket: 3-5 家（如方向 = both）
-- 推荐 deep research: **必须 1-2 家**，不允许 0 或 ≥ 3
-
----
+低于 800 字通常没有完成 source / purity / valuation / discovery 四件事；超过 4000 字通常说明没有收口，应缩减候选或 handoff `peer-deep-dive`。
 
 ## 与 information-impact 的边界
 
-两个 skill 都涉及 source 验证、claim 拆解，但**信息流方向相反**：
+两个 skill 都涉及 source 验证、claim 拆解，但信息流方向相反：
 
 | | candidate-screener | information-impact |
 |---|---|---|
-| 输入 | Hypothesis / 主题 / 条件 | 已知 claim（一条信息） |
-| 任务 | 找候选 names | 验证真伪 + research relevance |
-| 方向 | Outbound（从 hypothesis 出发） | Inbound（信息已到） |
-| 频率 | 每周 2-3 次（中频） | 每天几十次（高频） |
+| 输入 | 主题、事件、screen、挖票口味 | 已知 claim、新闻、传闻、截图 |
+| 任务 | 从 hypothesis 出发找可研究 names | 验证真假 + research relevance |
+| 方向 | Outbound：从主题往外找 | Inbound：信息已经到了 |
+| 输出 | Top Ideas / Watchlist / Rejects / Next verification | Verdict / What not to infer / Action |
 
-**不要混淆**：
-- "某主题受益股有哪些" → candidate-screener
-- "刚听说 X 公司是某 hyperscaler PPA 客户" → information-impact
+不要混淆：
 
-如果用户问的是混合（"我听说有这个主题，能列 candidates 吗"），先用 information-impact 验证 claim，再用 candidate-screener 探索 candidates。
+- "光模块设备链有没有纯度高、增长快、估值便宜、没被发现的票" -> `candidate-screener`
+- "听说 X 是 NVIDIA 光模块供应商，靠谱吗" -> `information-impact`
+- "这个新闻是真的，而且想按新闻逻辑找受益股" -> 先 `information-impact`，再 `candidate-screener`
