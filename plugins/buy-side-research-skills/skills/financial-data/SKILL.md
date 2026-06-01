@@ -34,7 +34,9 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 - 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-history` / `driver-map`。
 - 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
-- 不拉 consensus、price、EV、FX、peer multiples 或 market data。
+- **Full mode**：不拉 consensus、price、EV、FX、peer multiples 或 market data。
+- **Lite mode**：拉市场快照数据（股价、市值、PE/PB/PS、consensus），走四层降级链：`Bridge → yfinance → WebSearch → Google Finance`。详见 Lite Mode 市场数据段。
+- Bridge 在 actuals 里只做 cross-check（不替代 provider_api）；在市场数据里做 US/HK/SH/SZ primary。
 - 不把 `_cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
 - 不创建 dated research Markdown artifact。
 - 不承诺所有市场都能 ticker-only 自动 discovery。
@@ -135,38 +137,57 @@ industry/<industry>/companies/<ticker>/
 
 ### Lite Mode Fetch（研究前置快速抓取）
 
-触发语： 或 
+触发语：`/financial-data --lite <ticker>` 或 "快速拉 <ticker> 数据"
 
-Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 。目标是 **stock-quickread / bear-pre-mortem / comps-analysis / earnings-setup / consensus-map / alpha-thesis / cross-market-compare** 启动前的最少必要数据。
+Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / cross-market-compare / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
 
-**数据获取逻辑**：
+**三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
+**市场数据获取逻辑**（四层降级链）：
 
+```
+Bridge → yfinance → WebSearch → Google Finance → [估值待补]
+```
 
-****Lite 写入的最小字段**：
+每层规则：
+
+1. **Bridge (Longbridge)** — 仅 US/HK/SH/SZ。调 `trusted-market-bridge`，拿 `market_quote` + `valuation_snapshot` + `consensus`。返回结构化数据（price/mcap/PE/PS/PB/consensus/FX）。缺字段降级
+2. **yfinance** — 全球。Python 库 `yfinance`，US 市场最成熟；JP/KR/TW/EU 可能缺字段。缺字段降级
+3. **WebSearch** — 全球。搜 `"<ticker> PE ratio market cap stock price"`，从搜索结果摘要（StockAnalysis/MarketScreener/Yahoo Finance 等聚合站）提取 PE/PB/市值/股价。LLM 解析搜索结果文本
+4. **Google Finance** — WebFetch `https://www.google.com/finance/quote/<ticker>:<exchange>`。全球兜底，返回 PE/PB/市值。缺则标 `[估值待补]`
+
+**关键规则**：
+- 逐层降级，低层不覆盖高层
+- 每个字段独立标 `[source_layer | as-of 日期]`，不同字段可来自不同层
+- Bridge 市场不跳 yfinance——Bridge 缺字段继续往下走
+- 不设 official_web 层：交易所官网只发交易数据 PDF（开盘/收盘/量），不计算 PE/PB/市值。估值指标是数据聚合商计算产物，web 搜索本质是在搜这些聚合商
+- 拉完后将市场快照写入 `actuals-resolved.json` 的 `market_data` 字段做审计锚（不替代下次拉取）
+
+**Lite 写入的最小字段**：
 
 | 类别 | 内容 | 状态 |
 |---|---|---|
 | 三表 | 22 个核心科目（IS/BS/CF） | 必填 |
 | 分部 | 分部收入 + 利润（如有） | 必填 |
-| 市场数据 | 股价、市值、PE/PB/PS、Beta | 必填——yfinance |
+| 市场数据 | 股价、市值、PE/PB/PS | 必填——四层降级链 |
 | 股价历史 | 1 年期日线（驱动因素分析） | 必填——yfinance |
-| Consensus | EPS/Revenue 预期 | best-effort——缺则标 [ND] |
+| Consensus | EPS/Revenue 预期 | best-effort——Bridge 覆盖 US/HK/SH/SZ，其余标 [ND] |
 | 补充 | 股本、SBC、backlog | 有则抓 |
-
 
 **数据完整性规则**：
 
-- ADR/双重股权/H+A：写入  字段
-- 数据新鲜度：存 ，超 6 个月标 
-- 未覆盖市场（SG/AU/IN/SEA）：yfinance 先拉，缺的标 
+- ADR/双重股权/H+A：写入 `share_class` 字段
+- 数据新鲜度：每个字段标 `[source_layer | as-of 日期]`，不设全局 TTL
+- 未覆盖市场（SG/AU/IN/SEA）：yfinance → WebSearch → Google Finance 逐层降级
 - 单位归一化：AKShare 万元→元、EDINET 百万円→円、韩网 억원→원
+- 非数字占位符（NaN/inf/—/N/A）→ null，不计入已填
 
 **输出**（精简版）：
 
+- `actuals-resolved.json`：三表 + 分部 + `market_data` 审计快照
+- 不输出 `financial-data-summary.md`
 
-
-Lite 不写 、、、。
+Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`source-map.json`。
 
 
 ### Fill-Gaps Mode（补 Layer 3 缺口）
@@ -206,15 +227,30 @@ Snapshot 可以链接 canonical company pack，但不把单公司 canonical data
 
 Provider matrix：
 
-| Market | Provider | V1 status |
-|---|---|---|
-| US | EdgarTools / SEC | 三表 + filing markdown + SEC XBRL dimension `revenue_split` when available; split completeness is review-only |
-| CN A-share | AKShare / Eastmoney | 三表 + `stock_zygc_em` 收入拆分；provider-normalized route |
-| HK | Eastmoney HKF10 direct | 三表；正式披露频率通常是 FY + H1/H2，provider rows must keep `period_basis_by_period`; segment / geography split best-effort, prefer provider_api then official_web |
-| JP | EDINET official / edinet-tools | EDINET-only route; no J-Quants/Yahoo fallback; `latest4q` can be partial but must not hang or fake complete coverage |
-| KR | OpenDART official + local corp_code metadata cache | requires `DART_API_KEY`; ticker -> corp_code uses a 30-day local metadata cache, while statements and full filings are fetched live from official APIs |
-| TW | FinMind public API | 三表 best-effort；segment / geography split best-effort, prefer provider_api then official_web |
-| EU | openesef | ESEF/iXBRL parser route; ticker-only discovery experimental |
+| Market | Financial Provider | V1 status | Bridge / Longbridge role |
+|---|---|---|---|
+| US | EdgarTools / SEC | 三表 + filing markdown + SEC XBRL dimension `revenue_split` when available | **市场数据 primary**。财务：`financial_snapshot` 做 cross-check，不替代 EdgarTools |
+| CN A-share | AKShare / Eastmoney | 三表 + `stock_zygc_em` 收入拆分 | **市场数据 primary**。财务：cross-check only |
+| HK | Eastmoney HKF10 direct | 三表；prefer provider_api then official_web | **市场数据 primary**（含 AH premium）。财务：cross-check only |
+| JP | EDINET official / edinet-tools | EDINET-only route; no J-Quants/Yahoo fallback | 不支持 |
+| KR | OpenDART official + local corp_code metadata cache | requires `DART_API_KEY` | 不支持 |
+| TW | FinMind public API | 三表 best-effort | 不支持 |
+| EU | openesef | ESEF/iXBRL parser route; ticker-only discovery experimental | 不支持 |
+
+**Market Data Provider Matrix**（Lite mode 四层降级链：`Bridge → yfinance → WebSearch → Google Finance`）：
+
+| Market | Layer 1: Bridge | Layer 2: yfinance | Layer 3: WebSearch | Layer 4: Google Finance |
+|---|---|---|---|---|
+| **US** | ✅ primary — 全字段 | fallback | 兜底 | 兜底 |
+| **HK** | ✅ primary — 全字段 + AH premium | fallback | 兜底 | 兜底 |
+| **SH/SZ** | ✅ primary — 全字段 | fallback | 兜底 | 兜底 |
+| **JP** | ❌ 跳过 | primary — 可接受 | 兜底（搜 `8035 PER 時価総額`） | 兜底 |
+| **KR** | ❌ 跳过 | primary — 经常缺字段 | 兜底（搜 `005930 PER 시가총액`） | 兜底 |
+| **TW** | ❌ 跳过 | primary — 不稳定 | 兜底（搜 `2330 本益比 市值`） | 兜底 |
+| **SE/NL/DE** | ❌ 跳过 | primary — small cap 缺字段 | 兜底（搜 `MYCR PE ratio`） | 兜底 |
+| **SG/IN/AU** | ❌ 跳过 | primary | 兜底 | 兜底 |
+
+每个字段独立标 `[source_layer | as-of 日期]`，不设全局 TTL。低层不覆盖高层。
 
 KR / JP source policy:
 
