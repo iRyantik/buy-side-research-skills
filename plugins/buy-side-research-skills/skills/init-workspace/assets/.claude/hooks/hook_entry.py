@@ -47,12 +47,23 @@ MODELING_RULES = [
     "model_statement_structure",
     "model_update_change_map",
     "model_valuation_basis",
-    # New from ps1 migration
+    # ps1 migration
     "comps_structure_floor",
     "dcf_audit_floor",
     "dcf_structure_floor",
     "three_statement_audit_floor",
     "three_statement_driver_floor",
+    # C-level: data fidelity + cross-artifact linkage
+    "model_meta_sheet",
+    "model_actuals_cross_check",
+    "model_driver_cross_check",
+    "model_internal_consistency",
+    "model_period_floor",
+    "model_dcf_linked_to_3sm",
+    "model_dcf_input_sourcing",
+    "model_dcf_tv_wacc_sanity",
+    "model_comps_sourced",
+    "model_comps_denominator_parity",
 ]
 
 
