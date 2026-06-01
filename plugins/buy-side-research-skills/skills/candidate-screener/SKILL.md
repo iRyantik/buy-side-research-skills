@@ -9,18 +9,17 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+
+
 - Use this skill for hypothesis engineering, candidate mining, priced-in triage, and idea funneling; unresolved facts stay as gap, hypothesis, or follow-up.
-- Market-snapshot fields default to `topic-local evidence cache / financial-data` then trusted third-party then web fallback. A-share / HK / US screening that needs market_quote, valuation_snapshot, or market_screen may call `trusted-market-bridge` first; bridge misses fall back to web. Borrow, bid-ask, accounting basis, and share-class truth stay at `[需查证]` without high-quality source.
-- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
-**三表数据前置（按需调用）：** priced-in 评估和估值锚需要 market_data——主 agent 先从 actuals-resolved.json 取市场数据；如需为未覆盖 ticker 拉数据，委托 subagent 执行 /financial-data --lite <ticker>。
-**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
 
-把主题、事件、value-chain pocket 或财务 / 估值条件转化成可研究股票漏斗。默认偏 long-biased idea mining，但保留 LS 纪律：obvious / fully priced / 低纯度高 beta 的 names 要进 watchlist、reject 或 possible short，不要硬塞进 Top Ideas。
 
-如果输出只是受益股列表、概念股堆砌、卖方报告 tickers 汇总，或者没有解释为什么市场可能还没 price，本 skill 就失败了。
+
 
 ## 心法
 

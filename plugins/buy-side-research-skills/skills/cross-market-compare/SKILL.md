@@ -9,19 +9,17 @@ Compare local listings ADRs or cross-market peers across valuation currency liqu
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+
+
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-- Consumer contract: treat `actuals-resolved.json.latest_quarter` as the latest `Q/H period`, not necessarily a single quarter. Always read `latest_quarter_period`, `latest_quarter_period_label`, and `latest_quarter_period_basis`; if the basis is `half_year` or `report_period`, use the true period label in tables/text and do not relabel it as `Q2/Q4` or annualize flow metrics unless explicitly marked `[年化]`.
 
-**三表数据前置（由 subagent 并行执行）：** 跨市场比较的每个标的必须先有 financial-data——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。多市场标的可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
-**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
-- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in cross-market tables, bridge math, or valuation comparisons.
-- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography` and `supplementary.shares_outstanding`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than comparison blockers. Cross-market comparisons must preserve segment `type` so geography and business-line splits remain interpretable across listings. Preserve optional quantitative fields such as `pct_of_total`, `yoy_pct`, `sequential_pct`, `margin_pct`, and `ratio` when present.
 
-处理 A/H、ADR、本地股、跨市场 peer 的估值和可交易差异。**核心价值不是罗列哪里上市**，而是判断价差来自可交易错配、流动性 / 会计 / 监管差异，还是基本合理。
 
-如果输出只比较 P/E 或 EV/EBITDA，没有统一币种、股本、ADR ratio、会计口径和可交易性，本 skill 就失败了。
+
 
 ## 心法
 

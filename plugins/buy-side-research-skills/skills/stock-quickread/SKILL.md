@@ -9,24 +9,21 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
-**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
-**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
-- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in tables, ratio commentary, or narrative takeaways.
-- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography` and `supplementary.shares_outstanding`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than quickread blockers. `segments.segments` may include multiple dimensions such as `business_line`, `geography`, and `end_market`; do not flatten them into a single pseudo-split or ignore disclosed geography just because a business-line split is absent. Preserve optional quantitative fields such as `pct_of_total`, `yoy_pct`, `sequential_pct`, `margin_pct`, and `ratio` when present.
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+
+
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
-本 skill 独立运行时也必须携带最小必要的 runtime 摘要。详细 authoring baseline 仍在 `skills/_shared/research-policy-baseline.md`，但运行时不能假设该文件会被自动读取。
 - 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
-- Source stance 分两条 track：disclosure-fact fields 优先 `topic-local evidence cache > primary public > trusted third-party > web`；market-snapshot fields 优先 `topic-local evidence cache / financial-data > trusted third-party > web`。同一质量层内优先 `home-market / local-language source`；`internet source` 只补 market / consensus / valuation / liquidity / price-action 缺口，不冒充 company-disclosed fact。
-- 最终 synthesis、source conflict handling、quickread verdict 和 routing 由主 agent 统一负责。financial-data 获取**默认委托 subagent 执行**（不限用户显式要求）；其他 evidence gathering / QA 类 sub-agent 仅在用户明确要求 `sub-agent`、`delegate` 或并行时才启用。
 - 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
 - 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-map`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
-让一个买方研究员在 30 分钟内对一家陌生公司从零起步，达到"能问出像样的下一层问题"的状态。**不是**全面了解公司——全面了解是浪费时间，因为 90% 的细节最终不会进入决策。
+
 
 ## 心法
 

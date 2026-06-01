@@ -9,19 +9,17 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 ## Research Runtime Capsule
 
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
-**三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
-**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
-- Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in consensus gap math or expectation framing.
-- Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography`, `supplementary.shares_outstanding`, growth/margin fields, `operating_cf`, and `capex`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than expectation blockers.
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+
+
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-- Consumer contract: treat `actuals-resolved.json.latest_quarter` as the latest `Q/H period`, not necessarily a single quarter. Always read `latest_quarter_period`, `latest_quarter_period_label`, and `latest_quarter_period_basis`; if the basis is `half_year` or `report_period`, use the true period label in tables/text and do not relabel it as `Q2/Q4` or annualize flow metrics unless explicitly marked `[年化]`.
 
-把单股、peer cluster、行业或主题的市场预期摊开：sell-side numbers 是什么，buy-side bar 可能在哪里，价格已经隐含了什么，核心 debate 卡在哪些假设上，哪里才可能有真正的 variant view。
 
-如果输出只是 broker rating / target price 汇总、"市场看多 / 看空"的流水账，或者直接跳成完整 long / short thesis，本 skill 就失败了。
+
 
 ## 心法
 

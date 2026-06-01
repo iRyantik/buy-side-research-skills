@@ -9,31 +9,14 @@ Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal
 
 ## Modeling Runtime Capsule
 
-- Hook-enforced workbook legality, structure floors, valuation-basis checks, and sub-agent boundary rules live in workspace hooks and are not restated here.
-- Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
+- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- Sub-agent QA bounded; main agent owns the final workbook.
+
+
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
-- Use bounded QA sub-agents only; the main agent owns the final workbook, valuation treatment, and delivery.
 
-## Research Workspace Adapter
-
-In this research workspace, prefer source-tracked company-topic inputs before external, web, or manual data:
-- `_cache/financial-data/financial-data-summary.md` for human/LLM review
-- `_cache/financial-data/internal/actuals-resolved.json` for machine historical actuals
-- `_cache/financial-data/internal/evidence-pack.json` for completeness/source-map/cross-check
-- `industry/<industry>/companies/<ticker>/_cache/driver-map/driver-map.md` for human/LLM driver treatment
-- `industry/<industry>/companies/<ticker>/_cache/driver-map/internal/driver-map.json` for machine driver inputs
-
-Use `3-statement-model` output when available as the forecast base. Do not treat incomplete, review-only, missing, or unmapped actuals as complete DCF inputs.
-
-If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cash_flow_quarterly_derived`, use those rows for single-quarter flow inputs and FCF bridge checks; keep the original cumulative rows as audit evidence. Never derive or subtract balance sheet rows because they are point-in-time values.
-
-## Model Sub-Agent Protocol
-
-- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation verdicts.
-- Close QA sub-agents once notes return; the main agent owns the FCF build, valuation bridge, and delivery.
-- Useful QA buckets: driver-map assumption audit, FCF / WACC / terminal value / sensitivity checks, and actuals completeness review.
-
-# DCF Model Builder
 
 ## Overview
 

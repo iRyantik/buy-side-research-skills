@@ -382,6 +382,51 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 
 为了避免 skill card description 再次空白，active `SKILL.md` 除了正确 frontmatter 外，还必须保留一个顶层 `# ...` 标题；不要让 frontmatter 后直接进入 `## Research Runtime Capsule` 或 `## Modeling Runtime Capsule`。
 
+#### §5.1 Research Runtime Capsule 标准模板
+
+所有 consumer research skill 必须使用以下标准模板。核心 4 行不可变，skill-specific 定制最多 3 行、只能写"如何使用数据"、禁止复读 provider 名和 trust chain。
+
+```markdown
+## Research Runtime Capsule
+
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+
+[如有 skill-specific 数据使用规则，≤3 行，不写 provider 名/trust chain]
+```
+
+**自检清单**（写/改 skill 时必须过）：
+- [ ] Capsule 是否 ≤ 7 行？
+- [ ] 是否有重复 hook 或 shared baseline 的内容？
+- [ ] 是否有 `provider_api > official_web > yfinance` 之类 trust chain？
+- [ ] 是否有 "三表数据前置 subagent" 的详细步骤？
+- [ ] 是否有 "market-snapshot fields default to..." ？
+- [ ] Skill-specific 定制是否 ≤ 3 行、不含 provider 名？
+
+#### §5.2 Modeling Runtime Capsule 标准模板
+
+建模 skill 使用以下模板。核心 4 行不可变，skill-specific 定制最多 2 行。
+
+```markdown
+## Modeling Runtime Capsule
+
+- Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
+- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- Sub-agent QA bounded; main agent owns the final workbook.
+
+[如有 skill-specific 建模规则，≤2 行]
+```
+
+**建模 capsule 自检**：
+- [ ] Capsule 是否 ≤ 6 行？
+- [ ] 是否删除了 Research Workspace Adapter 段（缓存路径列表）？
+- [ ] 是否删除了 Model Sub-Agent Protocol 段（已在 shared baseline §6）？
+- [ ] 是否删除了 consumer trust contract？
+- [ ] 是否有重复 hook 的内容（missing_actuals_not_zero 等）？
+
 ### 6. Operations SKILL.md 必填结构
 
 Operations skill 使用轻量执行结构：
@@ -470,8 +515,8 @@ Artifact policy：
 Research skill 的通用 source / anti-hallucination 规则现在由 shared baseline + workspace hooks 承接，不再要求每个 skill 本地复制 `Source 政策`。
 
 authoring hard rules：
-- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
-- 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `[S1](link)`、`[I1](url)` 之类 placeholder。
+- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `financial-data --lite` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
+- 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `S1` / `I1` 等短锚点代码后接 `(link)` 或 `(url)` 占位符——此类写法会被 source_contract hook 拦截。
 - 一旦某条 binary source / structure / boundary 规则进入 hook，对应 `SKILL.md` 中同类规则 prose 必须删除，而不是继续双份保留。
 - `Source 政策` 若保留，只能写 skill-specific non-binary edge；不能复述 shared legality。
 

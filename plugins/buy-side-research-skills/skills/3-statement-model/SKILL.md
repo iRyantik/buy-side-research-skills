@@ -9,38 +9,15 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 
 ## Modeling Runtime Capsule
 
-- Hook-enforced workbook legality, structure floors, formula discipline, and sub-agent boundary rules live in workspace hooks and are not restated here.
-- Before building, verify actuals completeness, source-map coverage, review flags, and evidence-pack status.
+- Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
+- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- Sub-agent QA bounded; main agent owns the final workbook.
+
+
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
-- Historical actuals that are source-mapped and model-usable must be populated into visible historical slots when the template provides them.
-- When machine-readable driver-map inputs exist, visible revenue breakdown and margin/growth driver blocks must be populated rather than left as placeholders.
-- Use bounded QA sub-agents only; the main agent owns the final workbook, forecast architecture, and delivery.
 - Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
 
-## Research Workspace Adapter
-
-In this research workspace, prefer source-tracked company-topic inputs before external, web, or manual data:
-- `_cache/financial-data/financial-data-summary.md` for human/LLM review
-- `_cache/financial-data/internal/actuals-resolved.json` for machine historical actuals
-- `_cache/financial-data/internal/evidence-pack.json` for completeness/source-map/cross-check
-- `industry/<industry>/companies/<ticker>/_cache/driver-map/driver-map.md` for human/LLM driver treatment
-- `industry/<industry>/companies/<ticker>/_cache/driver-map/internal/driver-map.json` for machine driver inputs
-
-`3-statement-model` is the owner of the integrated three-statement forecast base in this workspace. It does not only populate historical actuals. It takes reported actuals from `financial-data`, forecast inputs from `driver-map`, guidance, or explicit user assumptions, and produces linked IS / BS / CF projections that downstream valuation skills consume. `dcf-model` and `comps-analysis` may use this workbook as an input, but they do not own the forecast source of truth.
-
-Do not turn missing or unmapped actuals into zero. Leave them blank, flag the mapping gap, and keep source/confidence status visible in the model checks.
-
-If `actuals-resolved.json` contains `income_statement_quarterly_derived` or `cash_flow_quarterly_derived`, use those rows for single-quarter flow statements; keep the original cumulative rows as audit evidence. Never derive or subtract balance sheet rows because they are point-in-time values.
-
-## Model Sub-Agent Protocol
-
-- Use sub-agents only for bounded QA work-packets; they return notes, not workbook edits or valuation conclusions.
-- Close QA sub-agents once notes return; the main agent owns formula architecture, balance integrity, and delivery.
-- Useful QA buckets: actuals mapping audit, IS / BS / CF linkage and balance checks, and missing-actuals review.
-
-# 3-Statement Financial Model Template Completion
-
-Complete and populate integrated financial model templates with proper linkages between Income Statement, Balance Sheet, and Cash Flow Statement.
 
 ## ⚠️ CRITICAL PRINCIPLES — Read Before Populating Any Template
 

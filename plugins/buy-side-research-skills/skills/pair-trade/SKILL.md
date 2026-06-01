@@ -9,18 +9,18 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 
 ## Research Runtime Capsule
 
+- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
+- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
-**三表数据前置（由 subagent 并行执行）：** pair 中每个标的必须先有 financial-data——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。两腿可并行拉取。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）。
-**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+
+
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
-构建或监控 Long X / Short Y pair trade。LS 基金核心工具，但**绝大多数所谓的 "pair trade" 不是真 pair**，只是两个独立单边 trade 装在一起。本 skill 强制把两腿绑成一个研究问题。
 
-v3 journal-first 口径：Builder 和 Monitor 默认保存到当前日期化保存路径的 `pair-note.md`；如果当前没有明确 dated result path，先 handoff 到 `new-session` 创建 / 解析路径并让用户确认。`pair-note.md` 是研究记录，不是 v2 交易状态日志。
 
-触发边界：任何 Long X + Short Y、hedge candidate、pair trade、"X 用什么对冲"、"这两个能不能 pair" 都归本 skill，不归 `alpha-thesis`。`alpha-thesis` 只处理单股 long-only / short-only thesis。
+
 
 ## 心法
 
