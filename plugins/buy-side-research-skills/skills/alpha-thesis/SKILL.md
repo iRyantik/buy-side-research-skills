@@ -11,6 +11,7 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 
 **三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.

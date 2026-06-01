@@ -16,6 +16,7 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 - Sub-agent outputs must be evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 **三表数据前置（按需调用）：** priced-in 评估和估值锚需要 market_data——主 agent 先从 actuals-resolved.json 取市场数据；如需为未覆盖 ticker 拉数据，委托 subagent 执行 /financial-data --lite <ticker>。
+**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
 
 把主题、事件、value-chain pocket 或财务 / 估值条件转化成可研究股票漏斗。默认偏 long-biased idea mining，但保留 LS 纪律：obvious / fully priced / 低纯度高 beta 的 names 要进 watchlist、reject 或 possible short，不要硬塞进 Top Ideas。
 

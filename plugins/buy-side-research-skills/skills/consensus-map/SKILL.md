@@ -11,6 +11,7 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 
 **三表数据前置（由 subagent 执行）：** 将 financial-data 获取委托给 subagent——1. subagent 检查 industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json 2. 不存在 → subagent 执行 /financial-data --lite <ticker>，写入后返回 3. 存在 → 主 agent 从 actuals 取所需科目。artifact 必须包含 financial-data 来源证据（source_layer 标记或 /financial-data 执行痕迹）
+**市场数据统一入口：** 市场数据（股价、市值、PE TTM/NTM、PB、PS、EV/EBITDA、EV/Sales、PEG、Dividend Yield、Target Price）统一由 `financial-data --lite` 的 trust-based fill 链获取（Bridge → yfinance → WebSearch → Google Finance），不再各自调 `trusted-market-bridge`。每个字段标 `[source_layer | as-of]`。
 - Consumer trust contract: when actuals fields conflict, trust `provider_api + official_web` first, then `yfinance`, then `trusted_web + broad_web`. Do not let a lower-trust source override a higher-trust one in consensus gap math or expectation framing.
 - Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields directly from `actuals-resolved.json`. Prioritize `supplementary.revenue_by_geography`, `supplementary.shares_outstanding`, growth/margin fields, `operating_cf`, and `capex`; treat `supplementary.order_backlog` as sector-conditional, and treat `supplementary.sbc`, `cash_flow.*.dividends_paid`, `cash_flow.*.share_buybacks`, and fine debt detail as best-effort rather than expectation blockers.
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
