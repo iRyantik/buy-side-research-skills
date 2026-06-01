@@ -1,27 +1,37 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v5.0.0 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.0.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 
-## 0. 一键安装
+## 0. 安装
 
-```bash
-# Claude Code
-claude plugin install buy-side-research-skills@buy-side-research-skills
+对 Claude / Codex 说：
 
-# 第一次使用前，安装依赖
-claude  # 进入 Claude Code
-> /init-workspace  # 创建或修复 workspace
+```
+按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
 
-安装完成后问 Claude：`有哪些研究 skill？`——它应该列出 30+ 个技能。
-
-> 如果看到 "command not found"，先确保 Claude Code 版本 >= 1.0.200。macOS 用户不需要额外配置。Windows 用户如果拉美股财务数据，需要配置 EDGAR_IDENTITY（详见 [docs/install.md](docs/install.md)）。
+Agent 会自动完成插件安装、workspace 初始化、依赖检查和环境配置。
 
 ---
 
-## 1. 快速开始：两个最常用 Workflow
+## 1. 需要额外配置
+
+| 需要什么 | 怎么拿到 |
+|---|---|
+| **SEC EDGAR 身份** | 对 Claude 说"设置 EDGAR 身份为 姓名,邮箱" |
+| **DART API Key** | [dart.fss.or.kr](https://dart.fss.or.kr) 免费申请，对 Claude 说"设 DART_API_KEY 为 xxx" |
+| **EDINET Tools** | 对 Claude 说"安装 EDINET 依赖"。数据来自 [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp)，免费 |
+| **欧股 ESEF 包** | 从公司 IR 页下载 annual report（iXBRL，.zip 内含 .xhtml），拉数据时把文件路径给 financial-data |
+| **ingest 文档转换** | 对 Claude 说"检查 ingest 依赖"，自动检测并提示安装 |
+| **Longbridge 账户** | [longbridge.com](https://longbridge.com) 注册，对 Claude 说"连接 Longbridge" |
+
+> 未列出的 skill 无需配置，装完直接用。
+
+---
+
+## 2. 快速开始：两个最常用 Workflow
 
 ### 从行业出发（找机会）
 
@@ -41,7 +51,7 @@ claude  # 进入 Claude Code
 ```
 "用 stock-quickread 看 MYCR SS"
     → 5 分钟快扫：业务、财务、催化剂、风险
-    → 自动推荐下一步：driver-map / moat-analysis / capital-allocation
+    → 自动推荐下一步：moat-analysis / catalyst-map / capital-allocation
 "用 moat-analysis 分析 MYCR 护城河"
     → Scorecard：技术壁垒 9/10、客户锁入 7/10
 "用 catalyst-map 画催化剂时间线"
@@ -54,7 +64,7 @@ claude  # 进入 Claude Code
 
 ---
 
-## 2. 完整 Skill 清单（32 个）
+## 3. 完整 Skill 清单（32 个）
 
 ### Triage 层（快速判断）
 
@@ -83,17 +93,17 @@ claude  # 进入 Claude Code
 
 | Skill | 一句话 | 触发 |
 |---|---|---|
-| `candidate-screener` | 分场景 L/S 排序 | "行业里这些票怎么排" |
-| `peer-deep-dive` | 横向比较（同/跨市场） | "这几家一起比" |
-| `moat-analysis` | 竞争壁垒量化 | "xxx 的护城河强不强" |
-| `catalyst-map` | 催化剂时间线 | "xxx 有什么催化剂" |
-| `capital-allocation` | 管理层资本配置评分 | "xxx 管理层钱花得怎么样" |
+| `candidate-screener` | 分场景 L/S 排序（7 种策略原型） | "行业里这些票怎么排" |
+| `peer-deep-dive` | 横向比较（同市场/跨市场） | "这几家一起比" |
+| `moat-analysis` | 竞争壁垒量化 scorecard | "xxx 的护城河强不强" |
+| `catalyst-map` | 催化剂时间线+概率加权 | "xxx 有什么催化剂" |
+| `capital-allocation` | 管理层资本配置 10 年 ROI | "xxx 管理层钱花得怎么样" |
 | `earnings-setup` | 财报前 prepare | "xxx 要发财报了 怎么 setup" |
 | `alpha-thesis` | 投资 thesis | "帮我写 xxx 的 thesis" |
 | `bear-pre-mortem` | 空头 pre-mortem | "xxx 怎么死" |
 | `pair-trade` | LS 对 | "long A short B 怎么样" |
 | `primary-research-plan` | 一手研究计划 | "怎么验证 xxx 假设" |
-| `3-statement-model` | 三表模型 | "给 xxx 搭个模型" |
+| `3-statement-model` | 完整三表模型 | "给 xxx 搭个模型" |
 | `dcf-model` | DCF 估值 | "用 DCF 给 xxx 估值" |
 | `comps-analysis` | 可比估值 | "用 comps 给 xxx 估值" |
 
@@ -101,7 +111,7 @@ claude  # 进入 Claude Code
 
 | Skill | 一句话 | 触发 |
 |---|---|---|
-| `scenario-model` | 场景量化测算 | "如果 CPO 渗透 15% AEHR 值多少" |
+| `scenario-model` | 场景量化测算（两 Phase） | "如果 CPO 渗透 15% AEHR 值多少" |
 | `research-viz` | 可视化 | "把这个做成图" |
 
 ### Memory 层（沉淀）
@@ -109,65 +119,26 @@ claude  # 进入 Claude Code
 | Skill | 一句话 | 触发 |
 |---|---|---|
 | `research-journal` | 沉淀研究认知 | "记录今天的发现" |
-| `coverage-tracker` | 跟踪覆盖状态 | "更新 coverage 优先级" |
+| `coverage-tracker` | 跟踪覆盖公司状态 | "更新 coverage 优先级" |
 
 ---
 
-## 3. 系统特色
+## 4. 常见问题
 
-### 数据管线（防幻觉）
+**Q: 财务数据拉不下来？**
+对 Claude 说 `检查 financial-data 依赖`。
 
-所有研究 skill 的财务数据走 `financial-data --lite` 统一入口。市场数据更经过四层 trust-based fill 链验证：
+**Q: 美股财报报错？**
+需要配 EDGAR 身份。对 Claude 说 `设置 EDGAR 身份为 姓名,邮箱`。
 
-```
-Bridge (Longbridge API) → yfinance → WebSearch → Google Finance
-```
+**Q: 长桥怎么连？**
+对 Claude 说 `连接 Longbridge`。仅 US/HK/SH/SZ 需要。
 
-每一层的值如果被更高层覆盖，自动取高信任度结果。每个估值字段标注来源和 as-of 日期。详见 [docs/architecture.md](docs/architecture.md)。
+**Q: 日股/韩股/欧股数据怎么拿？**
+见 §1 配置表。日股免费、韩股需 API key、欧股需下载 ESEF 包。
 
-### 38 条自动化 Hook 规则
-
-保存每个研究产物前，系统自动检查：
-- **Source contract**：每个数字/引语必须有 source link
-- **Model checks**：三表模型公式自动用 Excel 打开重算，check ≠ 0 则拦截
-- **Fact provenance**：每个定量声明必须有 Tier 标注
-- **Claim proximity**：强声明（"独家供应商"）必须有 source 在同段
-
-研究员不需要记这些规则——写错了系统会拦。
-
-### 分场景 L/S 框架
-
-`candidate-screener` v1.4 支持：
-- 3 个宏观 regime（当前主导/过渡期/新范式）
-- 每个 regime 下的多空方向
-- 7 种策略原型：全场景多仓、小赌注、Flip 对冲、事件驱动、估值收敛、代际升级、叙事套利
-- 每种策略绑定估值锚和目标估值
-
----
-
-## 4. 依赖和环境
-
-### 最小配置（所有平台）
-
-| 市场 | 财务数据 | 市场数据 |
-|---|---|---|
-| US | 自动（SEC EDGAR） | Longbridge API 或 yfinance |
-| A 股 | AKShare | 同上 |
-| 港股 | Eastmoney HKF10 | 同上 |
-| 日股 | EDINET | yfinance + WebSearch |
-| 韩股 | DART（需 API key） | yfinance + WebSearch |
-| 欧股 | openesef | yfinance + WebSearch |
-
-### 一键环境检查
-
-```bash
-# 检查所有依赖
-python _scripts/financial-data/financial_data.py --check-deps
-
-# 安装缺失依赖
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes  # Windows
-pwsh _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes  # macOS
-```
+**Q: 如何更新插件？**
+对 Claude 说 `更新插件 runtime`。
 
 ---
 
@@ -175,25 +146,6 @@ pwsh _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes  # macOS
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
-| v5.0.0 | 2026-06 | 新增 7 个 skill、candidate-screener 分场景 L/S、全链路 hook 治理、跨市场合并至 peer-deep-dive、事实治理层 |
+| v5.0.0 | 2026-06 | 7 个新 skill、candidate-screener 分场景 L/S、全链路 hook 治理、跨市场合并、事实治理层、Codex 双宿主 |
 | v4.6.2 | 2026-05 | Runtime Capsule 标准化、market data trust-based fill、C-level modeling hooks |
 | v4.5.6 | 2026-05 | mechanism-insight/industry-landscape/teach-in 改名、peer-deep-dive 重构 |
-
----
-
-## 6. 常见问题
-
-**Q: 财务数据拉不下来？**  
-运行 `python _scripts/financial-data/financial_data.py --check-deps` 检查缺什么依赖。
-
-**Q: 美股财报报错？**  
-需要配置 `EDGAR_IDENTITY`（你的名字+邮箱），告诉 SEC 你是谁。详见 `docs/install.md`。
-
-**Q: 市场数据拿不到？**  
-非美股/港股/A 股的市场，yfinance 有时不稳定。系统会自动降级到 WebSearch 或 Google Finance 兜底。
-
-**Q: 某个 skill 触发了错误的 skill？**  
-检查 ChatGPT/Claude 的 slash command 设置——`.claude/settings.json`。
-
-**Q: 如何更新插件？**  
-运行 `/update-agent-runtime` 自动更新到最新版。

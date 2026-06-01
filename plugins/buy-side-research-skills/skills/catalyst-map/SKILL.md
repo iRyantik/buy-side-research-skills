@@ -52,7 +52,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## Catalyst Timeline
 
 | 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact |
@@ -75,8 +75,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 **Timeline** (ASCII):
 
-```
-2026 Q3 ─── Q4 ─── 2027 H1 ─── 2027 H2
+    2026 Q3 ─── Q4 ─── 2027 H1 ─── 2027 H2
    │         │         │           │
    │ GT ▲    │ Rubin ▲│ 猎奇 ▲    │ COUPE?
    │ 40%     │ 25%     │ 30%       │
@@ -86,9 +85,8 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
             │ 50%     │ ← noise
             │ +5%     │
 
-Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
-```
-```
+    Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
+~~~
 
 ## 反模式
 

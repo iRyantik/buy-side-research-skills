@@ -49,7 +49,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## Verdict
 
 **Beat — thesis unchanged** （或其他组合）
@@ -78,37 +78,38 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 **Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
-```
+~~~
 
 ## 反模式
-
-- ❌ 没有基准就说 beat/miss——必须找到 bar
-- ❌ beat/miss 只看 actuals 不看 guidance——guidance 更重要
-- ❌ 不分一次性 vs recurring
-- ❌ 超过 500 字——写成 full review
-- ❌ thesis 状态不判断——"有待观察"不是判断
-- ❌ 不更新 coverage-tracker
-
-## 篇幅基准
-
-300-500 字硬上限。超了就是做错了。
-
-## Workflow 联动
-
-| 上游 | 取什么 |
-|---|---|
-| `earnings-setup` | pre-print bar |
-| `financial-data` | actuals + consensus |
-| `consensus-map` | 如果没有 earnings-setup |
-
-| 下游 | 场景 |
-|---|---|
-| `stock-quickread` | thesis needs full review |
-| `coverage-tracker` | 更新 stage/priority |
-| `driver-map` | guidance 改变 driver 假设 |
-
-## 与相邻 skill 的边界
-
-- 不做财报前准备 → `earnings-setup`
-- 不做深度财报分析 → `stock-quickread`
-- 不做 thesis 改写 → `alpha-thesis`
+    
+    - ❌ 没有基准就说 beat/miss——必须找到 bar
+    - ❌ beat/miss 只看 actuals 不看 guidance——guidance 更重要
+    - ❌ 不分一次性 vs recurring
+    - ❌ 超过 500 字——写成 full review
+    - ❌ thesis 状态不判断——"有待观察"不是判断
+    - ❌ 不更新 coverage-tracker
+    
+    ## 篇幅基准
+    
+    300-500 字硬上限。超了就是做错了。
+    
+    ## Workflow 联动
+    
+    | 上游 | 取什么 |
+    |---|---|
+    | `earnings-setup` | pre-print bar |
+    | `financial-data` | actuals + consensus |
+    | `consensus-map` | 如果没有 earnings-setup |
+    
+    | 下游 | 场景 |
+    |---|---|
+    | `stock-quickread` | thesis needs full review |
+    | `coverage-tracker` | 更新 stage/priority |
+    | `driver-map` | guidance 改变 driver 假设 |
+    
+    ## 与相邻 skill 的边界
+    
+    - 不做财报前准备 → `earnings-setup`
+    - 不做深度财报分析 → `stock-quickread`
+    - 不做 thesis 改写 → `alpha-thesis`
+    

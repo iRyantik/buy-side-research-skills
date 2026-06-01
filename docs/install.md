@@ -1,108 +1,56 @@
-# 安装
+# 安装指南（Agent 执行版）
 
-仓库：`iRyantik/buy-side-research-skills`
+你是 Claude Code 或 Codex agent。按以下步骤为用户安装 buy-side-research-skills。
 
-插件可通过市场流程安装，也可从 release zip 安装。
+---
 
-当前源码仓库使用 wrapper + nested payload 结构：源码里的 plugin payload 位于 `plugins/buy-side-research-skills/`。Release zip 仍是扁平安装包，解压后直接看到 `.claude-plugin/`、`.codex-plugin/`、`skills/` 和 `README.md`。
+## Step 1: 安装插件
 
-## Claude
+检查当前环境是否已安装 `buy-side-research-skills` 插件。如果没有：
 
-市场可用时推荐方式：
+- **Claude Code**：执行 `/plugin marketplace add iRyantik/buy-side-research-skills` 然后 `/plugin install buy-side-research-skills`
+- **Codex**：执行 `codex plugin marketplace add iRyantik/buy-side-research-skills` 然后按提示安装
 
-```powershell
-/plugin marketplace add iRyantik/buy-side-research-skills
-/plugin install buy-side-research-skills
+如果市场不可用，从 https://github.com/iRyantik/buy-side-research-skills/releases 下载最新 zip，解压到插件目录。
+
+## Step 2: 创建 Workspace
+
+1. 让用户创建一个空文件夹（如果还没有）
+2. 在 Claude / Codex 里打开这个文件夹
+3. 执行 `/init-workspace`
+
+这会创建：`CLAUDE.md`、`AGENTS.md`、`.claude/hooks/`、`_scripts/`、`.gitignore`。
+
+## Step 3: 检查依赖
+
+执行以下检查，缺什么装什么：
+
 ```
-
-若市场不可用，从 GitHub Release 下载 zip，解压后通过 Claude Code 本地插件流程安装。
-
-## Codex
-
-Codex 支持通过 `.codex-plugin/plugin.json` 和同一套 `skills/` 目录提供。
-
-```powershell
-codex plugin marketplace add iRyantik/buy-side-research-skills
-```
-
-如果你的 Codex 环境使用本地插件而非市场安装，将 release zip 解压到 Codex 指定插件目录并确认 skills 已正确暴露。
-
-## Release Zip
-
-从 GitHub Release 下载最新版本 zip。
-
-解压到 Claude 或 Codex 要求的插件位置，确认 `skills/` 目录下的 skills 已正确暴露。
-
-## 第一次使用
-
-运行 `init-workspace` 创建或修复 research workspace scaffold。`3.10.0` 中 `init-workspace` 会安装 workspace `CLAUDE.md` 和一个 pointer 版 `AGENTS.md` 供 Codex / agents 使用。
-
-`init-workspace` 之后，如需创建或定位 topic root 再保存研究产物，使用 `new-session`。`new-session` 负责解析保存路径并轻量更新 topic `index.md`，不写研究结论。
-
-> macOS 支持要求先安装 PowerShell 7（`pwsh`）。workspace hooks 和所有 `.ps1` helper 都通过 `pwsh` 运行；不保证无 `pwsh` 的纯 zsh/bash 路径。
-
-## Ingest 依赖
-
-`init-workspace` 将 ingest 辅助脚本复制到 research workspace 的 `_scripts/` 目录。先检查依赖：
-
-```powershell
-python _scripts/ingest.py --check-deps
-powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
-```
-
-```bash
-python3 _scripts/ingest.py --check-deps
-pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
-./_scripts/bootstrap-ingest-deps.sh --check-only
-```
-
-确认无误后再显式安装：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
-```
-
-```bash
-pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -Yes -EdgarIdentity "Name email@domain.com"
-./_scripts/bootstrap-ingest-deps.sh --yes
-```
-
-Python 包默认安装到当前用户。此脚本不会在 `init-workspace` 期间自动运行。
-
-## Financial Data 依赖
-
-`init-workspace` 也会把 `financial-data` 辅助脚本复制到 `_scripts/financial-data/`。先检查 provider 和 credential 状态：
-
-```powershell
 python _scripts/financial-data/financial_data.py --check-deps
-powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
-```bash
-python3 _scripts/financial-data/financial_data.py --check-deps
-pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+按输出提示安装缺失的 Python 包。A 股（AKShare）和港股（Eastmoney）到此已完成。
+
+## Step 4: 配置 Credential（按用户覆盖的市场）
+
+逐项问用户是否需要，只配用户需要的：
+
+| 市场 | 需要什么 | 怎么配 |
+|---|---|---|
+| US 美股 | `EDGAR_IDENTITY`（姓名,邮箱） | 设环境变量 |
+| JP 日股 | `edinet-tools` Python 包 | 安装即可，数据免费来自 [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp) |
+| KR 韩股 | `DART_API_KEY` | 从 [dart.fss.or.kr](https://dart.fss.or.kr) 免费申请，设环境变量 |
+| EU 欧股 | ESEF 包 | 用户从公司 IR 页下载 annual report（iXBRL，.zip），拉数据时提供文件路径 |
+| 所有市场 | Longbridge（可选） | 市场快照（股价/PE/共识）优先走 Longbridge API。覆盖 US/HK/SH/SZ。帮助用户注册并连接 |
+
+## Step 5: 验证
+
+拉一个美股测试：
+
+```
+/financial-data --lite AAPL
 ```
 
-确认需要后再显式安装：
+如果能返回三表 + 市场快照，安装完成。
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
-```
-
-```bash
-pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
-```
-
-US SEC route 需要 `EDGAR_IDENTITY`；韩国 DART route 需要 `DART_API_KEY`；日本 EDINET route 需要 `EDINET_API_KEY`。欧洲 ESEF route 使用 `openesef`，V1 可靠输入是 filing URL 或 local ESEF package，ticker-only discovery 仍是 experimental。
-
-## 环境变量
-
-`init-workspace` 会在 workspace 的 `_scripts/` 下生成 `env-setup.ps1.template`。复制为 `env-setup.ps1`，填入你的信息后运行一次：
-
-```powershell
-copy _scripts\env-setup.ps1.template _scripts\env-setup.ps1
-notepad _scripts\env-setup.ps1    # 填入 API 信息
-.\_scripts\env-setup.ps1          # 持久化到系统环境变量
-```
-
-或者直接把信息告诉 Claude，让它来配。
+告诉用户：现在可以开始研究了。试试 `用 industry-landscape 看 [你关注的行业]` 或 `用 stock-quickread 看 [你关注的股票]`。

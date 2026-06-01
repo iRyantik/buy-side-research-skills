@@ -44,7 +44,7 @@ Coverage tracker 回答的不是"我们有什么仓"，而是"我们此时此刻
 
 `coverage.md`，workspace 根目录，单表：
 
-```markdown
+~~~markdown
 ## Coverage
 
 | Ticker | Company | Stage | Last Review | Last Change | Next Trigger | Priority | Why Priority |
@@ -58,31 +58,33 @@ Coverage tracker 回答的不是"我们有什么仓"，而是"我们此时此刻
 
 | Date | Ticker | Change | Reason |
 |---|---|---|---|
+~~~
+
 | 2026-06-01 | MYCR SS | testing → active | Alpha thesis completed |
 | 2026-05-15 | BESI NA | building → testing | Moat analysis done; early thesis forming |
-```
-
-## 反模式
-
-- ❌ Stage 不更新——做完 alpha-thesis 还是 testing
-- ❌ 所有 ticker 都是 active——必须分级
-- ❌ 没有 transition reason——"变了"不够，"因为什么"必须写
-- ❌ Priority 全是 high——至少给具体原因
-- ❌ 记持仓/盈亏——这不是 portfolio tracker
-- ❌ 不联 journal——tracker 和 journal 各自独立
-
-## 篇幅基准
-
-单表，持续更新。不生成 dated artifact。
-
-## Workflow 联动
-
-| 上游 | 取什么 |
-|---|---|
-| `candidate-screener` | 初始 candidate list |
-| `research-journal` | Stage transition 触发 |
-| `stock-quickread` / deep-work skills | 每次 review 后更新 |
-
-| 下游 | 场景 |
-|---|---|
-| 研究员 | 每周决定把时间花在哪 |
+    
+    ## 反模式
+    
+    - ❌ Stage 不更新——做完 alpha-thesis 还是 testing
+    - ❌ 所有 ticker 都是 active——必须分级
+    - ❌ 没有 transition reason——"变了"不够，"因为什么"必须写
+    - ❌ Priority 全是 high——至少给具体原因
+    - ❌ 记持仓/盈亏——这不是 portfolio tracker
+    - ❌ 不联 journal——tracker 和 journal 各自独立
+    
+    ## 篇幅基准
+    
+    单表，持续更新。不生成 dated artifact。
+    
+    ## Workflow 联动
+    
+    | 上游 | 取什么 |
+    |---|---|
+    | `candidate-screener` | 初始 candidate list |
+    | `research-journal` | Stage transition 触发 |
+    | `stock-quickread` / deep-work skills | 每次 review 后更新 |
+    
+    | 下游 | 场景 |
+    |---|---|
+    | 研究员 | 每周决定把时间花在哪 |
+    

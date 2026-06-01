@@ -61,7 +61,7 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## TAM Breakdown
 
 | Segment | Method | 2026 | 2028E | Growth | Source | Tier | Confidence |
@@ -91,12 +91,12 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 ## Visual
 
 - TAM Pyramid (ASCII): TAM → SAM → SOM 三层
+~~~
+
 - Segment Pie: 如果 TAM 按多 segment 拆，可选 pie chart（description only, actual chart via research-viz）
-```
-
-### TAM Pyramid（产出示例）
-
-```
+    
+    ### TAM Pyramid（产出示例）
+    
         ┌──────┐
         │ TAM  │  $1.2B  全世界 CPO burn-in test 设备需求
         │      │
@@ -106,35 +106,35 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
         ┌──────┐
         │ SOM  │  $360M   AEHR 实际能拿到的（假设 50% of SAM，Teradyne 可能进入）
         └──────┘
-```
-
-## 反模式
-
-- ❌ 只有一个数字没有拆解表
-- ❌ 只有一个源没有交叉验证
-- ❌ 不分 Bottom-up vs Top-down
-- ❌ 不分 TAM/SAM/SOM
-- ❌ 拿招股书数字直接用，不调 bias
-- ❌ 用 smooth CAGR 掩盖 non-linear adoption curve
-- ❌ 不标 Tier——下游 scenario-model 不知道能不能用
-- ❌ 关键假设不写替代情景
-- ❌ TAM 只切一个维度（至少给 segment + 另一个维度）
-- ❌ 没有 as-of 日期
-
-## 篇幅基准
-
-500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
-
-## Workflow 联动
-
-| 下游 | 场景 |
-|---|---|
-| `scenario-model` | 喂 TAM 给场景测算 |
-| `candidate-screener` | 给行业排序提供市场规模语境 |
-| `industry-landscape` | TAM 可写入行业 index |
-
-## 与相邻 skill 的边界
-
-- 不做场景测算 → `scenario-model`
-- 不做行业全景 → `industry-landscape`
-- 不做公司收入 forecast → `driver-map`
+    
+    ## 反模式
+    
+    - ❌ 只有一个数字没有拆解表
+    - ❌ 只有一个源没有交叉验证
+    - ❌ 不分 Bottom-up vs Top-down
+    - ❌ 不分 TAM/SAM/SOM
+    - ❌ 拿招股书数字直接用，不调 bias
+    - ❌ 用 smooth CAGR 掩盖 non-linear adoption curve
+    - ❌ 不标 Tier——下游 scenario-model 不知道能不能用
+    - ❌ 关键假设不写替代情景
+    - ❌ TAM 只切一个维度（至少给 segment + 另一个维度）
+    - ❌ 没有 as-of 日期
+    
+    ## 篇幅基准
+    
+    500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
+    
+    ## Workflow 联动
+    
+    | 下游 | 场景 |
+    |---|---|
+    | `scenario-model` | 喂 TAM 给场景测算 |
+    | `candidate-screener` | 给行业排序提供市场规模语境 |
+    | `industry-landscape` | TAM 可写入行业 index |
+    
+    ## 与相邻 skill 的边界
+    
+    - 不做场景测算 → `scenario-model`
+    - 不做行业全景 → `industry-landscape`
+    - 不做公司收入 forecast → `driver-map`
+    

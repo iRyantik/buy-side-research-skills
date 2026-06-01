@@ -84,7 +84,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## Capital Allocation Scorecard
 
 | 维度 | Score | 10Y Evidence | Anchor |
@@ -98,52 +98,52 @@ Score management's capital allocation quality over a 10-year window. The biggest
 ## Visual
 
 **10Y Capital Flow** (ASCII bar or research-viz):
-```
 Buyback:   $800M
 Dividend:  $600M
 M&A:       $500M  (incl. MRSI $125M)
 Capex:     $1.2B
 ─────────────────
 Total deployed: $3.1B
+~~~
+
 Market cap created: $4.5B (10Y ago $1.5B → today $6B)
-ROI on deployed capital: ~145%
-```
+    ROI on deployed capital: ~145%
 
 ## Moat Bridge
 
 - MRSI 并购 → 固晶+耦合成套 → moat 加深（技术壁垒 8→9, 客户锁入 6→7）
 - 分红稳定 → 没有削弱 moat（没有因为钱不够少投研发）
-```
-
-## 反模式
-
-- ❌ 只看最近两年 buyback——timing 需要 10 年视角
-- ❌ 不看 SBC dilution——buyback 被 SBC 吃掉的等于没回购
-- ❌ M&A 看 announcement return 而不是 3-5Y ROI
-- ❌ 不打分、不标 anchor
-- ❌ 不做 moat bridge——资本配置和护城河脱节
-- ❌ 不比较 surplus cash 的其他用途（比如不回购能不能多投研发）
-- ❌ dividend > FCF 不标红色（借钱发股息）
-- ❌ 只看金额不看 ROI——$5B capex 不重要，ROIC 才重要
-
-## 篇幅基准
-
-500-800 字 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
-
-## Workflow 联动
-
-| 上游 | 取什么 |
-|---|---|
-| `financial-data --periods 10Y` | 10 年 CF：buyback/dividend/capex/M&A |
-| `company-history` | 并购整合记录 |
-| `moat-analysis` | Moat scorecard → bridge |
-
-| 下游 | 场景 |
-|---|---|
-| `alpha-thesis` | 管理层可信度 → thesis conviction |
-
-## 与相邻 skill 的边界
-
-- 不做 moat → `moat-analysis`
-- 不做 thesis → `alpha-thesis`
-- 不做估值 → `dcf-model` / `comps-analysis`
+    
+    ## 反模式
+    
+    - ❌ 只看最近两年 buyback——timing 需要 10 年视角
+    - ❌ 不看 SBC dilution——buyback 被 SBC 吃掉的等于没回购
+    - ❌ M&A 看 announcement return 而不是 3-5Y ROI
+    - ❌ 不打分、不标 anchor
+    - ❌ 不做 moat bridge——资本配置和护城河脱节
+    - ❌ 不比较 surplus cash 的其他用途（比如不回购能不能多投研发）
+    - ❌ dividend > FCF 不标红色（借钱发股息）
+    - ❌ 只看金额不看 ROI——$5B capex 不重要，ROIC 才重要
+    
+    ## 篇幅基准
+    
+    500-800 字 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
+    
+    ## Workflow 联动
+    
+    | 上游 | 取什么 |
+    |---|---|
+    | `financial-data --periods 10Y` | 10 年 CF：buyback/dividend/capex/M&A |
+    | `company-history` | 并购整合记录 |
+    | `moat-analysis` | Moat scorecard → bridge |
+    
+    | 下游 | 场景 |
+    |---|---|
+    | `alpha-thesis` | 管理层可信度 → thesis conviction |
+    
+    ## 与相邻 skill 的边界
+    
+    - 不做 moat → `moat-analysis`
+    - 不做 thesis → `alpha-thesis`
+    - 不做估值 → `dcf-model` / `comps-analysis`
+    

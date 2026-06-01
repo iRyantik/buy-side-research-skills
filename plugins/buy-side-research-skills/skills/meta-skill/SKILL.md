@@ -365,7 +365,7 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 5. `Research Runtime Capsule`
 6. `触发场景`
 7. `输入澄清要求`
-8. `Mode A / Mode B / Mixed Mode`
+8. `Mode A / Mode B / Mixed Mode`（可选——仅当 skill 确有不同执行路径时加。单一执行的 skill 跳过此节）
 9. `输出结构`
 10. `Artifact / 保存策略`
 11. `Workflow 联动`

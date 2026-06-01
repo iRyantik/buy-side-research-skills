@@ -108,7 +108,7 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## Moat Scorecard
 
 | 维度 | Score | Evidence | Strength | Peer A | Peer B |
@@ -133,17 +133,15 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 ## Visual
 
 **Moat Radar** (description; actual chart via research-viz):
-```
-    技术壁垒 (9)
-        ▲
-       /|\
-      / | \
+        技术壁垒 (9)
+            ▲
+           /|\
+          / | \
 品牌  |  |  客户锁入
 (4) --+-- (7)
-      | 
-      |
-    规模 (5) ---- 监管 (3)
-```
+          | 
+          |
+        规模 (5) ---- 监管 (3)
 
 ## Killer Question
 
@@ -152,42 +150,42 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 - 需要多少人和时间？（= 规模效应+技术壁垒的量化）
 - 你第一年会从哪里挖人？（= 人才壁垒）
 - 客户为什么不换？即使你便宜 20%？（= 客户锁入的真实强度）
-
-```
+~~~
 
 ## 反模式
-
-- ❌ 没有评分 anchor——8 分和 7 分的区别说不清
-- ❌ 不做 peer 对标——moat 不能自言自语
-- ❌ 证据不标强度，全是 Soft
-- ❌ 没有 Hard 证据却有 9 分以上
-- ❌ 不做 moat trajectory——只给 snapshot
-- ❌ 不出 killer question
-- ❌ 不看毛利率 trend vs peer——看毛利率绝对值没用，看 dispersion
-- ❌ 把 market share 当 moat（份额高可能是价格战抢来的）
-- ❌ 把一代产品的优势当结构壁垒
-- ❌ 不在下一代范式下重新评估
-
-## 篇幅基准
-
-600-1000 字 + 1 scorecard + 1 trajectory 表 + radar chart + killer question。
-
-## Workflow 联动
-
-| 上游 | 取什么 |
-|---|---|
-| `mechanism-insight` | 技术壁垒的工程基础 |
-| `driver-map` | 规模/成本证据 |
-| `company-history` | 历史竞争位演变 |
-| `peer-deep-dive` | 同行对标数据 |
-
-| 下游 | 场景 |
-|---|---|
-| `alpha-thesis` | moat → thesis conviction |
-| `peer-deep-dive` | moat 评分嵌入 §4.3 |
-
-## 与相邻 skill 的边界
-
-- 不做技术原理 → `mechanism-insight`
-- 不做管理层评估 → `capital-allocation`
-- 不做完整 thesis → `alpha-thesis`
+    
+    - ❌ 没有评分 anchor——8 分和 7 分的区别说不清
+    - ❌ 不做 peer 对标——moat 不能自言自语
+    - ❌ 证据不标强度，全是 Soft
+    - ❌ 没有 Hard 证据却有 9 分以上
+    - ❌ 不做 moat trajectory——只给 snapshot
+    - ❌ 不出 killer question
+    - ❌ 不看毛利率 trend vs peer——看毛利率绝对值没用，看 dispersion
+    - ❌ 把 market share 当 moat（份额高可能是价格战抢来的）
+    - ❌ 把一代产品的优势当结构壁垒
+    - ❌ 不在下一代范式下重新评估
+    
+    ## 篇幅基准
+    
+    600-1000 字 + 1 scorecard + 1 trajectory 表 + radar chart + killer question。
+    
+    ## Workflow 联动
+    
+    | 上游 | 取什么 |
+    |---|---|
+    | `mechanism-insight` | 技术壁垒的工程基础 |
+    | `driver-map` | 规模/成本证据 |
+    | `company-history` | 历史竞争位演变 |
+    | `peer-deep-dive` | 同行对标数据 |
+    
+    | 下游 | 场景 |
+    |---|---|
+    | `alpha-thesis` | moat → thesis conviction |
+    | `peer-deep-dive` | moat 评分嵌入 §4.3 |
+    
+    ## 与相邻 skill 的边界
+    
+    - 不做技术原理 → `mechanism-insight`
+    - 不做管理层评估 → `capital-allocation`
+    - 不做完整 thesis → `alpha-thesis`
+    

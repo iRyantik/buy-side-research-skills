@@ -126,7 +126,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## 输出结构
 
-```markdown
+~~~markdown
 ## Assumptions
 
 | 假设 | 值 | 来源 | Tier | Confidence | 最容易在哪错 |
@@ -160,7 +160,6 @@ Bear case composite: +60% (if only TAM/PE moderate)
 ## Visual
 
 **Sensitivity Bridge** (ASCII or research-viz):
-```
 Base Upside: +148%
   │
   ├─ TAM +25%      → +30pp   (independent)
@@ -170,48 +169,48 @@ Base Upside: +148%
   ─────────────────────────
   Bull Composite:  +248%  (if all hit, less correlation overlap)
   Bear Composite:   +60%  (TAM+PE moderate, share at low end)
-```
+~~~
 标注每个变量的独立贡献和相关性，帮助研究员判断"哪个假设值得花时间验证"。
-```
-
-> 如果用户请求 bull/base/bear，输出三个独立的以上结构。如果请求 reverse，倒推输出。
-
-## 反模式
-
-- ❌ 假设没有 derivation path——"TAM $1.2B" 是哪来的？
-- ❌ 把独立 sensitivity 当成真实情景——不标注变量间相关性
-- ❌ Tier 2 假设不写推导过程
-- ❌ "估值 flip 150%" 但所有假设都是 Tier 2——纯编
-- ❌ 算完不回写调用方
-- ❌ 目标 PE 没有可比性说明——"40x" 和谁比？
-- ❌ 最乐观情景 upside 都 <20% 还交差——应该直接说"不值的算"
-- ❌ 不出"最值得验证的假设"——sensitivity 白做了
-- ❌ 精度假象——TAM $1,234M 但 share 是拍脑袋
-
-## 判断标准
-
-算完问自己：
-- [ ] 如果明天 share assumption 被证明错了，upside 会怎样？
-- [ ] 三个假设里哪个如果错了 upside 直接归零？
-- [ ] 当前市场是不是已经在 price 这个场景了？（看当前 PE 和 scenario PE 的 gap）
-
-## 篇幅基准
-
-300-600 字 + 1 假设表 + 1 测算表 + 1 sensitivity 表。
-
-## Workflow 联动
-
-| 方向 | Skill | 取/给什么 |
-|---|---|---|
-| 上游 | `market-sizing` | TAM |
-| 上游 | `financial-data` | baseline |
-| 上游 | `mechanism-insight` | 份额依据 |
-| 上游 | `comps-analysis` | PE 锚 |
-| 下游 | `candidate-screener` | 量化场景推票 |
-| 下游 | `alpha-thesis` | bull/bear sizing |
-
-## 与相邻 skill 的边界
-
-- 不做 TAM 拆解 → `market-sizing`
-- 不做三表 → `3-statement-model`
-- 不做 DCF → `dcf-model`
+    
+    > 如果用户请求 bull/base/bear，输出三个独立的以上结构。如果请求 reverse，倒推输出。
+    
+    ## 反模式
+    
+    - ❌ 假设没有 derivation path——"TAM $1.2B" 是哪来的？
+    - ❌ 把独立 sensitivity 当成真实情景——不标注变量间相关性
+    - ❌ Tier 2 假设不写推导过程
+    - ❌ "估值 flip 150%" 但所有假设都是 Tier 2——纯编
+    - ❌ 算完不回写调用方
+    - ❌ 目标 PE 没有可比性说明——"40x" 和谁比？
+    - ❌ 最乐观情景 upside 都 <20% 还交差——应该直接说"不值的算"
+    - ❌ 不出"最值得验证的假设"——sensitivity 白做了
+    - ❌ 精度假象——TAM $1,234M 但 share 是拍脑袋
+    
+    ## 判断标准
+    
+    算完问自己：
+    - [ ] 如果明天 share assumption 被证明错了，upside 会怎样？
+    - [ ] 三个假设里哪个如果错了 upside 直接归零？
+    - [ ] 当前市场是不是已经在 price 这个场景了？（看当前 PE 和 scenario PE 的 gap）
+    
+    ## 篇幅基准
+    
+    300-600 字 + 1 假设表 + 1 测算表 + 1 sensitivity 表。
+    
+    ## Workflow 联动
+    
+    | 方向 | Skill | 取/给什么 |
+    |---|---|---|
+    | 上游 | `market-sizing` | TAM |
+    | 上游 | `financial-data` | baseline |
+    | 上游 | `mechanism-insight` | 份额依据 |
+    | 上游 | `comps-analysis` | PE 锚 |
+    | 下游 | `candidate-screener` | 量化场景推票 |
+    | 下游 | `alpha-thesis` | bull/bear sizing |
+    
+    ## 与相邻 skill 的边界
+    
+    - 不做 TAM 拆解 → `market-sizing`
+    - 不做三表 → `3-statement-model`
+    - 不做 DCF → `dcf-model`
+    
