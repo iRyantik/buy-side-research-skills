@@ -67,4 +67,4 @@ teach-in 给了产品直觉，现在需要投资判断。关键是把"知道这�
 
 ---
 
-📄 **完整产出**: [2026-06-01-industry-landscape.md](artifacts/2026-06-01-industry-landscape.md)
+📄 **完整产出**: [2026-06-01-industry-landscape.md](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-industry-landscape.md)

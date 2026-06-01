@@ -69,4 +69,4 @@
 
 ---
 
-📄 **完整产出**: [2026-06-01-mechanism-insight-coupling.md](artifacts/2026-06-01-mechanism-insight-coupling.md)
+📄 **完整产出**: [2026-06-01-mechanism-insight-coupling.md](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-mechanism-insight-coupling.md)

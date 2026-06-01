@@ -69,4 +69,4 @@ AI 推演出了 7 种策略原型：全场景多仓、小赌注、Flip 对冲、
 
 ---
 
-📄 **完整产出**: [2026-06-01-candidate-screener.md](artifacts/2026-06-01-candidate-screener.md)
+📄 **完整产出**: [2026-06-01-candidate-screener.md](https://github.com/iRyantik/buy-side-research-skills/blob/main/examples/optical-module-equipment/artifacts/2026-06-01-candidate-screener.md)
