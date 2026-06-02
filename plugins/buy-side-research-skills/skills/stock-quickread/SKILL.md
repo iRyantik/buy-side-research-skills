@@ -83,28 +83,41 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 
 > Codex 路径：WebSearch → Playwright MCP browser_navigate → curl → [需查证]。Claude Code 路径：WebSearch → WebFetch → Playwright MCP → curl → [需查证]。
 
-### 执行流程
+### 执行流程（Gate 式——每步有中间产物，下步检查上步）
 
 ```
-1. 读 actuals-resolved.json → 提取所有可用财务数字 → §3 §4 直接引用
-2. 拆解需要外部 source 的 claim 清单：
-   必查: §1 "为什么重要"、§5 行业变化+市场叙事、§6 consensus、§7 多空、§9 事件
-   选查: §1 业务总览（收入占比常需 IR 推算）、§5 "最近一次怎么动"
-   不查: §2 术语、§3 财务表、§4 比率、§8 对手盘、§10 问题
-3. WebSearch 找候选 URL（每条 claim 2-5 个候选）
-4. 按 Fallback 链逐个打开候选页面 → 读原文 → **提取页面上所有可用 claims，不止一个**。一整页 10 个数字全拿，不回头再拉。
-5. 只引用验证过的页面。所有层级失败 → URL 不放 Resources，标 [需查证]
-6. 每验证一条 claim → evidence_ledger.py add <artifact> <json_payload> 逐条录入账本
-7. evidence_ledger.py lint <artifact> → 确保 artifact 里每个 [S#] 在账本有对应条目
-8. evidence_ledger.py status <artifact> → 确认覆盖率 >80%，无 fabrication_risk
-9. **[Gate] Pre-Write 自查（全部通过才能动笔）**：
-   □ 每个外部 [I#] claim 至少试过 Tier 1 (WebFetch)？
-   □ WebFetch 失败的至少试过 Tier 2 (Playwright)？
-   □ 焦点产品图已下载到 _cache/images/？(用 download-product-image.js, 不 raw curl)
-   □ evidence ledger 每条 claim method 字段非空？
-   □ ledger 里 0 条 fabrication_risk？
-   → 任一未完成→回到资料收集。全部通过→继续。
-10. 写 claim 时 [S#](URL) 紧跟
+┌─ Step 1: /financial-data --lite <ticker>
+│  → actuals-resolved.json (must exist on disk)
+│  Gate: ls _cache/financial-data/internal/actuals-resolved.json → 不存在则 STOP
+│
+├─ Step 2: evidence_ledger.py init <artifact> -t <TICKER>
+│  → _cache/evidence/<TICKER>.evidence.json (must exist)
+│
+├─ Step 3: Discovery — WebSearch 找候选 URL
+│  Gate: 每条必查 claim 有 ≥2 个候选 URL
+│
+├─ Step 4: Verification — 按 Fallback 链逐条验证
+│  Tier 0: actuals-resolved.json → 直接取，ledger method=actuals
+│  Tier 1: WebFetch(url) → success? → ledger method=WebFetch, attempt logged
+│  Tier 2: Playwright browser_navigate → success? → ledger method=Playwright, attempt logged
+│  Tier 3: curl → success? → ledger method=curl, attempt logged
+│  Tier 4: [需查证] → only if ALL tiers failed, attempt logged as failed
+│  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
+│
+├─ Step 5: 图片下载
+│  download-product-image.js → _cache/images/<product>.<ext>
+│  Gate: 焦点产品图文件存在
+│
+├─ Step 6: Write artifact
+│  每句 claim 句尾 [S#](URL) / [I#](URL)
+│  每个 [I#] 标注验证方式 (Playwright ✅ / WebFetch ✅ / [需查证])
+│  表格式严格按模板（§3c=表, §4a=池, §5=锚点表+场景表+Ev列）
+│
+├─ Step 7: evidence_ledger.py auto <artifact> -t <TICKER>
+│  → 自动创建 ledger pending claims → 补 text/quote/section → verify
+│
+└─ Step 8: evidence_ledger.py lint + status
+   → anchors 对齐 ✅ + 0 fabrication_risk + coverage >80%
 ```
 
 ### Source 编号规则
@@ -139,6 +152,13 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 ## 输出结构（严格按这个走）
 
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
+
+**Pipeline 报告**（artifact 开头强制——执行报告，不能省略）：
+
+```
+> 2026-06-03 | <TICKER> | <PRICE> | MCap <VALUE>
+> Pipeline: actuals ✅/<SKIP> | WebFetch X/Y | Playwright X/Y | [需查证] X | images ✅ | lint ✅ | coverage XX%
+```
 
 ### 1. 一眼看懂
 

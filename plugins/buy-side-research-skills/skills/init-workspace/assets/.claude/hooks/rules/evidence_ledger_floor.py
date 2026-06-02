@@ -91,6 +91,14 @@ def check(ctx):
 
         claims = ledger.get("claims", [])
 
+        # Rule -1: Tier 0 audit — at least 1 actuals claim for stock-quickread
+        if len(claims) > 2:
+            actuals_count = sum(1 for c in claims if c.get("method") == "actuals" or c.get("tier") == 0)
+            if actuals_count == 0:
+                block(f"Blocked by evidence_ledger_floor: {display} has 0 claims with method=actuals. "
+                      f"Must run /financial-data --lite first for Tier 0 data. "
+                      f"All claims are external only — no local actuals baseline.")
+
         # Rule 0: Artifact-Ledger alignment — every [S#]/[I#] must be in ledger
         ledger_codes = {c.get("source", "") for c in claims}
         artifact_codes = set()
