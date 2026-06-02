@@ -34,8 +34,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 - 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-history` / `driver-map`。
 - 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
-- **Full mode**：不拉 consensus、price、EV、FX、peer multiples 或 market data。
-- **Lite mode**：拉市场快照数据（股价、市值、PE/PB/PS、consensus），走四层降级链：`Bridge → yfinance → WebSearch → Google Finance`。详见 Lite Mode 市场数据段。
+- Full / Lite 均自动拉市场快照数据（股价、市值、PE/PB/PS/EV/EBITDA 等），走统一增量 fill 引擎：`yfinance(全量) → Bridge(覆盖US/HK/SH/SZ) → WebSearch(逐字段) → Google Finance(兜底)`。详见市场数据段。
 - Bridge 在 actuals 里只做 cross-check（不替代 provider_api）；在市场数据里做 US/HK/SH/SZ primary。
 - 不把 `_cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
 - 不创建 dated research Markdown artifact。
