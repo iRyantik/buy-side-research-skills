@@ -57,6 +57,8 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 
 ## 输出结构
 
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+
 ### 1. Verdict（~200 字）
 
 结论先行：这个行业当前该不该投、为什么、利润在哪里、最大的风险是什么。

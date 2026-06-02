@@ -70,6 +70,8 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 ### 输出结构
 
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+
 ```markdown
 ## Verdict
 
@@ -172,7 +174,9 @@ flowchart TD
 
 用于行业、主题、value chain 或 demand pocket 的共识地图。不要伪造单一 EPS consensus；用可观察 KPI 和 anchor-name expectation 来替代。
 
-### 输出结构差异
+### 输出结构
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。差异
 
 在 Standard 结构基础上做以下替换：
 

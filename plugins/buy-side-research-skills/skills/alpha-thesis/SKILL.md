@@ -17,6 +17,12 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 - **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、估值锚点）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我的看法""variant view"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+
+
+
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+
 
 
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
