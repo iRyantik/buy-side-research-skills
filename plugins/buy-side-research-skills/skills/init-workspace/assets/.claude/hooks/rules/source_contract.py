@@ -54,6 +54,15 @@ def check(ctx: dict):
         if bare:
             block(f"Blocked by source_contract: {display} has bare anchor codes without URLs: {', '.join(bare)}")
 
+        # --- Rule 2a2: non-standard source labels must have URLs ---
+        for line2 in body.split("
+"):
+            non_std = re.findall(r'\[([A-Z][a-zA-Z]+(?:[.][a-zA-Z]+)*\d*)\](?!\()', line2)
+            source_words = {'yfinance','MarketScreener','ChartMill','StockAnalysis','Yahoo','Google','Bloomberg','Investing','BitsAndChips','GuruFocus','SimplyWall','TipRanks','CoinCentral','MoneyCheck','Blockonomi','Computing','MorganStanley','Bernstein','SocGen','ValueInvesting'}
+            flagged = [n for n in non_std if n in source_words or (len(n) > 8 and n[0].isupper())]
+            if flagged:
+                block(f"Blocked by source_contract: {display} has non-standard source labels without URLs: {', '.join(f'[{n}]' for n in flagged)}. Use [S#](url) or [I#](url) format for all source references.")
+
     # --- Rule 2b (inline): anchor targets must be valid, no placeholders ---
         for anchor in body_anchors:
             if anchor["target"].lower() in ("link", "url"):
