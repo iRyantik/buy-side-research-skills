@@ -233,7 +233,14 @@ flowchart LR
 3. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
 4. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
 
-**(c) 弹性指标详情**（仅当有 expandable 的弹性 KPI 时出现，如 Backlog by segment / Orders trend。没有就跳过。）
+**(c) 弹性指标详情**（必须用表格，不可写 prose。仅当有 expandable KPI 时出现——没有就跳过整节）
+
+| 指标 | Q/H period | FY period | Ev |
+|---|---|---|---|
+| <e.g. 季度订单> | <值> | <值> | [S#](url) |
+| <e.g. B2B> | <值> | <值> | [S#](url) |
+
+> 每行一个 KPI，每格必须有 source anchor。同一 source 在多行复用 → 每行各自写 `[S#](url)`，不空着。
 
 **(d) Takeaway（2-3 句）**
 
