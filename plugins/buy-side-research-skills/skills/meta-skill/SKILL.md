@@ -324,8 +324,8 @@ Research layers：
 |---|---|---|
 | `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `next-step` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | 打地基：零基础物理直觉、行业全景、结构化财务+市场数据、TAM 估算、公司业务/披露历史、市场预期、行业机制、model driver |
-| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、建模 |
-| `supporting` | `scenario-model`, `research-viz` | 场景量化测算（被 candidate-screener/alpha-thesis 调用）、可视化后处理 |
+| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、赔率 memo、建模 |
+| `supporting` | `research-viz` | 可视化后处理 |
 | `memory` | `research-journal`, `coverage-tracker` | 沉淀 earned insight、跟踪已覆盖公司状态和优先级 |
 
 Operations skills：

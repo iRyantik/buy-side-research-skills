@@ -162,7 +162,7 @@ skill 是决策工具，不是装饰性模板。
 - 竞争壁垒量化 -> `moat-analysis`
 - 催化剂时间线 -> `catalyst-map`
 - 管理层资本配置 -> `capital-allocation`
-- 场景量化测算 -> `scenario-model`
+- bull/base/bear odds memo / 假设溯源 -> `scenario-model`
 - 财报前 setup -> `earnings-setup`
 - 财报后快速判断 -> `post-earnings-quick`
 - LS pair -> `pair-trade`

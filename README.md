@@ -55,7 +55,7 @@
 "用 peer-deep-dive 比较 Top 5"
     → 横向矩阵：跨 5 个市场，统一 USD 估值
 "用 scenario-model CPO>15% Long AEHR"
-    → TAM x 份额 x PE = 隐含市值 + upside
+    → deep-work odds memo：TAM x 份额 x PE = 隐含市值 + upside
 ```
 
 ### 从公司出发（深挖一只票）
@@ -69,7 +69,7 @@
 "用 catalyst-map 画催化剂时间线"
     → 2026 Q3 GT 订单 → 2027 H1 猎奇专利 → ...
 "用 scenario-model bull/base/bear"
-    → Base +22% / Bull +56% / Bear -22%
+    → Base +22% / Bull +56% / Bear -22% + 最该验证的假设
 "用 alpha-thesis 写完整 thesis"
     → Long MYCR SS, target SEK 420, kill criteria
 ```
@@ -110,6 +110,7 @@
 | Skill | 一句话 | 触发 |
 |---|---|---|
 | `candidate-screener` | 分场景 L/S 排序（7 种策略原型） | "行业里这些票怎么排" |
+| `scenario-model` | Bull/base/bear odds memo + 假设溯源 | "如果 CPO 渗透 15% AEHR 值多少" |
 | `peer-deep-dive` | 横向比较（同市场/跨市场） | "这几家一起比" |
 | `moat-analysis` | 竞争壁垒量化 scorecard | "xxx 的护城河强不强" |
 | `catalyst-map` | 催化剂时间线+概率加权 | "xxx 有什么催化剂" |
@@ -127,7 +128,6 @@
 
 | Skill | 一句话 | 触发 |
 |---|---|---|
-| `scenario-model` | 场景量化测算（两 Phase） | "如果 CPO 渗透 15% AEHR 值多少" |
 | `research-viz` | 可视化 | "把这个做成图" |
 
 ### Memory 层（沉淀）

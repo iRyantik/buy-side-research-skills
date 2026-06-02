@@ -7,6 +7,8 @@ description: Build a sourced long or short investment thesis with variant view c
 
 Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria.
 
+上游如果还没有把 bull/base/bear 的赔率、implied value 和最关键假设压清楚，优先先跑 `scenario-model`。`scenario-model` 负责 odds memo 和 sizing；本 skill 负责把这些输入装配成完整 thesis、variant view、catalyst 和 kill criteria。
+
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.

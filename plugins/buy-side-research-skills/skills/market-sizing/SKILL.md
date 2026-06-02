@@ -5,7 +5,7 @@ description: Bottom-up TAM SAM SOM estimation — structured breakdown with sour
 
 # Market Sizing
 
-Turn "how big is this market" into a structured estimate where every row has a source, a tier, a confidence level, and an alternative scenario. The output is not one number — it's a breakdown table plus a visual pyramid. Feeds directly into `scenario-model`.
+Turn "how big is this market" into a structured estimate where every row has a source, a tier, a confidence level, and an alternative scenario. The output is not one number — it's a breakdown table plus a visual pyramid. Feeds directly into `scenario-model`, which now acts as the downstream odds memo skill.
 
 ## Research Runtime Capsule
 
@@ -128,13 +128,12 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 | 下游 | 场景 |
 |---|---|
-| `scenario-model` | 喂 TAM 给场景测算 |
+| `scenario-model` | 优先喂 TAM 给 deep-work odds memo / 场景测算 |
 | `candidate-screener` | 给行业排序提供市场规模语境 |
 | `industry-landscape` | TAM 可写入行业 index |
 
 ## 与相邻 skill 的边界
 
-- 不做场景测算 → `scenario-model`
+- 不做场景测算或赔率判断 → `scenario-model`
 - 不做行业全景 → `industry-landscape`
 - 不做公司收入 forecast → `driver-map`
-
