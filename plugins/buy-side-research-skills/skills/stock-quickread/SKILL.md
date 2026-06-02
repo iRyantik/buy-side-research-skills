@@ -175,7 +175,7 @@ flowchart LR
 
 拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
 
-**(d) 泛化兜底**：agent 发现 template 未覆盖但对 thesis 有意义的 extra KPI，不限制数量——但每个必须标 source + relevance（为什么这个指标对 thesis 重要）。
+> 泛化兜底已在 `financial-data --lite` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
 
 **行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
