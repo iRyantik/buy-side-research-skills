@@ -100,4 +100,74 @@ def check(ctx):
                  f"Every row with valuation/metric/spread/price data must carry [S#] or [I#]. "
                  f"First 3: {' | '.join(unsourced_rows[:3])}")
 
+        # --- Rule 3: Paragraph-level source density ---
+        # Narrative paragraphs (>150 chars) with factual markers but zero source anchors
+        # Strip code fences from text
+        body_no_code = re.sub(r'```[^\n]*\n.*?```', '', text, flags=re.DOTALL)
+        body_no_code = re.sub(r'~~~[^\n]*\n.*?~~~', '', body_no_code, flags=re.DOTALL)
+
+        FACTUAL_MARKERS = re.compile(
+            r'(?:(?<!\w)[\d,.]+%|'           # percentages
+            r'(?<!\w)[\d,.]+x(?![/\w])|'      # multiples
+            r'(?<!\w)[\d,.]+bps|'             # bps
+            r'(?<!\w)\$[\d,.]+[bmk]|'         # $ amounts
+            r'(?:EUR|USD|CNY|JPY|KRW|HKD|TWD|SEK)\s*[\d,.]+[bmk]?|'  # ISO amounts
+            r'\b(?:TSMC|Intel|Samsung|NVIDIA|AMD|ASML|ASMPT|BESI|Besi|Mycronic|MRSI|'
+            r'AMAT|Applied Materials|Hanwha|韩美|Broadcom|Coherent|中际旭创|'
+            r'新易盛|博众精工|猎奇|罗博特科|联讯|AEHR|Keysight|VIAVI|'
+            r'Google|Meta|Amazon|Microsoft)\b)'
+        )
+
+        # Split body into paragraphs (double newline), excluding tables and code
+        body_paragraphs = []
+        in_table = False
+        in_fence = False
+        current_para = []
+        for line in body_no_code.split('\n'):
+            stripped = line.strip()
+            if stripped.startswith('```') or stripped.startswith('~~~'):
+                in_fence = not in_fence
+                if current_para:
+                    body_paragraphs.append(' '.join(current_para))
+                    current_para = []
+                continue
+            if in_fence:
+                continue
+            if stripped.startswith('|'):
+                in_table = True
+                continue
+            if in_table and not stripped.startswith('|'):
+                in_table = False
+            if in_table:
+                continue
+            if not stripped:
+                if current_para:
+                    body_paragraphs.append(' '.join(current_para))
+                    current_para = []
+            else:
+                current_para.append(stripped)
+        if current_para:
+            body_paragraphs.append(' '.join(current_para))
+
+        low_density_paras = []
+        for pi, para in enumerate(body_paragraphs):
+            if len(para) < 150:
+                continue
+            facts = len(FACTUAL_MARKERS.findall(para))
+            if facts < 2:
+                continue
+            sources = len(SOURCE_ANCHOR.findall(para))
+            if sources == 0:
+                preview = para[:120] + ('...' if len(para) > 120 else '')
+                low_density_paras.append(f"0 sources, {facts} markers: {preview}")
+            elif facts > 5 and sources < (facts // 3):
+                preview = para[:120] + ('...' if len(para) > 120 else '')
+                low_density_paras.append(f"low density ({sources} src/{facts} facts): {preview}")
+
+        if low_density_paras:
+            warn(f"claim_source_proximity: {display} has {len(low_density_paras)} paragraph(s) "
+                 f"with insufficient source density. "
+                 f"Every paragraph with factual claims must carry [S#] or [I#] anchors. "
+                 f"First 3: {' | '.join(low_density_paras[:3])}")
+
 sys.exit(0)
