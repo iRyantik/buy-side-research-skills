@@ -99,14 +99,22 @@ def check(ctx):
                   f"{', '.join(c.get('id','?') for c in fab_risks[:5])}. "
                   f"Either verify the source or remove the claim from the artifact.")
 
-        # Rule 4: Tier-gap — >5 WebSearch claims but 0 direct-access → likely skipped Tier 2
-        if len(claims) > 5:
-            summary_count = sum(1 for c in claims if c.get("method", "unknown") in SUMMARY_METHODS)
-            direct_count = sum(1 for c in claims if c.get("method", "unknown") in DIRECT_ACCESS_METHODS)
-            if summary_count >= 5 and direct_count == 0:
-                block(f"Blocked by evidence_ledger_floor: {display} has {summary_count} claims "
-                      f"with method=WebSearch but 0 with WebFetch/Playwright/curl. "
-                      f"You likely skipped Tier 1-3. Must try WebFetch + Playwright before accepting.")
+        # Rule 4: Attempts check — every [I#] claim must have Tier 1-2 attempt
+        tier_gap_claims = []
+        for c in claims:
+            if not c.get("source", "").startswith("I"):
+                continue  # [S#] company disclosure may have actuals fallback
+            attempts = c.get("attempts", [])
+            has_tier1 = any(a.get("tier") == 1 and a.get("result") != "failed" for a in attempts)
+            has_tier2 = any(a.get("tier") == 2 and a.get("result") != "failed" for a in attempts)
+            if not (has_tier1 or has_tier2):
+                tier_gap_claims.append(c["id"])
+        if tier_gap_claims:
+            block(f"Blocked by evidence_ledger_floor: {display} has {len(tier_gap_claims)} "
+                  f"[I#] claim(s) with no Tier 1-2 verification attempt: "
+                  f"{', '.join(tier_gap_claims[:5])}. "
+                  f"Must try WebFetch + Playwright before accepting any [I#] source. "
+                  f"Run: evidence_ledger.py auto + attempt + verify")
 
         # Rule 5: Low coverage → warn
         stats = ledger.get("stats", {})
