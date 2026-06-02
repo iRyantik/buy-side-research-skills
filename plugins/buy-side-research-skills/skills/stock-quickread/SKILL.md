@@ -23,7 +23,47 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 - 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-insight`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
+## 资料收集与 Source 验证
 
+### 纪律
+
+**禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+
+### 三层管线
+
+| 层 | 来源 | 耗时 | 适用 |
+|---|---|---|---|
+| 0-Actuals | `actuals-resolved.json` — 本地缓存，已校验 | 0s | §3 财务表、§4 比率、Market Cap/PE |
+| 1-Primary | 公司 IR 页面、年报 PDF、earnings transcript | WebFetch | §1 业务拆分、§5 产能/定价、§9 事件 |
+| 2-Third-party | 行业报告、卖方报告、媒体（Bits&Chips, MarketScreener, 东兴证券等） | WebFetch | §5 行业变化/叙事、§6 consensus、§7 多空 |
+
+### 执行流程
+
+```
+1. 读 actuals-resolved.json → 提取所有可用财务数字 → §3 §4 直接引用
+2. 拆解需要外部 source 的 claim 清单（不是所有 section 都需要外部 source）：
+   必查: §1 "为什么重要"、§5 行业变化+市场叙事、§6 consensus、§7 多空、§9 事件
+   选查: §1 业务总览（收入占比常需 IR 推算）、§5 "最近一次怎么动"
+   不查: §2 术语、§3 财务表（actuals）、§4 比率（actuals）、§8 对手盘（逻辑推演）、§10 问题
+3. WebSearch 找候选 URL（每条 claim 2-5 个候选）
+4. WebFetch 打开候选页面 → 读原文 → 确认数字/名字/判断确实在页面里
+5. 只引用验证过的页面。页面打不开/内容不匹配 → 放弃该 URL，换下一个
+6. 写 claim 时 [S#](URL) 紧跟
+```
+
+### Source 编号规则
+
+- `[S1]`–`[S9]`：公司披露（IR PDF、年报、AGM presentation）
+- `[I1]`–`[I20]`：第三方来源（行业报告、新闻、卖方、Yahoo Finance）
+- URL 取到页面级即可——不需要 #anchor fragment
+- 同一 URL 被多处引用 → 复用同一编号
+
+### 反模式
+
+- ❌ 凭记忆构造 URL（`tsmc.com/SoIC`）——必须 WebFetch 验证过
+- ❌ 一个 WebSearch 摘要对应 3 个 claim 各挂不同 URL——摘要数字不能当 source
+- ❌ URL 返回 404 仍挂在 Resources 里——删掉，换能打开的
+- ❌ actuals-resolved.json 能拿的数字也去 WebSearch——直接读本地，零耗时
 
 ## 心法
 
