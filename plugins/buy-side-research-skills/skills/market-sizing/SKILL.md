@@ -12,6 +12,7 @@ Turn "how big is this market" into a structured estimate where every row has a s
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 当需要公司-level baseline 时使用。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法

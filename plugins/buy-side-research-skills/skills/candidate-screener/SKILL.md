@@ -12,6 +12,7 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: screening ratios (PE, PEG, EV/EBITDA, FCF Yield, ROIC, etc.) use actuals-resolved.json. Consensus data may appear as a separate column but never feeds into ratio computation.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 

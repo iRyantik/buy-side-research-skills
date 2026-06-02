@@ -12,6 +12,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker> --periods 10Y` 获取 10 年 CF 数据（buyback/dividend/capex/M&A）。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: ROIC, FCF conversion, buyback yield, and all capital allocation ratios use actuals-resolved.json historical data only.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
