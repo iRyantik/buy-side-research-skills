@@ -58,10 +58,9 @@ Coverage tracker 回答的不是"我们有什么仓"，而是"我们此时此刻
 
 | Date | Ticker | Change | Reason |
 |---|---|---|---|
-~~~
-
 | 2026-06-01 | MYCR SS | testing → active | Alpha thesis completed |
 | 2026-05-15 | BESI NA | building → testing | Moat analysis done; early thesis forming |
+~~~
 
 ## 反模式
 
