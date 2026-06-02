@@ -190,13 +190,13 @@ def check(ctx: dict):
         # Catches [Yahoo Finance](url), [yfinance](url), [BESI AGM 2026](url) —
         # these must use [S#](url) or [I#](url) instead.
         STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')
-        all_inline_anchors = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', body_no_code)
+        all_inline_anchors = re.findall(r'(!?)\[([^\]]+)\]\(([^)]+)\)', body_no_code)
         non_std_anchors = []
-        for label, target in all_inline_anchors:
+        for is_image, label, target in all_inline_anchors:
             if STANDARD_CODE_RE.match(label):
                 continue
-            # Skip markdown images, internal links, etc.
-            if label.startswith('!') or target.startswith('#'):
+            # Skip markdown images (![...](...)), internal links, etc.
+            if is_image or target.startswith('#'):
                 continue
             if _looks_like_source_label(label):
                 non_std_anchors.append(f'[{label}]({target[:50]}...)')
