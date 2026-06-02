@@ -159,23 +159,28 @@ Layer 2: Bridge(覆盖 US/HK/SH/SZ) → 高 trust 覆盖 yfinance 已填字段
   补: consensus EPS, Target Price, FX
   → 检查点: 填了 N2/11，缺口列表
 
-Layer 3: WebSearch(逐字段补缺) → 只搜剩余缺口
-  - 优先本地语言：CN→中文+英文，JP→日本語+English，KR→한국어+English，欧美→English
-  - 多缺口合并 query（同页 PE+PB）→ 一次搜填多字段
-  - 单缺口精准搜
-  - 拿到即填，标 [WebSearch | as-of | source site]
+Layer 3: RAG 回退链(逐字段补缺) → 只搜剩余缺口，禁止 AI 摘要数字直接写入
+  3a. WebSearch 找候选 URL（每条 2-5 个候选）
+  3b. WebFetch 打开候选 → 读原文 → 确认数字在页面里 → 写入
+  3c. WebFetch 失败 → Playwright MCP browser_navigate + snapshot → 写入
+  3d. Playwright 失败 → curl 原始 HTML → 写入
+  3e. 全失败 → 字段留 null，不写入（不假装置信）
+  核心字段(Rev/EBIT/NI/TA/MCap)走全四层；重要字段(GP/FCF/CapEx)走两层；补充字段(β/Div)一层即可
+  优先本地语言：CN→中文+英文，JP→日本語+English，KR→한국어+English，欧美→English
+  验证成功 → 标 source_layer=official_web 或 provider_api，source_detail 含 verified URL
   → 检查点: 填了 N3/11，缺口列表
 
 Layer 4: Google Finance(一次 fetch 补多 gap) → URL 兜底
-  仍缺 → [估值待补]
+  仍缺 → 字段留 null
 ```
 
 每层检查点示例：
 ```
 yfinance:  8/11, 缺 EV/EBITDA, PEG, Target Price
 Bridge:    9/11, 剩 PEG, Target Price
-WebSearch: 10/11, 剩 PEG
-→ PEG = [估值待补]
+RAG:       10/11, 剩 PEG (WebFetch全失败)
+→ PEG = null（不写入）
+```
 ```
 
 不设 official_web 层：交易所官网只发交易数据 PDF，不计算 PE/PB。
@@ -237,6 +242,18 @@ WebSearch: 10/11, 剩 PEG
 - 剩余缺口全是 `[未披露]`（公司不公布）→ 停
 
 **Topic-facts.json 写入**：拉完后将估值、TAM 相关、弹性 KPI 的定量事实写入 `_cache/topic-facts.json`（本 topic 下的公司级事实缓存，供下游 skill 搜前复用，减少重复搜索）。
+
+**source_map 生成（Provenance 透传）**：actuals 中每个字段已有 source_detail（含 PDF 页码+URL 或 yfinance 来源）。拉完后扫描全部字段的 source_detail，去重 → 生成 `source_map` 写入 actuals-resolved.json：
+
+```json
+"source_map": {
+  "S_1": {"source_layer": "official_web", "url": "https://...Q1-2026.pdf", "detail": "Besi Q1-26 Results PDF p1", "label": "S5"},
+  "I_1": {"source_layer": "yfinance", "url": null, "detail": "BESI.AS yfinance", "label": "I10"},
+  "I_2": {"source_layer": "WebSearch", "url": "https://...", "detail": "...", "label": "I11"}
+}
+```
+
+> **消费 skill 使用方式**：读 actuals-resolved.json → 读 source_map → artifact 里标 [S5](url) 或 [I10] 而非 [actuals]。revenue 用 [S5] 指向官方 PDF，而非模糊的 "actuals"。
 
 **数据完整性规则**：
 

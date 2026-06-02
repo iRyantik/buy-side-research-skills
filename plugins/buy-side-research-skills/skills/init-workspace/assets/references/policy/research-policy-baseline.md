@@ -96,6 +96,53 @@ Source 质量：
 
 能用一手就不用二手。多个 source 冲突时必须标注冲突，不要挑一个顺手的用。
 
+### 3.1 Source 优先级（所有 Research Skill 共享）
+
+```
+1. actuals-resolved.json   本地缓存，机器采集，最高置信
+   → 22核心科目 + Market Cap/PE/EV/EBITDA/Beta/52w
+   → skill里标 [actuals]，不挂 [S#]/[I#]
+
+2. [S#] 公司披露            IR PDF、年报、AGM、earnings transcript
+   → actuals 没有的字段 → WebFetch/Playwright 验证 → [S1-S9]
+
+3. [I#] 第三方              行业报告、新闻媒体、Yahoo Finance、卖方报告
+   → actuals 和公司披露都覆盖不到 → WebFetch/Playwright 验证 → [I1-I20]
+
+同一 claim 只引用最高优先级。Revenue已在actuals→不标[S1]。Q1订单不在actuals→[S1]。市占率→[I1]。
+```
+
+### 3.2 RAG Source 验证管线（所有 Research Skill 共享）
+
+**纪律**: 禁止用 WebSearch AI 摘要数字直接写 claim。每个外部 claim 必须来自原文页面。
+
+**二层数据层**: 0-Actuals（本地，0s）→ 1-External（WebFetch/Playwright/curl，需验证）
+
+**页面抓取 Fallback 链**:
+
+```
+Tier 1  WebFetch(url)                           — 静态页面
+   ↓ fail
+Tier 2  Playwright MCP browser_navigate + snapshot  — JS渲染/auth墙
+   ↓ fail
+Tier 3  bash: curl -sL url | python 提取正文       — 原始HTML
+   ↓ fail
+Tier 4  标 [需查证] + Resources 记录尝试过的URL    — honest degradation
+```
+
+**平台兼容**:
+| 工具 | Claude Code | Codex |
+|---|---|---|
+| WebFetch | `WebFetch` tool | 无 — skip Tier 1 |
+| Playwright MCP | `mcp__playwright__browser_*` | MCP server |
+| curl | `Bash` | `run_shell_command` |
+
+**页级 density 规则**: 打开一页 → 提取全部可用 claims。一整页 10 个数字全拿，不回头再拉。
+
+**跨 artifact 证据复用**: 同一 ticker 的 evidence ledger 为永久账本。后续 skill 先读 ledger → 已有 verified claims 直接复用 → 只 fetch 新增。
+
+**Source 编号**: [S1-S9] 公司披露, [I1-I20] 第三方, URL 页面级, 同一 URL 复用同一编号。
+
 ## 4. 反幻觉硬规则
 
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。

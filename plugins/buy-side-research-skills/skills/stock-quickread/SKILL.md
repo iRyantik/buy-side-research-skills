@@ -11,7 +11,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -28,6 +28,25 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ### 纪律
 
 **禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+
+### Source 优先级（强制）
+
+```
+1. actuals-resolved.json    本地缓存，机器采集，零延迟，最高置信
+   → 22核心科目(Rev/EBIT/NI/FCF/CapEx/D&A/Cash/Debt/TA/OpCF)+Market Cap+PE+EV/EBITDA+Beta+52w
+   → skill里标 [actuals]，不挂 [S#]/[I#]
+
+2. [S#] 公司披露            IR PDF、年报、AGM presentation、earnings transcript
+   → actuals 没有的字段：订单细节、管理层原话、产品路线图、产能计划
+   → WebFetch 验证原文 → 标 [S1-S9]
+
+3. [I#] 第三方              行业报告、新闻媒体(Bits&Chips等)、Yahoo Finance、卖方报告
+   → actuals 和公司披露都覆盖不到：市占率、TAM、竞争格局、卖方 target、consensus
+   → WebFetch/Playwright 验证原文 → 标 [I1-I20]
+
+同一 claim 只引用最高优先级的一个 source。
+例: Revenue → actuals 已有 → 不标 [S1]。Q1 订单 → actuals 没 → [S1]。TSMC占60%+ → 公司不披露 → [I1]。
+```
 
 ### 二层数据管线
 
@@ -72,7 +91,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
    选查: §1 业务总览（收入占比常需 IR 推算）、§5 "最近一次怎么动"
    不查: §2 术语、§3 财务表、§4 比率、§8 对手盘、§10 问题
 3. WebSearch 找候选 URL（每条 claim 2-5 个候选）
-4. 按 Fallback 链逐个打开候选页面 → 读原文 → 确认数字在页面里
+4. 按 Fallback 链逐个打开候选页面 → 读原文 → **提取页面上所有可用 claims，不止一个**。一整页 10 个数字全拿，不回头再拉。
 5. 只引用验证过的页面。所有层级失败 → URL 不放 Resources，标 [需查证]
 6. 每验证一条 claim → evidence_ledger.py add <artifact> <json_payload> 逐条录入账本
 7. evidence_ledger.py lint <artifact> → 确保 artifact 里每个 [S#] 在账本有对应条目
