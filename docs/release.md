@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `4.6.2`.
+Current release version: `5.0.8`.
 
 ## Source And Runtime Shape
 
@@ -126,3 +126,29 @@ rtk rg -n '^(# |## Research Runtime Capsule|## Modeling Runtime Capsule)' plugin
 ## Dependency Policy
 
 The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, dart-fss, openesef, Tesseract, MarkItDown, or other parsers. Users opt in from their research workspace by running the platform-appropriate bootstrap helpers: Windows may use `powershell ... .ps1`, while macOS requires `pwsh` for `.ps1` helpers and may use `_scripts/bootstrap-ingest-deps.sh` where that shell helper exists.
+
+## Auto Cache Sync (v5.0.8+)
+
+`/update-agent-runtime` 运行后自动同步双宿主 cache：
+
+### Claude Code
+1. 创建最新版本缓存目录（如 `5.0.8/`），从 marketplace 复制 skills
+2. 更新 `~/.claude/plugins/installed_plugins.json` 的 `version` 和 `installPath` 指向最新缓存
+3. 重开 Claude Code session 生效
+
+### Codex
+1. 刷新 `~/.codex/plugins/cache/buy-side-research-skills/skills/` 为最新 marketplace skills
+2. 重开 Codex session 生效
+
+### Workspace
+- 同步 `.claude/hooks/`（hook_entry.py + rules/）
+- 同步 `references/`（policy + kpi-drivers）
+- 同步 `.codex/hooks.json`
+- 同步 `.claude/settings.json`
+
+### 版本号清单
+每次发版必须同步更新以下文件：
+- `.claude-plugin/plugin.json` → `version`
+- `.codex-plugin/plugin.json` → `version`
+- `docs/release.md` → `Current release version`
+- `README.md` → 版本历史
