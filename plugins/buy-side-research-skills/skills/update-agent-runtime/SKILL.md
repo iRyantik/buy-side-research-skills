@@ -76,10 +76,8 @@ For each detected host:
 
 After updating hosts, sync the current workspace — no release zip download needed; pull directly from marketplace plugin:
 
+- copy `_scripts/` to workspace root (shared utility scripts: download-product-image.js etc.)
 - copy `references/` to workspace root (policy + kpi-drivers)
-- copy `_scripts/download-product-image.js` to workspace `_scripts/`
-- copy `_scripts/init-assets/_scripts/download-product-image.js` for local repair
-- copy `.claude/mcp.json` and `.codex/mcp.example.json` to workspace root (never overwrite existing)
 - sync `.claude/hooks/` (hook_entry.py + rules/) and `.codex/hooks.json`
 - patch managed sections of root `CLAUDE.md` and `AGENTS.md`
 - refresh Codex cache: sync latest marketplace skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
