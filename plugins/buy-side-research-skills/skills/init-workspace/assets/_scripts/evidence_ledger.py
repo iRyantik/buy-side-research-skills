@@ -187,7 +187,7 @@ def cmd_lint(artifact_path: str, ticker: str = ""):
     body = content.split("## Resources")[0] if "## Resources" in content else content
     body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
     body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-    anchors = re.findall(r'\[(S|I)\d+\]', body)
+    anchors = re.findall(r'\[((?:S|I)\d+)\]', body)
     artifact_codes = {f"{code}" for code in anchors}
 
     if not artifact_codes:
@@ -299,6 +299,123 @@ def cmd_batch(ticker_path: str, ticker: str, payload: str):
     print(f"Batch: {updated} claim(s) updated in {ticker}")
 
 
+def cmd_auto(artifact_path: str, ticker: str):
+    """Scan artifact, auto-create pending entries for new anchors."""
+    if not os.path.exists(artifact_path):
+        print(f"ERROR: artifact not found: {artifact_path}", file=sys.stderr)
+        sys.exit(1)
+    with open(artifact_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    body = content.split("## Resources")[0] if "## Resources" in content else content
+    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
+    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
+
+    anchors = re.findall(r'\[(S\d+|I\d+)\]\(([^)]+)\)', body)
+    anchor_map = {}
+    for code, url in anchors:
+        if code not in anchor_map:
+            anchor_map[code] = url
+
+    ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
+    ledger = _load_ledger(ledger_path) if ledger_path.exists() else None
+    if not ledger:
+        print(f"ERROR: No ledger for {ticker}. Run init first.", file=sys.stderr)
+        sys.exit(1)
+
+    existing = {c["source"] for c in ledger["claims"]}
+    new_count = 0
+    for code, url in anchor_map.items():
+        if code in existing:
+            continue
+        cid = f"C{len(ledger['claims']) + new_count + 1}"
+        entry = {
+            "id": cid, "source": code, "url": url, "text": "",
+            "section": "", "type": "factual", "status": "unverified",
+            "method": None, "tier": None, "quote": "",
+            "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "provenances": [os.path.basename(artifact_path)],
+            "attempts": []
+        }
+        ledger["claims"].append(entry)
+        new_count += 1
+
+    if new_count:
+        ledger["claims"].sort(key=lambda c: c.get("id", ""))
+        _save_ledger(ledger_path, ledger)
+        print(f"Auto-created {new_count} pending claims:")
+        for c in ledger["claims"][-new_count:]:
+            print(f"  {c['id']}: [{c['source']}]({c['url'][:60]}...) — unverified")
+    else:
+        print(f"All {len(anchor_map)} anchors already tracked. Nothing to add.")
+
+
+def cmd_attempt(artifact_path: str, ticker: str, payload: str):
+    """Log a verification attempt on a claim without changing its status.
+    payload: {"claim_id": "C4", "tier": 1, "method": "WebFetch", "result": "403"}
+    """
+    ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
+    if not ledger_path.exists():
+        print(f"ERROR: No ledger found", file=sys.stderr)
+        sys.exit(1)
+    ledger = _load_ledger(ledger_path)
+    try:
+        att = json.loads(payload)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    cid = att.get("claim_id", "")
+    claim = next((c for c in ledger["claims"] if c["id"] == cid), None)
+    if not claim:
+        print(f"ERROR: claim {cid} not found", file=sys.stderr)
+        sys.exit(1)
+
+    claim.setdefault("attempts", []).append({
+        "tier": att.get("tier"),
+        "method": att.get("method"),
+        "result": att.get("result", "unknown"),
+        "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    })
+    _save_ledger(ledger_path, ledger)
+    print(f"[{cid}] attempt logged: tier={att.get('tier')} method={att.get('method')} result={att.get('result')}")
+
+
+def cmd_verify(artifact_path: str, ticker: str, payload: str):
+    """Mark a claim as verified after successful tier verification.
+    payload: {"claim_id": "C4", "tier": 2, "method": "Playwright", "text": "...", "quote": "...", "section": "§3"}
+    """
+    ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
+    if not ledger_path.exists():
+        print(f"ERROR: No ledger found", file=sys.stderr)
+        sys.exit(1)
+    ledger = _load_ledger(ledger_path)
+    try:
+        v = json.loads(payload)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    cid = v.get("claim_id", "")
+    claim = next((c for c in ledger["claims"] if c["id"] == cid), None)
+    if not claim:
+        print(f"ERROR: claim {cid} not found", file=sys.stderr)
+        sys.exit(1)
+
+    claim["status"] = "verified"
+    claim["method"] = v.get("method", claim.get("method"))
+    claim["tier"] = v.get("tier", claim.get("tier"))
+    if v.get("text"):
+        claim["text"] = v["text"]
+    if v.get("quote"):
+        claim["quote"] = v["quote"]
+    if v.get("section"):
+        claim["section"] = v["section"]
+    claim["checked_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    _save_ledger(ledger_path, ledger)
+    print(f"[{cid}] verified — tier={claim['tier']} method={claim['method']}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evidence Ledger for research artifacts")
     sub = parser.add_subparsers(dest="command")
@@ -329,6 +446,20 @@ def main():
     p_batch.add_argument("-t", "--ticker", required=True, help="Ticker")
     p_batch.add_argument("payload", help="JSON payload: {claims:[{id,status,method,...}], provenance:''}")
 
+    p_auto = sub.add_parser("auto", help="Auto-create pending claims from artifact anchors")
+    p_auto.add_argument("artifact", help="Artifact .md path")
+    p_auto.add_argument("-t", "--ticker", required=True, help="Ticker")
+
+    p_attempt = sub.add_parser("attempt", help="Log verification attempt")
+    p_attempt.add_argument("path", help="Artifact path (for dir)")
+    p_attempt.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_attempt.add_argument("payload", help='JSON: {"claim_id":"C4","tier":1,"method":"WebFetch","result":"403"}')
+
+    p_verify = sub.add_parser("verify", help="Mark claim as verified")
+    p_verify.add_argument("path", help="Artifact path (for dir)")
+    p_verify.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_verify.add_argument("payload", help='JSON: {"claim_id":"C4","tier":2,"method":"Playwright","text":"...","quote":"..."}')
+
     args = parser.parse_args()
     ticker = getattr(args, "ticker", None) or ""
 
@@ -344,6 +475,12 @@ def main():
         cmd_scan(args.artifact, ticker)
     elif args.command == "batch":
         cmd_batch(args.path, ticker, args.payload)
+    elif args.command == "auto":
+        cmd_auto(args.artifact, ticker)
+    elif args.command == "attempt":
+        cmd_attempt(args.path, ticker, args.payload)
+    elif args.command == "verify":
+        cmd_verify(args.path, ticker, args.payload)
     else:
         parser.print_help()
         sys.exit(1)
