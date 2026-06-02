@@ -51,9 +51,14 @@ def _looks_like_source_label(label: str) -> bool:
     # Exclude structural / markdown
     if STRUCTURAL_LABELS_RE.match(label_clean):
         return False
-    # Exclude known research annotations
+    # Exclude known research annotations (exact match)
     if label_clean in NON_SOURCE_LABELS:
         return False
+    # Exclude labels starting with research annotation prefixes
+    # e.g. [ND——无 Q1 2025 可比 EBIT], [推算——基于订单 mix]
+    for prefix in ('ND', '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认'):
+        if label_clean.startswith(prefix):
+            return False
     label_lower = label_clean.lower()
     # Direct match against known source words
     if label_lower in SOURCE_WORDS:
