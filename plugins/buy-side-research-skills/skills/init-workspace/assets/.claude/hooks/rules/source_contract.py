@@ -31,6 +31,8 @@ NON_SOURCE_LABELS = {
     '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认',
     'ND', 'NA', 'N/A', 'TBD', 'TODO',
     '待确认', '待补', '待查', '注', '注意', '重要',
+    # Financial notation — not sources
+    'E', '共识', 'A', 'LTM', 'NTM', 'FY', 'Q', 'H1', 'H2',
 }
 
 # Labels that are markdown/structural — never sources
@@ -145,6 +147,11 @@ def check(ctx: dict):
         body_no_code = _strip_code_blocks(body)  # for label-matching rules only
         body_anchors = get_short_anchor_matches(body)
 
+        # Rules 2-2e only apply to research artifacts (YYYY-MM-DD-*.md)
+        # Memory files, config, CLAUDE.md etc. are exempt from source contract
+        if not is_artifact:
+            continue
+
         # --- Rule 2: Resources entry target validity ---
         for entry in resources:
             if not is_valid_source_target(entry["target"]):
@@ -216,10 +223,6 @@ def check(ctx: dict):
                     block(f"Blocked by source_contract: {display} has non-standard source label "
                           f"'[{lbl_clean}]' in ## Resources section. "
                           f"Use [S#] or [I#] format for all Resources entries.")
-
-        # --- Rules 3-5: research artifacts only ---
-        if not is_artifact:
-            continue
 
         # --- Rule 3: No duplicate codes in Resources, no inconsistent targets ---
         # Count raw occurrences of each standard code in Resources text (before parser dedup)
