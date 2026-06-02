@@ -17,6 +17,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: multiples (PE, EV/EBITDA, EV/Sales, PEG, etc.) must use actuals-resolved.json disclosed data as input. FY2026E / consensus / forward estimates are banned as ratio inputs. Missing actuals input → ratio cell stays blank.
 
 
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)

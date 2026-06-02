@@ -16,6 +16,7 @@ Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: FCF, WACC inputs, terminal growth assumptions, and all derived metrics (implied growth, reverse DCF output) must be built from actuals-resolved.json. No consensus/forward estimate as ratio input.
 
 
 ## Overview

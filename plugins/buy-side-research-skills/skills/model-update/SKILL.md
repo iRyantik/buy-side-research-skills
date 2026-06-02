@@ -16,6 +16,7 @@ Update a financial model for earnings guidance new data or revised assumptions.
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: any ratio or derived metric in the updated model must trace back to actuals-resolved.json disclosed data. No estimate input for computed ratios.
 
 
 ## Workflow

@@ -16,6 +16,7 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: derived ratios within the model (ROIC, margins, turnover ratios, FCF conversion, etc.) must use actuals-resolved.json disclosed data. No estimate input for computed ratios.
 - Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
 
 

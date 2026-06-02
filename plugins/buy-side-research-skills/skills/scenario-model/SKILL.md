@@ -12,6 +12,7 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline 三表 + 市场快照。
+- **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.
 
 这个 skill 现在是 **deep-work odds memo skill**，不是后台 supporting calculator。它可以被直接触发，用来回答“这个情景值多少钱、赔率够不够、最值得验证的假设是什么”。它仍然是上游 deep-work 原语，不替代 `alpha-thesis`、`market-sizing` 或 `dcf-model`。

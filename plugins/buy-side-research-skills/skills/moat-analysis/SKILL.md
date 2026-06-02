@@ -12,6 +12,7 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline。
+- **Actuals-only**: ROIC, margins, and all moat scorecard financial metrics use actuals-resolved.json disclosed data only.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法
