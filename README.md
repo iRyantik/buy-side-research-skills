@@ -12,7 +12,19 @@
 按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
 
-Agent 会自动完成插件安装、workspace 初始化、依赖检查和环境配置。
+---
+
+## 0a. 升级
+
+对 Claude / Codex 说：
+
+```
+/update-agent-runtime
+```
+
+自动从 GitHub Release 拉最新版，更新插件版本 + 同步 workspace hooks。每次发版后跑一次即可。
+
+---
 
 ---
 
@@ -142,7 +154,7 @@ Agent 会自动完成插件安装、workspace 初始化、依赖检查和环境�
 见 §1 配置表。日股免费、韩股需 API key、欧股需下载 ESEF 包。
 
 **Q: 如何更新插件？**
-对 Claude 说 `更新插件 runtime`。
+对 Claude 说 `/update-agent-runtime`。自动从 GitHub Release 拉最新版，更新插件+同步 workspace hooks。每次发新版本后跑一次。
 
 ---
 

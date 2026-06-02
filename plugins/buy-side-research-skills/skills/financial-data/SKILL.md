@@ -209,11 +209,23 @@ Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`sou
 
 ### Fill-Gaps Mode（补 Layer 3 缺口）
 
-触发语：
+触发语：`/financial-data --fill-gaps <ticker>` 或 "补全 xxx 的财务数据"
 
-读完  后，只对  的字段调 provider API 补填。不做 full filing 解析，不建 evidence pack。
+流程：读 actuals → 遍历 null 字段 → 按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值 → 写回。provider 缺时按以下 web fallback 策略逐层搜索。填不了的标 [ND]。5-10 秒/公司。
 
-流程：读 actuals → 遍历 null 字段 → 按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值 → 写回。填不了的标 [ND]。5-10 秒/公司。
+**Web Fallback 策略（通用规则）**：先用 `site:` 限定首选域名 → 不加 site 用关键词 → 还搜不到标 `[ND]`。每个 query 同时用**本地语言 + 英文**各搜一次。
+
+| 市场 | 三表 | 收入拆分 | 估值 | Consensus |
+|---|---|---|---|---|
+| **US** | `site:sec.gov <ticker> 10-K` → `site:stockanalysis.com <ticker> financials` → 裸搜 | `site:sec.gov <ticker> segment revenue` → 裸搜 | `site:yahoo.com <ticker> statistics` | `site:marketscreener.com <ticker> consensus` |
+| **CN** | `site:eastmoney.com <ticker> 利润表` → `site:10jqka.com.cn <公司名>` → 裸搜 | `site:cninfo.com.cn <ticker> 营业收入构成` → 裸搜 | `site:eastmoney.com <ticker> PE PB 市值` | `site:eastmoney.com <ticker> 盈利预测` |
+| **HK** | `site:aastocks.com <code> 利润表` → `site:xueqiu.com <code> 财务` → 裸搜 | `site:hkexnews.hk <code> 分部收入` → 裸搜 | `site:aastocks.com <code>` | `site:marketscreener.com <ticker>.HK consensus` |
+| **JP** | `site:finance.yahoo.co.jp <code> 決算` → `site:kabutan.jp <code> 業績` → 裸搜 | `<code> セグメント別売上高` → `<code> 決算説明会` | `site:finance.yahoo.co.jp <code>` → `site:kabutan.jp <code>` | `site:marketscreener.com <code>.T consensus` |
+| **KR** | `site:comp.fnguide.com <gicode>` → `site:finance.naver.com <code> 재무제표` → 裸搜 | `site:dart.fss.or.kr <code> 사업부문별` → 裸搜 | `site:comp.fnguide.com <gicode>` → `site:markets.hankyung.com <code>` | `site:comp.fnguide.com <gicode>` → `site:marketscreener.com <ticker>.KS` |
+| **TW** | `site:goodinfo.tw <code>` → `site:mops.twse.com.tw <code> 财务报告` → 裸搜 | `<code> 營收 產品別 部門別` | `site:goodinfo.tw <code>` | `site:marketscreener.com <code>.TW consensus` |
+| **EU** | `site:yahoo.com <ticker> financials` → 裸搜 | `<ticker> revenue by segment` → 裸搜 | `site:yahoo.com <ticker> statistics` | `site:marketscreener.com <ticker> consensus` |
+
+跨市场通用：Consensus 首选 MarketScreener，估值首选 stockanalysis.com > yahoo.com。未覆盖市场（SG/IN/AU/SEA）按英文裸搜 → `[ND]`。
 
 ### Current Topic Snapshot
 
