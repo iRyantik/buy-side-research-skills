@@ -107,16 +107,16 @@ flowchart LR
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个 Q/H period**两行的数据（含同比变化）。期间拆行为独立行；period label 必须读取 `actuals-resolved.json` 的真实标签 / basis，不得把 HK H1 写成 Q2 或 Q4。
 
-| 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | Ev |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | EBIT | 65% | 28% | [S1](./_cache/sources/company-annual-report.md) |
-| 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
-| 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
-| **整体** | **FY2024** | **100%** | **+5%** | EBIT | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
-| 分部 A | H1 FY2025 / Q1 2026 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/qh-segment-note.md) |
-| 分部 B | H1 FY2025 / Q1 2026 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/qh-segment-note.md) |
-| 分部 C | H1 FY2025 / Q1 2026 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/qh-segment-note.md) |
-| **整体** | **H1 FY2025 / Q1 2026** | **100%** | **+4%** | EBIT | **100%** | **18%** | [S12](./_cache/sources/qh-income-statement.md) |
+| 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | **弹性1** | **弹性2** | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 分部 A | FY2024 | 1,200 | 45% | +12% | 336 | EBIT | 65% | 28% | +2pp | — | — | [S1](./_cache/sources/company-annual-report.md) |
+| 分部 B | FY2024 | 933 | 35% | +3% | 131 | EBIT | 25% | 14% | +1pp | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 C | FY2024 | 533 | 20% | -8% | [ND] | — | — | — | — | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
+| **整体** | **FY2024** | **2,667** | **100%** | **+5%** | 517 | EBIT | **100%** | **19%** | +2pp | — | — | [S11](./_cache/sources/fy2024-income-statement.md) |
+| 分部 A | H1 FY2025 | 620 | 43% | +8% | 161 | EBIT | 62% | 26% | -2pp | — | — | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 B | H1 FY2025 | 518 | 36% | +2% | 67 | EBIT | 24% | 13% | -1pp | — | — | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 C | H1 FY2025 | 302 | 21% | -6% | [ND] | — | — | — | — | — | — | [S9](./_cache/sources/qh-segment-note.md) |
+| **整体** | **H1 FY2025** | **1,440** | **100%** | **+4%** | 259 | EBIT | **100%** | **18%** | -1pp | — | — | [S12](./_cache/sources/qh-income-statement.md) |
 
 正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
