@@ -25,7 +25,7 @@ The invariant is separation of concerns:
 ### Responsible for
 
 **Directories:**
-- Creating root `_inbox/`, `_scripts/`, and `topics/`.
+- Creating root `_inbox/` and `_scripts/`.
 
 **A类 — Platform-owned assets** (from `init-workspace/assets/`, copied verbatim to workspace root):
 
