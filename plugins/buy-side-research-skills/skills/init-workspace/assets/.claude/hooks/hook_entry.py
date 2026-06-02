@@ -27,7 +27,6 @@ POST_TOOL_USE_RULES = [
     # Provider: market-snapshot + disclosure source boundaries
     "provider.market_snapshot_source_boundary",
     "provider.disclosure_fact_source_boundary",
-    "provider.cross_market_parity",
     "provider.social_clue_only",
     # Viz: delivery contract
     "viz.viz_delivery_contract",
