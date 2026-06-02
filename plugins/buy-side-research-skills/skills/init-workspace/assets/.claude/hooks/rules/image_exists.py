@@ -12,6 +12,8 @@ def check(ctx: dict):
         if target.get("kind") != "file":
             continue
         text = target.get("text", "")
+        if not _is_artifact(target.get("display", "")):
+            continue
         display = target.get("display", "unknown")
         # Resolve image paths relative to the markdown file's directory
         md_dir = os.path.dirname(target.get("path", "")) if target.get("path") else ctx.get("cwd", "")

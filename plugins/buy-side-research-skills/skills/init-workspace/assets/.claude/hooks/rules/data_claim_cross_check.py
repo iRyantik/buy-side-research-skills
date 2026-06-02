@@ -4,6 +4,9 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
+import os as _os
+_ARTIFACT_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
+def _is_artifact(fp): return bool(_ARTIFACT_RE.match(_os.path.basename(fp)))
 
 # Only capture raw financial amounts: $1.23B, HK$45M, ¥500bn, HK$550M, 73.80亿, etc.
 # Exclude ratios (37.8%, 0.71x), stock codes (0522), small numbers

@@ -2,6 +2,9 @@
 import re, sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
+import os as _os
+_ARTIFACT_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
+def _is_artifact(fp): return bool(_ARTIFACT_RE.match(_os.path.basename(fp)))
 
 STRONG_CLAIM = re.compile(
     r'(?i)(独家|唯一供应商|唯一|仅有的|垄断|exclusive|sole supplier|only vendor|confirmed|certified|验证过的唯一|全球独家|独占)'
@@ -17,7 +20,7 @@ def check(ctx):
             continue
         path = t.get("path", "") or ""
         leaf = os.path.basename(path) if path else ""
-        if not re.match(r'^\d{4}-\d{2}-\d{2}-.+\.md$', leaf):
+        if not _is_artifact(leaf):
             continue
 
         # Split into sections
