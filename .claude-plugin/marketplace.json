@@ -28,8 +28,8 @@
         "mispriced",
         "pure-play",
         "hidden-winners",
-        "挖票",
-        "找票",
+        "\u6316\u7968",
+        "\u627e\u7968",
         "reddit-sentiment",
         "social-sentiment",
         "financial-data",
@@ -49,5 +49,5 @@
       ]
     }
   ],
-  "version": "5.0.0"
+  "version": "5.0.8"
 }
