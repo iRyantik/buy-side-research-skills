@@ -29,25 +29,51 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 **禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
 
-### 三层管线
+### 二层数据管线
 
-| 层 | 来源 | 耗时 | 适用 |
-|---|---|---|---|
-| 0-Actuals | `actuals-resolved.json` — 本地缓存，已校验 | 0s | §3 财务表、§4 比率、Market Cap/PE |
-| 1-Primary | 公司 IR 页面、年报 PDF、earnings transcript | WebFetch | §1 业务拆分、§5 产能/定价、§9 事件 |
-| 2-Third-party | 行业报告、卖方报告、媒体（Bits&Chips, MarketScreener, 东兴证券等） | WebFetch | §5 行业变化/叙事、§6 consensus、§7 多空 |
+| 层 | 来源 | 适用 |
+|---|---|---|
+| 0-Actuals | `actuals-resolved.json` — 本地缓存，已校验 | §3 财务表、§4 比率、Market Cap/PE。**不经过网络** |
+| 1-External | 公司 IR、年报 PDF、行业报告、卖方报告、新闻 | §1 业务拆分、§5 产能/定价/行业变化/叙事、§6 consensus、§7 多空、§9 事件 |
+
+### 页面抓取 Fallback 链
+
+WebFetch 经常失败（403/503/JS 渲染空返回）。**必须按优先级降级，不能只试一次就放弃：**
+
+```
+Tier 1  WebFetch(url)                        — 静态页面，最快
+   ↓ 失败
+Tier 2  Playwright MCP browser_navigate + browser_snapshot  — JS 渲染、auth 墙
+   ↓ 失败
+Tier 3  bash: curl -sL url | python 提取正文    — 原始 HTML，最后手段
+   ↓ 失败
+Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradation
+```
+
+**每个外部 claim 至少试到 Tier 2。** Tier 1+2 全失败才能标 [需查证]。
+
+### 平台兼容
+
+| 工具 | Claude Code | Codex |
+|---|---|---|
+| WebFetch | `WebFetch` tool | 无内置——跳过 Tier 1 |
+| Playwright MCP | `mcp__playwright__browser_*` | 需安装 MCP server |
+| curl fallback | `Bash` tool | `run_shell_command` |
+| 最终降级 | `[需查证]` | `[需查证]` |
+
+> Codex 路径：WebSearch → Playwright MCP browser_navigate → curl → [需查证]。Claude Code 路径：WebSearch → WebFetch → Playwright MCP → curl → [需查证]。
 
 ### 执行流程
 
 ```
 1. 读 actuals-resolved.json → 提取所有可用财务数字 → §3 §4 直接引用
-2. 拆解需要外部 source 的 claim 清单（不是所有 section 都需要外部 source）：
+2. 拆解需要外部 source 的 claim 清单：
    必查: §1 "为什么重要"、§5 行业变化+市场叙事、§6 consensus、§7 多空、§9 事件
    选查: §1 业务总览（收入占比常需 IR 推算）、§5 "最近一次怎么动"
-   不查: §2 术语、§3 财务表（actuals）、§4 比率（actuals）、§8 对手盘（逻辑推演）、§10 问题
+   不查: §2 术语、§3 财务表、§4 比率、§8 对手盘、§10 问题
 3. WebSearch 找候选 URL（每条 claim 2-5 个候选）
-4. WebFetch 打开候选页面 → 读原文 → 确认数字/名字/判断确实在页面里
-5. 只引用验证过的页面。页面打不开/内容不匹配 → 放弃该 URL，换下一个
+4. 按 Fallback 链逐个打开候选页面 → 读原文 → 确认数字在页面里
+5. 只引用验证过的页面。所有层级失败 → URL 不放 Resources，标 [需查证]
 6. 写 claim 时 [S#](URL) 紧跟
 ```
 
