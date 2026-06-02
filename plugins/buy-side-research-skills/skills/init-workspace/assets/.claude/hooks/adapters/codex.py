@@ -23,13 +23,6 @@ def build_context(payload: dict) -> dict:
         targets = []
     else:
         targets = get_markdown_targets(payload)
-    if is_artifact_like(assistant_text):
-        targets.append({
-            "kind": "inline",
-            "path": None,
-            "display": "last_assistant_message",
-            "text": assistant_text,
-        })
 
     return {
         "runtime": "codex",

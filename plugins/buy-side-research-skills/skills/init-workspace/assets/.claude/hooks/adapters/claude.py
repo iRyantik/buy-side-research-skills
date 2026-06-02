@@ -18,20 +18,12 @@ def build_context(payload: dict) -> dict:
     candidates = get_candidate_paths(payload)
     assistant_text = get_last_assistant_message(payload)
 
-    # Build targets
-    # Stop events: only inline target (files already checked in PostToolUse)
+    # Build targets (files only — never scan conversation messages)
+    # Stop events: only inline target
     if event == "Stop":
         targets = []
     else:
         targets = get_markdown_targets(payload)
-    # Add inline target if assistant message is artifact-like
-    if is_artifact_like(assistant_text):
-        targets.append({
-            "kind": "inline",
-            "path": None,
-            "display": "last_assistant_message",
-            "text": assistant_text,
-        })
 
     return {
         "runtime": "claude",
