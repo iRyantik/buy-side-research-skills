@@ -5,31 +5,30 @@ description: Update the current host plugin runtime to the latest GitHub release
 
 # Update Agent Runtime
 
-`update-agent-runtime` updates the buy-side plugin in the **current host** and then syncs the **current workspace** to the latest runtime scaffold. It is an operations skill. It does not write research artifacts, and it does not update both Claude Code and Codex by default.
+`update-agent-runtime` detects all installed hosts (Claude Code / Codex), updates each that is found, refreshes plugin caches and marketplace for every host, and syncs the current workspace to the latest runtime scaffold. One command, no manual host selection. It is an operations skill.
 
 ## Mental Model
 
-There are two different things to update:
+Three things to keep in sync:
 
-- the **host plugin runtime** that Claude Code or Codex loads
-- the **workspace-managed runtime assets** such as hooks, host adapters, and managed `CLAUDE.md` / `AGENTS.md` sections
+- the **host plugin runtime** (Claude Code / Codex)
+- the **plugin cache and marketplace** for each host
+- the **workspace-managed runtime assets** (hooks, adapters, `CLAUDE.md` / `AGENTS.md`)
 
-This skill updates the current host first, then repairs the workspace using the **latest GitHub release zip** as the source of truth. It does not trust whatever older plugin version is currently installed to be the correct template source.
+`/update-agent-runtime` auto-detects which hosts are installed and updates everything it finds — no manual host selection needed. If only Claude Code is installed, only that gets updated. If both are installed, both get updated.
 
 ## Responsibilities
 
 Responsible for:
 
-- Detecting whether the current execution context is Claude Code or Codex.
-- Updating only that host by default.
-- Switching Claude installs to the GitHub `buy-side-research-skills` marketplace channel when needed.
-- Refreshing Codex marketplace snapshots and reinstalling the plugin from the official marketplace snapshot.
-- Repairing current workspace runtime assets through the latest packaged `init-workspace` helper.
+- Auto-detecting all installed hosts (Claude Code / Codex).
+- Updating every detected host's plugin to the latest GitHub release.
+- Refreshing plugin cache and marketplace for every detected host.
+- Syncing the current workspace runtime assets through the latest packaged `init-workspace` helper.
 - Patching managed sections of workspace `CLAUDE.md` and `AGENTS.md` conservatively.
 
 Not responsible for:
 
-- Updating both hosts by default.
 - Rewriting the whole workspace constitution from scratch.
 - Creating dated topic artifacts.
 - Editing research conclusions or topic files.
@@ -53,72 +52,34 @@ Inputs:
 | `host` | Optional. `auto` by default. Allowed explicit overrides: `claude`, `codex`. |
 | `workspace` | Optional. Defaults to the current workspace root. |
 
-## Host Selection
+## Host Detection
 
-Default is `host=auto`.
+Auto-detect all installed hosts:
 
-Resolution order:
+1. Check `~/.claude/plugins/cache/buy-side-research-skills/` → Claude Code installed
+2. Check `~/.codex/plugins/cache/buy-side-research-skills/` → Codex installed
+3. Update every detected host. No manual selection needed.
 
-1. Explicit `host=claude` or `host=codex`
-2. Current script install path under `.claude/plugins/...` or `.codex/plugins/cache/...`
-3. Runtime environment such as `CODEX_HOME`, `CODEX_THREAD_ID`, or Claude runtime env
-4. If still ambiguous, stop and ask for an explicit host
+## Update Path
 
-When `host=auto`, update only the current host. Do not scan and mutate the other host.
+For each detected host:
 
-## Update Path By Host
-
-### Claude Code
-
-Use the official `claude plugin` CLI only:
-
-- ensure marketplace `buy-side-research-skills`
-- install or update `buy-side-research-skills@buy-side-research-skills`
-- if the current install is `buy-side-research-skills@local-desktop-app-uploads`, move it to the GitHub marketplace channel
-- verify `.claude/plugins/installed_plugins.json` and enabled plugin state
-
-### Codex
-
-Use the official Codex plugin CLI only:
-
-- ensure marketplace `buy-side-research-skills`
-- `plugin marketplace upgrade buy-side-research-skills`
-- `plugin add buy-side-research-skills@buy-side-research-skills`
-- verify `.codex/config.toml` and the latest cache directory
-
-Codex does not have a `plugin update` subcommand. The official update path is marketplace refresh plus plugin add.
+1. Update marketplace plugin to latest release
+2. Refresh plugin cache (copy marketplace skills to cache version dir)
+3. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
+4. Sync workspace runtime assets (hooks, `_shared/`, `CLAUDE.md`, `AGENTS.md`)
 
 ## Workspace Sync
 
-Workspace sync must use the latest release zip as the source of truth.
+After updating hosts, sync the current workspace — no release zip download needed; pull directly from marketplace plugin:
 
-The script must:
-
-- refresh the local plugin cache for both Claude Code and Codex (create/populate the latest version directory from marketplace skills)
-
-- download the latest release zip
-- call packaged `skills/init-workspace/scripts/init-research-workspace.ps1`
-- patch managed sections of root `CLAUDE.md`
-- patch the managed body of root `AGENTS.md`
-
-Managed docs are patched conservatively. They must not be overwritten wholesale.
-
-On macOS, workspace repair and runtime `.ps1` helpers require PowerShell 7 (`pwsh`). This skill does not promise a pure shell-only repair path.
-
-## Tool Resources
-
-Use the helper script when mutating files:
-
-- `skills/update-agent-runtime/scripts/update_agent_runtime.py`
-
-The helper script is responsible for host detection, release download, host update, workspace repair, managed doc patching, and local cache version refresh.
+- copy `_shared/` to workspace root
+- sync `.claude/hooks/` (hook_entry.py + rules/) and `.codex/hooks.json`
+- patch managed sections of root `CLAUDE.md` and `AGENTS.md`
 
 ## File Safety
 
-- Do not update both hosts by default.
-- Do not write directly into guessed cache paths without first detecting the current host.
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md`.
-- Do not use an old installed plugin copy as the workspace template source.
 - Do not run workspace init inside the plugin dev repo or plugin install directories.
 
 ## Output Contract
@@ -129,42 +90,29 @@ After success:
 ## Update Runtime Result
 
 **结论先行**
-已更新当前宿主插件并同步当前 workspace 运行时资产。
+已更新 X 个宿主 + workspace 运行时资产。
 
-## Host
-- host: [...]
-- previous_version: [...]
-- current_version: [...]
+## Hosts
+| Host | Status | Version |
+|---|---|---|
+| Claude Code | updated / not installed | vX.X.X |
+| Codex | updated / not installed | vX.X.X |
+
+## Cache
+- marketplace: refreshed
+- claude cache: refreshed / not found
+- codex cache: refreshed / not found
 
 ## Workspace
-- workspace: [...]
-- scaffold_repaired: yes/no
-- claude_md: updated / manual_merge_required / skipped
-- agents_md: updated / manual_merge_required / skipped
-
-## Notes
-- [...]
-```
-
-When blocked:
-
-```markdown
-## Update Runtime Blocked
-
-**结论先行**
-未执行更新。
-
-- host: [...]
-- reason: [...]
-- action_required: [...]
+- hooks: synced
+- _shared/: synced
+- claude_md: updated / skipped
 ```
 
 ## Failure Handling
 
-- Host cannot be detected: require explicit `host`.
-- Latest release zip not found: stop and report the release lookup failure.
-- Official host CLI missing or unusable: report exact discovery failure.
-- Workspace doc anchors missing: continue other work and mark `manual_merge_required`.
+- No hosts detected: report and suggest manual install from GitHub.
+- Official host CLI missing or unusable: report exact discovery failure for that host, continue with others.
 - Workspace path points to a plugin repo or plugin install directory: stop and refuse repair there.
 
 ## Workflow Links
