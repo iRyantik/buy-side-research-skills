@@ -114,6 +114,15 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 - URL 取到页面级即可——不需要 #anchor fragment
 - 同一 URL 被多处引用 → 复用同一编号
 
+### Tier 标签（写进 artifact）
+
+**每个 [I#] source 在 artifact 正文中必须标注验证方式：**
+- Playwright Tier 2 验证通过 → 写 `[I1](url) (Playwright ✅)`
+- WebFetch Tier 1 验证通过 → 写 `[I1](url) (WebFetch ✅)`
+- 全失败 honest degradation → 写 `[需查证]`
+- actuals Tier 0 → 写 `[actuals]`
+- 只在 Resources 段列出所有 source，不需要在正文重复一次以上验证标记
+
 ### 反模式
 
 - ❌ 凭记忆构造 URL（`tsmc.com/SoIC`）——必须 WebFetch 验证过

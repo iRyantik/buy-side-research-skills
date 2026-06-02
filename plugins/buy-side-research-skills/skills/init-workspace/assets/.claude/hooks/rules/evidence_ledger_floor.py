@@ -91,6 +91,18 @@ def check(ctx):
 
         claims = ledger.get("claims", [])
 
+        # Rule 0: Artifact-Ledger alignment — every [S#]/[I#] must be in ledger
+        ledger_codes = {c.get("source", "") for c in claims}
+        artifact_codes = set()
+        for m in re.finditer(r'\[(S\d+|I\d+)\]', body):
+            artifact_codes.add(m.group(1))
+        missing = artifact_codes - ledger_codes
+        if missing:
+            block(f"Blocked by evidence_ledger_floor: {display} references "
+                  f"{', '.join(sorted(missing)[:5])} "
+                  f"which are NOT in the evidence ledger. "
+                  f"Run: evidence_ledger.py auto + attempt + verify before writing.")
+
         # Rule 3: fabrication_risk → block
         fab_risks = [c for c in claims if c.get("status") == "fabrication_risk"]
         if fab_risks:

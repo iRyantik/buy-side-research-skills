@@ -15,6 +15,7 @@ RUNTIMES = {"claude", "codex"}
 PRE_TOOL_USE_RULES = [
     "workspace_guard",
     "financial_data_gate",
+    "pre_write_gate",
 ]
 POST_TOOL_USE_RULES = [
     # Global structure & source
