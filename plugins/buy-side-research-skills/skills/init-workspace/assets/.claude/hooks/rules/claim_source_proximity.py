@@ -95,7 +95,7 @@ def check(ctx):
                     unsourced_rows.append(f"line {i+1}: {row_summary}")
 
         if unsourced_rows:
-            warn(f"claim_source_proximity: {display} has {len(unsourced_rows)} table row(s) "
+            block(f"Blocked by claim_source_proximity: {display} has {len(unsourced_rows)} table row(s) "
                  f"with financial numbers but no source anchor. "
                  f"Every row with valuation/metric/spread/price data must carry [S#] or [I#]. "
                  f"First 3: {' | '.join(unsourced_rows[:3])}")
@@ -164,10 +164,18 @@ def check(ctx):
                 preview = para[:120] + ('...' if len(para) > 120 else '')
                 low_density_paras.append(f"low density ({sources} src/{facts} facts): {preview}")
 
-        if low_density_paras:
-            warn(f"claim_source_proximity: {display} has {len(low_density_paras)} paragraph(s) "
-                 f"with insufficient source density. "
-                 f"Every paragraph with factual claims must carry [S#] or [I#] anchors. "
-                 f"First 3: {' | '.join(low_density_paras[:3])}")
+        zero_source_paras = [p for p in low_density_paras if p.startswith('0 sources')]
+        low_paras = [p for p in low_density_paras if not p.startswith('0 sources')]
+
+        if zero_source_paras:
+            block(f"Blocked by claim_source_proximity: {display} has {len(zero_source_paras)} paragraph(s) "
+                 f"with factual claims but ZERO source anchors. "
+                 f"Every paragraph with numbers/company names must carry [S#] or [I#]. "
+                 f"First: {zero_source_paras[0][:150]}")
+
+        if low_paras:
+            warn(f"claim_source_proximity: {display} has {len(low_paras)} paragraph(s) "
+                 f"with low source density (<1 source per 3 factual claims). "
+                 f"First: {low_paras[0][:150]}")
 
 sys.exit(0)
