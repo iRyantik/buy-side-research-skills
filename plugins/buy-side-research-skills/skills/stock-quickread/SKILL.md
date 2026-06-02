@@ -154,16 +154,26 @@ flowchart LR
 
 > agent 先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
 
-**(a) 标准比率**（4 个，全部公司必算，数据从 actuals 取）：
+**(a) 标准比率 pool**（从 actuals 取数，能算就算，算不出就跳过）：
 
-> **Actuals only — 禁止用 estimate 算 ratio**：FCF、CapEx、Cash、Debt、Equity、Revenue 每个输入字段必须来自 `actuals-resolved.json` 中 FY/A 期数据。**任何 FY2026E / consensus / forward estimate 不能参与 ratio 计算。** 输入字段缺 actuals → ratio 标 `[未披露]`，不补、不推、不估算。
+> **Actuals only — 禁止用 estimate 算 ratio**：每个比率的所有 input 字段必须在 `actuals-resolved.json` 中有真实值。**任何 FY2026E / consensus / forward estimate 不能参与 ratio 计算。** 所有 input 齐全 → 输出该比率。任一 input 缺失 → **静默跳过该比率**，不标 [未披露]，不占行。最终输出的是"这个公司实际能算出来的比率"，而不是一排空表。
 
-| # | 比率 | 公式 | 用途 | 数据来源（actuals 字段） |
+Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的比率（通常 5-8 个）：
+
+| # | 比率 | 公式 | 用途 | 所需 actuals 字段 |
 |---|---|---|---|---|
-| 1 | FCF Yield | FCF ÷ Market Cap | 真实股息能力 | FCF=operating_cf - capex, Market Cap=market_data.market_cap |
-| 2 | Net Cash | Cash - Total Debt | 安全垫——倒闭风险 | Cash, Total Debt=total_debt |
-| 3 | Debt / Equity | Total Debt ÷ Equity | 杠杆——会不会被债压死 | Total Debt=total_debt, Equity=total_equity |
-| 4 | Capex / Rev | CapEx ÷ Revenue | 投资强度 | CapEx=capex, Revenue=total_revenue |
+| 1 | Gross Margin | Gross Profit ÷ Revenue | 产品毛利 | gross_profit, revenue |
+| 2 | EBIT Margin | EBIT ÷ Revenue | 运营利润 | ebit, revenue |
+| 3 | FCF Conversion | Operating CF ÷ EBIT | 现金质量——利润变成现金了吗 | operating_cf, ebit |
+| 4 | Asset Turnover | Revenue ÷ Total Assets | 资本效率 | revenue, total_assets |
+| 5 | Op ROA | EBIT ÷ Total Assets | 资产回报——剔除杠杆和税率 | ebit, total_assets |
+| 6 | Capex / Rev | CapEx ÷ Revenue | 投资强度 | capex, revenue |
+| 7 | FCF Yield | FCF ÷ Market Cap | 股息能力 | operating_cf, capex, market_data.market_cap |
+| 8 | R&D / Rev | R&D ÷ Revenue | 研发重度 | r_and_d, revenue |
+| 9 | Net Cash | Cash − Total Debt | 安全垫 | cash, total_debt |
+| 10 | Debt / Equity | Total Debt ÷ Equity | 杠杆 | total_debt, total_equity |
+
+> 输出格式：`| 比率 | 值 | 判断 | 数据来源 |`，不输出无法计算的比率。
 
 **(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束）：
 
