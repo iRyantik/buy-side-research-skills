@@ -104,17 +104,20 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
 - `download-product-image.js` — Playwright image-download helper
 
-**C2 — Skill scripts** (from each skill's canonical `scripts/` directory in the plugin):
+**C2 — Skill workspace assets** (automatically discovered — same self-registration rule as init-workspace):
 
-| Source | Destination |
-|---|---|
-| `skills/ingest/scripts/*.py` | `_scripts/ingest/` |
-| `skills/ingest/assets/requirements-ingest.txt` | `_scripts/ingest/` |
-| `skills/financial-data/scripts/**/*.py` | `_scripts/financial-data/` |
-| `skills/financial-data/assets/requirements-financial-data.txt` | `_scripts/financial-data/` |
-| `skills/reddit-sentiment/scripts/*.py` | `_scripts/reddit-sentiment/` |
-| `skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt` | `_scripts/reddit-sentiment/` |
-| `skills/research-viz/assets/template*.html` | `_scripts/research-viz/` |
+```
+for each skill_dir in skills/*/:
+    dst = _scripts/<skill-name>/
+
+    if scripts/ exists:
+        cp -r scripts/* → dst/
+
+    if assets/ exists:
+        cp -r assets/* → dst/
+```
+
+> Adding a new script, config, template, or data file to a skill is zero changes to this skill. The directory-level rule handles it.
 
 **Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `_scripts/` that are not in the source lists are left untouched.
 

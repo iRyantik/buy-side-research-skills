@@ -45,23 +45,28 @@ The invariant is separation of concerns:
 | `gitignore.template` | `.gitignore` | Overwrite |
 | `.env.template` | `.env.template` | Copy if missing |
 
-**B类 — Skill scripts** (copied from each skill's canonical `scripts/` and `assets/` directory into workspace `_scripts/<skill>/`):
+**B类 — Skill workspace assets** (automatically discovered from each skill's directory):
 
-| Source | Destination |
-|---|---|
-| `skills/ingest/scripts/*.py` | `_scripts/ingest/` |
-| `skills/ingest/assets/requirements-ingest.txt` | `_scripts/ingest/` |
-| `skills/financial-data/scripts/**/*.py` | `_scripts/financial-data/` |
-| `skills/financial-data/assets/requirements-financial-data.txt` | `_scripts/financial-data/` |
-| `skills/reddit-sentiment/scripts/*.py` | `_scripts/reddit-sentiment/` |
-| `skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt` | `_scripts/reddit-sentiment/` |
-| `skills/research-viz/assets/template*.html` | `_scripts/research-viz/` |
+> **Self-registration rule**: Every skill in the plugin self-registers what it needs in the workspace by putting files in its own `scripts/` and/or `assets/` directories. init-workspace and update-agent-runtime discover and copy these automatically. Adding a new script, config, template, or data file to a skill is zero changes to either skill.
+
+```
+for each skill_dir in skills/*/:
+    dst = _scripts/<skill-name>/
+
+    if scripts/ exists:
+        cp -r scripts/* → dst/          # Python scripts, providers/, any submodules
+
+    if assets/ exists:
+        cp -r assets/* → dst/           # requirements, templates, configs, reference data, clusters, etc.
+```
+
+> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No manual registration. You create the file, the system deploys it. |
 
 **Environment setup:**
 - Check Python 3.10+ availability.
 - Create `.venv/` (Python virtual environment).
 - Install core dependencies into venv: `yfinance openpyxl requests python-dotenv pyyaml lxml`.
-- Run `pip install -r` for `_scripts/ingest/requirements*.txt`, `_scripts/financial-data/requirements*.txt`, `_scripts/reddit-sentiment/requirements*.txt`. Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- Run `pip install -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
 - Write `.gitignore`.
 
 **Interactive provider configuration:**
