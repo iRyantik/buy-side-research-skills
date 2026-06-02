@@ -205,6 +205,8 @@ WebSearch: 10/11, 剩 PEG
 | 补充-标准 | 股本、SBC | 有则抓 | provider_api > official_web |
 | growth_rates | revenue_yoy_fy, revenue_yoy_q | 必填——agent 拉完两期数据后计算 | derived |
 
+> **Derived fields constraint**: 所有 derived 字段（包括 growth_rates、弹性比率、任何 arithmetic ratio）的输入必须来自 `actuals-resolved.json` 中真实已披露数据。**禁止用 FY2026E / consensus estimate / forward-looking number 作为输入计算 ratio 并写入 actuals。** 某个输入字段没有 actuals → 该 derived 字段标 `[未披露]`，不计算、不推断。
+
 **弹性采集**（先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 只抓该模板字段）：
 
 | KPI | actuals 字段 | 条件 |

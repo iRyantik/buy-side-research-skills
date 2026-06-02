@@ -156,14 +156,16 @@ flowchart LR
 
 **(a) 标准比率**（4 个，全部公司必算，数据从 actuals 取）：
 
-| # | 比率 | 公式 | 用途 |
-|---|---|---|---|
-| 1 | FCF Yield | FCF ÷ Market Cap | 真实股息能力 |
-| 2 | Net Cash | Cash - Total Debt | 安全垫——倒闭风险 |
-| 3 | Debt / Equity | Total Debt ÷ Equity | 杠杆——会不会被债压死 |
-| 4 | Capex / Rev | CapEx ÷ Revenue | 投资强度 |
+> **Actuals only — 禁止用 estimate 算 ratio**：FCF、CapEx、Cash、Debt、Equity、Revenue 每个输入字段必须来自 `actuals-resolved.json` 中 FY/A 期数据。**任何 FY2026E / consensus / forward estimate 不能参与 ratio 计算。** 输入字段缺 actuals → ratio 标 `[未披露]`，不补、不推、不估算。
 
-**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个）：
+| # | 比率 | 公式 | 用途 | 数据来源（actuals 字段） |
+|---|---|---|---|---|
+| 1 | FCF Yield | FCF ÷ Market Cap | 真实股息能力 | FCF=operating_cf - capex, Market Cap=market_data.market_cap |
+| 2 | Net Cash | Cash - Total Debt | 安全垫——倒闭风险 | Cash, Total Debt=total_debt |
+| 3 | Debt / Equity | Total Debt ÷ Equity | 杠杆——会不会被债压死 | Total Debt=total_debt, Equity=total_equity |
+| 4 | Capex / Rev | CapEx ÷ Revenue | 投资强度 | CapEx=capex, Revenue=total_revenue |
+
+**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束）：
 
 | Business Model | 弹性比率 |
 |---|---|
