@@ -107,8 +107,8 @@ flowchart LR
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个 Q/H period**两行的数据（含同比变化）。期间拆行为独立行；period label 必须读取 `actuals-resolved.json` 的真实标签 / basis，不得把 HK H1 写成 Q2 或 Q4。
 
-| 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | **弹性1** | **弹性2** | Ev |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|
 | 分部 A | FY2024 | 1,200 | 45% | +12% | 336 | EBIT | 65% | 28% | +2pp | — | — | [S1](./_cache/sources/company-annual-report.md) |
 | 分部 B | FY2024 | 933 | 35% | +3% | 131 | EBIT | 25% | 14% | +1pp | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
 | 分部 C | FY2024 | 533 | 20% | -8% | [ND] | — | — | — | — | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
@@ -139,41 +139,45 @@ flowchart LR
 > 反例（流水账）："公司分为 A、B、C 三个分部，A 主要做 X，收入占比 45%，B 主要做 Y..."——这是把表格用文字念了一遍
 > 正例："公司表面是 A+B+C 三业务，但 A 贡献 65% 利润且利润率持续扩张，B/C 在量价双杀；从买方视角这其实是个 A 业务的纯标的，B/C 是干扰项"
 
-### 4. 关键比率（标准 + 弹性）
+### 4. Growth Drivers & KPIs
 
-**标准**（2 个，所有公司必算）：
+> agent 先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
+
+**(a) 标准比率**（4 个，全部公司必算，数据从 actuals 取）：
 
 | # | 比率 | 公式 | 用途 |
 |---|---|---|---|
-| 1 | Gross Margin | (Rev - COGS) ÷ Rev | 定价权——底层竞争力 |
-| 2 | FCF / NI | FCF ÷ Net Income | 利润现金转化——是不是真赚钱 |
+| 1 | FCF Yield | FCF ÷ Market Cap | 真实股息能力 |
+| 2 | Net Cash | Cash - Total Debt | 安全垫——倒闭风险 |
+| 3 | Debt / Equity | Total Debt ÷ Equity | 杠杆——会不会被债压死 |
+| 4 | Capex / Rev | CapEx ÷ Revenue | 投资强度 |
 
-**弹性**（从 `references/kpi-drivers/` 模板选 2-3 个最相关的）：
+**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个）：
 
 | Business Model | 弹性比率 |
 |---|---|
-| order-driven | Backlog / Q Rev（覆盖月数）、Orders YoY、R&D / Rev |
+| order-driven | Backlog / Q Rev、Orders YoY、R&D / Rev |
 | process-industry | Production YoY、Utilization % |
-| long-cycle | Backlog / Annual Rev（visibility years） |
+| long-cycle | Backlog / Annual Rev |
 | utility-infra | Utilization %、Capacity YoY |
 | tech-manufacturing | R&D / Rev、Backlog YoY |
 | saas-software | NRR、Magic Number |
-| ai-emerging | Cash / Monthly Burn（runway） |
+| ai-emerging | Cash / Monthly Burn |
 
-拿不到的标 [ND]。所有数字从 actuals 算，不得随手拍。若 latest period 是 H1，不 annualize，除非标 `[年化]`。
+**(c) 弹性 Driver 表**（和 §3 同行同结构——每个分部 × FY + Q/H）：
 
-**泛化兜底**：agent 可追加 1 个 template 未覆盖但对 thesis 有意义的比率，标来源 + 为什么重要。
+从 kpi-drivers 模板选 4-6 个 KPI 作为列。例（order-driven）：
 
-**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？
+| 分部 | 期间 | Backlog | Backlog YoY | Orders | B2B | Coverage | Ev |
+|---|---|---|---|---|---|---|---|
+| PG | FY2025 | SEK 2,100m | +5% | 890m | 0.8x | 2.4mo | [S1] |
+| PG | Q1 2026 | SEK 1,200m | -30% | 597m | 0.7x | 1.8mo | [S1] |
 
-| 比率 | 当前值 | 判断 | Ev |
-|---|---|---|---|
-| Gross Margin | 28% | 定价权——越高越有议价力，趋势比绝对值重要 | [S1](./_cache/sources/income-statement.md) |
-| OpEx / 收入 | 18% | 经营杠杆——费用结构决定利润弹性 | [S1](./_cache/sources/income-statement.md) |
-| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S2](./_cache/sources/cashflow-statement.md) |
-| FCF | ¥2,500M | 真金白银，利润可以造假现金不能 | [S2](./_cache/sources/cashflow-statement.md) |
-| 有息负债 / 净资产 | 35% | >50% 是警戒线 | [S3](./_cache/sources/balance-sheet.md) |
-| 商誉 / 净资产 | 12% | >50% 单独看减值风险 | [S3](./_cache/sources/balance-sheet.md) |
+拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
+
+**(d) 泛化兜底**：agent 发现 template 未覆盖但对 thesis 有意义的 extra KPI（最多 2 个），标 source + relevance。
+
+**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
 ### 5. 什么在驱动股价
 > 数据锚点：actuals-resolved.json market_data + income_statement；股价历史：同文件缓存
