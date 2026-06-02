@@ -176,6 +176,16 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 路径不明 → new-session 解析行业。
 
+## Growth Quality（200 字）
+
+基于上述 driver 拆解，回答三个增长质量问题：
+
+| 维度 | 判断 | 证据 |
+|---|---|---|
+| Organic vs M&A | 过去 3Y 增长中 ~X% organic | M&A 贡献 ~Y%（acquisition disclosure 推算） |
+| Leading Indicator | [Backlog YoY / Orders YoY / Capacity ramp] | [具体数字] |
+| Margin Trajectory | [扩张/稳定/压缩] | EBIT margin FY N-2 X% → FY N Y% |
+
 ## 反模式自查
 
 - ❌ 只复述 segment 名称，没有翻译 business reality——看到 Solutions / Systems / Industrial 不追问。

@@ -100,7 +100,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.1 通用维度（所有行业都列）
 
-| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
+| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | **利润 YoY** | **Margin Δ(bp)** | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | **PEG** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
 
 **跨市场规则**：如果同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准这 5 列必填。单市场表可省略。此规则在反模式自查中强制检查。
 
@@ -252,6 +252,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 格式：
 > **错配点**：X PE 28x TTM，Y PE 18x TTM——X 增长 25% / Y 增长 22%
+> **Growth-adjusted view**：PEG X=1.1x vs Y=0.8x——表面 X 贵，growth-adjusted Y 更贵
 > **预期 spread**：增速差 ~14%，PE 正常 spread 应 ~20-30%
 > **实际 spread**：PE gap 55%（X 比 Y 贵 55%）
 > **解读**：市场可能给了 X 过高的 CPO 溢价，或 Y 有未 price in 的风险。EV/EBITDA（X 35x vs Y 22x）同样指向这个 gap

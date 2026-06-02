@@ -215,6 +215,14 @@ flowchart TD
 
 路径不明 → new-session 解析行业。
 
+## Implied Growth Check
+
+当前 PE × ROE × payout → 反推隐含永续 growth。对比 consensus 3Y revenue CAGR：
+
+- Implied growth > consensus → 市场在 price 比共识更乐观——搞清楚多出来的是什么
+- Consensus > implied growth → safety margin 存在
+- 如果 consensus 3Y growth 远低于 implied growth → multiple re-rate risk
+
 ## 反模式自查
 
 写完必须自查，命中就重写：
