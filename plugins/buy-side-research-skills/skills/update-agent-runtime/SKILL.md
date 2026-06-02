@@ -65,17 +65,21 @@ Auto-detect all installed hosts:
 For each detected host:
 
 1. Update marketplace plugin to latest release
-2. Refresh plugin cache (copy marketplace skills to cache version dir)
-3. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
-4. Sync workspace runtime assets (hooks, `references/policy/`, `CLAUDE.md`, `AGENTS.md`)
+2. Create/populate plugin cache with latest version directory (copy marketplace skills)
+3. **Update host runtime pointer to latest cache version**:
+   - **Claude Code**: update `~/.claude/plugins/installed_plugins.json` → set `version` and `installPath` to latest cache dir
+   - **Codex**: sync latest skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
+4. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
+5. Sync workspace runtime assets (hooks, `references/`, `CLAUDE.md`, `AGENTS.md`)
 
 ## Workspace Sync
 
 After updating hosts, sync the current workspace — no release zip download needed; pull directly from marketplace plugin:
 
-- copy `references/policy/` to workspace root
+- copy `references/` to workspace root (policy + kpi-drivers)
 - sync `.claude/hooks/` (hook_entry.py + rules/) and `.codex/hooks.json`
 - patch managed sections of root `CLAUDE.md` and `AGENTS.md`
+- refresh Codex cache: sync latest marketplace skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
 
 ## File Safety
 
