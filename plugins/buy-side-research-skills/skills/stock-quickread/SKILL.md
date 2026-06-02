@@ -91,7 +91,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 │  → 写入 _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。
 │
-├─ Step 2: evidence_ledger.py init <artifact> -t <TICKER>
+├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
 │  → _cache/evidence/<TICKER>.evidence.json (must exist)
 │
 ├─ Step 3: Discovery — WebSearch 找候选 URL
@@ -106,18 +106,21 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 │  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
 │
 ├─ Step 5: 图片下载
-│  download-product-image.js → _cache/images/<product>.<ext>
-│  Gate: 焦点产品图文件存在
+│  读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
+│  → Playwright MCP browser_run_code_unsafe (code=替换后的脚本)
+│  → 解码返回的 base64 → 写入 _cache/images/<product>.<ext>
+│  所有途径失败 → [缺图]
+│  Gate: ls _cache/images/<product>.<ext> → 不存在且非[缺图]则返回Step5
 │
 ├─ Step 6: Write artifact
 │  每句 claim 句尾 [S#](URL) / [I#](URL)
 │  每个 [I#] 标注验证方式 (Playwright ✅ / WebFetch ✅ / [需查证])
 │  表格式严格按模板（§3c=表, §4a=池, §5=锚点表+场景表+Ev列）
 │
-├─ Step 7: evidence_ledger.py auto <artifact> -t <TICKER>
-│  → 自动创建 ledger pending claims → 补 text/quote/section → verify
+├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+│  → 自动创建 ledger pending claims → agent 补 text/quote/section → verify
 │
-└─ Step 8: evidence_ledger.py lint + status
+└─ Step 8: python _scripts/evidence_ledger.py lint + status
    → anchors 对齐 ✅ + 0 fabrication_risk + coverage >80%
 ```
 
