@@ -166,7 +166,7 @@ flowchart LR
 
 **(c) 弹性 Driver 表**（和 §3 同行同结构——每个分部 × FY + Q/H）：
 
-从 kpi-drivers 模板选 4-6 个 KPI 作为列。例（order-driven）：
+从 kpi-drivers 模板选**能填的所有 KPI** 作为列——有数据的全列，没数据的标 [未披露]。例（order-driven）：
 
 | 分部 | 期间 | Backlog | Backlog YoY | Orders | B2B | Coverage | Ev |
 |---|---|---|---|---|---|---|---|
@@ -175,7 +175,7 @@ flowchart LR
 
 拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
 
-**(d) 泛化兜底**：agent 发现 template 未覆盖但对 thesis 有意义的 extra KPI（最多 2 个），标 source + relevance。
+**(d) 泛化兜底**：agent 发现 template 未覆盖但对 thesis 有意义的 extra KPI，不限制数量——但每个必须标 source + relevance（为什么这个指标对 thesis 重要）。
 
 **行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
