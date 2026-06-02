@@ -35,7 +35,7 @@ Responsible for:
 - Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
 - Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
 - Copying shared workspace hook scripts into `.claude/hooks/` and host adapter config into `.claude/settings.json` and `.codex/hooks.json`.
-- Copying shared reference files (`_shared/`) to workspace root so skills can read research policy and cross-market statement mappings at runtime.
+- Copying shared reference files (`_shared/` and `references/`) to workspace root so skills can read research policy, industry KPI templates, and cross-market statement mappings at runtime.
 - Repairing managed hook assets and hook adapters when the workspace already exists.
 
 Not responsible for:

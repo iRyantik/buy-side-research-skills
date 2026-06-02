@@ -108,7 +108,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.2 行业特定 KPI
 
-**先查现成模板**：`references/industries/` 目录下有 crystallized KPI 模板的行业直接使用（aerospace-defense / oil-gas / renewable-energy / nuclear / advanced-manufacturing / software-ai-applications 等）。
+**先查 industry templates**：`references/industries/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
 
 **没有现成模板时，按 5 步推导**：
 1. 定位 4 个维度：商业模式（commodity / capital equipment / project / SaaS / platform / pre-commercial）+ 周期性 + 政策依赖 + 商业化阶段

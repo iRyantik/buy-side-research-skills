@@ -144,29 +144,43 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三�
 
 **三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
-**市场数据获取逻辑**（trust-based fill，对齐 actuals）：
+**市场数据获取逻辑**（unified incremental fill engine）：
 
-Trust 排名：`Bridge > yfinance > WebSearch > Google Finance`
+Trust 排名：`yfinance > Bridge > WebSearch > Google Finance`
+
+引擎逻辑：每层一次尽可能填多 → 填完立即标记缺口 → 下层只补剩余缺口。
 
 ```
-1. 按需拉取所有可用层（Bridge 仅 US/HK/SH/SZ）
-2. 每层返回时标 [source_layer | as-of]
-3. 每个字段取最高 trust 层的非空值
-4. 高 trust 可覆盖低 trust：先拿到 yfinance PE 35x，后拿到 Bridge PE 34x → 用 Bridge
-5. 低 trust 不覆盖高 trust：yfinance 不能覆盖已有 Bridge 值
-6. 所有层都无值 → [估值待补]
+Layer 1: yfinance(全量) → ticker.info 一次返回 ~50 字段，零额外成本
+  填入: price, mcap, PE TTM, PE NTM, PB, PS, EV/EBITDA, EV/Sales, Dividend Yield, Beta
+  → 检查点: 填了 N1/11，缺口列表
+
+Layer 2: Bridge(覆盖 US/HK/SH/SZ) → 高 trust 覆盖 yfinance 已填字段
+  补: consensus EPS, Target Price, FX
+  → 检查点: 填了 N2/11，缺口列表
+
+Layer 3: WebSearch(逐字段补缺) → 只搜剩余缺口
+  - 优先本地语言：CN→中文+英文，JP→日本語+English，KR→한국어+English，欧美→English
+  - 多缺口合并 query（同页 PE+PB）→ 一次搜填多字段
+  - 单缺口精准搜
+  - 拿到即填，标 [WebSearch | as-of | source site]
+  → 检查点: 填了 N3/11，缺口列表
+
+Layer 4: Google Finance(一次 fetch 补多 gap) → URL 兜底
+  仍缺 → [估值待补]
 ```
 
-每层 Source 说明：
+每层检查点示例：
+```
+yfinance:  8/11, 缺 EV/EBITDA, PEG, Target Price
+Bridge:    9/11, 剩 PEG, Target Price
+WebSearch: 10/11, 剩 PEG
+→ PEG = [估值待补]
+```
 
-1. **Bridge (Longbridge)** — 仅 US/HK/SH/SZ。调 `trusted-market-bridge`，拿 `market_quote` + `valuation_snapshot` + `consensus`。返回结构化数据
-2. **yfinance** — 全球。Python 库，US 最成熟；JP/KR/TW/EU 可能缺字段
-3. **WebSearch** — 全球。搜 `"<ticker> PE ratio market cap stock price"`，从搜索结果摘要（StockAnalysis/MarketScreener 等聚合站）提取。LLM 解析文本
-4. **Google Finance** — WebFetch 全球兜底
+不设 official_web 层：交易所官网只发交易数据 PDF，不计算 PE/PB。
 
-不设 official_web 层：交易所官网只发交易数据 PDF（开盘/收盘/量），不计算 PE/PB/市值。估值指标是数据聚合商计算产物。
-
-拉完后将市场快照写入 `actuals-resolved.json` 的 `market_data` 字段做审计锚（不替代下次拉取）。
+拉完后写入 `actuals-resolved.json` 的 `market_data`（审计锚，不替代下次拉取）。
 
 **Lite 写入的最小字段**：
 
@@ -189,6 +203,8 @@ Trust 排名：`Bridge > yfinance > WebSearch > Google Finance`
 | Beta | 波动率 | 选填 | yfinance |
 | 股价历史 | 1 年期日线（驱动因素分析） | 必填 | yfinance |
 | 补充 | 股本、SBC、backlog | 有则抓 | provider_api > official_web |
+| orders | 当期新签订单（流量，区别于 backlog 存量） | 设备制造公司必填——有则抓，无披露标 [未披露] | official_web > IR |
+| growth_rates | revenue_yoy_fy, revenue_yoy_q | 必填——agent 拉完两期数据后计算（FY 对比 FY-1，Q/H 对比同季度） | derived |
 
 **数据完整性规则**：
 
@@ -210,7 +226,11 @@ Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`sou
 
 触发语：`/financial-data --fill-gaps <ticker>` 或 "补全 xxx 的财务数据"
 
-流程：读 actuals → 遍历 null 字段 → 按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值 → 写回。provider 缺时按以下 web fallback 策略逐层搜索。填不了的标 [ND]。5-10 秒/公司。
+流程：读 actuals → 遍历 null 字段 → **分两轨补填**：
+
+**三表补缺**：按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值。provider 缺时按以下 web fallback 策略逐层搜索。填不了的标 [ND]。
+
+**市场数据补缺**：走统一增量 fill 引擎（yfinance → Bridge → WebSearch → Google Finance），只补 actuals 里缺失的字段。已有字段不覆盖。5-15 秒/公司。
 
 **Web Fallback 策略（通用规则）**：先用 `site:` 限定首选域名 → 不加 site 用关键词 → 还搜不到标 `[ND]`。每个 query 同时用**本地语言 + 英文**各搜一次。
 
