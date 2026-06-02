@@ -94,6 +94,8 @@ Workspace sync must use the latest release zip as the source of truth.
 
 The script must:
 
+- refresh the local plugin cache (create latest version directory and copy skills from marketplace)
+
 - download the latest release zip
 - call packaged `skills/init-workspace/scripts/init-research-workspace.ps1`
 - patch managed sections of root `CLAUDE.md`
@@ -109,7 +111,7 @@ Use the helper script when mutating files:
 
 - `skills/update-agent-runtime/scripts/update_agent_runtime.py`
 
-The helper script is responsible for host detection, release download, host update, workspace repair, and managed doc patching.
+The helper script is responsible for host detection, release download, host update, workspace repair, managed doc patching, and local cache version refresh.
 
 ## File Safety
 
