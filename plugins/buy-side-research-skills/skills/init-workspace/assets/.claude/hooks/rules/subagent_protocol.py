@@ -5,6 +5,11 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import get_primary_heading, block
 
+_RESEARCH_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
+
+def _is_research_artifact(filepath: str) -> bool:
+    return bool(_RESEARCH_ARTIFACT_RE.match(os.path.basename(filepath)))
+
 # 5 default-parallel skills — must have evidence cards
 DEFAULT_PARALLEL = {
     "peer-deep-dive", "candidate-screener",     "pair-trade", "driver-map",
@@ -47,6 +52,10 @@ def check(ctx: dict):
         path = target.get("path") or ""
         text = target.get("text", "")
         display = target.get("display", "unknown")
+
+        # Only check research artifacts, not skill definition files
+        if not _is_research_artifact(display):
+            continue
 
         leaf_norm = re.sub(r'[-_]', ' ', Path(path).stem.lower())
         h1_norm = re.sub(r'[-_]', ' ', (get_primary_heading(text) or "").lower())
