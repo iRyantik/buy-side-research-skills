@@ -11,7 +11,7 @@ Lightweight coverage state at workspace root. Tracks thesis stage, review dates,
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- 本 skill 不调用 financial-data；只读写 `coverage.md`。
+- 本 skill 不调用 financial-data；只读写 `COVERAGE.md`。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法
@@ -42,7 +42,7 @@ Coverage tracker 回答的不是"我们有什么仓"，而是"我们此时此刻
 
 ## 输出结构
 
-`coverage.md`，workspace 根目录，单表：
+`COVERAGE.md`，workspace 根目录，单表：
 
 ~~~markdown
 ## Coverage

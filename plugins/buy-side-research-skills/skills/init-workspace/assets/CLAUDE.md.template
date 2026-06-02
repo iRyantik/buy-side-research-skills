@@ -132,7 +132,7 @@ industry/
         _cache/
     [YYYY-MM-DD]-*.md        # 行业级 artifact
     _cache/
-coverage.md                   # 全局主表——行业 × 公司映射
+COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / priority / next catalyst）
 ```
 
 基本约束：
