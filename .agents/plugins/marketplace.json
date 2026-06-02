@@ -33,8 +33,6 @@
         "mispriced",
         "pure-play",
         "hidden-winners",
-        "挖票",
-        "找票",
         "reddit-sentiment",
         "social-sentiment",
         "financial-data",
@@ -53,5 +51,6 @@
         "codex"
       ]
     }
-  ]
+  ],
+  "version": "5.0.8"
 }

@@ -155,14 +155,14 @@ The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, da
 
 ## Pre-Release Version Audit
 
-每次 CPR 之前执行，全部通过才允许发布：
+每次 CPR 之前执行，全部 7 处通过才允许发布：
 
 ```
-grep -r "version.*\d\.\d\.\d" 确认以下全部对齐：
-  ✅ .claude-plugin/plugin.json     → version
-  ✅ .codex-plugin/plugin.json      → version
-  ✅ .claude-plugin/marketplace.json → version
-  ✅ docs/release.md                → Current release version
-  ✅ README.md                      → 版本历史
-  ✅ git tag                        → vX.X.X
+1. .claude-plugin/plugin.json          → "version": "X.X.X"
+2. .codex-plugin/plugin.json           → "version": "X.X.X"
+3. .claude-plugin/marketplace.json     → "version": "X.X.X"
+4. .agents/plugins/marketplace.json    → "version": "X.X.X"
+5. docs/release.md                     → Current release version: `X.X.X`
+6. README.md                           → > vX.X.X
+7. git tag                             → vX.X.X
 ```
