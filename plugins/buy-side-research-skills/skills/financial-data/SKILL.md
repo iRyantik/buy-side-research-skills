@@ -234,6 +234,8 @@ WebSearch: 10/11, 剩 PEG
 - 连续 2 层（如 yfinance→Bridge）没有任何新字段被填 → 停
 - 剩余缺口全是 `[未披露]`（公司不公布）→ 停
 
+**Topic-facts.json 写入**：拉完后将估值、TAM 相关、弹性 KPI 的定量事实写入 `_cache/topic-facts.json`（本 topic 下的公司级事实缓存，供下游 skill 搜前复用，减少重复搜索）。
+
 **数据完整性规则**：
 
 - ADR/双重股权/H+A：写入 `share_class` 字段
