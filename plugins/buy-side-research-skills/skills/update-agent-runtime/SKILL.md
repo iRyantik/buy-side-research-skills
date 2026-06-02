@@ -94,7 +94,7 @@ Workspace sync must use the latest release zip as the source of truth.
 
 The script must:
 
-- refresh the local plugin cache (create latest version directory and copy skills from marketplace)
+- refresh the local plugin cache for both Claude Code and Codex (create/populate the latest version directory from marketplace skills)
 
 - download the latest release zip
 - call packaged `skills/init-workspace/scripts/init-research-workspace.ps1`
