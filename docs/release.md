@@ -160,8 +160,8 @@ The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, da
 ```
 1. .claude-plugin/plugin.json          → "version": "X.X.X"
 2. .codex-plugin/plugin.json           → "version": "X.X.X"
-3. .claude-plugin/marketplace.json     → "version": "X.X.X"
-4. .agents/plugins/marketplace.json    → "version": "X.X.X"
+3. .claude-plugin/marketplace.json     → "version": "X.X.X"（顶层 + plugins[0].version 双写）
+4. .agents/plugins/marketplace.json    → "version": "X.X.X"（顶层 + plugins[0].version 双写）
 5. docs/release.md                     → Current release version: `X.X.X`
 6. README.md                           → > vX.X.X
 7. git tag                             → vX.X.X
