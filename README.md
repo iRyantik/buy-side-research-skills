@@ -48,30 +48,31 @@
 ### 从行业出发（找机会）
 
 ```
-"用 industry-landscape 看光模块设备行业"
-    → 行业全景：价值池、竞争格局、17 家公司表
-"用 candidate-screener 做分场景 L/S 排序"
-    → 3 个 regime 场景下哪家该多、哪家该空
-"用 peer-deep-dive 比较 Top 5"
-    → 横向矩阵：跨 5 个市场，统一 USD 估值
-"用 scenario-model CPO>15% Long AEHR"
-    → deep-work odds memo：TAM x 份额 x PE = 隐含市值 + upside
+Step 1: teach-in              → 建立物理直觉（光模块是什么、怎么造的、设备链在哪）~20min
+Step 2: industry-landscape    → 行业全景：价值池 51.8B、竞争格局、17 家公司注册表 ~20min
+Step 3: mechanism-insight     → 深挖关键段竞争格局（固晶/耦合/Burn-in/CPO 路线分歧） ~30min
+Step 4: market-sizing         → TAM 拆解（CPO burn-in $1.2B, coupling $2.8B） ~15min
+Step 5: candidate-screener    → 3 regime 分场景 L/S 排序 + 7 策略原型 + 场景推票 ~40min
+  ├→ scenario-model           → CPO>15% 场景 AEHR 理论市值 +148%（量化验证小赌注）
+  └→ peer-deep-dive           → Top 5 横向比较、跨 5 市场统一 USD、growth-adjusted PEG
 ```
 
 ### 从公司出发（深挖一只票）
 
 ```
-"用 stock-quickread 看 MYCR SS"
-    → 5 分钟快扫：业务、财务、催化剂、风险
-    → 自动推荐下一步：moat-analysis / catalyst-map / capital-allocation
-"用 moat-analysis 分析 MYCR 护城河"
-    → Scorecard：技术壁垒 9/10、客户锁入 7/10
-"用 catalyst-map 画催化剂时间线"
-    → 2026 Q3 GT 订单 → 2027 H1 猎奇专利 → ...
-"用 scenario-model bull/base/bear"
-    → Base +22% / Bull +56% / Bear -22% + 最该验证的假设
-"用 alpha-thesis 写完整 thesis"
-    → Long MYCR SS, target SEK 420, kill criteria
+Step 1: stock-quickread       → 5 分钟 first pass：业务总览、焦点产品、财务表（标准+弹性列）、
+                                  Growth Drivers & KPIs、周期位置、5 个深层问题 ~30min
+  ├→ 设备公司 → 强制查 backlog/orders/ASP/B2B；流程工业 → 查产量/成本/利用率
+  └→ 自动路由下一步：moat-analysis / catalyst-map / capital-allocation
+Step 2: financial-data --lite → 三表 + 市场快照（增量 fill：yfinance→Bridge→WebSearch→Google） ~15s
+Step 3: driver-map            → 拆 driver（organic vs M&A / price vs volume / backlog visibility）
+                                  + Growth Quality（leading indicator / margin trajectory） ~30min
+Step 4: moat-analysis         → 五维度评分 + peer 对标 + Hard/Medium/Soft 证据 + Killer Question
+  ├→ catalyst-map             → 概率加权 catalyst chain + payoff ratio + timeline
+  └→ capital-allocation       → 10Y buyback/M&A/dividend/capex ROI + moat bridge
+Step 5: consensus-map         → consensus 隐含增速 vs 当前 PE 反推增速——Gap 在哪？
+Step 6: scenario-model        → bull/base/bear odds memo + Growth/Margin/Multiple 三维 driver mix + sensitivity
+Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 ```
 
 ---
