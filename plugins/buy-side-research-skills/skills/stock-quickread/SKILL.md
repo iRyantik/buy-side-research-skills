@@ -96,7 +96,14 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 6. 每验证一条 claim → evidence_ledger.py add <artifact> <json_payload> 逐条录入账本
 7. evidence_ledger.py lint <artifact> → 确保 artifact 里每个 [S#] 在账本有对应条目
 8. evidence_ledger.py status <artifact> → 确认覆盖率 >80%，无 fabrication_risk
-9. 写 claim 时 [S#](URL) 紧跟
+9. **[Gate] Pre-Write 自查（全部通过才能动笔）**：
+   □ 每个外部 [I#] claim 至少试过 Tier 1 (WebFetch)？
+   □ WebFetch 失败的至少试过 Tier 2 (Playwright)？
+   □ 焦点产品图已下载到 _cache/images/？(用 download-product-image.js, 不 raw curl)
+   □ evidence ledger 每条 claim method 字段非空？
+   □ ledger 里 0 条 fabrication_risk？
+   → 任一未完成→回到资料收集。全部通过→继续。
+10. 写 claim 时 [S#](URL) 紧跟
 ```
 
 ### Source 编号规则

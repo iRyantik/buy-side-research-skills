@@ -1,5 +1,6 @@
 """Hook: every research artifact with [S#]/[I#] anchors must have an evidence ledger.
 If the ledger is missing or contains fabrication_risk claims without override, block.
+Also checks: tier-gap (WebSearch-only → play missing Playwright) and image audit.
 """
 import re, sys, os, json
 
@@ -8,8 +9,13 @@ from common import block, warn
 
 _ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
 ANCHOR_RE = re.compile(r'\[(?:S|I|LBG|P)\d+\]\([^)]+\)')
+IMAGE_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
 
 LEDGER_DIR = "_cache/evidence"
+
+# Methods that count as "actually opened a page" (not AI summary)
+DIRECT_ACCESS_METHODS = {"WebFetch", "Playwright", "curl", "actuals"}
+SUMMARY_METHODS = {"WebSearch", "unknown"}
 
 
 def _find_ledger(artifact_path: str) -> str | None:
@@ -18,12 +24,30 @@ def _find_ledger(artifact_path: str) -> str | None:
     artifact_name = os.path.basename(artifact_path)
     candidates = [
         os.path.join(artifact_dir, LEDGER_DIR, artifact_name + ".evidence.json"),
-        os.path.join(artifact_dir, LEDGER_DIR, artifact_name + ".evidence.json"),
     ]
     for c in candidates:
         if os.path.exists(c):
             return c
     return None
+
+
+def _check_image_exists(artifact_path: str, display: str):
+    """Rule: every _cache/images/* reference must exist on disk."""
+    with open(artifact_path, "r", encoding="utf-8") as f:
+        text = f.read()
+    images = IMAGE_RE.findall(text)
+    missing = []
+    artifact_dir = os.path.dirname(artifact_path)
+    for img in images:
+        if not img.startswith("_cache/images/") and not img.startswith("./_cache/"):
+            continue
+        img_path = os.path.join(artifact_dir, img)
+        if not os.path.exists(img_path):
+            missing.append(img)
+    if missing:
+        block(f"Blocked by evidence_ledger_floor: {display} references {len(missing)} "
+              f"image(s) that don't exist on disk: {', '.join(missing[:5])}. "
+              f"Download product images before writing the artifact.")
 
 
 def check(ctx):
@@ -43,13 +67,16 @@ def check(ctx):
         # Strip code blocks for anchor extraction
         body = re.sub(r'```[^\n]*\n.*?```', '', text, flags=re.DOTALL)
         body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-        # Remove Resources section
         body = body.split('## Resources')[0] if '## Resources' in body else body
 
         anchors = ANCHOR_RE.findall(body)
         if not anchors:
-            continue  # No source anchors → nothing to check
+            continue
 
+        # Rule 1: Image audit (checked first — independent of ledger)
+        _check_image_exists(path, display)
+
+        # Rule 2: Ledger must exist
         ledger_path = _find_ledger(path)
         if not ledger_path:
             block(f"Blocked by evidence_ledger_floor: {display} has {len(anchors)} source anchor(s) "
@@ -62,15 +89,26 @@ def check(ctx):
         except (json.JSONDecodeError, IOError) as e:
             block(f"Blocked by evidence_ledger_floor: {display} has corrupted ledger: {e}")
 
-        # Check fabrication_risk
-        fab_risks = [c for c in ledger.get("claims", []) if c.get("status") == "fabrication_risk"]
+        claims = ledger.get("claims", [])
+
+        # Rule 3: fabrication_risk → block
+        fab_risks = [c for c in claims if c.get("status") == "fabrication_risk"]
         if fab_risks:
             block(f"Blocked by evidence_ledger_floor: {display} has {len(fab_risks)} "
                   f"FABRICATION_RISK claim(s) in ledger: "
                   f"{', '.join(c.get('id','?') for c in fab_risks[:5])}. "
                   f"Either verify the source or remove the claim from the artifact.")
 
-        # Warn if low coverage (less than 50% verified)
+        # Rule 4: Tier-gap — >5 WebSearch claims but 0 direct-access → likely skipped Tier 2
+        if len(claims) > 5:
+            summary_count = sum(1 for c in claims if c.get("method", "unknown") in SUMMARY_METHODS)
+            direct_count = sum(1 for c in claims if c.get("method", "unknown") in DIRECT_ACCESS_METHODS)
+            if summary_count >= 5 and direct_count == 0:
+                block(f"Blocked by evidence_ledger_floor: {display} has {summary_count} claims "
+                      f"with method=WebSearch but 0 with WebFetch/Playwright/curl. "
+                      f"You likely skipped Tier 1-3. Must try WebFetch + Playwright before accepting.")
+
+        # Rule 5: Low coverage → warn
         stats = ledger.get("stats", {})
         total = stats.get("total_claims", 0)
         verified = stats.get("verified", 0)

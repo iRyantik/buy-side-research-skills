@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
-"""Evidence Ledger — claim-to-source traceability for buy-side research artifacts.
+"""Evidence Ledger — claim-to-source traceability for buy-side research.
 
 Usage:
-  python evidence_ledger.py init <artifact.md>
-  python evidence_ledger.py add <artifact.md> <json_payload>
-  python evidence_ledger.py status <artifact.md>
-  python evidence_ledger.py lint <artifact.md>
-  python evidence_ledger.py export <artifact.md>
+  Ticker-scoped (primary — permanent ledger per ticker, cross-artifact reuse):
+    python evidence_ledger.py init <TICKER>
+    python evidence_ledger.py add  <TICKER> <json_payload>
+    python evidence_ledger.py status <TICKER>
+    python evidence_ledger.py lint  <artifact.md> -t <TICKER>
+    python evidence_ledger.py scan  <artifact.md> -t <TICKER>
+    python evidence_ledger.py batch <TICKER> <json_payload>
 
-The ledger is stored alongside the artifact as:
-  _cache/evidence/<artifact-filename>.evidence.json
+  Artifact-scoped (legacy):
+    python evidence_ledger.py init  <artifact.md>      # deprecated — use ticker
+    python evidence_ledger.py add   <artifact.md> ...   # deprecated
+
+The ticker ledger is stored as:
+  _cache/evidence/<TICKER>.evidence.json
 """
 
 import json
@@ -20,117 +26,124 @@ import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 
-LEDGER_DIRNAME = "_cache"
 EVIDENCE_SUBDIR = "evidence"
+LEDGER_DIRNAME = "_cache"
 
-# --- Claim types (from Doublecheck methodology) ---
 CLAIM_TYPES = {"factual", "statistical", "citation", "entity", "causal", "temporal"}
-
-# --- Confidence statuses ---
 STATUSES = {"verified", "plausible", "unverified", "disputed", "fabrication_risk"}
+ANCHOR_RE = re.compile(r'\[(?:S|I)\d+\]\(([^)]+)\)')
+LEDGER_SCHEMA_VERSION = 3
 
-# --- Source anchor regex (same as common.py) ---
-ANCHOR_RE = re.compile(r'\[(?P<code>[SPILBGR]+\d+)\]\((?P<target>[^)]+)\)')
+# Method → tier mapping (lower tier = higher trust)
+METHOD_TIERS = {
+    "actuals": 0,
+    "WebFetch": 1,
+    "Playwright": 2,
+    "curl": 3,
+    "WebSearch": 4,   # AI summary, lowest trust
+    "unknown": 4,
+}
 
-LEDGER_SCHEMA_VERSION = 1
+
+# --- Path resolution ---
+def _ticker_to_ledger_path(artifact_path: str, ticker: str) -> Path:
+    """Resolve <artifact_dir>/_cache/evidence/<TICKER>.evidence.json"""
+    ap = Path(artifact_path).resolve()
+    if ap.is_file():
+        ap = ap.parent
+    ledger_dir = ap / LEDGER_DIRNAME / EVIDENCE_SUBDIR
+    ledger_dir.mkdir(parents=True, exist_ok=True)
+    return ledger_dir / (ticker + ".evidence.json")
 
 
 def _artifact_path_to_ledger_path(artifact_path: str) -> Path:
-    """Resolve <artifact>.md → <dir>/_cache/evidence/<name>.evidence.json"""
+    """Legacy: <dir>/_cache/evidence/<artifact-filename>.evidence.json"""
     ap = Path(artifact_path).resolve()
     ledger_dir = ap.parent / LEDGER_DIRNAME / EVIDENCE_SUBDIR
     ledger_dir.mkdir(parents=True, exist_ok=True)
     return ledger_dir / (ap.name + ".evidence.json")
 
 
+# --- Load / Save ---
 def _load_ledger(ledger_path: Path) -> dict:
     if ledger_path.exists():
         with open(ledger_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {
         "schema_version": LEDGER_SCHEMA_VERSION,
-        "artifact": "",
+        "ticker": "",
+        "artifacts": [],
         "created": "",
         "updated": "",
         "status": "draft",
-        "stats": {
-            "total_claims": 0,
-            "verified": 0,
-            "plausible": 0,
-            "unverified": 0,
-            "disputed": 0,
-            "fabrication_risk": 0,
-        },
+        "stats": {"total_claims": 0},
         "claims": [],
     }
 
 
 def _save_ledger(ledger_path: Path, ledger: dict):
     ledger["updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # Recompute stats
     counts = {s: 0 for s in STATUSES}
-    for c in ledger["claims"]:
+    for c in ledger.get("claims", []):
         s = c.get("status", "unverified")
         if s in counts:
             counts[s] += 1
     ledger["stats"] = {"total_claims": len(ledger["claims"]), **counts}
     if counts["fabrication_risk"] > 0:
         ledger["status"] = "needs_review"
-    elif counts["unverified"] > ledger["stats"]["verified"] * 0.5:
+    elif counts["unverified"] > counts.get("verified", 0) * 0.5:
         ledger["status"] = "low_confidence"
     elif len(ledger["claims"]) == 0:
         ledger["status"] = "draft"
     else:
         ledger["status"] = "complete"
-
     with open(ledger_path, "w", encoding="utf-8") as f:
         json.dump(ledger, f, indent=2, ensure_ascii=False)
 
 
-def cmd_init(artifact_path: str):
-    ledger_path = _artifact_path_to_ledger_path(artifact_path)
+# --- Commands ---
+def cmd_init(path: str, ticker: str = ""):
+    if ticker:
+        ledger_path = _ticker_to_ledger_path(path, ticker)
+    else:
+        ledger_path = _artifact_path_to_ledger_path(path)
     if ledger_path.exists():
-        print(f"Ledger already exists: {ledger_path}")
+        print(f"Already exists: {ledger_path}")
         sys.exit(1)
     ledger = _load_ledger(ledger_path)
-    ledger["artifact"] = os.path.basename(artifact_path)
+    if ticker:
+        ledger["ticker"] = ticker
     ledger["created"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     _save_ledger(ledger_path, ledger)
     print(f"Created: {ledger_path}")
 
 
-def cmd_add(artifact_path: str, payload: str):
-    ledger_path = _artifact_path_to_ledger_path(artifact_path)
+def cmd_add(path: str, payload: str, ticker: str = ""):
+    if ticker:
+        ledger_path = _ticker_to_ledger_path(path, ticker)
+    else:
+        ledger_path = _artifact_path_to_ledger_path(path)
     ledger = _load_ledger(ledger_path)
     try:
         entry = json.loads(payload)
     except json.JSONDecodeError as e:
-        print(f"ERROR: invalid JSON payload: {e}", file=sys.stderr)
+        print(f"ERROR: invalid JSON: {e}", file=sys.stderr)
         sys.exit(1)
-
     required = ["id", "text", "source", "url", "status"]
     missing = [k for k in required if k not in entry]
     if missing:
-        print(f"ERROR: missing required fields: {missing}", file=sys.stderr)
+        print(f"ERROR: missing fields: {missing}", file=sys.stderr)
         sys.exit(1)
-
     if entry["status"] not in STATUSES:
-        print(f"ERROR: invalid status '{entry['status']}'. Allowed: {STATUSES}", file=sys.stderr)
+        print(f"ERROR: invalid status '{entry['status']}'", file=sys.stderr)
         sys.exit(1)
-
-    if "type" in entry and entry["type"] not in CLAIM_TYPES:
-        print(f"ERROR: invalid claim type '{entry['type']}'", file=sys.stderr)
-        sys.exit(1)
-
-    # Fill defaults
     entry.setdefault("type", "factual")
     entry.setdefault("method", "unknown")
     entry.setdefault("quote", "")
     entry.setdefault("section", "")
-    entry.setdefault("checked_at",
-        datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    entry.setdefault("checked_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+    entry.setdefault("provenances", [])
 
-    # If ID already exists, update; otherwise append
     existing = [c for c in ledger["claims"] if c["id"] == entry["id"]]
     if existing:
         idx = ledger["claims"].index(existing[0])
@@ -138,136 +151,199 @@ def cmd_add(artifact_path: str, payload: str):
         print(f"Updated claim {entry['id']}")
     else:
         ledger["claims"].append(entry)
-        # Keep sorted by ID
         ledger["claims"].sort(key=lambda c: c.get("id", ""))
         print(f"Added claim {entry['id']}")
-
     _save_ledger(ledger_path, ledger)
 
 
-def cmd_status(artifact_path: str):
-    ledger_path = _artifact_path_to_ledger_path(artifact_path)
+def cmd_status(path: str, ticker: str = ""):
+    if ticker:
+        ledger_path = _ticker_to_ledger_path(path, ticker)
+    else:
+        ledger_path = _artifact_path_to_ledger_path(path)
     if not ledger_path.exists():
-        print("No ledger found. Run 'init' first.")
+        print("No ledger found.")
         sys.exit(1)
     ledger = _load_ledger(ledger_path)
     s = ledger["stats"]
-    print(f"Artifact: {ledger.get('artifact', '?')}")
+    print(f"Ticker:   {ledger.get('ticker', '?')}")
     print(f"Status:   {ledger.get('status', '?')}")
     print(f"Claims:   {s['total_claims']}")
-    print(f"  verified:         {s['verified']}")
-    print(f"  plausible:        {s['plausible']}")
-    print(f"  unverified:       {s['unverified']}")
-    print(f"  disputed:         {s['disputed']}")
-    print(f"  fabrication_risk: {s['fabrication_risk']}")
-    if s["total_claims"] > 0:
-        coverage = (s["verified"] + s["plausible"]) / s["total_claims"] * 100
-        print(f"  Coverage: {coverage:.0f}% (verified+plausible/total)")
+    for st in STATUSES:
+        if st in s:
+            print(f"  {st}:{' ' * (20 - len(st))}{s[st]}")
+    total = s["total_claims"]
+    if total > 0:
+        cov = (s.get("verified", 0) + s.get("plausible", 0)) / total * 100
+        print(f"  Coverage: {cov:.0f}%")
 
 
-def cmd_lint(artifact_path: str):
-    ledger_path = _artifact_path_to_ledger_path(artifact_path)
+def cmd_lint(artifact_path: str, ticker: str = ""):
     if not os.path.exists(artifact_path):
         print(f"ERROR: artifact not found: {artifact_path}", file=sys.stderr)
         sys.exit(1)
-
     with open(artifact_path, "r", encoding="utf-8") as f:
         content = f.read()
-
-    # Find all [S#] and [I#] anchors in artifact body
     body = content.split("## Resources")[0] if "## Resources" in content else content
-    anchors = ANCHOR_RE.findall(body)
-    artifact_codes = {f"{code}" for code, _ in anchors}
+    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
+    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
+    anchors = re.findall(r'\[(S|I)\d+\]', body)
+    artifact_codes = {f"{code}" for code in anchors}
 
     if not artifact_codes:
         print("WARNING: No [S#] or [I#] anchors found in artifact body.")
         return
 
+    if ticker:
+        ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
+    else:
+        ledger_path = _artifact_path_to_ledger_path(artifact_path)
     if not ledger_path.exists():
-        print(f"ERROR: No ledger found. Every [S#]/[I#] in artifact must have a ledger entry.")
-        print(f"  Missing ledger for {len(artifact_codes)} anchor(s): {sorted(artifact_codes)[:10]}")
+        print(f"ERROR: No ledger found at {ledger_path}")
         sys.exit(1)
 
     ledger = _load_ledger(ledger_path)
     ledger_codes = {c.get("source", "") for c in ledger["claims"]}
-
     missing = artifact_codes - ledger_codes
     extra = ledger_codes - artifact_codes
 
     issues = []
     if missing:
-        issues.append(f"  {len(missing)} anchor(s) in artifact but NOT in ledger: {sorted(missing)[:10]}")
+        issues.append(f"  {len(missing)} anchor(s) in artifact NOT in ledger: {sorted(missing)[:10]}")
     if extra:
-        issues.append(f"  {len(extra)} source(s) in ledger but NOT in artifact: {sorted(extra)[:10]}")
-
-    # Check for fabrication_risk entries
+        issues.append(f"  {len(extra)} source(s) in ledger NOT in artifact: {sorted(extra)[:10]}")
     fab_risks = [c for c in ledger["claims"] if c.get("status") == "fabrication_risk"]
     if fab_risks:
-        issues.append(f"  {len(fab_risks)} FABRICATION_RISK claim(s): {[c['id'] for c in fab_risks]}")
+        issues.append(f"  {len(fab_risks)} FABRICATION_RISK: {[c['id'] for c in fab_risks]}")
 
     if issues:
-        print(f"ERROR: Lint failed for {ledger.get('artifact', '?')}:")
+        print(f"ERROR: Lint failed for {ledger.get('ticker', '?')}:")
         for issue in issues:
             print(issue)
         sys.exit(1)
     else:
-        print(f"OK: {len(artifact_codes)} anchor(s) all tracked in ledger. No fabrication risks.")
+        print(f"OK: {len(artifact_codes)} anchor(s) tracked. No fabrication risks.")
 
 
-def cmd_export(artifact_path: str):
-    """Export ledger as compact summary for display."""
-    ledger_path = _artifact_path_to_ledger_path(artifact_path)
+def cmd_scan(artifact_path: str, ticker: str):
+    """Scan artifact for [S#]/[I#], cross-ref with ticker ledger, output new claims."""
+    if not os.path.exists(artifact_path):
+        print(f"ERROR: artifact not found: {artifact_path}", file=sys.stderr)
+        sys.exit(1)
+    with open(artifact_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    body = content.split("## Resources")[0] if "## Resources" in content else content
+    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
+    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
+
+    # Extract all [S#](url) and [I#](url) anchors
+    anchors = re.findall(r'\[(S\d+|I\d+)\]\(([^)]+)\)', body)
+    anchor_map = {}
+    for code, url in anchors:
+        if code not in anchor_map:
+            anchor_map[code] = url
+
+    ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
+    ledger = _load_ledger(ledger_path) if ledger_path.exists() else None
+    known_sources = {c["source"] for c in ledger["claims"]} if ledger else set()
+
+    new_anchors = {k: v for k, v in anchor_map.items() if k not in known_sources}
+    known = {k: v for k, v in anchor_map.items() if k in known_sources}
+
+    print(f"Artifact: {os.path.basename(artifact_path)}")
+    print(f"Ticker:   {ticker}")
+    print(f"Anchors:  {len(anchor_map)} total ({len(known)} known, {len(new_anchors)} new)")
+    if known:
+        print("  Known (skip):")
+        for code in sorted(known):
+            print(f"    [{code}]({known[code][:60]}...)")
+    if new_anchors:
+        print("  New (needs verification):")
+        for code in sorted(new_anchors):
+            print(f"    [{code}]({new_anchors[code][:80]}...)")
+
+
+def cmd_batch(ticker_path: str, ticker: str, payload: str):
+    """Batch upgrade claims in ticker ledger."""
+    ledger_path = _ticker_to_ledger_path(ticker_path, ticker)
     if not ledger_path.exists():
-        print("No ledger found.")
+        print(f"ERROR: ledger not found: {ledger_path}", file=sys.stderr)
         sys.exit(1)
     ledger = _load_ledger(ledger_path)
-    print(json.dumps({
-        "artifact": ledger["artifact"],
-        "status": ledger["status"],
-        "stats": ledger["stats"],
-        "claims_summary": [
-            {
-                "id": c["id"],
-                "source": c["source"],
-                "status": c["status"],
-                "text": c["text"][:80]
-            }
-            for c in ledger["claims"]
-        ]
-    }, indent=2, ensure_ascii=False))
+    try:
+        batch = json.loads(payload)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    claims = batch.get("claims", [])
+    provenance = batch.get("provenance", "")
+    updated = 0
+    for entry in claims:
+        eid = entry.get("id", "")
+        existing = [c for c in ledger["claims"] if c["id"] == eid]
+        if existing:
+            idx = ledger["claims"].index(existing[0])
+            for k, v in entry.items():
+                ledger["claims"][idx][k] = v
+            if provenance and provenance not in ledger["claims"][idx].get("provenances", []):
+                ledger["claims"][idx].setdefault("provenances", []).append(provenance)
+            updated += 1
+        else:
+            entry.setdefault("provenances", [])
+            if provenance and provenance not in entry["provenances"]:
+                entry["provenances"].append(provenance)
+            ledger["claims"].append(entry)
+            updated += 1
+    _save_ledger(ledger_path, ledger)
+    print(f"Batch: {updated} claim(s) updated in {ticker}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Evidence Ledger for research artifacts")
     sub = parser.add_subparsers(dest="command")
 
-    p_init = sub.add_parser("init", help="Create new evidence ledger")
-    p_init.add_argument("artifact", help="Path to artifact .md file")
+    p_init = sub.add_parser("init", help="Create ticker ledger")
+    p_init.add_argument("path", help="Ticker (e.g. BESI.NA) or artifact path")
+    p_init.add_argument("-t", "--ticker", help="Ticker override")
 
-    p_add = sub.add_parser("add", help="Add or update a claim")
-    p_add.add_argument("artifact", help="Path to artifact .md file")
-    p_add.add_argument("payload", help="JSON payload: {id,text,source,url,status,type?,method?,quote?,section?}")
+    p_add = sub.add_parser("add", help="Add claim to ledger")
+    p_add.add_argument("path", help="Ticker or artifact path")
+    p_add.add_argument("payload", help="JSON payload")
+    p_add.add_argument("-t", "--ticker", help="Ticker override")
 
-    p_status = sub.add_parser("status", help="Show coverage statistics")
-    p_status.add_argument("artifact", help="Path to artifact .md file")
+    p_status = sub.add_parser("status", help="Coverage statistics")
+    p_status.add_argument("path", help="Ticker or artifact path")
+    p_status.add_argument("-t", "--ticker", help="Ticker override")
 
-    p_lint = sub.add_parser("lint", help="Check all [S#] in artifact have ledger entries")
-    p_lint.add_argument("artifact", help="Path to artifact .md file")
+    p_lint = sub.add_parser("lint", help="Verify [S#] in artifact tracked")
+    p_lint.add_argument("artifact", help="Artifact .md path")
+    p_lint.add_argument("-t", "--ticker", help="Ticker for ledger")
 
-    p_export = sub.add_parser("export", help="Export ledger summary as JSON")
-    p_export.add_argument("artifact", help="Path to artifact .md file")
+    p_scan = sub.add_parser("scan", help="Scan artifact for new anchors vs ticker ledger")
+    p_scan.add_argument("artifact", help="Artifact .md path")
+    p_scan.add_argument("-t", "--ticker", required=True, help="Ticker")
+
+    p_batch = sub.add_parser("batch", help="Batch upgrade claims")
+    p_batch.add_argument("path", help="Artifact path (for dir resolution)")
+    p_batch.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_batch.add_argument("payload", help="JSON payload: {claims:[{id,status,method,...}], provenance:''}")
 
     args = parser.parse_args()
+    ticker = getattr(args, "ticker", None) or ""
+
     if args.command == "init":
-        cmd_init(args.artifact)
+        cmd_init(args.path, ticker)
     elif args.command == "add":
-        cmd_add(args.artifact, args.payload)
+        cmd_add(args.path, args.payload, ticker)
     elif args.command == "status":
-        cmd_status(args.artifact)
+        cmd_status(args.path, ticker)
     elif args.command == "lint":
-        cmd_lint(args.artifact)
-    elif args.command == "export":
-        cmd_export(args.artifact)
+        cmd_lint(args.artifact, ticker)
+    elif args.command == "scan":
+        cmd_scan(args.artifact, ticker)
+    elif args.command == "batch":
+        cmd_batch(args.path, ticker, args.payload)
     else:
         parser.print_help()
         sys.exit(1)
