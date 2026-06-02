@@ -166,7 +166,7 @@ flowchart LR
 
 **(c) 弹性 Driver 表**（和 §3 同行同结构——每个分部 × FY + Q/H）：
 
-从 kpi-drivers 模板选**能填的所有 KPI** 作为列——有数据的全列，没数据的标 [未披露]。例（order-driven）：
+从 kpi-drivers 模板选**actuals 里已有数据的所有 KPI** 作为列——agent 不重新搜，只读 `actuals-resolved.json` 的 supplementary/segments 字段。有值的全列，没值的标 [未披露]。例（order-driven）：
 
 | 分部 | 期间 | Backlog | Backlog YoY | Orders | B2B | Coverage | Ev |
 |---|---|---|---|---|---|---|---|
