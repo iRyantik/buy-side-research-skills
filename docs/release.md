@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `5.1.0`.
+Current release version: `5.2.1`.
 
 ## Source And Runtime Shape
 
@@ -132,7 +132,7 @@ The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, da
 `/update-agent-runtime` 运行后自动同步双宿主 cache：
 
 ### Claude Code
-1. 创建最新版本缓存目录（如 `5.1.0/`），从 marketplace 复制 skills
+1. 创建最新版本缓存目录（如 `5.2.1/`），从 marketplace 复制 skills
 2. 更新 `~/.claude/plugins/installed_plugins.json` 的 `version` 和 `installPath` 指向最新缓存
 3. 重开 Claude Code session 生效
 
