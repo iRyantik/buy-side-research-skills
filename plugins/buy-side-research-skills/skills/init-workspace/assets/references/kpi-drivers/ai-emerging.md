@@ -2,16 +2,18 @@
 
 AI 应用 / 量子 / 人形机器人 / Pre-Commercial
 
-## Elastic Fields
+## Raw Fields (→ `financial-data --lite` elastic collection)
 
-| KPI | actuals | Source | CN | EN | JP |
-|---|---|---|---|---|---|
-| Cash Burn | derive from CF | CF statement | 现金消耗 | cash burn | キャッシュバーン |
-| Customer Count | `supplementary.customer_count` | IR / earnings call | 客户/用户数 | logo count | 顧客数 |
+| KPI | actuals | CN | EN | JP |
+|---|---|---|---|---|
+| Cash Burn | derive from CF | 现金消耗 | cash burn | キャッシュバーン |
+| Customer Count | `supplementary.customer_count` | 客户/用户数 | logo count | 顧客数 |
 
-## Derived
-- Runway (months) = Cash ÷ Monthly Burn
-- Revenue Quality = recurring % vs one-time %
+## Derived Ratios (→ stock-quickread §4(c) Driver 表)
 
-## Ratios
-- Cash / Monthly Burn | Revenue YoY
+Runway (months) = Cash ÷ Monthly Burn
+Revenue Quality = recurring % ÷ total revenue
+
+## Elastic Ratios (→ stock-quickread §4(b))
+
+Cash / Monthly Burn | Revenue YoY
