@@ -71,7 +71,9 @@ flowchart LR
 ```
 
 **怎么收钱**
-> 一次性设备 / 设备+耗材 / 订阅制 / 维护费
+> 一次性设备 / 设备+耗材 / 订阅制 / 维护费。含定价/产能/客户数等事实 claim 的必须标 source。
+
+例：> 一次性设备（hybrid bonder EUR 3-5M/台）+ 服务。产能从 ~180 台/年扩到 250 台/年 [S#](url)
 
 ##### 焦点 2：<产品线>
 
@@ -185,7 +187,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 > 输出格式：`| # | 比率 | 值 | 判断 | 数据来源 |`，不输出无法计算的比率。
 
-**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束）：
+**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束，每个比率必须有 source）：
 
 | Business Model | 弹性比率 |
 |---|---|
@@ -196,6 +198,8 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 | tech-manufacturing | R&D / Rev、Backlog YoY |
 | saas-software | NRR、Magic Number |
 | ai-emerging | Cash / Monthly Burn |
+
+> 输出格式：`| 比率 | 值 | Ev |`，每个比率必须带 source anchor。
 
 **(c) 弹性 Driver 表**（和 §3 同行同结构——每个分部 × FY + Q/H）：
 
@@ -247,7 +251,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 **什么时候可能不灵**（1 句——历史上哪个季度这个变量和股价背离了）
 
-**情绪在怎么变**（1 句——最近分析师/市场的态度微妙变化）
+**情绪在怎么变**（1 句——最近分析师/市场的态度微妙变化）[S#](...)
 
 **我的看法**（1 句）
 
@@ -286,10 +290,11 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 **(c) 反向工程：当前估值在隐含什么（这是必填、最关键）**
 
-以下四项全部回答：
-- **隐含增长率**：以当前 PE，按合理 ROE / payout，反推市场隐含的长期增长率是多少？这个增长率公司过去做到过吗？
-- **隐含 margin**：以当前 EV/Sales，反推市场对长期 margin 的假设是多少？vs 历史平均 / vs 行业最优秀玩家？
-- **Reverse DCF**：以当前股价、合理 WACC，反推所需的 5 年 FCF CAGR 是多少？
+以下四项全部回答（**每个输入参数必须标注来源**——PE/EV/Sales 来自 market_data，FCF/CapEx 来自 actuals，ROE/WACC 引用计算依据，历史增长引用 actuals 或第三方 source）：
+
+- **隐含增长率**：以当前 PE [I#](url)，按合理 ROE / payout [S#](url)，反推市场隐含的长期增长率是多少？这个增长率公司过去做到过吗 [S#](url)？
+- **隐含 margin**：以当前 EV/Sales [I#](url)，反推市场对长期 margin 的假设是多少？vs 历史平均 / vs 行业最优秀玩家？
+- **Reverse DCF**：以当前股价 [I#](url)、合理 WACC [推算——引用计算依据]，反推所需的 5 年 FCF CAGR 是多少？
 - **Bear-implied**：股价跌到 X（历史低位 / 同业最低）需要发生什么？这个情景的概率？
 
 **示例输出**：
