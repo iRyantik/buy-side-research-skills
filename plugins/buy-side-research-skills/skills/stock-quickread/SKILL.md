@@ -77,7 +77,18 @@ flowchart LR
 
 （同上结构——为什么重要 / 长这样 / 在什么位置 / 怎么收钱。焦点业务必须放图——找不到标 [缺图]，不能跳过。）
 
-> 图片只放焦点业务的。其他业务不配图。① 公司官网 Media Kit → ② web search 产品图 → ③ 找不到用行业代表性图 → ④ 实在没有标 [缺图]。下载到 `当前 topic 的 _cache/images/<slug>-<product>.png`。
+> 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
+>
+> **下载方法**（需要 Playwright MCP 插件）：
+> 1. 读 `_scripts/download-product-image.js`
+> 2. 替换 `{{TARGET_URL}}` 为目标页面 URL（公司 Media Kit → 产品页 → Google Images 搜索）
+> 3. 调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
+> 4. 解码返回的 `images[0].base64`，写入带实际 extension 的目标路径
+>    - Windows PowerShell: `[IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($image.base64))`
+>    - macOS: `IMAGE_BASE64="$base64" OUT_PATH="$outPath" python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["OUT_PATH"]).write_bytes(base64.b64decode(os.environ["IMAGE_BASE64"]))'`
+> 5. 所有途径都失败 → 标 `[缺图]`
+>
+> **图片来源优先级**：① 公司官网 Media Kit → ② 产品页 hero image → ③ web search 产品图 → ④ 行业代表性图 → ⑤ `[缺图]`
 
 #### 其他业务
 

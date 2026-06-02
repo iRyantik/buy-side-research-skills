@@ -306,6 +306,22 @@ foreach ($relativeAsset in @(
     }
 }
 
+foreach ($mcpAsset in @(
+    ".claude/mcp.json",
+    ".codex/mcp.example.json"
+)) {
+    $sourceAsset = Join-Path $assetsRoot $mcpAsset
+    if (Test-Path -LiteralPath $sourceAsset) {
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceAsset `
+            -RelativeTarget $mcpAsset
+
+        Copy-ScriptIfMissing `
+            -SourcePath $sourceAsset `
+            -RelativeTarget (Join-Path "_scripts/init-assets" $mcpAsset)
+    }
+}
+
 $hooksRoot = Join-Path $assetsRoot ".claude/hooks"
 if (Test-Path -LiteralPath $hooksRoot) {
     Get-ChildItem -LiteralPath $hooksRoot -Recurse -File | ForEach-Object {
@@ -328,6 +344,17 @@ foreach ($scriptName in @("ingest.py", "ingest_xlsx.py", "ingest_table_crosschec
             -SourcePath $sourceScript `
             -RelativeTarget (Join-Path "_scripts" $scriptName)
     }
+}
+
+$playwrightScript = Join-Path $assetsRoot "_scripts/download-product-image.js"
+if (Test-Path -LiteralPath $playwrightScript) {
+    Copy-ScriptIfMissing `
+        -SourcePath $playwrightScript `
+        -RelativeTarget "_scripts/download-product-image.js"
+
+    Copy-ScriptIfMissing `
+        -SourcePath $playwrightScript `
+        -RelativeTarget "_scripts/init-assets/_scripts/download-product-image.js"
 }
 
 $requirementsPath = Join-Path $ingestAssetsRoot "requirements-ingest.txt"

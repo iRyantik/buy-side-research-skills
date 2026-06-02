@@ -159,6 +159,8 @@ Rating hard standards：
 
 **产品/设备实物图必须**。来源优先级：公司产品页 hero image → web search → `[缺图]`。
 
+**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写 `_cache/images/<slug>-<product>.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1 焦点业务图片段。
+
 ## Artifact / 保存策略
 
 写入行业 topic 根：

@@ -34,6 +34,8 @@ Responsible for:
 - Copying a unified environment setup template into `_scripts/init-assets/` so users can discover common workspace, filing, and optional VLM environment variables from one place.
 - Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
 - Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
+- Copying a reusable Playwright image-download helper into `_scripts/`.
+- Copying Playwright MCP config templates into workspace root and `_scripts/init-assets/` without overwriting customized user MCP config.
 - Copying shared workspace hook scripts into `.claude/hooks/` and host adapter config into `.claude/settings.json` and `.codex/hooks.json`.
 - Copying shared reference files (`references/policy/` and `references/kpi-drivers/`) to workspace root so skills can read research policy, industry KPI templates, and cross-market statement mappings at runtime.
 - Repairing managed hook assets and hook adapters when the workspace already exists.
@@ -94,12 +96,15 @@ Runtime assets copied by the helper:
 - `skills/init-workspace/assets/gitignore.template`
 - `skills/init-workspace/assets/edge-radar.md`
 - `skills/init-workspace/assets/env-setup.ps1.template`
+- `skills/init-workspace/assets/_scripts/download-product-image.js`
 - `skills/init-workspace/assets/.claude/settings.json`
+- `skills/init-workspace/assets/.claude/mcp.json`
 - `skills/init-workspace/assets/.claude/hooks/`
 - `skills/init-workspace/assets/.claude/hooks/hooks.registry.yaml`
 - `skills/init-workspace/assets/.claude/hooks/run-hook.cmd`
 - `skills/init-workspace/assets/.claude/hooks/run-hook.sh`
 - `skills/init-workspace/assets/.codex/hooks.json`
+- `skills/init-workspace/assets/.codex/mcp.example.json`
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`
@@ -131,6 +136,12 @@ Prefer the helper script over hand-written copy logic.
   - `VLM_MODEL`
 - Optional network mirror:
   - `HF_ENDPOINT`
+- Optional browser automation:
+  - Playwright MCP plugin (`@playwright/mcp`) for product-image / logo download
+  - Claude Code template: `.claude/mcp.json`
+  - Codex reference template: `.codex/mcp.example.json` (not assumed auto-loaded)
+  - Helper script: `_scripts/download-product-image.js` (used by agent, not run directly)
+  - Runtime check: current agent session must expose a Playwright MCP `browser_run_code_unsafe` tool
 
 This entry point is a navigation layer, not a replacement for skill-local detail:
 
@@ -178,6 +189,13 @@ After success or repair:
   - `VLM_API_URL`
   - `VLM_API_KEY`
   - `VLM_MODEL`
+- Playwright MCP (product image / logo download):
+  - Prerequisite: Node.js >= 18
+  - Windows: PowerShell / `pwsh`; Python 3 optional
+  - macOS: `pwsh` + Python 3
+  - Claude Code: see `.claude/mcp.json`
+  - Codex: see `.codex/mcp.example.json`; enable through current Codex-supported MCP / plugin config surface
+  - Verify: current agent session exposes Playwright MCP `browser_run_code_unsafe`
 ```
 
 When blocked:

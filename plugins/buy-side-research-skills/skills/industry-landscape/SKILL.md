@@ -123,6 +123,8 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 ## 图片要求
 
+**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+
 | 图片类型 | 必须 | 来源 |
 |---|---|---|
 | 公司 logo 图 | **必须**（每个产业链环节的代表公司） | 官网 media kit → favicon → web search → `[缺图]` |

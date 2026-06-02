@@ -76,3 +76,29 @@ Write-Host "    macOS:   pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/
 Write-Host "             或 _scripts/bootstrap-ingest-deps.sh --check-only"
 Write-Host "  reddit-sentiment:"
 Write-Host "    这是额外可选 skill；bootstrap 命令请查看 reddit-sentiment 的 SKILL.md。"
+Write-Host "  playwright (产品图/logo 下载，可选):"
+Write-Host "    Windows:    PowerShell/pwsh + Node.js >= 18 (npx); Python 3 optional"
+Write-Host "    macOS:      pwsh + Node.js >= 18 (npx) + Python 3"
+Write-Host "    Claude:     see _scripts/init-assets/.claude/mcp.json"
+Write-Host "    Codex:      see _scripts/init-assets/.codex/mcp.example.json; use current Codex MCP/plugin config surface"
+Write-Host "    Verify:     current agent session exposes Playwright MCP browser_run_code_unsafe"
+
+# --- Playwright MCP 浏览器自动化（产品图/logo 下载需要）---
+# 用途: 让 agent 通过 Playwright MCP 读取网页并下载产品图/logo。
+# 前置条件:
+#   Windows: PowerShell 或 pwsh, Node.js >= 18（npx 需要）, Python 3 optional
+#   macOS:   pwsh, Node.js >= 18（npx 需要）, Python 3
+#
+# Claude Code:
+#   参考模板: _scripts/init-assets/.claude/mcp.json
+#   如果当前 Claude Code 支持 project-level .claude/mcp.json，可复制到 workspace .claude/mcp.json。
+#
+# Codex:
+#   参考模板: _scripts/init-assets/.codex/mcp.example.json
+#   不假设 project-level .codex/mcp.json 会自动加载；按当前 Codex 支持的 plugin / MCP config 入口启用。
+#
+# 验证:
+#   在当前 agent session 的 tool list 中确认存在 Playwright MCP 的 browser_run_code_unsafe tool。
+#   实际 tool id 由宿主决定，不要硬编码 mcp__plugin_playwright_playwright__browser_run_code_unsafe。
+#
+# 首次运行 Playwright MCP 可能会通过 npx 下载 package / browser runtime。
