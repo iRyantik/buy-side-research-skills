@@ -10,7 +10,7 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for industry-level investment judgment, value chain mapping, and company registration. Do not do single-company deep dives (→ `stock-quickread`) or single-mechanism deep dives (→ `mechanism-insight`).
 - Requires company logo images and product photos. Fallback: company media kit → product page hero → web search → `[缺图]`.
 

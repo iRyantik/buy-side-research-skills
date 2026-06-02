@@ -10,7 +10,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -83,7 +83,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## 会计红旗公式
 
-科目多语对照见 `_shared/statement-line-items.md`。
+科目多语对照见 `references/policy/statement-line-items.md`。
 
 | # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
 |---|---|---|---|---|---|

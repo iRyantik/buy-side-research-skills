@@ -68,4 +68,4 @@
 | `[需查证]` | 数字存在但 source 待验证 |
 | `[标注推算依据]` | 有推算逻辑，标推算方法 |
 
-> 完整 source policy 见 `_shared/research-policy-baseline.md` 和 workspace `CLAUDE.md`。
+> 完整 source policy 见 `references/policy/research-policy-baseline.md` 和 workspace `CLAUDE.md`。

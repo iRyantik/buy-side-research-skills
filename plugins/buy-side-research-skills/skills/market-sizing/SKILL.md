@@ -10,7 +10,7 @@ Turn "how big is this market" into a structured estimate where every row has a s
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 当需要公司-level baseline 时使用。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 

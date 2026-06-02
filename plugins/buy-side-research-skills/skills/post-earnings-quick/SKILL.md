@@ -10,7 +10,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取最新 actuals + 市场快照。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 

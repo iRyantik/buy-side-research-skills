@@ -10,7 +10,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
 - Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
 
@@ -28,7 +28,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Financial-Data 联动
 
-从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
+弹性 KPI 先查 `references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
 
 1. revenue_split 存在 → 按 source_type 归类：`official-xbrl-dimension` = provider-structured，`filing-table-extracted` = provider-table-review → 转 model bucket
 2. revenue_split 缺失 → 读 `full-filing.md`，LLM 抽 disclosed split → 标 `llm-extracted-review`

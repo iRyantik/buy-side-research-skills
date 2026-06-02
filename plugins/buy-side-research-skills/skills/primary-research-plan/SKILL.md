@@ -10,7 +10,7 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把一个投资假设转成可执行的 primary research plan。**核心不是写问题清单**——是选对 hypothesis、找对 persona、设对 decision gate。问题清单只是执行工具。

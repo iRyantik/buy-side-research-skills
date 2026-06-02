@@ -67,13 +67,13 @@ For each detected host:
 1. Update marketplace plugin to latest release
 2. Refresh plugin cache (copy marketplace skills to cache version dir)
 3. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
-4. Sync workspace runtime assets (hooks, `_shared/`, `CLAUDE.md`, `AGENTS.md`)
+4. Sync workspace runtime assets (hooks, `references/policy/`, `CLAUDE.md`, `AGENTS.md`)
 
 ## Workspace Sync
 
 After updating hosts, sync the current workspace — no release zip download needed; pull directly from marketplace plugin:
 
-- copy `_shared/` to workspace root
+- copy `references/policy/` to workspace root
 - sync `.claude/hooks/` (hook_entry.py + rules/) and `.codex/hooks.json`
 - patch managed sections of root `CLAUDE.md` and `AGENTS.md`
 
@@ -105,7 +105,7 @@ After success:
 
 ## Workspace
 - hooks: synced
-- _shared/: synced
+- references/policy/: synced
 - claude_md: updated / skipped
 ```
 

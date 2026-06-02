@@ -10,7 +10,7 @@ Choose the highest-value next research question when a thread feels stuck or inc
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把当前研究卡点压缩成一个最高杠杆问题。**核心价值不是安排任务**，而是判断现在最可能改变业务实质、model driver、市场预期、peer framing 或研究优先级的那个问题是什么，并决定是直接追问，还是先 handoff 到上游 primitive。

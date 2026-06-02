@@ -10,7 +10,7 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -108,7 +108,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.2 行业特定 KPI
 
-**先查 industry templates**：`references/industries/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
+**先查 industry templates**：`references/kpi-drivers/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
 
 **没有现成模板时，按 5 步推导**：
 1. 定位 4 个维度：商业模式（commodity / capital equipment / project / SaaS / platform / pre-commercial）+ 周期性 + 政策依赖 + 商业化阶段

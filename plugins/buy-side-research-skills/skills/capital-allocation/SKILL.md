@@ -10,7 +10,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker> --periods 10Y` 获取 10 年 CF 数据（buyback/dividend/capex/M&A）。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 

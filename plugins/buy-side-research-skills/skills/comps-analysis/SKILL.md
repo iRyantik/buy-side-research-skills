@@ -10,7 +10,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
@@ -227,7 +227,7 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## 估值倍数公式
 
-科目多语对照见 `_shared/statement-line-items.md`。
+科目多语对照见 `references/policy/statement-line-items.md`。
 
 | # | 倍数 | 公式 | 输入来源 | 常见陷阱 |
 |---|---|---|---|---|

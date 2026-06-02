@@ -99,7 +99,7 @@ Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-upda
    - workspace 高层宪法模板
 3. invoked `SKILL.md`
    - runtime executable contract
-4. `_shared/research-policy-baseline.md`
+4. `references/policy/research-policy-baseline.md`
    - authoring baseline only，not runtime authority
 
 runtime 行为上，如果 template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
@@ -157,7 +157,7 @@ modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`�
 
 任何公共 research 规则变更，必须在同一个 change 里同步：
 
-1. `_shared/research-policy-baseline.md`
+1. `references/policy/research-policy-baseline.md`
 2. 所有受影响的 active research `SKILL.md`
 3. 如影响 workspace 高层摘要，再改 `CLAUDE.md.template`
 4. 如影响 public behavior / package language，再改 `README.md`、`docs/release.md`、payload manifests / marketplace manifests
@@ -396,7 +396,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -419,7 +419,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
