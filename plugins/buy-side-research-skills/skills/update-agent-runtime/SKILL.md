@@ -104,20 +104,28 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
 - `download-product-image.js` — Playwright image-download helper
 
-**C2 — Skill workspace assets** (automatically discovered — same self-registration rule as init-workspace):
+**C2 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
 
 ```
 for each skill_dir in skills/*/:
+    if .platform exists → skip (platform skill, deployed by C1/A类)
+
     dst = _scripts/<skill-name>/
 
     if scripts/ exists:
         cp -r scripts/* → dst/
 
     if assets/ exists:
-        cp -r assets/* → dst/
+        for each file in assets/ (recursive):
+            if file is under assets/templates/:
+                cp → dst/  (copy if missing)
+            else:
+                cp → dst/  (overwrite)
+
+    # references/ and examples/ are NOT deployed.
 ```
 
-> Adding a new script, config, template, or data file to a skill is zero changes to this skill. The directory-level rule handles it.
+> Adding a file to a skill's `scripts/` or `assets/` → automatically deployed. Zero changes to this skill.
 
 **Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `_scripts/` that are not in the source lists are left untouched.
 

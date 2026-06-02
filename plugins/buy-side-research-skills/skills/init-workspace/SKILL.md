@@ -45,22 +45,31 @@ The invariant is separation of concerns:
 | `gitignore.template` | `.gitignore` | Overwrite |
 | `.env.template` | `.env.template` | Copy if missing |
 
-**B类 — Skill workspace assets** (automatically discovered from each skill's directory):
+**B类 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
 
-> **Self-registration rule**: Every skill in the plugin self-registers what it needs in the workspace by putting files in its own `scripts/` and/or `assets/` directories. init-workspace and update-agent-runtime discover and copy these automatically. Adding a new script, config, template, or data file to a skill is zero changes to either skill.
+> **Self-registration rule**: Each skill self-registers what it needs in the workspace by putting files in `scripts/` or `assets/`. Adding a file → automatically deployed. Zero changes to this skill.
 
 ```
 for each skill_dir in skills/*/:
+    if .platform exists → skip (platform skill, deployed by A类)
+
     dst = _scripts/<skill-name>/
 
     if scripts/ exists:
-        cp -r scripts/* → dst/          # Python scripts, providers/, any submodules
+        cp -r scripts/* → dst/
 
     if assets/ exists:
-        cp -r assets/* → dst/           # requirements, templates, configs, reference data, clusters, etc.
+        for each file in assets/ (recursive):
+            if file is under assets/templates/:
+                cp → dst/  (copy if missing — user may have customized)
+            else:
+                cp → dst/  (overwrite — canonical plugin version)
+
+    # references/ and examples/ are NOT deployed.
+    # Agent reads them directly from the plugin cache when executing the skill.
 ```
 
-> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No manual registration. You create the file, the system deploys it. |
+> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No per-skill registration.  |
 
 **Environment setup:**
 - Check Python 3.10+ availability.

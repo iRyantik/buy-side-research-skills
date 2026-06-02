@@ -224,6 +224,39 @@ hooks-first 补充 hard gate：
 - 不把 examples 当 runtime dependency。
 - 不把 root `screens/`、`peers/`、`quickreads/`、`cross-market/` 恢复为 active artifact 默认路径。
 
+## Skill Directory Spec
+
+每个 skill 目录下允许以下子目录。这是收口——新 skill 只能创建这里列出的目录，init-workspace 和 update-agent-runtime 的 auto-discovery 也只处理这些。
+
+### 目录定义
+
+| 目录 | 职责 | 部署行为 | 策略 |
+|---|---|---|---|
+| `scripts/` | 可执行代码（.py, .js） | `_scripts/<skill>/` | 覆盖 |
+| `assets/` | 数据文件、配置、requirements、模板 | `_scripts/<skill>/` | 覆盖 |
+| `assets/templates/` | 用户可改的模板文件 | `_scripts/<skill>/` | 缺时补 |
+| `references/` | 该 skill 自己的参考文档 | **不部署** — agent 直接从 plugin cache 读取 | — |
+| `examples/` | 示例产物、示例 HTML | **不部署** — agent 直接从 plugin cache 读取 | — |
+| `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），资产走 A类部署到 workspace root，不参与 B类 auto-discovery | — | — |
+
+### 规则
+
+1. **不部署 ≠ 不重要** — `references/` 和 `examples/` 是该 skill 的 canonical 参考和示例，agent 执行 skill 时能直接从 plugin cache 读。不能因为不落地 workspace 就删。
+2. **没有 runtime 需求不创建空目录** — 如果 skill 不需要脚本或 assets，就不建 `scripts/` / `assets/`。
+3. **不要在此清单外新增目录** — 如果有新需求，先来改这个 spec，再建目录。
+4. **B类 auto-discovery** — init-workspace 和 update-agent-runtime 的 B类规则就是遍历 `skills/*/scripts/` + `skills/*/assets/`。加新文件到这些目录 → 自动部署，零改动。
+
+### Deployment 矩阵总览
+
+```
+skills/<skill>/scripts/          →  _scripts/<skill>/          覆盖
+skills/<skill>/assets/           →  _scripts/<skill>/          覆盖
+skills/<skill>/assets/templates/ →  _scripts/<skill>/          缺时补
+skills/<skill>/references/       →  (不部署，agent 读 cache)
+skills/<skill>/examples/         →  (不部署，agent 读 cache)
+skills/<skill>/.platform         →  A类，部署到 workspace root
+```
+
 ## 运行输出契约
 
 默认输出短而可执行：
