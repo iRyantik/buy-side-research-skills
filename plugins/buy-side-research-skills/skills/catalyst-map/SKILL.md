@@ -52,10 +52,12 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+
 ~~~markdown
 ## Catalyst Timeline
 
-| 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact |
+| 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact | Ev |
 |---|---|---|---|---|---|---|---|
 | 2026 Q3 | Q2 GT orders >SEK 350M | 40% | ↑ | +15% | 3.0x | Base rate: 4Q中2Q超 | 验证 1.6T 升级 driver |
 | 2026 Q4 | 英伟达 Rubin 含 CPO | 25% | ↑ | +25% | 5.0x | Proxy: 架构泄露信号 | CPO 路线验证 |
@@ -65,7 +67,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Payoff Matrix
 
-| Rank | Catalyst | Payoff Ratio | Weighted Impact |
+| Rank | Catalyst | Payoff Ratio | Weighted Impact | Ev |
 |---|---|---|---|
 | 1 | Rubin 含 CPO | 5.0x | +6.3% (25% × 25%) |
 | 2 | GT >350M | 3.0x | +6.0% (40% × 15%) |

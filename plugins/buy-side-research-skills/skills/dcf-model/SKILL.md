@@ -1141,7 +1141,9 @@ WACC = (Cost of Equity × Equity Weight) + (After-tax Cost of Debt × Debt Weigh
 
 This approach centralizes scenario logic, making the model easier to audit and maintain.
 
-## Deliverables Structure
+## Deliverables
+
+> **Source contract**：所有 DCF output 数字必须标注来源——FCF 来自 actuals、WACC 计算依据、terminal growth 引用来源。 Structure
 
 **File naming**: `[Ticker]_DCF_Model_[Date].xlsx`
 

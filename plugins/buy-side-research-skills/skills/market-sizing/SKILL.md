@@ -61,6 +61,8 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+
 ~~~markdown
 ## TAM Breakdown
 
@@ -76,13 +78,13 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## SAM (addressable by Company)
 
-| Company | Addressable Segment | SAM | Share Rationale |
+| Company | Addressable Segment | SAM | Share Rationale | Ev |
 |---|---|---|---|
 | AEHR | CPO burn-in test | $720M | 当前唯一晶圆级 Burn-in 供应商 |
 
 ## Key Assumptions
 
-| 假设 | 值 | 替代情景 | 为什么 |
+| 假设 | 值 | 替代情景 | 为什么 | Ev |
 |---|---|---|---|
 | HPC DC count 2028 | 50 | 30–70 | AMD/NVDA roadmaps suggest 50-60; if ASIC-only, could be 30 |
 | CPO penetration | 15% by 2028 | 5–25% | Broadcom Bailly 2027; if delayed, 5% |

@@ -138,6 +138,8 @@ Agent 根据用户 query 自动判定方向。
 
 ## 输出结构（固定为 odds memo）
 
+> **Source contract**：所有 Implied Value、Upside/Downside %、Calculation 数字、Sensitivity 场景值必须带 source anchor。Assumptions 表已有 来源+Tier 列，其他数字表一律加 Ev。
+
 ~~~markdown
 ## Scenario Verdict
 
@@ -146,7 +148,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## Bull / Base / Bear Table
 
-| Case | Key Assumptions | Implied Value | Upside / Downside | Why it matters |
+| Case | Key Assumptions | Implied Value | Upside / Downside | Why it matters | Ev |
 |---|---|---|---|---|
 | Bull | ... | ... | ... | ... |
 | Base | ... | ... | ... | ... |
@@ -168,7 +170,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## Calculation
 
-| Step | Value |
+| Step | Value | Ev |
 |---|---|
 | 场景收入 | $720M |
 | 场景利润 | $180M |
@@ -178,7 +180,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## Sensitivity
 
-| 变量 | Bear | Base | Bull | 相关性 |
+| 变量 | Bear | Base | Bull | 相关性 | Ev |
 |---|---|---|---|---|
 | TAM | $0.8B | $1.2B | $1.5B | ↑TAM → ↓share 压力 |
 | 份额 | 40% | 60% | 75% | ↑share → ↓margin 可能（价格竞争） |

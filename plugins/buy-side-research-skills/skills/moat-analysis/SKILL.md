@@ -109,6 +109,8 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+
 ~~~markdown
 ## Moat Scorecard
 
@@ -119,7 +121,7 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 | 规模效应 | 5 | Rev doubled in 3Y, gross margin +300bp | Hard | 6 | 4 |
 | 监管/认证 | 3 | — | Soft | 3 | 3 |
 | 品牌 | 4 | 瑞典品牌，中国市场无溢价 | Soft | 6 | 3 |
-| **Total** | **5.6** | — | — | **5.8** | **3.8** |
+| **Total** | **5.6** | — | — | **5.8** | **3.8** | Ev |
 
 ## Moat Trajectory
 

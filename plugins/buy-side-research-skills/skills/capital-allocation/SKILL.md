@@ -85,6 +85,8 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## 输出结构
 
+> **Source contract**：Scorecard 评分、ROIC/FCF/conversion 数字、buyback yield 等每行必须带 source anchor。
+
 ~~~markdown
 ## Capital Allocation Scorecard
 
