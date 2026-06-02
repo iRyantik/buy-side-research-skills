@@ -140,7 +140,7 @@ def main():
         sys.exit(0)
 
     tool = get_tool_name(payload)
-    if tool not in ("Write", "Edit", "MultiEdit"):
+    if tool not in ("Write", "Edit", "MultiEdit", "apply_patch", "write_file"):
         sys.exit(0)
 
     path, content = _extract_write_content(payload)

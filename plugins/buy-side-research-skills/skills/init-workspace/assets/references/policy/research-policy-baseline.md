@@ -141,6 +141,8 @@ Tier 4  标 [需查证] + Resources 记录尝试过的URL    — honest degradat
 
 **跨 artifact 证据复用**: 同一 ticker 的 evidence ledger 为永久账本。后续 skill 先读 ledger → 已有 verified claims 直接复用 → 只 fetch 新增。
 
+**跨 ticker claim**: 涉及两个 ticker 的对比 claim（如 "BESI 市占 70% vs ASMPT TCB 15%"）——归属到其中**数据较全的 ticker**的 ledger。两个 ticker 分别在各自 ledger 里有对应的对比数据时，claim 同时写入双方 ledger 的 provenances 字段。
+
 **Source 编号**: [S1-S9] 公司披露, [I1-I20] 第三方, URL 页面级, 同一 URL 复用同一编号。
 
 ## 4. 反幻觉硬规则
