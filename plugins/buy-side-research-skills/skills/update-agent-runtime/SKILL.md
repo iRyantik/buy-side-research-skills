@@ -13,7 +13,7 @@ Three things to keep in sync:
 
 - the **host plugin runtime** (Claude Code / Codex)
 - the **plugin cache and marketplace** for each host
-- the **workspace-managed runtime assets** (hooks, adapters, `CLAUDE.md` / `AGENTS.md`)
+- the **workspace-managed runtime assets** (hooks, adapters, settings, utility scripts, `references/`, `CLAUDE.md` / `AGENTS.md`)
 
 `/update-agent-runtime` auto-detects which hosts are installed and updates everything it finds — no manual host selection needed. If only Claude Code is installed, only that gets updated. If both are installed, both get updated.
 
@@ -69,22 +69,65 @@ For each detected host:
 3. **Update host runtime pointer to latest cache version**:
    - **Claude Code**: update `~/.claude/plugins/installed_plugins.json` → set `version` and `installPath` to latest cache dir
    - **Codex**: sync latest skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
+   - **`.agents` marketplace**: update `~/.agents/plugins/marketplace.json` → set `path` to latest Codex cache dir
 4. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
-5. Sync workspace runtime assets (hooks, `references/`, `CLAUDE.md`, `AGENTS.md`)
+5. Sync workspace runtime assets (see Workspace Sync below)
 
 ## Workspace Sync
 
-After updating hosts, sync the current workspace — no release zip download needed; pull directly from marketplace plugin:
+After updating hosts, sync the current workspace — no release zip download needed; pull directly from the latest cache's `init-workspace/assets/`:
 
-- copy `_scripts/` to workspace root (shared utility scripts: download-product-image.js etc.)
-- copy `references/` to workspace root (policy + kpi-drivers)
-- sync `.claude/hooks/` (hook_entry.py + rules/) and `.codex/hooks.json`
-- patch managed sections of root `CLAUDE.md` and `AGENTS.md`
-- refresh Codex cache: sync latest marketplace skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
+### A. Hook infrastructure (`.claude/hooks/` — full tree)
+
+Copy the **entire** `.claude/hooks/` directory from init-workspace assets to workspace. This includes:
+
+- `hook_entry.py` — unified entry point
+- `common.py` — shared utilities (block/warn, markdown parsing, Resources parsing)
+- `fill_gaps.py` — financial-data gap-filling engine
+- `_excel_bridge.py` — Excel formula bridge
+- `hooks.registry.yaml` — hook rule registry
+- `adapters/claude.py`, `adapters/codex.py` — host adapters
+- `config/required_sections.yaml` — skill structure contract config
+- `rules/` — all hook rules (source_contract, table_render_integrity, modeling/, provider/, viz/)
+
+**Safety**: overwrite all `.py` files and `.yaml` configs. These are owned by the plugin — workspace-local edits are not supported.
+
+### B. Host configs
+
+- **`.claude/settings.json`** — hook configuration (PostToolUse / Stop triggers). Overwrite — this is plugin-owned and must match the current hook rule set.
+- **`.claude/mcp.json`** — MCP server config. Copy only if workspace file is missing (user may have customized).
+- **`.codex/hooks.json`** — Codex hook config. Overwrite — plugin-owned.
+- **`.codex/mcp.example.json`** — Codex MCP example. Always sync (never customized directly).
+
+### C. Utility scripts (`_scripts/`)
+
+Copy `_scripts/` from init-workspace assets. These are plugin-owned shared utilities (e.g. `download-product-image.js` for Playwright image download). **Only overwrite files that exist in the source assets** — user-added scripts in `_scripts/` are left untouched.
+
+### D. References
+
+- `references/policy/` — research-policy-baseline.md, statement-line-items.md
+- `references/kpi-drivers/` — 7 business-model templates
+
+Overwrite all reference files. These are the canonical versions from the plugin.
+
+### E. Root documents
+
+- **`CLAUDE.md`**: patch managed sections only. Do not overwrite the entire file — the user's workspace constitution lives here. Managed sections are the RTK block and the plugin-loaded marker.
+- **`AGENTS.md`**: same conservative patch approach.
+- **`edge-radar.md`**: overwrite (plugin-owned reference doc).
+- **`COVERAGE.md`**: if missing, copy from `coverage.md.template`. If present, skip — user has customized.
+
+### F. Codex cache
+
+Refresh `~/.codex/plugins/cache/buy-side-research-skills/skills/` from the latest marketplace plugin skills.
 
 ## File Safety
 
-- Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md`.
+- Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — patch managed sections only.
+- Do not overwrite `_scripts/` files that don't exist in the source assets.
+- Do not overwrite `.claude/mcp.json` if already present (user customization).
+- Do not overwrite `.codex/config.toml` (user customization).
+- Do not overwrite `COVERAGE.md` if already present.
 - Do not run workspace init inside the plugin dev repo or plugin install directories.
 
 ## Output Contract
@@ -107,10 +150,14 @@ After success:
 - marketplace: refreshed
 - claude cache: refreshed / not found
 - codex cache: refreshed / not found
+- .agents marketplace: updated / skipped
 
 ## Workspace
-- hooks: synced
-- references/policy/: synced
+- hooks: synced (full .claude/hooks/ tree)
+- settings: synced (.claude/settings.json)
+- scripts: synced (_scripts/)
+- references/: synced (policy + kpi-drivers)
+- .codex/: synced (hooks.json + mcp.example.json)
 - claude_md: updated / skipped
 ```
 
@@ -143,3 +190,4 @@ Artifact policy:
 - Reused packaged `init-workspace` scaffold logic.
 - Patched managed workspace doc sections conservatively.
 - Did not create research artifacts.
+- Did not overwrite user-customized `.claude/mcp.json`, `.codex/config.toml`, or `COVERAGE.md`.
