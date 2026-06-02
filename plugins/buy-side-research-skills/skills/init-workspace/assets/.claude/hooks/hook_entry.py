@@ -33,9 +33,11 @@ POST_TOOL_USE_RULES = [
     # Fact governance: provenance + claim proximity
     "fact_provenance",
     "claim_source_proximity",
+    "evidence_ledger_floor",
 ]
 STOP_RULES = [
     "source_contract",
+    "evidence_ledger_floor",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [

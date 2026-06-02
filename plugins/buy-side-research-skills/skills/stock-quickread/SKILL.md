@@ -74,7 +74,10 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 3. WebSearch 找候选 URL（每条 claim 2-5 个候选）
 4. 按 Fallback 链逐个打开候选页面 → 读原文 → 确认数字在页面里
 5. 只引用验证过的页面。所有层级失败 → URL 不放 Resources，标 [需查证]
-6. 写 claim 时 [S#](URL) 紧跟
+6. 每验证一条 claim → evidence_ledger.py add <artifact> <json_payload> 逐条录入账本
+7. evidence_ledger.py lint <artifact> → 确保 artifact 里每个 [S#] 在账本有对应条目
+8. evidence_ledger.py status <artifact> → 确认覆盖率 >80%，无 fabrication_risk
+9. 写 claim 时 [S#](URL) 紧跟
 ```
 
 ### Source 编号规则
