@@ -86,9 +86,10 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 ### 执行流程（Gate 式——每步有中间产物，下步检查上步）
 
 ```
-┌─ Step 1: /financial-data --lite <ticker>
-│  → actuals-resolved.json (must exist on disk)
-│  Gate: ls _cache/financial-data/internal/actuals-resolved.json → 不存在则 STOP
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+│  → 拉三表核心科目 + 分部 + 弹性 supplementary + market_data
+│  → 写入 _cache/financial-data/internal/actuals-resolved.json
+│  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。
 │
 ├─ Step 2: evidence_ledger.py init <artifact> -t <TICKER>
 │  → _cache/evidence/<TICKER>.evidence.json (must exist)
