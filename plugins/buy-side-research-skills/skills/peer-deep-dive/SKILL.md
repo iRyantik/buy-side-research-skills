@@ -102,7 +102,9 @@ N 家公司共享的行业坐标系，只写一次。
 
 | 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | **利润 YoY** | **Margin Δ(bp)** | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | **PEG** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
 
-**跨市场规则**：如果同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准这 5 列必填。单市场表可省略。此规则在反模式自查中强制检查。
+**跨市场规则**：同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准 5 列必填。单市场表可省略。
+
+**弹性列规则**：如果 N 家同属一个 business model → 表里加该 `references/kpi-drivers/` 模板的 2-3 个核心弹性列（例：全设备公司 → Backlog, Orders, Book-to-Bill）。不同 bus model 混搭 → 不加弹性列，避免口径不可比。
 
 每行 Ev 标注主要数据来源；文末 ## Resources 统一展开。
 

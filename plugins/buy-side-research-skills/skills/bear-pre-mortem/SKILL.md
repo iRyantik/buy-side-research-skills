@@ -156,6 +156,15 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 路径不明 → new-session 解析行业。
 
+## Growth Break Scenario
+
+如果 revenue growth 从 X% 跌到 Y%：
+- Margin impact: EBIT margin Z% → Z'%（fixed cost leverage reverse）
+- Multiple impact: PE Xx → Yx（growth de-rate）
+- Implied downside: −A%
+
+最可能触发 growth break 的信号：[1-2 个 leading indicator]
+
 ## 反模式自查
 
 - ❌ 第 1 节读起来像"另一方面也有人认为"——重写，把空头当成你

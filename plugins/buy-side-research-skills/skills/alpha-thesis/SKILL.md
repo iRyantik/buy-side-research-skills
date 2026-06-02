@@ -201,6 +201,16 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 
 路径不明 → new-session 解析行业。
 
+## Thesis Driver Mix
+
+| Driver | Weight | Current | Target | Confidence |
+|---|---|---|---|---|
+| Growth (Rev CAGR) | X% | Y% | Z% | — |
+| Margin (EBIT%) | X% | Y% | Z% | — |
+| Multiple (PE re-rate) | X% | Yx | Zx | — |
+
+Growth stalls + Margin holds → flat. Growth hits + Margin expands → bull re-rate.
+
 ## 反模式自查
 
 - ❌ 第 0 节没明确 trade structure → 整个 thesis 模糊，重写。

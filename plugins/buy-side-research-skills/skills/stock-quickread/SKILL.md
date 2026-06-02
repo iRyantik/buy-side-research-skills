@@ -101,14 +101,14 @@ flowchart LR
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
-**(a) 这是什么生意模式**：agent 必须先判断 business model，然后从  路由到对应模板，确定弹性指标 checklist。
+**(a) 生意模式判断**：agent 先判断 business model → 路由到 `references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
 
-**(a) 关键财务数据表（必填）**
+**(b) 关键财务数据表（标准+弹性）**
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个 Q/H period**两行的数据（含同比变化）。期间拆行为独立行；period label 必须读取 `actuals-resolved.json` 的真实标签 / basis，不得把 HK H1 写成 Q2 或 Q4。
 
 | 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | Ev |
-|---|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|---|---|
 | 分部 A | FY2024 | 45% | +12% | EBIT | 65% | 28% | [S1](./_cache/sources/company-annual-report.md) |
 | 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
 | 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
@@ -126,7 +126,9 @@ flowchart LR
 2. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
 3. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
 
-**(b) Takeaway（2-3 句）**
+**(c) 弹性指标详情**（仅当有 expandable 的弹性 KPI 时出现，如 Backlog by segment / Orders trend。没有就跳过。）
+
+**(d) Takeaway（2-3 句）**
 
 表格不是终点，必须有解读。要讲清楚：
 - **结构性事实**：收入结构 vs 利润结构是不是错配？哪个分部是真正的"利润引擎"？
@@ -137,23 +139,32 @@ flowchart LR
 > 反例（流水账）："公司分为 A、B、C 三个分部，A 主要做 X，收入占比 45%，B 主要做 Y..."——这是把表格用文字念了一遍
 > 正例："公司表面是 A+B+C 三业务，但 A 贡献 65% 利润且利润率持续扩张，B/C 在量价双杀；从买方视角这其实是个 A 业务的纯标的，B/C 是干扰项"
 
-### 4. 关键比率
-> 数字从 actuals-resolved.json 取值计算
+### 4. 关键比率（标准 + 弹性）
 
-以下 6 个比率全部计算并输出，拿不到的标 [ND]。所有数字从三张表算，不得随手拍。科目对照见 。
-
-若 latest period 是 H1，流量指标按 H1 口径展示，不 annualize；只有明确写 `[年化]` 时才可年化。
+**标准**（2 个，所有公司必算）：
 
 | # | 比率 | 公式 | 用途 |
 |---|---|---|---|
-| 1 | Gross Margin | (Rev - COGS) ÷ Rev | 定价权——最底层的竞争力指标 |
-| 2 | OpEx / 收入 | (SG&A + R&D) ÷ Rev | 经营杠杆——费用结构决定利润弹性 |
-| 3 | Capex / D&A | CapEx ÷ (折旧+摊销) | 投资强度——>1.5 扩张 / ~1.0 维持 / <0.7 收割 |
-| 4 | FCF | OCF - CapEx（绝对值） | 真金白银——利润可以造假，现金不能 |
-| 5 | 有息负债 / 净资产 | (短期+长期借款) ÷ Equity | 杠杆——会不会被债压死 |
-| 6 | 商誉 / 净资产 | Goodwill ÷ Equity | M&A 风险——商誉暴雷是最快的归零方式 |
+| 1 | Gross Margin | (Rev - COGS) ÷ Rev | 定价权——底层竞争力 |
+| 2 | FCF / NI | FCF ÷ Net Income | 利润现金转化——是不是真赚钱 |
 
-**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司在行业内领先扩张 / 跟随 / 反向收缩？
+**弹性**（从 `references/kpi-drivers/` 模板选 2-3 个最相关的）：
+
+| Business Model | 弹性比率 |
+|---|---|
+| order-driven | Backlog / Q Rev（覆盖月数）、Orders YoY、R&D / Rev |
+| process-industry | Production YoY、Utilization % |
+| long-cycle | Backlog / Annual Rev（visibility years） |
+| utility-infra | Utilization %、Capacity YoY |
+| tech-manufacturing | R&D / Rev、Backlog YoY |
+| saas-software | NRR、Magic Number |
+| ai-emerging | Cash / Monthly Burn（runway） |
+
+拿不到的标 [ND]。所有数字从 actuals 算，不得随手拍。若 latest period 是 H1，不 annualize，除非标 `[年化]`。
+
+**泛化兜底**：agent 可追加 1 个 template 未覆盖但对 thesis 有意义的比率，标来源 + 为什么重要。
+
+**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？
 
 | 比率 | 当前值 | 判断 | Ev |
 |---|---|---|---|
