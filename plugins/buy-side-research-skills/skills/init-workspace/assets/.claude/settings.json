@@ -1,273 +1,39 @@
-﻿{
-    "hooks":  {
-                  "PreToolUse":  [
-                                     {
-                                         "hooks":  [
-                                                       {
-                                                           "type":  "command",
-                                                           "command":  "{{HOOK_RUNNER}} .claude/hooks/global/workspace_guard.ps1",
-                                                           "timeout":  15
-                                                       }
-                                                   ]
-                                     }
-                                 ],
-                  "Stop":  [
-                               {
-                                   "hooks":  [
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/historical_actuals_fill_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/driver_breakdown_coverage_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_structure_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_audit_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_driver_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_checks_result_floor.ps1",
-                                                     "timeout":  60
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_structure_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_audit_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/comps_structure_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_update_change_map_floor.ps1",
-                                                     "timeout":  20
-                                                 },
-                                                 {
-                                                     "type":  "command",
-                                                     "command":  "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
-                                                     "timeout":  20
-                                                 }
-                                             ]
-                               }
-                           ],
-                  "PostToolUse":  [
-                                      {
-                                          "hooks":  [
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/global/source_contract.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/global/table_render_integrity.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/narrative/claim_qualification.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/primary_research_compliance.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/cross_market_parity.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/social_clue_only.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/disclosure_fact_source_boundary.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/provider/market_snapshot_source_boundary.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_statement_presence.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_balance_integrity.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/no_hardcoded_formula_assumption.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/missing_actuals_not_zero.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/historical_actuals_fill_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/driver_breakdown_coverage_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/valuation_basis_required.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_structure_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_audit_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/three_statement_driver_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_structure_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/dcf_audit_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/comps_structure_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/modeling/model_update_change_map_floor.ps1",
-                                                            "timeout":  20
-                                                        },
-                                                        {
-                                                            "type":  "command",
-                                                            "command":  "{{HOOK_RUNNER}} .claude/hooks/viz/viz_delivery_contract.ps1",
-                                                            "timeout":  20
-                                                        }
-                                                    ]
-                                      }
-                                  ],
-                  "SubagentStop":  [
-                                       {
-                                           "hooks":  [
-                                                         {
-                                                             "type":  "command",
-                                                             "command":  "{{HOOK_RUNNER}} .claude/hooks/global/subagent_protocol.ps1",
-                                                             "timeout":  20
-                                                         }
-                                                     ]
-                                       }
-                                   ]
-              }
+{
+    "hooks": {
+        "PreToolUse": [],
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit|MultiEdit|Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python",
+                        "args": [
+                            "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+                            "--runtime", "claude",
+                            "--event", "PostToolUse"
+                        ],
+                        "timeout": 20
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python",
+                        "args": [
+                            "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+                            "--runtime", "claude",
+                            "--event", "Stop"
+                        ],
+                        "timeout": 10
+                    }
+                ]
+            }
+        ]
+    }
 }
