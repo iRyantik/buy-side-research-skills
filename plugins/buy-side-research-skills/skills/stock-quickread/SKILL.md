@@ -133,9 +133,13 @@ flowchart LR
 
 **取舍说明**：
 
-1. **口径统一**：分段和整体用同一个口径（优先 segment EBIT > Gross Profit > Net Income）。分段没口径就标 [ND]，整体随分段。期间先 FY 后 Q/H，每分部两行。
-2. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
-3. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
+1. **口径统一（强制）**：
+   - **年度 vs 季度**：FY 和 Q/H 必须用同一个利润科目（FY 用 EBIT → Q/H 也用 EBIT，不能 FY 用 EBIT、Q/H 用 Net Income）。
+   - **分部 vs 整体**：分段和整体用同一个利润口径（分段列 EBIT → 整体也列 EBIT，不能分段列 Gross Profit、整体列 Net Income）。
+   - **期间 label**：period label 从 `actuals-resolved.json` 真实 label/basis 读取，不得把 HK H1 写成 Q2 或 Q4。
+2. **口径选择优先级**：segment EBIT > Gross Profit > Net Income。哪个口径在全部期间和分部/整体都有数据，用哪个。换了口径 → 必须标注原因。
+3. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
+4. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
 
 **(c) 弹性指标详情**（仅当有 expandable 的弹性 KPI 时出现，如 Backlog by segment / Orders trend。没有就跳过。）
 
@@ -158,22 +162,28 @@ flowchart LR
 
 > **Actuals only — 禁止用 estimate 算 ratio**：每个比率的所有 input 字段必须在 `actuals-resolved.json` 中有真实值。**任何 FY2026E / consensus / forward estimate 不能参与 ratio 计算。** 所有 input 齐全 → 输出该比率。任一 input 缺失 → **静默跳过该比率**，不标 [未披露]，不占行。最终输出的是"这个公司实际能算出来的比率"，而不是一排空表。
 
-Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的比率（通常 5-8 个）：
+Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的比率（通常 6-10 个）：
 
 | # | 比率 | 公式 | 用途 | 所需 actuals 字段 |
 |---|---|---|---|---|
-| 1 | Gross Margin | Gross Profit ÷ Revenue | 产品毛利 | gross_profit, revenue |
-| 2 | EBIT Margin | EBIT ÷ Revenue | 运营利润 | ebit, revenue |
-| 3 | FCF Conversion | Operating CF ÷ EBIT | 现金质量——利润变成现金了吗 | operating_cf, ebit |
-| 4 | Asset Turnover | Revenue ÷ Total Assets | 资本效率 | revenue, total_assets |
-| 5 | Op ROA | EBIT ÷ Total Assets | 资产回报——剔除杠杆和税率 | ebit, total_assets |
-| 6 | Capex / Rev | CapEx ÷ Revenue | 投资强度 | capex, revenue |
-| 7 | FCF Yield | FCF ÷ Market Cap | 股息能力 | operating_cf, capex, market_data.market_cap |
-| 8 | R&D / Rev | R&D ÷ Revenue | 研发重度 | r_and_d, revenue |
-| 9 | Net Cash | Cash − Total Debt | 安全垫 | cash, total_debt |
-| 10 | Debt / Equity | Total Debt ÷ Equity | 杠杆 | total_debt, total_equity |
+| **Profitability** |
+| 1 | Gross Margin | GP ÷ Rev | 定价力 | gross_profit, revenue |
+| 2 | EBIT Margin | EBIT ÷ Rev | 运营利润 | ebit, revenue |
+| 3 | Net Margin | NI ÷ Rev | 最终利润 | net_income, revenue |
+| **Expense & Cash Quality** |
+| 4 | R&D / Rev | R&D ÷ Rev | 研发重度 | r_and_d, revenue |
+| 5 | Implied Opex / Rev | (GP − EBIT) ÷ Rev | SG&A+R&D 合计吃掉多少毛利 | gross_profit, ebit, revenue |
+| 6 | FCF Conversion | OpCF ÷ EBIT | 利润变现 | operating_cf, ebit |
+| **Asset Efficiency** |
+| 7 | Asset Turnover | Rev ÷ Total Assets | 资本效率 | revenue, total_assets |
+| 8 | Op ROA | EBIT ÷ Total Assets | 资产回报 | ebit, total_assets |
+| 9 | Capex / Rev | CapEx ÷ Rev | 投资强度 | capex, revenue |
+| 10 | D&A / CapEx | D&A ÷ CapEx | <1=扩产, >1=修旧 | depreciation, capex |
+| **Shareholder** |
+| 11 | FCF Yield | FCF ÷ Market Cap | 现金回报 | operating_cf, capex, market_data.market_cap |
+| 12 | Net Cash | Cash − Total Debt | 安全垫 | cash, total_debt |
 
-> 输出格式：`| 比率 | 值 | 判断 | 数据来源 |`，不输出无法计算的比率。
+> 输出格式：`| # | 比率 | 值 | 判断 | 数据来源 |`，不输出无法计算的比率。
 
 **(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束）：
 
