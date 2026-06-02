@@ -1,22 +1,20 @@
-# Order-Driven（订单驱动型）— KPI 模板
+# Order-Driven — KPI Driver
 
-适用：Capital Equipment（设备制造）、Aerospace Tier 1、船舶、EPC
+Capital Equipment / Aerospace / 船舶 / EPC
 
-## 弹性指标（除 standard 财务数据外必搜）
+## Elastic Fields
 
-| KPI | 中文搜索 | English | 日本語 | 怎么查 |
-|---|---|---|---|---|
-| **Order Backlog** | 在手订单 / 订单积压 | order backlog / order book | 受注残高 | IR segment disclosure、supplementary.order_backlog |
-| **Backlog YoY** | 在手订单 同比 | backlog YoY growth | 受注残高 前年同期比 | 去年同季 IR |
-| **Orders / Bookings** | 新签订单 / 新增订单 | new orders / bookings | 受注高 / 新規受注 | IR quarterly disclosure |
-| **Book-to-Bill** | 订单出货比 | book to bill ratio | B/Bレシオ | Orders ÷ Revenue |
-| **Backlog Coverage** | 在手订单覆盖月数 | backlog coverage months | 受注残 月数 | Backlog ÷ Q Revenue |
-| **ASP Trend** | 平均售价 趋势 | average selling price trend | 平均販売価格 推移 | IR、management commentary |
-| **Installed Base** | 装机量 / 保有量 | installed base | 設置台数 / 稼働台数 | 年报 |
-| **Lead Time** | 交付周期 | lead time / delivery time | リードタイム / 納期 | 管理层 commentary |
+| KPI | actuals | Source | CN | EN | JP |
+|---|---|---|---|---|---|
+| Backlog | `supplementary.order_backlog` | IR segment note | 在手订单 | order backlog | 受注残高 |
+| Backlog by Seg | `segments[].metric="order_backlog"` | IR segment | 分业务在手 | backlog by seg | セグメント別 |
+| Orders | `supplementary.orders` | IR quarterly | 新签订单 | new orders | 受注高 |
+| Orders by Seg | `segments[].metric="orders"` | IR segment | 分业务新签 | orders by seg | セグメント別 |
+| Installed Base | `supplementary.installed_base` | annual report | 装机量 | installed base | 設置台数 |
 
-## Red Flags
+## Derived
+- Book-to-Bill = orders ÷ revenue
+- Backlog Coverage = backlog ÷ Q rev (months)
 
-- Book-to-Bill <0.9 持续 2Q+ → 需求收缩
-- Backlog 增速 < 收入增速 → 订单见顶
-- ASP 下降 + backlog 增长 → 降价抢单
+## Ratios
+- Backlog / Q Rev | Orders YoY | R&D / Rev

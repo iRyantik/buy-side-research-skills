@@ -202,9 +202,37 @@ WebSearch: 10/11, 剩 PEG
 | Consensus EPS | EPS 预期（NTM） | best-effort | Bridge > WebSearch |
 | Beta | 波动率 | 选填 | yfinance |
 | 股价历史 | 1 年期日线（驱动因素分析） | 必填 | yfinance |
-| 补充 | 股本、SBC、backlog | 有则抓 | provider_api > official_web |
-| orders | 当期新签订单（流量，区别于 backlog 存量） | 设备制造公司必填——有则抓，无披露标 [未披露] | official_web > IR |
-| growth_rates | revenue_yoy_fy, revenue_yoy_q | 必填——agent 拉完两期数据后计算（FY 对比 FY-1，Q/H 对比同季度） | derived |
+| 补充-标准 | 股本、SBC | 有则抓 | provider_api > official_web |
+| growth_rates | revenue_yoy_fy, revenue_yoy_q | 必填——agent 拉完两期数据后计算 | derived |
+
+**弹性采集**（先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 只抓该模板字段）：
+
+| KPI | actuals 字段 | 条件 |
+|---|---|---|
+| Order Backlog | `supplementary.order_backlog` | order-driven / long-cycle / tech-manufacturing——IR segment |
+| Orders / Bookings | `supplementary.orders` | 同上——IR quarterly |
+| Installed Base | `supplementary.installed_base` | order-driven / tech-manufacturing——annual report |
+| Production Volume | `supplementary.production_volume` | process-industry——IR quarterly |
+| Unit Cost | `supplementary.unit_cost` | process-industry——IR / annual |
+| Utilization | `supplementary.utilization` | process-industry / utility-infra——IR / mgmt |
+| Regulated Asset Base | `supplementary.regulated_asset_base` | utility-infra——regulatory filing |
+| Capacity MW | `supplementary.capacity_mw` | utility-infra——IR / annual |
+| ARR | `supplementary.arr` | saas-software——IR / earnings call |
+| GRR | `supplementary.grr` | saas-software——IR / earnings call |
+| NRR | `supplementary.nrr` | saas-software——IR / earnings call |
+| Churn % | `supplementary.churn_pct` | saas-software——IR / earnings call |
+| Customer Count | `supplementary.customer_count` | saas-software / ai-emerging——IR |
+| Segment Backlog | `segments[].metric="order_backlog"` | order-driven / long-cycle——IR segment |
+| Segment Orders | `segments[].metric="orders"` | order-driven / tech-manufacturing——IR segment |
+
+搜不到标 `[未披露]`，不 block 主流程。
+
+**泛化兜底**：读完 IR/earnings call 后，发现 template 未覆盖但对 thesis 有意义的 KPI → `supplementary.custom_metrics: [{kpi, value, source, relevance}]`。不限数量，但每个都要过"这指标如果删了会影响结论吗"自检。
+
+**停止条件**（满足任一即停）：
+- 标准 33 字段全填 + 本 bus model 弹性字段全填 → 停
+- 连续 2 层（如 yfinance→Bridge）没有任何新字段被填 → 停
+- 剩余缺口全是 `[未披露]`（公司不公布）→ 停
 
 **数据完整性规则**：
 

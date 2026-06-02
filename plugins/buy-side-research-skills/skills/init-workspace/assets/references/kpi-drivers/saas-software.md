@@ -1,21 +1,20 @@
-# SaaS / Software（订阅/软件）— KPI 模板
+# SaaS / Software — KPI Driver
 
-适用：SaaS、企业软件、平台
+SaaS / 企业软件 / 平台
 
-## 弹性指标
+## Elastic Fields
 
-| KPI | 中文搜索 | English | 日本語 | 怎么查 |
-|---|---|---|---|---|
-| **ARR** | 年度经常性收入 | annual recurring revenue | 年間経常収益 | IR、earnings call |
-| **NRR / GRR** | 净留存率 | net revenue retention | ネット収益維持率 | IR |
-| **LTV / CAC** | 客户终身价值/获客成本 | LTV to CAC ratio | LTV/CAC比率 | IR（如有）、推算 |
-| **Churn Rate** | 流失率 | churn rate / attrition | 解約率 | IR |
-| **Logo Count / Customers** | 客户数 | customer count / logos | 顧客数 | IR |
-| **Magic Number** | — | Magic Number (ARR/S&M) | — | 算：新增 ARR ÷ S&M expense |
-| **Rule of 40** | — | Growth% + FCF Margin% | — | Revenue growth + FCF margin |
+| KPI | actuals | Source | CN | EN | JP |
+|---|---|---|---|---|---|
+| ARR | `supplementary.arr` | IR / earnings call | 年度经常性收入 | ARR | 年間経常収益 |
+| GRR | `supplementary.grr` | IR / earnings call | 毛留存率 | gross retention | グロスリテンション |
+| NRR | `supplementary.nrr` | IR / earnings call | 净留存率 | net retention | ネットリテンション |
+| Churn % | `supplementary.churn_pct` | IR / earnings call | 流失率 | churn rate | 解約率 |
+| Customer Count | `supplementary.customer_count` | IR / earnings call | 客户数 | logo count | 顧客数 |
 
-## Red Flags
+## Derived
+- Magic Number = ARR added ÷ S&M
+- Rule of 40 = Growth% + FCF%
 
-- NRR <100% → 客户在流失
-- Magic Number <0.5 → 销售效率下降
-- Logo count 增长但 ARR 不涨 → 小客户太多、扩张不足
+## Ratios
+- NRR | Magic Number | ARR YoY
