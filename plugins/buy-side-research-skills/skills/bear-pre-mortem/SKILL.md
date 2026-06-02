@@ -83,7 +83,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## 会计红旗公式
 
-科目多语对照见 `skills/_shared/statement-line-items.md`。
+科目多语对照见 `_shared/statement-line-items.md`。
 
 | # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
 |---|---|---|---|---|---|

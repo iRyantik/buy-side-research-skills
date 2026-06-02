@@ -227,7 +227,7 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## 估值倍数公式
 
-科目多语对照见 `skills/_shared/statement-line-items.md`。
+科目多语对照见 `_shared/statement-line-items.md`。
 
 | # | 倍数 | 公式 | 输入来源 | 常见陷阱 |
 |---|---|---|---|---|
