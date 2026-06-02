@@ -101,7 +101,22 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 
 ### C. Utility scripts (`_scripts/`)
 
-Copy `_scripts/` from init-workspace assets. These are plugin-owned shared utilities (e.g. `download-product-image.js` for Playwright image download). **Only overwrite files that exist in the source assets** — user-added scripts in `_scripts/` are left untouched.
+**C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
+- `download-product-image.js` — Playwright image-download helper
+
+**C2 — Skill scripts** (from each skill's canonical `scripts/` directory in the plugin):
+
+| Source | Destination |
+|---|---|
+| `skills/ingest/scripts/*.py` | `_scripts/ingest/` |
+| `skills/ingest/assets/requirements-ingest.txt` | `_scripts/ingest/` |
+| `skills/financial-data/scripts/**/*.py` | `_scripts/financial-data/` |
+| `skills/financial-data/assets/requirements-financial-data.txt` | `_scripts/financial-data/` |
+| `skills/reddit-sentiment/scripts/*.py` | `_scripts/reddit-sentiment/` |
+| `skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt` | `_scripts/reddit-sentiment/` |
+| `skills/research-viz/assets/template*.html` | `_scripts/research-viz/` |
+
+**Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `_scripts/` that are not in the source lists are left untouched.
 
 ### D. References
 

@@ -1,55 +1,85 @@
 ---
 name: init-workspace
-description: Initialize or repair a buy-side research workspace root scaffold and helper scripts.
+description: Initialize or repair a buy-side research workspace root scaffold — cross-platform (Windows + macOS), Python unified.
 ---
 
 # Init Workspace
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates or repairs the root scaffold, writes workspace `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`, copies ingest / financial-data helper scripts into `_scripts/`, and installs project-local Claude / Codex hook config so both hosts can load the same binary runtime guardrails.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, sets up a Python virtual environment with core dependencies, and interactively configures data-provider environment variables.
+
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
-macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapters are rendered through a cross-platform launcher; `.ps1` helpers are not promised to run in pure zsh/bash without `pwsh`.
-
-It is an operations skill, not a research skill. It does not research companies, ingest files, install dependencies, run `git init`, create topic artifacts, or create topic-level `_raw/`, `_cache/`, or `_models/` directories.
-
-`init-workspace` is also the first-stop environment guide for the most common runtime requirements. It should tell users where to configure shared items such as `pwsh`, `EDGAR_IDENTITY`, `DART_API_KEY`, `EDINET_API_KEY`, `FINMIND_TOKEN`, `EDGAR_LOCAL_DATA_DIR`, optional `VLM_*`, and optional `HF_ENDPOINT`. It does not replace skill-local dependency or honest-fail documentation: `financial-data` remains the detailed source of truth for financial-data environment setup, while `ingest` and `reddit-sentiment` keep their own skill-local bootstrap instructions.
+It is an operations skill, not a research skill.
 
 ## Mental Model
 
 The invariant is separation of concerns:
 
-- `init-workspace` creates the root workspace shell.
+- `init-workspace` creates or repairs the root workspace shell + environment.
 - `new-session` creates or locates a topic root with `index.md` and `_inbox/`.
-- `ingest` creates `_raw/<category>/` and `_cache/` only when material is converted.
-- `financial-data`, `driver-map`, and modeling skills create their own cache/model folders when they run.
-
-The default behavior must be conservative, idempotent, and repeatable. Existing root workspace documents are skipped, not overwritten; managed hook assets and host adapters are synced on repair.
+- Each skill (ingest, financial-data, etc.) bootstraps heavy dependencies on first use via its own `bootstrap.py`.
+- `update-agent-runtime` keeps the workspace in sync with the latest plugin release.
 
 ## Responsibilities
 
-Responsible for:
+### Responsible for
 
+**Directories:**
 - Creating root `_inbox/`, `_scripts/`, and `topics/`.
-- Writing missing root `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and `edge-radar.md`.
-- Copying a unified environment setup template into `_scripts/init-assets/` so users can discover common workspace, filing, and optional VLM environment variables from one place.
-- Copying init assets, ingest scripts, ingest requirements, and ingest dependency bootstrap into `_scripts/`.
-- Copying financial-data scripts, providers, requirements, and dependency bootstrap into `_scripts/financial-data/`.
-- Copying a reusable Playwright image-download helper into `_scripts/`.
-- Copying Playwright MCP config templates into workspace root and `_scripts/init-assets/` without overwriting customized user MCP config.
-- Copying shared workspace hook scripts into `.claude/hooks/` and host adapter config into `.claude/settings.json` and `.codex/hooks.json`.
-- Copying shared reference files (`references/policy/` and `references/kpi-drivers/`) to workspace root so skills can read research policy, industry KPI templates, and cross-market statement mappings at runtime.
-- Repairing managed hook assets and hook adapters when the workspace already exists.
 
-Not responsible for:
+**A类 — Platform-owned assets** (from `init-workspace/assets/`, copied verbatim to workspace root):
 
-- Ingesting PDF / Excel / PPTX / DOCX materials.
-- Installing Docling, EdgarTools, Tesseract, MarkItDown, or Python packages.
-- Validating live credentials against provider APIs or silently persisting user secrets.
-- Creating dated topic research artifacts.
-- Creating topic roots; use `new-session`.
-- Creating topic-level `_raw/`, `_cache/`, or `_models/`.
+| Source | Destination | Strategy |
+|---|---|---|
+| `.claude/hooks/` (full tree) | `.claude/hooks/` | Overwrite |
+| `.claude/settings.json` | `.claude/settings.json` | Overwrite |
+| `.claude/mcp.json` | `.claude/mcp.json` | Copy if missing |
+| `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
+| `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
+| `references/` | `references/` | Overwrite |
+| `_scripts/download-product-image.js` | `_scripts/download-product-image.js` | Overwrite |
+| `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |
+| `AGENTS.md.template` | `AGENTS.md` | Copy if missing |
+| `edge-radar.md` | `edge-radar.md` | Copy if missing |
+| `coverage.md.template` | `COVERAGE.md` | Copy if missing |
+| `gitignore.template` | `.gitignore` | Overwrite |
+| `.env.template` | `.env.template` | Copy if missing |
+
+**B类 — Skill scripts** (copied from each skill's canonical `scripts/` and `assets/` directory into workspace `_scripts/<skill>/`):
+
+| Source | Destination |
+|---|---|
+| `skills/ingest/scripts/*.py` | `_scripts/ingest/` |
+| `skills/ingest/assets/requirements-ingest.txt` | `_scripts/ingest/` |
+| `skills/financial-data/scripts/**/*.py` | `_scripts/financial-data/` |
+| `skills/financial-data/assets/requirements-financial-data.txt` | `_scripts/financial-data/` |
+| `skills/reddit-sentiment/scripts/*.py` | `_scripts/reddit-sentiment/` |
+| `skills/reddit-sentiment/assets/requirements-reddit-sentiment.txt` | `_scripts/reddit-sentiment/` |
+| `skills/research-viz/assets/template*.html` | `_scripts/research-viz/` |
+
+**Environment setup:**
+- Check Python 3.10+ availability.
+- Create `.venv/` (Python virtual environment).
+- Install core dependencies into venv: `yfinance openpyxl requests python-dotenv pyyaml lxml`.
+- Run `pip install -r` for `_scripts/ingest/requirements*.txt`, `_scripts/financial-data/requirements*.txt`, `_scripts/reddit-sentiment/requirements*.txt`. Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- Write `.gitignore`.
+
+**Interactive provider configuration:**
+- Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
+- User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).
+- Unconfigured providers stay as commented lines in `.env`.
+
+**Cleanup:**
+- Delete `_scripts/init-assets/` if present (legacy ps1-era artifacts).
+
+### Not responsible for
+
+- Installing Docling, Tesseract, onnx, torch, or other heavy dependencies — each skill's `bootstrap.py` handles these on first use.
 - Running `git init`.
+- Creating topic directories — use `new-session`.
+- Creating topic-level `_raw/`, `_cache/`, or `_models/`.
 - Initializing inside the plugin dev repo or plugin install directory.
+- Running `update-agent-runtime` host/plugin upgrades.
 
 ## Trigger And Input
 
@@ -66,186 +96,123 @@ Required input:
 
 - `WorkspacePath`: an explicit user-owned research workspace path.
 - The target path must not be the plugin repo, a plugin install directory, or any folder containing plugin markers such as `.claude-plugin/`, `.codex-plugin/`, or `skills/`.
-- Existing `CLAUDE.md`, `AGENTS.md`, `.gitignore`, and root `edge-radar.md` must be skipped, not overwritten.
-- Managed hook assets under `.claude/`, `.codex/`, and `_scripts/init-assets/` are treated as plugin-owned runtime files and may be updated during repair.
 
 ## Modes
 
 ### New Workspace Scaffold
 
-When the target path does not exist or is empty, create the root scaffold, root templates, and `_scripts/` helper files.
+Execute full Steps 0-10 (see Execution Flow below). All files are created.
 
 ### Repair Existing Workspace
 
-When the target path already has content, only add missing root scaffold directories and missing core files. Do not repair topic-level `_raw/`, `_cache/`, or `_models/`; those are owned by downstream skills.
+Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, edge-radar.md, COVERAGE.md). Platform-owned assets (hooks, settings, references, `.gitignore`) are overwritten. Skill scripts (B类) are overwritten. User-created files in `_scripts/` that are not in the B类 list are left untouched.
 
-### Dry Explanation
+## Execution Flow
 
-When the user only asks what init will do or what the folder will look like, do not run the helper script. Explain the root scaffold and boundaries.
+```
+Step 0  Validate workspace path — must not be inside a plugin repo or install directory
+Step 1  Check Python 3.10+ is available
+Step 2  Create .venv/ (python -m venv .venv)
+Step 3  Activate venv + pip install core dependencies:
+          pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+Step 4  Deploy A类 files (platform assets from init-workspace/assets/)
+Step 5  Deploy B类 files (skill scripts to _scripts/<skill>/)
+Step 6  pip install -r _scripts/*/requirements*.txt (failures warn, do not block)
+Step 7  Write .gitignore
+Step 8  Interactive provider configuration (see Provider Configuration below)
+Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
+Step 10 Print deployment summary table
+```
 
-## Tool Resources
+### Core dependencies
 
-Use the helper script when mutating files:
+```bash
+pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+```
 
-- `skills/init-workspace/scripts/init-research-workspace.ps1`
+### Platform detection
 
-Runtime assets copied by the helper:
+Agent uses `sys.platform`:
+- `win32` → Windows: Python = `python`, venv = `.venv/Scripts/python`
+- `darwin` / other → Unix: Python = `python3`, venv = `.venv/bin/python`
 
-- `skills/init-workspace/assets/CLAUDE.md.template`
-- `skills/init-workspace/assets/AGENTS.md.template`
-- `skills/init-workspace/assets/gitignore.template`
-- `skills/init-workspace/assets/edge-radar.md`
-- `skills/init-workspace/assets/env-setup.ps1.template`
-- `skills/init-workspace/assets/_scripts/download-product-image.js`
-- `skills/init-workspace/assets/.claude/settings.json`
-- `skills/init-workspace/assets/.claude/mcp.json`
-- `skills/init-workspace/assets/.claude/hooks/`
-- `skills/init-workspace/assets/.claude/hooks/hooks.registry.yaml`
-- `skills/init-workspace/assets/.claude/hooks/run-hook.cmd`
-- `skills/init-workspace/assets/.claude/hooks/run-hook.sh`
-- `skills/init-workspace/assets/.codex/hooks.json`
-- `skills/init-workspace/assets/.codex/mcp.example.json`
-- `skills/ingest/scripts/ingest.py`
-- `skills/ingest/scripts/ingest_xlsx.py`
-- `skills/ingest/scripts/ingest_table_crosscheck.py`
-- `skills/ingest/scripts/bootstrap-ingest-deps.ps1`
-- `skills/ingest/scripts/bootstrap-ingest-deps.sh`
-- `skills/ingest/assets/requirements-ingest.txt`
-- `skills/financial-data/scripts/financial_data.py`
-- `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
-- `skills/financial-data/scripts/providers/*.py`
-- `skills/financial-data/assets/requirements-financial-data.txt`
+## Provider Configuration
 
-Prefer the helper script over hand-written copy logic.
+After file deployment, display a single table and ask the user to configure data providers:
 
-## Environment Entry Point
+```
+[Provider 配置]
 
-`init-workspace` should be the first place a user looks for shared runtime setup. The copied `_scripts/init-assets/env-setup.ps1.template` is the canonical entry point for common workspace-level environment guidance:
+以下 4 个数据源 provider 按你的覆盖市场选配。
+需要配置的把 key 贴给我，不需要的回复"跳过"。
 
-- Runtime / platform:
-  - `pwsh` on macOS
-- Filing / financial-data core:
-  - `EDGAR_IDENTITY`
-  - `DART_API_KEY`
-  - `EDINET_API_KEY`
-  - `FINMIND_TOKEN` (optional)
-  - `EDGAR_LOCAL_DATA_DIR`
-- Optional ingestion / figure description:
-  - `VLM_API_URL`
-  - `VLM_API_KEY`
-  - `VLM_MODEL`
-- Optional network mirror:
-  - `HF_ENDPOINT`
-- Optional browser automation:
-  - Playwright MCP plugin (`@playwright/mcp`) for product-image / logo download
-  - Claude Code template: `.claude/mcp.json`
-  - Codex reference template: `.codex/mcp.example.json` (not assumed auto-loaded)
-  - Helper script: `_scripts/download-product-image.js` (used by agent, not run directly)
-  - Runtime check: current agent session must expose a Playwright MCP `browser_run_code_unsafe` tool
+┌──────┬───────────┬──────────────────────────────┬────────────────────────────────┐
+│ #    │ Provider  │ 环境变量                      │ 申请地址                        │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 1    │ SEC EDGAR │ EDGAR_IDENTITY                │ https://efts.sec.gov/          │
+│      │ (美股)    │ 格式: "Name email@domain.com"  │ 填 Name+Email 即生效            │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 2    │ DART      │ DART_API_KEY                  │ https://opendart.fss.or.kr/    │
+│      │ (韩股)    │                               │ 免费注册获取 API Key            │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 3    │ EDINET    │ EDINET_API_KEY                │ https://disclosure2.           │
+│      │ (日股)    │                               │ edinet-fsa.go.jp/              │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 4    │ FinMind   │ FINMIND_TOKEN                 │ https://finmindtrade.com/      │
+│      │ (台股)    │                               │ 免费注册获取 Token              │
+└──────┴───────────┴──────────────────────────────┴────────────────────────────────┘
 
-This entry point is a navigation layer, not a replacement for skill-local detail:
+还没有 key 的去对应地址申请，有 key 的直接贴给我。
+```
 
-- `financial-data` still owns provider-by-market credential and dependency detail
-- `ingest` still owns converter dependency detail and SEC filing ingest caveats
-- `reddit-sentiment` still owns its own bootstrap and dependency guidance
+Agent parses the user's free-form reply and writes `.env` (merging with existing `.env` if present). Provider env vars supplied by the user are set; unconfigured providers remain as commented lines.
+
+### .env format
+
+```env
+# SEC EDGAR（美股）
+EDGAR_IDENTITY=Name email@domain.com
+
+# DART（韩股）
+# DART_API_KEY=
+
+# EDINET（日股）
+EDINET_API_KEY=your_key_here
+
+# FinMind（台股）
+# FINMIND_TOKEN=
+```
+
+`.gitignore` already includes `.env` — the file stays local and is never committed.
 
 ## File Safety
 
-- Idempotent: reruns only add missing items.
-- Never overwrite existing `CLAUDE.md`, `AGENTS.md`, `.gitignore`, or `edge-radar.md`.
-- Never delete or move user files.
-- Never initialize inside a plugin repo, plugin install directory, or any directory containing plugin manifests.
-- Never treat `_raw/`, `_cache/`, `_models/`, or `_inbox/` as publishable research outputs.
-
-## Output Contract
-
-After success or repair:
-
-```markdown
-## Init Result
-
-**结论先行**
-已初始化 / 已补齐 research workspace：[path]
-
-## Created
-- [...]
-
-## Skipped
-- [...]
-
-## Workspace Shape
-[root scaffold tree]
-
-## Environment Next Steps
-- shared env template: `_scripts/init-assets/env-setup.ps1.template`
-- workspace hooks on macOS require `pwsh`
-- financial-data check:
-  - Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`
-  - macOS: `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`
-- ingest check:
-  - Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly`
-  - macOS: `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly` or `_scripts/bootstrap-ingest-deps.sh --check-only`
-- optional figure-description env:
-  - `VLM_API_URL`
-  - `VLM_API_KEY`
-  - `VLM_MODEL`
-- Playwright MCP (product image / logo download):
-  - Prerequisite: Node.js >= 18
-  - Windows: PowerShell / `pwsh`; Python 3 optional
-  - macOS: `pwsh` + Python 3
-  - Claude Code: see `.claude/mcp.json`
-  - Codex: see `.codex/mcp.example.json`; enable through current Codex-supported MCP / plugin config surface
-  - Verify: current agent session exposes Playwright MCP `browser_run_code_unsafe`
-```
-
-When blocked:
-
-```markdown
-## Init Blocked
-
-**结论先行**
-不能在这个路径初始化 research workspace。
-- path: [...]
-- reason: [...]
-- suggested_path: [...]
-```
-
-## Failure Handling
-
-- Missing path: ask for an explicit `WorkspacePath`; do not guess.
-- Plugin repo markers found: refuse and ask for a user-owned research workspace.
-- Permission failure: name the exact path that failed; do not pretend success.
-- Missing helper script: report that the plugin package is incomplete and ask the user to reinstall or repair the release package.
+- Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
+- Do not overwrite `COVERAGE.md` or `edge-radar.md` if already present.
+- Do not overwrite `.claude/mcp.json` if already present (user may have customized).
+- Do not overwrite `_scripts/` files that are not in the B类 source list (user-added scripts are preserved).
+- Do not run inside the plugin dev repo or plugin install directory.
 
 ## Workflow Links
 
 | Scenario | Handling |
 |---|---|
-| User just installed the plugin and does not know where to start | Use `init-workspace` to create the root workspace scaffold |
-| Existing workspace is missing root scaffold files | Use `init-workspace` repair |
-| User wants to start a company / industry / theme / pair topic | Hand off to `new-session` |
-| User drops materials into a topic `_inbox/` | Hand off to `ingest` |
-| User needs structured financial data | Hand off to `financial-data` |
-| User wants to know which shared environment variables matter first | Use `init-workspace` as the unified entry point, then hand off to the specific skill for exact runtime detail |
-| User needs to promote company workbench files from an industry/theme topic | Hand off to `promote-company` |
-| User wants to merge whole topic directories | Hand off to `integrate` |
-| User lacks ingest dependencies | Suggest Windows `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly`; suggest macOS `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/bootstrap-ingest-deps.ps1 -CheckOnly` or `_scripts/bootstrap-ingest-deps.sh --check-only`; run install variants only after explicit opt-in |
-| User lacks financial-data dependencies | Suggest Windows `powershell -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; suggest macOS `pwsh -NoProfile -ExecutionPolicy Bypass -File _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly`; run `-Yes` only after explicit opt-in |
+| User wants to upgrade plugin + sync workspace | Use `update-agent-runtime` |
+| User wants to create a new topic | Use `new-session` |
+| User wants to fix workspace runtime only | Use `update-agent-runtime` (or re-run init-workspace in repair mode) |
 
 Artifact policy:
 
-- `save_policy`: `workspace_scaffold`
-- `default_artifact`: `workspace scaffold`
-- `canonical_location`: user-provided research workspace
+- `save_policy`: `none`
+- `default_artifact`: `conversation-only`
+- `canonical_location`: `conversation-only`
 
 ## Safety Self-Check
 
-- Did not initialize inside the plugin repo.
-- Did not overwrite existing root files.
-- Did not run `git init`.
-- Did not ingest raw materials.
-- Did not fetch financial data.
-- Did not install dependencies.
-- Did not create topic artifacts.
-- Did not create topic-level `_raw/`, `_cache/`, or `_models/`.
-- Did not recreate v2 state folders such as `coverage/`, `portfolio/`, or `pairs/`.
+- Validated workspace path is not a plugin directory.
+- Core dependencies installed (no heavy packages).
+- Platform-owned assets deployed.
+- Skill scripts copied from canonical plugin locations.
+- Provider configuration offered interactively.
+- Legacy `_scripts/init-assets/` cleaned up.
+- Did not create research artifacts.
