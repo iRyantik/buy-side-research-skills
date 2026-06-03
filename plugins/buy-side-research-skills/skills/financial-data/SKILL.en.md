@@ -147,30 +147,36 @@ Lite mode does not parse the full filing and does not build an evidence pack. It
 **3Y execution steps** (agent runs these in addition to the standard lite flow):
 
 ```
-1. yfinance historical annual (3 FY)
-   ticker.income_stmt      → take latest 3 columns (FY-2, FY-1, FY0)
-   ticker.balance_sheet     → same
-   ticker.cashflow          → same
-   Field mapping: fill_gaps.py YF_FIELD_MAP handles yfinance→canonical name
-   (Revenue→revenue, GrossProfit→gross_profit, OperatingIncome→ebit, etc.)
+1. yfinance historical IS/BS/CF
+   ticker.income_stmt / balance_sheet / cashflow
+   → latest 3 full FY columns (FY-2, FY-1, FY0)
+   ticker.quarterly_* → latest 4 completed sub-periods
+   Field mapping: fill_gaps.py YF_FIELD_MAP (Revenue→revenue, GrossProfit→gross_profit, etc.)
+   Write: income_statement.fy_y2 / fy_y1 / fy_y0 / sub_0 / sub_1 / sub_2 / sub_3
+          BS/CF same structure. latest_fy / latest_quarter preserved.
 
-2. yfinance quarterly (up to 4 completed sub-periods)
-   ticker.quarterly_income_stmt  → take latest 4 completed quarters
-   ticker.quarterly_balance_sheet → same
-   ticker.quarterly_cashflow      → same
+2. Segment data — reuse latest fetch logic, iterate across periods
+   For each segment name (known from latest segments):
+   WebSearch "<ticker> annual report <FY year> PDF" → WebFetch/Playwright extract segment table
+   → read revenue/pct_of_total/margin into segments[].revenue[fy_y0/fy_y1/fy_y2]
+   sub-periods: search quarterly/interim reports → extract → segments[].revenue[sub_0-3]
+   segments[].periods updated to full period list.
+   Periods without retrievable segment tables are left empty — never fabricated.
 
-3. Write to actuals-resolved.json
-   Per actuals_schema.json _periods definition:
-   income_statement.fy_y2 / fy_y1 / fy_y0   — 3 full FY
-   income_statement.sub_0 / sub_1 / sub_2 / sub_3  — up to 4 sub-periods
-   BS/CF same structure
-   Each field: {value, source_layer: "yfinance", source_detail: "yfinance <TICKER> <period>"}
-   latest_fy / latest_quarter preserved
+3. Elastic KPIs (supplementary) — same iterative logic
+   For each collected supplementary field (backlog/orders/installed_base, etc.):
+   WebSearch quarterly/annual reports → extract → supplementary.<field>.fy_y0/y1/y2/sub_0-3
+   Historical quarterly earnings call transcripts typically contain orders/book-to-bill.
 
-4. Degradation
-   - yfinance missing periods → official_web / PDF fallback (agent manual extract)
-   - Half-year reporter (H1/H2) → sub_0=H1, sub_1=H2; sub_2/sub_3 skipped
-   - Periods that cannot be sourced are left empty — never fabricated
+4. Write to actuals-resolved.json
+   All fields {value, source_layer, source_detail}. Multi-period keys per actuals_schema.json.
+
+5. Degradation & edge cases
+   - yfinance missing periods → official_web PDF fallback
+   - Half-year reporter → sub_0=H1, sub_1=H2; sub_2/sub_3 left empty
+   - Non-calendar FY (JP March year-end, etc.) → yfinance auto-aligns; agent annotates FY label
+   - sub-period dedup: same calendar date appears in fy_y0 AND sub_N → write fy_y0 only, skip in sub
+   - CN/KR/TW markets with limited yfinance coverage → default to official_web PDF extract
 ```
 
 Field template: `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.

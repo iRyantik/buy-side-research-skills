@@ -146,30 +146,36 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心
 **3Y 执行步骤**（agent 在 standard lite 流程之外额外执行）：
 
 ```
-1. yfinance 拉历史年度（3 FY）
-   ticker.income_stmt      → 取最近 3 列（FY-2, FY-1, FY0）
-   ticker.balance_sheet     → 同上
-   ticker.cashflow          → 同上
-   字段映射：fill_gaps.py YF_FIELD_MAP 已有 yfinance→canonical name
-   （Revenue→revenue, GrossProfit→gross_profit, OperatingIncome→ebit 等）
+1. yfinance 拉历史 IS/BS/CF
+   ticker.income_stmt / balance_sheet / cashflow
+   → 最近 3 个完整 FY 列（FY-2, FY-1, FY0）
+   ticker.quarterly_* → 最近 4 个已完成 sub-period
+   字段映射：fill_gaps.py YF_FIELD_MAP（Revenue→revenue, GrossProfit→gross_profit 等）
+   写入：income_statement.fy_y2 / fy_y1 / fy_y0 / sub_0 / sub_1 / sub_2 / sub_3
+         BS/CF 同结构。latest_fy / latest_quarter 保留不动。
 
-2. yfinance 拉季度（最多 4 个已完成 sub-period）
-   ticker.quarterly_income_stmt  → 取最近 4 个已完成季度
-   ticker.quarterly_balance_sheet → 同上
-   ticker.quarterly_cashflow      → 同上
+2. 分部数据（segments）——复用 latest 获取逻辑，遍历各期间
+   对每个 segment name（从 latest segments 已知）：
+   WebSearch "<ticker> annual report <FY year> PDF" → WebFetch/Playwright extract 分部表
+   → 读取 revenue/pct_of_total/margin 填入 segments[].revenue[fy_y0/fy_y1/fy_y2]
+   sub-period：搜索 quarterly/interim report → extract → 填入 segments[].revenue[sub_0-3]
+   segments[].periods 更新为完整期间列表
+   拿不到完整分部表的期间留空，不编造。
 
-3. 写入 actuals-resolved.json
-   按 actuals_schema.json _periods 定义：
-   income_statement.fy_y2 / fy_y1 / fy_y0   — 3 个完整 FY
-   income_statement.sub_0 / sub_1 / sub_2 / sub_3  — 最多 4 个子年
-   BS/CF 同结构
-   每个字段：{value, source_layer: "yfinance", source_detail: "yfinance <TICKER> <period>"}
-   latest_fy / latest_quarter 保留不动
+3. 弹性 KPI（supplementary）——同逻辑遍历
+   对每个已采集的 supplementary field（backlog/orders/installed_base 等）：
+   WebSearch 各季/年报 → extract → 填入 supplementary.<field>.fy_y0/y1/y2/sub_0-3
+   历史季度 earnings call transcript 通常含 orders/book-to-bill。
 
-4. 降级规则
-   - yfinance 缺期间 → official_web / PDF 补（agent 手工 extract）
-   - 半年度 reporter（H1/H2）→ sub_0=H1, sub_1=H2；sub_2/sub_3 skip
-   - 拿不到的期间留空，不编造
+4. 写入 actuals-resolved.json
+   所有字段 {value, source_layer, source_detail}。多期间 key 按 actuals_schema.json。
+
+5. 降级与边界
+   - yfinance 缺期间 → official_web PDF 补
+   - 半年度 reporter → sub_0=H1, sub_1=H2；sub_2/sub_3 空
+   - 非日历年 FY（JP 3 月截止等）→ yfinance 自动对齐，agent 标注 FY label
+   - sub-period 去重：同一 calendar date 出现在 fy_y0 和 sub_N → 只写 fy_y0，sub 里跳过
+   - CN/KR/TW 市场 yfinance 覆盖差 → 默认走 official_web PDF extract
 ```
 
 字段模板见 `_scripts/financial-data/actuals_schema.json`。默认 `latest` 模式只写 `latest_fy` + `latest_quarter`，3Y 模式二者共存——`latest_*` 保留不删。
