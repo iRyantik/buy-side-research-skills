@@ -227,44 +227,6 @@ There is no official_web layer: exchange websites only publish trading data PDFs
 
 After fetching, write into `actuals-resolved.json` under `market_data` (audit anchor, not a substitute for the next fetch).
 
----
-
-**Standard Lite Execution** (agent runs these layers sequentially when executing lite mode — validated against Mycronic MYCR.ST):
-
-```
-Layer 1: yfinance — bulk IS/BS/CF + initial market data
-  ticker.income_stmt / balance_sheet / cashflow → latest_fy + latest_quarter
-  ticker.info → grab what's available: price, mcap, PE TTM/NTM, PB, PS, EV/EBITDA, EV/Sales, Div%, Beta
-  → Checkpoint: list filled/total + gap inventory
-
-Layer 2: yfinance.info — fill remaining market data gaps
-  ticker.info key mapping for what Layer 1 missed:
-    price: currentPrice, pe_ttm: trailingPE, pe_ntm: forwardPE, pb: priceToBook
-    ps_ttm: priceToSalesTrailing12Months, ev_sales: enterpriseToRevenue
-    dividend_yield_pct: dividendYield, eps_ttm: trailingEps
-    total_shares: sharesOutstanding, exchange, industry
-  → Checkpoint: list remaining gaps
-
-Layer 3: WebSearch → WebFetch/Playwright — segments + elastic KPIs + statement gaps
-  3a: WebSearch "<ticker> annual report FY20XX PDF" → extract segment table (revenue/EBIT/margin per segment)
-  3b: WebSearch "<ticker> quarterly/interim report" → extract quarterly segment data
-  3c: WebSearch "<ticker> investor relations" → fill CF line items (D&A, CapEx, dividends, buybacks)
-  3d: Prioritize local language; on success → source_layer=official_web
-  → Checkpoint: list final gaps
-
-Layer 4: Google Finance — last resort (market data only; leave null if still missing)
-```
-
-**Validated example** (Mycronic MYCR.ST):
-```
-Layer 1: IS/BS/CF ✅, Market data 3/12
-Layer 2: Market data 12/12 ✅
-Layer 3: Segments 4×7 periods ✅, CF D&A/CapEx — missing (PDF-only, not web-accessible)
-→ Fill: 128/130 (98%)
-```
-
----
-
 **Minimum fields written by Lite**:
 
 | Category | Content | Status | Trust Layer |

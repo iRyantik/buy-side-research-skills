@@ -227,44 +227,6 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 
 拉完后写入 `actuals-resolved.json` 的 `market_data`（审计锚，不替代下次拉取）。
 
----
-
-**Standard Lite Execution**（agent 执行 lite 模式时逐层运行——已通过 Mycronic MYCR.ST 实测验证）：
-
-```
-Layer 1: yfinance — 全量 IS/BS/CF + 初步市场数据
-  ticker.income_stmt / balance_sheet / cashflow → latest_fy + latest_quarter
-  ticker.info → 能拿多少算多少: price, mcap, PE TTM/NTM, PB, PS, EV/EBITDA, EV/Sales, Div%, Beta
-  → 检查点: 列出已填/总字段 + 缺口清单
-
-Layer 2: yfinance.info — 补市场数据缺口
-  ticker.info key mapping 填 Layer 1 漏掉的:
-    price: currentPrice, pe_ttm: trailingPE, pe_ntm: forwardPE, pb: priceToBook
-    ps_ttm: priceToSalesTrailing12Months, ev_sales: enterpriseToRevenue
-    dividend_yield_pct: dividendYield, eps_ttm: trailingEps
-    total_shares: sharesOutstanding, exchange, industry
-  → 检查点: 列出剩余缺口
-
-Layer 3: WebSearch → WebFetch/Playwright — 分部 + 弹性 KPI + 三表缺口
-  3a: WebSearch "<ticker> annual report FY20XX PDF" → extract 分部表 (revenue/EBIT/margin per segment)
-  3b: WebSearch "<ticker> quarterly/interim report" → extract 季度分部数据
-  3c: WebSearch "<ticker> investor relations" → 补 CF line items (D&A, CapEx, dividends, buybacks)
-  3d: 优先本地语言，验证成功 → source_layer=official_web
-  → 检查点: 列出最终缺口
-
-Layer 4: Google Finance — 兜底（仅市场数据字段，仍缺则 null）
-```
-
-**实测示例**（Mycronic MYCR.ST）：
-```
-Layer 1: IS/BS/CF ✅, 市场数据 3/12
-Layer 2: 市场数据 12/12 ✅
-Layer 3: 分部 4×7 periods ✅, CF D&A/CapEx — 缺（PDF内，网页不可达）
-→ Fill: 128/130 (98%)
-```
-
----
-
 **Lite 写入的最小字段**：
 
 | 类别 | 内容 | 状态 | Trust Layer |
