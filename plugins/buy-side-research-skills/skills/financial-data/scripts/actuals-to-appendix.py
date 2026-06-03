@@ -126,12 +126,17 @@ def _period_label(data: dict, section: str, key: str) -> str:
     if not isinstance(label, str):
         label = str(key)
 
-    # Extract year from "YYYY-MM-DD"
-    m = re.match(r"(\d{4})-\d{2}-\d{2}", label)
+    # "YYYY-MM-DD" — distinguish FY from sub-period by key prefix
+    m = re.match(r"(\d{4})-(\d{2})-(\d{2})", label)
     if m:
-        return m.group(1)
+        y, mo, _ = m.group(1), int(m.group(2)), m.group(3)
+        if key.startswith("sub_"):
+            # Quarterly: show Q + year
+            q = (mo - 1) // 3 + 1
+            return f"Q{q} {y}"
+        return y
 
-    # Already a period label like "Q1 FY2026"
+    # Already a period label like "Q1 FY2026", "H1 FY2025"
     return label if len(label) <= 14 else str(key)
 
 
