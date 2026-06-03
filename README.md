@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.8.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.9.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -168,7 +168,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
-| v5.8.0 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
+| v5.9.0 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |
 | v5.4.0 | 2026-06 | Source contract full injection: 27 skill output tables with Ev column, paragraph-level source density hook, table-row financial number check |
 | v5.3.0 | 2026-06 | Actuals-only ratio constraint: 17 skills prohibited from using FY2026E/consensus/forward estimates in ratios |
