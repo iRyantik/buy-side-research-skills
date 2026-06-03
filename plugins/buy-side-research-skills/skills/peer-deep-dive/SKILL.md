@@ -19,8 +19,26 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
+Step 1: Fork N subagents — 一 ticker 一 card（并行）
 
+每个 subagent 独立完成两项任务：
 
+  a. 拉取财务数据
+     /financial-data --lite <TICKER> --periods 3Y
+     → 写入 _cache/financial-data/internal/actuals-resolved.json
+
+  b. 生成证据卡
+     读取 actuals + WebSearch 关键信息 → 按 `references/policy/evidence-card-schema.json` 输出 JSON
+     证据卡含：financial_highlights, business_profile, competitive_position,
+              growth_outlook, valuation_context, long_short_sentiment, scoring,
+              key_claims_needing_verification, evidence_triplets
+
+subagent N:
+  /financial-data --lite <TICKER_N> --periods 3Y
+  + evidence card JSON per evidence-card-schema.json
+
+全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注
+`subagent unavailable for <TICKER> — <reason>`，该 ticker 从合并对比中移除。
 
 ## 心法
 
@@ -347,10 +365,22 @@ quadrantChart
 - 估值比较只说"偏贵/便宜"不做反向工程
 
 
-## Appendix: actuals-resolved.json
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
 
 完整字段清单 -> `references/actuals-data-catalog.md`。
 
 结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
 
 消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。
+
+### Evidence Cards
+
+主 agent 从每张 evidence card 取 1-3 个 evidence_triplets，按以下格式嵌入 artifact：
+
+claim: <key factual claim from evidence card>
+evidence: <supporting data>
+source: [S#](url) or [I#](url)
+
+至少 1 个 triplet（3 行）以满足 subagent_protocol hook 要求。

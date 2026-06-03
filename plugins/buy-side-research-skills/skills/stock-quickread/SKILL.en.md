@@ -85,7 +85,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ### Execution Flow (Gate-style — each step has intermediate output, next step checks previous)
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker> --periods 3Y
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
 │  → Write to _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
@@ -122,8 +122,11 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
 │  → Auto-create ledger pending claims → agent fills text/quote/section → verify
 │
-└─ Step 8: python _scripts/evidence_ledger.py lint + status
-   → anchors aligned ✅ + 0 fabrication_risk + coverage >80%
+├─ Step 8: python _scripts/evidence_ledger.py lint + status
+│  → anchors aligned ✅ + 0 fabrication_risk + coverage >80%
+│
+└─ Step 9: python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+   → Generate appendix: financial data statement in artifact
 ```
 
 ### Source Numbering Rules

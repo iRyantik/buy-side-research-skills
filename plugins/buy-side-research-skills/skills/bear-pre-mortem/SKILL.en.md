@@ -13,7 +13,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its output; pull numbers directly from `actuals-resolved.json`.
+- **Data pipeline**: Call `/financial-data --lite <ticker> --periods 3Y` to fetch three statements + market snapshot. Trust its output; pull numbers directly from `actuals-resolved.json`.
 - **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - **Actuals-only**: DSO, inventory turnover, OCF/NI, Capex/D&A, and all diagnostic ratios use actuals-resolved.json. No estimate-derived ratios.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -215,6 +215,10 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 
 This skill is used after `alpha-thesis` is written and before the IC memo is submitted. If the original thesis still holds up after the stress test, the conviction is real; if obvious blind spots are discovered, go back and fix the thesis, reduce sizing, or simply walk away from the trade.
 
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
 
 ## Appendix: actuals-resolved.json
 

@@ -11,7 +11,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: implied move, short squeeze score, and any ratio derived from financial statements use actuals-resolved.json.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -221,6 +221,17 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - Post-print read：400-700 字
 
 超长就是抓不住重点。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

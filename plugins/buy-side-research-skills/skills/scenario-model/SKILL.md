@@ -11,7 +11,7 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline 三表 + 市场快照。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取 baseline 三表 + 市场快照。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.
@@ -256,6 +256,17 @@ Agent 根据用户 query 自动判定方向。
 | 上游 | `comps-analysis` | PE 锚 |
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

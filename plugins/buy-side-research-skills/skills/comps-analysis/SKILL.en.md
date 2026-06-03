@@ -23,6 +23,29 @@ Build comparable company valuation workbooks with peer multiples and operating m
 - **Actuals-only ratio rule**: multiples (PE, EV/EBITDA, EV/Sales, PEG, etc.) must use actuals-resolved.json disclosed data as input. FY2026E / consensus / forward estimates are banned as ratio inputs. Missing actuals input → ratio cell stays blank.
 
 
+### Step 1: Fork N subagents — one evidence card per ticker (parallel)
+
+Each subagent independently completes two tasks:
+
+  a. Fetch financial data
+     /financial-data --lite <TICKER> --periods 3Y
+     → writes _cache/financial-data/internal/actuals-resolved.json
+
+  b. Generate evidence card
+     Read actuals + WebSearch key information → output JSON per `references/policy/evidence-card-schema.json`
+     Card contains: financial_highlights, business_profile, competitive_position,
+                   growth_outlook, valuation_context, long_short_sentiment, scoring,
+                   key_claims_needing_verification, evidence_triplets
+
+subagent N:
+  /financial-data --lite <TICKER_N> --periods 3Y
+  + evidence card JSON per evidence-card-schema.json
+
+Main agent continues once all subagents complete. Single ticker failure does not block others —
+main agent notes `subagent unavailable for <TICKER> — <reason>` in the final artifact,
+removing that ticker from the merged comparison.
+
+
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)
 
 **ALWAYS follow this data source hierarchy:**
@@ -689,3 +712,22 @@ Complete field list -> `references/actuals-data-catalog.md`.
 Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
 
 Consumption rules: Read actuals first -> source_map for [S#]/[I#] tags (do not write [actuals]) -> ratios use only actuals real values (no forward estimates).
+
+
+## Appendix: Financial Data
+
+Generate appendix from actuals-resolved.json:
+
+```
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,<TICKER_3>,...
+```
+
+### Evidence Cards
+
+Main agent selects 1-3 evidence_triplets from each evidence card and embeds them in the artifact:
+
+claim: <key factual claim from evidence card>
+evidence: <supporting data>
+source: [S#](url) or [I#](url)
+
+At least 1 triplet (3 lines) required to satisfy the subagent_protocol hook.

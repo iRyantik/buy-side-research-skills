@@ -11,7 +11,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -85,7 +85,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 ### 执行流程（Gate 式——每步有中间产物，下步检查上步）
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker> --periods 3Y
 │  → 拉三表核心科目 + 分部 + 弹性 supplementary + market_data
 │  → 写入 _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。
@@ -124,6 +124,10 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 │
 └─ Step 8: python _scripts/evidence_ledger.py lint + status
    → anchors 对齐 ✅ + 0 fabrication_risk + coverage >80%
+   │
+   └─ Step 9: python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+      → 生成财务数据附录 markdown
+      → 插入 artifact 作为 `## Appendix: Financial Data`（位于 `## Resources` 之前）
 ```
 
 ### Source 编号规则
@@ -526,6 +530,17 @@ industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-
 ## 篇幅基准
 
 - 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

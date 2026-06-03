@@ -11,6 +11,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
 - Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
 - **Actuals-only**: margin breakdowns, price/volume/mix ratios, and all quantitative driver ratios use actuals-resolved.json disclosed data. No forward estimate as ratio input.
 - Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
@@ -206,6 +207,17 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 ## 篇幅基准
 
 - 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

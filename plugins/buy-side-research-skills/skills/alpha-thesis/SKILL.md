@@ -13,7 +13,7 @@ Build a sourced long or short investment thesis with variant view catalysts scen
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -257,6 +257,17 @@ industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Research Runtime Capsule` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

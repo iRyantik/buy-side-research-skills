@@ -15,7 +15,7 @@ If upstream work has not yet clearly nailed down bull/base/bear odds, implied va
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its results, pull numbers directly from `actuals-resolved.json`.
+- **Data pipeline**: Call `/financial-data --lite <ticker> --periods 3Y` to fetch three statements + market snapshot. Trust its results, pull numbers directly from `actuals-resolved.json`.
 - **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -260,6 +260,10 @@ If the current date-stamped save path is unclear, the agent auto-creates the dir
 
 If high-value questions arise during thesis writing — disclosure buckets, business substance, model drivers, source conflicts — directly trigger the Senior Analyst Radar alert from `Research Runtime Capsule`. If the issue is that revenue / margin / backlog / price-volume-mix drivers are not clearly decomposed, use `driver-map` first; if the issue is that the research direction itself is unclear, use `next-step`.
 
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
 
 ## Appendix: actuals-resolved.json
 

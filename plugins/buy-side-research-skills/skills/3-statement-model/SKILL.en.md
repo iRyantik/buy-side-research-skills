@@ -424,6 +424,10 @@ When Master Status shows errors:
 5. Return to Checks tab to verify resolution
 
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+
 ## Appendix: actuals-resolved.json
 
 Full field listing -> `references/actuals-data-catalog.md`.

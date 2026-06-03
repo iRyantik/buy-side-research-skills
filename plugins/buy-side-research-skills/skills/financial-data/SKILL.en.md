@@ -137,11 +137,14 @@ If `industry/<industry>/companies/<ticker>/index.md` does not exist, the agent m
 
 ### Lite Mode Fetch (fast pre-research fetch)
 
-Trigger phrases: `/financial-data --lite <ticker>` or "快速拉 <ticker> 数据"
+Trigger phrases: `/financial-data --lite <ticker>` or "pull quick financials for <ticker>"  
+Trigger (3Y mode): `/financial-data --lite <ticker> --periods 3Y` or "pull 3-year financial data"
 
-Lite mode does not parse the full filing and does not build an evidence pack. It only fetches 22 core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
+Lite mode does not parse the full filing and does not build an evidence pack. It fetches core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
 
-**Consumer contract**: Consuming skills only need to call `--lite` and then read data directly from `actuals-resolved.json`. All provider routing, trust ordering, and market data degradation chains are executed internally within financial-data. The consuming skill's Runtime Capsule must not repeat provider names, trust chains, or subagent data-fetching procedures.
+**`--periods 3Y` (appendix display mode)**：Enable when a consuming skill needs to render a sell-side-style appendix. The agent fetches **3 full fiscal years + up to 4 sub-year periods** (quarterly reporter → Q1/Q2/Q3/Q4, half-year reporter → H1/H2), writing them into `actuals-resolved.json` under `fy_y2` / `fy_y1` / `fy_y0` / `sub_0` … `sub_3` keys. Field template defined in `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.
+
+**Consumer contract**: Consuming skills call `--lite [--periods 3Y]` and read data directly from `actuals-resolved.json`.
 
 **Three-statement fetch logic**: Route to provider by market; if unavailable, degrade layer by layer: official_web → yfinance → trusted_web → broad_web. The rules follow the same provider_api + official_web priority principle as Full mode.
 

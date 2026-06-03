@@ -163,6 +163,17 @@ ROI on deployed capital: ~145%
 
 
 
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
+
+
 ## Appendix: actuals-resolved.json
 
 完整字段清单 -> `references/actuals-data-catalog.md`。

@@ -11,7 +11,7 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: reverse-engineered implied growth, implied margin, and reverse DCF use actuals-resolved.json historical data as anchor. Consensus/forward estimates are the object of analysis, not inputs to ratio computation.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -257,6 +257,17 @@ flowchart TD
 | Industry/Theme | 1300-2000 |
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

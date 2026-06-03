@@ -170,3 +170,17 @@ runtime release zip 继续保持扁平 payload：
 - `README.md`
 
 repo docs、authoring baseline、release notes 是否进 zip，以当期 release policy 为准；不要默认把所有 repo 文档塞进运行时包。
+
+---
+
+## 9. 双语同步规则
+
+本插件同时维护中文源文件与英文翻译副本。英文研究员依赖 `SKILL.en.md`、`CLAUDE.en.md.template`、`*.en.md` 等翻译文件。
+
+**同步铁律**：
+
+- 修改中文源文件（`SKILL.md`、`CLAUDE.md.template`、`research-policy-baseline.md`、`actuals-data-catalog.md`、KPI driver `.md` 等）→ **必须同步修改对应的 `.en.md` 文件**。
+- 发布前检查：`docs/release.md` pre-release checklist 含 `[ ] 中文源码变更已同步到所有对应 .en.md`。
+- 中文版为 source of truth；英文版必须内容密度对齐——中文有的每个 section、每条规则、每个表、每个约束，英文必须有。不压缩、不概括。
+- 代码、路径、YAML key、ticker、财务术语、CLI 命令 **不翻译**，保留原样。
+- 如变更仅涉及中文措辞风格优化且不改变规则语义，英文版可跳过。

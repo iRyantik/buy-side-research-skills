@@ -208,6 +208,10 @@ Based on the driver decomposition above, answer three growth-quality questions:
 - Standard: 900-1600 characters + 3-4 tables. Below 700 characters often misses proxy strategy; above 1800 characters should narrow to core segments.
 
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+
 ## Appendix: actuals-resolved.json
 
 Complete field inventory -> `references/actuals-data-catalog.md`.

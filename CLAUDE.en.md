@@ -170,6 +170,20 @@ Hard rules:
 
 ---
 
+## 9. Bilingual Sync Rules
+
+This plugin maintains both Chinese source files and English translation copies. English-native researchers depend on `SKILL.en.md`, `CLAUDE.en.md.template`, `*.en.md`, and other translated files.
+
+**Hard rule**:
+
+- When modifying a Chinese source file (`SKILL.md`, `CLAUDE.md.template`, `research-policy-baseline.md`, `actuals-data-catalog.md`, KPI driver `.md`, etc.) → **the corresponding `.en.md` file must be updated in the same commit**.
+- Pre-release gate: `docs/release.md` pre-release checklist includes `[ ] Chinese source changes synced to all corresponding .en.md`.
+- Chinese is the source of truth; English versions must be content-density aligned — every section, rule, table, and constraint present in Chinese must exist in English. No compression, no summaries.
+- Code, paths, YAML keys, tickers, financial terms, and CLI commands are **not translated** — preserve as-is.
+- If the change is purely a Chinese phrasing/style polish that does not alter rule semantics, the English version may be skipped.
+
+---
+
 ## 8. Authoring Rules
 
 - Active runtime skills remain flat under `plugins/buy-side-research-skills/skills/[skill-name]/`.

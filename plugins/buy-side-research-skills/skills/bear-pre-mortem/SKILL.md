@@ -11,7 +11,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: DSO, inventory turnover, OCF/NI, Capex/D&A, and all diagnostic ratios use actuals-resolved.json. No estimate-derived ratios.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -211,6 +211,17 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 ## 用法说明
 
 本 skill 在 `alpha-thesis` 写完之后、IC memo 提交之前使用。如果压力测试之后原 thesis 还站得住，conviction 是真的；如果发现明显盲点，回去修 thesis、降低 sizing，或者直接放弃这单 trade。
+
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
 
 
 ## Appendix: actuals-resolved.json

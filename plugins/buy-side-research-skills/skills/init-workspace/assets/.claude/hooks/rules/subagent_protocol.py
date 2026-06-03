@@ -10,9 +10,9 @@ _RESEARCH_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
 def _is_research_artifact(filepath: str) -> bool:
     return bool(_RESEARCH_ARTIFACT_RE.match(os.path.basename(filepath)))
 
-# 5 default-parallel skills — must have evidence cards
+# 4 default-parallel skills — must have evidence cards
 DEFAULT_PARALLEL = {
-    "peer-deep-dive", "candidate-screener",     "pair-trade", "driver-map",
+    "peer-deep-dive", "candidate-screener", "pair-trade", "comps-analysis",
 }
 
 # 8 company-level finance skills — must have financial-data subagent evidence

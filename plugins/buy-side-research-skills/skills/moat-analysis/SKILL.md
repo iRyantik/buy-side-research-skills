@@ -11,7 +11,7 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline。
+- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取 baseline。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: ROIC, margins, and all moat scorecard financial metrics use actuals-resolved.json disclosed data only.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
@@ -203,6 +203,17 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
     - 不做管理层评估 → `capital-allocation`
     - 不做完整 thesis → `alpha-thesis`
     
+
+## Appendix: Financial Data
+
+Artifact 写入完成后，运行以下命令生成财务数据附录：
+
+```
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+```
+
+将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
+
 
 ## Appendix: actuals-resolved.json
 

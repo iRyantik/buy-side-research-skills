@@ -13,7 +13,7 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data Pipeline**: Call `/financial-data --lite <ticker>` to fetch 3-statement + market snapshot. Trust its results, pull data directly from `actuals-resolved.json`.
+- **Data Pipeline**: Call `/financial-data --lite <ticker> --periods 3Y` to fetch 3-statement + market snapshot. Trust its results, pull data directly from `actuals-resolved.json`.
 - **Data Validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - **Actuals-only**: reverse-engineered implied growth, implied margin, and reverse DCF use actuals-resolved.json historical data as anchor. Consensus/forward estimates are the object of analysis, not inputs to ratio computation.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -261,6 +261,10 @@ After writing, must self-check. If hit, rewrite:
 
 Below the lower bound usually means source / bar / debate are insufficient; above the upper bound usually means the output has crossed into `alpha-thesis` or modeling skills.
 
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py <TICKER>
 
 ## Appendix: actuals-resolved.json
 
