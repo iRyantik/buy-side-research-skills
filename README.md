@@ -1,176 +1,179 @@
-# Buy-Side Research Skills — AI 研究员工具箱
+# Buy-Side Research Skills — AI Research Toolkit
 
-> v5.7.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
-
----
-
-## 0. 安装
-
-对 Claude / Codex 说：
-
-```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
-```
+> v5.7.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+>
+> 中文版：[README.cn.md](./README.cn.md)
 
 ---
 
-## 0a. 升级
+## 0. Install
 
-对 Claude / Codex 说：
+Tell Claude or Codex:
+
+```
+Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md to install buy-side-research-skills
+```
+
+---
+
+## 0a. Upgrade
+
+Tell Claude or Codex:
 
 ```
 /update-agent-runtime
 ```
 
-自动从 GitHub Release 拉最新版，更新插件版本 + 同步 workspace hooks。每次发版后跑一次即可。
+Automatically pulls the latest GitHub release, updates the plugin version, and syncs workspace hooks. Run once after each release.
 
 ---
 
 ---
 
-## 1. 需要额外配置
+## 1. Additional Configuration
 
-| 需要什么 | 怎么拿到 |
+| Need | How to Get It |
 |---|---|
-| **SEC EDGAR 身份** | 对 Claude 说"设置 EDGAR 身份为 姓名,邮箱" |
-| **DART API Key** | [dart.fss.or.kr](https://dart.fss.or.kr) 免费申请，对 Claude 说"设 DART_API_KEY 为 xxx" |
-| **EDINET Tools** | 对 Claude 说"安装 EDINET 依赖"。数据来自 [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp)，免费 |
-| **欧股 ESEF 包** | 从公司 IR 页下载 annual report（iXBRL，.zip 内含 .xhtml），拉数据时把文件路径给 financial-data |
-| **ingest 文档转换** | 对 Claude 说"检查 ingest 依赖"，自动检测并提示安装 |
-| **Longbridge 账户** | [longbridge.com](https://longbridge.com) 注册，对 Claude 说"连接 Longbridge" |
+| **SEC EDGAR Identity** | Tell Claude "Set EDGAR identity to Name, Email" |
+| **DART API Key** (Korea) | Free registration at [dart.fss.or.kr](https://dart.fss.or.kr), tell Claude "Set DART_API_KEY to xxx" |
+| **EDINET Tools** (Japan) | Tell Claude "Install EDINET dependencies." Data from [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp), free |
+| **EU ESEF Package** | Download annual report from company IR page (iXBRL, .zip containing .xhtml). Provide file path to financial-data |
+| **ingest Document Conversion** | Tell Claude "Check ingest dependencies" — auto-detects and prompts for installation |
+| **Longbridge Account** | Register at [longbridge.com](https://longbridge.com), tell Claude "Connect Longbridge" |
 
-> 未列出的 skill 无需配置，装完直接用。
+> Unlisted skills require no configuration — ready to use out of the box.
 >
-> 另：推荐启用 Playwright runtime 作为共享 browser 能力，用于图片抓取和部分网页 fallback 流程。具体看 `docs/install.md` 和 `/init-workspace`，不要把它当成 `.env` 里的 provider credential。
+> Also recommended: enable Playwright runtime as a shared browser capability for image capture and web fallback. See `docs/install.md` and `/init-workspace`. Do not treat it as a `.env` provider credential.
 
 ---
 
-## 2. 快速开始：两个最常用 Workflow
+## 2. Quick Start: Two Core Workflows
 
-### 从行业出发（找机会）
-
-```
-Step 1: teach-in              → 建立物理直觉（光模块是什么、怎么造的、设备链在哪）~20min
-Step 2: industry-landscape    → 行业全景：价值池 51.8B、竞争格局、17 家公司注册表 ~20min
-Step 3: mechanism-insight     → 深挖关键段竞争格局（固晶/耦合/Burn-in/CPO 路线分歧） ~30min
-Step 4: market-sizing         → TAM 拆解（CPO burn-in $1.2B, coupling $2.8B） ~15min
-Step 5: candidate-screener    → 3 regime 分场景 L/S 排序 + 7 策略原型 + 场景推票 ~40min
-  ├→ scenario-model           → CPO>15% 场景 AEHR 理论市值 +148%（量化验证小赌注）
-  └→ peer-deep-dive           → Top 5 横向比较、跨 5 市场统一 USD、growth-adjusted PEG
-```
-
-### 从公司出发（深挖一只票）
+### Industry-First (Find Opportunities)
 
 ```
-Step 1: stock-quickread       → 5 分钟 first pass：业务总览、焦点产品、财务表（标准+弹性列）、
-                                  Growth Drivers & KPIs、周期位置、5 个深层问题 ~30min
-  ├→ 设备公司 → 强制查 backlog/orders/ASP/B2B；流程工业 → 查产量/成本/利用率
-  └→ 自动路由下一步：moat-analysis / catalyst-map / capital-allocation
-Step 2: financial-data --lite → 三表 + 市场快照（增量 fill：yfinance→Bridge→WebSearch→Google） ~15s
-Step 3: driver-map            → 拆 driver（organic vs M&A / price vs volume / backlog visibility）
-                                  + Growth Quality（leading indicator / margin trajectory） ~30min
-Step 4: moat-analysis         → 五维度评分 + peer 对标 + Hard/Medium/Soft 证据 + Killer Question
-  ├→ catalyst-map             → 概率加权 catalyst chain + payoff ratio + timeline
+Step 1: teach-in              → Build physical intuition for an unfamiliar industry ~20min
+Step 2: industry-landscape    → Full industry picture: value pool, competitive landscape, company registry ~20min
+Step 3: mechanism-insight     → Deep-dive key segments (die bonding, coupling, burn-in, CPO divergence) ~30min
+Step 4: market-sizing         → TAM breakdown (CPO burn-in $1.2B, coupling $2.8B) ~15min
+Step 5: candidate-screener    → 3-regime scenario-based L/S ranking + 7 strategy archetypes ~40min
+  ├→ scenario-model           → CPO >15% scenario: AEHR theoretical market cap +148%
+  └→ peer-deep-dive           → Top 5 cross-market comparison, unified USD, growth-adjusted PEG
+```
+
+### Company-First (Deep-Dive a Single Name)
+
+```
+Step 1: stock-quickread       → 5-minute first pass: business overview, focus products, financial tables,
+                                  growth drivers & KPIs, cycle position, 5 deep questions ~30min
+  ├→ Equipment company → mandatory backlog/orders/ASP/B2B; process industry → output/cost/utilization
+  └→ Auto-route next: moat-analysis / catalyst-map / capital-allocation
+Step 2: financial-data --lite → Financial statements + market snapshot ~15s
+Step 3: driver-map            → Decompose drivers (organic vs M&A / price vs volume / backlog visibility)
+                                  + Growth Quality (leading indicator / margin trajectory) ~30min
+Step 4: moat-analysis         → Five-dimension scoring + peer benchmarking + Hard/Medium/Soft evidence + Killer Question
+  ├→ catalyst-map             → Probability-weighted catalyst chain + payoff ratio + timeline
   └→ capital-allocation       → 10Y buyback/M&A/dividend/capex ROI + moat bridge
-Step 5: consensus-map         → consensus 隐含增速 vs 当前 PE 反推增速——Gap 在哪？
-Step 6: scenario-model        → bull/base/bear odds memo + Growth/Margin/Multiple 三维 driver mix + sensitivity
-Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
+Step 5: consensus-map         → Consensus-implied growth vs. PE-implied growth — where's the gap?
+Step 6: scenario-model        → Bull/base/bear odds memo + Growth/Margin/Multiple three-dimensional driver mix + sensitivity
+Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 ```
 
 ---
 
-> 📖 **不想读文档？** 跟着真实案例走一遍：[/examples/optical-module-equipment/](examples/optical-module-equipment/) — 从零基础到分场景 L/S 排序，5 步对话实录。
+> 📖 **Don't want to read docs?** Follow a real case study: [/examples/optical-module-equipment/](examples/optical-module-equipment/) — from zero knowledge to scenario-based L/S ranking, 5-step conversation log.
 
 ---
 
-## 3. 完整 Skill 清单（38 个）
+## 3. Complete Skill Catalog (39 skills)
 
-### Triage 层（快速判断）
+### Triage Layer
 
-| Skill | 一句话 | 触发 |
+| Skill | One-Liner | Trigger |
 |---|---|---|
-| `stock-quickread` | 陌生公司 first pass | "用 stock-quickread 看 xxx" |
-| `information-impact` | 一条信息的真假和影响 | "这条新闻靠谱吗" |
-| `next-step` | 下一步最该研究什么 | "接下来该看什么" |
-| `post-earnings-quick` | 财报后 5 分钟判断 | "xxx 出财报了 快速看看" |
-| `reddit-sentiment` | 社交媒体情绪 | "Reddit 上怎么说" |
+| `stock-quickread` | First pass on an unfamiliar company | "Run stock-quickread on xxx" |
+| `information-impact` | Verify a single claim or rumor | "Is this news credible?" |
+| `meeting-minutes` | Structure and RAG-verify meeting transcripts | "Structure this call transcript" 🆕 |
+| `next-step` | What to research next | "What should I look at next?" |
+| `post-earnings-quick` | 5-minute post-earnings verdict | "xxx just reported, quick take" |
+| `reddit-sentiment` | Social media sentiment check | "What's Reddit saying?" |
 
-### Foundation 层（打地基）
+### Foundation Layer
 
-| Skill | 一句话 | 触发 |
+| Skill | One-Liner | Trigger |
 |---|---|---|
-| `teach-in` | 零基础建立物理直觉 | "光模块是什么" |
-| `industry-landscape` | 行业全景+投资判断 | "用 industry-landscape 看 xxx 行业" |
-| `financial-data` | 三表+市场快照 | "拉 xxx 的财务数据" |
-| `market-sizing` | TAM/SAM/SOM 拆解 | "这个市场有多大" |
-| `mechanism-insight` | 技术/工程机制深挖 | "固晶机怎么工作的" |
-| `driver-map` | 收入/利润驱动拆解 | "xxx 靠什么赚钱" |
-| `company-history` | 业务演变+披露口径 | "xxx 怎么变成今天这样的" |
-| `consensus-map` | 市场预期+ priced-in | "市场对 xxx 的预期是什么" |
+| `teach-in` | Zero-to-one physical intuition | "What is an optical module?" |
+| `industry-landscape` | Full industry picture + investment thesis | "Run industry-landscape on xxx sector" |
+| `financial-data` | Financial statements + market snapshot | "Pull xxx financials" |
+| `market-sizing` | TAM / SAM / SOM breakdown | "How big is this market?" |
+| `mechanism-insight` | Deep-dive a single mechanism or equipment chain | "How does a die bonder work?" |
+| `driver-map` | Revenue / margin driver decomposition | "What drives xxx's revenue?" |
+| `company-history` | Business evolution + disclosure history | "How did xxx become what it is?" |
+| `consensus-map` | Market expectations + priced-in gap | "What is the market expecting from xxx?" |
 
-### Deep-Work 层（深度研究）
+### Deep-Work Layer
 
-| Skill | 一句话 | 触发 |
+| Skill | One-Liner | Trigger |
 |---|---|---|
-| `candidate-screener` | 分场景 L/S 排序（7 种策略原型） | "行业里这些票怎么排" |
-| `scenario-model` | Bull/base/bear odds memo + 假设溯源 | "如果 CPO 渗透 15% AEHR 值多少" |
-| `peer-deep-dive` | 横向比较（同市场/跨市场） | "这几家一起比" |
-| `moat-analysis` | 竞争壁垒量化 scorecard | "xxx 的护城河强不强" |
-| `catalyst-map` | 催化剂时间线+概率加权 | "xxx 有什么催化剂" |
-| `capital-allocation` | 管理层资本配置 10 年 ROI | "xxx 管理层钱花得怎么样" |
-| `earnings-setup` | 财报前 prepare | "xxx 要发财报了 怎么 setup" |
-| `alpha-thesis` | 投资 thesis | "帮我写 xxx 的 thesis" |
-| `bear-pre-mortem` | 空头 pre-mortem | "xxx 怎么死" |
-| `pair-trade` | LS 对 | "long A short B 怎么样" |
-| `primary-research-plan` | 一手研究计划 | "怎么验证 xxx 假设" |
-| `3-statement-model` | 完整三表模型 | "给 xxx 搭个模型" |
-| `dcf-model` | DCF 估值 | "用 DCF 给 xxx 估值" |
-| `comps-analysis` | 可比估值 | "用 comps 给 xxx 估值" |
+| `candidate-screener` | Scenario-based L/S ranking (7 strategy archetypes) | "How do these names rank?" |
+| `scenario-model` | Bull/base/bear odds memo + assumption tracing | "What is AEHR worth if CPO hits 15%?" |
+| `peer-deep-dive` | Cross-market peer comparison | "Compare these names" |
+| `moat-analysis` | Competitive barrier quantification | "How strong is xxx's moat?" |
+| `catalyst-map` | Catalyst timeline + probability weighting | "What catalysts does xxx have?" |
+| `capital-allocation` | Management capital allocation 10Y ROI | "How well does xxx management allocate capital?" |
+| `earnings-setup` | Pre-earnings preparation | "xxx is about to report — how to set up?" |
+| `alpha-thesis` | Investment thesis | "Write the thesis for xxx" |
+| `bear-pre-mortem` | Short-side pre-mortem | "How does xxx die?" |
+| `pair-trade` | L/S pair analysis | "Long A short B — does it work?" |
+| `primary-research-plan` | Expert calls, channel checks, surveys | "How to verify xxx hypothesis?" |
+| `3-statement-model` | Full financial model | "Build a model for xxx" |
+| `dcf-model` | DCF valuation | "Value xxx using DCF" |
+| `comps-analysis` | Comparable company analysis | "Value xxx using comps" |
 
-### Supporting 层（辅助）
+### Supporting Layer
 
-| Skill | 一句话 | 触发 |
+| Skill | One-Liner | Trigger |
 |---|---|---|
-| `research-viz` | 可视化 | "把这个做成图" |
+| `research-viz` | Visualization | "Turn this into a chart" |
 
-### Memory 层（沉淀）
+### Memory Layer
 
-| Skill | 一句话 | 触发 |
+| Skill | One-Liner | Trigger |
 |---|---|---|
-| `research-journal` | 沉淀研究认知 | "记录今天的发现" |
-| `coverage-tracker` | 跟踪覆盖公司状态 | "更新 coverage 优先级" |
+| `research-journal` | Capture earned research insights | "Record today's findings" |
+| `coverage-tracker` | Track coverage status and priorities | "Update coverage priorities" |
 
 ---
 
-## 4. 常见问题
+## 4. FAQ
 
-**Q: 财务数据拉不下来？**
-对 Claude 说 `检查 financial-data 依赖`。
+**Q: Can't pull financial data?**
+Tell Claude `Check financial-data dependencies`.
 
-**Q: 美股财报报错？**
-需要配 EDGAR 身份。对 Claude 说 `设置 EDGAR 身份为 姓名,邮箱`。
+**Q: US stock earnings throwing errors?**
+Configure EDGAR identity. Tell Claude `Set EDGAR identity to Name, Email`.
 
-**Q: 长桥怎么连？**
-对 Claude 说 `连接 Longbridge`。仅 US/HK/SH/SZ 需要。
+**Q: How to connect Longbridge?**
+Tell Claude `Connect Longbridge`. Required for US/HK/SH/SZ only.
 
-**Q: 日股/韩股/欧股数据怎么拿？**
-见 §1 配置表。日股免费、韩股需 API key、欧股需下载 ESEF 包。
+**Q: How to get Japan/Korea/Europe stock data?**
+See §1 configuration table. Japan: free. Korea: requires API key. Europe: requires ESEF package download.
 
-**Q: 如何更新插件？**
-对 Claude 说 `/update-agent-runtime`。自动从 GitHub Release 拉最新版，更新插件+同步 workspace hooks。每次发新版本后跑一次。
+**Q: How to update the plugin?**
+Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub release, updates plugin + syncs workspace hooks. Run once after each new release.
 
 ---
 
-## 5. 版本历史
+## 5. Version History
 
-| 版本 | 日期 | 主要变化 |
+| Version | Date | Key Changes |
 |---|---|---|
-| v5.7.0 | 2026-06 | Pre-write gate 11 CHECK、topics→industry全量迁移、meeting-minutes新skill、§9单行业归属+§10分部优先级、source标记简化(删badge)、CONTEXT.md |
-| v5.6.0 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |
-| v5.4.0 | 2026-06 | Source contract 全量注入：27 skill 输出表加 Ev 列、paragraph-level source density hook、table-row financial number check |
-| v5.3.0 | 2026-06 | Actuals-only ratio constraint：17 skill 禁止用 FY2026E/consensus/forward estimate 算 ratio |
-| v5.2.1 | 2026-06 | 目录级 auto-discovery：新 skill 脚本零改动自动部署。Meta-skill 目录 spec 收口 |
-| v5.1.0 | 2026-06 | Python 统一 bootstrap、init-workspace 重写（A类+B类部署清单）、交互式 provider 配置 |
-| v5.0.0 | 2026-06 | 7 个新 skill、candidate-screener 分场景 L/S、全链路 hook 治理、跨市场合并、事实治理层、Codex 双宿主 |
-| v4.6.2 | 2026-05 | Runtime Capsule 标准化、market data trust-based fill、C-level modeling hooks |
-| v4.5.6 | 2026-05 | mechanism-insight/industry-landscape/teach-in 改名、peer-deep-dive 重构 |
+| v5.7.0 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
+| v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |
+| v5.4.0 | 2026-06 | Source contract full injection: 27 skill output tables with Ev column, paragraph-level source density hook, table-row financial number check |
+| v5.3.0 | 2026-06 | Actuals-only ratio constraint: 17 skills prohibited from using FY2026E/consensus/forward estimates in ratios |
+| v5.2.1 | 2026-06 | Directory-level auto-discovery: new skill scripts deploy with zero changes. Meta-skill directory spec |
+| v5.1.0 | 2026-06 | Python unified bootstrap, init-workspace rewrite (Class A+B deployment manifest), interactive provider configuration |
+| v5.0.0 | 2026-06 | 7 new skills, candidate-screener scenario-based L/S, full-chain hook governance, cross-market consolidation, fact governance layer, Codex dual-host |
+| v4.6.2 | 2026-05 | Runtime Capsule standardization, market data trust-based fill, C-level modeling hooks |
+| v4.5.6 | 2026-05 | mechanism-insight/industry-landscape/teach-in renamed, peer-deep-dive restructured |
