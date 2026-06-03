@@ -40,6 +40,9 @@ subagent N:
 全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注
 `subagent unavailable for <TICKER> — <reason>`，该 ticker 从合并对比中移除。
 
+**Step 2: 生成附录**（必须在写 artifact 之前跑）：
+`python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...` → 输出嵌入 artifact `## Appendix` 节。禁止留占位符。
+
 ## 心法
 
 横向研究真正的价值，是**纵向研究做不到**的事：
@@ -81,7 +84,7 @@ subagent N:
 必含：
 - **一句话总判断**：这批公司作为一个 group，当前阶段的整体方向性判断
 - **优先级排名（微型表）**：公司 / 方向 / 一句话理由
-- **一眼定位**：插入 Mermaid scatter chart——N 家公司在增长 vs 估值（PE TTM）坐标系的位置
+- **一眼定位**：插入 Mermaid quadrant chart（四象限定位图，非通用散点图）——N 家公司在增长 vs 估值（PE TTM）坐标系的位置。Mermaid 无 scatter 类型，quadrantChart 是唯一合法的四象限图类型
 - **2-3 个最核心的 cross-cut 发现**（从 §6 提前提取的最关键 insight）
 - **第一优先行动**
 
@@ -122,12 +125,23 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.1 通用维度（所有行业都列）
 
-| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | **利润 YoY** | **Margin Δ(bp)** | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | **PEG** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | IFRS | 7.9B | +12% | -4% | -120bp | 24% | 22% | 0.1x | 0.6x | 2.1% | 35x | 18x | 1.9x | 7.4x | 29x | 7.0x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
-| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | CAS | ~1.5B | +30% | N/A(亏损) | N/A | ~15% | N/A | N/A | N/A | N/A | N/A | N/A | N/A | 50x | ~100x | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+**Table A — 市场 + 盈利 + 估值（~12 列）**：
 
-**跨市场规则**：同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准 5 列必填。单市场表可省略。
+| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 收入(LTM) | 收入 YoY | EBITDA margin | **PE TTM** | EV/EBITDA | FCF yield | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | 7.9B | +12% | 24% | 35x | 29x | 2.1% | [S1](./_cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | ~1.5B | +30% | ~15% | N/A | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+
+**Table B — 质量 + 回报（8-10 列，可选）**：
+
+| 公司 | 会计基准 | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | PE NTM | PB | 资本返还/FCF | Ev |
+|---|---|---|---|---|---|---|---|---|
+| MYCR | IFRS | 22% | 0.1x | 0.6x | 18x | 7.4x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CAS | N/A | N/A | N/A | N/A | 50x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+
+> **拆表规则**：超过 12 列必须拆成 Table A + Table B。Table A 必填（市场 + 核心盈利 + 关键估值），Table B 按需（公司 ≥5 家或 ROIC/PB 等质量指标为当前行业核心 debate 时才加）。
+
+**跨市场规则**：同表包含 ≥2 个市场 → Table A 必填 市场/货币/市值(USD)/FX rate/as-of 5 列；Table B 加会计基准列。单市场表可省略。
 
 **弹性列规则**：如果 N 家同属一个 business model → 表里加该 `references/kpi-drivers/` 模板的 2-3 个核心弹性列（例：全设备公司 → Backlog, Orders, Book-to-Bill）。不同 bus model 混搭 → 不加弹性列，避免口径不可比。
 
@@ -367,7 +381,15 @@ quadrantChart
 
 ## Appendix: Financial Data
 
+**必须在写 artifact 正文之前执行——不是注释/提醒，是强制步骤。**
+
+全部 subagent 完成后，主 agent 先跑 appendix 脚本，输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**禁止留 `*(Run python...)*` 占位符。**
+
+```
 python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+```
+
+输出的 `### Key Metrics` 和 `### Income Statement` 表直接嵌入；`### Market Data` 如有渲染问题（值为 0）则跳过该子表。
 
 完整字段清单 -> `references/actuals-data-catalog.md`。
 

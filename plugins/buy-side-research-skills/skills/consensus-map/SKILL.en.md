@@ -95,7 +95,7 @@ For a single company, single ticker, or a locked-in stock idea.
 
 ## 2. Expectations Stack
 
-[Insert Mermaid waterfall — how the three layers of expectations stack up to form the current price. Example below.]
+[Insert Mermaid flowchart (use `flowchart TD` to simulate the expectations stack — Mermaid has no `waterfall` diagram type). Example below.]
 
 ### Sell-Side Consensus Numbers
 

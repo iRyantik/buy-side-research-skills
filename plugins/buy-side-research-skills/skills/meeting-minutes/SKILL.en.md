@@ -143,6 +143,7 @@ Must clearly distinguish: **source-backed claims** vs. **speaker's view, not ind
 ## 4. Company Background
 
 | Company | Ticker | Core Business | Relevant Positioning (how it relates to this meeting's topic) |
+|---|---|---|---|
 
 ## 5. Technical / Industry Background
 

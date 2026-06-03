@@ -293,6 +293,142 @@ def _check_content(path: str, text: str, display: str):
             except Exception:
                 pass
 
+    # --- CHECK 12: Mermaid diagram type validation ---
+    MERMAID_FENCE_RE = re.compile(r'^```mermaid\s*$')
+    VALID_MERMAID_TYPES = {
+        "graph", "flowchart", "sequenceDiagram", "classDiagram", "stateDiagram",
+        "stateDiagram-v2", "erDiagram", "gantt", "pie", "quadrantChart", "xy-chart",
+        "block", "block-beta", "mindmap", "timeline", "sankey", "gitGraph", "gitgraph",
+        "c4", "c4context", "c4container", "c4component", "c4dynamic", "c4deployment",
+        "requirementDiagram", "journey", "zenuml",
+    }
+    TYPE_ALIASES = {
+        "scatter": "quadrantChart", "scatterchart": "quadrantChart",
+        "scatter chart": "quadrantChart", "waterfall": "flowchart TD",
+        "radar": None, "bar": "xy-chart", "bar chart": "xy-chart",
+        "line": "xy-chart", "line chart": "xy-chart",
+    }
+
+    in_mermaid = False
+    mermaid_start = 0
+    for lineno, line in enumerate(text.split('\n'), 1):
+        stripped = line.strip()
+        if stripped == "```mermaid":
+            in_mermaid = True
+            mermaid_start = lineno
+            continue
+        if in_mermaid and stripped == "```":
+            in_mermaid = False
+            continue
+        if in_mermaid and mermaid_start == lineno - 1:
+            # First line after fence — must be the diagram type
+            diag_type = stripped.split()[0] if stripped else ""
+            diag_lower = diag_type.lower()
+            if not diag_type:
+                block(
+                    f"Blocked by pre_write_gate: {display} mermaid block near "
+                    f"line {mermaid_start} has no diagram type. Add one of: "
+                    f"flowchart, quadrantChart, timeline, gantt, pie, etc."
+                )
+            if diag_lower in TYPE_ALIASES:
+                suggestion = TYPE_ALIASES[diag_lower]
+                if suggestion:
+                    block(
+                        f"Blocked by pre_write_gate: {display} mermaid block near "
+                        f"line {mermaid_start} uses '{diag_type}' which is NOT valid. "
+                        f"Use '{suggestion}' instead. Mermaid has no '{diag_type}' type."
+                    )
+                else:
+                    block(
+                        f"Blocked by pre_write_gate: {display} mermaid block near "
+                        f"line {mermaid_start} uses '{diag_type}' which has NO Mermaid "
+                        f"equivalent. Use research-viz for this chart type."
+                    )
+            if diag_type not in VALID_MERMAID_TYPES and diag_lower not in {t.lower() for t in VALID_MERMAID_TYPES}:
+                block(
+                    f"Blocked by pre_write_gate: {display} mermaid block near "
+                    f"line {mermaid_start} uses '{diag_type}' — not a recognized "
+                    f"Mermaid diagram type. Valid: flowchart, quadrantChart, timeline, "
+                    f"gantt, pie, sequenceDiagram, classDiagram, erDiagram, mindmap, sankey, "
+                    f"gitGraph, journey, requirementDiagram."
+                )
+
+    # --- CHECK 13: Table structure integrity ---
+    TABLE_HEADER_RE = re.compile(r'^\s*\|.+\|\s*$')
+    TABLE_SEP_RE = re.compile(r'^\s*\|?(?:\s*:?-{2,}:?\s*\|)+(?:\s*:?-{2,}:?\s*)\|?\s*$')
+
+    def _count_cols(line: str) -> int:
+        clean = line.strip()
+        if clean.startswith("|"):
+            clean = clean[1:]
+        if clean.endswith("|"):
+            clean = clean[:-1]
+        if not clean.strip():
+            return 0
+        return len(re.split(r'(?<!\\)\|', clean))
+
+    lines = text.split('\n')
+    i = 0
+    MAX_COLS = 12
+    while i < len(lines) - 1:
+        header = lines[i]
+        if not TABLE_HEADER_RE.match(header):
+            i += 1
+            continue
+        # Check next line exists and is a separator
+        if i + 1 >= len(lines):
+            block(
+                f"Blocked by pre_write_gate: {display} has a pipe-table header "
+                f"near line {i+1} with no separator row. Add a separator row "
+                f"(e.g., |---|---|)."
+            )
+        sep = lines[i + 1]
+        if not TABLE_SEP_RE.match(sep):
+            block(
+                f"Blocked by pre_write_gate: {display} has a pipe-table header "
+                f"near line {i+1} but the next line is not a valid separator. "
+                f"Add a separator row like |---|---|."
+            )
+
+        header_cols = _count_cols(header)
+        sep_cols = _count_cols(sep)
+
+        if header_cols != sep_cols:
+            block(
+                f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                f"has {header_cols} header columns but {sep_cols} separator columns. "
+                f"Make them match."
+            )
+
+        # Check data rows
+        j = i + 2
+        while j < len(lines):
+            data_line = lines[j]
+            if not data_line.strip():
+                break
+            if not data_line.strip().startswith("|"):
+                break
+            data_cols = _count_cols(data_line)
+            if data_cols != header_cols:
+                # Check for unescaped pipes in cell content
+                block(
+                    f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                    f"has a data row near line {j+1} with {data_cols} columns "
+                    f"(expected {header_cols}). Check for unescaped pipe characters "
+                    f"`|` inside cell content — use `·` or escape as `\\|` instead."
+                )
+            j += 1
+
+        # Wide table warning (>MAX_COLS columns — not a block, just warn)
+        if header_cols > MAX_COLS:
+            block(
+                f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                f"has {header_cols} columns (max {MAX_COLS} recommended). "
+                f"Split into two tables: Table A (core financials) + Table B (quality/returns)."
+            )
+
+        i = j + 1
+
 
 def main():
     payload = load_stdin_payload()

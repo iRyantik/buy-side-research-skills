@@ -12,6 +12,12 @@ hooks:
     events: [PostToolUse]
     scope: [research_artifact]
     severity: block
+  - name: mermaid_syntax
+    file: rules/mermaid_syntax.py
+    layer: global
+    events: [PostToolUse]
+    scope: [research_artifact]
+    severity: block
   - name: workspace_guard
     file: rules/workspace_guard.py
     layer: global

@@ -92,7 +92,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 ## 2. 预期堆叠
 
-[插入 Mermaid waterfall — 三层预期怎么叠成当前价格。示例见下方。]
+[插入 Mermaid flowchart（用 flowchart TD 模拟预期堆叠结构——Mermaid 无 waterfall 类型）。示例见下方。]
 
 ### Sell-Side Consensus Numbers
 

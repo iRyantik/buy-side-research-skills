@@ -21,6 +21,7 @@ POST_TOOL_USE_RULES = [
     # Global structure & source
     "source_contract",
     "table_render_integrity",
+    "mermaid_syntax",
     "image_exists",
     "data_claim_cross_check",
     "subagent_protocol",

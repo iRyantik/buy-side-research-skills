@@ -185,11 +185,11 @@ Top Ideas must include next-step verification paths:
 
 ## §3 Scenario Stock-Push Matrix (Main Table)
 
-Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight | Current Valuation | Scenario Re-rating Direction | One-liner | Key KPI (taken from `references/kpi-drivers/`, the single most important number for this industry)**
+Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight · Current Valuation · Scenario Re-rating Direction · One-liner · Key KPI** (taken from `references/kpi-drivers/`, the single most important number for this industry). Note: use `·` inside cells, NEVER `|` (breaks table rendering)
 
-| Company | Ticker | R1: [Current] | R2: [Transition] | R3: [New Paradigm] | Valuation Flip Magnitude Ev |
+| Company | Ticker | R1: [Current] | R2: [Transition] | R3: [New Paradigm] | Valuation Flip Magnitude | Ev |
 |---|---|---|---|---|---|---|
-| AAA | TICKER | Long High | PE 18x | ↑ | logic | Long High | → ↑ | logic | Long High | → ↑↑ | logic | +60% |
+| AAA | TICKER | Long High · PE 18x · ↑ · logic · KPI | Long High · → ↑ · logic · KPI | Long High · → ↑↑ · logic · KPI | +60% | [S#](url) |
 
 Valuation Flip = re-rating magnitude from R1→R3, must be quantified. Negative value = short-side gain when regime switches.
 

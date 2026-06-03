@@ -44,6 +44,9 @@ Main agent continues once all subagents complete. Single ticker failure does not
 main agent notes `subagent unavailable for <TICKER> — <reason>` in the final artifact,
 removing that ticker from the merged comparison.
 
+**Step 2: Generate Appendix** (MUST run BEFORE writing artifact):
+`python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...` → embed output in artifact `## Appendix` section. NEVER leave a placeholder.
+
 
 ## Core Philosophy
 
@@ -86,7 +89,7 @@ If any item does not pass, do not force a ranking / matrix. Output a minimal han
 Must include:
 - **One-sentence overall judgment**: the overall directional assessment of this group as a cohort at the current stage
 - **Priority ranking (micro-table)**: Company / Direction / One-line rationale
-- **At-a-glance positioning**: Insert a Mermaid scatter chart — N companies' positions on the growth vs. valuation (PE TTM) axes
+- **At-a-glance positioning**: Insert a Mermaid quadrant chart (four-quadrant positioning chart, not a general-purpose scatter plot) — N companies' positions on the growth vs. valuation (PE TTM) axes. Mermaid does NOT have a `scatter` diagram type; `quadrantChart` is the only valid four-quadrant chart type
 - **2–3 most critical cross-cut findings** (the most important insights pulled forward from §6)
 - **First-priority action**
 
@@ -127,12 +130,23 @@ When the industry faces a structural paradigm shift (electrification / CPO / gen
 
 #### §4.1 Universal Dimensions (listed for every industry)
 
-| Company | Market | Currency | Mkt Cap (LC) | Mkt Cap (USD) | FX rate / as-of | Accounting standard | Revenue (LTM) | Revenue YoY | **Profit YoY** | **Margin Δ(bp)** | EBITDA margin | ROIC (ex-cash) | Net Debt/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | **PEG** | PB | EV/EBITDA | EV/Sales | Capital return / FCF | Ev |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | IFRS | 7.9B | +12% | -4% | -120bp | 24% | 22% | 0.1x | 0.6x | 2.1% | 35x | 18x | 1.9x | 7.4x | 29x | 7.0x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
-| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | CAS | ~1.5B | +30% | N/A(loss) | N/A | ~15% | N/A | N/A | N/A | N/A | N/A | N/A | N/A | 50x | ~100x | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+**Table A — Market + Profitability + Valuation (~12 columns)**:
 
-**Cross-market rules**: When the same table includes ≥ 2 markets → the 5 columns Market / Currency / Mkt Cap (USD) / FX rate / Accounting standard are mandatory. Single-market tables may omit them.
+| Company | Market | Currency | Mkt Cap (LC) | Mkt Cap (USD) | FX rate / as-of | Revenue (LTM) | Revenue YoY | EBITDA margin | **PE TTM** | EV/EBITDA | FCF yield | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | 7.9B | +12% | 24% | 35x | 29x | 2.1% | [S1](./_cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | ~1.5B | +30% | ~15% | N/A | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+
+**Table B — Quality + Returns (8–10 columns, optional)**:
+
+| Company | Accounting standard | ROIC (ex-cash) | Net Debt/EBITDA | Capex/D&A | PE NTM | PB | Capital return / FCF | Ev |
+|---|---|---|---|---|---|---|---|---|
+| MYCR | IFRS | 22% | 0.1x | 0.6x | 18x | 7.4x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CAS | N/A | N/A | N/A | N/A | 50x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+
+> **Table-split rule**: If the combined table exceeds 12 columns, it MUST be split into Table A + Table B. Table A is mandatory (market + core profitability + key valuation multiples). Table B is on-demand (add only when N ≥ 5 or quality metrics like ROIC/PB are central to the current sector debate).
+
+**Cross-market rules**: When the same table includes ≥ 2 markets → Table A must include Market / Currency / Mkt Cap (USD) / FX rate / as-of; Table B adds Accounting standard. Single-market tables may omit.
 
 **Flex-column rules**: If N companies share the same business model → add 2–3 core flex columns from the relevant `references/kpi-drivers/` template (e.g., all equipment companies → Backlog, Orders, Book-to-Bill). Mixed business models → do not add flex columns, to avoid non-comparable conventions.
 
@@ -381,11 +395,17 @@ Consumption rules: read actuals first → source_map for [S#]/[I#] labels (do no
 
 ## Appendix: Financial Data
 
-Generate appendix from actuals-resolved.json:
+**MUST be executed BEFORE writing the artifact body — this is a mandatory step, not a comment/reminder.**
+
+After all subagents complete, the main agent runs the appendix script FIRST. Embed the output into the artifact's `## Appendix: Financial Data` section (before `## Resources`). **NEVER leave a `*(Run python...)*` placeholder — execute it.**
 
 ```
 python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,<TICKER_3>,...
 ```
+
+Embed the `### Key Metrics` and `### Income Statement` tables directly. Skip `### Market Data` sub-table if it shows 0 values (script formatting edge case).
+
+Full field inventory → `references/actuals-data-catalog.md`.
 
 ### Evidence Cards
 
