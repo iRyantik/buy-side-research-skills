@@ -1,0 +1,177 @@
+# 语音转录常见错误 → 正名对照表
+# meeting-minutes skill 执行时优先查此表纠正公司名
+# 维护规则：新增一家公司追加一条，按行业分组
+
+# ===== 光模块/光通信设备 =====
+- alias: ["连续", "联讯"]
+  correct: "联讯仪器"
+  ticker: "688808 CH"
+- alias: ["强一", "强音", "强义"]
+  correct: "强一半导体"
+  ticker: null
+- alias: ["罗伯特科", "罗博特克", "萝卜特科"]
+  correct: "罗博特科"
+  ticker: "300757 CH"
+- alias: ["科瑞", "科锐"]
+  correct: "科瑞技术"
+  ticker: "002957 CH"
+- alias: ["华星原创", "华兴原创", "华星源创"]
+  correct: "华兴源创"
+  ticker: "688001 CH"
+- alias: ["普赛斯", "普塞斯"]
+  correct: "武汉普赛斯电子"
+  ticker: null
+- alias: ["华盛昌", "华盛昌科技"]
+  correct: "华盛昌"
+  ticker: "002980 CH"
+- alias: ["浦沅", "普源", "普远"]
+  correct: "普源精电"
+  ticker: "688337 CH"
+- alias: ["顶阳", "鼎阳"]
+  correct: "鼎阳科技"
+  ticker: "688112 CH"
+- alias: ["日联", "日联科技"]
+  correct: "日联科技"
+  ticker: "688531 CH"
+- alias: ["K", "keysight", "是德"]
+  correct: "Keysight Technologies"
+  ticker: "KEYS US"
+- alias: ["安立", "安利"]
+  correct: "Anritsu"
+  ticker: "6754 JP"
+- alias: ["唯亚威", "维亚威", "viavi"]
+  correct: "VIAVI Solutions"
+  ticker: "VIAV US"
+- alias: ["泰克", "泰克科技", "tektronix"]
+  correct: "Tektronix"
+  ticker: null
+- alias: ["FORMFACTOR", "form factor", "formfactor"]
+  correct: "FormFactor"
+  ticker: "FORM US"
+- alias: ["泰瑞达", "teradyne", "特拉黛"]
+  correct: "Teradyne"
+  ticker: "TER US"
+- alias: ["BESI", "besi", "贝西", "贝思"]
+  correct: "BE Semiconductor Industries"
+  ticker: "BESI NA"
+- alias: ["ASMPT", "asmpt", "阿斯麦PT", "asm太平洋"]
+  correct: "ASMPT"
+  ticker: "0522 HK"
+- alias: ["Mycronic", "mycronic", "麦克罗尼克", "迈克尼克"]
+  correct: "Mycronic"
+  ticker: "MYCR SS"
+
+# ===== 光模块厂 =====
+- alias: ["中际旭创", "中际", "旭创"]
+  correct: "中际旭创"
+  ticker: "300308 CH"
+- alias: ["新易盛", "新一生"]
+  correct: "新易盛"
+  ticker: "300502 CH"
+- alias: ["光迅", "光迅科技"]
+  correct: "光迅科技"
+  ticker: "002281 CH"
+- alias: ["天孚", "天孚通信"]
+  correct: "天孚通信"
+  ticker: "300394 CH"
+- alias: ["Coherent", "coherent", "科赫伦特"]
+  correct: "Coherent"
+  ticker: "COHR US"
+- alias: ["Lumentum", "lumentum", "鲁门特姆"]
+  correct: "Lumentum"
+  ticker: "LITE US"
+
+# ===== 半导体设备 =====
+- alias: ["应材", "应用材料", "amat"]
+  correct: "Applied Materials"
+  ticker: "AMAT US"
+- alias: ["泛林", "lam research", "拉姆研究"]
+  correct: "Lam Research"
+  ticker: "LRCX US"
+- alias: ["KLA", "kla", "科磊", "科天"]
+  correct: "KLA Corporation"
+  ticker: "KLAC US"
+
+# ===== AI/数据中心 =====
+- alias: ["英伟达", "nvidia", "N卡", "英伟达"]
+  correct: "NVIDIA"
+  ticker: "NVDA US"
+- alias: ["博通", "broadcom", "broadcom"]
+  correct: "Broadcom"
+  ticker: "AVGO US"
+- alias: ["Marvell", "marvell", "马威尔", "迈威"]
+  correct: "Marvell Technology"
+  ticker: "MRVL US"
+- alias: ["英特尔", "intel"]
+  correct: "Intel"
+  ticker: "INTC US"
+- alias: ["AMD", "amd", "超微", "超威"]
+  correct: "AMD"
+  ticker: "AMD US"
+
+# ===== 国内客户/合作方 =====
+- alias: ["华为", "H方", "华为海思", "海思"]
+  correct: "华为 / 海思"
+  ticker: null
+- alias: ["台积电", "TSMC", "tsmc", "台积"]
+  correct: "台积电"
+  ticker: "2330 TT"
+- alias: ["三星", "samsung", "三星电子"]
+  correct: "三星电子"
+  ticker: "005930 KS"
+
+# ===== 通用术语纠正（语音识别常见错误）=====
+- alias: ["CPU测试", "cpu测试"]
+  correct: "CPO 测试"
+  ticker: null
+- alias: ["NPUCP", "NPU CP"]
+  correct: "CPO"
+  ticker: null
+- alias: ["藕荷", "耦合测试"]
+  correct: "耦合 (optical coupling)"
+  ticker: null
+- alias: ["interproser", "interposer"]
+  correct: "interposer"
+  ticker: null
+- alias: ["offtake engine", "off take engine"]
+  correct: "optical engine (光引擎)"
+  ticker: null
+- alias: ["EIC", "eic"]
+  correct: "Electrical IC (电芯片)"
+  ticker: null
+- alias: ["PIC", "pic"]
+  correct: "Photonic IC (光芯片)"
+  ticker: null
+- alias: ["PAM4", "pam4", "PAM 4", "pam 4"]
+  correct: "PAM4 (四电平脉冲幅度调制)"
+  ticker: null
+- alias: ["welfare level", "wafer level"]
+  correct: "wafer level (晶圆级)"
+  ticker: null
+- alias: ["package level", "pack level"]
+  correct: "package level (封装级)"
+  ticker: null
+- alias: ["model level", "module level"]
+  correct: "module level (模块级)"
+  ticker: null
+- alias: ["采样示波器", "示波小型", "试播器", "示波器", "试播起"]
+  correct: "采样示波器 (sampling oscilloscope)"
+  ticker: null
+- alias: ["探针卡", "碳针卡", "碳争", "探争"]
+  correct: "探针卡 (probe card)"
+  ticker: null
+- alias: ["socket", "sock", "萨克"]
+  correct: "测试插座 (test socket)"
+  ticker: null
+- alias: ["probe", "pro"]
+  correct: "探针 (probe)"
+  ticker: null
+- alias: ["B2B", "B to B"]
+  correct: "Book-to-Bill ratio"
+  ticker: null
+- alias: ["hybrid socket", "hybrid sock"]
+  correct: "hybrid socket (混合插座)"
+  ticker: null
+- alias: ["optical and equal taste socket"]
+  correct: "optical and electrical test socket (光电混合测试插座)"
+  ticker: null
