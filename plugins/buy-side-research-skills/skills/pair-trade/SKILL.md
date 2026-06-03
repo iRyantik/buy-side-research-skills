@@ -11,7 +11,7 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - **Actuals-only**: spread ratios, Z-score inputs, and valuation multiples use actuals-resolved.json.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
@@ -459,3 +459,12 @@ flowchart TD
 
 - **Builder 完整 thesis**：1200-2000 字 + 5 张表。
 - **Monitor 输出**：400-700 字。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

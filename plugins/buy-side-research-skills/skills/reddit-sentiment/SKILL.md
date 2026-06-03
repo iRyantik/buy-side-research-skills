@@ -101,10 +101,10 @@ skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
 
 ```text
 run_id = YYYY-MM-DDTHH-MM-SSZ
-scrapi_dir = topics/[namespace]/[topic]/_raw/datasets/reddit-sentiment/[run_id]/scrapi
-raw_dir = topics/[namespace]/[topic]/_raw/datasets/reddit-sentiment/[run_id]
-cache_dir = topics/[namespace]/[topic]/_cache/datasets/reddit-sentiment/[run_id]
-report_path = topics/[namespace]/[topic]/[YYYY-MM-DD]-reddit-sentiment.md
+scrapi_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]/scrapi
+raw_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]
+cache_dir = industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run_id]
+report_path = industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-reddit-sentiment.md
 ```
 
 ### Phase 1: ScrapiReddit 采集

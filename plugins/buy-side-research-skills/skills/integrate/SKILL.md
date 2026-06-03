@@ -5,7 +5,7 @@ description: Merge a whole child topic into a parent topic and update topic inde
 
 # Integrate
 
-把已经研究的子 topic（如某家公司）合并到父 topic（如所属行业）下面，形成 `topics/<parent>/<child>/` 层级结构，并更新双向 index.md 引用。
+把已经研究的子 topic（如某家公司）合并到父 topic（如所属行业）下面，形成 `industry/<parent>/companies/<child>/` 层级结构，并更新双向 index.md 引用。
 
 它是 operations skill。不写研究结论，不做跨 topic 分析。
 
@@ -47,10 +47,10 @@ description: Merge a whole child topic into a parent topic and update topic inde
 
 ### Merge
 
-1. 验证 parent 存在：`topics/<parent>/index.md`
-2. 验证 child 存在：`topics/<child>/index.md`
-3. 检查冲突：`topics/<parent>/<child>/` 是否已存在
-4. 执行移动：`topics/<child>/` → `topics/<parent>/<child>/`
+1. 验证 parent 存在：`industry/<parent>/index.md`
+2. 验证 child 存在：`industry/<child>/index.md`
+3. 检查冲突：`industry/<parent>/companies/<child>/` 是否已存在
+4. 执行移动：`industry/<child>/` → `industry/<parent>/companies/<child>/`
 5. 更新 parent `index.md`：追加 `## Sub-topics` 段落，链接到 child
 6. 更新 child `index.md`：追加 `**Parent topic**: [parent]` 引用
 7. 输出 merge summary
@@ -61,17 +61,17 @@ description: Merge a whole child topic into a parent topic and update topic inde
 ## Integrate Result
 
 **结论先行**
-已将 `topics/<child>/` 合并至 `topics/<parent>/<child>/`
+已将 `industry/<child>/` 合并至 `industry/<parent>/companies/<child>/`
 
 ## Moved
-- `topics/<child>/` → `topics/<parent>/<child>/`
+- `industry/<child>/` → `industry/<parent>/companies/<child>/`
   - _raw files: N
   - _cache files: N
   - sessions: N
 
 ## Index Updated
-- parent: `topics/<parent>/index.md` (+sub-topic link)
-- child: `topics/<parent>/<child>/index.md` (+parent reference)
+- parent: `industry/<parent>/index.md` (+sub-topic link)
+- child: `industry/<parent>/companies/<child>/index.md` (+parent reference)
 ```
 
 ## 工具资源

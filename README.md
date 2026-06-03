@@ -40,6 +40,8 @@
 | **Longbridge 账户** | [longbridge.com](https://longbridge.com) 注册，对 Claude 说"连接 Longbridge" |
 
 > 未列出的 skill 无需配置，装完直接用。
+>
+> 另：推荐启用 Playwright runtime 作为共享 browser 能力，用于图片抓取和部分网页 fallback 流程。具体看 `docs/install.md` 和 `/init-workspace`，不要把它当成 `.env` 里的 provider credential。
 
 ---
 

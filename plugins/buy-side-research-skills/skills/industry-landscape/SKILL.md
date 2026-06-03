@@ -58,6 +58,18 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 ## 输出结构
 
 > **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | §1 Verdict | 利润池占比数字、方向判断依据 | 方向判断本身 |
+> | §2 产业链地图 | 每段价值池占比 %、市占率数字、产能数字 | ASCII 图 |
+> | §3 竞争格局 | 每家公司市占率/定位、行业集中度 (CR3/CR5) | — |
+> | §4 利润池 | 每个 pool 的利润率/占比数据 | — |
+> | §6 公司注册表 | 每家公司 ticker+MCap+暴露类型 | — |
+>
+> **完成 Gate**：写完逐段扫 density → `[待查]` ≤10 → Resources 段必须有所有 [S#]/[I#] 展开。
 
 ### 1. Verdict（~200 字）
 

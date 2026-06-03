@@ -81,6 +81,18 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
 ~~~
 
+## Source Contract
+
+本文是 300-500 字精简 artifact，但 source 纪律不豁免。
+
+- 所有财务数字（actual vs consensus vs guidance）必须标 `[S#](url)` 或 `[I#](url)`。
+- beat/miss 的判断本身不强制 anchor，但作为判断依据的数字必须 anchor。
+- 价格变动 → `[I#](url)` 指向行情源。
+- guidance / management commentary → `[S#](url)` 指向 earnings call transcript 或 IR PDF。
+- 缺 source 的数字 → 标 `[待查]`。
+
+**完成 Gate**：写完扫全文 → 每个数字有 anchor 或 `[待查]` → `[待查]` ≤3。
+
 ## 反模式
     
     - ❌ 没有基准就说 beat/miss——必须找到 bar
@@ -114,3 +126,11 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     - 不做深度财报分析 → `stock-quickread`
     - 不做 thesis 改写 → `alpha-thesis`
     
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

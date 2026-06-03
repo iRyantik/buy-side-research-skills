@@ -678,3 +678,12 @@ After completing a comp analysis, ask:
 5. What would make this more useful next time?
 
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

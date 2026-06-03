@@ -87,6 +87,16 @@ Score management's capital allocation quality over a 10-year window. The biggest
 ## 输出结构
 
 > **Source contract**：Scorecard 评分、ROIC/FCF/conversion 数字、buyback yield 等每行必须带 source anchor。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | Scorecard 表 | 每行 10Y Evidence 列的 scoring basis 数字 | 评分本身 |
+> | 资本配置历史 | 每笔 M&A/repo/dividend 的金额+时间 | 定性描述 |
+> | ROIC/FCF 趋势 | 每个年份的 ROIC/FCF/conversion 值 | 趋势方向解读 |
+>
+> **完成 Gate**：写完扫 scorecard → 每行 anchor 列有 [S#]/[I#] 或 `[待查]` → `[待查]` ≤3。
 
 ~~~markdown
 ## Capital Allocation Scorecard
@@ -151,3 +161,12 @@ ROI on deployed capital: ~145%
 - 不做 thesis → `alpha-thesis`
 - 不做估值 → `dcf-model` / `comps-analysis`
 
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

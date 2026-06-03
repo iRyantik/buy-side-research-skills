@@ -120,6 +120,14 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 路径不明 → new-session 解析行业。
 
+## Source Contract
+
+- Hypothesis register 每行的"现有 source"列必须标 `[S#](url)` 或 `[I#](url)` 或 `[待查]`。
+- Triangulation 方案每条 source idea 必须注明 source type（persona/public/filing/expert）。
+- 专家访谈问题里引用的数字 → 标出处（哪份 report/filing 里有这个数字）。
+
+**完成 Gate**：写完扫 hypothesis register → 每行 Source 列非空 → `[待查]` >50% 行则标 coverage <50%。
+
 ## 反模式自查
 
 - ❌ 问题清单很长但没有 hypothesis register——不知道每个问题验证什么。

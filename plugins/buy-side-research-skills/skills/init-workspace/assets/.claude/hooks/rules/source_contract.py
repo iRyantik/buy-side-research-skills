@@ -1,4 +1,15 @@
-"""Rule 2: Source contract — anchor integrity, Resources section, orphan evidence."""
+"""Rule 2: Source contract — anchor integrity, Resources section, orphan evidence.
+
+== Agent Action Routing Table ==
+| gate | action | agent fix |
+|---|---|---|
+| missing_resources | add_resources_section | Add `## Resources` section with all [S#]/[I#] listed |
+| bare_anchors | fix_source_format | Add URLs to every bare [S#]/[I#]: `[S#](url)` |
+| nonstandard_labels | fix_source_format | Replace descriptive labels with [S#] or [I#] codes |
+| double_urls | fix_source_format | Remove concatenated second URL |
+| nonstandard_inline | fix_source_format | Replace `[Label](url)` with `[S#](url)` or `[I#](url)` |
+| nonstandard_resources | fix_source_format | Replace `[Label]` in Resources with `[S#]` or `[I#]` |
+
 import re, sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -138,7 +149,8 @@ def check(ctx: dict):
         # --- Rule 1: ## Resources must exist (research artifacts only) ---
         resources_count = len(re.findall(r'(?m)^## Resources\b', text))
         if is_artifact and resources_count == 0:
-            block(f"Blocked by source_contract: {display} must contain a '## Resources' section.")
+            block(f"Blocked by source_contract: {display} must contain "
+                  f"a '## Resources' section listing all sources.")
         if resources_count > 1:
             warn(f"source_contract: {display} has multiple '## Resources' sections; only the first was checked.")
 

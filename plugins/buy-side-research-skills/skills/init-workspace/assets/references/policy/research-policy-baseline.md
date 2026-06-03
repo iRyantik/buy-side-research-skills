@@ -145,6 +145,20 @@ Tier 4  标 [需查证] + Resources 记录尝试过的URL    — honest degradat
 
 **Source 编号**: [S1-S9] 公司披露, [I1-I20] 第三方, URL 页面级, 同一 URL 复用同一编号。
 
+### 3.3 Source Completion Gate（所有 Research Skill 共享）
+
+写完 artifact 后必须通过以下检查才能视为完成：
+
+1. **Anchor scan**：`python _scripts/evidence_ledger.py scan <artifact> -t <TICKER>` 扫描所有 [S#]/[I#] anchor。
+2. **Lint gate**：`python _scripts/evidence_ledger.py lint <artifact> -t <TICKER>` 检查裸 anchor、死链、Resources 对齐。
+3. **Density self-check**：各 skill 自行定义其高密度段（见 skill-specific density table），写完逐段扫：
+   - 每段 factual claim 句尾是否有 anchor？
+   - 连续 3 句以上事实 claim 中间无 source → 密度不够。
+4. **待查 cap**：`[待查]` 数量超过 10 个 → 警告。超过 20 个 → artifact 标 `coverage <80%`。
+5. **Resources completeness**：文末 `## Resources` 必须列出正文中出现的所有 [S#]/[I#] 标签，含 source type、title/provider、as-of、URL。
+
+linter 报错 → 修到 pass 才交付。
+
 ## 4. 反幻觉硬规则
 
 - 绝对不能编造 URL、页码、引语、数字、人名、日期。
@@ -213,3 +227,76 @@ Tier 4  标 [需查证] + Resources 记录尝试过的URL    — honest degradat
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
 - ingest 前确保 topic root 已存在（`topics/<topic>/index.md` 必须存在）。若缺失，先触发 `new-session` 创建 topic root + `_inbox/`，再将文件放入 `topics/<topic>/_inbox/` 后执行 ingest。
 - 研究 skill 启动时，先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
+
+## 9. 单行业归属规则（Single-Industry Primary Residence）
+
+**一支股票的主研究路径只落在一个行业目录。其他行业仅引用，不重复保存 artifact。**
+
+### 9.1 Primary 判定：最早研究优先
+
+**Primary = 该股票最早有 research artifact 的行业目录。**
+
+判定依据按客观时间戳（`index.md` 首次注册该公司的日期），不做业务判断。理由：
+- **客观可查**：不需要争论"PG 利润占比更大"还是"GT 增长叙事更强"。
+- **可追溯**：git blame / index.md 日期即答案。
+- **防漂移**：不会因为公司业务转型或 agent 判断不同而反复更换 primary。
+
+**判定流程**：
+1. 新开一家公司时，**先扫描所有 `industry/*/index.md`**——确认该公司是否已在其他行业有 artifact。
+2. 如果已存在 → 当前行业只做交叉引用，artifact 写入已有的 primary 目录。
+3. 如果不存在 → 当前行业即为 primary，artifact 正常写入。
+
+### 9.2 Artifact 纪律
+
+- **主研究 artifact**（quickread、driver-map、moat-analysis、alpha-thesis、earnings-setup、scenario-model、consensus-map、bear-pre-mortem 等）**只写入 primary 行业目录**。
+- **跨行业 artifact**（如 mechanism-insight 涉及某公司在特定设备段的价值捕获）可以落在交叉行业目录，但 artifact 内必须显式引用 primary 行业路径。
+- **teach-in / industry-landscape** 等纯行业级 artifact 不在本规则管辖范围（它们不"归属"某家公司）。
+
+### 9.3 index.md 引用格式
+
+**交叉行业**的 `index.md` 按以下格式注册：
+
+```markdown
+- 公司名 (TICKER) → **主研究在 [industry-slug](../path/companies/ticker/)**。<一句话说明本行业为什么关注它，哪个业务段/产品线相关>。
+```
+
+**Primary 行业**的 `index.md` 在正常列出 artifact 的同时，加一行标注跨行业关联：
+
+```markdown
+- **跨行业引用**：该公司旗下 <业务段> 同时服务于 <行业名> → 详见 [industry-slug](../path/)
+```
+
+### 9.4 Cache 共享
+
+- `_cache/financial-data/` 和 `_cache/images/` 属于只读数据层，**可以在多个行业目录保留副本**。这不是"重复 artifact"。
+- Primary 行业目录的 cache 为主副本（数据最全、最先更新）。
+- 交叉行业如需本地 actuals 加速查询，从 primary 复制，并标注 `_synced_from: <primary_path>`。
+- **禁止在交叉行业目录创建 dated research artifact**——`YYYY-MM-DD-*.md` 只能出现在 primary 目录。
+
+### 9.5 迁移流程
+
+如果 primary 行业判定错误需要纠正：
+
+1. 确认最早 artifact 日期——以 `index.md` 首次注册日期为准，不依赖文件修改时间。
+2. 将全部 `YYYY-MM-DD-*.md` 从错误目录迁移到正确目录。
+3. 更新两个行业的 `index.md`。
+4. 合并 `_cache/`（保留较全的数据）。
+5. 错误目录删除 dated artifact，仅保留 `_cache/` + index.md 引用行。
+6. 如果有 evidence ledger，更新 `_cache/evidence/<TICKER>.evidence.json` 路径引用。
+
+### 9.6 已知跨行业公司清单
+
+| 公司 | Primary（最早 artifact 所在行业） | 交叉行业 | 交叉业务段 |
+|---|---|---|---|
+| Mycronic (MYCR SS) | optical-module-equipment (2026-05-29) | pcb-equipment | ATG 飞针测试、GT PCB 电测段 |
+| Keysight (KEYS US) | optical-module-equipment | pcb-equipment | ICT 针床测试、TDR 阻抗模块 |
+
+> **维护规则**：每新增一家跨行业公司，在此表追加一行。每年审计一次：如果某公司的 revenue/profit thesis 已明显迁移到另一个行业，讨论是否启动 §9.5 迁移流程。
+
+## 10. 分部数据优先级（Segment Data Priority）
+
+**financial-data 采集分部数据时：业务分部 > 地理分部。**
+
+- **优先级**：business segments (PG/GT/AS-HF/AS-HV) > geographical segments (Asia/EMEA/Americas)。两者都有则都保留在 `actuals-resolved.json` 的 `segments` 数组中，按 `type: "business"` 和 `type: "geography"` 区分。
+- **§3 分部表**：stock-quickread 的 §3 关键财务数据表优先展示业务分部。只有在公司不披露业务分部时（如单分部公司），才用地理分部替代。
+- **actuals-resolved.json segments 字段规范**：每个 segment 对象必须含 `type` 字段（`"business"` | `"geography"`），方便 agent 区分优先级。

@@ -21,7 +21,24 @@
 
 这会创建：`CLAUDE.md`、`AGENTS.md`、`.claude/hooks/`、`_scripts/`、`.gitignore`。
 
-## Step 3: 检查依赖
+## Step 3: 确认 Playwright Runtime
+
+Playwright 是推荐的 workspace baseline runtime capability，用于：
+
+- 图片下载（如共享 `download-product-image.js`）
+- 页面级 fallback extraction
+- 依赖 Playwright MCP / browser runtime 的 consumer flow
+
+安装顺序固定为：**安装插件 → `/init-workspace` → 确认 Playwright runtime 可用 → 再跑 skill smoke test**。
+
+检查以下两件事：
+
+- 当前 Claude / Codex 宿主有可用的 Playwright MCP 或等价 browser runtime
+- 当前 workspace 已有 Playwright 共享资产：`_scripts/download-product-image.js`、`.claude/mcp.json`、`.codex/mcp.example.json`
+
+未启用 Playwright 不阻塞插件安装，但会影响图片抓取和部分网页 fallback 能力。Playwright 不通过 `.env` 配置；market/provider credential 仍按下一步配置。
+
+## Step 4: 检查依赖
 
 执行以下检查，缺什么装什么：
 
@@ -31,7 +48,7 @@ python _scripts/financial-data/financial_data.py --check-deps
 
 按输出提示安装缺失的 Python 包。A 股（AKShare）和港股（Eastmoney）到此已完成。
 
-## Step 4: 配置 Credential（按用户覆盖的市场）
+## Step 5: 配置 Credential（按用户覆盖的市场）
 
 逐项问用户是否需要，只配用户需要的：
 
@@ -43,7 +60,9 @@ python _scripts/financial-data/financial_data.py --check-deps
 | EU 欧股 | ESEF 包 | 用户从公司 IR 页下载 annual report（iXBRL，.zip），拉数据时提供文件路径 |
 | 所有市场 | Longbridge（可选） | 市场快照（股价/PE/共识）优先走 Longbridge API。覆盖 US/HK/SH/SZ。帮助用户注册并连接 |
 
-## Step 5: 验证
+Playwright 不在这张表里。它属于共享 browser/runtime 能力，不属于 market credential。
+
+## Step 6: 验证
 
 拉一个美股测试：
 

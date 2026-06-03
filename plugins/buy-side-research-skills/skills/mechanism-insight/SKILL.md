@@ -129,6 +129,17 @@ Rating hard standards：
 ## 输出结构
 
 > **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | 物理原理/机制描述 | 每个物理常数、关键技术参数、材料属性 | 公认物理定律 |
+> | 设备/工艺细节 | 设备型号、精度数字、产能数据、价格 | — |
+> | 产业链站位 | 每家公司名称+产品名+定位 | — |
+> | 价值捕获分析 | 市占率/利润率/定价权数字 | 定性判断 |
+>
+> **完成 Gate**：写完逐段扫 → 物理常数有 [P#]、设备数字有 [S#]/[I#] → `[待查]` ≤8 → Resources 展开所有 source。
 
 ```markdown
 ## 结论先行
@@ -221,3 +232,12 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | **产物长度** | 6000-8000 | 2000-3000 | 1000-1800 | 800-1500 |
 
 > 产品图：每个涉及物理设备/产品的单元必须配 1 张实物图。下载优先级：公司官网 Media Kit → 产品页 hero → web search → [缺图]。下载到 topic 。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

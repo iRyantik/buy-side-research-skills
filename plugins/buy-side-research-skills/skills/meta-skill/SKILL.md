@@ -337,7 +337,7 @@ AI 不是 status tracker，而是 senior analyst coach：帮研究员问更好�
 Topic-centric 组织：
 
 ```text
-topics/
+industry/
   [topic-namespace]/[topic-slug]/
     index.md
     [YYYY-MM-DD]-research-journal.md
@@ -430,7 +430,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 [如有 skill-specific 数据使用规则，≤3 行，不写 provider 名/trust chain]

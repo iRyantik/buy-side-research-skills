@@ -33,9 +33,9 @@ capabilities:
     - 'Directory Ingest'
     - 'Cache Reuse'
   requirements:
-    - 'strict topic root check: topics/<namespace>/<topic-slug>/index.md must exist before ingest'
+    - 'strict topic root check: industry/<industry>/companies/<ticker>/index.md must exist before ingest'
     - 'support namespaced topics such as industry/space-launch and company/rklb'
-    - 'write topics/<namespace>/<topic-slug>/_cache/[source-filename].md'
+    - 'write industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
     - 'create _cache/ and _raw/<category>/ on first conversion'
     - 'auto-move source files from topic _inbox/ to _raw/<category>/ after successful conversion'
     - 'never move files already under _raw/'

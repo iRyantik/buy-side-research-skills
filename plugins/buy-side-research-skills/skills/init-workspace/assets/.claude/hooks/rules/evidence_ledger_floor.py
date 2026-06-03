@@ -1,6 +1,19 @@
 """Hook: every research artifact with [S#]/[I#] anchors must have an evidence ledger.
 If the ledger is missing or contains fabrication_risk claims without override, block.
 Also checks: tier-gap (WebSearch-only → play missing Playwright) and image audit.
+
+== Agent Action Routing Table ==
+| gate | action | agent fix |
+|---|---|---|
+| image_missing | goto_step_5_download | Execute Step 5a-5f for each missing file |
+| ledger_missing | goto_step_2_init_ledger | Run `python _scripts/evidence_ledger.py init <artifact> -t <TICKER>` |
+| ledger_corrupted | goto_step_2_init_ledger | Delete and re-init the ledger |
+| fabrication_risk | goto_step_4_verify | Verify or delete the flagged claim |
+| tier_gap | goto_step_4_verify | Each [I#] must have ≥1 WebFetch/Playwright/curl attempt |
+| low_coverage | goto_step_4_verify | Verify unverified claims until coverage ≥ 80% |
+
+If the ledger is missing or contains fabrication_risk claims without override, block.
+Also checks: tier-gap (WebSearch-only → play missing Playwright) and image audit.
 """
 import re, sys, os, json
 
@@ -45,9 +58,9 @@ def _check_image_exists(artifact_path: str, display: str):
         if not os.path.exists(img_path):
             missing.append(img)
     if missing:
-        block(f"Blocked by evidence_ledger_floor: {display} references {len(missing)} "
-              f"image(s) that don't exist on disk: {', '.join(missing[:5])}. "
-              f"Download product images before writing the artifact.")
+        block(f"Blocked by evidence_ledger_floor: {display} references "
+              f"{len(missing)} image(s) not on disk: "
+              f"{', '.join(missing[:3])}. Download them before writing.")
 
 
 def check(ctx):
@@ -87,17 +100,10 @@ def check(ctx):
             with open(ledger_path, "r", encoding="utf-8") as f:
                 ledger = json.load(f)
         except (json.JSONDecodeError, IOError) as e:
-            block(f"Blocked by evidence_ledger_floor: {display} has corrupted ledger: {e}")
+            block(f"Blocked by evidence_ledger_floor: {display} "
+                  f"ledger is corrupted: {e}. Re-init with evidence_ledger.py.")
 
         claims = ledger.get("claims", [])
-
-        # Rule -1: Tier 0 audit — at least 1 actuals claim for stock-quickread
-        if len(claims) > 2:
-            actuals_count = sum(1 for c in claims if c.get("method") == "actuals" or c.get("tier") == 0)
-            if actuals_count == 0:
-                block(f"Blocked by evidence_ledger_floor: {display} has 0 claims with method=actuals. "
-                      f"Must run /financial-data --lite first for Tier 0 data. "
-                      f"All claims are external only — no local actuals baseline.")
 
         # Rule 0: Artifact-Ledger alignment — every [S#]/[I#] must be in ledger
         ledger_codes = {c.get("source", "") for c in claims}

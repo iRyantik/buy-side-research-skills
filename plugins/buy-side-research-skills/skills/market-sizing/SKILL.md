@@ -63,6 +63,16 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 ## 输出结构
 
 > **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | TAM Breakdown 表 | 每行的 Method/Source/Tier 列——Source 列必须可点击 | Segment 名称 |
+> | Bottom-up 推算 | 每个 input 参数的数字来源 | 研究员选用的 method |
+> | 交叉验证 | 每个替代估算的出处 | — |
+>
+> **完成 Gate**：写完扫 TAM 表 → 每行 Source 列有 link → Tier 1-2 行做过 WebFetch 验证 → Resources 展开所有 source。
 
 ~~~markdown
 ## TAM Breakdown
@@ -140,3 +150,12 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 - 不做场景测算或赔率判断 → `scenario-model`
 - 不做行业全景 → `industry-landscape`
 - 不做公司收入 forecast → `driver-map`
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

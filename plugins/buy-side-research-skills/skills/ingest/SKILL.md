@@ -17,7 +17,7 @@ The invariant is traceability. `_cache/` is easier for an LLM to read, but the o
 
 负责：
 - Convert TXT, Markdown, CSV, PDF, DOCX, PPTX, XLSX, XLSM, and supported workbook-style files.
-- Write source-tracked Markdown to `topics/<namespace>/<topic-slug>/_cache/[source-filename].md`.
+- Write source-tracked Markdown to `industry/<industry>/companies/<ticker>/_cache/[source-filename].md`.
 - Create `_raw/<category>/` and `_cache/` on first conversion.
 - Move successfully converted source files from topic `_inbox/` to `_raw/<category>/`.
 - Report converted / skipped / failed summary.
@@ -40,7 +40,7 @@ Trigger phrases:
 - "把 PDF / Excel / PPT 转成 cache"
 
 Pre-condition:
-- `topics/<namespace>/<topic-slug>/index.md` must already exist.
+- `industry/<industry>/companies/<ticker>/index.md` must already exist.
 - Topic `_inbox/` normally comes from `new-session`.
 
 Inputs:
@@ -56,8 +56,8 @@ Inputs:
 
 Topic inference:
 - explicit `--topic industry/space-launch` wins.
-- source under `topics/industry/space-launch/_inbox/` resolves to `industry/space-launch`.
-- source under `topics/company/rklb/_raw/filings/` resolves to `company/rklb`.
+- source under `industry/space-launch/_inbox/` resolves to `industry/space-launch`.
+- source under `industry/optical-module-equipment/companies/robo-technik/_raw/filings/` resolves to `company/rklb`.
 - root `_inbox/<topic>/` remains supported for unclassified staging.
 - if no topic can be inferred, fail or require explicit `--topic`; do not silently create a new topic.
 
@@ -144,8 +144,8 @@ Cache header must include:
 
 ## Topic
 - topic: [...]
-- cache: `topics/<namespace>/<topic-slug>/_cache/`
-- raw: `topics/<namespace>/<topic-slug>/_raw/<category>/`
+- cache: `industry/<industry>/companies/<ticker>/_cache/`
+- raw: `industry/<industry>/companies/<ticker>/_raw/<category>/`
 
 ## Route / Dependency
 - document_type: [...]

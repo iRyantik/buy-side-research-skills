@@ -140,6 +140,16 @@ Agent 根据用户 query 自动判定方向。
 ## 输出结构（固定为 odds memo）
 
 > **Source contract**：所有 Implied Value、Upside/Downside %、Calculation 数字、Sensitivity 场景值必须带 source anchor。Assumptions 表已有 来源+Tier 列，其他数字表一律加 Ev。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | Assumptions 表 | 每行 assumption 的来源+Tier+Confidence | 假设本身 |
+> | Odds memo 正文 | 每个 % 概率/涨跌幅背后的数据锚点 | 研究员概率判断 |
+> | Sensitivity 表 | 每个场景的 PE/EV 倍数来源 | — |
+>
+> **完成 Gate**：写完扫 assumptions 表 → 每行有 source tier → 引用 actuals 的标 `[S1]`→Resources、引用外部的标 `[I#]`→Resources → `[待查]` assumption ≤3。
 
 ~~~markdown
 ## Scenario Verdict
@@ -246,3 +256,12 @@ Agent 根据用户 query 自动判定方向。
 | 上游 | `comps-analysis` | PE 锚 |
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

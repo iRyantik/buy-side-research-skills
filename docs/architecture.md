@@ -71,7 +71,7 @@ For these skills, `trusted-market-bridge` is the default trusted third-party lay
 
 Maintainer acceptance coverage for this bridge lives in `docs/longbridge-bridge-test-plan.md`.
 
-`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: it promotes company-scoped files from an industry/theme workbench into `topics/company/<company-slug>/`.
+`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: it promotes company-scoped files from an industry/theme workbench into `industry/<industry>/companies/<company-slug>/`.
 
 ## Workspace Shape
 
@@ -84,7 +84,7 @@ research-workspace/
   _inbox/
   _scripts/
   edge-radar.md
-  topics/
+  industry/
     industry/<industry-slug>/
       index.md
       _inbox/
@@ -114,7 +114,7 @@ Rules:
 Use `promote-company` when a company first researched inside an industry/theme workbench deserves a canonical company topic.
 
 Default behavior:
-- create or locate `topics/company/<company-slug>/index.md` and `_inbox/`
+- create or locate `industry/<industry>/companies/<company-slug>/index.md` and `_inbox/`
 - move root Markdown matching `YYYY-MM-DD-<company-slug>-*.md`
 - remove the company prefix after moving
 - move clearly attributable `_inbox`, `_raw`, and `_cache` files
@@ -124,8 +124,8 @@ Default behavior:
 Example:
 
 ```text
-topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
--> topics/company/rklb/2026-05-18-stock-quickread.md
+industry/space-launch/2026-05-18-rklb-stock-quickread.md
+-> industry/<industry>/companies/rklb/2026-05-18-stock-quickread.md
 ```
 
 Do not use `promote-company` for whole-topic directory merges; use `integrate`.
@@ -135,13 +135,13 @@ Do not use `promote-company` for whole-topic directory merges; use `integrate`.
 `ingest` cache:
 
 ```text
-topics/<namespace>/<topic-slug>/_cache/<source-filename>.md
+industry/<industry>/companies/<ticker>/_cache/<source-filename>.md
 ```
 
 `financial-data` canonical company cache:
 
 ```text
-topics/company/<company-slug>/_cache/financial-data/
+industry/<industry>/companies/<company-slug>/_cache/financial-data/
   financial-data-summary.md
   internal/
     actuals-resolved.json
@@ -156,7 +156,7 @@ topics/company/<company-slug>/_cache/financial-data/
 `driver-map` canonical company cache:
 
 ```text
-topics/company/<company-slug>/_cache/driver-map/
+industry/<industry>/companies/<company-slug>/_cache/driver-map/
   driver-map.md
   internal/
     driver-map.json
@@ -167,7 +167,7 @@ topics/company/<company-slug>/_cache/driver-map/
 Model workbooks:
 
 ```text
-topics/company/<company-slug>/_models/
+industry/<industry>/companies/<company-slug>/_models/
   <ticker>-3statement-model.xlsx
   <ticker>-3statement-dcf-model.xlsx
   <ticker>-comps-analysis.xlsx

@@ -159,6 +159,19 @@ timeline
 
 路径不明 → new-session 解析行业。
 
+## Source Contract
+
+**密度表**：
+
+| Section | 强制标 source | 豁免 |
+|---|---|---|
+| 收入结构演进 timeline | 每年 revenue mix % 的 source（filing/IR） | 趋势判断 |
+| M&A/Pivot 事件 | 每笔交易的金额+时间+source | — |
+| 披露口径变化 | 每次变化的 filing 出处+生效时间 | — |
+| 客户/产品里程碑 | 每个 milestone 的时间+客户名+source | — |
+
+**完成 Gate**：写完扫 timeline → 每年数字有 [S#]（filing）或 [I#]（IR deck） → `[待查]` 事件 ≤5 → Resources 展开。
+
 ## 反模式自查
 
 ### 流水账类
@@ -186,3 +199,12 @@ timeline
 
 - Mode A (Business Evolution)：600-1200 字 + 1 张事件表；超过 1400 字说明把 non-material history 写进来了。
 - Mode B (Disclosure Evolution)：700-1400 字 + 1 张口径表；超过 1600 字通常应拆给 `driver-map`。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

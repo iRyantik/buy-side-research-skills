@@ -54,6 +54,16 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 ## 输出结构
 
 > **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | Catalyst Timeline 表 | 每行的概率/幅度/Payoff/Base rate | 催化剂名称本身 |
+> | 股价锚点 | price target、current price、52w range | — |
+> | Event odds memo | 每次事件的 date/source/预期值 | 方向性判断 |
+>
+> **完成 Gate**：写完逐行扫表 → 每行 [S#]/[I#] 或 `[待查]` → `[待查]` ≤5 → Resources 段必须展开所有 source。
 
 ~~~markdown
 ## Catalyst Timeline
@@ -126,3 +136,12 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 - 不做财报 setup → `earnings-setup`
 - 不做 thesis → `alpha-thesis`
 - 不做 market expectations → `consensus-map`
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

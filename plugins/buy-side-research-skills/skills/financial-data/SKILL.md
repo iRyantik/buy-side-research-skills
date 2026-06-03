@@ -27,7 +27,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 - raw evidence 层至少包含 `provider_payload.json`、`identity-source.json`；存在真实 filing source 时还要写 `filings/<filing-id>/source.*`、`source-metadata.json`、`source.sha256`。
 - 生成 public `financial-data-summary.md`；机器文件进入 `internal/`，包括 `evidence-pack.json`、`actuals-resolved.json`、`full-filing.md`、`manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json`、`source-map.json` 和 `cross-check.json`。
 - 输出字段级 completeness matrix：三表和 `revenue_split` 分开标状态。
-- 支持 current topic snapshot：`topics/<topic>/_cache/datasets/financial-data-snapshot/<run-id>/`。
+- 支持 current topic snapshot：`industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/`。
 - 对 dependency gap、credential gap、provider gap fail honestly。
 
 不负责：
@@ -300,7 +300,7 @@ Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`sou
 用于 theme / industry / peer 工作流：
 
 ```text
-topics/<topic-slug>/_cache/datasets/financial-data-snapshot/<run-id>/
+industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/
   snapshot-index.md
   peer-completeness.json
 ```

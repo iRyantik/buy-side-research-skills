@@ -34,8 +34,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ```
 1. actuals-resolved.json    本地缓存，机器采集，零延迟，最高置信
-   → 22核心科目(Rev/EBIT/NI/FCF/CapEx/D&A/Cash/Debt/TA/OpCF)+Market Cap+PE+EV/EBITDA+Beta+52w
-   → skill里标 [actuals]，不挂 [S#]/[I#]
+   → 从 `source_map` 字段读取对应的 [S#](url) 标签。不在 artifact 中写裸 [actuals]。
 
 2. [S#] 公司披露            IR PDF、年报、AGM presentation、earnings transcript
    → actuals 没有的字段：订单细节、管理层原话、产品路线图、产能计划
@@ -105,17 +104,20 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 │  Tier 4: [需查证] → only if ALL tiers failed, attempt logged as failed
 │  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
 │
-├─ Step 5: 图片下载
-│  读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
-│  → Playwright MCP browser_run_code_unsafe (code=替换后的脚本)
-│  → 解码返回的 base64 → 写入 _cache/images/<product>.<ext>
-│  所有途径失败 → [缺图]
-│  Gate: ls _cache/images/<product>.<ext> → 不存在且非[缺图]则返回Step5
+├─ Step 5: 图片下载（HARD GATE——以下每一步必须执行，不可跳过）
+│  5a. 读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
+│  5b. Playwright MCP browser_run_code_unsafe → 解码 base64 → 写入 _cache/images/<product>.<ext>
+│  5c. Playwright 失败 → curl 直接取产品页 HTML → 提取 <img> src → curl 下载图片
+│  5d. 以上全失败 → 调用 Playwright browser_navigate 到产品页 → browser_take_screenshot
+│  5e. 以上全失败 → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
+│  5f. 标 [缺图] ——仅在 ledger 有 ≥1 条 image download attempt 记录后才允许
+│  Gate: ls _cache/images/<product>.* 有文件 → 通过。无文件 且 无 attempt 记录 → STOP，不可进入 Step 6。
 │
 ├─ Step 6: Write artifact
 │  每句 claim 句尾 [S#](URL) / [I#](URL)
-│  每个 [I#] 标注验证方式 (Playwright ✅ / WebFetch ✅ / [需查证])
+│  已验证的 source 不额外标注——只标 [需查证]（未验证的 claim）
 │  表格式严格按模板（§3c=表, §4a=池, §5=锚点表+场景表+Ev列）
+│  Pre-write checklist: _cache/images/<product>.* 文件存在 ✅ | [缺图] 有 attempt 记录 ✅ | [需查证] ≤8 ✅
 │
 ├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
 │  → 自动创建 ledger pending claims → agent 补 text/quote/section → verify
@@ -131,14 +133,12 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 - URL 取到页面级即可——不需要 #anchor fragment
 - 同一 URL 被多处引用 → 复用同一编号
 
-### Tier 标签（写进 artifact）
+### Source 标记约定
 
-**每个 [I#] source 在 artifact 正文中必须标注验证方式：**
-- Playwright Tier 2 验证通过 → 写 `[I1](url) (Playwright ✅)`
-- WebFetch Tier 1 验证通过 → 写 `[I1](url) (WebFetch ✅)`
-- 全失败 honest degradation → 写 `[需查证]`
-- actuals Tier 0 → 写 `[actuals]`
-- 只在 Resources 段列出所有 source，不需要在正文重复一次以上验证标记
+- 已验证的 source：`[S#](url)` 或 `[I#](url)`——不附加任何 badge。默认 `[S#]/[I#]` = 已验证。
+- 未验证的 claim：标 `[需查证]`——仅当所有 fallback 层级都失败后才使用。
+- actuals Tier 0：从 `source_map` 读取对应 [S#] 标签，不写裸 `[actuals]`。
+- 标记位置：正文句尾或表格 Ev 列。验证状态细节在 evidence ledger 中追踪，不在 artifact 中展示。
 
 ### 反模式
 
@@ -161,7 +161,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 
 ```
 > 2026-06-03 | <TICKER> | <PRICE> | MCap <VALUE>
-> Pipeline: actuals ✅/<SKIP> | WebFetch X/Y | Playwright X/Y | [需查证] X | images ✅ | lint ✅ | coverage XX%
+> Pipeline: actuals ✅ | [需查证] X | images ✅ | lint ✅ | coverage XX%
 ```
 
 ### 1. 一眼看懂
@@ -515,12 +515,24 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 ## 保存
 
-默认保存到当前工作的 topic 下，命名格式：`YYYY-MM-DD-stock-quickread-<company>.md`。
+写入公司 primary 行业目录：
+```
+industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-slug>.md
+```
 
-- 路径：`topics/<current-topic>/YYYY-MM-DD-stock-quickread-<company>.md`
-- 当前 topic 不明确 → 先 handoff `new-session` 解析路径
-- 公司 qualifier 从 company slug 提取（如 `mycronic`、`robotchnik`）
+- 路径不明 → 先 handoff `new-session` 解析行业和公司。
+- 公司 qualifier 从 company slug 提取（如 `mycronic`、`robotchnik`）。
+- 禁止保存到 `topics/` 路径（旧版路径，已废弃）。
 
 ## 篇幅基准
 
 - 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。
