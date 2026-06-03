@@ -13,7 +13,7 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker> --periods 3Y` to fetch baseline three-statement data + market snapshot.
+- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch baseline three-statement data + market snapshot.
 - **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.

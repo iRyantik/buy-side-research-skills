@@ -85,7 +85,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ### Execution Flow (Gate-style — each step has intermediate output, next step checks previous)
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker> --periods 3Y
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
 │  → Write to _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.

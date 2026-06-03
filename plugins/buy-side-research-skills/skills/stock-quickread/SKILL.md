@@ -11,7 +11,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker> --periods 3Y` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -85,7 +85,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 ### 执行流程（Gate 式——每步有中间产物，下步检查上步）
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker> --periods 3Y
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
 │  → 拉三表核心科目 + 分部 + 弹性 supplementary + market_data
 │  → 写入 _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。

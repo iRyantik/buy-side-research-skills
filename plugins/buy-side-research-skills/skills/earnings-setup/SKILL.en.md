@@ -13,7 +13,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: call `/financial-data --lite <ticker> --periods 3Y` to fetch three statements + market snapshot. Trust its results and pull data directly from `actuals-resolved.json`.
+- **Data pipeline**: call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its results and pull data directly from `actuals-resolved.json`.
 - **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - **Actuals-only**: implied move, short squeeze score, and any ratio derived from financial statements use actuals-resolved.json.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.

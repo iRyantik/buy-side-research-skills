@@ -25,7 +25,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
 每个 subagent 独立完成两项任务：
 
   a. 拉取财务数据
-     /financial-data --lite <TICKER> --periods 3Y
+     /financial-data --lite <TICKER>
      → 写入 _cache/financial-data/internal/actuals-resolved.json
 
   b. 生成证据卡
@@ -35,7 +35,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
               key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data --lite <TICKER_N> --periods 3Y
+  /financial-data --lite <TICKER_N>
   + evidence card JSON per evidence-card-schema.json
 
 全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注

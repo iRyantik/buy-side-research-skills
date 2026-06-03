@@ -28,7 +28,7 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 Each subagent independently completes two tasks:
 
   a. Fetch financial data
-     /financial-data --lite <TICKER> --periods 3Y
+     /financial-data --lite <TICKER>
      → writes _cache/financial-data/internal/actuals-resolved.json
 
   b. Generate evidence card
@@ -38,7 +38,7 @@ Each subagent independently completes two tasks:
                    key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data --lite <TICKER_N> --periods 3Y
+  /financial-data --lite <TICKER_N>
   + evidence card JSON per evidence-card-schema.json
 
 Main agent continues once all subagents complete. Single ticker failure does not block others —
