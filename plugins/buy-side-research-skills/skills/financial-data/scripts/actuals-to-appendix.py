@@ -297,6 +297,10 @@ def _render_segments(data: dict) -> str:
                 period_labels[p] = "FY" + p[3:]
             elif p.startswith("sub_"):
                 period_labels[p] = p[4:].replace("q", "Q").replace("h", "H").replace("_", " ")
+            elif p.startswith("q") and "_20" in p:
+                # q2_2025 -> Q2 2025
+                parts = p.split("_")
+                period_labels[p] = parts[0].upper() + " " + parts[1]
             else:
                 period_labels[p] = p
         periods = sorted(all_periods)
