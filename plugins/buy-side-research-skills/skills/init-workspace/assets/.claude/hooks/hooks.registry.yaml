@@ -160,6 +160,48 @@ hooks:
     events: [PostToolUse]
     scope: [3-statement-model]
     severity: block
+  - name: model_period_floor
+    file: rules/modeling/model_period_floor.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model]
+    severity: warn
+  - name: model_driver_breakdown
+    file: rules/modeling/model_driver_breakdown.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model]
+    severity: block
+  - name: model_historical_actuals
+    file: rules/modeling/model_historical_actuals.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model]
+    severity: block
+  - name: model_statement_structure
+    file: rules/modeling/model_statement_structure.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model, comps-analysis]
+    severity: block
+  - name: model_update_change_map
+    file: rules/modeling/model_update_change_map.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [model-update]
+    severity: block
+  - name: model_valuation_basis
+    file: rules/modeling/model_valuation_basis.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [dcf-model, comps-analysis, model-update]
+    severity: block
+  - name: model_dcf_tv_wacc_sanity
+    file: rules/modeling/model_dcf_tv_wacc_sanity.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [dcf-model]
+    severity: warn
 
   # === Fact Governance ===
   - name: fact_provenance

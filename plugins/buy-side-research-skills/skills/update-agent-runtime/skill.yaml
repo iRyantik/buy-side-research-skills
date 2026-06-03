@@ -56,7 +56,6 @@ workflow:
     - 'user-maintenance-request'
   feeds_into:
     - 'init-workspace'
-    - 'new-session'
     - 'ingest'
     - 'financial-data'
   can_trigger: []

@@ -33,8 +33,6 @@ SOURCE_WORDS = {
     # Media / industry
     'bits&chips', 'bitsandchips', 'bits-chips', 'reuters', 'bloomberg',
     'nikkei', 'nikkei asia', 'digitimes', 'semiconductor today',
-    # Company / event names that appear as sources
-    'besi agm', 'tsmc earnings', 'intel investor',
 }
 
 # Labels that are NOT sources — research annotations in Chinese/English
@@ -83,8 +81,7 @@ def _looks_like_source_label(label: str) -> bool:
             return True
     # Heuristic: label contains a known source word fragment
     fragments = {'finance', 'investing', 'market', 'stock', 'analyst', 'earnings',
-                 'report', 'annual', 'quarterly', 'presentation', 'agm', 'ir',
-                 'besi', 'tsmc', 'asml', 'nvidia', 'intel', 'samsung'}
+                 'report', 'annual', 'quarterly', 'presentation', 'agm', 'ir'}
     words_in_label = set(re.findall(r'[a-zA-Z]{3,}', label_lower))
     if words_in_label & fragments:
         return True

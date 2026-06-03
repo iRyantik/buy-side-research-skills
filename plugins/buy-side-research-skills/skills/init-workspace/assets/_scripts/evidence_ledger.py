@@ -51,17 +51,46 @@ def _ticker_to_ledger_path(artifact_path: str, ticker: str) -> Path:
     ap = Path(artifact_path).resolve()
     if ap.is_file():
         ap = ap.parent
+    elif ap.is_dir():
+        pass  # path is already a directory — use as-is
+    else:
+        # Path doesn't exist yet — assume it's a directory if no extension, or use parent if has extension
+        if ap.suffix:
+            ap = ap.parent
     ledger_dir = ap / LEDGER_DIRNAME / EVIDENCE_SUBDIR
     ledger_dir.mkdir(parents=True, exist_ok=True)
-    return ledger_dir / (ticker + ".evidence.json")
+    ledger_path = ledger_dir / (ticker + ".evidence.json")
+    _validate_ledger_path(ledger_path)
+    return ledger_path
+
+
+def _validate_ledger_path(ledger_path: Path):
+    """Guard: ledger_path must be a .json file, never a directory."""
+    if ledger_path.suffix != ".json":
+        print(f"ERROR: ledger path must end with .json, got: {ledger_path}", file=sys.stderr)
+        sys.exit(1)
+    if ledger_path.is_dir():
+        print(f"ERROR: ledger path is a directory, not a file: {ledger_path}", file=sys.stderr)
+        print(f"Remove it: rm -rf {ledger_path}", file=sys.stderr)
+        sys.exit(1)
 
 
 def _artifact_path_to_ledger_path(artifact_path: str) -> Path:
     """Legacy: <dir>/_cache/evidence/<artifact-filename>.evidence.json"""
     ap = Path(artifact_path).resolve()
+    if ap.is_dir():
+        print(f"ERROR: '{artifact_path}' is a directory, not a file path.", file=sys.stderr)
+        print("Use ticker mode: evidence_ledger.py init <DIR> -t <TICKER>", file=sys.stderr)
+        sys.exit(1)
+    if not ap.suffix:
+        print(f"ERROR: '{artifact_path}' has no file extension — looks like a ticker, not a file.", file=sys.stderr)
+        print("Use ticker mode: evidence_ledger.py init <TICKER> -t <TICKER>", file=sys.stderr)
+        sys.exit(1)
     ledger_dir = ap.parent / LEDGER_DIRNAME / EVIDENCE_SUBDIR
     ledger_dir.mkdir(parents=True, exist_ok=True)
-    return ledger_dir / (ap.name + ".evidence.json")
+    ledger_path = ledger_dir / (ap.name + ".evidence.json")
+    _validate_ledger_path(ledger_path)
+    return ledger_path
 
 
 # --- Load / Save ---
@@ -82,6 +111,11 @@ def _load_ledger(ledger_path: Path) -> dict:
 
 
 def _save_ledger(ledger_path: Path, ledger: dict):
+    _validate_ledger_path(ledger_path)
+    if ledger_path.is_dir():
+        print(f"ERROR: cannot save — ledger path is an existing directory: {ledger_path}", file=sys.stderr)
+        print(f"Remove it with: rm -rf {ledger_path}", file=sys.stderr)
+        sys.exit(1)
     ledger["updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     counts = {s: 0 for s in STATUSES}
     for c in ledger.get("claims", []):

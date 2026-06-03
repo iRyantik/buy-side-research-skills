@@ -992,8 +992,6 @@ def route_converter(
 
 
 RAW_CATEGORIES = ("filings", "transcripts", "sellside", "industry", "irdecks", "datasets")
-TOPIC_NAMESPACES = ("company", "industry", "theme", "pair")
-TOPIC_OPERATION_DIRS = ("_raw", "_inbox", "_cache")
 
 CATEGORY_FILENAME_HINTS = {
     "filings": (r"\b(10[-_]?K|10[-_]?Q|8[-_]?K|20[-_]?F|40[-_]?F|annual.report|proxy|prospectus)\b",),
@@ -1023,7 +1021,7 @@ def discover_workspace(source: Path) -> Path:
     candidates = [source if source.is_dir() else source.parent, Path.cwd()]
     for candidate in candidates:
         for parent in [candidate, *candidate.parents]:
-            if (parent / "topics").is_dir() and (parent / "_inbox").exists():
+            if (parent / "industry").is_dir() and (parent / "_inbox").exists():
                 return parent
     raise IngestError("Could not discover research workspace. Pass --workspace or run init first.")
 
@@ -1032,11 +1030,9 @@ def normalize_topic_arg(topic: str | None) -> str | None:
     if not topic:
         return None
     normalized = topic.replace("\\", "/").strip().strip("/")
-    if normalized.startswith("topics/") or normalized.startswith("industry/"):
+    if normalized.startswith("industry/"):
         # 'industry/pcb-equipment/companies/mycronic' -> keep as-is (it's already normalized)
-        # 'topics/industry/pcb-equipment' -> strip 'topics/' prefix
-        if normalized.startswith("topics/"):
-            normalized = normalized[len("topics/") :]
+        pass
     return normalized or None
 
 
@@ -1054,11 +1050,6 @@ def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> 
         return f"industry/{parts[1]}/companies/{parts[3]}"
     if len(parts) >= 2 and parts[0] == "industry":
         return f"industry/{parts[1]}"
-    # Legacy topics/ structure (still supported for backward compat)
-    if len(parts) >= 5 and parts[0] == "topics" and parts[1] in TOPIC_NAMESPACES and parts[3] in TOPIC_OPERATION_DIRS:
-        return f"{parts[1]}/{parts[2]}"
-    if len(parts) >= 4 and parts[0] == "topics" and parts[2] in ("_raw", "_inbox", "_cache"):
-        return parts[1]
     if len(parts) >= 3 and parts[0] == "_inbox" and parts[1] not in ("", "."):
         root_topic = "/".join(part for part in parts[1:-1] if part not in ("", "."))
         return root_topic or "unclassified"
@@ -1111,9 +1102,9 @@ def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
         pass
     try:
         rel = source.resolve().relative_to(workspace.resolve())
-        if len(rel.parts) >= 5 and rel.parts[0] == "topics" and rel.parts[1] in TOPIC_NAMESPACES and rel.parts[3] == "_inbox":
+        if len(rel.parts) >= 5 and rel.parts[0] == "industry" and rel.parts[2] == "companies" and rel.parts[4] == "_inbox":
             return True
-        if len(rel.parts) >= 3 and rel.parts[0] == "topics" and rel.parts[2] == "_inbox":
+        if len(rel.parts) >= 3 and rel.parts[0] == "industry" and rel.parts[2] == "_inbox":
             return True
     except ValueError:
         pass
@@ -1123,7 +1114,7 @@ def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
 def _check_topic_exists(workspace: Path, topic: str) -> None:
     if topic == "unclassified":
         return
-    index_path = workspace / "topics" / topic / "index.md"
+    index_path = workspace / "industry" / topic / "index.md"
     if not index_path.exists():
         raise IngestError(
             f"Topic '{topic}' does not exist. Run new-session first to create the topic directory first.\n"
@@ -1132,7 +1123,7 @@ def _check_topic_exists(workspace: Path, topic: str) -> None:
 
 
 def _move_to_raw(source: Path, workspace: Path, topic: str, category: str) -> Path:
-    raw_dir = workspace / "topics" / topic / "_raw" / category
+    raw_dir = workspace / "industry" / topic / "_raw" / category
     raw_dir.mkdir(parents=True, exist_ok=True)
     dest = raw_dir / source.name
     shutil.move(str(source), str(dest))

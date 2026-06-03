@@ -189,7 +189,7 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 ```
 
-路径解析优先复用 `new-session` 的 topic 解析结果。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
+路径解析由 agent 按 policy baseline §11 自动完成。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
 
 ## Workflow 联动
 

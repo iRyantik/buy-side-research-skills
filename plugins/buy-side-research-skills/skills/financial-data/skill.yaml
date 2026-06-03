@@ -67,7 +67,6 @@ artifact_policy:
 workflow:
   stage: 'structured-financial-data'
   can_follow:
-    - 'new-session'
     - 'init-workspace'
   feeds_into:
     - 'stock-quickread'

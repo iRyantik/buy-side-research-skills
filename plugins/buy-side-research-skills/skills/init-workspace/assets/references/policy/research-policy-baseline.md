@@ -222,11 +222,11 @@ linter 报错 → 修到 pass 才交付。
 
 ## 8. Primitive Routing
 
-- Workspace routing: `new-session` creates only `index.md` + `_inbox/`; `ingest` creates `_raw/<category>/` and `_cache/` on first conversion. Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`; use `promote-company` to move deterministic company-scoped files into `industry/<industry>/companies/<ticker>/<company-slug>/`. `integrate` remains whole-topic directory merge.
+- Workspace routing: 研究 skill 保存 artifact 时自动创建缺失目录（`mkdir -p`）；`ingest` creates `_raw/<category>/` and `_cache/` on first conversion。Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`。`integrate` remains whole-topic directory merge。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-insight`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
-- ingest 前确保 topic root 已存在（`topics/<topic>/index.md` 必须存在）。若缺失，先触发 `new-session` 创建 topic root + `_inbox/`，再将文件放入 `topics/<topic>/_inbox/` 后执行 ingest。
-- 研究 skill 启动时，先检查 `topics/<topic-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/<company-slug>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
+- ingest 前确保 topic root 已存在（`industry/<industry>/index.md` 必须存在）。若缺失，agent 自动创建——无需单独调用 skill。
+- 研究 skill 启动时，先检查 `industry/<industry-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 ## 9. 单行业归属规则（Single-Industry Primary Residence）
 
@@ -300,3 +300,34 @@ linter 报错 → 修到 pass 才交付。
 - **优先级**：business segments (PG/GT/AS-HF/AS-HV) > geographical segments (Asia/EMEA/Americas)。两者都有则都保留在 `actuals-resolved.json` 的 `segments` 数组中，按 `type: "business"` 和 `type: "geography"` 区分。
 - **§3 分部表**：stock-quickread 的 §3 关键财务数据表优先展示业务分部。只有在公司不披露业务分部时（如单分部公司），才用地理分部替代。
 - **actuals-resolved.json segments 字段规范**：每个 segment 对象必须含 `type` 字段（`"business"` | `"geography"`），方便 agent 区分优先级。
+
+## 11. Topic Scaffolding Convention（自动脚手架）
+
+> 研究 skill 保存 artifact 时自动完成以下脚手架——无需研究员感知。
+
+### 触发条件
+
+任何 research skill（`stock-quickread`、`driver-map`、`teach-in` 等）按 save policy 写 artifact 到 `industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md` 时，agent 自动执行：
+
+### 检查清单（agent 保存 artifact 前 30 秒完成）
+
+1. **行业目录**：`industry/<industry>/` 不存在 → `mkdir -p` + 创建 `index.md`（含行业名 + 当前问题 + 研究产出 + 待解决问题占位）
+2. **公司目录**：`industry/<industry>/companies/<ticker>/` 不存在 → `mkdir -p`
+3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <行业> | <公司名> | <ticker> | ✅ | index.md | active |`
+4. **行业 index.md 注册**：artifact 不在行业 `index.md` 研究产出列表 → 追加一行时间倒序 artifact link
+5. **不要做的事**：不创建 `_inbox/`（不需要了）、不创建 `_cache/`（financial-data 按需自建）、不预建目录、不阻塞主流程
+
+### Agent 执行伪代码
+
+```
+def save_artifact(industry, ticker, artifact_path):
+    ensure_dir(f"industry/{industry}/") + touch index.md if missing
+    ensure_dir(f"industry/{industry}/companies/{ticker}/")
+    register_in_coverage(industry, ticker) if not already
+    register_in_industry_index(industry, artifact) if not already
+    write artifact
+```
+
+### 与旧版脚手架的区别
+
+> 此前有独立  skill（已移除）。当前版本中，所有研究 skill 保存 artifact 时自动完成脚手架——无需用户感知。

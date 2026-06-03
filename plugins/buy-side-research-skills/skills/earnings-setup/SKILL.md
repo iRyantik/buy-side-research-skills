@@ -185,7 +185,7 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## Source Contract
 

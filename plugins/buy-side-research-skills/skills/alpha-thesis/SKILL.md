@@ -207,7 +207,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## Thesis Driver Mix
 
@@ -250,9 +250,9 @@ Growth stalls + Margin holds → flat. Growth hits + Margin expands → bull re-
 industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
 ```
 
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `new-session` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `agent` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。
 
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
+如果当前日期化保存路径不明确，agent 按 policy baseline §11 自动创建目录和索引。
 
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 

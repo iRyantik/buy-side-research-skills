@@ -11,7 +11,7 @@ description: Convert raw research files into source-tracked topic cache markdown
 
 The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-`new-session` prepares the topic root and `_inbox/`. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
+Agent (per policy baseline §11) auto-creates the topic root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
 
 ## 职责边界
 
@@ -24,7 +24,7 @@ The invariant is traceability. `_cache/` is easier for an LLM to read, but the o
 - Fail honestly on dependency or conversion gaps.
 
 不负责：
-- Do not create topic roots or `index.md`; use `new-session`.
+- Do not create topic roots or `index.md`; agent auto-creates them per policy baseline §11 before calling ingest.
 - Do not move files already under `_raw/`.
 - Do not write investment conclusions or earned insight.
 - Do not treat `_cache/` as original source.
@@ -41,7 +41,7 @@ Trigger phrases:
 
 Pre-condition:
 - `industry/<industry>/companies/<ticker>/index.md` must already exist.
-- Topic `_inbox/` normally comes from `new-session`.
+- Topic `_inbox/` normally auto-created by agent per policy baseline §11.
 
 Inputs:
 
@@ -159,7 +159,7 @@ Cache header must include:
 
 ## 失败处理
 
-- Missing topic root: block and ask user to run `new-session`.
+- Missing topic root: agent auto-creates per policy baseline §11.
 - Source path missing: failed, no cache written.
 - Workspace cannot be discovered: ask for `--workspace`.
 - Dependency missing: report exact package and bootstrap command.
@@ -170,8 +170,8 @@ Cache header must include:
 
 | Scenario | Handling |
 |---|---|
-| Workspace has no `topics/` | Use `init-workspace` |
-| Topic root is missing | Use `new-session` |
+| Workspace has no `industry/` | Use `init-workspace` |
+| Topic root is missing | Agent auto-creates per policy baseline §11 |
 | User has files in topic `_inbox/` | Use `ingest` |
 | Cache is annual report / 10-K / 20-F | Feed `company-history` or `driver-map` |
 | Cache is industry report / technical paper | Feed `industry-landscape` or `mechanism-insight` |

@@ -1,0 +1,16 @@
+# AGENTS.md — Research Workspace Agent Entry Point
+
+> This file is only a compatibility entry point for Codex / agents in the current research workspace. It is not an independent constitution.
+> The source of truth for this workspace is the sibling file [`CLAUDE.md`](CLAUDE.md).
+
+## Required Workflow
+
+- Before working in this directory or subdirectories, read and obey `CLAUDE.md`.
+- If `AGENTS.md`, `CLAUDE.md`, any skill instructions, or other local notes conflict, the workspace `CLAUDE.md` takes precedence.
+- Do not replicate source policy, anti-sell-side rules, skill trigger tables, or file organization details here; those rules are maintained only in workspace `CLAUDE.md`.
+- `.claude/settings.json`, `.claude/hooks/`, `.codex/hooks.json` are part of the workspace runtime contract; do not manually edit or delete them unless syncing with plugin governance.
+
+## Boundary
+
+- This file serves the user research workspace, not the plugin dev repo.
+- Plugin development rules are not maintained here; to modify plugin skills or validators, return to the plugin dev repo.

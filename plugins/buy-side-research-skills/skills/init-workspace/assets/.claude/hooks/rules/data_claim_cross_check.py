@@ -128,11 +128,19 @@ def check(ctx: dict):
 
         company_slug = m.group(1).lower()
         root = ctx.get("cwd", "")
-        financial_data_path = os.path.join(
-            root, "topics", "company", company_slug,
-            "_cache", "financial-data", "internal", "actuals-resolved.json"
-        )
-        if not os.path.isfile(financial_data_path):
+        # Walk industry/ tree to find actuals-resolved.json for this company
+        financial_data_path = None
+        industry_root = os.path.join(root, "industry")
+        if os.path.isdir(industry_root):
+            for industry_name in os.listdir(industry_root):
+                candidate = os.path.join(
+                    industry_root, industry_name, "companies", company_slug,
+                    "_cache", "financial-data", "internal", "actuals-resolved.json"
+                )
+                if os.path.isfile(candidate):
+                    financial_data_path = candidate
+                    break
+        if not financial_data_path:
             continue  # financial_data_gate handles this
 
         try:

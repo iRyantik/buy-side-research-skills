@@ -38,7 +38,6 @@ artifact_policy:
 workflow:
   stage: 'topic-organization'
   can_follow:
-    - 'new-session'
     - 'research-journal'
   feeds_into:
     - 'company-history'

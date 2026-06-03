@@ -13,6 +13,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .cache/
+**/_tmp/
 
 node_modules/
 .DS_Store

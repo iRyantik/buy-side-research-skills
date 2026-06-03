@@ -16,9 +16,9 @@ It is an operations skill, not a research skill.
 The invariant is separation of concerns:
 
 - `init-workspace` creates or repairs the root workspace shell + environment.
-- `new-session` creates or locates a topic root with `index.md` and `_inbox/`.
 - Each skill (ingest, financial-data, etc.) bootstraps heavy dependencies on first use via its own `bootstrap.py`.
 - `update-agent-runtime` keeps the workspace in sync with the latest plugin release.
+- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See `references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
 
 ## Responsibilities
 
@@ -90,7 +90,7 @@ for each skill_dir in skills/*/:
 
 - Installing Docling, Tesseract, onnx, torch, or other heavy dependencies — each skill's `bootstrap.py` handles these on first use.
 - Running `git init`.
-- Creating topic directories — use `new-session`.
+- Creating topic directories — handled automatically by research skills on artifact save (see policy baseline §9).
 - Creating topic-level `_raw/`, `_cache/`, or `_models/`.
 - Initializing inside the plugin dev repo or plugin install directory.
 - Running `update-agent-runtime` host/plugin upgrades.
@@ -212,7 +212,7 @@ EDINET_API_KEY=your_key_here
 | Scenario | Handling |
 |---|---|
 | User wants to upgrade plugin + sync workspace | Use `update-agent-runtime` |
-| User wants to create a new topic | Use `new-session` |
+| User wants to create a new topic | Automatic — save artifact to target path, scaffolding auto-creates directories |
 | User wants to fix workspace runtime only | Use `update-agent-runtime` (or re-run init-workspace in repair mode) |
 
 Artifact policy:

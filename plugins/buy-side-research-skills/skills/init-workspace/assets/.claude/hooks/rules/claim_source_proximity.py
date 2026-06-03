@@ -111,11 +111,7 @@ def check(ctx):
             r'(?<!\w)[\d,.]+x(?![/\w])|'      # multiples
             r'(?<!\w)[\d,.]+bps|'             # bps
             r'(?<!\w)\$[\d,.]+[bmk]|'         # $ amounts
-            r'(?:EUR|USD|CNY|JPY|KRW|HKD|TWD|SEK)\s*[\d,.]+[bmk]?|'  # ISO amounts
-            r'\b(?:TSMC|Intel|Samsung|NVIDIA|AMD|ASML|ASMPT|BESI|Besi|Mycronic|MRSI|'
-            r'AMAT|Applied Materials|Hanwha|韩美|Broadcom|Coherent|中际旭创|'
-            r'新易盛|博众精工|猎奇|罗博特科|联讯|AEHR|Keysight|VIAVI|'
-            r'Google|Meta|Amazon|Microsoft)\b)'
+            r'(?:EUR|USD|CNY|JPY|KRW|HKD|TWD|SEK)\s*[\d,.]+[bmk]?)'  # ISO amounts
         )
 
         # Split body into paragraphs (double newline), excluding tables and code

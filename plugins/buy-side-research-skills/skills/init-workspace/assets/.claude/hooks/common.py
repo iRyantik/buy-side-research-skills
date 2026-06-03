@@ -175,8 +175,6 @@ def get_resources_entries(text: str) -> list[dict]:
 
     return entries
 
-    return entries
-
 def get_short_anchor_matches(text: str) -> list[dict]:
     """Find all [S1](url), [P2](path), [I3](url), [LBG1](url), [R1](url), [SRC1](url) inline anchors."""
     matches = []

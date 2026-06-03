@@ -190,13 +190,6 @@ def _segments_status(data: dict) -> str | None:
 
 
 def _resolve_actuals_path(root: str, company_slug: str) -> str | None:
-    topic_candidate = os.path.join(
-        root, "topics", "company", company_slug,
-        "_cache", "financial-data", "internal", "actuals-resolved.json"
-    )
-    if os.path.isfile(topic_candidate):
-        return topic_candidate
-
     industry_root = os.path.join(root, "industry")
     if not os.path.isdir(industry_root):
         return None

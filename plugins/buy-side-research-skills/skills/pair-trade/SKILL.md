@@ -60,7 +60,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
 
 如果当前没有明确 dated result path：
-- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。
+- agent 按 policy baseline §11 自动创建目录，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。
 - 让用户确认 topic / slug 后再保存。
 - 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 
@@ -347,7 +347,7 @@ flowchart TD
 2. 如果 baseline 不完整，不输出 Spread 状态、P/L attribution、Thesis health 或 Action 建议；只输出 `Missing Baseline Checklist`，建议先用 Builder 生成或补齐 `pair-note.md`。
 3. 如果 baseline 完整，拉取或要求补充当前 spread 数据 + as-of 时间戳。
 4. 输出 4 部分：Spread 状态、P/L 来源拆解、Thesis 健康度、Research action。
-5. 默认把本次 review 追加 / 更新到当前日期化保存路径的 `pair-note.md`；如果当前没有明确 dated result path，先 handoff 到 `new-session` 创建 / 解析路径并让用户确认。
+5. 默认把本次 review 追加 / 更新到当前日期化保存路径的 `pair-note.md`；如果当前没有明确 dated result path，agent 按 policy baseline §11 自动创建目录。
 
 #### Missing Baseline Checklist
 
@@ -432,7 +432,7 @@ flowchart TD
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 

@@ -175,9 +175,9 @@ hooks-first 补充 hard gate：
 
 命名规则补充 hard gate：
 
-9. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
+9. 如变更 research topic artifact 命名规则，必须同步 `references/policy/research-policy-baseline.md` §11。
 10. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
-11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
+11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml`。
 12. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
 
 ## UTF-8 文本纪律
@@ -368,8 +368,6 @@ Operations skills：
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
-| `new-session` | 创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 artifact save path |
-| `new-session` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -541,8 +539,6 @@ Artifact policy：
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
-- `new-session` 使用 `topic_scaffold`，只创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 result path，并轻量更新 `index.md`，不写研究结论。
-- `new-session` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
 
 默认 naming tier：
 - `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`、`moat-analysis`、`catalyst-map`、`capital-allocation`、`post-earnings-quick`

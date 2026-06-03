@@ -24,8 +24,7 @@ ANCHOR_CODE_RE = re.compile(r'\[(?:S|P|I|LBG|R|SRC)\d+\](?!\()')
 SOURCE_ANCHOR_RE = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|SRC\d+)\]')
 FACTUAL_MARKERS_RE = re.compile(
     r'(?:(?<!\w)[\d,.]+%|(?<!\w)[\d,.]+x(?![/\w])|(?<!\w)\$[\d,.]+[bmk]|'
-    r'(?:EUR|USD|CNY)\s*[\d,.]+[bmk]?|'
-    r'\b(?:TSMC|Intel|Samsung|NVIDIA|ASML|BESI|ASMPT|AMAT|Hanwha)\b)'
+    r'(?:EUR|USD|CNY)\s*[\d,.]+[bmk]?)'
 )
 
 STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')

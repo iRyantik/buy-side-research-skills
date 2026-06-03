@@ -61,7 +61,6 @@ artifact_policy:
 workflow:
   stage: 'research-primitive'
   can_follow:
-    - 'new-session'
     - 'ingest'
     - 'next-step'
   feeds_into:

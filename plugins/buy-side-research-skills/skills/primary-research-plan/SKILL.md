@@ -118,7 +118,7 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## Source Contract
 

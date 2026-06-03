@@ -17,17 +17,25 @@ import fill_gaps  # noqa: E402
 
 
 CONFIG_PATH = Path(__file__).with_name("financial_data_lite_samples.json")
-PROVIDER_ROOTS = [
-    ROOT / "buy-side-research-skills-1.1.0" / "plugins" / "buy-side-research-skills" / "skills" / "financial-data" / "scripts" / "providers",
-    Path.home() / "Desktop" / "buy-side-research-skills-1.1.0" / "plugins" / "buy-side-research-skills" / "skills" / "financial-data" / "scripts" / "providers",
-    Path.home() / ".codex" / "plugins" / "cache" / "buy-side-research-skills" / "buy-side-research-skills" / "4.6.0" / "skills" / "financial-data" / "scripts" / "providers",
-    Path.home() / ".claude" / "plugins" / "cache" / "buy-side-research-skills" / "buy-side-research-skills" / "4.5.6" / "skills" / "financial-data" / "scripts" / "providers",
-]
-SKILL_DOC_VARIANTS = {
-    "desktop": Path.home() / "Desktop" / "buy-side-research-skills-1.1.0" / "plugins" / "buy-side-research-skills" / "skills",
-    "codex": Path.home() / ".codex" / "plugins" / "cache" / "buy-side-research-skills" / "buy-side-research-skills" / "4.6.0" / "skills",
-    "claude": Path.home() / ".claude" / "plugins" / "cache" / "buy-side-research-skills" / "buy-side-research-skills" / "4.5.6" / "skills",
-}
+def _find_plugin_root():
+    """Walk up from test file dir to find plugin dev repo root."""
+    p = ROOT
+    while p != p.parent:
+        if (p / "plugins" / "buy-side-research-skills" / "skills").is_dir():
+            return p
+        p = p.parent
+    return None
+
+_PLUGIN_ROOT = _find_plugin_root()
+_PROVIDER_REL = "plugins/buy-side-research-skills/skills/financial-data/scripts/providers"
+
+PROVIDER_ROOTS = []
+if _PLUGIN_ROOT:
+    PROVIDER_ROOTS.append(_PLUGIN_ROOT / _PROVIDER_REL)
+
+SKILL_DOC_VARIANTS = {}
+if _PLUGIN_ROOT:
+    SKILL_DOC_VARIANTS["repo"] = _PLUGIN_ROOT / "plugins" / "buy-side-research-skills" / "skills"
 DOC_CONTRACT_TARGETS = {
     "financial-data": "Growth-first consumer profile:",
     "stock-quickread": "Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields",
@@ -38,10 +46,9 @@ DOC_CONTRACT_TARGETS = {
     "consensus-map": "Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields",
     "bear-pre-mortem": "Consumer data contract: consume `segments.status`, `segments.segments`, plus growth-first `supplementary` fields",
 }
-PLUGIN_ROOT_CANDIDATES = [
-    ROOT / "buy-side-research-skills-1.1.0",
-    Path.home() / "Desktop" / "buy-side-research-skills-1.1.0",
-]
+PLUGIN_ROOT_CANDIDATES = []
+if _PLUGIN_ROOT:
+    PLUGIN_ROOT_CANDIDATES.append(_PLUGIN_ROOT)
 
 
 def _load_config():

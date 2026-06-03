@@ -163,7 +163,7 @@ Tier 4: [需查证] —— honest degradation
 industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md
 ```
 
-- 路径不明 → 先 handoff `new-session` 解析行业。
+- 路径不明 → agent 按 policy baseline §11 自动创建。
 - qualifier 用会议主题或主讲机构（如 `optical-test-equipment`、`citi-2026-outlook`）。
 
 ## Workflow 联动

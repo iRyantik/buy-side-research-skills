@@ -56,7 +56,6 @@ artifact_policy:
 workflow:
   stage: 'triage-filter'
   can_follow:
-    - 'new-session'
     - 'ingest'
   feeds_into:
     - 'information-impact'

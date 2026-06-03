@@ -84,7 +84,7 @@ skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
 | 输入 | 必填 | 默认 |
 |---|---|---|
 | `subject` | 是 | 用户给出的公司 / ticker / 事件 / 主题 |
-| `topic_path` | 是 | 若不明确，先用 `new-session` 解析 |
+| `topic_path` | 是 | 若不明确，agent 按 policy baseline §11 自动解析 |
 | `keywords` | 是 | subject + ticker + event words |
 | `subreddits` | 建议 | `stocks,investing,wallstreetbets,SecurityAnalysis,ValueInvesting`，再加主题社区 |
 | `from_date` / `to_date` | 是 | 最近 7 天 |
@@ -239,7 +239,7 @@ _cache/datasets/reddit-sentiment/[run_id]/
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 

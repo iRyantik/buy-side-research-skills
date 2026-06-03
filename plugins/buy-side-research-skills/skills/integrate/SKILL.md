@@ -90,7 +90,7 @@ description: Merge a whole child topic into a parent topic and update topic inde
 
 ## 失败处理
 
-- parent 不存在：block，提示先 `new-session` 创建父 topic
+- parent 不存在：agent 按 policy baseline §11 自动创建父 topic
 - child 不存在：block，提示确认 child slug
 - 冲突：block，提示已有同名子目录，需手动处理
 - 不同行业合并：提示用户确认（如 `aerospace` 下合并 `semiconductor` 公司）

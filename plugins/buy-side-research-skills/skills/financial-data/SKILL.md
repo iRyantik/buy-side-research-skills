@@ -131,7 +131,7 @@ industry/<industry>/companies/<ticker>/
 
 `_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
-如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
+如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，由 agent 按 policy baseline §11 自动创建目录和索引后继续。
 
 
 ### Lite Mode Fetch（研究前置快速抓取）
@@ -421,7 +421,7 @@ Segment rule:
 - 缺 `EDGAR_IDENTITY`：US SEC route failed，不声称 SEC/XBRL 可用。
 - 缺 `DART_API_KEY`：KR route failed，不写假 DART 数据。
 - EU ticker-only 无法 discovery：输出 `provider-gap`，提示改用 `filing_url` 或 `local_esef_package`。
-- Topic 不存在：block，提示先用 `new-session` 创建 `industry/<industry>/companies/<ticker>/` 或目标 topic。
+- Topic 不存在：agent 按 policy baseline §11 自动创建目录和索引。
 - Provider 返回字段缺失：写 partial pack 和 completeness matrix，不推断未披露 revenue split。
 
 ## Workflow 联动
@@ -439,7 +439,7 @@ Artifact policy：
 
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `financials.md`
-- `canonical_location`: `topics/company/[company-slug]/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
 
 ## 安全自查
 

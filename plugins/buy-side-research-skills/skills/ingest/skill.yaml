@@ -58,7 +58,6 @@ workflow:
   stage: 'source-material-ingest'
   can_follow:
     - 'init-workspace'
-    - 'new-session'
   feeds_into:
     - 'industry-landscape'
     - 'company-history'

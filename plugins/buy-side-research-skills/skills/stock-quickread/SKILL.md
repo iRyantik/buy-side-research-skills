@@ -482,7 +482,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 
@@ -520,9 +520,8 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-slug>.md
 ```
 
-- 路径不明 → 先 handoff `new-session` 解析行业和公司。
+- 路径不明 → 先 handoff `agent` 解析行业和公司。
 - 公司 qualifier 从 company slug 提取（如 `mycronic`、`robotchnik`）。
-- 禁止保存到 `topics/` 路径（旧版路径，已废弃）。
 
 ## 篇幅基准
 

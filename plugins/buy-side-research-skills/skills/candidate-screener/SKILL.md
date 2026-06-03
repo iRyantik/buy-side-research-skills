@@ -291,7 +291,7 @@ Top Ideas 必须给下一步验证路线：
 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 ```
 
-路径不明 -> `new-session` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
+路径不明 -> `agent` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
 
 ## Workflow 联动
 

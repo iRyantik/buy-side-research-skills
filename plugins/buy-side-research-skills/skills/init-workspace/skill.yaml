@@ -56,7 +56,6 @@ workflow:
     - 'install'
     - 'user-setup-request'
   feeds_into:
-    - 'new-session'
     - 'ingest'
     - 'financial-data'
     - 'company-history'
@@ -64,7 +63,6 @@ workflow:
     - 'next-step'
     - 'research-journal'
   can_trigger:
-    - 'new-session'
     - 'ingest'
     - 'financial-data'
     - 'company-history'
