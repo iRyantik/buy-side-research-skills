@@ -142,7 +142,38 @@ Trigger (3Y mode): `/financial-data --lite <ticker> --periods 3Y` or "pull 3-yea
 
 Lite mode does not parse the full filing and does not build an evidence pack. It fetches core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
 
-**`--periods 3Y` (appendix display mode)**：Enable when a consuming skill needs to render a sell-side-style appendix. The agent fetches **3 full fiscal years + up to 4 sub-year periods** (quarterly reporter → Q1/Q2/Q3/Q4, half-year reporter → H1/H2), writing them into `actuals-resolved.json` under `fy_y2` / `fy_y1` / `fy_y0` / `sub_0` … `sub_3` keys. Field template defined in `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.
+**`--periods 3Y` (appendix display mode)**：Enable when a consuming skill needs to render a sell-side-style appendix.
+
+**3Y execution steps** (agent runs these in addition to the standard lite flow):
+
+```
+1. yfinance historical annual (3 FY)
+   ticker.income_stmt      → take latest 3 columns (FY-2, FY-1, FY0)
+   ticker.balance_sheet     → same
+   ticker.cashflow          → same
+   Field mapping: fill_gaps.py YF_FIELD_MAP handles yfinance→canonical name
+   (Revenue→revenue, GrossProfit→gross_profit, OperatingIncome→ebit, etc.)
+
+2. yfinance quarterly (up to 4 completed sub-periods)
+   ticker.quarterly_income_stmt  → take latest 4 completed quarters
+   ticker.quarterly_balance_sheet → same
+   ticker.quarterly_cashflow      → same
+
+3. Write to actuals-resolved.json
+   Per actuals_schema.json _periods definition:
+   income_statement.fy_y2 / fy_y1 / fy_y0   — 3 full FY
+   income_statement.sub_0 / sub_1 / sub_2 / sub_3  — up to 4 sub-periods
+   BS/CF same structure
+   Each field: {value, source_layer: "yfinance", source_detail: "yfinance <TICKER> <period>"}
+   latest_fy / latest_quarter preserved
+
+4. Degradation
+   - yfinance missing periods → official_web / PDF fallback (agent manual extract)
+   - Half-year reporter (H1/H2) → sub_0=H1, sub_1=H2; sub_2/sub_3 skipped
+   - Periods that cannot be sourced are left empty — never fabricated
+```
+
+Field template: `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.
 
 **Consumer contract**: Consuming skills call `--lite [--periods 3Y]` and read data directly from `actuals-resolved.json`.
 

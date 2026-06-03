@@ -141,7 +141,38 @@ industry/<industry>/companies/<ticker>/
 
 Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
 
-**`--periods 3Y`（附录展示增强模式）**：当消费 skill 需要展示 sell-side 风格 appendix 时启用。Agent 抓取 **3 个完整 FY + 最多 4 个子年期间**（quarterly reporter → Q1/Q2/Q3/Q4，half-year reporter → H1/H2），写入 `actuals-resolved.json` 的 `fy_y2` / `fy_y1` / `fy_y0` / `sub_0` … `sub_3` key。字段模板见 `_scripts/financial-data/actuals_schema.json`。默认 `latest` 模式只写 `latest_fy` + `latest_quarter`，3Y 模式二者共存——`latest_*` 保留不删。
+**`--periods 3Y`（附录展示增强模式）**：当消费 skill 需要展示 sell-side 风格 appendix 时启用。
+
+**3Y 执行步骤**（agent 在 standard lite 流程之外额外执行）：
+
+```
+1. yfinance 拉历史年度（3 FY）
+   ticker.income_stmt      → 取最近 3 列（FY-2, FY-1, FY0）
+   ticker.balance_sheet     → 同上
+   ticker.cashflow          → 同上
+   字段映射：fill_gaps.py YF_FIELD_MAP 已有 yfinance→canonical name
+   （Revenue→revenue, GrossProfit→gross_profit, OperatingIncome→ebit 等）
+
+2. yfinance 拉季度（最多 4 个已完成 sub-period）
+   ticker.quarterly_income_stmt  → 取最近 4 个已完成季度
+   ticker.quarterly_balance_sheet → 同上
+   ticker.quarterly_cashflow      → 同上
+
+3. 写入 actuals-resolved.json
+   按 actuals_schema.json _periods 定义：
+   income_statement.fy_y2 / fy_y1 / fy_y0   — 3 个完整 FY
+   income_statement.sub_0 / sub_1 / sub_2 / sub_3  — 最多 4 个子年
+   BS/CF 同结构
+   每个字段：{value, source_layer: "yfinance", source_detail: "yfinance <TICKER> <period>"}
+   latest_fy / latest_quarter 保留不动
+
+4. 降级规则
+   - yfinance 缺期间 → official_web / PDF 补（agent 手工 extract）
+   - 半年度 reporter（H1/H2）→ sub_0=H1, sub_1=H2；sub_2/sub_3 skip
+   - 拿不到的期间留空，不编造
+```
+
+字段模板见 `_scripts/financial-data/actuals_schema.json`。默认 `latest` 模式只写 `latest_fy` + `latest_quarter`，3Y 模式二者共存——`latest_*` 保留不删。
 
 **Consumer contract**：消费 skill 只需调用 `--lite [--periods 3Y]` 然后直接从 `actuals-resolved.json` 取数。所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
 
