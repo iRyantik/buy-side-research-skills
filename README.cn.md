@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v5.9.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.9.2 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > English: [README.md](./README.md)
 
@@ -177,7 +177,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
-| v5.9.0 | 2026-06 | Pre-write gate 11 CHECK、topics→industry全量迁移、meeting-minutes新skill、§9单行业归属+§10分部优先级、source标记简化(删badge)、CONTEXT.md |
+| v5.9.2 | 2026-06 | Pre-write gate 11 CHECK、topics→industry全量迁移、meeting-minutes新skill、§9单行业归属+§10分部优先级、source标记简化(删badge)、CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |
 | v5.4.0 | 2026-06 | Source contract 全量注入：27 skill 输出表加 Ev 列、paragraph-level source density hook、table-row financial number check |
 | v5.3.0 | 2026-06 | Actuals-only ratio constraint：17 skill 禁止用 FY2026E/consensus/forward estimate 算 ratio |
