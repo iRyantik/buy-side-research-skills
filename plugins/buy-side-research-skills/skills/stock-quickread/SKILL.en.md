@@ -146,6 +146,10 @@ If your output reads like a sell-side initiation report, it has failed. Sell-sid
 
 ## Output Structure (follow strictly)
 
+
+
+> **Appendix execution**: Run actuals-to-appendix.py BEFORE writing the artifact body. Embed output in ## Appendix above. Never leave a placeholder.
+
 Every section has a length ceiling. It can be shorter. **Must never exceed.** Excessive length is itself a symptom of boilerplate.
 
 **Pipeline Report** (mandatory at artifact opening — execution report, cannot be omitted):

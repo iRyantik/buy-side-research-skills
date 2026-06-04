@@ -666,6 +666,27 @@ Debt/Equity = Total Debt / Shareholders' Equity
 ---
 
 ## Output Checklist
+```markdown
+# <Company> — Comps Analysis
+
+> DATE | TICKER | Peer Set: N companies
+
+## 1. Peer Selection Rationale
+## 2. Multiples Comparison (PE/EV-EBITDA/PB/PS)
+## 3. Growth-Adjusted View (PEG)
+## 4. Premium/Discount Analysis
+## 5. Implied Valuation Range
+
+---
+
+## Resources
+| Label | Source |
+|---|---|
+| S1 | ... |
+
+## Appendix: Financial Data
+```
+
 
 Before delivering a comp analysis, verify:
 - [ ] All companies are truly comparable

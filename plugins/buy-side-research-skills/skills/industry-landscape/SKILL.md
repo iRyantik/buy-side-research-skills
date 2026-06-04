@@ -56,6 +56,23 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 | 方向 | Long/Short/Both | Both |
 
 ## 输出结构
+```markdown
+# <Industry> — Industry Landscape
+
+> DATE | Coverage: N companies | Pipeline: actuals ✅ | [需查证] X
+
+## 1. Verdict
+## 2. 产业链地图
+## 3. 竞争格局
+## 4. 价值池
+## 5. 公司注册表
+## 6. 投资主题 & 催化剂
+
+---
+
+## Resources
+```
+
 
 > **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
 >

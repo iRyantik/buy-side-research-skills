@@ -52,6 +52,25 @@ Stress test an investment thesis and build the strongest opposing case with sour
 ```
 
 ## 输出结构
+```markdown
+# <Company> — Bear Pre-Mortem
+
+> DATE | TICKER | Thesis: SHORT
+
+## 1. The Smartest Short Seller's Pitch
+## 2. Unit Economics
+## 3. Accounting Red Flags
+## 4. What Bulls Are Missing
+## 5. Catalyst Timeline
+## 6. Position Sizing & Risk
+
+---
+
+## Resources
+```
+
+> **Appendix 执行**：如需要财务数据附录，写 artifact 前先跑 actuals-to-appendix.py。
+
 
 ### 1. The Smartest Short Seller's Pitch（300-500 字）
 

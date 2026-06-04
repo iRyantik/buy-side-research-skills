@@ -55,6 +55,8 @@ If the mechanism assumption is unclear, do not pretend the stress test is comple
 
 ## Output Structure
 
+> **Appendix**: Run actuals-to-appendix.py before writing if financial appendix needed.
+
 ### 1. The Smartest Short Seller's Pitch (300–500 words)
 
 Write the short logic with the sharpest pen. This section must contain **zero hedging, zero "on the other hand", zero "however"**. The short mindset is the short mindset — let it run at full force.

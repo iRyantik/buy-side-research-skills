@@ -54,6 +54,25 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 | **保存** | 是否落盘 | 默认对话输出；用户要求保存时落 topic artifact |
 
 ## 输出结构
+```markdown
+# <Topic> — Teach-In
+
+> DATE | 8 层物理直觉建立
+
+## Layer 1: 这是什么（一句话+类比）
+## Layer 2: 空间拓扑（尺寸/重量/环境）
+## Layer 3: 怎么造的（制造流程+瓶颈）
+## Layer 4: 性能指标（关键spec+检测方法）
+## Layer 5: 成本结构（BOM+良率+成本驱动）
+## Layer 6: 竞争格局（谁在做+差异化）
+## Layer 7: 技术路线（代际迭代+下一代方向）
+## Layer 8: 投资含义
+
+---
+
+## Resources
+```
+
 
 ### 7+1 层认知递进
 

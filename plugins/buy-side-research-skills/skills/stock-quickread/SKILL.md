@@ -39,6 +39,10 @@ Step 8: actuals-to-appendix.py → 嵌入 Appendix
 
 ## 输出结构（严格按这个走）
 
+
+
+> **Appendix 执行**：写 artifact 正文之前先跑 actuals-to-appendix.py，输出嵌入上方的 ## Appendix。禁止留占位符。
+
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
 **Pipeline 报告**（artifact 开头强制——执行报告，不能省略）：
