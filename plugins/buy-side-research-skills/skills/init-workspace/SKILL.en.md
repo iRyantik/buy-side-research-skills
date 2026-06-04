@@ -131,7 +131,7 @@ Step 1  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
         ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
 Step 2  Create .venv/ (python -m venv .venv)
 Step 3  Activate venv + pip install core dependencies:
-          pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+          pip install yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
         ★ pip install failure → BLOCK (core packages required for all skills)
 Step 4  Deploy Class A files (platform assets from init-workspace/assets/)
         ★ mcp.json: merge strategy (see below)
@@ -198,7 +198,7 @@ All ✅ → report "workspace ready", continue to Step 10-11.
 ### Core dependencies
 
 ```bash
-pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+pip install yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
 ```
 
 ### Platform detection

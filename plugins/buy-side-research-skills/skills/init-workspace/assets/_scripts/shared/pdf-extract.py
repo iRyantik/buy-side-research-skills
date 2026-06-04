@@ -92,6 +92,38 @@ def _try_pypdf(path: Path) -> str | None:
     return "\n".join(parts)
 
 
+# ── helpers ────────────────────────────────────────────────
+
+def _garbled_ratio(text: str) -> float:
+    """Estimate ratio of non-ASCII / garbled characters."""
+    if not text:
+        return 0.0
+    garbled = sum(1 for c in text if c.isascii() and not c.isprintable() and c not in '\n\r\t ')
+    total = len(text)
+    return garbled / total if total > 0 else 0.0
+
+
+def _to_markdown(text: str, tables: list[dict]) -> str:
+    """Render text + tables as markdown."""
+    lines = []
+    if text:
+        lines.append(text.strip())
+        lines.append("")
+    for t in tables:
+        rows = t.get("rows", [])
+        if not rows or len(rows) < 2:
+            continue
+        headers = rows[0]
+        lines.append("| " + " | ".join(headers) + " |")
+        lines.append("|---" * len(headers) + "|")
+        for row in rows[1:]:
+            # Pad short rows
+            padded = row + [""] * (len(headers) - len(row))
+            lines.append("| " + " | ".join(padded[:len(headers)]) + " |")
+        lines.append("")
+    return "\n".join(lines)
+
+
 # ── main ─────────────────────────────────────────────────
 
 def main():
@@ -99,11 +131,22 @@ def main():
     parser.add_argument("input", help="PDF file path or URL")
     parser.add_argument("--tables", action="store_true", help="Output structured tables (JSON)")
     parser.add_argument("--text", action="store_true", help="Output full text (default)")
+    parser.add_argument("--engine", default="auto",
+                       help="auto (pymupdf->pdfplumber->pypdf) | pymupdf | pdfplumber | pypdf | all")
+    parser.add_argument("--tables-only", action="store_true",
+                       help="Only extract tables (skip text)")
+    parser.add_argument("--smart", action="store_true",
+                       help="Probe PDF complexity, route fast or recommend /ingest")
+    parser.add_argument("--markdown", action="store_true",
+                       help="Output as markdown (text + rendered tables)")
     args = parser.parse_args()
 
     # Default: text only
     if not args.tables and not args.text:
         args.text = True
+    if args.tables_only:
+        args.tables = True
+        args.text = False
 
     # Resolve input
     inp = args.input
@@ -123,21 +166,54 @@ def main():
             print(json.dumps({"error": f"file not found: {inp}"}), file=sys.stderr)
             sys.exit(1)
 
-    # Try engines
-    text = None
-    tables = None
-    engine = "none"
+    # ── engine dispatch ──────────────────────────────────
+    _ENGINES = dict(pymupdf=_try_pymupdf, pdfplumber=_try_pdfplumber, pypdf=lambda p: (_try_pypdf(p), []))
+    _FALLBACK = ["pymupdf", "pdfplumber", "pypdf"]
 
-    for try_engine, name in [(_try_pymupdf, "pymupdf"), (_try_pdfplumber, "pdfplumber"), (None, "pypdf")]:
-        if name == "pypdf":
-            text = _try_pypdf(path)
-            engine = "pypdf"
+    text = None
+    tables = []
+    engines_used = []
+
+    if args.engine == "all":
+        # Run all engines, merge results
+        for name in _FALLBACK:
+            fn = _ENGINES.get(name)
+            if not fn:
+                continue
+            result = fn(path)
+            if result is None:
+                continue
+            t, tb = result
+            engines_used.append(name)
+            if not text and t:
+                text = t
+            if tb:
+                tables.extend(tb)
+    elif args.engine in _ENGINES:
+        # Single engine
+        name = args.engine
+        fn = _ENGINES[name]
+        result = fn(path)
+        if result is None:
+            print(json.dumps({"error": f"engine {name} failed or not installed"}), file=sys.stderr)
+            sys.exit(1)
+        text, tables = result
+        if isinstance(tables, type(None)):
             tables = []
-            break
-        result = try_engine(path)
-        if result is not None:
+        engines_used = [name]
+    else:
+        # auto: first-success fallback
+        for name in _FALLBACK:
+            fn = _ENGINES.get(name)
+            if not fn:
+                continue
+            result = fn(path)
+            if result is None:
+                continue
             text, tables = result
-            engine = name
+            if isinstance(tables, type(None)):
+                tables = []
+            engines_used = [name]
             break
 
     # Cleanup temp file
@@ -147,13 +223,41 @@ def main():
         except OSError:
             pass
 
-    if text is None:
-        print(json.dumps({"error": "all PDF engines failed (pymupdf/pdfplumber/pypdf not installed?)"}), file=sys.stderr)
+    if not text and not tables:
+        print(json.dumps({"error": f"all PDF engines failed (tried: {', '.join(_FALLBACK)})"}), file=sys.stderr)
         sys.exit(1)
 
     # Report engine to stderr
-    page_count = text.count("\f") + 1 if "\f" in text else len(text.split("\n")) // 50 + 1
-    print(f"engine={engine} pages~{page_count}", file=sys.stderr)
+    page_count = (text or "").count("\f") + 1 if text and "\f" in text else (len((text or "").split("\n")) // 50 + 1)
+    print(f"engine={'+'.join(engines_used)} pages~{page_count}", file=sys.stderr)
+
+    # ── smart probe ────────────────────────────────────
+    if args.smart:
+        text_len = len(text or "")
+        is_scanned = text_len < 200 or (text_len > 0 and _garbled_ratio(text or "") > 0.3)
+        has_tables = len(tables) > 0
+        rec = "ingest" if (is_scanned or page_count > 30 or (has_tables and text_len < 500)) else "fast"
+        probe = {
+            "engine": engines_used[0] if engines_used else "none",
+            "pages": page_count,
+            "text_len": text_len,
+            "has_tables": has_tables,
+            "is_scanned": is_scanned,
+            "recommendation": rec,
+            "note": "Use /ingest for full Docling conversion" if rec == "ingest" else "Fast path OK",
+        }
+        if args.json:
+            print(json.dumps({"text": text, "tables": tables, "probe": probe}, ensure_ascii=False))
+            sys.exit(0)
+        if rec == "ingest":
+            print(f"Heavy PDF detected ({page_count}p, scanned={is_scanned}, tables={has_tables})", file=sys.stderr)
+            print("Use /ingest for full Docling conversion", file=sys.stderr)
+
+    # ── markdown render ────────────────────────────────
+    if args.markdown:
+        md = _to_markdown(text or "", tables)
+        print(md)
+        sys.exit(0)
 
     # Output
     if args.text and args.tables:

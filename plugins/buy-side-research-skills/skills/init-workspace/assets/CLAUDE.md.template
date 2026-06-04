@@ -180,7 +180,8 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
 | `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
 | `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
-| `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
+| `shared/to-markdown.py` | 万能文件→markdown（PDF/Word/Excel/PPT/网页自动路由） | `<file> [--cache <TICKER> <desc>]` |
+| `shared/pdf-extract.py` | PDF 文本+表格提取 | `<file_or_url> [--smart] [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
 

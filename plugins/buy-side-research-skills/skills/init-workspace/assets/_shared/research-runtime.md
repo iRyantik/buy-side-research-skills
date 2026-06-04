@@ -91,17 +91,35 @@ skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证�
 
 ### 2.1 资料收集
 
+**任何文件 → markdown 的统一入口：**
+
 ```
-python _scripts/shared/web-extract.py <url> [--markdown]    # 网页正文提取
-python _scripts/shared/pdf-extract.py <file_or_url> [--tables]  # PDF 文本+表格提取
+python _scripts/shared/to-markdown.py <file_or_url>                    # stdout markdown
+python _scripts/shared/to-markdown.py <file> --cache <TICKER> <desc>   # stdout + _cache/ 归档
 ```
 
-| 工具 | 用途 | 引擎链 |
+| 工具 | 用途 | 内部引擎 |
 |---|---|---|
-| `web-extract.py` | 提取网页正文（去导航/广告/脚本） | `urllib` HTTP GET → HTML parser → clean text |
-| `pdf-extract.py` | 提取 PDF 文本+表格 | pymupdf → pdfplumber → pypdf fallback |
+| `to-markdown.py` | **万能路由器**——检测格式→调提取器→输出 markdown | pdf-extract / extract-docx / extract-pptx / extract-xlsx / web-extract |
+| `web-extract.py` | 网页正文提取（to-markdown 内部用，也可直接调） | `urllib` HTTP GET → HTML parser |
+| `pdf-extract.py` | PDF 文本+表格（to-markdown 内部用） | pymupdf → pdfplumber → pypdf |
 
-Agent 在需要收集网页/PDF 内容时直接调用，不重复造轮子。
+**智能路由**：
+```
+本地文件 → to-markdown.py（自动检测格式）
+网页 URL → web-extract.py 或 to-markdown.py（效果相同）
+PDF → to-markdown.py 调 pdf-extract --smart:
+  ├─ 简单 PDF → fast 路径，直接返回 markdown ✅
+  └─ 复杂 PDF（扫描件/tables-heavy）→ 输出 probe + 建议调 /ingest
+```
+
+#### 2.1.1 自动缓存
+
+**规则**：任何研究 workflow 中下载的重要 PDF（年报、季报、招股书、监管 filing、卖方报告、会议 transcript），必须自动转成 markdown 缓存，原始 PDF 删除。
+
+- **触发**：PDF 来自公司 IR 页面或官方渠道，且将被 artifact 引用（≥1 个 [S#] 指向它）
+- **动作**：`to-markdown.py --cache <TICKER> <desc>` → `industry/<industry>/companies/<ticker>/_cache/<TICKER>-<desc>.md`
+- **例外**：扫描件无法提取文本 → 保留 PDF，标 `[扫描件]`；legal filing 需保留原始排版 → 保留 PDF
 
 ---
 

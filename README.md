@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.12.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.13.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,7 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
-| v5.12.0 | 2026-06 | Moat analysis: causal chain + falsification conditions per dimension, paradigm-shift moat template (segment-level causal transmission) |
+| v5.13.0 | 2026-06 | Moat analysis: causal chain + falsification conditions per dimension, paradigm-shift moat template (segment-level causal transmission) |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |
 | v5.4.0 | 2026-06 | Source contract full injection: 27 skill output tables with Ev column, paragraph-level source density hook, table-row financial number check |

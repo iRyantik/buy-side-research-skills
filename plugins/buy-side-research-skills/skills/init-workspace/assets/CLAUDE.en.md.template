@@ -167,7 +167,8 @@ Built into the buy-side-research-skills plugin. Available without invoking any s
 | `shared/download-image.py` | Image download (product/logo, workspace-level cache) | `--logo <TICKER>` or `<url> --output <slug>` |
 | `shared/verify-runtime.py` | One-click 12-item dependency check | `python _scripts/verify-runtime.py` |
 | `shared/web-extract.py` | Clean body text from web pages | `<url> [--markdown]` |
-| `shared/pdf-extract.py` | PDF text + tables (pymupdf→pdfplumber→pypdf) | `<file_or_url> [--tables]` |
+| `shared/to-markdown.py` | Any file → markdown (PDF/Word/Excel/PPT/Web auto-routed) | `<file> [--cache <TICKER> <desc>]` |
+| `shared/pdf-extract.py` | PDF text + tables | `<file_or_url> [--smart] [--tables]` |
 | `financial-data/actuals-to-appendix.py` | Sell-side appendix from actuals-resolved.json | `--tickers T1,T2,...` |
 | `evidence_ledger.py` | Evidence ledger management | Track claim verification status |
 

@@ -31,6 +31,8 @@ CORE_PACKAGES = [
     ("dotenv", "python-dotenv"),
     ("yaml", "pyyaml"),
     ("lxml", "lxml"),
+    ("docx", "python-docx"),
+    ("pptx", "python-pptx"),
 ]
 
 IS_WINDOWS = sys.platform == "win32"
