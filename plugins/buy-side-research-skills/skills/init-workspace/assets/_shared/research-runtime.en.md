@@ -46,6 +46,20 @@ python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 
 In skill artifacts, every [I#] source must pass at least Tier 1-2 verification (hook: `evidence_ledger_floor`).
 
+### 2.1 Material Collection
+
+```
+python _scripts/shared/web-extract.py <url> [--markdown]          # clean body text from web pages
+python _scripts/shared/pdf-extract.py <file_or_url> [--tables]    # PDF text + tables
+```
+
+| Tool | Purpose | Engine chain |
+|---|---|---|
+| `web-extract.py` | Extract clean body text (strip nav/ads/scripts) | `urllib` HTTP GET → HTML parser → clean text |
+| `pdf-extract.py` | Extract PDF text + structured tables | pymupdf → pdfplumber → pypdf fallback |
+
+Agent calls these directly when collecting web/PDF content — do not reinvent.
+
 ---
 
 ## 3. Evidence Protocol

@@ -46,6 +46,20 @@ python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 
 skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证（hook: `evidence_ledger_floor`）。
 
+### 2.1 资料收集
+
+```
+python _scripts/shared/web-extract.py <url> [--markdown]    # 网页正文提取
+python _scripts/shared/pdf-extract.py <file_or_url> [--tables]  # PDF 文本+表格提取
+```
+
+| 工具 | 用途 | 引擎链 |
+|---|---|---|
+| `web-extract.py` | 提取网页正文（去导航/广告/脚本） | `urllib` HTTP GET → HTML parser → clean text |
+| `pdf-extract.py` | 提取 PDF 文本+表格 | pymupdf → pdfplumber → pypdf fallback |
+
+Agent 在需要收集网页/PDF 内容时直接调用，不重复造轮子。
+
 ---
 
 ## 3. 证据协议

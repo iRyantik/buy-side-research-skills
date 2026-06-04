@@ -179,9 +179,9 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python _scripts/shared/verify-claim.py <url> --json` |
 | `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
 | `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
+| `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
+| `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
-| `financial-data/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
-| `financial-data/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
 
 ### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
