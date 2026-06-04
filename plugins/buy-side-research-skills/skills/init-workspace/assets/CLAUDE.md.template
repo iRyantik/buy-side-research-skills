@@ -144,6 +144,106 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ---
 
+## X. Shared Runtime Tools
+
+以下共享工具位于 `_scripts/shared/`，所有 skill 通用。Agent 在需要时直接调用，不重复造轮子。
+
+| 工具 | 用途 | 调用方式 |
+|---|---|---|
+| `verify-claim.py` | 来源验证链（Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]） | `python _scripts/shared/verify-claim.py <url> --json` |
+| `download-image.py` | 图片下载（产品图/logo，含 workspace 级缓存，跨 skill 共享） | `python _scripts/shared/download-image.py --logo <TICKER>` 或 `<url> --output <slug>` |
+| `verify-runtime.py` | 一键检查全部 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
+
+**图片下载规则**：
+- Logo：`download-image.py --logo <TICKER>`（自动缓存，同一 ticker 全 workspace 只下一次）
+- 产品图：`download-image.py <url> --output <slug>`
+- 禁止 `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
+- `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
+
+**来源验证规则**：
+- 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
+- `[UNVERIFIED]` 仅在所有 tier 失败后标记
+
+详见 `_shared/research-runtime.md` 五链全文档。
+
+---
+
+## 5.5 Plugin Built-In Capabilities
+
+以下能力由 buy-side-research-skills 插件内置，无需调用 skill 即可直接使用。
+
+### 共享脚本（`_scripts/`）
+
+| 脚本 | 用途 | 调用示例 |
+|---|---|---|
+| `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python _scripts/shared/verify-claim.py <url> --json` |
+| `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
+| `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
+| `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
+| `financial-data/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
+| `financial-data/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
+| `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
+
+### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
+
+每次 Write/Edit 研究 artifact 时自动触发，无需手动调用：
+
+| CHECK | 拦截什么 |
+|---|---|
+| 1 | Bare anchor（[S1] 无 URL） |
+| 2 | Double URL 拼接 |
+| 3 | 非标准 inline label |
+| 4 | Resources 格式不合法 |
+| 5 | 段落 source 密度不足（≥3 个数字零 source anchor） |
+| 6 | 引用图片不在磁盘上 |
+| 6a | 用 `browser_take_screenshot` 代替图片下载 |
+| 7 | `[缺图]` 无 download attempt 记录 |
+| 8 | `[需查证]` 超过 8 个 |
+| 9 | Pipeline header 与实际不符 |
+| 10 | actuals 数据过期（>180 天） |
+| 11 | Evidence 验证覆盖率 <80% |
+| 12 | Mermaid diagram type 无效（如 `scatterchart`） |
+| 13 | 表格列数不匹配 / 缺分隔行 / >12 列未拆分 |
+
+### 其他自动 Hook
+
+| Hook | 触发时机 | 检查内容 |
+|---|---|---|
+| `source_contract` | PostToolUse / Stop | Source anchor 完整性 |
+| `table_render_integrity` | PostToolUse | 表格结构合法性 |
+| `mermaid_syntax` | PostToolUse | Mermaid 图类型验证 |
+| `skill_structure_contract` | PostToolUse | 必填 section 存在 |
+| `evidence_ledger_floor` | Stop | 证据验证覆盖率 ≥80% |
+| `workspace_guard` | PreToolUse | 禁止在非 workspace 目录写 artifact |
+
+### 数据管道
+
+| 操作 | 命令 |
+|---|---|
+| 拉取财务数据（lite 模式） | `/financial-data --lite <TICKER>` |
+| 拉取多期数据 | `/financial-data --lite <TICKER> --periods 3Y` |
+| 检查运行时 | `python _scripts/verify-runtime.py` |
+| 更新插件+同步 workspace | `/update-agent-runtime` |
+
+### 图片规则
+
+- Logo：`download-image.py --logo <TICKER>`（自动缓存，同一 ticker 全 workspace 只下一次）
+- 产品图：`download-image.py <url> --output <slug>`
+- **禁止** `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
+- `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
+
+### 来源验证规则
+
+- 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
+- Tier 链：HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
+- `[UNVERIFIED]` 仅在所有 tier 失败后标记
+
+### Canvas 文件
+
+worktree 操作、`_shared/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
+
+---
+
 ## 6. Routing Stance
 
 skill 是决策工具，不是装饰性模板。

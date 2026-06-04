@@ -137,6 +137,100 @@ Core constraints:
 
 ---
 
+## X. Shared Runtime Tools
+
+Shared tools under `_scripts/shared/`. All skills use these — do not reinvent.
+
+| Tool | Purpose | Usage |
+|---|---|---|
+| `verify-claim.py` | Source verification chain (Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]) | `python _scripts/shared/verify-claim.py <url> --json` |
+| `download-image.py` | Image download (product/logo, workspace-level cache, cross-skill shared) | `python _scripts/shared/download-image.py --logo <TICKER>` or `<url> --output <slug>` |
+| `verify-runtime.py` | One-click 12-item runtime dependency check | `python _scripts/verify-runtime.py` |
+
+**Image rules**: Logo: `--logo <TICKER>` (auto-cached). Product: `<url> --output <slug>`. `browser_take_screenshot` is FORBIDDEN — hook CHECK 6a blocks it. `[missing]` only after all tiers exhausted.
+
+**Source verification rules**: Every `[I#]` source must pass at least Tier 1-2. `[UNVERIFIED]` only after all tiers fail.
+
+Full docs: `_shared/research-runtime.md`.
+
+---
+
+## 5.5 Plugin Built-In Capabilities
+
+Built into the buy-side-research-skills plugin. Available without invoking any skill.
+
+### Shared Scripts (`_scripts/`)
+
+| Script | Purpose | Usage |
+|---|---|---|
+| `shared/verify-claim.py` | Source verification chain (HTTP→Playwright→curl→[UNVERIFIED]) | `python _scripts/shared/verify-claim.py <url> --json` |
+| `shared/download-image.py` | Image download (product/logo, workspace-level cache) | `--logo <TICKER>` or `<url> --output <slug>` |
+| `shared/verify-runtime.py` | One-click 12-item dependency check | `python _scripts/verify-runtime.py` |
+| `financial-data/actuals-to-appendix.py` | Sell-side appendix from actuals-resolved.json | `--tickers T1,T2,...` |
+| `financial-data/web-extract.py` | Clean body text from web pages | `<url> [--markdown]` |
+| `financial-data/pdf-extract.py` | PDF text + tables (pymupdf→pdfplumber→pypdf) | `<file_or_url> [--tables]` |
+| `evidence_ledger.py` | Evidence ledger management | Track claim verification status |
+
+### Auto Hook Defense (`pre_write_gate` 13 CHECKS)
+
+Triggers automatically on every Write/Edit to a research artifact:
+
+| CHECK | What it blocks |
+|---|---|
+| 1 | Bare anchor ([S1] without URL) |
+| 2 | Double URL concatenation |
+| 3 | Non-standard inline labels |
+| 4 | Invalid Resources format |
+| 5 | Paragraph with ≥3 numbers but zero source anchors |
+| 6 | Referenced image not on disk |
+| 6a | `browser_take_screenshot` used instead of download-image.py |
+| 7 | `[missing]` with no download attempt recorded |
+| 8 | `[需查证]` count exceeds 8 |
+| 9 | Pipeline header mismatches body |
+| 10 | Actuals data older than 180 days |
+| 11 | Evidence verification coverage <80% |
+| 12 | Invalid Mermaid diagram type (e.g., `scatterchart`) |
+| 13 | Table column mismatch / missing separator / >12 columns |
+
+### Other Auto Hooks
+
+| Hook | Trigger | Checks |
+|---|---|---|
+| `source_contract` | PostToolUse / Stop | Source anchor integrity |
+| `table_render_integrity` | PostToolUse | Table structure validity |
+| `mermaid_syntax` | PostToolUse | Mermaid diagram type |
+| `skill_structure_contract` | PostToolUse | Required sections present |
+| `evidence_ledger_floor` | Stop | Verification coverage ≥80% |
+| `workspace_guard` | PreToolUse | No artifacts outside workspace |
+
+### Data Pipeline
+
+| Operation | Command |
+|---|---|
+| Fetch financials (lite) | `/financial-data --lite <TICKER>` |
+| Fetch multi-period | `/financial-data --lite <TICKER> --periods 3Y` |
+| Check runtime | `python _scripts/verify-runtime.py` |
+| Update plugin + sync | `/update-agent-runtime` |
+
+### Image Rules
+
+- Logo: `download-image.py --logo <TICKER>` (auto-cached, once per ticker per workspace)
+- Product: `download-image.py <url> --output <slug>`
+- `browser_take_screenshot` is **FORBIDDEN** — hook CHECK 6a blocks it
+- `[missing]` only allowed after all tiers (HTTP→Playwright) exhausted
+
+### Source Verification Rules
+
+- Every `[I#]` source must pass at least Tier 1-2
+- Tier chain: HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
+- `[UNVERIFIED]` only after all tiers fail
+
+### Reference Files
+
+`_shared/research-runtime.md` (5-chain full docs), `references/policy/` (baseline), `references/kpi-drivers/` (KPI templates).
+
+---
+
 ## 6. Routing Stance
 
 Skills are decision tools, not decorative templates.
