@@ -319,3 +319,9 @@ Factors that cut across segments — e.g., "Will general semiconductor giants cr
 - Technology fundamentals → `mechanism-insight`
 - Management assessment → `capital-allocation`
 - Full thesis → `alpha-thesis`
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

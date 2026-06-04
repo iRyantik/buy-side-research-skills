@@ -348,3 +348,8 @@ quadrantChart
 - 找不到 insight 却硬写——必须说"未发现 X，"并解释原因
 - 估值比较只说"偏贵/便宜"不做反向工程
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

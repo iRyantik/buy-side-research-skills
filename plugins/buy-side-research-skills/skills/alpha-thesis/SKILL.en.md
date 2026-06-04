@@ -241,3 +241,8 @@ If the current date-stamped save path is unclear, the agent auto-creates the dir
 
 If high-value questions arise during thesis writing — disclosure buckets, business substance, model drivers, source conflicts — directly trigger the Senior Analyst Radar alert from `Research Runtime Capsule`. If the issue is that revenue / margin / backlog / price-volume-mix drivers are not clearly decomposed, use `driver-map` first; if the issue is that the research direction itself is unclear, use `next-step`.
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

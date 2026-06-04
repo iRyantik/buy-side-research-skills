@@ -209,3 +209,9 @@ If path is unclear → agent auto-creates per policy baseline §11.
 - Post-print read: 400–700 words
 
 If it is much longer, you are not capturing what matters.
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

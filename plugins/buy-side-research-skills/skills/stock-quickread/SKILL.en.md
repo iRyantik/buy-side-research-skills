@@ -437,3 +437,9 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company>.md
 ## Word Count Baseline
 
 - Standard quickread: 1,800–2,500 words. Below 1,800 indicates insufficient §5 driver expansion — the most informative section. Above 2,500 indicates doing `company-history` or `driver-map` work; split or deduplicate.
+
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

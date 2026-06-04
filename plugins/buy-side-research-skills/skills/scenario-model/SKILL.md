@@ -251,3 +251,8 @@ Agent 根据用户 query 自动判定方向。
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

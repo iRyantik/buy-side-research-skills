@@ -443,3 +443,8 @@ flowchart TD
 - **Builder 完整 thesis**：1200-2000 字 + 5 张表。
 - **Monitor 输出**：400-700 字。
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

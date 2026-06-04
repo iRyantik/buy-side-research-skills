@@ -445,3 +445,8 @@ After writing a Builder, must self-check:
 - **Builder full thesis**: 1200-2000 words + 5 tables.
 - **Monitor output**: 400-700 words.
 
+## Appendix: Financial Data
+
+python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
+
+Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.
