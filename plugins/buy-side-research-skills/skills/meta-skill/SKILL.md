@@ -110,14 +110,17 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-active research skill 现在只允许极短 capsule，不再本地复制长版公共 runtime / source prose。
+Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `_shared/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
 
-研究 capsule 只保留：
-- 一句 hooks-first 提醒
-- 一句 shared runtime/source baseline 指向
-- 2-4 条非机检的 skill-specific judgment / workflow / routing delta
+Capsule 格式（不可变）：
+- MUST-read 指令 + `_shared/research-runtime.md` § anchor
+- Hook 防御清单（一行）
 
-已经 hook 化的 source legality、anchor / `## Resources` contract、subagent binary boundary、section floor、table render 完整性，不得继续写回单个 research `SKILL.md`。
+禁止在 capsule 中写：
+- Tier 回退链、provider 名、trust chain
+- `financial-data --lite` 调用方法
+- subagent evidence card 协议
+- 任何已在 `_shared/` 或 hooks 中的规则
 
 ### Modeling skills
 
@@ -126,6 +129,16 @@ active research skill 现在只允许极短 capsule，不再本地复制长版�
 ### Supporting visualization skills
 
 `research-viz` 这类 supporting visualization skill 仍属于 research 轨，但不进入主研究 ladder。它们可以生成 topic-side HTML artifact，必须绑定一个基准 markdown 研究产物，默认复用基准 stem，只替换扩展名为 `.html`；如需多图，可在 stem 后追加最小 qualifier。
+
+### EN-CN Sync Policy
+
+每个 skill 的 `SKILL.md`（中文）是 source of truth。`SKILL.en.md` 必须保持同步：
+
+- **Capsule**：必须完全一致（除了语言）。
+- **输出结构**：围栏 ` ```markdown ` 骨架必须完全一致。
+- **必填 section**：`心法`、`反模式自查`、`篇幅基准`、`Artifact/保存策略` 必须在 EN 中存在。
+- **允许差异**：反模式自查的具体条目数可不同（CN ≥10 条，EN 可按需调整）。
+- **检查方式**：写/改 CN 后立即改 EN，不同步不合并。
 
 ### Operations skills
 
@@ -387,24 +400,27 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 
 ### 5. Research SKILL.md 必填结构
 
-复杂 research skill 推荐骨架：
+所有 research skill 统一使用以下 section 顺序。标 `[必填]` 的不可省略，标 `[可选]` 的按需加。
 
-1. Frontmatter（短 trigger-only description）
-2. 开头定义本 skill 的失败标准
-3. `心法`
-4. `Global Rules Capsule`
-5. `Research Runtime Capsule`
-6. `触发场景`
-7. `输入澄清要求`
-8. `Mode A / Mode B / Mixed Mode`（可选——仅当 skill 确有不同执行路径时加。单一执行的 skill 跳过此节）
-9. `输出结构`
-10. `Artifact / 保存策略`
-11. `Workflow 联动`
-12. `反模式自查`
-13. `篇幅基准`
-14. `与相邻 skill 的边界`
+```
+1. Frontmatter（短 trigger-only description，≤140 字符）[必填]
+2. # 标题 [必填]
+3. Research Runtime Capsule [必填] — 强制读 _shared/ 格式（见 §5.1）
+4. 心法 [必填] — 1-3 段，解决什么、最容易失败在哪
+5. 触发场景 [必填]
+6. 输入澄清要求 [可选] — 有复杂输入时加
+7. 执行模式（Mode A/B/C）[可选] — 多模式 skill 加
+8. 输出结构 [必填] — 含围栏 ```markdown artifact 骨架 + Source contract
+9. Artifact / 保存策略 [必填]
+10. 与相邻 skill 的边界 [必填] — 本 skill 和相似 skill 的区别
+11. 反模式自查 [必填] — ≥10 条，每条可机械自检
+12. 篇幅基准 [必填] — 下限/上限，超出意味着什么
+```
 
-短 coach 型 research skill 的用户可见输出可以短，但 runtime 结构不能省：`心法`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。`Source 政策` 不再作为 skill-local 必填段。
+已删除的段：
+- `Global Rules Capsule` — 不再需要。全局纪律在 `_shared/research-runtime.md` §2.2 和 hooks。
+- `Source 政策` / `Source Contract` 独立 section — 并入输出结构 blockquote（一句话）。
+- `资料收集与 Source 验证` 独立 section — 并入 `_shared/research-runtime.md` §2。skill 只保留特有执行流程。
 
 Research frontmatter：
 
@@ -421,26 +437,23 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 
 #### §5.1 Research Runtime Capsule 标准模板
 
-所有 consumer research skill 必须使用以下标准模板。核心 4 行不可变，skill-specific 定制最多 3 行、只能写"如何使用数据"、禁止复读 provider 名和 trust chain。
+所有 research skill 必须使用以下强制读格式。核心 3 行不可变：
 
 ```markdown
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
-[如有 skill-specific 数据使用规则，≤3 行，不写 provider 名/trust chain]
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```
 
-**自检清单**（写/改 skill 时必须过）：
-- [ ] Capsule 是否 ≤ 7 行？
-- [ ] 是否有重复 hook 或 shared baseline 的内容？
-- [ ] 是否有 `provider_api > official_web > yfinance` 之类 trust chain？
-- [ ] 是否有 "三表数据前置 subagent" 的详细步骤？
-- [ ] 是否有 "market-snapshot fields default to..." ？
-- [ ] Skill-specific 定制是否 ≤ 3 行、不含 provider 名？
+**规则**：
+- 核心 3 行不可变。§ anchor 根据 skill 需要调整（如不用图片的 skill 可去掉 §2.5）。
+- 禁止在此段复述 Tier 链、provider 名、trust chain、subagent 流程。
+- 禁止写 `数据管道：调用 /financial-data --lite`——已在 `_shared/` §1。
+- 禁止写 `Sub-agent outputs: evidence_cards_only`——已在 `_shared/` §3。
+- skill-specific 定制放在 `心法` 或 `执行模式` 段，不放在 Capsule。
 
 #### §5.2 Modeling Runtime Capsule 标准模板
 
