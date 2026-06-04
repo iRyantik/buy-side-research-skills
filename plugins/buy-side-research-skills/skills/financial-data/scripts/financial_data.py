@@ -124,17 +124,25 @@ def discover_workspace(source: Path | None = None) -> Path:
     for candidate in candidates:
         current = candidate if candidate.is_dir() else candidate.parent
         for parent in [current, *current.parents]:
-            if (parent / "topics").is_dir():
+            if (parent / "industry").is_dir():
                 return parent
     raise RuntimeError("Could not discover workspace. Pass --workspace or run init-workspace first.")
 
 
 def ensure_company_topic(workspace: Path, company_slug: str) -> Path:
-    tp = workspace / "topics" / "company" / company_slug
-    idx = tp / "index.md"
-    if not idx.exists():
-        raise RuntimeError(f"Company topic does not exist. Run new-session first. Missing: {idx}")
-    return tp
+    # Search industry/*/companies/<slug> for the company directory
+    industry_dir = workspace / "industry"
+    if industry_dir.is_dir():
+        for ind in industry_dir.iterdir():
+            if not ind.is_dir():
+                continue
+            tp = ind / "companies" / company_slug
+            if tp.is_dir():
+                return tp
+    raise RuntimeError(
+        f"Company directory not found under industry/*/companies/{company_slug}. "
+        f"Run new-session first to create the company workspace."
+    )
 
 
 def load_provider(market: str):
@@ -1057,8 +1065,13 @@ def write_snapshot(args: argparse.Namespace, normalized: dict[str, Any],
                   workspace: Path, rid: str) -> dict[str, Any]:
     if not args.topic:
         raise RuntimeError("--topic required for snapshot")
-    tp = workspace / "topics" / args.topic
-    if not (tp / "index.md").exists():
+    topic = args.topic.replace("\\", "/").strip().strip("/")
+    if topic.startswith("topics/"):
+        topic = topic[len("topics/"):]
+    if "/" not in topic:
+        topic = f"industry/{topic}"
+    tp = workspace / topic
+    if not tp.is_dir():
         raise RuntimeError(f"Topic does not exist: {tp}")
     sd = tp / "_cache" / "financial-data-snapshot" / rid
     sd.mkdir(parents=True, exist_ok=False)

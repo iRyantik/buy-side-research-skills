@@ -114,5 +114,5 @@ quality_gates:
     - '.claude/hooks/run-hook.sh'
     - '.claude/hooks/hooks.registry.yaml'
     - '.codex/hooks.json'
-    - 'topics'
+    - 'industry'
     - 'edge-radar.md'

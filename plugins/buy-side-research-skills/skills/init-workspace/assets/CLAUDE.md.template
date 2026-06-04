@@ -255,6 +255,22 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 worktree 操作、`_shared/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
 
+### Research Memory 系统
+
+每个行业和公司目录下有一个 `RESEARCH.md`（命名固定大写），记录四层信息：
+1. **Source 地图** — 所有关键披露/第三方文件的 URL 和本地缓存路径
+2. **Thesis 状态** — 当前多空倾向、核心假设及验证状态
+3. **事实基线** — 速查卡（thesis 盯的 5-8 个数）+ 完整表 + 已推翻认知
+4. **研究轨迹** — 已完成 artifact、下一步 5 问、已排除方向、上次读到哪
+
+**自动加载**：`memory/research/` 下的薄卡片由 `generate-memory-cards.py` 从 RESEARCH.md 自动生成，CC session 启动时自动注入。
+
+**Agent 行为**：
+- 新 session 提到公司/ticker → 先 `Read` 对应公司 RESEARCH.md + 行业 RESEARCH.md
+- 每次产出 artifact 后 → 更新对应 RESEARCH.md 的相关 section（≤5 分钟，增量维护）
+- Hook 会在写 artifact 后提醒更新，但最终由 agent 负责
+- RESEARCH.md 是覆盖更新（非 append），只保留最新状态
+
 ---
 
 ## 6. Routing Stance

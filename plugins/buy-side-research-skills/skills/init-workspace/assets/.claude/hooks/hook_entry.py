@@ -42,6 +42,7 @@ STOP_RULES = [
     "table_render_integrity",
     "mermaid_syntax",
     "evidence_ledger_floor",
+    "research_memory_gate",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [
