@@ -17,7 +17,7 @@ The most common pitfall in financial data fetching is not an API error; it is da
 
 This skill's operating logic is **provenance first + completeness before model use**. Save the raw provider payload first, then save the normalized evidence pack. Day-to-day external consumption only sees `financial-data-summary.md`; machine inputs and audit files go into `internal/`. Tell the researcher what is missing first, then let `driver-map` and `3-statement-model / dcf-model / comps-analysis / model-update` decide whether modeling can proceed.
 
-`financial-data` serves the topic-centric architecture: single-company data defaults to `industry/<industry>/companies/<ticker>/`; theme / industry topics only save snapshots or links, and do not become a second set of company master files.
+`financial-data` serves the industry-centric architecture: single-company data defaults to `industry/<industry>/companies/<ticker>/`; theme / industry directories only save snapshots or links, and do not become a second set of company master files.
 
 ## Responsibility Boundary
 
@@ -181,7 +181,7 @@ Lite mode does not parse the full filing and does not build an evidence pack. It
 
 Field template: `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.
 
-**Consumer contract**: Consuming skills call `--lite [--periods 3Y]` and read data directly from `actuals-resolved.json`.
+**Consumer contract**: Consuming skills default to `--lite` (returns `latest_fy` + `latest_quarter`). For sell-side-style multi-period appendices, add `--periods 3Y` (writes `fy_y2/y1/y0` + `sub_0/1/2/3`). All provider routing, trust ranking, and market-data fallback chains execute inside financial-data. Consuming skill Runtime Capsules must not repeat provider names, trust chains, or subagent data-fetch flows.
 
 **Three-statement fetch logic**: Route to provider by market; if unavailable, degrade layer by layer: official_web → yfinance → trusted_web → broad_web. The rules follow the same provider_api + official_web priority principle as Full mode.
 

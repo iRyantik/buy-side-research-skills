@@ -19,7 +19,7 @@ Research tends to fragment: you first study an industry, then study a company wi
 
 Responsible for:
 - Moving the entire child topic directory under the parent topic
-- Updating the Sub-topics / Related topics section of the parent `index.md`
+- Updating the Sub-industries / Related industries section of the parent `index.md`
 - Updating the child `index.md` to record the parent reference
 - Reporting a merge summary
 
@@ -34,8 +34,8 @@ Not responsible for:
 Trigger phrases:
 - "merge ge-aerospace into aerospace"
 - "merge GE research under aerospace"
-- "integrate these two topics"
-- "merge these two topics"
+- "integrate these two industries"
+- "merge these two industries"
 
 Input requirements:
 
@@ -53,7 +53,7 @@ Input requirements:
 2. Verify child exists: `industry/<child>/index.md`
 3. Check for conflict: whether `industry/<parent>/companies/<child>/` already exists
 4. Execute move: `industry/<child>/` → `industry/<parent>/companies/<child>/`
-5. Update parent `index.md`: append `## Sub-topics` section with link to child
+5. Update parent `index.md`: append `## Sub-industries` section with link to child
 6. Update child `index.md`: append `**Parent topic**: [parent]` reference
 7. Output merge summary
 
@@ -102,8 +102,8 @@ Merged `industry/<child>/` into `industry/<parent>/companies/<child>/`
 | Scenario | Handling |
 |---|---|
 | Studied an industry first, then a company, want to place company under industry | `integrate` |
-| Two independent topics overlap but should not be merged | Add mutual Related topics links in `index.md` only; no integrate needed |
-| Three or more topics to merge | Integrate one by one (merge two first, then merge the third) |
+| Two independent industries overlap but should not be merged | Add mutual Related industries links in `index.md` only; no integrate needed |
+| Three or more industries to merge | Integrate one by one (merge two first, then merge the third) |
 
 Artifact policy:
 - `save_policy`: `none`
@@ -115,4 +115,4 @@ Artifact policy:
 - ❌ Writing research conclusions
 - ❌ Deleting the original child directory (move only)
 - ❌ Overwriting an existing `index.md`
-- ❌ Merging topics from different industries without confirmation prompt
+- ❌ Merging industries from different parent directories without confirmation prompt

@@ -326,7 +326,7 @@ Do not redesign what v2 already abandoned:
 
 - Do not restore state files for portfolio tracking, e.g., `coverage/[ticker]/thesis.md`, `pairs/[X-Y]/`, `portfolio/catalyst-pipeline.md`.
 - Do not restore thesis-tracker, decision-journal, v2 pair state logs.
-- Do not restore ticker-centric organization; research revolves around topics.
+- Do not restore ticker-centric organization; research revolves around industries.
 
 v3 core positioning:
 

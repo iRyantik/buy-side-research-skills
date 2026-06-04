@@ -75,6 +75,35 @@ def _fmt_val(v, scale="m"):
     return f"{v:,.0f}"
 
 
+def _fmt_mkt_val(key: str, v) -> str:
+    """Format a market_data field value — field-aware formatting.
+
+    Unlike _fmt_val which defaults to millions division, this uses the
+    correct unit per field (price→2dp, market_cap→bn/m, ratios→1dp, etc.).
+    """
+    if v is None:
+        return "-"
+    if not isinstance(v, (int, float)):
+        return str(v)[:80]
+    if key == "price":
+        return f"{v:,.2f}"
+    if key == "market_cap":
+        if v >= 1e9:
+            return f"{v/1e9:,.1f}bn"
+        return f"{v/1e6:,.0f}m"
+    if key in ("pe_ttm", "pe_ntm", "pb", "ps_ttm", "ev_ebitda", "ev_sales"):
+        return f"{v:,.1f}x"
+    if key == "dividend_yield_pct":
+        return f"{v:.2f}%"
+    if key == "beta":
+        return f"{v:.2f}"
+    if key == "total_shares":
+        return f"{v/1e6:,.0f}m"
+    if key == "eps_ttm":
+        return f"{v:,.2f}"
+    return f"{v:,.1f}"
+
+
 def _read_fy_periods(data: dict, section: str) -> list[str]:
     """Discover which period keys exist. Dedup fy_y0/latest_fy and sub_N."""
     section_data = data.get(section, {})
@@ -499,7 +528,7 @@ def render_multi(workspace: Path, tickers: list[str]) -> str:
         cells = []
         for key, _ in _MKT_FIELDS[:8]:
             v = _extract_val(md.get(key))
-            cells.append(_fmt_val(v) if v is not None else "-")
+            cells.append(_fmt_mkt_val(key, v) if v is not None else "-")
         lines.append("| " + t + " | " + " | ".join(cells) + " |")
     lines.append("")
 
