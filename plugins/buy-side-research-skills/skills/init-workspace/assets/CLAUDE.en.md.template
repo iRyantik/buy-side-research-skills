@@ -212,6 +212,18 @@ Triggers automatically on every Write/Edit to a research artifact:
 | Check runtime | `python _scripts/verify-runtime.py` |
 | Update plugin + sync | `/update-agent-runtime` |
 
+### Actuals ↔ Artifact Sync Rule
+
+> When any field in `actuals-resolved.json` is updated, **MUST** find all artifacts referencing that ticker and sync numbers, conclusions, and valuations.
+
+- **Trigger**: actuals-resolved.json modified via Write/Edit or external script
+- **Process**:
+  1. Note which fields changed (e.g., `ebit: 225 → 350`)
+  2. `grep -r "<ticker>" industry/*/companies/` to find all artifacts referencing that ticker
+  3. Scan each file: does it use the modified field? → if yes, sync numbers, narrative, and valuation
+  4. Validate after write: artifact numbers must be recalculable from actuals-resolved.json
+- **Related**: source verification discipline (`_shared/research-runtime.md` §2.2)
+
 ### Image Rules
 
 - Logo: `download-image.py --logo <TICKER>` (auto-cached, once per ticker per workspace)

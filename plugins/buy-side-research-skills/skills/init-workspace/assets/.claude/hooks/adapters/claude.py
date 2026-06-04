@@ -19,9 +19,10 @@ def build_context(payload: dict) -> dict:
     assistant_text = get_last_assistant_message(payload)
 
     # Build targets (files only — never scan conversation messages)
-    # Stop events: only inline target
+    # Stop: scan candidate paths for artifacts (catches Bash/Python file writes
+    # that bypass PostToolUse hooks)
     if event == "Stop":
-        targets = []
+        targets = get_markdown_targets(payload)
     else:
         targets = get_markdown_targets(payload)
 

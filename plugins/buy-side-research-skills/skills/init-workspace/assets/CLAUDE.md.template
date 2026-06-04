@@ -225,6 +225,18 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | 检查运行时 | `python _scripts/verify-runtime.py` |
 | 更新插件+同步 workspace | `/update-agent-runtime` |
 
+### Actuals ↔ Artifact 同步规则
+
+> `actuals-resolved.json` 的任何字段被更新后，**必须**找到所有引用该 ticker 数据的 artifact，同步更新数字、结论和估值。
+
+- **触发**：actuals-resolved.json 被 Write/Edit 或 external script 修改
+- **流程**：
+  1. 记下被修改的字段（如 `ebit: 225 → 350`）
+  2. `grep -r "<ticker>" industry/*/companies/` 找到所有引用该 ticker 的 artifact
+  3. 逐文件扫描：有没有用到被修改的字段？→ 有就同步改数字、narrative 和估值
+  4. 写入后验证：artifact 里的数字必须能从 actuals-resolved.json 复算
+- **关联**：来源验证纪律（`_shared/research-runtime.md` §2.2）
+
 ### 图片规则
 
 - Logo：`download-image.py --logo <TICKER>`（自动缓存，同一 ticker 全 workspace 只下一次）

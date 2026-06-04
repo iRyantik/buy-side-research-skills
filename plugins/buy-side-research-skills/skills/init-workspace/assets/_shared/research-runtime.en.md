@@ -17,6 +17,7 @@ Hook-enforced rules (source boundary, structure floor, table render, mermaid syn
 - Multi-period appendix: `--lite --periods 3Y` (writes `fy_y2/y1/y0` + `sub_0/1/2/3`)
 - All provider routing, trust ranking, and market-data fallback chains execute inside financial-data
 - Consuming skills read directly from `actuals-resolved.json` — do not repeat provider/tier declarations
+- **Sync artifacts after actuals update**: any field modified → find all artifacts referencing that ticker → sync numbers, conclusions, valuations (rule details in workspace `CLAUDE.md` §5.5)
 
 ---
 

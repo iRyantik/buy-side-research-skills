@@ -17,6 +17,7 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
 - 多期附录：`--lite --periods 3Y`（写入 `fy_y2/y1/y0` + `sub_0/1/2/3`）
 - 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行
 - 消费 skill 直接从 `actuals-resolved.json` 取数，不重复声明 provider/tier
+- **actuals 更新后必须同步 artifact**：任何字段被修改 → 找到所有引用该 ticker 的 artifact → 同步数字、结论、估值（规则详见 workspace `CLAUDE.md` §5.5）
 
 ---
 

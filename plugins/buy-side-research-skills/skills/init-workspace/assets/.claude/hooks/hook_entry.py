@@ -39,6 +39,8 @@ POST_TOOL_USE_RULES = [
 ]
 STOP_RULES = [
     "source_contract",
+    "table_render_integrity",
+    "mermaid_syntax",
     "evidence_ledger_floor",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
