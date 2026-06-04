@@ -22,10 +22,16 @@ from common import (
 _ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
 ANCHOR_CODE_RE = re.compile(r'\[(?:S|P|I|LBG|R|SRC)\d+\](?!\()')
 SOURCE_ANCHOR_RE = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|SRC\d+)\]')
-FACTUAL_MARKERS_RE = re.compile(
-    r'(?:(?<!\w)[\d,.]+%|(?<!\w)[\d,.]+x(?![/\w])|(?<!\w)\$[\d,.]+[bmk]|'
-    r'(?:EUR|USD|CNY)\s*[\d,.]+[bmk]?)'
+# Currency-agnostic number detector — catches SEK/JPY/HKD etc.
+# Matches: 1,623, 58.2, 350M, 22%, +12%, -38%, 14x, 250bps, 14pp, 14 台
+# Excludes years (2024-2026) and pure dates
+_NUM_RE = re.compile(
+    r'(?<!\w)[+-]?[\d,]+\.?\d*\s*'
+    r'(?:[%x]|bps|pp|[bmkBMK]|'
+    r'(?:\s*(?:台|台/年|亿|万|wpm|kwh|bn|m|k|tn|台/月|片/月)))?'
+    r'(?=[,;\s)\]。]|$)'
 )
+_YEAR_RE = re.compile(r'(?<!\d)(?:19|20)\d{2}(?!\d)')
 
 STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')
 SOURCE_WORDS = {
@@ -136,9 +142,13 @@ def _check_content(path: str, text: str, display: str):
                   f"Use [S#] or [I#] format. Fix before writing.")
 
     # --- CHECK 5: Paragraph source density ---
+    # Currency-agnostic: counts standalone numbers (excl. years/dates),
+    # blocks if ≥3 numbers in a paragraph have zero source anchors
     body_paras = [p for p in body.split('\n\n') if len(p) > 150]
     for para in body_paras[:10]:
-        facts = len(FACTUAL_MARKERS_RE.findall(para))
+        nums = len(_NUM_RE.findall(para))
+        years = len(_YEAR_RE.findall(para))
+        facts = max(0, nums - years)  # exclude year-like numbers
         if facts < 3:
             continue
         sources = len(SOURCE_ANCHOR_RE.findall(para))
