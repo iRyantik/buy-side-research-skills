@@ -154,19 +154,6 @@ timeline
 
 路径不明 → agent 按 policy baseline §11 自动创建。
 
-## Source Contract
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| 收入结构演进 timeline | 每年 revenue mix % 的 source（filing/IR） | 趋势判断 |
-| M&A/Pivot 事件 | 每笔交易的金额+时间+source | — |
-| 披露口径变化 | 每次变化的 filing 出处+生效时间 | — |
-| 客户/产品里程碑 | 每个 milestone 的时间+客户名+source | — |
-
-**完成 Gate**：写完扫 timeline → 每年数字有 [S#]（filing）或 [I#]（IR deck） → `[待查]` 事件 ≤5 → Resources 展开。
-
 ## 反模式自查
 
 ### 流水账类

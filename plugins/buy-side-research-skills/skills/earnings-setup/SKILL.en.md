@@ -177,18 +177,6 @@ Write to industry topic:
 
 If path is unclear → agent auto-creates per policy baseline §11.
 
-## Source Contract
-
-**Density table**:
-
-| Section | Source Mandatory | Exemption |
-|---|---|---|
-| Consensus vs buy-side bar | Source for consensus numbers (provider+as-of), basis for buy-side bar | Researcher's bar inference itself |
-| Pre-print decision tree | Source for threshold numbers in each scenario (guidance/history/peer) | — |
-| Historical reaction patterns | Actual vs consensus specific numbers+source for each beat/miss | — |
-
-**Completion Gate**: after writing, scan consensus numbers → every number has provider+as-of → buy-side bar has reasoning chain → `[待查]` ≤3 → Resources expanded.
-
 ## Anti-Pattern Self-Check
 
 - ❌ Setup only lists consensus numbers, no buy-side bar inference → worthless

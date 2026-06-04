@@ -175,18 +175,6 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 路径不明 → agent 按 policy baseline §11 自动创建。
 
-## Source Contract
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| Consensus vs buy-side bar | consensus 数字的 source（provider+as-of）、buy-side bar 依据 | 研究员 bar 推断本身 |
-| Pre-print 决策树 | 每个 scenario 的阈值数字出处（guidance/history/peer） | — |
-| 历史反应模式 | 每次 beat/miss 的 actual vs consensus 具体数字+source | — |
-
-**完成 Gate**：写完扫 consensus 数字 → 每个数字有 provider+as-of → buy-side bar 有推理链 → `[待查]` ≤3 → Resources 展开。
-
 ## 反模式自查
 
 - ❌ Setup 里只列了 consensus 数字、没有 buy-side bar 推断 → 没价值

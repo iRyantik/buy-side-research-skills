@@ -13,7 +13,7 @@ It does not update the installed Claude Code or Codex plugin runtime itself; hos
 
 It is an operations skill, not a research skill.
 
-## Mental Model
+## 心法
 
 The invariant is separation of concerns:
 

@@ -174,21 +174,6 @@ Action must be one of:
 
 Conversation output. When the user requests a save, write to industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md.
 
-## Source Contract
-
-Information impact analysis deals with "what just happened" — source freshness matters more than source depth.
-
-**Density table**:
-
-| Section | Source mandatory | Exemption |
-|---|---|---|
-| Event characterization | Event source (filing URL / news URL / IR PDF) + timestamp | Researcher judgment |
-| Price reaction | Price move % + time window → `[I#](url)` market data source | — |
-| Consensus delta | Revised consensus vs pre-event → each figure has provider + date | — |
-| Peer spillover | Source for peer price movement | — |
-
-**Completion Gate**: After writing, scan → every event has a source link → every price move has a market data source → `[pending verification]` ≤2 → Resources expanded.
-
 ## Anti-Pattern Self-Check
 
 ### Source Category

@@ -80,18 +80,6 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
 ```
 
-## Source Contract
-
-本文是 300-500 字精简 artifact，但 source 纪律不豁免。
-
-- 所有财务数字（actual vs consensus vs guidance）必须标 `[S#](url)` 或 `[I#](url)`。
-- beat/miss 的判断本身不强制 anchor，但作为判断依据的数字必须 anchor。
-- 价格变动 → `[I#](url)` 指向行情源。
-- guidance / management commentary → `[S#](url)` 指向 earnings call transcript 或 IR PDF。
-- 缺 source 的数字 → 标 `[待查]`。
-
-**完成 Gate**：写完扫全文 → 每个数字有 anchor 或 `[待查]` → `[待查]` ≤3。
-
 ## 反模式
     
     - ❌ 没有基准就说 beat/miss——必须找到 bar

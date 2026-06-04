@@ -7,7 +7,7 @@ description: Update the current host plugin runtime to the latest GitHub release
 
 `update-agent-runtime` detects all installed hosts (Claude Code / Codex), updates each that is found, refreshes plugin caches and marketplace for every host, and syncs the current workspace to the latest runtime scaffold. One command, no manual host selection. It is an operations skill.
 
-## Mental Model
+## 心法
 
 Three things to keep in sync:
 

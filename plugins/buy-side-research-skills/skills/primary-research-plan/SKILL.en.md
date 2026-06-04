@@ -117,14 +117,6 @@ Write into the industry topic:
 
 If path is unclear → agent auto-creates per policy baseline §11.
 
-## Source Contract
-
-- Every row in the hypothesis register's "existing evidence" column must be tagged `[S#](url)` or `[I#](url)` or `[待查]` (to be checked).
-- Every source idea in the triangulation plan must note the source type (persona / public / filing / expert).
-- Numbers referenced in expert interview questions → cite the source (which report / filing contains this number).
-
-**Completion Gate**: after writing, scan the hypothesis register → every row's Source column must be non-empty → if `[待查]` exceeds 50% of rows, flag coverage <50%.
-
 ## Anti-Pattern Checklist
 
 - ❌ A long question list but no hypothesis register — unclear what each question is verifying.

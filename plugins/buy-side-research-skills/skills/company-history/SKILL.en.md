@@ -156,19 +156,6 @@ Write to industry topic:
 
 If path is unclear → agent auto-creates per policy baseline §11.
 
-## Source Contract
-
-**Density Table**:
-
-| Section | Mandatory Source Tag | Exemption |
-|---|---|---|
-| Revenue mix evolution timeline | Source (filing/IR) for each year's revenue mix % | Trend judgment |
-| M&A / Pivot events | Amount + date + source for each transaction | — |
-| Disclosure definition changes | Filing source + effective date for each change | — |
-| Customer / product milestones | Date + customer name + source for each milestone | — |
-
-**Completion Gate**: After writing the timeline → each year's figures have [S#] (filing) or [I#] (IR deck) → `[待查]` events ≤ 5 → Resources expanded.
-
 ## Anti-Pattern Checklist
 
 ### Chronicle-style

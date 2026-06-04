@@ -159,21 +159,6 @@ If revenue growth falls from X% to Y%:
 
 Most likely signal that triggers the growth break: [1–2 leading indicators]
 
-## Source Contract
-
-> Short-side stress testing demands the highest standard of source authenticity — "could go wrong" must be backed by a specific filing / page / number, not just "looks suspicious."
-
-**Density table**:
-
-| Section | Mandatory Source Annotation | Exemption |
-|---|---|---|
-| §1 Short narrative | Specific number / event backing each allegation | The narrative itself |
-| §3 Red flag walk | Filing source + page for every row: DSO / inventory / OCF / Capex / SBC | The red-flag judgment |
-| §4 Base rate | Ticker + year + drawdown + source for every historical comparable case | — |
-| §5 Kill criteria | Source of threshold (filing / IR / history) for every trigger condition | — |
-
-**Completion Gate**: After writing, sweep §3 → every row has a filing source → §4 every case has ticker + source → `[待查]` ≤ 5 → Resources expanded.
-
 ## Anti-Patterns Checklist
 
 - ❌ §1 reads like "on the other hand, some people also think" — rewrite, be the short seller yourself

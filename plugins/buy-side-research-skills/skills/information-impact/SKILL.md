@@ -172,21 +172,6 @@ Action 只能是：
 
 对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
 
-## Source Contract
-
-信息冲击分析处理的是"刚刚发生的事"，source freshness 比 source depth 更重要。
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| 事件定性 | 事件来源（filing URL/新闻 URL/IR PDF）+时间 | 研究员判断 |
-| 价格反应 | price move % + time window → `[I#](url)` 行情源 | — |
-| Consensus delta | revised consensus vs pre-event → 每个数字有 provider+date | — |
-| Peer spillover | peer 价格变动的 source | — |
-
-**完成 Gate**：写完扫 → 每个事件有 source link → 每个 price move 有行情源 → `[待查]` ≤2 → Resources 展开。
-
 ## 反模式自查
 
 ### Source 类

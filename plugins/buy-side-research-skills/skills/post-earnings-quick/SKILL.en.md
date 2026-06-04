@@ -82,18 +82,6 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
 ```
 
-## Source Contract
-
-This is a 300–500 word compact artifact, but source discipline is not exempted.
-
-- All financial numbers (actual vs consensus vs guidance) must be tagged `[S#](url)` or `[I#](url)`.
-- The beat/miss judgment itself does not require an anchor, but the numbers on which the judgment is based must be anchored.
-- Price movement → `[I#](url)` pointing to market data source.
-- Guidance / management commentary → `[S#](url)` pointing to earnings call transcript or IR PDF.
-- Numbers without a source → tag `[待查]`.
-
-**Completion Gate**: Scan full text after writing → every number has an anchor or `[待查]` → `[待查]` ≤3.
-
 ## Anti-Patterns
 
 - ❌ Asserting beat/miss without a benchmark — must locate the bar

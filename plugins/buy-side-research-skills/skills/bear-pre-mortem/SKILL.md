@@ -174,21 +174,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 最可能触发 growth break 的信号：[1-2 个 leading indicator]
 
-## Source Contract
-
-> 空头压测对 source 真实性要求最高——"可能出问题"必须有具体的 filing/page/数字，不能只靠"看起来可疑"。
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| §1 空头 narrative | 每个指控对应的具体数字/事件 | narrative 本身 |
-| §3 红旗 walk | 每行 DSO/库存/OCF/Capex/SBC 的 filing source+页码 | 红旗判断 |
-| §4 Base rate | 每个历史可比案例的 ticker+年份+跌幅+source | — |
-| §5 Kill criteria | 每条触发条件的阈值出处（filing/IR/history） | — |
-
-**完成 Gate**：写完扫 §3 → 每行有 filing source → §4 每个案例有 ticker+source → `[待查]` ≤5 → Resources 展开。
-
 ## 反模式自查
 
 - ❌ 第 1 节读起来像"另一方面也有人认为"——重写，把空头当成你
