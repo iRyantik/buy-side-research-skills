@@ -198,8 +198,5 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 
 This skill is used after `alpha-thesis` is written and before the IC memo is submitted. If the original thesis still holds up after the stress test, the conviction is real; if obvious blind spots are discovered, go back and fix the thesis, reduce sizing, or simply walk away from the trade.
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

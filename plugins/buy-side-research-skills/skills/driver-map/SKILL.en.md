@@ -198,8 +198,5 @@ Based on the driver decomposition above, answer three growth-quality questions:
 
 - Standard: 900-1600 characters + 3-4 tables. Below 700 characters often misses proxy strategy; above 1800 characters should narrow to core segments.
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

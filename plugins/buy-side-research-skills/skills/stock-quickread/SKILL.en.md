@@ -96,11 +96,8 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
-│  5a. python `_scripts/shared/download-image.py`Playwright MCP browser_run_code_unsafe → decode base64 → write _cache/images/<product>.<ext>
-│  5c. Playwright fails → curl product page HTML directly → extract <img> src → curl download image
-│  5d. All above fail → Playwright browser_navigate to product page → browser_take_screenshot
-│  5e. All above fail → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
-│  5f. Mark [IMAGE MISSING] — only allowed after ledger has ≥1 image download attempt record
+│  5a. python _scripts/shared/download-image.py <url> --output <product>  (auto Tier 1→2, cache check)
+│  5b. All tiers fail → mark [IMAGE MISSING] — only after ledger records download attempt
 │  Gate: ls _cache/images/<product>.* has file → pass. No file AND no attempt record → STOP, cannot enter Step 6.
 │
 ├─ Step 6: Write artifact
@@ -438,8 +435,5 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company>.md
 
 - Standard quickread: 1,800–2,500 words. Below 1,800 indicates insufficient §5 driver expansion — the most informative section. Above 2,500 indicates doing `company-history` or `driver-map` work; split or deduplicate.
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

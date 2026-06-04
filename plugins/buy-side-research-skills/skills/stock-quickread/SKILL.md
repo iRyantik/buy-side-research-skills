@@ -204,14 +204,7 @@ flowchart LR
 
 > 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
 >
-> **下载方法**（需要 Playwright MCP 插件）：
-> 1. python `_scripts/shared/download-image.py`调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
-> 4. 解码返回的 `images[0].base64`，写入带实际 extension 的目标路径
->    - Windows PowerShell: `[IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($image.base64))`
->    - macOS: `IMAGE_BASE64="$base64" OUT_PATH="$outPath" python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["OUT_PATH"]).write_bytes(base64.b64decode(os.environ["IMAGE_BASE64"]))'`
-> 5. 所有途径都失败 → 标 `[缺图]`
->
-> **图片来源优先级**：① 公司官网 Media Kit → ② 产品页 hero image → ③ web search 产品图 → ④ 行业代表性图 → ⑤ `[缺图]`
+> **下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。禁止 `browser_take_screenshot`。
 
 #### 其他业务
 
@@ -515,4 +508,6 @@ industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-
 ## 篇幅基准
 
 - 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

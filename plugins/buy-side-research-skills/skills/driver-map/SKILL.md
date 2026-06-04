@@ -70,7 +70,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 
 > 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
 >
-> **下载方法**：python `_scripts/shared/download-image.py`调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。详见 `stock-quickread` SKILL.md。
+> **下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -136,7 +136,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 |---|---|---|---|---|
 > 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
 >
-> **下载方法**：python `_scripts/shared/download-image.py`调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。详见 `stock-quickread` SKILL.md。
+> **下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
 
 ## 2. Business Reality → Model Driver
 
@@ -198,8 +198,5 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 - 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

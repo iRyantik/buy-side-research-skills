@@ -244,7 +244,7 @@ When customer concentration is a core investment variable for the comparison sub
 
 > Competitive indicators, key customers, moat, etc. are already in the §4.3 table — do not repeat here. Include a logo per company (download to _cache/images/<ticker>-logo.png); mark `[缺 logo]` if not found.
 >
-> **Logo download**: python `_scripts/shared/download-image.py`cally means falling into the "N quickreads stitched together" trap — go back and delete content that restates what is already in the §5 differential
+> **Logo download**: `python _scripts/shared/download-image.py --logo <TICKER>` — auto-cached, workspace-level, cross-skill shared. Mark `[missing logo]` if all tiers fail.
 
 ## Artifact / Save Strategy
 
@@ -277,8 +277,5 @@ If the path is unclear → agent auto-creates per policy baseline §11.
 - Forced insights when none are found — must say "No X found" and explain why
 - Valuation comparison only says "relatively expensive / cheap" without reverse-engineering
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.

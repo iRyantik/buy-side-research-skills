@@ -694,8 +694,5 @@ After completing a comp analysis, ask:
 
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

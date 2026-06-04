@@ -105,7 +105,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> Logo 下载：读 `_scripts/download-image.py`，设 `{{SELECTOR}}` 为 `.logo img` 或公司首页 logo 选择器，调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，下载到 `_cache/images/<ticker>-logo.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+> **Logo 下载**：`python _scripts/shared/download-image.py --logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。全部 tier 失败则标 `[缺 logo]`。
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 
@@ -443,8 +443,5 @@ flowchart TD
 - **Builder 完整 thesis**：1200-2000 字 + 5 张表。
 - **Monitor 输出**：400-700 字。
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-将输出嵌入 artifact 的 `## Appendix: Financial Data` 节（位于 `## Resources` 之前）。**必须在写 artifact 正文之前执行**——禁止留占位符。

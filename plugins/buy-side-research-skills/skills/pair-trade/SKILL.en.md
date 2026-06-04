@@ -107,7 +107,7 @@ Followed by a setup table:
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> Logo download: read `_scripts/download-image.py`, set `{{SELECTOR}}` to `.logo img` or the company homepage logo selector, invoke the current session's Playwright MCP `browser_run_code_unsafe`, download to `_cache/images/<ticker>-logo.<ext>`. `<ext>` uses the `extension` returned by the script. See `stock-quickread` SKILL.md §1 for details.
+> **Logo download**: `python _scripts/shared/download-image.py --logo <TICKER>` — auto-cached, workspace-level, cross-skill shared. Mark `[missing logo]` if all tiers fail.
 
 [Insert Mermaid flowchart — pair spread logic: entry spread → converge mechanism → target/exit/kill. Example below.]
 
@@ -445,8 +445,5 @@ After writing a Builder, must self-check:
 - **Builder full thesis**: 1200-2000 words + 5 tables.
 - **Monitor output**: 400-700 words.
 
-## Appendix: Financial Data
+> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-Embed the output in the artifact's `## Appendix: Financial Data` section (before `## Resources`). **Must execute BEFORE writing the artifact body** — never leave a placeholder.
