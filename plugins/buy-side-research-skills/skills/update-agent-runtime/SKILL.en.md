@@ -71,6 +71,10 @@ For each detected host:
    - **`.agents` marketplace**: update `~/.agents/plugins/marketplace.json` → set `path` to latest Codex cache dir
 4. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
 5. Sync workspace runtime assets (see Workspace Sync below)
+6. **Check for new system dependencies** in the updated version (compare `init-workspace/assets/` requirements). If new deps found → auto-install (winget/brew), fail → print manual command + **BLOCK**
+7. **Ensure `.claude/mcp.json` has playwright key** (merge strategy, same as `/init-workspace` Step 4)
+8. **Run `python _scripts/verify-runtime.py`** — 12 checks, all must pass. Any ❌ → auto-install → re-check → fail → **BLOCK**
+9. **Print change summary**: what files were updated, what dependencies were added/removed, any breaking changes from release notes
 
 ## Workspace Sync
 
@@ -184,6 +188,11 @@ Updated X host(s) + workspace runtime assets.
 - references/: synced (policy + kpi-drivers)
 - .codex/: synced (hooks.json + mcp.example.json)
 - claude_md: updated / skipped
+- mcp.json: playwright key ensured (merge)
+
+## Verification
+- verify-runtime.py: 12/12 ✅ / ❌ (N failures)
+- new dependencies: none / installed: X, Y, Z
 ```
 
 ## Failure Handling

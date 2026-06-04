@@ -33,7 +33,7 @@ The invariant is separation of concerns:
 |---|---|---|
 | `.claude/hooks/` (full tree) | `.claude/hooks/` | Overwrite |
 | `.claude/settings.json` | `.claude/settings.json` | Overwrite |
-| `.claude/mcp.json` | `.claude/mcp.json` | Copy if missing |
+| `.claude/mcp.json` | `.claude/mcp.json` | Merge（确保 `playwright` key 存在，不动用户其他 MCP 配置；JSON 不合法则备份后覆盖） |
 | `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
 | `references/` | `references/` | Overwrite |
@@ -125,18 +125,73 @@ Execute the same steps. Skip root template files that already exist (CLAUDE.md, 
 
 ```
 Step 0  Validate workspace path — must not be inside a plugin repo or install directory
-Step 1  Check Python 3.10+ is available
+Step 1  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
+        ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
 Step 2  Create .venv/ (python -m venv .venv)
 Step 3  Activate venv + pip install core dependencies:
           pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+        ★ pip install failure → BLOCK (core packages required for all skills)
 Step 4  Deploy A类 files (platform assets from init-workspace/assets/)
+        ★ mcp.json: merge strategy (see below)
 Step 5  Deploy B类 files (skill scripts to _scripts/<skill>/)
 Step 6  pip install -r _scripts/*/requirements*.txt (failures warn, do not block)
 Step 7  Write .gitignore
 Step 8  Interactive provider configuration (see Provider Configuration below)
-Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
-Step 10 Print deployment summary table
+Step 9  ★ python _scripts/verify-runtime.py — one-click smoke test
+        ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
+Step 10 Delete _scripts/init-assets/ if present (legacy cleanup)
+Step 11 Print deployment summary table
 ```
+
+### Step 1 Detail: System Dependency Check
+
+Agent checks 4 system tools. **任一缺失 → 直接帮用户装**（winget on Windows, brew on macOS）。安装失败 → 打印手动命令 + **STOP**（不继续后续步骤）。
+
+| 检查项 | 验证命令 | 自动安装 (Windows) | 自动安装 (macOS) | 手动 fallback |
+|---|---|---|---|---|
+| Python ≥3.10 | `python --version` | `winget install Python.Python.3.12 --accept-source-agreements` | `brew install python@3.12` | https://python.org |
+| Node.js ≥18 | `node --version` | `winget install OpenJS.NodeJS.LTS --accept-source-agreements` | `brew install node` | https://nodejs.org |
+| npx | `npx --version` | 随 Node.js（重装 Node 即可） | 同左 | 重装 Node.js LTS |
+| curl | `curl --version` | `winget install curl.curl --accept-source-agreements` | macOS 自带 | 系统包管理器 |
+
+Agent 检测平台：`sys.platform == "win32"` → Windows；`sys.platform == "darwin"` → macOS。
+
+Linux 不自动安装——打印手动命令 + STOP，提示用户用系统包管理器安装后重跑 `/init-workspace`。
+
+### Step 4 Detail: mcp.json Merge
+
+Agent 处理 `.claude/mcp.json` 的流程：
+
+```
+1. if 文件不存在:
+      → 直接写入 assets/.claude/mcp.json
+2. else:
+      → try json.load
+      → if JSONDecodeError:
+            → 备份为 .claude/mcp.json.bak
+            → 覆盖写入 assets/.claude/mcp.json
+            → 提示用户 "旧文件 JSON 不合法，已备份"
+      → if "mcpServers" not in data:
+            → data["mcpServers"] = {}
+      → if "playwright" not in data["mcpServers"]:
+            → data["mcpServers"]["playwright"] = {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}
+            → json.dump(data, indent=2) 写回
+      → else:
+            → 跳过（用户已配）
+```
+
+### Step 9 Detail: Runtime Verification
+
+Agent 运行 `python _scripts/verify-runtime.py`（必须在 venv 内执行）。
+
+检查 12 项（3 层）：
+- Layer 1 系统：Python、Node.js、npx、curl
+- Layer 2 Python 包：yfinance、openpyxl、requests、python-dotenv、pyyaml、lxml
+- Layer 3 配置：`.claude/mcp.json` 含 playwright key、`.claude/hooks/` 可 import
+
+**任一项 ❌ → 自动装 → 再查 → 还不行 → 打印手动命令 + STOP。**
+
+全部 ✅ 才报告 "workspace ready"，继续 Step 10-11。
 
 ### Core dependencies
 
@@ -203,7 +258,7 @@ EDINET_API_KEY=your_key_here
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
 - Do not overwrite `COVERAGE.md` or `edge-radar.md` if already present.
-- Do not overwrite `.claude/mcp.json` if already present (user may have customized).
+- `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
 - Do not overwrite `_scripts/` files that are not in the B类 source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.
 

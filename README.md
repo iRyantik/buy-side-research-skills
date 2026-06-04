@@ -42,8 +42,18 @@ Automatically pulls the latest GitHub release, updates the plugin version, and s
 | **Longbridge Account** | Register at [longbridge.com](https://longbridge.com), tell Claude "Connect Longbridge" |
 
 > Unlisted skills require no configuration — ready to use out of the box.
->
-> Also recommended: enable Playwright runtime as a shared browser capability for image capture and web fallback. See `docs/install.md` and `/init-workspace`. Do not treat it as a `.env` provider credential.
+
+### Runtime Requirements
+
+`/init-workspace` checks and auto-installs all dependencies. One command, zero manual setup.
+
+| Dependency | Purpose | Required |
+|---|---|---|
+| Python 3.10+ | All script execution | ✅ Required |
+| Node.js ≥18 + npx | Playwright MCP (Tier 2 data verification, image download) | ✅ Required |
+| curl | Tier 3 fallback data extraction | ✅ Required |
+
+> `/init-workspace` will auto-install missing dependencies via `winget` (Windows) or `brew` (macOS). See `docs/install.md` for manual setup.
 
 ---
 

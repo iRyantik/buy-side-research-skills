@@ -4,6 +4,47 @@
 
 ---
 
+## 前置条件：裸机 → 就绪
+
+Agent 在 `/init-workspace` 里会自动检查并安装缺失依赖。但用户如果需要手动准备，以下是分平台命令：
+
+### Windows
+
+```powershell
+# 1. 安装 Python 3.12
+winget install Python.Python.3.12 --accept-source-agreements
+
+# 2. 安装 Node.js LTS（Playwright MCP 前置）
+winget install OpenJS.NodeJS.LTS --accept-source-agreements
+
+# 3. 重启终端，验证
+python --version   # 应显示 Python 3.12.x
+node --version     # 应显示 v20.x 或更高
+npx --version      # 应显示版本号
+curl --version     # Windows 10+ 自带
+```
+
+### macOS
+
+```bash
+# 1. 安装 Homebrew（如果没有）
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 2. 安装 Python 3.12
+brew install python@3.12
+
+# 3. 安装 Node.js LTS
+brew install node
+
+# 4. 验证
+python3 --version  # 应显示 Python 3.12.x
+node --version     # 应显示 v20.x 或更高
+npx --version      # 应显示版本号
+curl --version     # macOS 自带
+```
+
+---
+
 ## Step 1: 安装插件
 
 检查当前环境是否已安装 `buy-side-research-skills` 插件。如果没有：
@@ -13,63 +54,70 @@
 
 如果市场不可用，从 https://github.com/iRyantik/buy-side-research-skills/releases 下载最新 zip，解压到插件目录。
 
-## Step 2: 创建 Workspace
+---
 
-1. 让用户创建一个空文件夹（如果还没有）
-2. 在 Claude / Codex 里打开这个文件夹
-3. 执行 `/init-workspace`
+## Step 2: 一键初始化 Workspace
 
-这会创建：`CLAUDE.md`、`AGENTS.md`、`.claude/hooks/`、`_scripts/`、`.gitignore`。
-
-## Step 3: 确认 Playwright Runtime
-
-Playwright 是推荐的 workspace baseline runtime capability，用于：
-
-- 图片下载（如共享 `download-product-image.js`）
-- 页面级 fallback extraction
-- 依赖 Playwright MCP / browser runtime 的 consumer flow
-
-安装顺序固定为：**安装插件 → `/init-workspace` → 确认 Playwright runtime 可用 → 再跑 skill smoke test**。
-
-检查以下两件事：
-
-- 当前 Claude / Codex 宿主有可用的 Playwright MCP 或等价 browser runtime
-- 当前 workspace 已有 Playwright 共享资产：`_scripts/download-product-image.js`、`.claude/mcp.json`、`.codex/mcp.example.json`
-
-未启用 Playwright 不阻塞插件安装，但会影响图片抓取和部分网页 fallback 能力。Playwright 不通过 `.env` 配置；market/provider credential 仍按下一步配置。
-
-## Step 4: 检查依赖
-
-执行以下检查，缺什么装什么：
+在目标文件夹执行：
 
 ```
-python _scripts/financial-data/financial_data.py --check-deps
+/init-workspace
 ```
 
-按输出提示安装缺失的 Python 包。A 股（AKShare）和港股（Eastmoney）到此已完成。
+**这会自动完成**：
+- ✅ 检查 Python 3.10+ / Node.js ≥18 / npx / curl → 缺什么装什么（winget/brew 自动执行）
+- ✅ 创建 `.venv` + 安装 6 个核心 Python 包
+- ✅ 部署 hooks、settings、references、scripts
+- ✅ 配置 `.claude/mcp.json`（Playwright MCP，merge 策略不覆盖已有配置）
+- ✅ 运行 `verify-runtime.py` — 12 项全部通过才完成
+- ✅ 交互式配置 Provider 环境变量
 
-## Step 5: 配置 Credential（按用户覆盖的市场）
+**如果任何步骤失败**：Agent 会打印精确的修复命令，照着跑就行，然后重执行 `/init-workspace`。
 
-逐项问用户是否需要，只配用户需要的：
+---
 
-| 市场 | 需要什么 | 怎么配 |
-|---|---|---|
-| US 美股 | `EDGAR_IDENTITY`（姓名,邮箱） | 设环境变量 |
-| JP 日股 | `edinet-tools` Python 包 | 安装即可，数据免费来自 [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp) |
-| KR 韩股 | `DART_API_KEY` | 从 [dart.fss.or.kr](https://dart.fss.or.kr) 免费申请，设环境变量 |
-| EU 欧股 | ESEF 包 | 用户从公司 IR 页下载 annual report（iXBRL，.zip），拉数据时提供文件路径 |
-| 所有市场 | Longbridge（可选） | 市场快照（股价/PE/共识）优先走 Longbridge API。覆盖 US/HK/SH/SZ。帮助用户注册并连接 |
-
-Playwright 不在这张表里。它属于共享 browser/runtime 能力，不属于 market credential。
-
-## Step 6: 验证
-
-拉一个美股测试：
+## Step 3: 验证
 
 ```
 /financial-data --lite AAPL
 ```
 
-如果能返回三表 + 市场快照，安装完成。
+返回三表 + 市场快照 → 安装完成。
 
-告诉用户：现在可以开始研究了。试试 `用 industry-landscape 看 [你关注的行业]` 或 `用 stock-quickread 看 [你关注的股票]`。
+如果失败：
+1. `python _scripts/verify-runtime.py` — 检查 12 项依赖
+2. 按输出提示修复
+3. 重试 `/financial-data --lite AAPL`
+
+---
+
+## 故障排查
+
+| 症状 | 原因 | 解决 |
+|---|---|---|
+| `python: command not found` | Python 未安装或未加入 PATH | 重新安装 Python，勾选 "Add to PATH" |
+| `node: command not found` | Node.js 未安装 | `winget install OpenJS.NodeJS.LTS`（Win）/ `brew install node`（Mac） |
+| `npx: command not found` | Node.js 安装不完整 | 重新安装 Node.js LTS，重启终端 |
+| `pip install yfinance` 超时 | 网络问题 | 重试，或 `pip install yfinance -i https://pypi.tuna.tsinghua.edu.cn/simple` |
+| `@playwright/mcp` 下载失败 | 网络/代理问题 | 检查 npm 网络：`npm config get registry` |
+| Playwright MCP 启动超时 | 端口冲突 | 重启终端，检查是否有其他 MCP server 占用 |
+| `.claude/mcp.json` 不存在 | `/init-workspace` 未完成 | 重跑 `/init-workspace`，会自动 merge playwright key |
+| `verify-runtime.py` 报错 | 依赖缺失 | 脚本会自动安装缺失依赖，失败则按提示手动装 |
+| `financial-data` 拉不到美股数据 | 未配置 EDGAR | 重跑 `/init-workspace` Step 8 配置 `EDGAR_IDENTITY` |
+
+---
+
+## Step 4: 配置 Provider（按覆盖市场）
+
+如果 Step 2 跳过了 provider 配置，也可以直接编辑 `.env`：
+
+| 市场 | 环境变量 | 申请地址 |
+|---|---|---|
+| US 美股 | `EDGAR_IDENTITY=Name email@domain.com` | https://efts.sec.gov/ |
+| KR 韩股 | `DART_API_KEY=your_key` | https://opendart.fss.or.kr/ |
+| JP 日股 | `EDINET_API_KEY=your_key` | https://disclosure2.edinet-fsa.go.jp/ |
+| TW 台股 | `FINMIND_TOKEN=your_token` | https://finmindtrade.com/ |
+
+---
+
+现在可以开始研究了。试试 `用 industry-landscape 看 [你关注的行业]` 或 `用 stock-quickread 看 [你关注的股票]`。

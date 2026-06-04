@@ -42,8 +42,18 @@
 | **Longbridge 账户** | [longbridge.com](https://longbridge.com) 注册，对 Claude 说"连接 Longbridge" |
 
 > 未列出的 skill 无需配置，装完直接用。
->
-> 另：推荐启用 Playwright runtime 作为共享 browser 能力，用于图片抓取和部分网页 fallback 流程。具体看 `docs/install.md` 和 `/init-workspace`，不要把它当成 `.env` 里的 provider credential。
+
+### 运行时环境要求
+
+`/init-workspace` 自动检查并安装全部依赖。一个命令，零手动配置。
+
+| 依赖 | 用途 | 必须 |
+|---|---|---|
+| Python 3.10+ | 全部脚本执行 | ✅ 必须 |
+| Node.js ≥18 + npx | Playwright MCP（Tier 2 数据验证链、图片下载） | ✅ 必须 |
+| curl | Tier 3 fallback 数据提取 | ✅ 必须 |
+
+> `/init-workspace` 会自动通过 `winget`（Windows）或 `brew`（macOS）安装缺失依赖。手动安装参考 `docs/install.md`。
 
 ---
 
