@@ -11,15 +11,8 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
-- **Actuals-only**: margin breakdowns, price/volume/mix ratios, and all quantitative driver ratios use actuals-resolved.json disclosed data. No forward estimate as ratio input.
-- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
-
-Translate the company's disclosure taxonomy into real business and modelable drivers. **The core value is not writing a revenue breakdown table** — it is preventing the researcher and AI from mistaking accounting segments, management narrative, sell-side classifications, or concept-stock labels for economic substance.
-
-If the output merely repeats company segment names, or fabricates undisclosed drivers as facts, this skill has failed.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Mindset
 

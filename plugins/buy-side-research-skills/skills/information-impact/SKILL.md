@@ -9,13 +9,8 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-判断一条信息能不能信，以及它是否产生值得继续研究的问题。**核心价值不是写新闻解读**，而是在信息淹没时快速过滤：哪些是事实、哪些只是线索、哪些值得继续问。
-
-如果输出把传闻当事实，或者把每条新闻都扩写成分析，本 skill 就失败了。
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## 心法
 

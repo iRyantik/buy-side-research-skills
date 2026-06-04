@@ -9,13 +9,8 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for business evolution tracing and disclosure comparability audits; unresolved facts stay as gap, hypothesis, or follow-up.
-
-把一家公司的业务基础和披露演变讲清楚，让后续 `driver-map`、`stock-quickread`、`alpha-thesis`、`peer-deep-dive` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 不建立在错的公司理解上。核心价值不是写“公司介绍”，而是识别这家公司到底卖什么、谁付钱、业务边界如何变化、披露口径哪里断裂，以及哪些历史变化会污染后续 driver 或 thesis 判断。
-
-如果输出变成成立年份、总部、管理层履历、按时间顺序罗列收购新闻、IR 话术复述或通用业务百科，本 skill 就失败了。历史只在它改变业务实质、segment 可比性、KPI 连续性、客户/产品边界或后续研究优先级时才写。
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## 心法
 

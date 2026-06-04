@@ -11,14 +11,8 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch baseline three-statement data + market snapshot.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.
-
-This skill is now a **deep-work odds memo skill**, not a background supporting calculator. It can be triggered directly to answer "how much is this scenario worth, are the odds good enough, and which assumption is most worth verifying." It remains an upstream deep-work primitive — it does not replace `alpha-thesis`, `market-sizing`, or `dcf-model`.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Core Philosophy
 

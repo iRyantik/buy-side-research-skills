@@ -9,13 +9,8 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
-
-把一个投资假设转成可执行的 primary research plan。**核心不是写问题清单**——是选对 hypothesis、找对 persona、设对 decision gate。问题清单只是执行工具。
-
-如果输出像泛泛的访谈提纲、暗示去问 MNPI、生成虚假的专家反馈，或者没有 decision gates，本 skill 就失败了。
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## 心法
 

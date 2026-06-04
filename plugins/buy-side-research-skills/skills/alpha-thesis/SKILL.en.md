@@ -13,25 +13,8 @@ If upstream work has not yet clearly nailed down bull/base/bear odds, implied va
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its results, pull numbers directly from `actuals-resolved.json`.
-- **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
-
-> **Source contract**: Every factual claim in this document (numbers, company names, industry judgments, valuation anchors) must carry an [S#](url) or [I#](url) short-link anchor at the end of the sentence. Interpretive sentences ("my view," "variant view") are not mandatory. Three or more consecutive factual claims without an intervening source → insufficient density.
-
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Mental Model
 

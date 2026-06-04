@@ -9,20 +9,9 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
-
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-- 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 - 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
-- 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-insight`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
-- 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
 ## 资料收集与 Source 验证
 

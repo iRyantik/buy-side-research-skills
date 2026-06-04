@@ -11,11 +11,8 @@ Turn "how big is this market" into a structured estimate where every row has a s
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data Pipeline**: Call `/financial-data --lite <ticker>` when a company-level baseline is needed.
-- **Data Verification**: Claim Fill Pipeline — Tier 0 (actuals) → 1 (WebFetch) → 2 (Playwright) → 3 (curl) → 4 ([需查证]). See §3.2.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Core Philosophy
 

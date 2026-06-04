@@ -11,42 +11,9 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three-statement financials + market snapshot. Trust its results; pull numbers directly from `actuals-resolved.json`.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only ratio rule**: cross-company comparison ratios (PE, EV/EBITDA, PEG, ROIC, FCF Yield, margins, etc.) use actuals-resolved.json disclosed data only. No forward estimate as ratio input.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-### Step 1: Fork N subagents — one evidence card per ticker (parallel)
-
-Each subagent independently completes two tasks:
-
-  a. Fetch financial data
-     /financial-data --lite <TICKER>
-     → writes _cache/financial-data/internal/actuals-resolved.json
-
-  b. Generate evidence card
-     Read actuals + WebSearch key information → output JSON per `references/policy/evidence-card-schema.json`
-     Card contains: financial_highlights, business_profile, competitive_position,
-                   growth_outlook, valuation_context, long_short_sentiment, scoring,
-                   key_claims_needing_verification, evidence_triplets
-
-subagent N:
-  /financial-data --lite <TICKER_N>
-  + evidence card JSON per evidence-card-schema.json
-
-Main agent continues once all subagents complete. Single ticker failure does not block others —
-main agent notes `subagent unavailable for <TICKER> — <reason>` in the final artifact,
-removing that ticker from the merged comparison.
-
-**Step 2: Generate Appendix** (MUST run BEFORE writing artifact):
-`python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...` → embed output in artifact `## Appendix` section. NEVER leave a placeholder.
-
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+→ writes _cache/financial-data/internal/actuals-resolved.json
 
 ## Core Philosophy
 

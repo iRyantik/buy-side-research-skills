@@ -11,18 +11,9 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust the results; pull numbers directly from `actuals-resolved.json`. **Also read the `source_map` field — map fields to specific [S#](url) or [I#] labels, not writing bare [actuals].**
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([UNVERIFIED]). See §3.2.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-- Default output in English, conclusion-first, data-first. Retain tickers, source titles, URLs, and necessary financial / industry terminology in the original language when it improves traceability.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 - Actively exercise Senior Analyst Radar: flag anything that could change the business reality, model driver, consensus framing, peer set, valuation framework, or research priority.
-- Mechanism / engineering principle / equipment chain gaps → `mechanism-insight`; revenue / margin / backlog / price-volume-mix or disclosure bucket anomalies → `driver-map`; expectations / priced-in gap → `consensus-map`; the next most worthwhile question → `next-step`.
-- On research startup, check topic `_cache/` and `financial-data` output first; preferentially reuse existing source-tracked material rather than rebuilding raw data context.
 
 ## Material Collection & Source Verification
 

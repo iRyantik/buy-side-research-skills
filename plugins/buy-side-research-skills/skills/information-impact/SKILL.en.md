@@ -11,13 +11,8 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-Determine whether a piece of information can be trusted, and whether it generates questions worth pursuing further. **The core value is not writing news commentary** — it is rapid filtering under information overload: what is fact, what is merely a lead, what is worth continued investigation.
-
-If the output treats rumors as facts, or expands every news item into a full analysis, this skill has failed.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Core Principles
 

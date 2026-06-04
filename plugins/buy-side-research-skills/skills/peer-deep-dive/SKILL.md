@@ -9,39 +9,9 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only ratio rule**: cross-company comparison ratios (PE, EV/EBITDA, PEG, ROIC, FCF Yield, margins, etc.) use actuals-resolved.json disclosed data only. No forward estimate as ratio input.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-Step 1: Fork N subagents — 一 ticker 一 card（并行）
-
-每个 subagent 独立完成两项任务：
-
-  a. 拉取财务数据
-     /financial-data --lite <TICKER>
-     → 写入 _cache/financial-data/internal/actuals-resolved.json
-
-  b. 生成证据卡
-     读取 actuals + WebSearch 关键信息 → 按 `references/policy/evidence-card-schema.json` 输出 JSON
-     证据卡含：financial_highlights, business_profile, competitive_position,
-              growth_outlook, valuation_context, long_short_sentiment, scoring,
-              key_claims_needing_verification, evidence_triplets
-
-subagent N:
-  /financial-data --lite <TICKER_N>
-  + evidence card JSON per evidence-card-schema.json
-
-全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注
-`subagent unavailable for <TICKER> — <reason>`，该 ticker 从合并对比中移除。
-
-**Step 2: 生成附录**（必须在写 artifact 之前跑）：
-`python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...` → 输出嵌入 artifact `## Appendix` 节。禁止留占位符。
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+→ 写入 _cache/financial-data/internal/actuals-resolved.json
 
 ## 心法
 

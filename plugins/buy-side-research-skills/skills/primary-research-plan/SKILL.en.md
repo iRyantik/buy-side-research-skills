@@ -11,13 +11,8 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
-
-Turn an investment hypothesis into an executable primary research plan. **The core is not writing a question list** — it is picking the right hypothesis, finding the right persona, and setting the right decision gate. The question list is just an execution tool.
-
-If the output reads like a generic interview outline, hints at soliciting MNPI, generates fake expert feedback, or lacks decision gates, this skill has failed.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Core Philosophy
 

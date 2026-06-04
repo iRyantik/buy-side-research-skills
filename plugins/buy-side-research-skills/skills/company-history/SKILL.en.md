@@ -11,13 +11,8 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for business evolution tracing and disclosure comparability audits; unresolved facts stay as gap, hypothesis, or follow-up.
-
-Clearly explain a company's business foundation and disclosure evolution, so that downstream `driver-map`, `stock-quickread`, `alpha-thesis`, `peer-deep-dive`, and `3-statement-model / dcf-model / comps-analysis / model-update` are not built on a wrong understanding of the company. The core value is not writing a "company introduction" — it is identifying what the company actually sells, who pays, how business boundaries have shifted, where disclosure definitions break, and which historical changes would contaminate downstream driver or thesis judgments.
-
-If the output turns into founding year, headquarters, management biographies, a chronological list of acquisition news, IR talking points, or generic business encyclopedia entries, this skill has failed. History is only written when it changes business substance, segment comparability, KPI continuity, customer/product boundaries, or downstream research priorities.
+Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## Core Philosophy
 

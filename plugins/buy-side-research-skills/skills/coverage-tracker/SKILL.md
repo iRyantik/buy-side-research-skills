@@ -9,10 +9,8 @@ Auto-maintained coverage state at workspace root. Not portfolio positions — re
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- 本 skill 不调用 financial-data；读写 `COVERAGE.md`。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
+Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
 
 ## 心法
 
