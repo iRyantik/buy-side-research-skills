@@ -9,6 +9,7 @@
 | double_urls | fix_source_format | Remove concatenated second URL |
 | nonstandard_inline | fix_source_format | Replace `[Label](url)` with `[S#](url)` or `[I#](url)` |
 | nonstandard_resources | fix_source_format | Replace `[Label]` in Resources with `[S#]` or `[I#]` |
+"""
 
 import re, sys, os
 
