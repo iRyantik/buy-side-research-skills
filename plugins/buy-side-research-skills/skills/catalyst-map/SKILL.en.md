@@ -11,8 +11,10 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mental Model
 
@@ -64,7 +66,7 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
 >
 > **Completion Gate**: After writing, scan every row → every row has [S#]/[I#] or `[待查]` → `[待查]` ≤5 → Resources section must expand all sources.
 
-~~~markdown
+```markdown
 ## Catalyst Timeline
 
 | Time | Catalyst | Probability | Direction | Magnitude | Payoff Ratio | Anchor | Thesis Impact | Ev |
@@ -98,7 +100,7 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
             │ +5%      │
 
     Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
-~~~
+```
 
 ## Anti-Patterns
 

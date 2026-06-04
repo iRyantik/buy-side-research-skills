@@ -2,7 +2,7 @@
 
 半导体设备 / 电池 / 光伏 / 3D 打印
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

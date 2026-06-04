@@ -11,8 +11,10 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -96,7 +98,7 @@ This is the key bridge the agent must answer: **Is this management strengthening
 >
 > **Completion Gate**: After writing, scan the scorecard → every row's Anchor column has [S#]/[I#] or `[待查]` → `[待查]` ≤3.
 
-~~~markdown
+```markdown
 ## Capital Allocation Scorecard
 
 | Dimension | Score | 10Y Evidence | Anchor |
@@ -116,7 +118,7 @@ M&A:       $500M  (incl. MRSI $125M)
 Capex:     $1.2B
 ─────────────────
 Total deployed: $3.1B
-~~~
+```
 
 Market cap created: $4.5B (10Y ago $1.5B → today $6B)
 ROI on deployed capital: ~145%
@@ -159,5 +161,4 @@ ROI on deployed capital: ~145%
 - Thesis building → `alpha-thesis`
 - Valuation → `dcf-model` / `comps-analysis`
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

@@ -11,8 +11,10 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -32,7 +34,7 @@ Hard cap of 500 words. This is not deep analysis — it is a rapid thesis direct
 
 ```
 1. Most recent earnings-setup artifact for the same ticker (pre-print bar is most accurate)
-2. Consensus range (from financial-data --lite market_data or WebSearch)
+2. Consensus range (from /financial-data --lite market_data or WebSearch)
 3. Prior year same-quarter growth trend (weakest proxy — unreliable if prior year had COVID or M&A)
 4. None available → "No benchmark; no directional judgment; list numbers and guidance changes only"
 ```
@@ -49,7 +51,7 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 
 ## Output Structure
 
-~~~markdown
+```markdown
 ## Verdict
 
 **Beat — thesis unchanged** (or other combination)
@@ -78,7 +80,7 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 **Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
-~~~
+```
 
 ## Source Contract
 

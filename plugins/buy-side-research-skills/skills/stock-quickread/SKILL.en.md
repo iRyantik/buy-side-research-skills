@@ -11,9 +11,10 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
-- Actively exercise Senior Analyst Radar: flag anything that could change the business reality, model driver, consensus framing, peer set, valuation framework, or research priority.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Material Collection & Source Verification
 
@@ -76,7 +77,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ### Execution Flow (Gate-style — each step has intermediate output, next step checks previous)
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+┌─ Step 1: /financial-data --lite <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
 │  → Write to _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
@@ -297,7 +298,7 @@ From the kpi-drivers template, select **all KPIs that have data in actuals** as 
 
 Unavailable fields: mark [ND] or [NOT DISCLOSED]. All numbers computed from actuals/IR.
 
-> Generalized fallback is handled at the `financial-data --lite` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
+> Generalized fallback is handled at the `/financial-data --lite` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
 
 **Industry Cycle Position** (1 sentence): Capacity expansion / competition intensification / consolidation / decline? Is the company leading expansion, following, or contracting counter-cyclically?
 
@@ -435,5 +436,4 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company>.md
 
 - Standard quickread: 1,800–2,500 words. Below 1,800 indicates insufficient §5 driver expansion — the most informative section. Above 2,500 indicates doing `company-history` or `driver-map` work; split or deduplicate.
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

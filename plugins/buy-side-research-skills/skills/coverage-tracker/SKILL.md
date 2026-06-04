@@ -9,8 +9,10 @@ Auto-maintained coverage state at workspace root. Not portfolio positions — re
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -43,7 +45,7 @@ Direction 和 Conviction 自动从上游 skill 同步（candidate-screener→dir
 
 `COVERAGE.md`，workspace 根目录：
 
-~~~markdown
+```markdown
 ## Coverage
 
 | Ticker | Company | Tier | Direction | Conviction | Stage | Last Review | Next Trigger | Notes |
@@ -52,7 +54,7 @@ Direction 和 Conviction 自动从上游 skill 同步（candidate-screener→dir
 | BESI NA | Besi | 2 | Long | Medium | testing | 2026-05-15 | TSMC COUPE 2027 | Early thesis; waiting on TSMC |
 | 688808 | 联讯仪器 | 2 | Short | High | monitoring | 2026-05-20 | PE <200x or CPO news | Bubble watch; thesis holds |
 | 300757 | 罗博特科 | 3 | — | — | building | 2026-05-10 | ficonTEC Q orders | Too early; data not yet pulled |
-~~~
+```
 
 ## 字段说明
 

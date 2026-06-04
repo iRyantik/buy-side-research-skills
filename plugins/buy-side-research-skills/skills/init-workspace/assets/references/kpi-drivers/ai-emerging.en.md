@@ -4,7 +4,7 @@
 
 AI Applications / Quantum / Humanoid Robotics / Pre-Commercial
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

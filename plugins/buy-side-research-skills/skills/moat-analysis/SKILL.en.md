@@ -11,8 +11,10 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -133,7 +135,7 @@ Every piece of evidence must be tagged with strength. Hard evidence = publicly a
 >
 > **Completion Gate**: After writing, scan the scorecard → every row in Evidence has [S#]/[I#] → rows with `[待查]` ≤3 → Resources section is expanded.
 
-~~~markdown
+```markdown
 ## Moat Scorecard
 
 | Dimension | Score | Evidence | Strength | Peer A | Peer B |
@@ -199,13 +201,13 @@ If a PE fund gave you $2B to replicate this business within 3 years:
 - How many people and how much time would it take? (= quantified scale effects + technology barriers)
 - Where would you poach people from in Year 1? (= talent barrier)
 - Why wouldn't customers switch? Even if you were 20% cheaper? (= real strength of customer lock-in)
-~~~
+```
 
 ### Paradigm-Shift Moat Analysis (Industry-Level)
 
 > Use when: a technology / regulatory / competitive paradigm change → how moat is reallocated across industry segments. The core task is **causal chain transmission**: starting from the physical / engineering facts of the paradigm change, derive the barrier direction change for each segment, and provide a falsification condition for each derivation.
 
-~~~markdown
+```markdown
 ## Verdict First
 
 One sentence: [Paradigm change] → moat is [not simply weakened / but reallocated — which segments deepen / which disappear / which emerge from nothing] → core tension: [one sentence capturing the key contradiction]
@@ -274,7 +276,7 @@ Factors that cut across segments — e.g., "Will general semiconductor giants cr
 
 - [S1](url) — description
 - [I1](url) — description
-~~~
+```
 
 ## Anti-Patterns
 
@@ -320,5 +322,4 @@ Factors that cut across segments — e.g., "Will general semiconductor giants cr
 - Management assessment → `capital-allocation`
 - Full thesis → `alpha-thesis`
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

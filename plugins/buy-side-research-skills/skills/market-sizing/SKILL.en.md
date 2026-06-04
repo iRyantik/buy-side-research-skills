@@ -11,8 +11,10 @@ Turn "how big is this market" into a structured estimate where every row has a s
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -73,7 +75,7 @@ Another fatal pitfall: not distinguishing TAM / SAM / SOM. TAM is "the whole wor
 >
 > **Completion Gate**: After writing, scan the TAM table → every row's Source column has a link → Tier 1–2 rows have been verified via WebFetch → Resources section expands all sources.
 
-~~~markdown
+```markdown
 ## TAM Breakdown
 
 | Segment | Method | 2026 | 2028E | Growth | Source | Tier | Confidence |
@@ -103,7 +105,7 @@ Break down by [segment / region / customer-type / technology] dimension. (Pick 1
 ## Visual
 
 - TAM Pyramid (ASCII): three layers TAM → SAM → SOM
-~~~
+```
 
 - Segment Pie: if TAM is broken down by multiple segments, optional pie chart (description only, actual chart via research-viz)
 

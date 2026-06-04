@@ -9,9 +9,10 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
-→ 写入 _cache/financial-data/internal/actuals-resolved.json
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -352,5 +353,4 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 - "听说 X 是 NVIDIA 光模块供应商，靠谱吗" -> `information-impact`
 - "这个新闻是真的，而且想按新闻逻辑找受益股" -> 先 `information-impact`，再 `candidate-screener`
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

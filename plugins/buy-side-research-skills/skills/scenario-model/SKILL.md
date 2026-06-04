@@ -9,8 +9,10 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -37,7 +39,7 @@ Scenario model 的真正价值不是那个 upside 数字，而是 **暴露哪个
 | **目标份额** | 1. `mechanism-insight` 竞争格局（当前台数/金额份额）→ 2. 客户财报里的 supplier concentration → 3. 行业峰会/产品发布 → 4. 对标相似行业新生市场的 leader 份额 | 至少给 high/low range，不拍单点 |
 | **目标 Margin** | 1. `financial-data` actuals 当前 margin → 2. 同行业 scale effect benchmark（revenue doubling 时 margin 通常 improve 多少）→ 3. peer 可比产品线 margin | 默认 = 当前 margin |
 | **目标 PE** | 1. `comps-analysis` 同组 forward PE → 2. `peer-deep-dive` valuation table → 3. 公司自身 3 年 PE range → 4. 同行业同等 growth rate 公司的 PE | 必填 |
-| **当前估值** | `financial-data --lite` market_data | — |
+| **当前估值** | `/financial-data --lite` market_data | — |
 
 > Tier 0（机器验证）= actuals / Bridge。Tier 1（trusted 第三方）= Frost/Gartner cited in 官方文件。Tier 2（agent 推算）= 有 derivation 但未经第三方验证。所有 Tier 2 假设必须写推导过程，由研究员确认后进测算。
 
@@ -145,7 +147,7 @@ Agent 根据用户 query 自动判定方向。
 >
 > **完成 Gate**：写完扫 assumptions 表 → 每行有 source tier → 引用 actuals 的标 `[S1]`→Resources、引用外部的标 `[I#]`→Resources → `[待查]` assumption ≤3。
 
-~~~markdown
+```markdown
 ## Scenario Verdict
 
 - 一句话判断：值得继续 / 赔率一般 / 不值得继续
@@ -209,7 +211,7 @@ Agent 根据用户 query 自动判定方向。
 仅当用户问倒推时输出：
 - 要值到目标市值，需要多少收入 / 份额 / margin / multiple
 - 哪个条件最不现实
-~~~
+```
 
 默认定位：
 - 短、硬、判断导向
@@ -251,5 +253,4 @@ Agent 根据用户 query 自动判定方向。
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

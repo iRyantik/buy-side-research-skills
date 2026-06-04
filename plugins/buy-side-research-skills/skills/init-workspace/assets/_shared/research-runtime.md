@@ -46,6 +46,28 @@ python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 
 skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证（hook: `evidence_ledger_floor`）。
 
+### 2.2 Source 纪律
+
+**禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+
+**Source 优先级（强制）**：
+
+```
+1. actuals-resolved.json    本地缓存，机器采集，零延迟，最高置信
+   → 从 source_map 字段读取对应的 [S#](url) 标签。不在 artifact 中写裸 [actuals]。
+
+2. [S#] 公司披露            IR PDF、年报、AGM presentation、earnings transcript
+   → actuals 没有的字段：订单细节、管理层原话、产品路线图、产能计划
+   → verify-claim.py 验证原文 → 标 [S1-S9]
+
+3. [I#] 第三方              行业报告、新闻媒体、Yahoo Finance、卖方报告
+   → actuals 和公司披露都覆盖不到：市占率、TAM、竞争格局、卖方 target、consensus
+   → verify-claim.py 验证原文 → 标 [I1-I20]
+
+同一 claim 只引用最高优先级的一个 source。
+例：Revenue → actuals 已有 → 不标 [S1]。Q1 订单 → actuals 没 → [S1]。TSMC占60%+ → 公司不披露 → [I1]。
+```
+
 ### 2.1 资料收集
 
 ```

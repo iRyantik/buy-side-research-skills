@@ -9,8 +9,10 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -30,7 +32,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 
 ```
 1. 同 ticker 最近的 earnings-setup artifact（pre-print bar 最准）
-2. Consensus range（从 financial-data --lite market_data 或 WebSearch）
+2. Consensus range（从 /financial-data --lite market_data 或 WebSearch）
 3. Prior year same-quarter growth trend（最弱的 proxy——去年有 COVID/M&A 就不准）
 4. 都没有 → "没有基准，不判断方向，只列数字和 guidance 变化"
 ```
@@ -47,7 +49,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 
 ## 输出结构
 
-~~~markdown
+```markdown
 ## Verdict
 
 **Beat — thesis unchanged** （或其他组合）
@@ -76,7 +78,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 **Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
-~~~
+```
 
 ## Source Contract
 

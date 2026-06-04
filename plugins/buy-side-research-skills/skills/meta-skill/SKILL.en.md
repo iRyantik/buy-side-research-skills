@@ -552,7 +552,7 @@ Default naming tier:
 General source / anti-hallucination rules for research skills are now carried by the shared baseline + workspace hooks; individual skills are no longer required to duplicate `Source Policy` locally.
 
 Authoring hard rules:
-- Research skills must default to depending on the shared source hierarchy: disclosed-fact track `topic-local evidence cache > primary public > trusted third-party > web`; market-snapshot track is uniformly obtained via `financial-data --lite` trust-based fill chain (Bridge → yfinance → WebSearch → Google Finance), no longer individually calling `trusted-market-bridge`.
+- Research skills must default to depending on the shared source hierarchy: disclosed-fact track `topic-local evidence cache > primary public > trusted third-party > web`; market-snapshot track is uniformly obtained via `/financial-data --lite` trust-based fill chain (Bridge → yfinance → WebSearch → Google Finance), no longer individually calling `trusted-market-bridge`.
 - Examples must demonstrate inline short anchors and end-of-document `## Resources` dual-writing to the same target; writing short anchor codes like `S1` / `I1` followed by `(link)` or `(url)` placeholders is no longer allowed — such patterns will be intercepted by the source_contract hook.
 - Once a binary source / structure / boundary rule enters hooks, the corresponding rule prose in `SKILL.md` must be deleted, not retained in duplicate.
 - If `Source Policy` is retained, it may only contain skill-specific non-binary edge cases; shared legality must not be repeated.

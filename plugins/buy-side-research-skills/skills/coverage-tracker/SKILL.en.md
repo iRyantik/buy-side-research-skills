@@ -11,8 +11,10 @@ Auto-maintained coverage state at workspace root. Not portfolio positions — re
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mindset
 
@@ -45,7 +47,7 @@ When any skill writes to `industry/<industry>/companies/<ticker>/`:
 
 `COVERAGE.md`, at workspace root:
 
-~~~markdown
+```markdown
 ## Coverage
 
 | Ticker | Company | Tier | Direction | Conviction | Stage | Last Review | Next Trigger | Notes |
@@ -54,7 +56,7 @@ When any skill writes to `industry/<industry>/companies/<ticker>/`:
 | BESI NA | Besi | 2 | Long | Medium | testing | 2026-05-15 | TSMC COUPE 2027 | Early thesis; waiting on TSMC |
 | 688808 | Lianxun Instruments | 2 | Short | High | monitoring | 2026-05-20 | PE <200x or CPO news | Bubble watch; thesis holds |
 | 300757 | Robotec | 3 | — | — | building | 2026-05-10 | ficonTEC Q orders | Too early; data not yet pulled |
-~~~
+```
 
 ## Field Definitions
 

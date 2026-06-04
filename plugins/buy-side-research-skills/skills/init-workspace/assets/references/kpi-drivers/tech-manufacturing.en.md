@@ -4,7 +4,7 @@
 
 Semiconductor Equipment / Battery / Solar / 3D Printing
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

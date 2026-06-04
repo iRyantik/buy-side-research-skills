@@ -2,7 +2,7 @@
 
 发电(GT) / 电网 / 水务 / 交通
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

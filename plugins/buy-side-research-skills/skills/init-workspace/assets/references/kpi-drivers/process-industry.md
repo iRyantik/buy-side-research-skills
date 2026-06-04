@@ -2,7 +2,7 @@
 
 油气 / 化工 / 矿 / 可再生发电
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

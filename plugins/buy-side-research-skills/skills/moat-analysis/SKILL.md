@@ -9,8 +9,10 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -131,7 +133,7 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 >
 > **完成 Gate**：写完扫 scorecard → 每行 Evidence 有 [S#]/[I#] → `[待查]` 行 ≤3 → Resources 展开。
 
-~~~markdown
+```markdown
 ## Moat Scorecard
 
 | 维度 | Score | Evidence | Strength | Peer A | Peer B |
@@ -197,13 +199,13 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 - 需要多少人和时间？（= 规模效应+技术壁垒的量化）
 - 你第一年会从哪里挖人？（= 人才壁垒）
 - 客户为什么不换？即使你便宜 20%？（= 客户锁入的真实强度）
-~~~
+```
 
 ### 范式冲击护城河分析（行业级）
 
 > 适用：技术/监管/竞争范式变化 → 行业各 segment 护城河如何重新分配。核心工作是**因果链传导**：从范式变化的物理/工程事实出发，推导到每个 segment 的壁垒变化方向，并给出每个推导的可证伪条件。
 
-~~~markdown
+```markdown
 ## 结论先行
 
 一句话：[范式变化] → 护城河[不是削弱/而是重新分配——哪些段加深/哪些段消失/哪些段从无到有] → 核心矛盾：[一句话点出最关键的张力]
@@ -272,7 +274,7 @@ Segment E      ██████ 中              ██████ 中 →
 
 - [S1](url) — description
 - [I1](url) — description
-~~~
+```
 
 ## 反模式
     
@@ -318,5 +320,4 @@ Segment E      ██████ 中              ██████ 中 →
     - 不做管理层评估 → `capital-allocation`
     - 不做完整 thesis → `alpha-thesis`
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

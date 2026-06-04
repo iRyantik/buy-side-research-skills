@@ -9,8 +9,10 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -94,7 +96,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 >
 > **完成 Gate**：写完扫 scorecard → 每行 anchor 列有 [S#]/[I#] 或 `[待查]` → `[待查]` ≤3。
 
-~~~markdown
+```markdown
 ## Capital Allocation Scorecard
 
 | 维度 | Score | 10Y Evidence | Anchor |
@@ -114,7 +116,7 @@ M&A:       $500M  (incl. MRSI $125M)
 Capex:     $1.2B
 ─────────────────
 Total deployed: $3.1B
-~~~
+```
 
 Market cap created: $4.5B (10Y ago $1.5B → today $6B)
 ROI on deployed capital: ~145%
@@ -157,5 +159,4 @@ ROI on deployed capital: ~145%
 - 不做 thesis → `alpha-thesis`
 - 不做估值 → `dcf-model` / `comps-analysis`
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

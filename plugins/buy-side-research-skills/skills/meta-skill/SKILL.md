@@ -550,7 +550,7 @@ Artifact policy：
 Research skill 的通用 source / anti-hallucination 规则现在由 shared baseline + workspace hooks 承接，不再要求每个 skill 本地复制 `Source 政策`。
 
 authoring hard rules：
-- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `financial-data --lite` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
+- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `/financial-data --lite` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
 - 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `S1` / `I1` 等短锚点代码后接 `(link)` 或 `(url)` 占位符——此类写法会被 source_contract hook 拦截。
 - 一旦某条 binary source / structure / boundary 规则进入 hook，对应 `SKILL.md` 中同类规则 prose 必须删除，而不是继续双份保留。
 - `Source 政策` 若保留，只能写 skill-specific non-binary edge；不能复述 shared legality。

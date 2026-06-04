@@ -46,6 +46,29 @@ python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 
 In skill artifacts, every [I#] source must pass at least Tier 1-2 verification (hook: `evidence_ledger_floor`).
 
+### 2.2 Source Discipline
+
+**Never write claims using numbers from WebSearch summaries.** Summaries may be wrong. Every external fact claim must come from the original page.
+
+**Source Priority (mandatory)**:
+
+```
+1. actuals-resolved.json    Local cache, machine-collected, zero latency, highest confidence
+   -> Read [S#](url) tags from source_map field. Do not write bare [actuals] in artifacts.
+
+2. [S#] Company disclosure  IR PDF, annual report, AGM presentation, earnings transcript
+   -> Fields not in actuals: order details, management quotes, product roadmap, capacity plans
+   -> verify-claim.py to verify source text -> label [S1-S9]
+
+3. [I#] Third-party         Industry reports, news media, Yahoo Finance, sell-side reports
+   -> actuals and company disclosure don't cover: market share, TAM, competitive landscape, targets, consensus
+   -> verify-claim.py to verify source text -> label [I1-I20]
+
+One claim = one source at the highest priority.
+Example: Revenue -> already in actuals -> don't label [S1]. Q1 orders -> not in actuals -> [S1]. TSMC 60%+ -> company doesn't disclose -> [I1].
+```
+
+
 ### 2.1 Material Collection
 
 ```

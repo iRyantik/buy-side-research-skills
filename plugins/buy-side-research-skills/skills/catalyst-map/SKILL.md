@@ -9,8 +9,10 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — 数据获取链、来源验证链、证据协议、产出合约、保存合约。
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**执行本 skill 前必须先读取以下文件：**
+- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 心法
 
@@ -62,7 +64,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 >
 > **完成 Gate**：写完逐行扫表 → 每行 [S#]/[I#] 或 `[待查]` → `[待查]` ≤5 → Resources 段必须展开所有 source。
 
-~~~markdown
+```markdown
 ## Catalyst Timeline
 
 | 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact | Ev |
@@ -96,7 +98,7 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
             │ +5%     │
 
     Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
-~~~
+```
 
 ## 反模式
 

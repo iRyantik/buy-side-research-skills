@@ -11,8 +11,10 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 ## Research Runtime Capsule
 
-Follow `_shared/research-runtime.md` — data pipeline, source verification chain, evidence protocol, artifact contract, save contract.
-Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `table_render_integrity`, `mermaid_syntax`, `skill_structure_contract`, `evidence_ledger_floor`.
+**MUST read the following files before executing this skill:**
+- `_shared/research-runtime.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -39,7 +41,7 @@ Every input must have a derivation path. The agent follows the path to find it; 
 | **Target Share** | 1. `mechanism-insight` competitive landscape (current unit/value share) → 2. Customer filings' supplier concentration → 3. Industry conferences / product launches → 4. Benchmark leader share in analogous industry nascent markets | At minimum give high/low range, never a single-point guess |
 | **Target Margin** | 1. `financial-data` actuals current margin → 2. Same-industry scale effect benchmark (how much margin typically improves when revenue doubles) → 3. Peer comparable product-line margin | Default = current margin |
 | **Target PE** | 1. `comps-analysis` peer-group forward PE → 2. `peer-deep-dive` valuation table → 3. Company's own 3-year PE range → 4. Companies in same industry with equal growth rate PE | Must be filled |
-| **Current Valuation** | `financial-data --lite` market_data | — |
+| **Current Valuation** | `/financial-data --lite` market_data | — |
 
 > Tier 0 (machine-verified) = actuals / Bridge. Tier 1 (trusted third-party) = Frost/Gartner cited in official documents. Tier 2 (agent-derived) = has derivation but not verified by a third party. All Tier 2 assumptions must include the derivation process; they enter the model only after researcher confirmation.
 
@@ -151,7 +153,7 @@ Use footnotes in the sensitivity table to annotate correlations, e.g.: "If TAM �
 >
 > **Completion Gate**: After writing, scan the assumptions table → each row has a source tier → references to actuals marked `[S1]`→Resources, references to external sources marked `[I#]`→Resources → `[待查]` assumptions ≤3.
 
-~~~markdown
+```markdown
 ## Scenario Verdict
 
 - One-line judgment: worth continuing / odds are so-so / not worth continuing
@@ -215,7 +217,7 @@ Use footnotes in the sensitivity table to annotate correlations, e.g.: "If TAM �
 Output only when the user asks for reverse calculation:
 - To reach the target market cap, how much revenue / share / margin / multiple is needed
 - Which condition is the least realistic
-~~~
+```
 
 Default positioning:
 - Short, hard, judgment-oriented
@@ -257,5 +259,4 @@ After calculating, ask yourself:
 | Downstream | `candidate-screener` | quantified scenario stock screening |
 | Downstream | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
-> **Appendix 执行指令**：写 artifact 正文之前先跑 `python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...`，输出直接嵌入上方的 `## Appendix: Financial Data`。禁止在 artifact 中留 `*(Run python...)*` 占位符。
 

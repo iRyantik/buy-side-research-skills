@@ -2,7 +2,7 @@
 
 AI 应用 / 量子 / 人形机器人 / Pre-Commercial
 
-## Raw Fields (→ `financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data --lite` elastic collection)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|
