@@ -130,7 +130,6 @@ Compare by dimension; each line must give specific % or facts. Empty statements 
 
 #### 3. Valuation Spread History
 
-
 ### Spread & Correlation Formulas
 
 | # | Calculation | Formula | Input Source |
@@ -139,7 +138,6 @@ Compare by dimension; each line must give specific % or facts. Empty statements 
 | 2 | Spread Percentile | rank(current spread) ÷ N | MKT |
 | 3 | Beta | Cov(stock, index) ÷ Var(index) | MKT — must state reference index + lookback window |
 | 4 | Ratio Spread | ln(Price_Long ÷ Price_Short) | MKT |
-
 
 Must have specific percentile / sigma. Vague statements like "spread deviates from history" are not allowed.
 
@@ -287,8 +285,6 @@ Record a tracking snapshot in `pair-note.md`. It is not an auto-maintained statu
 
 > Mermaid spread logic diagram example (placed here as reference; agent replaces the §1 placeholder during output):
 
-
-
 > Mermaid spread logic diagram example (placed here as reference; agent replaces the §1 placeholder during output):
 
 ```mermaid
@@ -416,8 +412,6 @@ Evaluate the long thesis and short thesis from §A.4.5 separately:
 
 ---
 
-
-
 ## Artifact / Save Policy
 
 Write to industry topic:
@@ -451,30 +445,3 @@ After writing a Builder, must self-check:
 - **Builder full thesis**: 1200-2000 words + 5 tables.
 - **Monitor output**: 400-700 words.
 
-
-## Appendix: actuals-resolved.json
-
-Full field listing → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Usage rules: first read actuals → source_map to pull [S#]/[I#] labels (do not write [actuals]) → use only actuals true values for ratios (no forward estimates).
-
-
-## Appendix: Financial Data
-
-Generate appendix from actuals-resolved.json:
-
-```
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,<TICKER_3>,...
-```
-
-### Evidence Cards
-
-Main agent selects 1-3 evidence_triplets from each evidence card and embeds them in the artifact:
-
-claim: <key factual claim from evidence card>
-evidence: <supporting data>
-source: [S#](url) or [I#](url)
-
-At least 1 triplet (3 lines) required to satisfy the subagent_protocol hook.

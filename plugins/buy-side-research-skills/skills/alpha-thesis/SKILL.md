@@ -37,7 +37,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 | 3 | 目标价 (EV/EBITDA法) | (EBITDA × Target Multiple - Net Debt) ÷ Shares | FS, FS |
 | 4 | 加权期望回报 | Σ (概率 × 情景回报) | DER |
 
-
 Bull / Base / Bear、Kill Criteria 之前，先判断 thesis 依赖的关键 driver 是否已经拆清楚。不要因为用户要求"写 thesis"就跳过这个检查。
 
 | 检查项 | 通过标准 | 不通过时动作 |
@@ -184,7 +183,6 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 - 每条假设的反证信号。
 - 哪些假设应在下一次财报或行业数据更新时复查。
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -241,22 +239,3 @@ industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Research Runtime Capsule` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

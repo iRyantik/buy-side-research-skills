@@ -106,8 +106,6 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 用于客户/供应商/分销商批量验证。在 Mode A 基础上加 sample plan（目标 n≥10、persona split、地域 split）和 bias controls（不只看 happy customers / recent buyers）。篇幅 800-1400 字。
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：

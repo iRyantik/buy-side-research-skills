@@ -251,22 +251,3 @@ Agent 根据用户 query 自动判定方向。
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

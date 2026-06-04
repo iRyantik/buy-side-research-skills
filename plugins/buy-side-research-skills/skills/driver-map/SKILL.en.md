@@ -165,8 +165,6 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 
 ```
 
-
-
 ## Artifact / Save Strategy
 
 Write to industry topic:
@@ -200,15 +198,3 @@ Based on the driver decomposition above, answer three growth-quality questions:
 
 - Standard: 900-1600 characters + 3-4 tables. Below 700 characters often misses proxy strategy; above 1800 characters should narrow to core segments.
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Complete field inventory -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → pull [S#]/[I#] labels from source_map (do not write [actuals]) → ratios only use actuals real values (no forward estimates).

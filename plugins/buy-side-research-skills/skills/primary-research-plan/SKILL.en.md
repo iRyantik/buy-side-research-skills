@@ -108,8 +108,6 @@ Used for a single expert call. Output compressed to 600–1000 words — §1 one
 
 Used for bulk verification via customers / suppliers / distributors. Builds on Mode A with an added sample plan (target n≥10, persona split, geographic split) and bias controls (don't only look at happy customers / recent buyers). Length 800–1400 words.
 
-
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:

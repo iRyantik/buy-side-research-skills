@@ -152,11 +152,3 @@ Break down by [segment / region / customer-type / technology] dimension. (Pick 1
 - No industry landscape → `industry-landscape`
 - No company revenue forecast → `driver-map`
 
-
-## Appendix: actuals-resolved.json
-
-Full field inventory → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → pull [S#] / [I#] labels from `source_map` (do not write `[actuals]`) → for ratios, use only actuals real values (never forward estimates).

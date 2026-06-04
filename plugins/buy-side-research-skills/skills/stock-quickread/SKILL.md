@@ -466,7 +466,6 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 如果 quickread 发现收入结构复杂、segment bucket 怪、model driver 不清楚，下一步不要在 quickread 内完整展开。明确推荐 `driver-map`，让它单独拆 `Reported Bucket → Business Reality → Model Driver`。
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -517,22 +516,3 @@ industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-
 
 - 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

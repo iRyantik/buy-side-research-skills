@@ -17,11 +17,9 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 - **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: derived ratios within the model (ROIC, margins, turnover ratios, FCF conversion, etc.) must use actuals-resolved.json disclosed data. No estimate input for computed ratios.
 - Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
-
 
 ## ⚠️ CRITICAL PRINCIPLES — Read Before Populating Any Template
 
@@ -423,15 +421,3 @@ When Master Status shows errors:
 4. Fix the underlying issue
 5. Return to Checks tab to verify resolution
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Full field listing -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Usage rules: read actuals first -> pick up [S#]/[I#] tags from source_map (do not write [actuals]) -> use only actuals true values for ratios (do not use forward estimates).

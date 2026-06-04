@@ -71,7 +71,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 
 ### 3. 会计 / 财务红旗清单
 
-
 ## 会计红旗公式
 
 科目多语对照见 `references/policy/statement-line-items.md`。
@@ -84,7 +83,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 | 4 | 资产老化 | CapEx ÷ D&A | FS, FS | CF | 持续 < 0.7 |
 | 5 | M&A 减值风险 | Goodwill ÷ Equity | FS, FS | BS | > 50% |
 | 6 | 股权稀释 | SBC ÷ Revenue | FS, FS | 附注 + IS | > 10% |
-
 
 逐项扫，每条要给：当前数 / 警戒阈值 / 状态 / Ev。有问题的那几条单独展开论证。
 
@@ -139,7 +137,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 这一节让你提前知道**亏损路径**长什么样，避免到时候被叙事 reframe（"这只是技术性回调""市场情绪过度"）。
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -189,8 +186,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ 用了管理层减持 / 内部人交易作为论据但无 Form 4 / 披露 source → 补
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
 
-
-
 ## 篇幅基准
 
 - Quick pre-mortem：600-900 字，适合快速检查一个 thesis 是否有明显盲点。
@@ -201,22 +196,3 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 本 skill 在 `alpha-thesis` 写完之后、IC memo 提交之前使用。如果压力测试之后原 thesis 还站得住，conviction 是真的；如果发现明显盲点，回去修 thesis、降低 sizing，或者直接放弃这单 trade。
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

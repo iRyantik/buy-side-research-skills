@@ -23,7 +23,6 @@ Choose the highest-value next research question when a thread feels stuck or inc
 
 最好的 next step 通常很小，但杠杆很高：它不是“再多收集信息”，而是能验证一个关键机制、driver、source、peer 口径或 consensus framing 是否被误读。默认只给一个问题，因为问题太多会把研究员重新推回信息淹没。
 
-
 ## 触发场景
 
 ### Mode A: Direction Coach
@@ -184,8 +183,6 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 需要补的 source / data：
 - [...]
 ```
-
-
 
 ## Artifact / 保存策略
 

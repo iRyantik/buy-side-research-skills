@@ -15,8 +15,6 @@ Build comparable company valuation workbooks with peer multiples and operating m
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: multiples (PE, EV/EBITDA, EV/Sales, PEG, etc.) must use actuals-resolved.json disclosed data as input. FY2026E / consensus / forward estimates are banned as ratio inputs. Missing actuals input → ratio cell stays blank.
 
@@ -245,8 +243,6 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## Section 3: Valuation Multiples & Investment Metrics
 
-
-
 ## 估值倍数公式
 
 科目多语对照见 `references/policy/statement-line-items.md`。
@@ -262,7 +258,6 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 | 7 | PEG | P/E ÷ EPS Growth Rate | DER, CON | Growth 用 3Y CAGR 还是 consensus？必须注明口径 |
 
 倍数选择和公司的资本周期阶段要一致。
-
 
 ### Core Valuation Columns (Start with these)
 1. **Company** - Same order as operating section
@@ -699,23 +694,3 @@ After completing a comp analysis, ask:
 
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。
-
-### Evidence Cards
-
-主 agent 从每张 evidence card 取 1-3 个 evidence_triplets，按以下格式嵌入 artifact：
-
-claim: <key factual claim from evidence card>
-evidence: <supporting data>
-source: [S#](url) or [I#](url)
-
-至少 1 个 triplet（3 行）以满足 subagent_protocol hook 要求。

@@ -209,15 +209,3 @@ If path is unclear → agent auto-creates per policy baseline §11.
 - Post-print read: 400–700 words
 
 If it is much longer, you are not capturing what matters.
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Complete field inventory -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map to pull [S#]/[I#] labels (do not write [actuals]) -> ratios use only actuals real values (never forward estimates).

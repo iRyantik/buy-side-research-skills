@@ -146,7 +146,6 @@ Example prose claim: `Market-implied expectations require backlog conversion to 
 | Mechanism / value-capture premise unclear | `mechanism-insight` |
 | Need field checks / channel work | `primary-research-plan` |
 
-
 ```
 
 > Mermaid expectations waterfall example (placed outside the fence as reference; agent replaces the §2 placeholder when outputting):
@@ -203,8 +202,6 @@ Output compressed to:
 
 600–900 words; below 600 words typically cannot simultaneously cover source, bar, and routing.
 
-
-
 ## Artifact / Save Strategy
 
 Write to industry topic:
@@ -249,15 +246,3 @@ After writing, must self-check. If hit, rewrite:
 
 Below the lower bound usually means source / bar / debate are insufficient; above the upper bound usually means the output has crossed into `alpha-thesis` or modeling skills.
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Full field listing → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → source_map to retrieve [S#]/[I#] tags (do not write [actuals]) → ratios use actuals real values only (do not use forward estimates).

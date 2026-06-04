@@ -25,7 +25,6 @@ This skill's operating logic is **claim decomposition + evidence grading + resea
 
 **The most critical discipline**: `product can be used`, `theme association`, `tier-2 supplier` must never be written as `direct supplier`.
 
-
 ## Trigger Scenarios
 
 ### Mode A Triggers (Claim Check)
@@ -169,8 +168,6 @@ Action must be one of:
 
 `Unsupported` / `Contradicted` default to `Drop`. Do not save unless the user explicitly requests an audit trail.
 
-
-
 ## Artifact / Save Policy
 
 Conversation output. When the user requests a save, write to industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md.
@@ -216,11 +213,3 @@ Information impact analysis deals with "what just happened" — source freshness
 - Batch Mode: 1 row per item, expand only top 1-3 items at most.
 - Exceeding 900 words typically indicates this is no longer filtering — hand off to another research skill.
 
-
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → pull `[S#]`/`[I#]` tags from source_map (do not write `[actuals]`) → ratios use only actuals-realized values (not forward estimates).

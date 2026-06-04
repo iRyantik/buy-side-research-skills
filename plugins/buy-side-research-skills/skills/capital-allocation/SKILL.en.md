@@ -159,16 +159,3 @@ ROI on deployed capital: ~145%
 - Thesis building → `alpha-thesis`
 - Valuation → `dcf-model` / `comps-analysis`
 
-
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Complete field listing -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: Read actuals first → use source_map to pull [S#]/[I#] labels (do not write [actuals]) → ratios use actuals true values only (no forward estimates).

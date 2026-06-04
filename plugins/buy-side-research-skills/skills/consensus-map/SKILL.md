@@ -144,7 +144,6 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Mechanism / value-capture premise unclear | `mechanism-insight` |
 | Need field checks / channel work | `primary-research-plan` |
 
-
 ```
 
 > Mermaid 预期瀑布图示例（放在 fence 外做参考，agent 输出时替换 §2 的 placeholder）：
@@ -201,8 +200,6 @@ flowchart TD
 
 600-900 字；低于 600 字通常不能同时覆盖 source、bar 和 routing。
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -247,22 +244,3 @@ flowchart TD
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

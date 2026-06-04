@@ -133,7 +133,6 @@ industry/<industry>/companies/<ticker>/
 
 如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，由 agent 按 policy baseline §11 自动创建目录和索引后继续。
 
-
 ### Lite Mode Fetch（研究前置快速抓取）
 
 触发语：`/financial-data --lite <ticker>` 或 "快速拉 <ticker> 数据"  
@@ -309,7 +308,6 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 - 不输出 `financial-data-summary.md`
 
 Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`source-map.json`。
-
 
 ### Fill-Gaps Mode（补 Layer 3 缺口）
 

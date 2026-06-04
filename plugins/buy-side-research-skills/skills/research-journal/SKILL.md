@@ -23,7 +23,6 @@ Summarize completed research into durable topic notes and boss brief outputs.
 
 Journal 的写法要像一个认真研究员给未来自己的笔记：结论先行、source 清楚、保留争议和未解决问题，但不复述聊天过程。Boss Brief 则是给 PM / boss 的高密度 transfer，不是 journal 的简略版，而是把最重要的判断压缩成可讨论的 memo。
 
-
 ## 触发场景
 
 ### Mode A: Private Research Journal
@@ -253,8 +252,6 @@ industry/<industry>/companies/<ticker>/index.md
 
 - [...]
 ```
-
-
 
 ## Artifact / 保存策略
 

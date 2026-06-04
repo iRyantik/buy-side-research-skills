@@ -23,7 +23,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 
 **最重要的纪律**：`product can be used`、`theme association`、`tier-2 supplier` 不能写成 `direct supplier`。
 
-
 ## 触发场景
 
 ### Mode A 触发（Claim Check）
@@ -167,8 +166,6 @@ Action 只能是：
 
 `Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。
 
-
-
 ## Artifact / 保存策略
 
 对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
@@ -214,11 +211,3 @@ Action 只能是：
 - Batch Mode：每条 1 行，最多只展开 top 1-3 条。
 - 超过 900 字通常说明已经不是 filtering，应 handoff 到其他研究 skill。
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -145,8 +145,6 @@ timeline
 - `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
 ```
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -195,11 +193,3 @@ timeline
 - Mode A (Business Evolution)：600-1200 字 + 1 张事件表；超过 1400 字说明把 non-material history 写进来了。
 - Mode B (Disclosure Evolution)：700-1400 字 + 1 张口径表；超过 1600 字通常应拆给 `driver-map`。
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

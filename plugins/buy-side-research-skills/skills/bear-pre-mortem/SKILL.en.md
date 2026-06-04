@@ -73,7 +73,6 @@ Don't let GAAP financials lead you around — interrogate the unit economics:
 
 ### 3. Accounting / Financial Red Flag Checklist
 
-
 ## Accounting Red Flag Formulas
 
 For multilingual account-line-item cross-reference, see `references/policy/statement-line-items.md`.
@@ -86,7 +85,6 @@ For multilingual account-line-item cross-reference, see `references/policy/state
 | 4 | Asset aging | CapEx ÷ D&A | FS, FS | CF | Sustained < 0.7 |
 | 5 | M&A impairment risk | Goodwill ÷ Equity | FS, FS | BS | > 50% |
 | 6 | Equity dilution | SBC ÷ Revenue | FS, FS | Notes + IS | > 10% |
-
 
 Sweep every item; each must provide: current number / warning threshold / status / Ev. Items flagged as problematic must be individually expanded with supporting argument.
 
@@ -141,7 +139,6 @@ If the short logic is correct, what does the share-price decline path look like?
 
 This section lets you know in advance what the **loss path** looks like, so you don't get reframed by narrative in the moment ("this is just a technical correction," "market sentiment is overreacting").
 
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:
@@ -191,8 +188,6 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 - ❌ Uses management selling / insider transactions as evidence with no Form 4 / disclosure source → add it
 - ❌ URL uncertain whether it actually exists → write a description plus `[link 待补]`, do not pretend
 
-
-
 ## Length Benchmarks
 
 - Quick pre-mortem: 600–900 words, suitable for rapidly checking whether a thesis has obvious blind spots.
@@ -203,15 +198,3 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 
 This skill is used after `alpha-thesis` is written and before the IC memo is submitted. If the original thesis still holds up after the stress test, the conviction is real; if obvious blind spots are discovered, go back and fix the thesis, reduce sizing, or simply walk away from the trade.
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rule: read actuals first → pull [S#]/[I#] labels from source_map (do not write [actuals]) → ratios use only actuals real values (no forward estimates).

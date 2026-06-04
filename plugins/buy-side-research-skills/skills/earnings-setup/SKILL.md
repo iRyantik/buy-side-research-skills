@@ -48,8 +48,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 - Inputs needed: [需要补的 filing / call / KPI definition / segment data]
 ```
 
-
-
 ## 隐含波动与压力
 
 | # | 计算 | 公式 | 输入来源 |
@@ -58,7 +56,6 @@ Hook-enforced: `pre_write_gate` (source/tables/mermaid), `source_contract`, `tab
 | 2 | 历史 Earnings Move | 过去 N 次财报日 ±1 天平均涨跌幅 | MKT — 须标回看次数 |
 | 3 | Short Interest | 融券余额 ÷ 流通市值 | MKT — 港股/美股可用，A 股不透明 |
 | 4 | Short Squeeze Score | Short Interest ÷ Avg Daily Volume | MKT — 高 = 业绩 beat 时空头被迫平仓 |
-
 
 ### 1. 当前 Setup（市场怎么定价这次 print）
 
@@ -169,7 +166,6 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ---
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -212,22 +208,3 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 超长就是抓不住重点。
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

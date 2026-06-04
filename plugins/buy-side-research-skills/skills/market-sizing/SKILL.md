@@ -148,11 +148,3 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 - 不做行业全景 → `industry-landscape`
 - 不做公司收入 forecast → `driver-map`
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

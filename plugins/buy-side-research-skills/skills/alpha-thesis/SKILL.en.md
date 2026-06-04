@@ -39,7 +39,6 @@ Before writing the Variant View,
 | 3 | Target Price (EV/EBITDA method) | (EBITDA × Target Multiple - Net Debt) ÷ Shares | FS, FS |
 | 4 | Weighted expected return | Σ (Probability × Scenario Return) | DER |
 
-
 Bull / Base / Bear, and Kill Criteria, first determine whether the key drivers the thesis depends on have been clearly decomposed. Do not skip this check just because the user asked you to "write a thesis."
 
 | Check Item | Pass Standard | Action if Not Passed |
@@ -186,7 +185,6 @@ Mandatory:
 - Disconfirming signal for each assumption.
 - Which assumptions should be rechecked at the next earnings release or industry data update.
 
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:
@@ -243,15 +241,3 @@ If the current date-stamped save path is unclear, the agent auto-creates the dir
 
 If high-value questions arise during thesis writing — disclosure buckets, business substance, model drivers, source conflicts — directly trigger the Senior Analyst Radar alert from `Research Runtime Capsule`. If the issue is that revenue / margin / backlog / price-volume-mix drivers are not clearly decomposed, use `driver-map` first; if the issue is that the research direction itself is unclear, use `next-step`.
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Full field catalog -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map for [S#]/[I#] labels (do not write [actuals]) -> ratios use only actuals real values (not forward estimates).

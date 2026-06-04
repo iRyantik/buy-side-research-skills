@@ -257,15 +257,3 @@ After calculating, ask yourself:
 | Downstream | `candidate-screener` | quantified scenario stock screening |
 | Downstream | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → source_map to get [S#]/[I#] labels (do not write [actuals]) → ratios use only actuals real values (do not use forward estimates).

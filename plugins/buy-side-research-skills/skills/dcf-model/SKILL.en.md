@@ -17,10 +17,8 @@ Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal
 - **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([needs verification]). See §3.2.
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: FCF, WACC inputs, terminal growth assumptions, and all derived metrics (implied growth, reverse DCF output) must be built from actuals-resolved.json. No consensus/forward estimate as ratio input.
-
 
 ## Overview
 
@@ -1282,11 +1280,3 @@ Before delivering DCF model:
 - Tax rate 21-28%
 - File naming: `[Ticker]_DCF_Model_[Date].xlsx`
 
-
-## Appendix: actuals-resolved.json
-
-Complete field list -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: Read actuals first -> pull [S#]/[I#] labels from source_map (do not write [actuals]) -> ratio uses only actuals real values (never forward estimates).

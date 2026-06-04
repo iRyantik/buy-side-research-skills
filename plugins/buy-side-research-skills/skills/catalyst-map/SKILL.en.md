@@ -136,11 +136,3 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
 - Do not do thesis → `alpha-thesis`
 - Do not do market expectations → `consensus-map`
 
-
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → source_map for [S#]/[I#] tags (do not write [actuals]) → ratios use only actuals-real values (not forward estimates).

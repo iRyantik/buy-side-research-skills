@@ -15,11 +15,9 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: derived ratios within the model (ROIC, margins, turnover ratios, FCF conversion, etc.) must use actuals-resolved.json disclosed data. No estimate input for computed ratios.
 - Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
-
 
 ## ⚠️ CRITICAL PRINCIPLES — Read Before Populating Any Template
 
@@ -421,22 +419,3 @@ When Master Status shows errors:
 4. Fix the underlying issue
 5. Return to Checks tab to verify resolution
 
-
-## Appendix: Financial Data
-
-Artifact 写入完成后，运行以下命令生成财务数据附录：
-
-```
-python _scripts/financial-data/actuals-to-appendix.py <TICKER>
-```
-
-将生成的 markdown 作为 `## Appendix: Financial Data` 插入 artifact（位于 `## Resources` 之前）。
-
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

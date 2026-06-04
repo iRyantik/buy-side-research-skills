@@ -231,11 +231,3 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 
 > 产品图：每个涉及物理设备/产品的单元必须配 1 张实物图。下载优先级：公司官网 Media Kit → 产品页 hero → web search → [缺图]。下载到 topic 。
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

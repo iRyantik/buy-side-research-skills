@@ -17,11 +17,8 @@ Build comparable company valuation workbooks with peer multiples and operating m
 - **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([Needs Verification]). See §3.2.
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: multiples (PE, EV/EBITDA, EV/Sales, PEG, etc.) must use actuals-resolved.json disclosed data as input. FY2026E / consensus / forward estimates are banned as ratio inputs. Missing actuals input → ratio cell stays blank.
-
 
 ### Step 1: Fork N subagents — one evidence card per ticker (parallel)
 
@@ -44,7 +41,6 @@ subagent N:
 Main agent continues once all subagents complete. Single ticker failure does not block others —
 main agent notes `subagent unavailable for <TICKER> — <reason>` in the final artifact,
 removing that ticker from the merged comparison.
-
 
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)
 
@@ -250,8 +246,6 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## Section 3: Valuation Multiples & Investment Metrics
 
-
-
 ## Valuation Multiples Formulas
 
 Line-item multilingual reference: `references/policy/statement-line-items.md`.
@@ -267,7 +261,6 @@ Line-item multilingual reference: `references/policy/statement-line-items.md`.
 | 7 | PEG | P/E ÷ EPS Growth Rate | DER, CON | 3Y CAGR or consensus for growth? Must note the method |
 
 Multiple selection must align with the company's capital cycle stage.
-
 
 ### Core Valuation Columns (Start with these)
 1. **Company** - Same order as operating section
@@ -704,30 +697,3 @@ After completing a comp analysis, ask:
 
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
 
-
-## Appendix: actuals-resolved.json
-
-Complete field list -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: Read actuals first -> source_map for [S#]/[I#] tags (do not write [actuals]) -> ratios use only actuals real values (no forward estimates).
-
-
-## Appendix: Financial Data
-
-Generate appendix from actuals-resolved.json:
-
-```
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,<TICKER_3>,...
-```
-
-### Evidence Cards
-
-Main agent selects 1-3 evidence_triplets from each evidence card and embeds them in the artifact:
-
-claim: <key factual claim from evidence card>
-evidence: <supporting data>
-source: [S#](url) or [I#](url)
-
-At least 1 triplet (3 lines) required to satisfy the subagent_protocol hook.

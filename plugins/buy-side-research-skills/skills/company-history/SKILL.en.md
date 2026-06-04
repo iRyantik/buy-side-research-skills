@@ -147,8 +147,6 @@ timeline
 - `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
 ```
 
-
-
 ## Artifact / Save Strategy
 
 Write to industry topic:
@@ -197,11 +195,3 @@ If path is unclear → agent auto-creates per policy baseline §11.
 - Mode A (Business Evolution): 600–1,200 characters + 1 event table; exceeding 1,400 characters indicates non-material history has been included.
 - Mode B (Disclosure Evolution): 700–1,400 characters + 1 definition table; exceeding 1,600 characters usually warrants splitting off to `driver-map`.
 
-
-## Appendix: actuals-resolved.json
-
-Full field list -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map for [S#]/[I#] tags (do not write [actuals]) -> ratios use actuals real values only (do not use forward estimates).

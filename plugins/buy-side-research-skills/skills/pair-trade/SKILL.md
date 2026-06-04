@@ -128,7 +128,6 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 #### 3. 估值 Spread 历史
 
-
 ### 价差与相关性公式
 
 | # | 计算 | 公式 | 输入来源 |
@@ -137,7 +136,6 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | 2 | 价差百分位 | rank(当前价差) ÷ N | MKT |
 | 3 | Beta | Cov(stock, index) ÷ Var(index) | MKT — 须标参照指数+回溯窗口 |
 | 4 | 比率价差 | ln(Price_Long ÷ Price_Short) | MKT |
-
 
 必须有具体 percentile / sigma，不允许 "spread 偏离历史"这种含糊判断。
 
@@ -285,8 +283,6 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 > Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
 
-
-
 > Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
 
 ```mermaid
@@ -414,8 +410,6 @@ flowchart TD
 
 ---
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -449,23 +443,3 @@ flowchart TD
 - **Builder 完整 thesis**：1200-2000 字 + 5 张表。
 - **Monitor 输出**：400-700 字。
 
-
-## Appendix: Financial Data
-
-python _scripts/financial-data/actuals-to-appendix.py --tickers <TICKER_1>,<TICKER_2>,...
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。
-
-### Evidence Cards
-
-主 agent 从每张 evidence card 取 1-3 个 evidence_triplets，按以下格式嵌入 artifact：
-
-claim: <key factual claim from evidence card>
-evidence: <supporting data>
-source: [S#](url) or [I#](url)
-
-至少 1 个 triplet（3 行）以满足 subagent_protocol hook 要求。

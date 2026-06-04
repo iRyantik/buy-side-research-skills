@@ -232,11 +232,3 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | **Artifact length** | 6000-8000 | 2000-3000 | 1000-1800 | 800-1500 |
 
 > Product photos: Every unit involving physical equipment/products must include 1 physical photo. Download priority: Company website Media Kit → product page hero → web search → [缺图]. Download to topic.
-
-## Appendix: actuals-resolved.json
-
-Complete field listing → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rule: Read actuals first → pull [S#]/[I#] tags from source_map (do not write [actuals]) → ratios use only actuals actual values (not forward estimates).

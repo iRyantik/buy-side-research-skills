@@ -232,8 +232,6 @@ _cache/datasets/reddit-sentiment/[run_id]/
 - 每个 ID 必须直接点击到 Reddit permalink。
 - 不要把 Recommended Reading 变成 source dump；它是研究员阅读路线。
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
