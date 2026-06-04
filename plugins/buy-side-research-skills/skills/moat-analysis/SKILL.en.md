@@ -22,12 +22,25 @@ The second fatal flaw: moat is relative. MYCR scores a 9 on technology barriers 
 
 The third fatal flaw: moat is dynamic. In the CPO era, wire bonding as a process may simply disappear — K&S's moat is not narrowing, it is gone. Every moat analysis must answer: under the next-generation technology / product / paradigm, is this barrier strengthening, staying flat, weakening, or vanishing?
 
+## Analysis Mode Selection
+
+Determine which template to use based on the user's question:
+
+| Mode | When to Use | Template |
+|---|---|---|
+| **A: Single Entity** | Analyze the moat depth, width, and trajectory of one company / business | See §Single-Entity Moat Analysis |
+| **B: Paradigm Shift** | A technology / regulatory / competitive paradigm change → how moat is reallocated across industry segments | See §Paradigm-Shift Moat Analysis |
+
+Rule of thumb: if the user's question involves "after XX technology/paradigm/policy change, how will the industry moat be reallocated," "which segments' barriers will deepen or disappear" — use Mode B.
+
 ## Trigger Scenarios
 
 - "Analyze xxx's moat"
 - "Who has deeper barriers, xxx or yyy"
 - "Can xxx defend its current market share"
 - "Is xxx's competitive position improving or deteriorating"
+- "How will the CPO / new technology paradigm change the moat of the xxx industry"
+- "Impact of xxx change on the competitive landscape — who benefits, who gets hurt"
 
 ## Five-Dimension Scoring
 
@@ -132,6 +145,30 @@ Every piece of evidence must be tagged with strength. Hard evidence = publicly a
 | Brand | 4 | Swedish brand, no premium in China market | Soft | 6 | 3 |
 | **Total** | **5.6** | — | — | **5.8** | **3.8** | Ev |
 
+## Causal Chain & Falsification Conditions
+
+> Expand the causal chain for each dimension — derive the score from capability/fact, and provide the falsification condition (which single variable, if reversed, would change the score). This is not repeating the Evidence column; it's answering *why this score* and *what breaks it*.
+
+### Technology Barriers [Score]
+[Core capability / technical fact] → [Why competitors can't catch up: $ / time / IP / process secret] → [How far ahead] → Score [X]
+**Breaks if**: [Specific variable], because [physical / structural reason — must be an observable single event]
+
+### Customer Lock-in [Score]
+[Lock-in mechanism: bundled suite / certification cycle / redesign cost] → [Quantified switching cost: $ / time / risk] → [Any case of a major customer actually switching?] → Score [X]
+**Breaks if**: [Specific variable]
+
+### Scale Effects [Score]
+[How scale drives cost down: procurement leverage / fixed-cost absorption / learning curve] → [Gross margin trend evidence: rev vs GM relationship over past 3-5 years] → Score [X]
+**Breaks if**: [Specific variable]
+
+### Regulatory / Certification [Score]
+[Certification type and cycle] → [Is this a gatekeeping condition or a bonus?] → Score [X]
+**Breaks if**: [Specific variable]
+
+### Brand [Score]
+[Premium evidence or lack thereof: ASP vs peer / used-equipment residual value / customer specification rate] → Score [X]
+**Breaks if**: [Specific variable]
+
 ## Moat Trajectory
 
 | Dimension | Current | 3 Years Out | Driver |
@@ -164,6 +201,81 @@ If a PE fund gave you $2B to replicate this business within 3 years:
 - Why wouldn't customers switch? Even if you were 20% cheaper? (= real strength of customer lock-in)
 ~~~
 
+### Paradigm-Shift Moat Analysis (Industry-Level)
+
+> Use when: a technology / regulatory / competitive paradigm change → how moat is reallocated across industry segments. The core task is **causal chain transmission**: starting from the physical / engineering facts of the paradigm change, derive the barrier direction change for each segment, and provide a falsification condition for each derivation.
+
+~~~markdown
+## Verdict First
+
+One sentence: [Paradigm change] → moat is [not simply weakened / but reallocated — which segments deepen / which disappear / which emerge from nothing] → core tension: [one sentence capturing the key contradiction]
+
+## One Diagram
+
+```
+[Old Paradigm]          →        [New Paradigm]
+
+Segment A      ████████████ High     ████████████████████ Very High ↑↑
+Segment B      ██████████ High       ██████████████ High ↑
+Segment C           Does not exist       ████████████████ 🆕 Brand New
+Segment D      ████████ Mid-High       ██ → ╳ Gone ⬇⬇
+Segment E      ██████ Mid             ██████ Mid →
+```
+
+> Label each segment's direction: ↑↑ Surging / ↑ Deepening / → Stable / ↓ Weakening / ↓↓ Vanishing / 🆕 From Zero to One
+
+## Segment Deep-Dive
+
+### [Segment Name] — [Direction]
+
+**Where the moat came from under [Old Paradigm]**
+1-2 paragraphs explaining the barrier nature of this segment under the old paradigm — not just "good technology," but why entry and switching are hard. If it was a commodity with no moat under the old paradigm, say so directly.
+
+**What [New Paradigm] changes**
+Physical / engineering-level changes, not business-level. Must be quantified ("fiber count from 1-2 to 16-64" not "more demand"). Explain the physical mechanism — what the substrate changes from and to, what the process changes from and to, what precision moves from and to.
+
+**Why the moat deepens / weakens (root cause)**
+Derive barrier changes from physical changes, in one sentence all the way through. Cannot stop at "more difficult" or "competition intensifies" — must state: physical variable X changes → barrier dimension Y changes → score moves from A to B.
+
+**What would break this logic**
+Counterfactual condition — which single variable, if reversed, would invalidate this segment's analysis. Must be an observable single event ("Huntkey breaks through ±1μm precision"), not a vague trend ("competition intensifies").
+
+**Scoring**
+
+| Dimension | Old Paradigm | New Paradigm | Change | Rationale | Break |
+|---|---|---|---|---|---|
+| Technology Barriers | X | Y | ↑/↓/→ | One sentence | What condition breaks it |
+| Customer Lock-in | | | | | |
+| Scale Effects | | | | | |
+| Regulatory / Certification | | | | | |
+| Brand | | | | | |
+
+## Cross-Cutting Factor Scan
+
+Factors that cut across segments — e.g., "Will general semiconductor giants cross over into this?" or "Is the customer shift from Type A to Type B good or bad?" Each factor gets 1-2 paragraphs + ASCII comparison diagram where warranted.
+
+## Summary Table
+
+| Segment | Old→New Change | One-Liner Root Cause | Winners | Losers |
+|---|---|---|---|---|
+| Segment A | ↑↑ | [Physical root cause] | [Company name] | [Company name] |
+| Segment B | ↑ | ... | | |
+| Segment C | 🆕 | ... | | |
+| Segment D | ↓↓ | ... | | |
+| Segment E | → | ... | | |
+
+## Routing
+
+| Next Step | Skill |
+|---|---|
+| [Action] | `/skill-name` |
+
+## Resources
+
+- [S1](url) — description
+- [I1](url) — description
+~~~
+
 ## Anti-Patterns
 
 - ❌ No scoring anchor — cannot explain the difference between an 8 and a 7
@@ -177,9 +289,16 @@ If a PE fund gave you $2B to replicate this business within 3 years:
 - ❌ Treating a single-generation product advantage as a structural barrier
 - ❌ Not re-evaluating under the next-generation paradigm
 
+**Causal chain specific anti-patterns**:
+
+- ❌ Causal chain stops at "demand increases / competition intensifies" — must dig down to the physical / engineering / structural root cause
+- ❌ "Breaks if" describes a vague trend rather than an observable single event — "competitive landscape deteriorates" is not falsifiable; "Huntkey breaks through ±1μm" is
+- ❌ Paradigm shift analysis lumps all segments together — the same paradigm change can push different segments in completely opposite directions
+
 ## Length Benchmark
 
-600-1000 words + 1 scorecard + 1 trajectory table + radar chart + killer question.
+**Mode A (Single Entity)**: 800-1200 words + scorecard + causal chain + trajectory table + radar chart + killer question.
+**Mode B (Paradigm Shift)**: 1500-2500 words + one diagram + segment deep-dives (each with scoring table) + cross-cutting factor scan + summary table. The more segments, the longer — but each segment's causal chain must be fully developed.
 
 ## Workflow Linkage
 
