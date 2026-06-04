@@ -172,7 +172,7 @@ Rating hard standards:
 
 **Product/equipment photographs are mandatory**. Source priority: company product page hero image → web search → `[缺图]`.
 
-**Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS, writing to `_cache/images/<slug>-<product>.<ext>`. `<ext>` uses the `extension` returned by the script. See `stock-quickread` SKILL.md §1 Focus Business Image section for details.
+**Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 ## Artifact / Save Strategy
 

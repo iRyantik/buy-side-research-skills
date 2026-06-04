@@ -164,6 +164,14 @@ def _check_content(path: str, text: str, display: str):
               f"{', '.join(missing_images[:3])}. "
               f"Go back to Step 5 and download them before writing.")
 
+    # --- CHECK 6a: No browser_take_screenshot in image workflow ---
+    SCREENSHOT_RE = re.compile(r'browser_take_screenshot', re.IGNORECASE)
+    if SCREENSHOT_RE.search(text):
+        block(f"Blocked by pre_write_gate: {display} uses browser_take_screenshot "
+              f"for image capture. Use python _scripts/shared/download-image.py instead. "
+              f"browser_take_screenshot produces low-quality images. "
+              f"download-image.py provides proper image download with cache and Tier 1-2 fallback.")
+
     # --- CHECK 7: [缺图] must have download attempt ---
     QUE_TU_RE = re.compile(r'\[缺图\]')
     if QUE_TU_RE.search(text):

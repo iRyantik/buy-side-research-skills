@@ -94,10 +94,9 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 │  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
 │
 ├─ Step 5: 图片下载（HARD GATE——以下每一步必须执行，不可跳过）
-│  5a. 读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
-│  5b. Playwright MCP browser_run_code_unsafe → 解码 base64 → 写入 _cache/images/<product>.<ext>
+│  5a. python `_scripts/shared/download-image.py`Playwright MCP browser_run_code_unsafe → 解码 base64 → 写入 _cache/images/<product>.<ext>
 │  5c. Playwright 失败 → curl 直接取产品页 HTML → 提取 <img> src → curl 下载图片
-│  5d. 以上全失败 → 调用 Playwright browser_navigate 到产品页 → browser_take_screenshot
+│  5d. 以上全失败 → 调用 Playwright browser_navigate 到产品页 → browser_run_code_unsafe (via download-image.py)
 │  5e. 以上全失败 → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
 │  5f. 标 [缺图] ——仅在 ledger 有 ≥1 条 image download attempt 记录后才允许
 │  Gate: ls _cache/images/<product>.* 有文件 → 通过。无文件 且 无 attempt 记录 → STOP，不可进入 Step 6。
@@ -206,9 +205,7 @@ flowchart LR
 > 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
 >
 > **下载方法**（需要 Playwright MCP 插件）：
-> 1. 读 `_scripts/download-product-image.js`
-> 2. 替换 `{{TARGET_URL}}` 为目标页面 URL（公司 Media Kit → 产品页 → Google Images 搜索）
-> 3. 调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
+> 1. python `_scripts/shared/download-image.py`调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
 > 4. 解码返回的 `images[0].base64`，写入带实际 extension 的目标路径
 >    - Windows PowerShell: `[IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($image.base64))`
 >    - macOS: `IMAGE_BASE64="$base64" OUT_PATH="$outPath" python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["OUT_PATH"]).write_bytes(base64.b64decode(os.environ["IMAGE_BASE64"]))'`

@@ -64,6 +64,29 @@ source: [S#](url) or [I#](url)
 
 ---
 
+## 2.5 图片获取链
+
+```
+python _scripts/shared/download-image.py --logo <TICKER>         # Logo 模式（自动缓存+命名）
+python _scripts/shared/download-image.py <url> --output <slug>   # 产品/设备图
+```
+
+自动化 Tier 1→2 回退：
+
+| Tier | 方法 | 说明 |
+|---|---|---|
+| 1 | HTTP | `urllib` 直接下载；logo 模式自动查 Google Finance→Wikipedia→公司首页 |
+| 2 | Playwright MCP | 脚本输出指令，agent 执行 `browser_navigate` + `browser_evaluate` 提取 base64 |
+| 3 | `[缺图]` | 全部失败，标记 `[缺图]` |
+
+缓存：`_cache/images/` + `.cache.json` 索引，workspace 级跨 skill 共享。同一 ticker logo 只下载一次。
+
+Logo 命名：`<TICKER>-logo.{ext}`（自动）。产品图命名：`<slug>.{ext}`（手动 `--output` 指定）。
+
+**禁止** `browser_take_screenshot` 代替下载——hook `pre_write_gate` CHECK 6a 直接 block。
+
+---
+
 ## 4. 产出合约
 
 ### 4.1 结构底限

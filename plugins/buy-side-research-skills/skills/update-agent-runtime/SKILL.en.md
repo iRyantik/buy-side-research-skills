@@ -105,7 +105,7 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 ### C. Utility scripts (`_scripts/`)
 
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
-- `download-product-image.js` — Playwright image-download helper
+- `download-image.py` — unified image download (logo + product, Tier 1→2, cache)
 
 **C2 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
 

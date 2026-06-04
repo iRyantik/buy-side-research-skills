@@ -170,7 +170,7 @@ Rating hard standards：
 
 **产品/设备实物图必须**。来源优先级：公司产品页 hero image → web search → `[缺图]`。
 
-**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写 `_cache/images/<slug>-<product>.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1 焦点业务图片段。
+**下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ `[缺图]`。
 
 ## Artifact / 保存策略
 

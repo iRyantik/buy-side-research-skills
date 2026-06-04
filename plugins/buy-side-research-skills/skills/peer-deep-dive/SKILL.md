@@ -242,7 +242,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 > 竞争力指标、核心客户、护城河等已经在 §4.3 表里，这里不重复。每公司配 logo（下载到 _cache/images/<ticker>-logo.png），找不到标 [缺 logo]。
 >
-> **Logo 下载**：读 `_scripts/download-product-image.js`，设 `{{SELECTOR}}` 为 logo 选择器（如 `.logo img`），调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，其余流程同产品图下载。
+> **Logo 下载**：读 `_scripts/download-image.py`，设 `{{SELECTOR}}` 为 logo 选择器（如 `.logo img`），调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，其余流程同产品图下载。
 
 ### §6 Cross-Cut Insight
 

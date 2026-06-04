@@ -105,7 +105,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> Logo 下载：读 `_scripts/download-product-image.js`，设 `{{SELECTOR}}` 为 `.logo img` 或公司首页 logo 选择器，调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，下载到 `_cache/images/<ticker>-logo.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+> Logo 下载：读 `_scripts/download-image.py`，设 `{{SELECTOR}}` 为 `.logo img` 或公司首页 logo 选择器，调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，下载到 `_cache/images/<ticker>-logo.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 

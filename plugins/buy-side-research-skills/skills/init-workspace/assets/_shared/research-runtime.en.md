@@ -64,6 +64,29 @@ Minimum 1 triplet (3 lines) required by `subagent_protocol` hook.
 
 ---
 
+## 2.5 Image Download
+
+```
+python _scripts/shared/download-image.py --logo <TICKER>         # Logo mode (auto cache + naming)
+python _scripts/shared/download-image.py <url> --output <slug>   # Product/equipment image
+```
+
+Automated Tier 1→2 fallback:
+
+| Tier | Method | Description |
+|---|---|---|
+| 1 | HTTP | `urllib` direct download; logo mode auto-checks Google Finance→Wikipedia→Company homepage |
+| 2 | Playwright MCP | Script outputs instruction; agent executes `browser_navigate` + `browser_evaluate` to extract base64 |
+| 3 | `[missing]` | All tiers exhausted, mark `[missing image]` |
+
+Cache: `_cache/images/` + `.cache.json` index, workspace-level, cross-skill shared. Same ticker logo downloads once.
+
+Logo naming: `<TICKER>-logo.{ext}` (auto). Product naming: `<slug>.{ext}` (manual `--output`).
+
+**Forbidden**: `browser_take_screenshot` for image capture — hook `pre_write_gate` CHECK 6a blocks it.
+
+---
+
 ## 4. Artifact Output Contract
 
 ### 4.1 Structure Floor

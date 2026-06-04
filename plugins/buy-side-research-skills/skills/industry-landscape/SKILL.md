@@ -135,7 +135,7 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 ## 图片要求
 
-**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+**下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ `[缺图]`。
 
 | 图片类型 | 必须 | 来源 |
 |---|---|---|

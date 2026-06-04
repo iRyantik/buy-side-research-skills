@@ -70,7 +70,7 @@ First translate the company's disclosed buckets into real business — do not ac
 
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file. Image source priority: ① Company Media Kit → ② Product page hero → ③ web search → ④ industry representative image → ⑤ `[缺图]` (image missing). See `stock-quickread` SKILL.md for details.
+> **Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 When encountering breakdowns like `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, immediately trigger the Senior Analyst Radar: these may not be ordinary parallel segments, but rather a mixed breakdown across the gas turbine system value chain — product units, ancillary equipment, services, controls, or end-market dimensions.
 
@@ -136,7 +136,7 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 |---|---|---|---|---|
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file. Image source priority: ① Company Media Kit → ② Product page hero → ③ web search → ④ industry representative image → ⑤ `[缺图]` (image missing). See `stock-quickread` SKILL.md for details.
+> **Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 ## 2. Business Reality → Model Driver
 

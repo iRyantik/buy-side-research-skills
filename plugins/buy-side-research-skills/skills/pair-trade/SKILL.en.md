@@ -107,7 +107,7 @@ Followed by a setup table:
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> Logo download: read `_scripts/download-product-image.js`, set `{{SELECTOR}}` to `.logo img` or the company homepage logo selector, invoke the current session's Playwright MCP `browser_run_code_unsafe`, download to `_cache/images/<ticker>-logo.<ext>`. `<ext>` uses the `extension` returned by the script. See `stock-quickread` SKILL.md §1 for details.
+> Logo download: read `_scripts/download-image.py`, set `{{SELECTOR}}` to `.logo img` or the company homepage logo selector, invoke the current session's Playwright MCP `browser_run_code_unsafe`, download to `_cache/images/<ticker>-logo.<ext>`. `<ext>` uses the `extension` returned by the script. See `stock-quickread` SKILL.md §1 for details.
 
 [Insert Mermaid flowchart — pair spread logic: entry spread → converge mechanism → target/exit/kill. Example below.]
 

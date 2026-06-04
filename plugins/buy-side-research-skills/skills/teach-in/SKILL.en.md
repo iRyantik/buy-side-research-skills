@@ -123,7 +123,7 @@ Closing trio (after Layer 6, required):
 
 Download to `_cache/images/`; embed in artifact as `![Description](relative path)`.
 
-**Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` + set `{{MAX_IMAGES}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file, using the `extension` returned by the script. See `stock-quickread` SKILL.md §1 for details.
+**Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 **ASCII architecture diagrams**: I will draw them. At least 1 per layer.
 

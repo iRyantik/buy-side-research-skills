@@ -96,8 +96,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
-│  5a. Read _scripts/download-product-image.js → replace {{TARGET_URL}}
-│  5b. Playwright MCP browser_run_code_unsafe → decode base64 → write _cache/images/<product>.<ext>
+│  5a. python `_scripts/shared/download-image.py`Playwright MCP browser_run_code_unsafe → decode base64 → write _cache/images/<product>.<ext>
 │  5c. Playwright fails → curl product page HTML directly → extract <img> src → curl download image
 │  5d. All above fail → Playwright browser_navigate to product page → browser_take_screenshot
 │  5e. All above fail → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed

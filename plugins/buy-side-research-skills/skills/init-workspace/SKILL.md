@@ -38,7 +38,6 @@ The invariant is separation of concerns:
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
 | `references/` | `references/` | Overwrite |
 | `_shared/` (full tree) | `_shared/` | Overwrite |
-| `_scripts/download-product-image.js` | `_scripts/download-product-image.js` | Overwrite |
 | `_scripts/shared/` (full tree) | `_scripts/shared/` | Overwrite |
 | `_scripts/verify-runtime.py` | `_scripts/verify-runtime.py` | Overwrite |
 | `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |

@@ -138,7 +138,7 @@ Takeaway: what direction competition in this industry is moving.
 
 ## Image Requirements
 
-**Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → call the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS for writing files, use the `extension` returned by the script for the file extension. See `stock-quickread` SKILL.md §1 for details.
+**Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 | Image Type | Required | Source |
 |---|---|---|
