@@ -48,7 +48,17 @@ skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证�
 
 ### 2.2 Source 纪律
 
-**禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+**核心规则：WebSearch 摘要里的任何数字（市占率、增速、订单金额、客户数、精度）禁止直接写入 artifact。**
+
+每个数字必须从原文页面亲眼验证——打开 URL 确认数字在原文中存在。摘要可能对、可能错。
+
+**验证链路（强制）**：
+```
+1. WebSearch 返回摘要 → 找到候选 URL
+2. WebFetch / Playwright browser_navigate 打开该 URL
+3. 在原文中找到该数字 → 确认 URL 和数字匹配 ✅ → 写入 artifact
+4. 原文中找不到 → 标 [需查证] 或找新 source
+```
 
 **Source 优先级（强制）**：
 
@@ -67,6 +77,16 @@ skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证�
 同一 claim 只引用最高优先级的一个 source。
 例：Revenue → actuals 已有 → 不标 [S1]。Q1 订单 → actuals 没 → [S1]。TSMC占60%+ → 公司不披露 → [I1]。
 ```
+
+**禁止**：
+- ❌ 摘要说「市占率超 50%」→ 挂一个"看起来相关"的 URL 就写进 artifact
+- ❌ 同一 URL 下挂多个未经验证的 claim
+- ❌ 个人博客当行业数据 source
+- ❌ Source 标注与实际内容不符（张冠李戴——标称"产品页"但页面讲的是别的东西）
+
+**自检——读完本节后确认**：
+- [S#] 和 [I#] 的区别是什么？Revenue 数据从哪拿，标 [S1] 还是 [I1]？
+- WebSearch 摘要说 TSMC 市占 60%，你能直接用吗？下一步应该做什么？
 
 ### 2.1 资料收集
 
@@ -169,3 +189,24 @@ Agent 保存 artifact 前完成：
 3. `COVERAGE.md` 更新覆盖状态（如有）
 
 详见 `references/policy/research-policy-baseline.md` §9-11。
+
+---
+
+## 6. 写 Artifact 前逐条确认
+
+**写完 artifact 正文后、保存前，逐条自检——任一条不通过 → 不要保存，先修复。**
+
+```
+□ 1. 每个数字来自 actuals（Tier 0）或 WebFetch/Playwright 打开的原文页面（Tier 1-2），不是 WebSearch 摘要
+□ 2. 每个 [S#]/[I#] 在 evidence ledger 中有对应 entry（hook: evidence_ledger_floor Rule 0）
+□ 3. 每个 [I#] 有 ≥1 条 Tier 1-2 验证记录（hook: evidence_ledger_floor Rule 4）
+□ 4. 没有裸 [actuals]（§2.2：从 source_map 取 [S#] 标签）
+□ 5. 没有 browser_take_screenshot（用 download-image.py）
+□ 6. 图片已下载到 _cache/images/，缓存索引已更新
+□ 7. [缺图] 仅在全部 tier 失败后使用，ledger 有 attempt 记录
+□ 8. [需查证] 不超过 8 个（hook: pre_write_gate CHECK 8）
+□ 9. 表格 header/separator/data 列数一致，≤12 列（hook: pre_write_gate CHECK 13）
+□ 10. Mermaid 图用了合法类型（quadrantChart 不是 scatterchart）（hook: mermaid_syntax）
+□ 11. `## Resources` 节格式正确，每个 label 是 [S#] 或 [I#]
+□ 12. `## Appendix: Financial Data` 已嵌入（actuals-to-appendix.py 先跑，不留占位符）
+```

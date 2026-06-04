@@ -48,7 +48,15 @@ In skill artifacts, every [I#] source must pass at least Tier 1-2 verification (
 
 ### 2.2 Source Discipline
 
-**Never write claims using numbers from WebSearch summaries.** Summaries may be wrong. Every external fact claim must come from the original page.
+**Core rule: Never write claims using numbers from WebSearch summaries.** Market share, growth rates, order amounts, customer counts, precision specs — every number must be verified by opening the source page with your own eyes. Summaries may be right; they may be wrong.
+
+**Verification chain (mandatory)**:
+```
+1. WebSearch returns summary → find candidate URL
+2. WebFetch / Playwright browser_navigate opens that URL
+3. Find the number in the original page → confirm URL matches number ✅ → write to artifact
+4. Number NOT found in original page → mark [needs verification] or find new source
+```
 
 **Source Priority (mandatory)**:
 
@@ -67,6 +75,16 @@ In skill artifacts, every [I#] source must pass at least Tier 1-2 verification (
 One claim = one source at the highest priority.
 Example: Revenue -> already in actuals -> don't label [S1]. Q1 orders -> not in actuals -> [S1]. TSMC 60%+ -> company doesn't disclose -> [I1].
 ```
+
+**Forbidden**:
+- ❌ Summary says "50%+ market share" → attach a plausible-looking URL → write to artifact
+- ❌ Multiple unverified claims under one URL
+- ❌ Personal blogs as industry data sources
+- ❌ Source label doesn't match actual page content (label says "product page" but page is about lasers)
+
+**Self-check — after reading this section, confirm**:
+- What's the difference between [S#] and [I#]? Where does Revenue data come from — [S1] or [I1]?
+- WebSearch summary says TSMC has 60% share. Can you use that directly? What should you do next?
 
 
 ### 2.1 Material Collection
@@ -170,3 +188,24 @@ Agent completes before saving artifact:
 3. Update `COVERAGE.md` (if present)
 
 See `references/policy/research-policy-baseline.md` §9-11.
+
+---
+
+## 6. Pre-Artifact Checklist
+
+**After writing the artifact body, before saving — go through each item. Any FAIL → fix first, don't save.**
+
+```
+□ 1.  Every number comes from actuals (Tier 0) or WebFetch/Playwright verified original page (Tier 1-2), NOT WebSearch summary
+□ 2.  Every [S#]/[I#] has a corresponding entry in evidence ledger (hook: evidence_ledger_floor Rule 0)
+□ 3.  Every [I#] has ≥1 Tier 1-2 verification record (hook: evidence_ledger_floor Rule 4)
+□ 4.  No bare [actuals] (§2.2: read [S#] tags from source_map)
+□ 5.  No browser_take_screenshot (use download-image.py)
+□ 6.  Images downloaded to _cache/images/, cache index updated
+□ 7.  [missing] only used after all tiers exhausted, ledger has attempt record
+□ 8.  [needs verification] count ≤ 8 (hook: pre_write_gate CHECK 8)
+□ 9.  Table header/separator/data column counts match, ≤12 columns (hook: pre_write_gate CHECK 13)
+□ 10. Mermaid diagrams use valid types (quadrantChart not scatterchart) (hook: mermaid_syntax)
+□ 11. `## Resources` section format correct, each label is [S#] or [I#]
+□ 12. `## Appendix: Financial Data` embedded (actuals-to-appendix.py ran first, no placeholder)
+```
