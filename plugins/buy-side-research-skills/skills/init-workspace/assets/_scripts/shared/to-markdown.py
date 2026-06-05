@@ -182,15 +182,21 @@ def _xlsx_to_md(sheets: list) -> str:
     return "\n".join(lines)
 
 
-def _cache_header(source_url: str, pages: int = 0) -> str:
-    return (
-        "<!--\n"
-        f"  source: {source_url}\n"
-        f"  downloaded: {datetime.now().strftime('%Y-%m-%d')}\n"
-        f"  converter: to-markdown.py\n"
-        + (f"  pages: {pages}\n" if pages else "")
-        + "-->\n\n"
-    )
+def _cache_header(source_url: str, pages: int = 0, source_type: str = "",
+                  ticker: str = "") -> str:
+    """Generate self-describing metadata header for cached markdown."""
+    parts = [
+        f"  source_url: {source_url}",
+        f"  downloaded: {datetime.now().strftime('%Y-%m-%d')}",
+        f"  converter: to-markdown.py",
+    ]
+    if source_type:
+        parts.append(f"  source_type: {source_type}")
+    if ticker:
+        parts.append(f"  ticker: {ticker}")
+    if pages:
+        parts.append(f"  pages: {pages}")
+    return "<!--\n" + "\n".join(parts) + "\n-->\n\n"
 
 
 def main():
@@ -203,23 +209,37 @@ def main():
                    help="Delete source file after successful cache")
     p.add_argument("--auto", action="store_true",
                    help="Silent mode: suppress stdout (for hook-driven calls)")
+    p.add_argument("--source-type-top", default="",
+                   help="Top-level cache dir (disclosure/sell-side/institution/primary/web/inbox)")
+    p.add_argument("--source-type-sub", default="",
+                   help="Sub-directory (annual/quarterly/transcript or house/source name)")
+    p.add_argument("--output", help="Write markdown to this exact path (overrides --cache path logic)")
     args = p.parse_args()
 
     md, probe = convert(args.file, args.format)
 
     # Cache if requested
-    if args.cache:
-        ticker, desc = args.cache
-        ws = Path.cwd()
-        cp = _cache_path(ws, ticker, f"{desc}")
+    if args.cache or args.output:
+        if args.output:
+            cp = Path(args.output)
+        else:
+            ticker, desc = args.cache
+            ws = Path.cwd()
+            cp = _cache_path(ws, ticker, f"{desc}")
         cp.parent.mkdir(parents=True, exist_ok=True)
         pages = probe.get("pages", 0) if probe else 0
-        header = _cache_header(args.file, pages)
+        source_type = f"{args.source_type_top}/{args.source_type_sub}" if (args.source_type_top and args.source_type_sub) else ""
+        header = _cache_header(
+            source_url=args.file,
+            pages=pages,
+            source_type=source_type,
+            ticker=(args.cache[0] if args.cache else ""),
+        )
         with open(cp, "w", encoding="utf-8") as f:
             f.write(header + md)
         print(f"  Cached: {cp}", file=sys.stderr)
         # Delete source file on success (hook-driven auto-cache)
-        if args.rm and args.cache:
+        if args.rm:
             try:
                 os.remove(args.file)
                 print(f"  Deleted: {args.file}", file=sys.stderr)

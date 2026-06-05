@@ -120,11 +120,27 @@ PDF → to-markdown.py 调 pdf-extract --smart:
 - **A 轨**：来源 URL 匹配官方 IR / 监管 filing 渠道（SEC/HKEX/TDNET/DART/巨潮/MOPS 等多市场）
 - **B 轨**：文件名含一手资料关键词（annual/quarterly/earnings/transcript/prospectus/10-K/20-F/招股/年报/季报/決算 等）
 
-**动作**：Hook 自动调用 `to-markdown.py --cache <TICKER> <desc> --rm`：
-1. 提取 ticker → 推导缓存路径
-2. 转换为 markdown 并缓存到 `industry/<slug>/companies/<ticker>/_cache/<TICKER>-<desc>.md`
-3. 删除原始 PDF
-4. 转换失败（扫描件 text < 200 chars / 超时 120s）→ 保留 PDF + warn
+**动作**：Hook 自动推断 source type → 推导缓存路径 → `to-markdown.py --output <path> --rm`：
+1. 从 URL + 文件名推断 source type（disclosure/annual、disclosure/quarterly 等）
+2. 计算缓存路径（按来源类型分层），见下方文件树
+3. 转换为 markdown 并写入自描述元数据头部（`source_url / source_type / ticker / pages`）
+4. 删除原始 PDF
+5. 转换失败（扫描件 text < 200 chars / 超时 120s）→ 保留 PDF + warn
+
+**缓存路径**（按来源类型分层）：
+
+| 类型 | 路径 | 命名 |
+|---|---|---|
+| 年报/10-K/20-F | `_cache/disclosure/annual/` | `FY<year>-<desc>.md` |
+| 季报/10-Q | `_cache/disclosure/quarterly/` | `<year>-Q<n>-<desc>.md` |
+| Transcript | `_cache/disclosure/transcript/` | `<year>-Q<n>-earnings-call.md` |
+| 招股书/S-1 | `_cache/disclosure/prospectus/` | `<year>-IPO-<desc>.md` |
+| 其他 filing | `_cache/disclosure/filing/` | `<date>-<form-type>.md` |
+| 卖方报告 | `_cache/sell-side/<house>/` | `<house>-<date>-<ticker>-<note>.md` |
+| 行业机构 | `_cache/institution/<source>/` | `<source>-<date>-<topic>.md` |
+| 一手调研 | `_cache/primary/<type>/` | `<date>-<company>-<type>.md` |
+| 网页快照 | `_cache/web/` | `<date>-<slug>.md` |
+| 未分类 | `_cache/inbox/` | 兜底 |
 
 **不需满足** artifact 引用条件——一手资料本身就是缓存理由。
 

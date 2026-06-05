@@ -133,6 +133,7 @@ def check(ctx: dict):
     """Check file targets for source contract violations.
     Only enforces on actual files (kind='file'), not inline/assistant messages —
     meta-discussion about source labels should not trigger the hook."""
+    workspace_root = ctx.get("cwd", "")
     for target in ctx.get("targets", []):
         # Only enforce on actual files written to disk
         if target.get("kind") != "file":
@@ -140,7 +141,12 @@ def check(ctx: dict):
         text = target.get("text", "")
         if not text:
             continue
+        filepath = target.get("path", "")
         display = target.get("display", "unknown")
+        # Skip files outside the current workspace (e.g., plugin repo, temp dirs)
+        if workspace_root and filepath:
+            if not os.path.abspath(filepath).startswith(os.path.abspath(workspace_root)):
+                continue
         is_file = target.get("kind") == "file"
         is_artifact = is_file and _is_research_artifact(display)
 
