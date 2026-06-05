@@ -65,7 +65,7 @@ Auto-detect all installed hosts:
 For each detected host:
 
 1. Update marketplace plugin to latest release
-2. Create/populate plugin cache with latest version directory (copy marketplace skills)
+2. Create/populate plugin cache with latest version directory (copy marketplace skills + `.claude-plugin/` + `.codex-plugin/` — use `shopt -s dotglob` or `cp -r "$SRC/." "$DST/"` to include hidden directories)
 3. **Update host runtime pointer to latest cache version**:
    - **Claude Code**: update `~/.claude/plugins/installed_plugins.json` → set `version` and `installPath` to latest cache dir
    - **Codex**: sync latest skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
