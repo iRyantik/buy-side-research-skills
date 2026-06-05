@@ -11,6 +11,8 @@ Outputs to stdout. Stderr: engine used + page count.
 from __future__ import annotations
 
 import argparse
+import sys
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import json
 import os
 import sys
@@ -49,7 +51,7 @@ def _try_pymupdf(path: Path) -> tuple[str, list[dict]] | None:
             if tab.row_count > 1:
                 tables.append({
                     "page": page.number + 1,
-                    "rows": [[cell.text if cell.text else "" for cell in row.cells] for row in tab.rows],
+                    "rows": [[(cell.text if hasattr(cell, 'text') else str(cell)) if cell else "" for cell in row.cells] for row in tab.rows],
                 })
     doc.close()
     return "\n".join(full_text), tables
