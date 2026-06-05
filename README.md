@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.13.2 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.13.3 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,7 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
-| v5.13.2 | 2026-06-04 | Research Memory system (RESEARCH.md templates + auto-load cards + hook), topics/→industry/ path fixes across ingest/financial-data/skill.yaml, bare slug topic arg normalization, source_contract.py docstring fix |
+| v5.13.3 | 2026-06-05 | PDF auto-cache hook (multi-market IR/filing detection + auto to-markdown + delete PDF), cache-first rule in research-runtime + CLAUDE.md, to-markdown.py --rm --auto flags, common.py .pdf path detection |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |
 | v5.4.0 | 2026-06 | Source contract full injection: 27 skill output tables with Ev column, paragraph-level source density hook, table-row financial number check |

@@ -199,6 +199,10 @@ def main():
     p.add_argument("--cache", nargs=2, metavar=("TICKER", "DESC"),
                    help="Cache output to _cache/<TICKER>-<DESC>.md")
     p.add_argument("--format", help="Force format (pdf/docx/pptx/xlsx/web/text)")
+    p.add_argument("--rm", action="store_true",
+                   help="Delete source file after successful cache")
+    p.add_argument("--auto", action="store_true",
+                   help="Silent mode: suppress stdout (for hook-driven calls)")
     args = p.parse_args()
 
     md, probe = convert(args.file, args.format)
@@ -214,8 +218,16 @@ def main():
         with open(cp, "w", encoding="utf-8") as f:
             f.write(header + md)
         print(f"  Cached: {cp}", file=sys.stderr)
+        # Delete source file on success (hook-driven auto-cache)
+        if args.rm and args.cache:
+            try:
+                os.remove(args.file)
+                print(f"  Deleted: {args.file}", file=sys.stderr)
+            except OSError as e:
+                print(f"  WARN: could not delete {args.file}: {e}", file=sys.stderr)
 
-    print(md)
+    if not args.auto:
+        print(md)
 
 
 if __name__ == "__main__":

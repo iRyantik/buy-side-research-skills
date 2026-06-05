@@ -43,6 +43,7 @@ STOP_RULES = [
     "mermaid_syntax",
     "evidence_ledger_floor",
     "research_memory_gate",
+    "pdf_auto_cache",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [

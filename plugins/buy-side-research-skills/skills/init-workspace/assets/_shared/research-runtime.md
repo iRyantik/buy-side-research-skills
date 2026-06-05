@@ -113,13 +113,33 @@ PDF → to-markdown.py 调 pdf-extract --smart:
   └─ 复杂 PDF（扫描件/tables-heavy）→ 输出 probe + 建议调 /ingest
 ```
 
-#### 2.1.1 自动缓存
+#### 2.1.1 PDF 自动缓存（Hook 强制）
 
-**规则**：任何研究 workflow 中下载的重要 PDF（年报、季报、招股书、监管 filing、卖方报告、会议 transcript），必须自动转成 markdown 缓存，原始 PDF 删除。
+**规则**：任何 Bash / browser 下载的 PDF，满足以下任一条件自动触发缓存：
 
-- **触发**：PDF 来自公司 IR 页面或官方渠道，且将被 artifact 引用（≥1 个 [S#] 指向它）
-- **动作**：`to-markdown.py --cache <TICKER> <desc>` → `industry/<industry>/companies/<ticker>/_cache/<TICKER>-<desc>.md`
-- **例外**：扫描件无法提取文本 → 保留 PDF，标 `[扫描件]`；legal filing 需保留原始排版 → 保留 PDF
+- **A 轨**：来源 URL 匹配官方 IR / 监管 filing 渠道（SEC/HKEX/TDNET/DART/巨潮/MOPS 等多市场）
+- **B 轨**：文件名含一手资料关键词（annual/quarterly/earnings/transcript/prospectus/10-K/20-F/招股/年报/季报/決算 等）
+
+**动作**：Hook 自动调用 `to-markdown.py --cache <TICKER> <desc> --rm`：
+1. 提取 ticker → 推导缓存路径
+2. 转换为 markdown 并缓存到 `industry/<slug>/companies/<ticker>/_cache/<TICKER>-<desc>.md`
+3. 删除原始 PDF
+4. 转换失败（扫描件 text < 200 chars / 超时 120s）→ 保留 PDF + warn
+
+**不需满足** artifact 引用条件——一手资料本身就是缓存理由。
+
+#### 2.1.2 缓存优先
+
+**规则**：下载任何外部文件前，必须先检查本地缓存。
+
+| 文件类型 | 缓存位置 | 检查方式 |
+|---|---|---|
+| 公司披露 | `industry/<slug>/companies/<ticker>/_cache/` | `ls` / `grep` 文件名关键词 |
+| 行业报告 | `industry/<slug>/_cache/` | `ls` / `grep` |
+| 跨行业通用 | `_cache/` | `ls` / `grep` |
+
+- ✅ 命中 → 直接 Read 本地缓存，source 写 `[S#](./_cache/<path>)`
+- ❌ 未命中 → 上网下载。下载后 §2.1.1 hook 自动缓存一手资料
 
 ---
 

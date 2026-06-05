@@ -144,30 +144,6 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ---
 
-## X. Shared Runtime Tools
-
-以下共享工具位于 `_scripts/shared/`，所有 skill 通用。Agent 在需要时直接调用，不重复造轮子。
-
-| 工具 | 用途 | 调用方式 |
-|---|---|---|
-| `verify-claim.py` | 来源验证链（Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]） | `python _scripts/shared/verify-claim.py <url> --json` |
-| `download-image.py` | 图片下载（产品图/logo，含 workspace 级缓存，跨 skill 共享） | `python _scripts/shared/download-image.py --logo <TICKER>` 或 `<url> --output <slug>` |
-| `verify-runtime.py` | 一键检查全部 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
-
-**图片下载规则**：
-- Logo：`download-image.py --logo <TICKER>`（自动缓存，同一 ticker 全 workspace 只下一次）
-- 产品图：`download-image.py <url> --output <slug>`
-- 禁止 `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
-- `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
-
-**来源验证规则**：
-- 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
-- `[UNVERIFIED]` 仅在所有 tier 失败后标记
-
-详见 `_shared/research-runtime.md` 五链全文档。
-
----
-
 ## 5.5 Plugin Built-In Capabilities
 
 以下能力由 buy-side-research-skills 插件内置，无需调用 skill 即可直接使用。
@@ -180,8 +156,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
 | `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
 | `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
-| `shared/to-markdown.py` | 万能文件→markdown（PDF/Word/Excel/PPT/网页自动路由） | `<file> [--cache <TICKER> <desc>]` |
-| `shared/pdf-extract.py` | PDF 文本+表格提取 | `<file_or_url> [--smart] [--tables]` |
+| `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
 
@@ -231,12 +206,9 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 > `actuals-resolved.json` 的任何字段被更新后，**必须**找到所有引用该 ticker 数据的 artifact，同步更新数字、结论和估值。
 
 - **触发**：actuals-resolved.json 被 Write/Edit 或 external script 修改
-- **流程**：
-  1. 记下被修改的字段（如 `ebit: 225 → 350`）
-  2. `grep -r "<ticker>" industry/*/companies/` 找到所有引用该 ticker 的 artifact
-  3. 逐文件扫描：有没有用到被修改的字段？→ 有就同步改数字、narrative 和估值
-  4. 写入后验证：artifact 里的数字必须能从 actuals-resolved.json 复算
-- **关联**：来源验证纪律（`_shared/research-runtime.md` §2.2）
+- **动作**：`grep -r "<ticker>" industry/*/companies/` 找所有引用 artifact → 逐文件扫描是否用到被修改的字段 → 同步改写
+- **验证**：写完 artifact 后，artifact 里每个数字必须能从 actuals-resolved.json 复算——能对上才能过
+- **反模式**：actuals 更新了但 artifact 里留着旧推算数。artifact 里出现「~350」但 actuals 里是「225」→ 拦截
 
 ### 图片规则
 
@@ -244,6 +216,13 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 - 产品图：`download-image.py <url> --output <slug>`
 - **禁止** `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
 - `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
+
+### 缓存优先
+
+下载外部文件前先检查本地缓存：
+- 公司披露 → `industry/<slug>/companies/<ticker>/_cache/`
+- 行业报告 → `industry/<slug>/_cache/`
+- 命中直接用，未命中再上网。下载后 hook 自动缓存一手资料 PDF。
 
 ### 来源验证规则
 
@@ -319,3 +298,4 @@ skill 是决策工具，不是装饰性模板。
 
 - 本文件服务用户 research workspace。
 - 插件开发治理维护在 plugin dev repo root `CLAUDE.md`，不在本文件展开。
+
