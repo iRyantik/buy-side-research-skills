@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from html.parser import HTMLParser
 import io
 import zipfile
 from xml.etree import ElementTree
@@ -49,6 +50,72 @@ def _convert_pdf(path: Path) -> ConversionResult:
     return ConversionResult("\n\n".join(pages) + "\n", "pypdf")
 
 
+class _HtmlToMarkdown(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.parts: list[str] = []
+        self.skip_depth = 0
+        self.heading_level: int | None = None
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag in {"script", "style", "noscript", "svg"}:
+            self.skip_depth += 1
+            return
+        if self.skip_depth:
+            return
+        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            self.heading_level = int(tag[1])
+            self.parts.append("\n")
+        elif tag in {"p", "div", "section", "article", "br", "tr"}:
+            self.parts.append("\n")
+        elif tag == "li":
+            self.parts.append("\n- ")
+        elif tag in {"td", "th"}:
+            self.parts.append(" | ")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
+            self.skip_depth -= 1
+            return
+        if self.skip_depth:
+            return
+        if tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            self.heading_level = None
+            self.parts.append("\n")
+        elif tag in {"p", "div", "section", "article", "li", "tr", "table"}:
+            self.parts.append("\n")
+
+    def handle_data(self, data: str) -> None:
+        if self.skip_depth:
+            return
+        text = " ".join(data.split())
+        if not text:
+            return
+        if self.heading_level:
+            self.parts.append(f"{'#' * min(self.heading_level, 6)} {text}")
+        else:
+            self.parts.append(text)
+            self.parts.append(" ")
+
+    def markdown(self) -> str:
+        lines = []
+        current = " ".join("".join(self.parts).splitlines())
+        for raw in current.replace(" # ", "\n# ").replace(" - ", "\n- ").splitlines():
+            line = " ".join(raw.split()).strip()
+            if line and line not in lines[-2:]:
+                lines.append(line)
+        return "\n\n".join(lines).strip() + "\n" if lines else ""
+
+
+def _convert_html(path: Path) -> ConversionResult:
+    parser = _HtmlToMarkdown()
+    parser.feed(path.read_text(encoding="utf-8-sig", errors="ignore"))
+    markdown = parser.markdown()
+    if not markdown:
+        raise ConversionError("HTML conversion produced no text")
+    return ConversionResult(markdown, "html")
+
+
 def _xml_text(xml: bytes) -> list[str]:
     root = ElementTree.fromstring(xml)
     return [
@@ -84,7 +151,9 @@ def _convert_open_xml(path: Path) -> ConversionResult:
 def convert_source(path: Path) -> ConversionResult:
     """Convert a local source to Markdown without moving or deleting it."""
     suffix = path.suffix.lower()
-    if suffix in {".md", ".txt", ".html", ".htm", ".json", ".yaml", ".yml"}:
+    if suffix in {".html", ".htm"}:
+        return _convert_html(path)
+    if suffix in {".md", ".txt", ".json", ".yaml", ".yml"}:
         return ConversionResult(path.read_text(encoding="utf-8-sig"), f"text:{suffix or 'plain'}")
     if suffix == ".csv":
         return _convert_csv(path)

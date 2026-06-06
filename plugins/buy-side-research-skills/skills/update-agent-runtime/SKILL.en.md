@@ -11,7 +11,7 @@ description: Update installed host runtimes from a packaged release payload and 
 
 ## Source Of Truth
 
-- Default source: a local release payload directory, for example `_dist/buy-side-research-skills/6.0.0-rc.1/`.
+- Default source: a local release payload directory, for example `_dist/buy-side-research-skills/6.0.0-rc.2/`.
 - Post-release compatibility source: latest GitHub release, but the downloaded/unpacked payload must still pass `runtime-manager verify-release` first.
 - Release payload may only contain `.claude-plugin/`, `.codex-plugin/`, `skills/`, `runtime/`, `README.md`, manifest/hash/report files.
 - Tests, fixtures, PDFs, DB files, temporary files, and `__pycache__` must not ship in release payload.
@@ -55,9 +55,9 @@ Updated host caches from release payload `<version>` and synced the workspace ru
 ## Hosts
 | Host | Status | Version |
 |---|---|---|
-| Claude Code | updated / not installed / failed | 6.0.0-rc.1 |
-| Codex | updated / not installed / failed | 6.0.0-rc.1 |
-| .agents marketplace | updated / skipped / failed | 6.0.0-rc.1 |
+| Claude Code | updated / not installed / failed | 6.0.0-rc.2 |
+| Codex | updated / not installed / failed | 6.0.0-rc.2 |
+| .agents marketplace | updated / skipped / failed | 6.0.0-rc.2 |
 
 ## Workspace
 - plan: clean / conflicts

@@ -36,6 +36,9 @@ class SourceIntakeTest(unittest.TestCase):
         self.assertTrue(Path(result.cache_path).exists())
         manifest = json.loads(Path(result.manifest_path).read_text(encoding="utf-8"))
         self.assertEqual(result.source_id, manifest["source_id"])
+        self.assertEqual(result.source_id, manifest["content_sha256"])
+        self.assertEqual("industry/test/companies/acme", manifest["topic"])
+        self.assertEqual("sell-side", manifest["category"])
         self.assertEqual("sell-side", manifest["route"]["category"])
 
     def test_low_confidence_route_is_quarantined_not_published(self):
@@ -120,6 +123,25 @@ class SourceIntakeTest(unittest.TestCase):
         self.assertTrue(docx.exists())
         self.assertTrue(pptx.exists())
         self.assertTrue(xlsx.exists())
+
+    def test_html_converter_outputs_consumable_markdown_not_raw_html(self):
+        html = self.workspace / "source.html"
+        html.write_text(
+            """<!DOCTYPE html>
+            <html><head><title>Ignored</title><script>bad()</script></head>
+            <body><h1>Business Page</h1><p>PCB drills and routers.</p><ul><li>ULF coating</li></ul></body></html>
+            """,
+            encoding="utf-8",
+        )
+
+        result = convert_source(html)
+
+        self.assertEqual("html", result.converter)
+        self.assertIn("# Business Page", result.markdown)
+        self.assertIn("PCB drills and routers.", result.markdown)
+        self.assertIn("ULF coating", result.markdown)
+        self.assertNotIn("<html", result.markdown)
+        self.assertNotIn("bad()", result.markdown)
 
 
 if __name__ == "__main__":

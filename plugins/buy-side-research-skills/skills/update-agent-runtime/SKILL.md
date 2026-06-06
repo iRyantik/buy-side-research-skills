@@ -11,7 +11,7 @@ description: Update installed host runtimes from a packaged release payload and 
 
 ## Source Of Truth
 
-- 默认 source：本地 release payload 目录，例如 `_dist/buy-side-research-skills/6.0.0-rc.1/`。
+- 默认 source：本地 release payload 目录，例如 `_dist/buy-side-research-skills/6.0.0-rc.2/`。
 - 发布后兼容 source：latest GitHub release，但下载/解包后的内容仍必须先通过 `runtime-manager verify-release`。
 - release payload 只允许包含 `.claude-plugin/`、`.codex-plugin/`、`skills/`、`runtime/`、`README.md`、manifest/hash/report。
 - 不允许把 tests、fixtures、PDF、DB、临时文件或 `__pycache__` 带进 release payload。
@@ -55,9 +55,9 @@ description: Update installed host runtimes from a packaged release payload and 
 ## Hosts
 | Host | Status | Version |
 |---|---|---|
-| Claude Code | updated / not installed / failed | 6.0.0-rc.1 |
-| Codex | updated / not installed / failed | 6.0.0-rc.1 |
-| .agents marketplace | updated / skipped / failed | 6.0.0-rc.1 |
+| Claude Code | updated / not installed / failed | 6.0.0-rc.2 |
+| Codex | updated / not installed / failed | 6.0.0-rc.2 |
+| .agents marketplace | updated / skipped / failed | 6.0.0-rc.2 |
 
 ## Workspace
 - plan: clean / conflicts

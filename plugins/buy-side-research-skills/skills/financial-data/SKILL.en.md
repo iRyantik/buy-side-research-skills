@@ -19,6 +19,8 @@ python _scripts/financial-data.py migrate <ticker|--all>
 python _scripts/financial-data.py check-deps [--group <name>]
 ```
 
+When `--market` is omitted, the CLI performs best-effort market inference from common ticker suffixes and shapes. In a fresh workspace with no company topic yet, `fetch` creates `industry/uncategorized/companies/<ticker>/` as the default destination so the `stock-quickread` zero-to-one workflow does not require manual directory setup.
+
 ## Lite / Full
 
 Lite/Full controls field breadth, document depth, evidence, and validation strength only. It does not control the time range.

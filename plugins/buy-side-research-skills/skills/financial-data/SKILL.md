@@ -19,6 +19,8 @@ python _scripts/financial-data.py migrate <ticker|--all>
 python _scripts/financial-data.py check-deps [--group <name>]
 ```
 
+不传 `--market` 时，CLI 会按常见 ticker suffix/形态做 best-effort market inference；fresh workspace 没有 company topic 时，`fetch` 会创建 `industry/uncategorized/companies/<ticker>/` 作为默认落点，避免 `stock-quickread` 的 0→1 流程卡在手工建目录。
+
 ## Lite / Full
 
 Lite/Full 只控制字段宽度、文档深度、evidence 和验证强度，不控制时间范围。

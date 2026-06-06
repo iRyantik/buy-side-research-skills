@@ -41,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--target", action="append", default=[], help="Explicit conflict target to adopt")
     parser.add_argument("--plugin-root", help="Plugin dev repo root for build-release")
-    parser.add_argument("--version", default="6.0.0-rc.1")
+    parser.add_argument("--version", default="6.0.0-rc.2")
     parser.add_argument("--dist-root")
     return parser
 

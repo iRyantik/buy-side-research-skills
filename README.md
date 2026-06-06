@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v6.0.0-rc.1 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.0.0-rc.2 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. It verifies the release payload, updates in
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v6.0.0-rc.2 | 2026-06-06 | Zero-to-one financial-data workflow now infers common markets and creates a default company root in fresh workspaces |
 | v6.0.0-rc.1 | 2026-06-06 | Manifest-managed runtime, Source Intake runtime, canonical financial facts store, release payload verification, and update-agent-runtime host/workspace sync |
 | v5.13.7 | 2026-06-05 | PDF auto-cache hook (multi-market IR/filing detection + auto to-markdown + delete PDF), cache-first rule in research-runtime + CLAUDE.md, to-markdown.py --rm --auto flags, common.py .pdf path detection |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |

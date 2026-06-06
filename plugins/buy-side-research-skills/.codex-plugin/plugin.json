@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "6.0.0-rc.1",
+  "version": "6.0.0-rc.2",
   "description": "Journal-first buy-side equity research suite with a manifest-managed runtime, Source Intake, canonical financial facts, and research workflows.",
   "author": {
     "name": "buy-side-research-system"

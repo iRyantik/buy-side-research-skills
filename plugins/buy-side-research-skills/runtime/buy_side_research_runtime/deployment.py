@@ -462,7 +462,7 @@ def verify_release_payload(release_root: Path) -> dict[str, Any]:
     }
 
 
-def build_release_payload(plugin_root: Path, version: str = "6.0.0-rc.1", dist_root: Path | None = None) -> dict[str, Any]:
+def build_release_payload(plugin_root: Path, version: str = "6.0.0-rc.2", dist_root: Path | None = None) -> dict[str, Any]:
     """Build a packaged release payload from the plugin dev repo."""
     plugin_root = Path(plugin_root).resolve()
     dist_root = Path(dist_root or plugin_root / "_dist" / "buy-side-research-skills").resolve()
