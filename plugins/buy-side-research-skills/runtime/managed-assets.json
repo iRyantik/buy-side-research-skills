@@ -1,0 +1,273 @@
+{
+  "runtime_version": "6.0.0-dev",
+  "assets": [
+    {
+      "source": "workspace_payload/_scripts/source-intake.py",
+      "target": "_scripts/source-intake.py"
+    },
+    {
+      "source": "workspace_payload/_scripts/financial-data.py",
+      "target": "_scripts/financial-data.py"
+    },
+    {
+      "source": "workspace_payload/_scripts/runtime-manager.py",
+      "target": "_scripts/runtime-manager.py"
+    },
+    {
+      "source": "workspace_payload/_scripts/ingest.py",
+      "target": "_scripts/ingest.py"
+    },
+    {
+      "source": "workspace_payload/_scripts/shared/to-markdown.py",
+      "target": "_scripts/shared/to-markdown.py"
+    },
+    {
+      "source": "workspace_payload/_scripts/financial-data/financial_data.py",
+      "target": "_scripts/financial-data/financial_data.py"
+    },
+    {
+      "source": "buy_side_research_runtime/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/deployment.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/deployment.py"
+    },
+    {
+      "source": "buy_side_research_runtime/cli/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/cli/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/cli/runtime_manager.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/cli/runtime_manager.py"
+    },
+    {
+      "source": "buy_side_research_runtime/cli/source_intake.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/cli/source_intake.py"
+    },
+    {
+      "source": "buy_side_research_runtime/cli/financial_data.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/cli/financial_data.py"
+    },
+    {
+      "source": "buy_side_research_runtime/source_intake/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/source_intake/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/source_intake/core.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/source_intake/core.py"
+    },
+    {
+      "source": "buy_side_research_runtime/source_intake/converters.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/source_intake/converters.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/facts.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/facts.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/legacy.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/legacy.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/pipeline.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/pipeline.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/sec_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/sec_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/akshare_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/akshare_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/edinet_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/edinet_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/dart_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/dart_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/finmind_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/finmind_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/financial_data/providers/openesef_provider.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/financial_data/providers/openesef_provider.py"
+    },
+    {
+      "source": "buy_side_research_runtime/hooks/__init__.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/hooks/__init__.py"
+    },
+    {
+      "source": "buy_side_research_runtime/hooks/dispatcher.py",
+      "target": ".research-runtime/packages/buy_side_research_runtime/hooks/dispatcher.py"
+    },
+    {
+      "source": "buy_side_research_runtime/hooks/hooks.registry.yaml",
+      "target": ".research-runtime/packages/buy_side_research_runtime/hooks/hooks.registry.yaml"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/hook_entry.py",
+      "target": ".claude/hooks/hook_entry.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/common.py",
+      "target": ".claude/hooks/common.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/config/required_sections.yaml",
+      "target": ".claude/hooks/config/required_sections.yaml"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/workspace_guard.py",
+      "target": ".claude/hooks/rules/workspace_guard.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/financial_data_gate.py",
+      "target": ".claude/hooks/rules/financial_data_gate.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/pre_write_gate.py",
+      "target": ".claude/hooks/rules/pre_write_gate.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/source_contract.py",
+      "target": ".claude/hooks/rules/source_contract.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/table_render_integrity.py",
+      "target": ".claude/hooks/rules/table_render_integrity.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/mermaid_syntax.py",
+      "target": ".claude/hooks/rules/mermaid_syntax.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/image_exists.py",
+      "target": ".claude/hooks/rules/image_exists.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/data_claim_cross_check.py",
+      "target": ".claude/hooks/rules/data_claim_cross_check.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/subagent_protocol.py",
+      "target": ".claude/hooks/rules/subagent_protocol.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/skill_structure_contract.py",
+      "target": ".claude/hooks/rules/skill_structure_contract.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/fact_provenance.py",
+      "target": ".claude/hooks/rules/fact_provenance.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/claim_source_proximity.py",
+      "target": ".claude/hooks/rules/claim_source_proximity.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/evidence_ledger_floor.py",
+      "target": ".claude/hooks/rules/evidence_ledger_floor.py"
+    },
+    {
+      "source": "workspace_payload/.claude/hooks/rules/research_memory_gate.py",
+      "target": ".claude/hooks/rules/research_memory_gate.py"
+    },
+    {
+      "source": "workspace_payload/.claude/settings.json",
+      "target": ".claude/settings.json"
+    },
+    {
+      "source": "workspace_payload/.codex/hooks.json",
+      "target": ".codex/hooks.json"
+    },
+    {
+      "source": "workspace_payload/references/policy/research-policy-baseline.md",
+      "target": "references/policy/research-policy-baseline.md"
+    },
+    {
+      "source": "workspace_payload/references/policy/research-policy-baseline.en.md",
+      "target": "references/policy/research-policy-baseline.en.md"
+    },
+    {
+      "source": "workspace_payload/references/policy/statement-line-items.md",
+      "target": "references/policy/statement-line-items.md"
+    },
+    {
+      "source": "workspace_payload/references/policy/statement-line-items.en.md",
+      "target": "references/policy/statement-line-items.en.md"
+    },
+    {
+      "source": "workspace_payload/references/policy/evidence-card-schema.json",
+      "target": "references/policy/evidence-card-schema.json"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/ai-emerging.md",
+      "target": "references/kpi-drivers/ai-emerging.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/ai-emerging.en.md",
+      "target": "references/kpi-drivers/ai-emerging.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/long-cycle.md",
+      "target": "references/kpi-drivers/long-cycle.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/long-cycle.en.md",
+      "target": "references/kpi-drivers/long-cycle.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/order-driven.md",
+      "target": "references/kpi-drivers/order-driven.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/order-driven.en.md",
+      "target": "references/kpi-drivers/order-driven.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/process-industry.md",
+      "target": "references/kpi-drivers/process-industry.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/process-industry.en.md",
+      "target": "references/kpi-drivers/process-industry.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/saas-software.md",
+      "target": "references/kpi-drivers/saas-software.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/saas-software.en.md",
+      "target": "references/kpi-drivers/saas-software.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/tech-manufacturing.md",
+      "target": "references/kpi-drivers/tech-manufacturing.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/tech-manufacturing.en.md",
+      "target": "references/kpi-drivers/tech-manufacturing.en.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/utility-infra.md",
+      "target": "references/kpi-drivers/utility-infra.md"
+    },
+    {
+      "source": "workspace_payload/references/kpi-drivers/utility-infra.en.md",
+      "target": "references/kpi-drivers/utility-infra.en.md"
+    }
+  ]
+}

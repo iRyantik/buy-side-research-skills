@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Evaluate a long short pair trade hedge candidate spread logic and key risks.'
-description: 'Evaluate a long short pair trade hedge candidate spread logic and key risks.'
+description: "Evaluate a long short pair trade hedge candidate spread logic and key risks."
 tags:
   - 'pair-trade'
   - 'long-short'

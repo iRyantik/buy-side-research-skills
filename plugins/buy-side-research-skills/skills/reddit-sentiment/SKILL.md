@@ -25,7 +25,7 @@ Reddit sentiment 不是为了证明公司基本面，而是为了回答：市场
 
 ## 环境与工具
 
-如果你只是在找 workspace 级共享环境入口，先看 `init-workspace` 提供的 `_scripts/init-assets/env-setup.ps1.template`。`reddit-sentiment` 继续保留自己的 bootstrap，因为它是额外可选依赖型 skill，不与 `financial-data` / `ingest` 合并。
+`reddit-sentiment` 继续保留自己的 bootstrap，因为它是额外可选依赖型 skill，不与 `financial-data` 或 Source Intake runtime 合并。
 
 本 skill 包含 runtime 工具：
 

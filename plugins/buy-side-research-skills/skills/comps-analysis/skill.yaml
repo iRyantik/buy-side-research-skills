@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Build comparable company valuation workbooks with peer multiples and operating metrics.'
-description: 'Build comparable company valuation workbooks with peer multiples and operating metrics.'
+description: "Build comparable company valuation workbooks with peer multiples and operating metrics."
 tags:
   - comps
   - peer-multiples

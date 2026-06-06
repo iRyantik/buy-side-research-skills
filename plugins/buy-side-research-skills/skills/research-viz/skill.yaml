@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'supporting'
 summary: 'Create memo-ready and screenshot-ready HTML research visualizations paired with a saved topic artifact.'
-description: 'Create memo-ready and screenshot-ready HTML research visualizations paired with a saved topic artifact.'
+description: "Create memo-ready and screenshot-ready HTML research visualizations paired with a saved topic artifact."
 tags:
   - 'visualization'
   - 'chart'

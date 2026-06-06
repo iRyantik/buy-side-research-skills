@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: deep-work
 summary: Full timeline catalyst chain with probability-weighted impact per event.
-description: Map all catalysts on a timeline with probability, direction, magnitude, and thesis impact.
+description: "Full timeline catalyst chain with probability estimation, asymmetric payoff, and time density analysis."
 tags: [catalyst-map, catalyst, event-timeline, catalyst-chain]
 trigger:
   type: keyword

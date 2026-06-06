@@ -228,7 +228,7 @@ If only writing or reviewing skills, no external network is needed. Only consult
 
 ## Skill Directory Spec
 
-The following subdirectories are permitted under each skill directory. This is the closed list — new skills may only create directories listed here, and `init-workspace` and `update-agent-runtime` auto-discovery only processes these.
+The following subdirectories are permitted under each skill directory. This is the authoring directory spec. Workspace deployment no longer uses directory auto-discovery; it is explicitly declared by `runtime/managed-assets.json`.
 
 ### Directory Definitions
 
@@ -239,14 +239,14 @@ The following subdirectories are permitted under each skill directory. This is t
 | `assets/templates/` | User-modifiable template files | `_scripts/<skill>/` | Fill-if-missing |
 | `references/` | The skill's own reference docs | **Not deployed** — agent reads directly from plugin cache | — |
 | `examples/` | Example artifacts, example HTML | **Not deployed** — agent reads directly from plugin cache | — |
-| `.platform` | Empty marker file. Presence → skill is platform-level (init-workspace, update-agent-runtime), assets go via Class-A deployment to workspace root, excluded from Class-B auto-discovery | — | — |
+| `.platform` | Empty marker file. Presence → skill is platform-level (init-workspace, update-agent-runtime), used for authoring/release classification only; workspace payload must still be declared in the managed manifest | — | — |
 
 ### Rules
 
 1. **Not deployed ≠ not important** — `references/` and `examples/` are the skill's canonical references and examples; the agent can read them directly from plugin cache when executing the skill. Do not delete them just because they do not land in the workspace.
 2. **No runtime need, no empty directories** — if the skill does not need scripts or assets, do not create `scripts/` / `assets/`.
 3. **Do not create directories outside this list** — if a new need arises, amend this spec first, then create the directory.
-4. **Class-B auto-discovery** — `init-workspace` and `update-agent-runtime` Class-B rules simply traverse `skills/*/scripts/` + `skills/*/assets/`. Adding files to these directories → auto-deployed, zero changes needed.
+4. **Manifest-managed deployment** — `init-workspace` and `update-agent-runtime` only deploy payload files listed in `runtime/managed-assets.json`. Adding files to a skill's `scripts/` or `assets/` directory does not automatically install them into a workspace; add them explicitly to the runtime payload and managed manifest.
 
 ### Deployment Matrix Overview
 
@@ -368,7 +368,7 @@ Operations skills:
 | Skill | Purpose |
 |---|---|
 | `init-workspace` | Create / repair research workspace scaffold |
-| `ingest` | Convert raw material into source-tracked `_cache/` markdown |
+| Source Intake runtime | Register, convert, and route raw material into source-tracked `_raw/` / `_cache/` |
 | `meta-skill` | Create / modify / review this plugin's skills, metadata, docs, manifests, and governance |
 
 Active skills must remain flat at the payload root: `plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`. Do not physically move into `skills/research/` or `skills/operations/`.
@@ -540,7 +540,7 @@ Artifact policy:
 - `none`, `external_workbook`, `cache_artifact`, `workspace_scaffold`, `topic_scaffold` do not declare `naming_mode`.
 - `research-journal` only writes earned insight / Boss Brief / topic index updates; it is not a generic save target for all skills.
 - `init-workspace` uses `workspace_scaffold`, only creating / repairing the workspace.
-- `ingest` uses `cache_artifact`, only writing `_cache/` operational markdown.
+- Source Intake is a runtime capability, not a skill. It preserves `_raw/` originals and generates `_cache/` operational Markdown.
 
 Default naming tier:
 - `plain`: `stock-quickread`, `company-history`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `research-journal`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `post-earnings-quick`

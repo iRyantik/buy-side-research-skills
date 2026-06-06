@@ -1,5 +1,0 @@
-edgartools
-akshare
-edinet-tools
-dart-fss
-openesef

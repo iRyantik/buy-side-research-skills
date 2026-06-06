@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Build zero-to-one physical intuition for an unfamiliar industry with no investment judgment.'
-description: 'Build zero-to-one physical intuition for an unfamiliar industry — why it exists, what is inside, how it is made, and who does what. Pure engineering literacy, zero investment judgment. Hands off to industry-landscape or mechanism-insight for research conclusions.'
+description: "Build zero-to-one physical intuition for an unfamiliar industry — why it exists, what's inside, how it's made, and who does what. Zero investment judgment."
 tags:
   - 'teach-in'
   - 'primer'
@@ -61,7 +61,7 @@ artifact_policy:
 workflow:
   stage: 'research-primitive'
   can_follow:
-    - 'ingest'
+    - 'source-intake-runtime'
     - 'next-step'
   feeds_into:
     - 'industry-landscape'

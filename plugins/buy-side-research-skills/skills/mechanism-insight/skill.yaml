@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Deep-dive a single industry mechanism engineering principle or equipment chain with value-capture insight.'
-description: 'Deep-dive a single industry mechanism, engineering principle, or equipment chain. Explain how it works, where the bottlenecks are, and who captures value. Core value is producing an insight that can change an investment judgment. Requires product/equipment photos.'
+description: "Deep-dive a single industry mechanism engineering principle or equipment chain — explain how it works and where value is captured."
 tags:
   - 'mechanism-insight'
   - 'industry-mechanism'

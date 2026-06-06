@@ -79,7 +79,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ```
 ┌─ Step 1: /financial-data --lite <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
-│  → Write to _cache/financial-data/internal/actuals-resolved.json
+│  → Generate read-only _cache/financial-data/internal/actuals-resolved.json from facts-store.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
 │
 ├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>

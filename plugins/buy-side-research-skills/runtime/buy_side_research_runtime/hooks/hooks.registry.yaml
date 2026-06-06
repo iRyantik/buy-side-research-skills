@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {"name": "workspace_guard", "module": "legacy:rules.workspace_guard", "events": ["PreToolUse"]},
+    {"name": "financial_data_gate", "module": "legacy:rules.financial_data_gate", "events": ["PreToolUse"]},
+    {"name": "pre_write_gate", "module": "legacy:rules.pre_write_gate", "events": ["PreToolUse"]},
+    {"name": "source_contract", "module": "legacy:rules.source_contract", "events": ["PostToolUse", "Stop"]},
+    {"name": "table_render_integrity", "module": "legacy:rules.table_render_integrity", "events": ["PostToolUse", "Stop"]},
+    {"name": "mermaid_syntax", "module": "legacy:rules.mermaid_syntax", "events": ["PostToolUse", "Stop"]},
+    {"name": "image_exists", "module": "legacy:rules.image_exists", "events": ["PostToolUse"]},
+    {"name": "data_claim_cross_check", "module": "legacy:rules.data_claim_cross_check", "events": ["PostToolUse"]},
+    {"name": "subagent_protocol", "module": "legacy:rules.subagent_protocol", "events": ["PostToolUse", "SubagentStop"]},
+    {"name": "skill_structure_contract", "module": "legacy:rules.skill_structure_contract", "events": ["PostToolUse"]},
+    {"name": "fact_provenance", "module": "legacy:rules.fact_provenance", "events": ["PostToolUse"]},
+    {"name": "claim_source_proximity", "module": "legacy:rules.claim_source_proximity", "events": ["PostToolUse"]},
+    {"name": "evidence_ledger_floor", "module": "legacy:rules.evidence_ledger_floor", "events": ["PostToolUse", "Stop"]},
+    {"name": "research_memory_gate", "module": "legacy:rules.research_memory_gate", "events": ["Stop"]},
+    {"name": "source_intake_enqueue", "module": "builtin:source_intake_enqueue", "events": ["Stop"]}
+  ]
+}

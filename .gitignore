@@ -1,8 +1,11 @@
 .claude/
 !plugins/buy-side-research-skills/skills/init-workspace/assets/.claude/
 !plugins/buy-side-research-skills/skills/init-workspace/assets/.claude/**
+!plugins/buy-side-research-skills/runtime/workspace_payload/.claude/
+!plugins/buy-side-research-skills/runtime/workspace_payload/.claude/**
 RTK.md
 dist/
+_dist/
 *.zip
 *.tar.gz
 *.7z
@@ -13,6 +16,7 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .cache/
+.financial-data-cache/
 **/_tmp/
 
 node_modules/

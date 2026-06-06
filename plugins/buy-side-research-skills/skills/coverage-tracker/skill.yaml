@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: memory
 summary: Lightweight coverage state tracking — thesis stage, last deep dive, next catalyst, priority.
-description: Track covered company states with thesis stage, last review date, next catalyst date, and priority ranking.
+description: "Auto-maintained coverage state tracking — tier, direction, conviction, stage, next trigger. Any company researched in the workspace is covered."
 tags: [coverage-tracker, coverage, tracking, research-priority]
 trigger:
   type: keyword

@@ -1,4 +1,4 @@
-﻿metadata_schema_version: 1
+metadata_schema_version: 1
 name: 'meta-skill'
 id: 'meta-skill'
 display_name: 'Meta Skill'
@@ -8,7 +8,7 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'
 summary: 'Create review or update buy-side research skills metadata docs manifests and governance.'
-description: 'Create review or update buy-side research skills metadata docs manifests and governance.'
+description: "Create review or update buy-side research skills metadata docs manifests and governance."
 tags:
   - 'meta-skill'
   - 'skill-authoring'

@@ -167,6 +167,7 @@ runtime release zip 继续保持扁平 payload：
 - `.claude-plugin/`
 - `.codex-plugin/`
 - `skills/`
+- `runtime/`
 - `README.md`
 
 repo docs、authoring baseline、release notes 是否进 zip，以当期 release policy 为准；不要默认把所有 repo 文档塞进运行时包。

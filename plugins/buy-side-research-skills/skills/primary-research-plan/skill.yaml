@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Design a compliant expert call channel check survey or fieldwork plan.'
-description: 'Design a compliant expert call channel check survey or fieldwork plan.'
+description: "Design an expert call, channel check, survey, or fieldwork plan to verify a key investment hypothesis."
 tags:
   - 'primary-research-plan'
   - 'primary-research'
@@ -77,7 +77,7 @@ artifact_policy:
 workflow:
   stage: 'primary-research-design'
   can_follow:
-    - 'ingest'
+    - 'source-intake-runtime'
     - 'consensus-map'
     - 'driver-map'
     - 'alpha-thesis'

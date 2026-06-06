@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: deep-work
 summary: Score management capital allocation — buyback dividend M&A capex 10Y track record.
-description: Scorecard-based capital allocation analysis with 10-year track record on buyback, dividend, M&A, and capex ROI.
+description: "Score management capital allocation — buyback timing, dividend, M&A ROI, capex efficiency with 10Y record and anchored scoring."
 tags: [capital-allocation, management-quality, buyback, dividend, M&A, capex]
 trigger:
   type: keyword

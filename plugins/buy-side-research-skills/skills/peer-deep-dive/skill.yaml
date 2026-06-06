@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Compare companies in one industry with sourced KPI matrices and research ranking.'
-description: 'Compare companies in one industry with sourced KPI matrices, value chain position mapping, paradigm shift exposure ranking, and research ranking.'
+description: "Compare companies in one industry with sourced KPI matrices and research ranking."
 tags:
   - 'peer-deep-dive'
   - 'cross-cut'

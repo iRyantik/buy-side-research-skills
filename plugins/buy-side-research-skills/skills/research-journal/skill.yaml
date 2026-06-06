@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'memory'
 summary: 'Summarize completed research into durable topic notes and boss brief outputs.'
-description: 'Summarize completed research into durable topic notes and boss brief outputs.'
+description: "Summarize completed research into durable topic notes and boss brief outputs."
 tags:
   - 'research-journal'
   - 'topic-journal'

@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'triage'
 summary: 'Turn raw voice-transcribed meeting notes into structured research minutes with corrected names, background context, and RAG-verified claims.'
-description: 'Turn raw voice-transcribed meeting notes into structured research minutes with corrected names, background context, and RAG-verified claims.'
+description: "Turn raw voice-transcribed meeting notes into structured research minutes with corrected names, background context, and RAG-verified claims."
 tags:
   - 'meeting-minutes'
   - 'call-summary'
@@ -56,7 +56,7 @@ artifact_policy:
 workflow:
   stage: 'triage-filter'
   can_follow:
-    - 'ingest'
+    - 'source-intake-runtime'
   feeds_into:
     - 'information-impact'
     - 'stock-quickread'

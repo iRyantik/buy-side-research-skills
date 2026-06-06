@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "PreToolUse": [{"matcher": "", "hooks": [{"type": "command", "command": ["python", ".claude/hooks/hook_entry.py", "--runtime", "claude", "--event", "PreToolUse"]}]}],
+    "PostToolUse": [{"matcher": "", "hooks": [{"type": "command", "command": ["python", ".claude/hooks/hook_entry.py", "--runtime", "claude", "--event", "PostToolUse"]}]}],
+    "Stop": [{"matcher": "", "hooks": [{"type": "command", "command": ["python", ".claude/hooks/hook_entry.py", "--runtime", "claude", "--event", "Stop"]}]}],
+    "SubagentStop": [{"matcher": "", "hooks": [{"type": "command", "command": ["python", ".claude/hooks/hook_entry.py", "--runtime", "claude", "--event", "SubagentStop"]}]}]
+  }
+}

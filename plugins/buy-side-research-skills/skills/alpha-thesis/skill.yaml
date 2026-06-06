@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria.'
-description: 'Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria.'
+description: "Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria."
 tags:
   - 'thesis'
   - 'ic-memo'

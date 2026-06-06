@@ -21,7 +21,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 以下仅保留 stock-quickread 特有的执行流程：
 
 ```
-Step 1: /financial-data --lite <ticker> → actuals-resolved.json
+Step 1: `python _scripts/financial-data.py fetch <ticker> --profile lite` → generated read-only `actuals-resolved.json`
 Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
 Step 3: Discovery — WebSearch 找候选 URL
 Step 4: Verification — verify-claim.py 逐条验证（Tier 1→2→3）

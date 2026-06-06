@@ -8,7 +8,7 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'
 summary: 'Fetch A-share Hong Kong and US market evidence via Longbridge for market data price action FX ADR/AH premium filings news consensus financial snapshots and market-screen signals.'
-description: 'Fetch A-share Hong Kong and US market evidence via Longbridge for market data price action FX ADR/AH premium filings news consensus financial snapshots and market-screen signals.'
+description: "Fetch A-share Hong Kong and US market evidence via Longbridge for market data price action FX ADR/AH premium filings news consensus financial snapshots and market-screen signals."
 tags:
   - 'trusted-market-bridge'
   - 'market-bridge'

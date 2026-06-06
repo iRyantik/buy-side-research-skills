@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Map industry value chain profit pools competitive dynamics and company roster with investment judgment.'
-description: 'Map an industry value chain, profit pools, competitive dynamics, and company roster. Make an industry-level investment judgment. Requires company logo images and product photos. Hands off to candidate-screener for company prioritization and mechanism-insight for single-mechanism deep dives.'
+description: "Map industry value chain profit pools competitive dynamics and company roster with investment judgment."
 tags:
   - 'industry-landscape'
   - 'industry-map'
@@ -66,7 +66,7 @@ workflow:
   stage: 'research-foundation'
   can_follow:
     - 'teach-in'
-    - 'ingest'
+    - 'source-intake-runtime'
     - 'information-impact'
     - 'next-step'
   feeds_into:

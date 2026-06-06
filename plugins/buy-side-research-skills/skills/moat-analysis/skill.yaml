@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: deep-work
 summary: Quantify competitive moat — type, durability, testable evidence, peer comparison.
-description: Scorecard-based competitive moat analysis with testable evidence for each moat dimension.
+description: "Scorecard-based competitive moat analysis with anchored scoring, evidence grading, peer comparison, and moat trajectory."
 tags: [moat-analysis, competitive-advantage, barrier-to-entry, moat]
 trigger:
   type: keyword

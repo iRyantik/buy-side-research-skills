@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed.'
-description: 'Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed.'
+description: "Prepare for or react to earnings and decide whether thesis drivers or model assumptions changed."
 tags:
   - 'earnings'
   - 'event-driven'

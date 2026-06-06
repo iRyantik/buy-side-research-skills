@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Decompose revenue margin backlog price volume mix and segment drivers before modeling.'
-description: 'Decompose revenue margin backlog price volume mix and segment drivers before modeling.'
+description: "Decompose revenue margin backlog price volume mix and segment drivers before modeling."
 tags:
   - 'driver-map'
   - 'mechanism-insight'

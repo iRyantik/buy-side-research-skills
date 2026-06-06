@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'triage'
 summary: 'Check whether a news claim rumor note or data point is credible and research-relevant.'
-description: 'Check whether a news claim rumor note or data point is credible and research-relevant.'
+description: "Check whether a news claim rumor note or data point is credible and research-relevant."
 tags:
   - 'information-impact'
   - 'claim-check'

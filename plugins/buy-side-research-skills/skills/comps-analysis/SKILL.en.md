@@ -26,7 +26,7 @@ Each subagent independently completes two tasks:
 
   a. Fetch financial data
      /financial-data --lite <TICKER>
-     → writes _cache/financial-data/internal/actuals-resolved.json
+     → writes canonical facts-store.json and generates read-only actuals-resolved.json
 
   b. Generate evidence card
      Read actuals + WebSearch key information → output JSON per `references/policy/evidence-card-schema.json`

@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: triage
 summary: Turn a theme, event, or screen into a sourced candidate-mining funnel with dynamic L/S scenario-driven ranking.
-description: Turn a theme, event, or screen into a sourced candidate-mining funnel with dynamic L/S scenario-driven ranking.
+description: "Turn a theme, event, or screen into a sourced candidate-mining funnel for mispriced high-purity stock ideas."
 tags:
 - candidate-screener
 - candidate-mining

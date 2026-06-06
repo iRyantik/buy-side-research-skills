@@ -1,7 +1,7 @@
 {
   "name": "buy-side-research-skills",
-  "version": "5.13.7",
-  "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
+  "version": "6.0.0-rc.1",
+  "description": "Journal-first buy-side equity research suite with a manifest-managed runtime, Source Intake, canonical financial facts, and research workflows.",
   "author": {
     "name": "buy-side-research-system"
   },
@@ -27,7 +27,7 @@
     "workspace-init",
     "research-workspace",
     "workspace-scaffold",
-    "ingest",
+    "source-intake",
     "raw-material",
     "document-conversion",
     "markdown-cache",
@@ -149,7 +149,7 @@
   "interface": {
     "displayName": "Buy-Side Research Skills",
     "shortDescription": "Run buy-side equity research workflows.",
-    "longDescription": "Buy-Side Research Skills provides research workflows, financial-data ingestion, document ingest, topic organization, and modeling handoffs for source-tracked equity research workspaces.",
+    "longDescription": "Buy-Side Research Skills provides research workflows, Source Intake, canonical financial facts, topic organization, and modeling handoffs for source-tracked equity research workspaces.",
     "developerName": "buy-side-research-system",
     "category": "Research",
     "capabilities": [

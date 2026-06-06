@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.13.7 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.0.0-rc.1 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -24,7 +24,7 @@ Tell Claude or Codex:
 /update-agent-runtime
 ```
 
-Automatically pulls the latest GitHub release, updates the plugin version, and syncs workspace hooks. Run once after each release.
+Updates installed host caches from a verified release payload and transactionally syncs the workspace runtime. Run once after each release.
 
 ---
 
@@ -38,7 +38,7 @@ Automatically pulls the latest GitHub release, updates the plugin version, and s
 | **DART API Key** (Korea) | Free registration at [dart.fss.or.kr](https://dart.fss.or.kr), tell Claude "Set DART_API_KEY to xxx" |
 | **EDINET Tools** (Japan) | Tell Claude "Install EDINET dependencies." Data from [disclosure.edinet-fsa.go.jp](https://disclosure.edinet-fsa.go.jp), free |
 | **EU ESEF Package** | Download annual report from company IR page (iXBRL, .zip containing .xhtml). Provide file path to financial-data |
-| **ingest Document Conversion** | Tell Claude "Check ingest dependencies" — auto-detects and prompts for installation |
+| **Source Intake Document Conversion** | Tell Claude "Check Source Intake dependencies" — auto-detects and prompts for installation |
 | **Longbridge Account** | Register at [longbridge.com](https://longbridge.com), tell Claude "Connect Longbridge" |
 
 > Unlisted skills require no configuration — ready to use out of the box.
@@ -170,7 +170,7 @@ Tell Claude `Connect Longbridge`. Required for US/HK/SH/SZ only.
 See §1 configuration table. Japan: free. Korea: requires API key. Europe: requires ESEF package download.
 
 **Q: How to update the plugin?**
-Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub release, updates plugin + syncs workspace hooks. Run once after each new release.
+Tell Claude `/update-agent-runtime`. It verifies the release payload, updates installed host caches, and syncs the workspace runtime. Run once after each new release.
 
 ---
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v6.0.0-rc.1 | 2026-06-06 | Manifest-managed runtime, Source Intake runtime, canonical financial facts store, release payload verification, and update-agent-runtime host/workspace sync |
 | v5.13.7 | 2026-06-05 | PDF auto-cache hook (multi-market IR/filing detection + auto to-markdown + delete PDF), cache-first rule in research-runtime + CLAUDE.md, to-markdown.py --rm --auto flags, common.py .pdf path detection |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |

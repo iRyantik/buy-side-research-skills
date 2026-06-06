@@ -8,7 +8,7 @@ author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'
 summary: 'Merge a whole child topic into a parent topic and update topic indexes.'
-description: 'Merge a whole child topic into a parent topic and update topic indexes.'
+description: "Merge a whole child topic into a parent topic and update topic indexes."
 tags:
   - 'integrate'
   - 'merge'

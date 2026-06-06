@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: foundation
 summary: Bottom-up TAM SAM SOM estimation with source-quality annotations. Feeds scenario-model.
-description: Bottom-up TAM SAM SOM estimation with source-quality annotations. Feeds scenario-model.
+description: "Bottom-up TAM SAM SOM estimation — structured breakdown with source tier, confidence, and alternative scenarios per segment."
 tags: [market-sizing, TAM, SAM, SOM, market-estimation, bottom-up]
 trigger:
   type: keyword

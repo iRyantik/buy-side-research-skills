@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: deep-work
 summary: Deep-work odds memo — bull/base/bear sizing, implied value, and assumption priority for a scenario-driven thesis.
-description: Quantify a scenario thesis into a verdict-first odds memo with bull/base/bear sizing and source-tracked assumptions.
+description: "Quantify a scenario thesis into a verdict-first odds memo with bull/base/bear sizing and source-tracked assumptions."
 tags: [scenario-model, scenario-sizing, scenario-pnl, what-if]
 trigger:
   type: keyword

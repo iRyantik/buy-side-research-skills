@@ -1,118 +1,32 @@
-﻿metadata_schema_version: 1
-name: 'init-workspace'
-id: 'init-workspace'
-display_name: 'Init Research Workspace'
-version: '1.6.1'
-system_generation: '4.0.1'
-author: 'buy-side-research-system'
-namespace: 'research.equity'
-category: 'operations'
-summary: 'Initialize or repair a buy-side research workspace root scaffold and helper scripts.'
-description: 'Initialize or repair a buy-side research workspace root scaffold and helper scripts.'
-tags:
-  - 'init-workspace'
-  - 'workspace'
-  - 'workspace-scaffold'
-  - 'research-workspace'
-  - 'bootstrap'
-  - 'setup'
+metadata_schema_version: 1
+name: init-workspace
+id: init-workspace
+display_name: Init Research Workspace
+version: 2.0.0
+system_generation: 6.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: operations
+summary: Initialize or repair a workspace from the explicit managed runtime payload.
+description: "Initialize or repair a research workspace using the manifest-managed runtime payload."
 trigger:
-  type: 'keyword'
-  keywords:
-    - 'init research workspace'
-    - '初始化研究工作区'
-    - '创建研究文件夹'
-    - 'setup research'
-    - 'bootstrap workspace'
-    - '初始化 workspace'
-    - '补齐 research workspace'
-  description: '当用户要创建或修复标准 research workspace 目录结构时触发'
+  type: keyword
+  keywords: [init research workspace, 初始化研究工作区, repair research workspace]
 capabilities:
-  modes:
-    - 'New Workspace Scaffold'
-    - 'Repair Existing Workspace'
-    - 'Dry Explanation'
+  modes: [New Workspace Scaffold, Repair Existing Workspace, Plan Only]
   requirements:
-    - 'require an explicit WorkspacePath before mutating files'
-    - 'create only root workspace scaffold directories and template files'
-    - 'never initialize inside the plugin development repo or plugin install directory'
-    - 'never overwrite existing CLAUDE.md, AGENTS.md, .gitignore, or root edge-radar.md'
-    - 'do not create topic-level _raw/, _cache/, or _models/'
-    - 'do not git init'
-    - 'copy a unified environment setup template and explain common runtime environment variables, but do not install dependencies or persist secrets automatically'
-    - 'copy ingest helper scripts and dependency bootstrap when available but do not execute ingest or install dependencies'
-    - 'copy financial-data helper scripts and dependency bootstrap when available but do not execute financial-data or install dependencies'
-    - 'copy workspace hook adapters and shared hook scripts into project-local .claude/ and .codex/ so Claude Code and Codex can load the same runtime guardrails from official project config surfaces'
-    - 'treat workspace hook adapters and shared hook scripts as managed runtime assets that may be updated during repair'
-    - 'do not update installed Claude Code or Codex plugin runtimes; agent/plugin upgrades belong to update-agent-runtime'
-artifact_policy:
-  save_policy: 'workspace_scaffold'
-  default_artifact: 'workspace scaffold'
-  canonical_location: 'user-provided research workspace'
-  save_trigger: 'create or repair the workspace scaffold only after the user provides an explicit research workspace path'
-workflow:
-  stage: 'workspace-setup'
-  can_follow:
-    - 'install'
-    - 'user-setup-request'
-  feeds_into:
-    - 'ingest'
-    - 'financial-data'
-    - 'company-history'
-    - 'stock-quickread'
-    - 'next-step'
-    - 'research-journal'
-  can_trigger:
-    - 'ingest'
-    - 'financial-data'
-    - 'company-history'
-    - 'stock-quickread'
-    - 'next-step'
+    - require an explicit user workspace before mutating files
+    - deploy only runtime/managed-assets.json entries
+    - preserve unknown and user-modified files
+    - run runtime-manager verify after apply
 quality_gates:
   anti_patterns:
-    - 'initializing_inside_plugin_repo'
-    - 'overwriting_existing_workspace_files'
-    - 'git_init'
-    - 'ingesting_files'
-    - 'installing_dependencies'
-    - 'creating_topic_artifacts'
-    - 'creating_topic_level_raw_cache_or_models'
-    - 'creating_v2_state_folders'
+    - recursive_skill_asset_copy
+    - overwrite_user_files
+    - initialize_inside_plugin_repo
   required_scaffold:
-    - '_inbox'
-    - '_scripts'
-    - '_scripts/init-assets/CLAUDE.md.template'
-    - '_scripts/init-assets/AGENTS.md.template'
-    - '_scripts/init-assets/gitignore.template'
-    - '_scripts/init-assets/edge-radar.md'
-    - '_scripts/init-assets/env-setup.ps1.template'
-    - '_scripts/init-assets/.claude/settings.json'
-    - '_scripts/init-assets/.claude/hooks/'
-    - '_scripts/init-assets/.claude/hooks/_hook_common.ps1'
-    - '_scripts/init-assets/.claude/hooks/run-hook.cmd'
-    - '_scripts/init-assets/.claude/hooks/run-hook.sh'
-    - '_scripts/init-assets/.claude/hooks/hooks.registry.yaml'
-    - '_scripts/init-assets/.codex/hooks.json'
-    - '_scripts/ingest.py'
-    - '_scripts/ingest_xlsx.py'
-    - '_scripts/ingest_table_crosscheck.py'
-    - '_scripts/bootstrap-ingest-deps.ps1'
-    - '_scripts/bootstrap-ingest-deps.sh'
-    - '_scripts/requirements-ingest.txt'
-    - '_scripts/financial-data/financial_data.py'
-    - '_scripts/financial-data/bootstrap-financial-data-deps.ps1'
-    - '_scripts/financial-data/providers/sec_provider.py'
-    - '_scripts/financial-data/providers/akshare_provider.py'
-    - '_scripts/financial-data/providers/edinet_provider.py'
-    - '_scripts/financial-data/providers/dart_provider.py'
-    - '_scripts/financial-data/providers/openesef_provider.py'
-    - '_scripts/financial-data/requirements-financial-data.txt'
-    - '.claude/settings.json'
-    - '.claude/hooks/'
-    - '.claude/hooks/_hook_common.ps1'
-    - '.claude/hooks/run-hook.cmd'
-    - '.claude/hooks/run-hook.sh'
-    - '.claude/hooks/hooks.registry.yaml'
-    - '.codex/hooks.json'
-    - 'industry'
-    - 'edge-radar.md'
+    - .research-runtime/installed-manifest.json
+    - _scripts/source-intake.py
+    - _scripts/financial-data.py
+    - _scripts/runtime-manager.py
+    - .claude/hooks/hook_entry.py

@@ -9,7 +9,7 @@ namespace: research.equity
 category: research
 research_layer: triage
 summary: Post-earnings 5-min verdict — beat/miss vs consensus, guidance check, thesis status change.
-description: Quick post-earnings assessment comparing actuals to pre-print bar from earnings-setup, with thesis impact verdict.
+description: "Post-earnings 5-min verdict — three-dimension beat/miss judgment with thesis impact decision."
 tags: [post-earnings, earnings-reaction, earnings-verdict, quick-read]
 trigger:
   type: keyword

@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps.'
-description: 'Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps.'
+description: "Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps."
 tags:
   - 'consensus-map'
   - 'consensus-mapping'
@@ -78,7 +78,7 @@ artifact_policy:
 workflow:
   stage: 'expectations-foundation'
   can_follow:
-    - 'ingest'
+    - 'source-intake-runtime'
     - 'stock-quickread'
     - 'industry-landscape'
     - 'peer-deep-dive'

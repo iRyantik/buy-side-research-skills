@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Stress test an investment thesis and build the strongest opposing case with sourced risks.'
-description: 'Stress test an investment thesis and build the strongest opposing case with sourced risks.'
+description: "Stress test an investment thesis and build the strongest opposing case with sourced risks."
 tags:
   - 'risk-management'
   - 'thesis-validation'

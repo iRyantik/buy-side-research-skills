@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.'
-description: 'Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities.'
+description: "Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal value and sensitivities."
 tags:
   - dcf
   - valuation

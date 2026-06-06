@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Update a financial model for earnings guidance new data or revised assumptions.'
-description: 'Update a financial model for earnings guidance new data or revised assumptions.'
+description: "Update a financial model for earnings guidance new data or revised assumptions."
 tags:
   - model-update
   - earnings-update

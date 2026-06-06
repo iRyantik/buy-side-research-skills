@@ -27,7 +27,7 @@ The most valuable output is not a sentiment score but three things: first, diver
 
 ## Environment & Tooling
 
-If you are only looking for a workspace-level shared environment entry point, check the `_scripts/init-assets/env-setup.ps1.template` provided by `init-workspace` first. `reddit-sentiment` retains its own bootstrap because it is an additional optional-dependency skill and is not merged with `financial-data` / `ingest`.
+`reddit-sentiment` retains its own bootstrap because it is an optional-dependency skill and is not merged with `financial-data` or the Source Intake runtime.
 
 This skill includes runtime tools:
 

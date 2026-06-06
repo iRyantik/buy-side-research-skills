@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'triage'
 summary: 'Collect label and summarize Reddit sentiment as clue-only social evidence for a research topic.'
-description: 'Collect label and summarize Reddit sentiment as clue-only social evidence for a research topic.'
+description: "Collect label and summarize Reddit sentiment as clue-only social evidence for a research topic."
 tags:
   - 'reddit-sentiment'
   - 'social-sentiment'

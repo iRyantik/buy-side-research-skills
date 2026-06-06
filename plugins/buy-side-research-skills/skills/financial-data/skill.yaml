@@ -1,113 +1,30 @@
 metadata_schema_version: 1
-name: 'financial-data'
-id: 'financial-data'
-display_name: 'Financial Data'
-version: '1.0.1'
-system_generation: '3.10.0'
-author: 'buy-side-research-system'
-namespace: 'research.equity'
-category: 'operations'
-summary: 'Fetch or parse source-tracked company financial data by market and identifier.'
-description: 'Fetch or parse source-tracked company financial data by market and identifier.'
-tags:
-  - 'financial-data'
-  - 'structured-financials'
-  - 'financial-statements'
-  - 'revenue-split'
-  - 'sec'
-  - 'edgartools'
-  - 'akshare'
-  - 'edinet'
-  - 'dart'
-  - 'openesef'
-  - 'finmind'
-  - 'esef'
-  - 'xbrl'
-  - 'company-cache'
+name: financial-data
+id: financial-data
+display_name: Financial Data
+version: 2.0.0
+system_generation: 6.0.0
+author: buy-side-research-system
+namespace: research.equity
+category: operations
+summary: Acquire evidence and commit source-tracked canonical financial facts.
+description: "Acquire evidence and commit source-tracked canonical financial facts."
 trigger:
-  type: 'keyword'
-  keywords:
-    - 'financial-data'
-    - 'fetch financial data'
-    - '拉结构化财报'
-    - '按 ticker 拉三表'
-    - '拉财务数据'
-    - 'DART 财报'
-    - 'EDINET 财报'
-    - 'openesef'
-    - 'ESEF'
-  description: '当用户要按市场和 identifier 拉取或解析结构化公司财务数据，并保存为可追溯 cache evidence pack 时触发'
+  type: keyword
+  keywords: [financial-data, fetch financial data, 拉结构化财报, 拉财务数据]
 capabilities:
-  modes:
-    - 'Dependency Bootstrap / Check'
-    - 'Canonical Company Fetch'
-    - 'Current Topic Snapshot'
+  modes: [Lite Fetch, Full Fetch, Arbitrary Time Range, Migration, Render]
   requirements:
-    - 'support output_scope canonical_company and current_topic_snapshot'
-    - 'write raw provider payload and normalized evidence pack'
-    - 'write public financial-data-summary.md and keep JSON/full filing/source-map/completeness machine files under internal/'
-    - 'track data item status as available, partial, unavailable, or provider-gap; provider-gap should be reasoned where possible rather than left ambiguous'
-    - 'support SEC/EdgarTools, AKShare/Eastmoney, EDINET, DART, FinMind, and openesef provider routes'
-    - 'use OpenDART official APIs for KR with local ticker-to-corp_code metadata cache only'
-    - 'do not cache KR financial statements, filing receipts, filing ZIPs, markdown, or research outputs'
-    - 'use EDINET official APIs only for JP; no J-Quants, Yahoo, or yfinance canonical provider route'
-    - 'record provider phase timing in internal cross-check/evidence-pack diagnostics'
-    - 'extract structured segment data from provider/API rows when source facts expose business-line, geography, product, customer, or other disclosed axes'
-    - 'write structured segments.status / segments.segments and consumer-convenience geography views into actuals-resolved.json only when provider/API rows or curated official caches are available'
-    - 'prioritize growth-first consumer-ready fields such as revenue, margin, segments, geography, operating_cf, capex, and shares_outstanding; treat order_backlog as sector-conditional and sbc/dividends/share_buybacks/fine debt detail as best-effort rather than universal Lite blockers'
-    - 'mark EU ticker-only filing discovery as experimental'
-    - 'do not infer undisclosed segment or geography splits'
-    - 'do not produce investment conclusions'
-    - 'fail honestly when dependencies, credentials, or provider coverage are missing'
-artifact_policy:
-  save_policy: 'cache_artifact'
-  default_artifact: 'financial-data-summary.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/'
-  save_trigger: 'write a financial evidence pack only after the user provides market, identifier, company_slug, and a valid research workspace topic'
-workflow:
-  stage: 'structured-financial-data'
-  can_follow:
-    - 'init-workspace'
-  feeds_into:
-    - 'stock-quickread'
-    - 'company-history'
-    - 'driver-map'
-    - 'earnings-setup'
-    - 'peer-deep-dive'
-
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
-    - 'model-update'
-  can_trigger:
-    - 'driver-map'
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
-    - 'model-update'
-    - 'next-step'
+    - lite and full control acquisition depth but not requested time range
+    - only the canonical facts repository writes facts-store.json
+    - generate actuals-resolved.json as a read-only compatibility view
+    - preserve source evidence and conflicts
 quality_gates:
   anti_patterns:
-    - 'treating_provider_normalized_fields_as_company_disclosed'
-    - 'claiming_complete_financials_when_completeness_is_partial'
-    - 'inferring_undisclosed_segment_or_geography_split'
-    - 'writing_research_conclusions'
-    - 'writing_theme_snapshot_as_canonical_company_data'
-    - 'claiming_eu_ticker_discovery_is_stable'
+    - direct_actuals_writer
+    - silent_zero_fill
+    - silent_lower_trust_overwrite
   required_outputs:
-    - 'financial-data-summary.md'
-    - 'internal/evidence-pack.json'
-    - 'internal/actuals-resolved.json'
-    - 'internal/financials.normalized.json'
-    - 'internal/completeness.json'
-    - 'internal/source-map.json'
-  runtime_assets:
-    - 'scripts/financial_data.py'
-    - 'scripts/bootstrap-financial-data-deps.ps1'
-    - 'assets/requirements-financial-data.txt'
-    - 'scripts/providers/sec_provider.py'
-    - 'scripts/providers/akshare_provider.py'
-    - 'scripts/providers/finmind_provider.py'
-    - 'scripts/providers/edinet_provider.py'
-    - 'scripts/providers/dart_provider.py'
-    - 'scripts/providers/openesef_provider.py'
+    - internal/facts-store.json
+    - internal/actuals-resolved.json
+    - dataset run manifest

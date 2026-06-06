@@ -239,7 +239,7 @@ hooks-first 补充 hard gate：
 
 ## Skill Directory Spec
 
-每个 skill 目录下允许以下子目录。这是收口——新 skill 只能创建这里列出的目录，init-workspace 和 update-agent-runtime 的 auto-discovery 也只处理这些。
+每个 skill 目录下允许以下子目录。这是 authoring 目录规范；workspace 部署不再靠目录 auto-discovery，而是由 `runtime/managed-assets.json` 显式声明。
 
 ### 目录定义
 
@@ -250,14 +250,14 @@ hooks-first 补充 hard gate：
 | `assets/templates/` | 用户可改的模板文件 | `_scripts/<skill>/` | 缺时补 |
 | `references/` | 该 skill 自己的参考文档 | **不部署** — agent 直接从 plugin cache 读取 | — |
 | `examples/` | 示例产物、示例 HTML | **不部署** — agent 直接从 plugin cache 读取 | — |
-| `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），资产走 A类部署到 workspace root，不参与 B类 auto-discovery | — | — |
+| `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），仅影响 authoring/release 分类；workspace payload 仍必须写入 managed manifest | — | — |
 
 ### 规则
 
 1. **不部署 ≠ 不重要** — `references/` 和 `examples/` 是该 skill 的 canonical 参考和示例，agent 执行 skill 时能直接从 plugin cache 读。不能因为不落地 workspace 就删。
 2. **没有 runtime 需求不创建空目录** — 如果 skill 不需要脚本或 assets，就不建 `scripts/` / `assets/`。
 3. **不要在此清单外新增目录** — 如果有新需求，先来改这个 spec，再建目录。
-4. **B类 auto-discovery** — init-workspace 和 update-agent-runtime 的 B类规则就是遍历 `skills/*/scripts/` + `skills/*/assets/`。加新文件到这些目录 → 自动部署，零改动。
+4. **Manifest-managed deployment** — `init-workspace` 和 `update-agent-runtime` 只部署 `runtime/managed-assets.json` 中列出的 payload。给 skill 增加 `scripts/` 或 `assets/` 不会自动落地 workspace；需要显式加入 runtime payload 和 managed manifest。
 
 ### Deployment 矩阵总览
 
@@ -379,7 +379,7 @@ Operations skills：
 | Skill | 用途 |
 |---|---|
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
-| `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
+| Source Intake runtime | 把 raw material 注册、转换并路由到 source-tracked `_raw/` / `_cache/` |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
@@ -551,7 +551,7 @@ Artifact policy：
 - `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
-- `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
+- Source Intake 是 runtime 基础能力，不是 skill；它保留 `_raw/` 原件并生成 `_cache/` operational markdown。
 
 默认 naming tier：
 - `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`、`moat-analysis`、`catalyst-map`、`capital-allocation`、`post-earnings-quick`

@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'triage'
 summary: 'Choose the highest-value next research question when a thread feels stuck or incomplete.'
-description: 'Choose the highest-value next research question when a thread feels stuck or incomplete.'
+description: "Choose the highest-value next research question when a thread feels stuck or incomplete."
 tags:
   - 'next-step'
   - 'research-coach'

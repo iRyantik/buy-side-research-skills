@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'deep-work'
 summary: 'Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.'
-description: 'Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements.'
+description: "Build source-tracked 3-statement models with historical actuals and formula-driven forecast statements."
 tags:
   - modeling
   - 3-statement
