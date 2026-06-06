@@ -447,6 +447,28 @@ def _check_content(path: str, text: str, display: str):
 
         i = j + 1
 
+    # ── CHECK 14: Root-level file write whitelist ──
+    ROOT_WHITELIST = {
+        "CLAUDE.md", "AGENTS.md", "COVERAGE.md", "edge-radar.md",
+        "Notes.md", "Accounts.md", "_hk_codes.json",
+    }
+    ROOT_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".txt", ".pdf", ".zip", ".yml", ".yaml", ".csv", ".xlsx"}
+
+    try:
+        workspace_root = os.path.abspath(os.getcwd())
+        file_abs = os.path.abspath(path)
+        if os.path.dirname(file_abs) == workspace_root:
+            basename = os.path.basename(path)
+            ext = os.path.splitext(basename)[1].lower()
+            if ext in ROOT_EXTENSIONS and basename not in ROOT_WHITELIST:
+                block(
+                    f"CHECK 14: {basename} would scatter workspace root. "
+                    f"Images → _cache/images/, text/PDF → _cache/inbox/ or _cache/web/, "
+                    f"data files → industry/<slug>/companies/<ticker>/_cache/."
+                )
+    except Exception:
+        pass  # Don't block on path resolution error
+
 
 def main():
     payload = load_stdin_payload()

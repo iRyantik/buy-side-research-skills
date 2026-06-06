@@ -151,7 +151,7 @@ Shared tools under `_scripts/shared/`. All skills use these — do not reinvent.
 
 **Source verification rules**: Every `[I#]` source must pass at least Tier 1-2. `[UNVERIFIED]` only after all tiers fail.
 
-Full docs: `_shared/research-runtime.md`.
+Full docs: `references/runtime/research-runtime.md`.
 
 ---
 
@@ -223,7 +223,7 @@ Triggers automatically on every Write/Edit to a research artifact:
   2. `grep -r "<ticker>" industry/*/companies/` to find all artifacts referencing that ticker
   3. Scan each file: does it use the modified field? → if yes, sync numbers, narrative, and valuation
   4. Validate after write: artifact numbers must be recalculable from actuals-resolved.json
-- **Related**: source verification discipline (`_shared/research-runtime.md` §2.2)
+- **Related**: source verification discipline (`references/runtime/research-runtime.md` §2.2)
 
 ### Image Rules
 
@@ -240,7 +240,7 @@ Triggers automatically on every Write/Edit to a research artifact:
 
 ### Reference Files
 
-`_shared/research-runtime.md` (5-chain full docs), `references/policy/` (baseline), `references/kpi-drivers/` (KPI templates).
+`references/runtime/research-runtime.md` (5-chain full docs), `references/policy/` (baseline), `references/kpi-drivers/` (KPI templates).
 
 ### Research Memory System
 

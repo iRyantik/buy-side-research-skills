@@ -156,33 +156,74 @@ def _build_filename(filename: str) -> str:
     return name[:80] if len(name) > 80 else name
 
 
+def _infer_ticker_from_filename(filename: str) -> str | None:
+    """Try to extract ticker/company name from filename by common separators."""
+    stem = os.path.splitext(filename)[0].lower()
+    for sep in ["-fy", "-annual", "-q1", "-q2", "-q3", "-q4", "-quarterly",
+                "-earnings", "-ir-", "-transcript", "-interim", "-prospectus",
+                "-10-k", "-10-q", "-20-f", "-8-k", "-6-k", "-s-1"]:
+        if sep in stem:
+            candidate = stem.split(sep)[0].strip("-").strip("_")
+            if len(candidate) >= 2:
+                return candidate
+    return None
+
+
 def _resolve_cache_path(workspace: str, ticker: str | None, source_type: tuple,
                         pdf_path: str) -> str:
-    """Compute the full cache path for a converted PDF."""
+    """Compute the full cache path for a converted PDF.
+
+    Routing table:
+      disclosure   -> industry/<slug>/companies/<ticker>/_cache/disclosure/<sub>/
+                     no ticker -> _infer_ticker_from_filename -> auto-create company dir
+                     still none -> industry/_unclassified/companies/_unknown/_cache/disclosure/<sub>/
+      sell-side    -> industry/<slug>/_cache/sell-side/<sub>/
+      institution  -> industry/<slug>/_cache/institution/<sub>/
+      primary      -> industry/<slug>/_cache/primary/<sub>/
+      web          -> industry/<slug>/companies/<ticker>/_cache/web/ or industry/<slug>/_cache/web/
+      inbox        -> industry/_unclassified/_cache/inbox/
+    """
     top, sub = source_type
     stem = _build_filename(os.path.basename(pdf_path))
     filename = f"{stem}.md"
 
+    def _ind_path(t: str) -> str | None:
+        """Find industry slug for ticker and return industry base path."""
+        ind = _find_industry(workspace, t)
+        return os.path.join(workspace, "industry", ind) if ind else None
+
     if top == "disclosure":
-        if ticker:
-            ind = _find_industry(workspace, ticker)
+        resolved_ticker = ticker
+        if not resolved_ticker:
+            inferred = _infer_ticker_from_filename(os.path.basename(pdf_path))
+            if inferred:
+                resolved_ticker = inferred
+        if resolved_ticker:
+            ind = _find_industry(workspace, resolved_ticker)
             if ind:
-                base = os.path.join(workspace, "industry", ind, "companies", ticker,
-                                    "_cache", "disclosure", sub)
+                base = os.path.join(workspace, "industry", ind, "companies",
+                                    resolved_ticker, "_cache", "disclosure", sub)
+            else:
+                # Auto-create company dir under _unclassified
+                base = os.path.join(workspace, "industry", "_unclassified", "companies",
+                                    resolved_ticker, "_cache", "disclosure", sub)
+            os.makedirs(base, exist_ok=True)
+            return os.path.join(base, filename)
+        # Still no ticker -> _unknown
+        base = os.path.join(workspace, "industry", "_unclassified", "companies",
+                            "_unknown", "_cache", "disclosure", sub)
+        os.makedirs(base, exist_ok=True)
+        return os.path.join(base, filename)
+
+    elif top in ("sell-side", "institution", "primary"):
+        if ticker:
+            ip = _ind_path(ticker)
+            if ip:
+                base = os.path.join(ip, "_cache", top, sub)
                 os.makedirs(base, exist_ok=True)
                 return os.path.join(base, filename)
-        # Fallback: workspace-level _cache
-        base = os.path.join(workspace, "_cache", "disclosure", sub)
-        os.makedirs(base, exist_ok=True)
-        return os.path.join(base, filename)
-
-    elif top in ("sell-side", "institution"):
-        base = os.path.join(workspace, "_cache", top, sub)
-        os.makedirs(base, exist_ok=True)
-        return os.path.join(base, filename)
-
-    elif top == "primary":
-        base = os.path.join(workspace, "_cache", "primary", sub)
+        # Fallback to _unclassified
+        base = os.path.join(workspace, "industry", "_unclassified", "_cache", top, sub)
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
@@ -190,16 +231,17 @@ def _resolve_cache_path(workspace: str, ticker: str | None, source_type: tuple,
         if ticker:
             ind = _find_industry(workspace, ticker)
             if ind:
-                base = os.path.join(workspace, "industry", ind, "companies", ticker,
-                                    "_cache", "web")
+                base = os.path.join(workspace, "industry", ind, "companies",
+                                    ticker, "_cache", "web")
                 os.makedirs(base, exist_ok=True)
                 return os.path.join(base, filename)
-        base = os.path.join(workspace, "_cache", "web")
+        # Fallback to _unclassified
+        base = os.path.join(workspace, "industry", "_unclassified", "_cache", "web")
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
     else:  # inbox
-        base = os.path.join(workspace, "_cache", "inbox")
+        base = os.path.join(workspace, "industry", "_unclassified", "_cache", "inbox")
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
@@ -238,9 +280,13 @@ def check(ctx):
         # ── Ticker derivation ──
         ticker = _derive_ticker(root, path)
         if not ticker and top == "disclosure":
-            warn(f"pdf_auto_cache: cannot derive ticker for {filename}, caching to inbox")
-            source_type = ("inbox", "")
-            ticker = None
+            inferred = _infer_ticker_from_filename(filename)
+            if inferred:
+                ticker = inferred
+            else:
+                warn(f"pdf_auto_cache: cannot derive ticker for {filename}, caching to inbox")
+                source_type = ("inbox", "")
+                ticker = None
 
         # ── Resolve cache path ──
         cache_path = _resolve_cache_path(root, ticker, source_type, path)

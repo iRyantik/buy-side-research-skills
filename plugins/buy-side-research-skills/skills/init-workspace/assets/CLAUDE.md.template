@@ -158,6 +158,8 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
 | `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
+| `shared/describe-figures.py` | 图表描述提取（从 docling/pymupdf 缓存 markdown 中提取 figure 并生成带编号描述） | `<markdown_path>` |
+| `shared/verify-table-crosscheck.py` | 表格数值交叉验证（PDFPlumber vs Docling/cache markdown） | `<markdown_path> [--pdf <pdf_path>]` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
 
 ### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
@@ -232,7 +234,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ### Canvas 文件
 
-worktree 操作、`_shared/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
+worktree 操作、`references/runtime/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
 
 ### Research Memory 系统
 

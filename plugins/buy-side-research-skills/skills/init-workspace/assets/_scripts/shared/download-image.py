@@ -33,10 +33,14 @@ from html.parser import HTMLParser
 CACHE_DIR = "_cache/images"
 CACHE_INDEX = f"{CACHE_DIR}/.cache.json"
 LOGO_PRIORITY = [
-    ("Google Finance", "https://www.google.com/finance/quote/{ticker}"),
     ("Wikipedia", "https://en.wikipedia.org/wiki/{ticker}"),
     ("Company Homepage", None),  # will try https://www.<domain>.com
+    ("Google Finance", "https://www.google.com/finance/quote/{ticker}"),
 ]
+
+# Google Finance often returns generic icons or finance-related images
+# instead of company logos — blacklist known false positives
+GOOGLE_FINANCE_BLACKLIST = ["google", "finance", "logo_google", "favicon"]
 
 
 # ── cache helpers ──────────────────────────────────────────

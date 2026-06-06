@@ -138,7 +138,7 @@ def main():
     parser.add_argument("--tables-only", action="store_true",
                        help="Only extract tables (skip text)")
     parser.add_argument("--smart", action="store_true",
-                       help="Probe PDF complexity, route fast or recommend /ingest")
+                       help="Probe PDF complexity and route to best engine")
     parser.add_argument("--markdown", action="store_true",
                        help="Output as markdown (text + rendered tables)")
     args = parser.parse_args()
@@ -238,22 +238,22 @@ def main():
         text_len = len(text or "")
         is_scanned = text_len < 200 or (text_len > 0 and _garbled_ratio(text or "") > 0.3)
         has_tables = len(tables) > 0
-        rec = "ingest" if (is_scanned or page_count > 30 or (has_tables and text_len < 500)) else "fast"
+        is_heavy = is_scanned or page_count > 30 or (has_tables and text_len < 500)
         probe = {
             "engine": engines_used[0] if engines_used else "none",
             "pages": page_count,
             "text_len": text_len,
             "has_tables": has_tables,
             "is_scanned": is_scanned,
-            "recommendation": rec,
-            "note": "Use /ingest for full Docling conversion" if rec == "ingest" else "Fast path OK",
+            "recommendation": "pdf-extract" if not is_heavy else "consider-vision",
+            "note": "Fast path OK" if not is_heavy else "Heavy PDF — consider Vision review for scanned/complex content",
         }
         if args.json:
             print(json.dumps({"text": text, "tables": tables, "probe": probe}, ensure_ascii=False))
             sys.exit(0)
-        if rec == "ingest":
+        if is_heavy:
             print(f"Heavy PDF detected ({page_count}p, scanned={is_scanned}, tables={has_tables})", file=sys.stderr)
-            print("Use /ingest for full Docling conversion", file=sys.stderr)
+            print("Heavy PDF — consider Vision review for scanned/complex content", file=sys.stderr)
 
     # ── markdown render ────────────────────────────────
     if args.markdown:

@@ -110,10 +110,10 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `_shared/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
+Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `references/runtime/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
 
 Capsule 格式（不可变）：
-- MUST-read 指令 + `_shared/research-runtime.md` § anchor
+- MUST-read 指令 + `references/runtime/research-runtime.md` § anchor
 - Hook 防御清单（一行）
 
 禁止在 capsule 中写：
@@ -418,9 +418,9 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 ```
 
 已删除的段：
-- `Global Rules Capsule` — 不再需要。全局纪律在 `_shared/research-runtime.md` §2.2 和 hooks。
+- `Global Rules Capsule` — 不再需要。全局纪律在 `references/runtime/research-runtime.md` §2.2 和 hooks。
 - `Source 政策` / `Source Contract` 独立 section — 并入输出结构 blockquote（一句话）。
-- `资料收集与 Source 验证` 独立 section — 并入 `_shared/research-runtime.md` §2。skill 只保留特有执行流程。
+- `资料收集与 Source 验证` 独立 section — 并入 `references/runtime/research-runtime.md` §2。skill 只保留特有执行流程。
 
 Research frontmatter：
 
@@ -443,7 +443,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```

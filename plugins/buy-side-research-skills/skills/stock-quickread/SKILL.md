@@ -10,13 +10,13 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## 资料收集与 Source 验证
 
-见 `_shared/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
+见 `references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
 
 以下仅保留 stock-quickread 特有的执行流程：
 

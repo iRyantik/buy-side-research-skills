@@ -238,4 +238,35 @@ Geographic segments are secondary and should only be used when business segments
 | Upgrade plugin / sync workspace | `update-agent-runtime` |
 | Initialize a new workspace | `init-workspace` |
 | Ingest raw materials | `ingest` |
-| New session routing + path resolution | `agent (auto-scaffold per policy baseline §11)` |
+| New session routing + path resolution | `agent (auto-scaffold per policy baseline §12)` |
+
+## 12. Topic Scaffolding Convention (Auto-Scaffold)
+
+> Research skills auto-scaffold when saving artifacts — no researcher awareness required.
+
+### Trigger
+
+When any research skill (`stock-quickread`, `driver-map`, `teach-in`, etc.) writes an artifact to `industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md` per save policy, the agent auto-executes:
+
+### Checklist (completed in 30 seconds before saving the artifact)
+
+1. **Industry directory**: `industry/<industry>/` does not exist → `mkdir -p` + create `RESEARCH.md` (from `references/templates/research-memory-industry.md` template, containing industry name + current questions + research output + open issues placeholder)
+2. **Company directory**: `industry/<industry>/companies/<ticker>/` does not exist → `mkdir -p` + create `RESEARCH.md` (from `references/templates/research-memory-company.md` template)
+3. **COVERAGE.md registration**: company not in `COVERAGE.md` → append row `| <industry> | <company> | <ticker> | ✅ | RESEARCH.md | active |`
+4. **Industry RESEARCH.md registration**: artifact not in industry `RESEARCH.md` research output list → append a reverse-chronological artifact link row
+5. **Do not**: create `_inbox/` (no longer needed), create `_cache/` (financial-data creates on demand), pre-build directories, or block the main flow
+
+### Agent Pseudocode
+
+```
+def save_artifact(industry, ticker, artifact_path):
+    ensure_dir(f"industry/{industry}/") + create RESEARCH.md from template if missing
+    ensure_dir(f"industry/{industry}/companies/{ticker}/") + create RESEARCH.md from template if missing
+    register_in_coverage(industry, ticker) if not already
+    register_in_industry_research(industry, artifact) if not already
+    write artifact
+```
+
+### Difference from Legacy Scaffold
+
+> Previously a separate skill (now removed). In the current version, all research skills auto-scaffold when saving artifacts — no user awareness required.

@@ -311,20 +311,20 @@ linter 报错 → 修到 pass 才交付。
 
 ### 检查清单（agent 保存 artifact 前 30 秒完成）
 
-1. **行业目录**：`industry/<industry>/` 不存在 → `mkdir -p` + 创建 `index.md`（含行业名 + 当前问题 + 研究产出 + 待解决问题占位）
-2. **公司目录**：`industry/<industry>/companies/<ticker>/` 不存在 → `mkdir -p`
-3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <行业> | <公司名> | <ticker> | ✅ | index.md | active |`
-4. **行业 index.md 注册**：artifact 不在行业 `index.md` 研究产出列表 → 追加一行时间倒序 artifact link
+1. **行业目录**：`industry/<industry>/` 不存在 → `mkdir -p` + 创建 `RESEARCH.md`（从 `references/templates/research-memory-industry.md` 模板生成，含行业名 + 当前问题 + 研究产出 + 待解决问题占位）
+2. **公司目录**：`industry/<industry>/companies/<ticker>/` 不存在 → `mkdir -p` + 创建 `RESEARCH.md`（从 `references/templates/research-memory-company.md` 模板生成）
+3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <行业> | <公司名> | <ticker> | ✅ | RESEARCH.md | active |`
+4. **行业 RESEARCH.md 注册**：artifact 不在行业 `RESEARCH.md` 研究产出列表 → 追加一行时间倒序 artifact link
 5. **不要做的事**：不创建 `_inbox/`（不需要了）、不创建 `_cache/`（financial-data 按需自建）、不预建目录、不阻塞主流程
 
 ### Agent 执行伪代码
 
 ```
 def save_artifact(industry, ticker, artifact_path):
-    ensure_dir(f"industry/{industry}/") + touch index.md if missing
-    ensure_dir(f"industry/{industry}/companies/{ticker}/")
+    ensure_dir(f"industry/{industry}/") + create RESEARCH.md from template if missing
+    ensure_dir(f"industry/{industry}/companies/{ticker}/") + create RESEARCH.md from template if missing
     register_in_coverage(industry, ticker) if not already
-    register_in_industry_index(industry, artifact) if not already
+    register_in_industry_research(industry, artifact) if not already
     write artifact
 ```
 

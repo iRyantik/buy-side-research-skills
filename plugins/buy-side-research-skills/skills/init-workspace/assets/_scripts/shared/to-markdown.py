@@ -88,11 +88,11 @@ def convert(filepath: str, format: str | None = None) -> tuple[str, dict | None]
                 probe = json.loads(probe_out).get("probe", {})
             except json.JSONDecodeError:
                 pass
-        if probe and probe.get("recommendation") == "ingest":
+        if probe and probe.get("recommendation") and probe["recommendation"] != "pdf-extract":
             pages = probe.get("pages", 0)
             text_len = probe.get("text_len", 0)
             note = (f"\n\n> ⚠️  Heavy PDF ({pages} pages, text: {text_len} chars). "
-                    f"Recommend: /ingest for full Docling conversion.\n")
+                    f"Consider Vision review for scanned/complex content.\n")
             return out + note, probe
         return out, probe
 
