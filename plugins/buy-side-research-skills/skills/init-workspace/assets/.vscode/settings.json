@@ -5,8 +5,10 @@
     ".scripts/": true,
     ".references/": true,
     ".memory/": true,
+    ".obsidian/": true,
     ".vscode/": true,
     "_cache/": true,
-    ".env": true
+    ".env": true,
+    "*.sh": true
   }
 }

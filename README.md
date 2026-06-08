@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.14.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.14.1 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.14.1 | 2026-06-08 | Hide `.obsidian/` and `*.sh` in VSCode file tree |
 | v5.14.0 | 2026-06-08 | Workspace restructure: hide non-user-facing dirs (`.references/`, `.scripts/`, `.memory/`, `.vscode/settings.json`), bilingual init (ZH/EN templates), `_inbox/` stays visible, remove `.gitignore`. All Python scripts: `_scripts/`→`.scripts/` paths + Windows encoding fix (`sys.stdout.reconfigure`). SKILL.md batch: `references/`→`.references/`, GATE lines on all capsules, stock-quickread HARD GATE. New: `fix-bare-anchors.py` (batch fix bare source anchors). evidence_ledger hook: accept both artifact-stem and ticker-based naming. |
 | v5.13.15 | 2026-06-08 | update-agent-runtime: Python script automates full pipeline — GitHub fetch → cache populate → marketplace refresh → workspace sync → verify. Single command, stdlib only. |
 | v5.13.14 | 2026-06-08 | init-workspace: remove venv, `pip install --user` global install (no admin/sudo, designed for blank machines) |
