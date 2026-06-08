@@ -5,7 +5,7 @@ description: Initialize or repair a buy-side research workspace root scaffold �
 
 # Init Workspace
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, sets up a Python virtual environment with core dependencies, and interactively configures data-provider environment variables.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
 
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
@@ -75,9 +75,8 @@ for each skill_dir in skills/*/:
 
 **Environment setup:**
 - Check Python 3.10+ availability.
-- Create `.venv/` (Python virtual environment).
-- Install core dependencies into venv: `yfinance openpyxl requests python-dotenv pyyaml lxml`.
-- Run `pip install -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- Install core dependencies globally with `--user`（no venv, no sudo）: `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`。
+- Run `pip install --user -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
 - Write `.gitignore`.
 
 **Interactive provider configuration:**
@@ -129,20 +128,19 @@ Execute the same steps. Skip root template files that already exist (CLAUDE.md, 
 Step 0  Validate workspace path — must not be inside a plugin repo or install directory
 Step 1  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
         ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
-Step 2  Create .venv/ (python -m venv .venv)
-Step 3  Activate venv + pip install core dependencies:
-          pip install yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
+Step 2  Install core Python packages globally (no venv, no sudo):
+          python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
         ★ pip install failure → BLOCK (core packages required for all skills)
-Step 4  Deploy A类 files (platform assets from init-workspace/assets/)
+Step 3  Deploy A类 files (platform assets from init-workspace/assets/)
         ★ mcp.json: merge strategy (see below)
-Step 5  Deploy B类 files (skill scripts to _scripts/<skill>/)
-Step 6  pip install -r _scripts/*/requirements*.txt (failures warn, do not block)
-Step 7  Write .gitignore
-Step 8  Interactive provider configuration (see Provider Configuration below)
-Step 9  ★ python _scripts/verify-runtime.py — one-click smoke test
+Step 4  Deploy B类 files (skill scripts to _scripts/<skill>/)
+Step 5  pip install --user -r _scripts/*/requirements*.txt (failures warn, do not block)
+Step 6  Write .gitignore
+Step 7  Interactive provider configuration (see Provider Configuration below)
+Step 8  ★ python _scripts/verify-runtime.py — one-click smoke test
         ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
-Step 10 Delete _scripts/init-assets/ if present (legacy cleanup)
-Step 11 Print deployment summary table
+Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
+Step 10 Print deployment summary table
 ```
 
 ### Step 1 Detail: System Dependency Check
@@ -184,7 +182,7 @@ Agent 处理 `.claude/mcp.json` 的流程：
 
 ### Step 9 Detail: Runtime Verification
 
-Agent 运行 `python _scripts/verify-runtime.py`（必须在 venv 内执行）。
+Agent 运行 `python _scripts/verify-runtime.py`（Step 2 装完的全局环境）。
 
 检查 12 项（3 层）：
 - Layer 1 系统：Python、Node.js、npx、curl
@@ -204,8 +202,8 @@ pip install yfinance openpyxl requests python-dotenv pyyaml lxml python-docx pyt
 ### Platform detection
 
 Agent uses `sys.platform`:
-- `win32` → Windows: Python = `python`, venv = `.venv/Scripts/python`
-- `darwin` / other → Unix: Python = `python3`, venv = `.venv/bin/python`
+- `win32` → Windows: Python = `python`
+- `darwin` / other → Unix: Python = `python3`
 
 ## Provider Configuration
 
