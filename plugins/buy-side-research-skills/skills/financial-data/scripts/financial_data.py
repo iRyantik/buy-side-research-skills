@@ -274,7 +274,9 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
 
 
 def filter_financials_by_period(financials: dict[str, Any], periods: str | None) -> dict[str, Any]:
-    if not financials or not periods or periods == "latest":
+    if not financials or not periods or periods in ("latest", "5Y"):
+        # latest: keep all periods (agent picks last FY+Q)
+        # 5Y: keep all periods (agent picks 5FY+4Q for modeling)
         return financials
 
     if is_latest4q_period_filter(str(periods)):
@@ -1155,6 +1157,11 @@ def main() -> int:
     if args.output_scope == "canonical_company" and not args.company_slug:
         print(json.dumps({"status": "failed", "error": "--company-slug required for canonical_company"}, ensure_ascii=True, indent=2))
         return 1
+
+    # Period defaults based on mode: lite=latest, full=5Y
+    mode = getattr(args, 'mode', 'lite')
+    if args.periods == 'latest' and mode == 'full':
+        args.periods = '5Y'
 
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
