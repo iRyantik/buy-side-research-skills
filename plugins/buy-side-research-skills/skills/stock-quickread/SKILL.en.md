@@ -77,7 +77,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ### Execution Flow (Gate-style — each step has intermediate output, next step checks previous)
 
 ```
-┌─ Step 1: /financial-data --lite <ticker>
+┌─ Step 1: /financial-data <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
 │  → Write to _cache/financial-data/internal/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
@@ -302,7 +302,7 @@ From the kpi-drivers template, select **all KPIs that have data in actuals** as 
 
 Unavailable fields: mark [ND] or [NOT DISCLOSED]. All numbers computed from actuals/IR.
 
-> Generalized fallback is handled at the `/financial-data --lite` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
+> Generalized fallback is handled at the `/financial-data` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
 
 **Industry Cycle Position** (1 sentence): Capacity expansion / competition intensification / consolidation / decline? Is the company leading expansion, following, or contracting counter-cyclically?
 

@@ -4,7 +4,7 @@
 
 Power Generation (GT) / Grid / Water / Transport
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

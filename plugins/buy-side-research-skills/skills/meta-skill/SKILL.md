@@ -118,7 +118,7 @@ Capsule 格式（不可变）：
 
 禁止在 capsule 中写：
 - Tier 回退链、provider 名、trust chain
-- `financial-data --lite` 调用方法
+- `financial-data` 调用方法
 - subagent evidence card 协议
 - 任何已在 `references/runtime/` 或 hooks 中的规则
 
@@ -451,7 +451,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 **规则**：
 - 核心 3 行不可变。§ anchor 根据 skill 需要调整（如不用图片的 skill 可去掉 §2.5）。
 - 禁止在此段复述 Tier 链、provider 名、trust chain、subagent 流程。
-- 禁止写 `数据管道：调用 /financial-data --lite`——已在 `references/runtime/` §1。
+- 禁止写 `数据管道：调用 /financial-data`——已在 `references/runtime/` §1。
 - 禁止写 `Sub-agent outputs: evidence_cards_only`——已在 `references/runtime/` §3。
 - skill-specific 定制放在 `心法` 或 `执行模式` 段，不放在 Capsule。
 
@@ -563,7 +563,7 @@ Artifact policy：
 Research skill 的通用 source / anti-hallucination 规则现在由 shared baseline + workspace hooks 承接，不再要求每个 skill 本地复制 `Source 政策`。
 
 authoring hard rules：
-- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `/financial-data --lite` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
+- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `/financial-data` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
 - 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `S1` / `I1` 等短锚点代码后接 `(link)` 或 `(url)` 占位符——此类写法会被 source_contract hook 拦截。
 - 一旦某条 binary source / structure / boundary 规则进入 hook，对应 `SKILL.md` 中同类规则 prose 必须删除，而不是继续双份保留。
 - `Source 政策` 若保留，只能写 skill-specific non-binary edge；不能复述 shared legality。

@@ -2,7 +2,7 @@
 
 Capital Equipment / Aerospace / 船舶 / EPC
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

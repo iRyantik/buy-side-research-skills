@@ -2,7 +2,7 @@
 
 SaaS / 企业软件 / 平台
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

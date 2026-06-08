@@ -21,7 +21,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 以下仅保留 stock-quickread 特有的执行流程：
 
 ```
-Step 1: /financial-data --lite <ticker> → actuals-resolved.json
+Step 1: /financial-data <ticker> → actuals-resolved.json
 Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
 Step 3: Discovery — WebSearch 找候选 URL
 Step 4: Verification — verify-claim.py 逐条验证（Tier 1→2→3）
@@ -229,7 +229,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
 
-> 泛化兜底已在 `/financial-data --lite` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
+> 泛化兜底已在 `/financial-data` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
 
 **行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 

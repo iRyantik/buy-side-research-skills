@@ -35,7 +35,7 @@ Each subagent independently completes two tasks:
                    key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data --lite <TICKER_N>
+  /financial-data <TICKER_N>
   + evidence card JSON per evidence-card-schema.json
 
 Main agent continues once all subagents complete. Single ticker failure does not block others —

@@ -33,7 +33,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
               key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data --lite <TICKER_N>
+  /financial-data <TICKER_N>
   + evidence card JSON per evidence-card-schema.json
 
 全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注

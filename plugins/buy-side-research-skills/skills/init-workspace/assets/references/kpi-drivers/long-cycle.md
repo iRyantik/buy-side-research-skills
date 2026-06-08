@@ -2,7 +2,7 @@
 
 航空/国防 / 核电 / 造船 / 航天 / EPC
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

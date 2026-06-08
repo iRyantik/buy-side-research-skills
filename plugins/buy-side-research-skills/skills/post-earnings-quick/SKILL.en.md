@@ -34,7 +34,7 @@ Hard cap of 500 words. This is not deep analysis — it is a rapid thesis direct
 
 ```
 1. Most recent earnings-setup artifact for the same ticker (pre-print bar is most accurate)
-2. Consensus range (from /financial-data --lite market_data or WebSearch)
+2. Consensus range (from /financial-data market_data or WebSearch)
 3. Prior year same-quarter growth trend (weakest proxy — unreliable if prior year had COVID or M&A)
 4. None available → "No benchmark; no directional judgment; list numbers and guidance changes only"
 ```

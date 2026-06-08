@@ -39,7 +39,7 @@ Scenario model 的真正价值不是那个 upside 数字，而是 **暴露哪个
 | **目标份额** | 1. `mechanism-insight` 竞争格局（当前台数/金额份额）→ 2. 客户财报里的 supplier concentration → 3. 行业峰会/产品发布 → 4. 对标相似行业新生市场的 leader 份额 | 至少给 high/low range，不拍单点 |
 | **目标 Margin** | 1. `financial-data` actuals 当前 margin → 2. 同行业 scale effect benchmark（revenue doubling 时 margin 通常 improve 多少）→ 3. peer 可比产品线 margin | 默认 = 当前 margin |
 | **目标 PE** | 1. `comps-analysis` 同组 forward PE → 2. `peer-deep-dive` valuation table → 3. 公司自身 3 年 PE range → 4. 同行业同等 growth rate 公司的 PE | 必填 |
-| **当前估值** | `/financial-data --lite` market_data | — |
+| **当前估值** | `/financial-data` market_data | — |
 
 > Tier 0（机器验证）= actuals / Bridge。Tier 1（trusted 第三方）= Frost/Gartner cited in 官方文件。Tier 2（agent 推算）= 有 derivation 但未经第三方验证。所有 Tier 2 假设必须写推导过程，由研究员确认后进测算。
 

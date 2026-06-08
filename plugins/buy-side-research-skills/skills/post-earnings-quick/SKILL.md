@@ -32,7 +32,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ```
 1. 同 ticker 最近的 earnings-setup artifact（pre-print bar 最准）
-2. Consensus range（从 /financial-data --lite market_data 或 WebSearch）
+2. Consensus range（从 /financial-data market_data 或 WebSearch）
 3. Prior year same-quarter growth trend（最弱的 proxy——去年有 COVID/M&A 就不准）
 4. 都没有 → "没有基准，不判断方向，只列数字和 guidance 变化"
 ```

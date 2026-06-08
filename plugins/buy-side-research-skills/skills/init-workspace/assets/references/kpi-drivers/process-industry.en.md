@@ -4,7 +4,7 @@
 
 Oil & Gas / Chemicals / Mining / Renewable Power Generation
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|

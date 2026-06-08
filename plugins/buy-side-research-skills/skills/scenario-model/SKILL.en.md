@@ -41,7 +41,7 @@ Every input must have a derivation path. The agent follows the path to find it; 
 | **Target Share** | 1. `mechanism-insight` competitive landscape (current unit/value share) → 2. Customer filings' supplier concentration → 3. Industry conferences / product launches → 4. Benchmark leader share in analogous industry nascent markets | At minimum give high/low range, never a single-point guess |
 | **Target Margin** | 1. `financial-data` actuals current margin → 2. Same-industry scale effect benchmark (how much margin typically improves when revenue doubles) → 3. Peer comparable product-line margin | Default = current margin |
 | **Target PE** | 1. `comps-analysis` peer-group forward PE → 2. `peer-deep-dive` valuation table → 3. Company's own 3-year PE range → 4. Companies in same industry with equal growth rate PE | Must be filled |
-| **Current Valuation** | `/financial-data --lite` market_data | — |
+| **Current Valuation** | `/financial-data` market_data | — |
 
 > Tier 0 (machine-verified) = actuals / Bridge. Tier 1 (trusted third-party) = Frost/Gartner cited in official documents. Tier 2 (agent-derived) = has derivation but not verified by a third party. All Tier 2 assumptions must include the derivation process; they enter the model only after researcher confirmation.
 

@@ -4,7 +4,7 @@
 
 Aviation / Defense / Nuclear / Shipbuilding / Space / EPC
 
-## Raw Fields (→ `/financial-data --lite` elastic collection)
+## Raw Fields (→ `/financial-data`)
 
 | KPI | actuals | CN | EN | JP |
 |---|---|---|---|---|
