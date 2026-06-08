@@ -240,7 +240,7 @@ industry/<industry>/YYYY-MM-DD-<artifact>.md                        # 行业级
 
 Agent 保存 artifact 前完成：
 1. `mkdir -p` 缺失目录
-2. `index.md` 注册公司/行业引用
+2. `RESEARCH.md` 注册公司/行业引用
 3. `COVERAGE.md` 更新覆盖状态（如有）
 
 详见 `references/policy/research-policy-baseline.md` §9-11。

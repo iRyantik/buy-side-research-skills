@@ -110,17 +110,17 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `_shared/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
+Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `references/runtime/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
 
 Capsule 格式（不可变）：
-- MUST-read 指令 + `_shared/research-runtime.md` § anchor
+- MUST-read 指令 + `references/runtime/research-runtime.md` § anchor
 - Hook 防御清单（一行）
 
 禁止在 capsule 中写：
 - Tier 回退链、provider 名、trust chain
 - `financial-data --lite` 调用方法
 - subagent evidence card 协议
-- 任何已在 `_shared/` 或 hooks 中的规则
+- 任何已在 `references/runtime/` 或 hooks 中的规则
 
 ### Modeling skills
 
@@ -405,7 +405,7 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 ```
 1. Frontmatter（短 trigger-only description，≤140 字符）[必填]
 2. # 标题 [必填]
-3. Research Runtime Capsule [必填] — 强制读 _shared/ 格式（见 §5.1）
+3. Research Runtime Capsule [必填] — 强制读 references/runtime/ 格式（见 §5.1）
 4. 心法 [必填] — 1-3 段，解决什么、最容易失败在哪
 5. 触发场景 [必填]
 6. 输入澄清要求 [可选] — 有复杂输入时加
@@ -418,9 +418,9 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 ```
 
 已删除的段：
-- `Global Rules Capsule` — 不再需要。全局纪律在 `_shared/research-runtime.md` §2.2 和 hooks。
+- `Global Rules Capsule` — 不再需要。全局纪律在 `references/runtime/research-runtime.md` §2.2 和 hooks。
 - `Source 政策` / `Source Contract` 独立 section — 并入输出结构 blockquote（一句话）。
-- `资料收集与 Source 验证` 独立 section — 并入 `_shared/research-runtime.md` §2。skill 只保留特有执行流程。
+- `资料收集与 Source 验证` 独立 section — 并入 `references/runtime/research-runtime.md` §2。skill 只保留特有执行流程。
 
 Research frontmatter：
 
@@ -443,7 +443,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `_shared/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```
@@ -451,8 +451,8 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 **规则**：
 - 核心 3 行不可变。§ anchor 根据 skill 需要调整（如不用图片的 skill 可去掉 §2.5）。
 - 禁止在此段复述 Tier 链、provider 名、trust chain、subagent 流程。
-- 禁止写 `数据管道：调用 /financial-data --lite`——已在 `_shared/` §1。
-- 禁止写 `Sub-agent outputs: evidence_cards_only`——已在 `_shared/` §3。
+- 禁止写 `数据管道：调用 /financial-data --lite`——已在 `references/runtime/` §1。
+- 禁止写 `Sub-agent outputs: evidence_cards_only`——已在 `references/runtime/` §3。
 - skill-specific 定制放在 `心法` 或 `执行模式` 段，不放在 Capsule。
 
 #### §5.2 Modeling Runtime Capsule 标准模板

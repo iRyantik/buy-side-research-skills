@@ -39,7 +39,7 @@ The invariant is separation of concerns:
 | `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
 | `references/` | `references/` | Overwrite |
-| `_shared/` (full tree) | `_shared/` | Overwrite |
+| `references/` (full tree) | `references/` | Overwrite |
 | `_scripts/shared/` (full tree) | `_scripts/shared/` | Overwrite |
 | `_scripts/verify-runtime.py` | `_scripts/verify-runtime.py` | Overwrite |
 | `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |

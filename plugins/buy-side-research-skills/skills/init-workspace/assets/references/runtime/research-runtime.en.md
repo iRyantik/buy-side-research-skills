@@ -185,7 +185,7 @@ industry/<industry>/YYYY-MM-DD-<artifact>.md                        # industry-l
 
 Agent completes before saving artifact:
 1. `mkdir -p` missing directories
-2. Register company/industry reference in `index.md`
+2. Register company/industry reference in `RESEARCH.md`
 3. Update `COVERAGE.md` (if present)
 
 See `references/policy/research-policy-baseline.md` §9-11.

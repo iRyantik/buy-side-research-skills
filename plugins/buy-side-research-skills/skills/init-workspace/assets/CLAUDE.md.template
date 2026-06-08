@@ -232,7 +232,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ### Canvas 文件
 
-worktree 操作、`_shared/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
+worktree 操作、`references/runtime/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
 
 ### Research Memory 系统
 
