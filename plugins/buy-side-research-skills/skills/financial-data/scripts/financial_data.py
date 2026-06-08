@@ -57,7 +57,7 @@ FINANCIAL_OUTPUT_KEYS = (
     "cash_flow_quarterly_derived",
 )
 
-SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot")
+SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot", "lite")
 
 # Third-party normalized-data providers: their output is never model-ready
 THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
@@ -1133,6 +1133,49 @@ def main() -> int:
             output = write_canonical_pack(args, normalized, workspace, rid)
         else:
             output = write_snapshot(args, normalized, workspace, rid)
+
+        # Lite mode: auto-fill yfinance market snapshot
+        if getattr(args, "mode", "latest_core") == "lite":
+            try:
+                import yfinance as yf
+                internal_dir = output.get("financial_data_internal_path", "")
+                if not internal_dir:
+                    # Fallback: find company dir from workspace
+                    tp = ensure_company_topic(workspace, args.company_slug)
+                    internal_dir = str(tp / "_cache" / "financial-data" / "internal")
+                actuals_path = Path(internal_dir) / "actuals-resolved.json"
+                if actuals_path.exists():
+                    with open(actuals_path, encoding="utf-8") as f:
+                        actuals = json.load(f)
+                else:
+                    actuals = {}
+            except Exception:
+                actuals = {}
+            try:
+                t = yf.Ticker(args.identifier)
+                info = t.info
+                actuals["market_data"] = {
+                    "price": info.get("currentPrice"),
+                    "market_cap": info.get("marketCap"),
+                    "pe_ttm": info.get("trailingPE"),
+                    "pe_ntm": info.get("forwardPE"),
+                    "pb": info.get("priceToBook"),
+                    "ps_ttm": info.get("priceToSalesTrailing12Months"),
+                    "ev_ebitda": info.get("enterpriseToEbitda"),
+                    "ev_sales": info.get("enterpriseToRevenue"),
+                    "dividend_yield_pct": info.get("dividendYield"),
+                    "beta": info.get("beta"),
+                    "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
+                    "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
+                }
+            except Exception:
+                actuals["market_data"] = {}
+            try:
+                actuals_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(actuals_path, "w", encoding="utf-8") as f:
+                    json.dump(actuals, f, indent=2, ensure_ascii=False, default=str)
+            except Exception:
+                pass
 
         print(json.dumps({
             "status": normalized["status"],
