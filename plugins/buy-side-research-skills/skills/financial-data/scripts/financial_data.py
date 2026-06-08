@@ -856,7 +856,7 @@ def period_basis_summary(rows: list[dict[str, Any]]) -> str:
 
 def build_financial_data_summary(evidence_pack: dict[str, Any],
                                  actuals_resolved: dict[str, Any],
-                                 internal_dir: Path) -> str:
+                                 out_dir: Path) -> str:
     """Build the single public Markdown entry for financial-data outputs."""
     manifest = evidence_pack.get("manifest", {})
     identity = evidence_pack.get("identity", {})
@@ -878,14 +878,14 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
         f"- Provider: `{manifest.get('provider', evidence_pack.get('source_provider', 'unknown'))}`",
         f"- Period filter: `{manifest.get('periods', 'latest')}`",
         f"- Latest run cache: `{evidence_pack.get('latest_run_cache_path', '')}`",
-        f"- Internal machine data: `{internal_dir.name}/`",
+        f"- Machine data: `_cache/financial-data/`",
         "",
         "## Filing",
         "",
         f"- Filing status: `{filing.get('status', 'unavailable')}`",
         f"- Filing date: `{filing.get('filing_date') or ''}`",
         f"- Accession / document id: `{filing.get('accession_number') or filing.get('document_id') or ''}`",
-        f"- Full filing retained internally: `{bool(filing.get('has_full_filing_markdown'))}`",
+        f"- Full filing: `full-filing.md` ({'available' if filing.get('has_full_filing_markdown') else 'unavailable'})",
         "",
         "## Completeness Matrix",
         "",
@@ -939,7 +939,7 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
     unmapped = actuals_resolved.get("unmapped_items", [])
     lines.extend(["", "## Model Input Policy", ""])
     lines.append("- Public surface is Markdown-only: this summary is the default file for humans and LLMs.")
-    lines.append("- Machine inputs are under `internal/`; modeling scripts should read JSON there and must not parse this Markdown for numbers.")
+    lines.append("- Machine inputs are under `_cache/financial-data/`; modeling scripts should read JSON there and must not parse this Markdown for numbers.")
     lines.append("- Missing or unmapped actuals must stay blank and be flagged for review; never convert them to zero.")
     if unmapped:
         lines.append("- Unmapped / unavailable items:")
@@ -1098,7 +1098,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     company_slug = slugify(args.company_slug)
     canonical_id = slugify(args.canonical_id or args.identifier)
     topic_path = ensure_company_topic(workspace, company_slug)
-    rel_tail = Path("datasets") / "financial-data" / args.market / canonical_id / rid
+    rel_tail = Path("financial-data") / args.market / canonical_id / rid
     raw_dir = topic_path / "_raw" / rel_tail
     cache_dir = topic_path / "_cache" / rel_tail
     raw_dir.mkdir(parents=True, exist_ok=False)
@@ -1132,7 +1132,6 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         write_json(cache_dir / "filing-index.json", filing)
         filing_md = filing.get("markdown", "")
         if filing_md:
-            write_md(cache_dir / "full-filing.md", filing_md)
             chunks = chunk_full_filing(filing_md)
             write_jsonl(cache_dir / "full-filing.chunks.jsonl", chunks)
             write_json(cache_dir / "full-filing.index.json", {
@@ -1162,7 +1161,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     source_map = _build_source_map(provider, filing, financials, normalized["completeness"])
     write_json(cache_dir / "source-map.json", source_map)
 
-    write_modeling_input_aliases(
+    write_consumer_outputs(
         topic_path=topic_path,
         raw_dir=raw_dir,
         cache_dir=cache_dir,
@@ -1179,26 +1178,28 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     return {
         "raw": str(raw_dir), "cache": str(cache_dir),
         "financial_data_pack_path": str(cache_dir),
-        "financial_data_summary_path": str(topic_path / "_cache" / "financial-data" / "financial-data-summary.md"),
-        "financial_data_internal_path": str(topic_path / "_cache" / "financial-data" / "internal"),
+        "financial_data_summary_path": str(topic_path / "_cache" / "financial-data" / "summary.md"),
+        "financial_data_dir": str(topic_path / "_cache" / "financial-data"),
     }
 
 
-def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: dict[str, Any],
-                                 raw_dir: Path,
-                                 identity: dict[str, Any], filing: dict[str, Any],
-                                 filing_md: str, financials: dict[str, Any],
-                                 completeness: list[dict[str, Any]], source_map: dict[str, Any],
-                                 cross_check: dict[str, Any]) -> None:
-    """Write stable latest-input files for driver-map and modeling skills.
+def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str, Any],
+                           raw_dir: Path,
+                           identity: dict[str, Any], filing: dict[str, Any],
+                           filing_md: str, financials: dict[str, Any],
+                           completeness: list[dict[str, Any]], source_map: dict[str, Any],
+                           cross_check: dict[str, Any]) -> None:
+    """Write consumer-facing files to _cache/financial-data/.
 
-    These aliases do not replace the run-id pack. The public surface is a
-    single Markdown summary; machine-readable inputs live under internal/.
+    Only 4 files: evidence-pack.json (audit pointer), actuals-resolved.json
+    (what all consumer skills read), full-filing.md (latest filing full text),
+    and summary.md (human entry point).
+
+    Versioned run outputs live under _cache/financial-data/<market>/<id>/<run_id>/.
+    Raw evidence lives under _raw/financial-data/<market>/<id>/<run_id>/.
     """
-    modeling_dir = topic_path / "_cache" / "financial-data"
-    internal_dir = modeling_dir / "internal"
-    modeling_dir.mkdir(parents=True, exist_ok=True)
-    internal_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = topic_path / "_cache" / "financial-data"
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     evidence_pack = {
         "schema_version": 1,
@@ -1224,7 +1225,7 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
         "provider_timing": cross_check.get("provider_timing", {}),
         "statements": financials or {},
     }
-    write_json(internal_dir / "evidence-pack.json", evidence_pack)
+    write_json(out_dir / "evidence-pack.json", evidence_pack)
 
     actuals_resolved = {
         "schema_version": 1,
@@ -1244,50 +1245,25 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
             if item.get("status") in {"provider-gap", "unavailable", "failed"}
         ],
     }
-    write_json(internal_dir / "actuals-resolved.json", actuals_resolved)
-
-    write_json(internal_dir / "manifest.json", manifest)
-    write_json(internal_dir / "identity.json", identity)
-    write_json(internal_dir / "completeness.json", {"items": completeness, "status": cross_check.get("status", "unknown")})
-    write_json(internal_dir / "source-map.json", source_map)
-    write_json(internal_dir / "cross-check.json", cross_check)
-    write_json(internal_dir / "financials.normalized.json", financials or {})
-    write_md(internal_dir / "financials.md", build_financials_markdown(financials) if financials else "# No structured financials extracted.\n")
-    write_json(internal_dir / "raw-evidence.json", {
-        "latest_raw_evidence_path": str(raw_dir),
-        "latest_run_cache_path": str(cache_dir),
-    })
-    alias_raw_dir = internal_dir / "_raw"
-    if alias_raw_dir.exists():
-        if alias_raw_dir.is_dir():
-            shutil.rmtree(alias_raw_dir)
-        else:
-            alias_raw_dir.unlink()
-    shutil.copytree(raw_dir, alias_raw_dir)
-
-    if filing:
-        write_json(internal_dir / "filing-index.json", filing)
+    write_json(out_dir / "actuals-resolved.json", actuals_resolved)
 
     if filing_md:
-        write_md(internal_dir / "full-filing.md", filing_md)
-        chunks = chunk_full_filing(filing_md)
-        write_jsonl(internal_dir / "full-filing.chunks.jsonl", chunks)
-        write_json(internal_dir / "full-filing.index.json", {
-            "source": filing.get("source_url") if filing else None,
-            "total_chars": len(filing_md),
-            "num_chunks": len(chunks),
-            "chunk_size": 12000,
-        })
+        write_md(out_dir / "full-filing.md", filing_md)
     else:
-        write_md(internal_dir / "full-filing.md", "# Full filing unavailable\n\nNo full filing markdown was materialized for the latest financial-data run.\n")
+        write_md(out_dir / "full-filing.md",
+                 "# Full filing unavailable\n\nNo full filing markdown was materialized for the latest financial-data run.\n")
 
     write_md(
-        modeling_dir / "financial-data-summary.md",
-        build_financial_data_summary(evidence_pack, actuals_resolved, internal_dir),
+        out_dir / "summary.md",
+        build_financial_data_summary(evidence_pack, actuals_resolved, out_dir),
     )
 
-    for legacy_name in ("evidence-pack.json", "actuals-resolved.json", "full-filing.md"):
-        legacy_path = modeling_dir / legacy_name
+    # Clean up legacy internal/ directory from older plugin versions
+    legacy_internal = out_dir / "internal"
+    if legacy_internal.exists() and legacy_internal.is_dir():
+        shutil.rmtree(legacy_internal)
+    for legacy_name in ("financial-data-summary.md",):
+        legacy_path = out_dir / legacy_name
         if legacy_path.exists() and legacy_path.is_file():
             legacy_path.unlink()
 
@@ -1461,12 +1437,12 @@ def main() -> int:
         if getattr(args, "mode", "latest_core") == "lite":
             try:
                 import yfinance as yf
-                internal_dir = output.get("financial_data_internal_path", "")
-                if not internal_dir:
+                data_dir = output.get("financial_data_dir", "")
+                if not data_dir:
                     # Fallback: find company dir from workspace
                     tp = ensure_company_topic(workspace, args.company_slug)
-                    internal_dir = str(tp / "_cache" / "financial-data" / "internal")
-                actuals_path = Path(internal_dir) / "actuals-resolved.json"
+                    data_dir = str(tp / "_cache" / "financial-data")
+                actuals_path = Path(data_dir) / "actuals-resolved.json"
                 if actuals_path.exists():
                     with open(actuals_path, encoding="utf-8") as f:
                         actuals = json.load(f)

@@ -14,6 +14,32 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+import sys
+import tempfile
+
+
+def _provider_cache_dir() -> Path:
+    """Cross-platform cache directory for provider metadata (not workspace data).
+
+    Uses OS-appropriate location so provider caches never leak into workspace:
+      Windows: %LOCALAPPDATA%  or  %TEMP%
+      macOS:   ~/Library/Caches
+      Linux:   ~/.cache
+      Fallback: tempfile.gettempdir()
+    """
+    if sys.platform == "win32":
+        base = os.getenv("LOCALAPPDATA")
+        if base:
+            return Path(base) / "buy-side-research-skills" / "financial-data-cache"
+    elif sys.platform == "darwin":
+        return Path.home() / "Library" / "Caches" / "buy-side-research-skills" / "financial-data-cache"
+    else:
+        base = os.getenv("XDG_CACHE_HOME")
+        if base:
+            return Path(base) / "buy-side-research-skills" / "financial-data-cache"
+        return Path.home() / ".cache" / "buy-side-research-skills" / "financial-data-cache"
+    # Fallback
+    return Path(tempfile.gettempdir()) / "buy-side-research-skills" / "financial-data-cache"
 
 
 PROVIDER = "edgartools"
@@ -98,7 +124,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not identity:
         return _err("credential-gap", "Missing EDGAR_IDENTITY")
     if not os.getenv("EDGAR_LOCAL_DATA_DIR"):
-        cache_dir = Path.cwd() / ".financial-data-cache" / "edgar"
+        cache_dir = _provider_cache_dir() / "edgar"
         cache_dir.mkdir(parents=True, exist_ok=True)
         os.environ["EDGAR_LOCAL_DATA_DIR"] = str(cache_dir)
 

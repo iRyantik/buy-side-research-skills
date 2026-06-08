@@ -142,7 +142,11 @@ def manual_node() -> str:
 
 
 def check_npx() -> tuple[bool, str]:
+    # On Windows, Anaconda Python's subprocess may fail to resolve npx.cmd
+    # via PATHEXT even when it's on PATH. Try bare name first, then .cmd.
     rc, out, _ = _run(["npx", "--version"])
+    if rc != 0 and IS_WINDOWS:
+        rc, out, _ = _run(["npx.cmd", "--version"])
     if rc == 0:
         return True, f"npx {out}"
     return False, "npx not found (re-install Node.js)"
@@ -321,7 +325,7 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
     # Summary
     total = 4 + len(CORE_PACKAGES) + 2  # 4 system + 6 packages + 2 config = 12
     passed = (
-        sum(1 for v in [results["python"], results["node"], results["npx"], results["curl"]] if v)
+        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"]] if v)
         + sum(1 for v in results["packages"].values() if v)
         + sum(1 for v in [results["mcp_json"], results["hooks"]] if v)
     )

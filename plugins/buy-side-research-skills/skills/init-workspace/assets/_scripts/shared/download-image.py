@@ -33,9 +33,12 @@ from html.parser import HTMLParser
 CACHE_DIR = "_cache/images"
 CACHE_INDEX = f"{CACHE_DIR}/.cache.json"
 LOGO_PRIORITY = [
-    ("Google Finance", "https://www.google.com/finance/quote/{ticker}"),
+    # Wikipedia first — reliably has high-quality SVG/PNG logos with og:image
     ("Wikipedia", "https://en.wikipedia.org/wiki/{ticker}"),
-    ("Company Homepage", None),  # will try https://www.<domain>.com
+    # Company homepage — best quality when available, uses ticker→domain heuristic
+    ("Company Homepage", None),
+    # Google Finance last resort — og:image often generic, not official logo
+    ("Google Finance", "https://www.google.com/finance/quote/{ticker}"),
 ]
 
 
@@ -288,17 +291,114 @@ def download_image(url: str, output: str, workspace: Path,
 # ── helpers ────────────────────────────────────────────────
 
 def _ticker_to_domain(ticker: str) -> str | None:
-    """Guess company domain from ticker. Basic heuristic."""
-    clean = ticker.split(".")[0].lower()
-    # Common ticker→domain mappings
+    """Guess company domain from ticker. Known mappings + dynamic heuristic."""
+    clean = ticker.split(".")[0].lower().strip()
+    if not clean:
+        return None
+
+    # Known ticker→domain mappings (non-obvious ones)
     known = {
-        "mycr": "mycronic.com", "keys": "keysight.com", "aapl": "apple.com",
-        "msft": "microsoft.com", "nvda": "nvidia.com", "intc": "intel.com",
-        "amzn": "amazon.com", "googl": "google.com", "meta": "meta.com",
-        "tsla": "tesla.com", "jpm": "jpmorganchase.com", "bac": "bankofamerica.com",
-        "xom": "exxonmobil.com", "cvx": "chevron.com",
+        # US
+        "aapl": "apple.com", "msft": "microsoft.com", "nvda": "nvidia.com",
+        "intc": "intel.com", "amzn": "amazon.com", "googl": "google.com",
+        "meta": "meta.com", "tsla": "tesla.com", "jpm": "jpmorganchase.com",
+        "bac": "bankofamerica.com", "xom": "exxonmobil.com", "cvx": "chevron.com",
+        "wmt": "walmart.com", "pg": "pg.com", "ko": "coca-cola.com",
+        "pep": "pepsico.com", "mcd": "mcdonalds.com", "nke": "nike.com",
+        "dis": "disney.com", "nflx": "netflix.com", "adbe": "adobe.com",
+        "crm": "salesforce.com", "orcl": "oracle.com", "ibm": "ibm.com",
+        "csco": "cisco.com", "qcom": "qualcomm.com", "amd": "amd.com",
+        "txn": "ti.com", "mu": "micron.com", "amat": "amat.com",
+        "lrcx": "lamresearch.com", "klac": "kla.com", "snps": "synopsys.com",
+        "cdns": "cadence.com", "anet": "arista.com", "now": "servicenow.com",
+        "panw": "paloaltonetworks.com", "crwd": "crowdstrike.com",
+        "ftnt": "fortinet.com", "zs": "zscaler.com", "okta": "okta.com",
+        "ddoG": "datadoghq.com", "snow": "snowflake.com", "uber": "uber.com",
+        "abnb": "airbnb.com", "sq": "squareup.com", "shop": "shopify.com",
+        "pypl": "paypal.com", "ma": "mastercard.com", "v": "visa.com",
+        "axp": "americanexpress.com", "gs": "goldmansachs.com", "ms": "morganstanley.com",
+        "c": "citigroup.com", "wfc": "wellsfargo.com", "blk": "blackrock.com",
+        "ge": "ge.com", "honeywell": "honeywell.com", "mmm": "3m.com",
+        "cat": "caterpillar.com", "de": "deere.com", "lmt": "lockheedmartin.com",
+        "rtx": "rtx.com", "noc": "northropgrumman.com", "gd": "gd.com",
+        "ba": "boeing.com", "air": "airbus.com", "siemens": "siemens.com",
+        "abb": "abb.com", "ph": "parker.com", "etn": "eaton.com",
+        "emr": "emerson.com", "rok": "rockwellautomation.com", "ame": "ametek.com",
+        "itw": "itw.com", "dhr": "danaher.com", "tdy": "teledyne.com",
+        # EU
+        "asml": "asml.com", "sap": "sap.com", "lvmh": "lvmh.com",
+        "bmw": "bmwgroup.com", "mbg": "mercedes-benz.com", "vow3": "volkswagen.com",
+        "sieg": "siemens.com", "saf": "safran-group.com", "air": "airbus.com",
+        "rhm": "rheinmetall.com", "leo": "leonardo.com", "bae": "baesystems.com",
+        "rr": "rolls-royce.com", "mtd": "mtu.de", "hag": "hensoldt.net",
+        "thales": "thalesgroup.com", "dsy": "dassault-aviation.com",
+        "sgo": "saint-gobain.com", "su": "schneider-electric.com",
+        "leg": "legrand.com", "knin": "kuehne-nagel.com",
+        "novo-b": "novonordisk.com", "nesn": "nestle.com", "ro": "roche.com",
+        "novn": "novartis.com", "azon": "astrazeneca.com", "gsk": "gsk.com",
+        "san": "sanofi.com", "bayn": "bayer.com", "bas": "basf.com",
+        # JP — suffix controls common name
+        "7203": "honda.co.jp", "7267": "honda.co.jp", "7201": "nissan.co.jp",
+        "7202": "isuzu.co.jp", "7269": "suzuki.co.jp", "7270": "subaru.co.jp",
+        "6501": "hitachi.co.jp", "6502": "toshiba.co.jp", "6503": "mitsubishielectric.co.jp",
+        "6701": "nec.com", "6702": "fujitsu.com", "6752": "panasonic.com",
+        "6753": "sharp.co.jp", "6758": "sony.com", "6762": "tdk.com",
+        "6861": "keyence.com", "6954": "fanuc.co.jp", "7974": "nintendo.co.jp",
+        "8031": "mitsui.com", "8058": "mitsubishicorp.com", "8001": "itochu.co.jp",
+        "8053": "sumitomocorp.com", "8316": "smfg.co.jp", "8411": "mizuho-fg.co.jp",
+        "8766": "tokiomarinehd.com", "9984": "softbank.jp",
+        # KR
+        "005930": "samsung.com", "000660": "skhynix.com", "005380": "hyundai.com",
+        "000270": "kia.com", "035420": "naver.com", "035720": "kakao.com",
+        "051910": "lgchem.com", "066570": "lge.com", "003550": "lghnh.com",
+        # TW
+        "2330": "tsmc.com", "2317": "foxconn.com", "2454": "mediatek.com",
+        # HK/CN
+        "0700": "tencent.com", "9988": "alibaba.com", "1810": "xiaomi.com",
+        "3690": "meituan.com", "9618": "jd.com", "9888": "baidu.com",
+        "2015": "li-auto.com", "9868": "xpeng.com", "9866": "nio.com",
+        "1211": "byd.com", "300750": "catl.com",
+        # SE
+        "mycr": "mycronic.com", "keys": "keysight.com",
+        "besi": "besi.com", "asm": "asm.com",
+        # Nordic
+        "eric-b": "ericsson.com", "nokia": "nokia.com",
+        "hex": "hexagon.com", "atco-a": "atlasCopco.com",
+        "sand": "sandvik.com", "skf-b": "skf.com",
+        "volv-b": "volvogroup.com", "sca-b": "sca.com",
+        "essity-b": "essity.com", "aliv-sdb": "autoliv.com",
+        "ndase": "nordea.com", "shb-a": "handelsbanken.com",
+        "seb-a": "seb.se", "swe-a": "swedbank.se",
+        # Singapore
+        "d05": "dbs.com", "o39": "ocbc.com", "u11": "uob.com.sg",
+        "z74": "singtel.com", "c52": "comfortdelgro.com",
+        # AU
+        "bhp": "bhp.com", "rio": "riotinto.com", "cba": "commbank.com.au",
+        "wbc": "westpac.com.au", "nab": "nab.com.au", "anz": "anz.com.au",
+        "wes": "wesfarmers.com.au", "wow": "woolworthsgroup.com.au",
+        # CA
+        "ry": "rbc.com", "td": "td.com", "bns": "scotiabank.com",
+        "bmo": "bmo.com", "cm": "cibc.com", "cnr": "cn.ca",
+        "cp": "cpr.ca", "shop": "shopify.com",
+        # IN
+        "reliance": "ril.com", "tcs": "tcs.com", "infy": "infosys.com",
+        "hdfcbank": "hdfcbank.com", "icicibank": "icicibank.com",
+        # Commodity / Oil
+        "cop": "conocophillips.com", "bp": "bp.com", "rds-a": "shell.com",
+        "ttE": "totalenergies.com", "eqnr": "equinor.com",
+        "glen": "glencore.com", "aAl": "angloamerican.com",
+        "fmg": "fmgl.com.au", "sto": "santos.com", "wds": "woodside.com",
     }
-    return known.get(clean)
+
+    if clean in known:
+        return known[clean]
+
+    # Dynamic heuristic: try www.<ticker_clean>.com for simple tickers
+    # Only for alphabetic tickers 2-6 chars that aren't pure numbers
+    if re.match(r'^[a-zA-Z]{2,6}$', clean):
+        return f"{clean}.com"
+
+    return None
 
 
 def _guess_ext(url: str) -> str:

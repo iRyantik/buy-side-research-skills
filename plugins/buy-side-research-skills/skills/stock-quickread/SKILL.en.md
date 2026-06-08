@@ -79,7 +79,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ```
 ┌─ Step 1: /financial-data <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
-│  → Write to _cache/financial-data/internal/actuals-resolved.json
+│  → Write to _cache/financial-data/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
 │
 ├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
@@ -224,7 +224,7 @@ flowchart LR
 
 ### 3. Where the Money Comes From (data table + takeaway)
 
-> Numbers sourced from: `industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json`
+> Numbers sourced from: `industry/<industry>/companies/<ticker>/_cache/financial-data/actuals-resolved.json`
 
 **Qualitative descriptions alone are partial understanding** — readers can't tell which segment matters, which is shrinking, where anomalies are. So this section has two parts:
 

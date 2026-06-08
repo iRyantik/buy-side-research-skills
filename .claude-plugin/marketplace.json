@@ -9,7 +9,7 @@
       "name": "buy-side-research-skills",
       "source": "./plugins/buy-side-research-skills",
       "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
-      "version": "5.13.12",
+      "version": "5.13.13",
       "author": {
         "name": "buy-side-research-system"
       },
@@ -46,5 +46,5 @@
       ]
     }
   ],
-  "version": "5.13.12"
+  "version": "5.13.13"
 }

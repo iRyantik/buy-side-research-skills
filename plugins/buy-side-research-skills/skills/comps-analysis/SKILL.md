@@ -24,7 +24,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
 
   a. 拉取财务数据
      /financial-data <TICKER> --mode full
-     → 写入 _cache/financial-data/internal/actuals-resolved.json
+     → 写入 _cache/financial-data/actuals-resolved.json
 
   b. 生成证据卡
      读取 actuals + WebSearch 关键信息 → 按 `references/policy/evidence-card-schema.json` 输出 JSON
