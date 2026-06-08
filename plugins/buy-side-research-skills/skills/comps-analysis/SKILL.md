@@ -23,7 +23,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
 每个 subagent 独立完成两项任务：
 
   a. 拉取财务数据
-     /financial-data --lite <TICKER>
+     /financial-data <TICKER> --mode full
      → 写入 _cache/financial-data/internal/actuals-resolved.json
 
   b. 生成证据卡

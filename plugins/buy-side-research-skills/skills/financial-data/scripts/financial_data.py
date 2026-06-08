@@ -57,11 +57,47 @@ FINANCIAL_OUTPUT_KEYS = (
     "cash_flow_quarterly_derived",
 )
 
-SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot", "lite")
+SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot", "lite", "full")
 
 # Third-party normalized-data providers: their output is never model-ready
 THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
 OFFICIAL_EVIDENCE_PROVIDERS = {"edgartools", "dart-fss", "edinet-tools", "openesef"}
+
+# Lite/full field boundaries
+LITE_FIELDS = {
+    "income_statement": {
+        "revenue", "cogs", "gross_profit", "sg_and_a", "r_and_d",
+        "operating_income", "ebit", "ebitda", "interest_expense",
+        "income_tax", "net_income", "eps",
+    },
+    "balance_sheet": {
+        "cash", "accounts_receivable", "inventory",
+        "total_assets", "total_equity", "total_debt",
+    },
+    "cash_flow": {
+        "operating_cf", "capex", "dividends_paid",
+    },
+    "supplementary": {
+        "order_backlog", "orders", "employees",
+    },
+}
+
+FULL_EXTRA_FIELDS = {
+    "income_statement": {
+        "pre_tax_income", "sbc", "d_and_a", "amortization",
+    },
+    "balance_sheet": {
+        "short_term_debt", "long_term_debt", "goodwill", "intangible_assets",
+        "total_current_assets", "total_current_liabilities", "bonds_payable",
+    },
+    "cash_flow": {
+        "d_and_a", "buybacks", "free_cash_flow",
+    },
+    "supplementary": {
+        "installed_base", "arr", "nrr", "grr", "churn",
+        "customer_count", "production_volume", "utilization_pct",
+    },
+}
 
 PROVIDER_MODULES = {
     "us": "sec_provider",

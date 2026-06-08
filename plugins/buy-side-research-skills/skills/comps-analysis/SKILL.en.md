@@ -25,7 +25,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 Each subagent independently completes two tasks:
 
   a. Fetch financial data
-     /financial-data --lite <TICKER>
+     /financial-data <TICKER> --mode full
      → writes _cache/financial-data/internal/actuals-resolved.json
 
   b. Generate evidence card
