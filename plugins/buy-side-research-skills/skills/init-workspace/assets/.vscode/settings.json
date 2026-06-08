@@ -1,0 +1,12 @@
+{
+  "files.exclude": {
+    ".claude/": true,
+    ".codex/": true,
+    ".scripts/": true,
+    ".references/": true,
+    ".memory/": true,
+    ".vscode/": true,
+    "_cache/": true,
+    ".env": true
+  }
+}
