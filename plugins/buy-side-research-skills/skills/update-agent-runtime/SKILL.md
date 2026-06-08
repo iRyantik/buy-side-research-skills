@@ -62,24 +62,30 @@ Auto-detect all installed hosts:
 
 ## Update Path
 
-For each detected host:
+Agent runs a single command — the script handles everything:
 
-1. Update marketplace plugin to latest release
-2. Create/populate plugin cache with latest version directory (copy marketplace skills + `.claude-plugin/` + `.codex-plugin/` — use `shopt -s dotglob` or `cp -r "$SRC/." "$DST/"` to include hidden directories)
-3. **Update host runtime pointer to latest cache version**:
-   - **Claude Code**: update `~/.claude/plugins/installed_plugins.json` → set `version` and `installPath` to latest cache dir
-   - **Codex**: sync latest skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
-   - **`.agents` marketplace**: update `~/.agents/plugins/marketplace.json` → set `path` to latest Codex cache dir
-4. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
-5. Sync workspace runtime assets (see Workspace Sync below)
-6. **Check for new system dependencies** in the updated version (compare `init-workspace/assets/` requirements). If new deps found → auto-install (winget/brew), fail → print manual command + **BLOCK**
-7. **Ensure `.claude/mcp.json` has playwright key** (merge strategy, same as `/init-workspace` Step 4)
-8. **Run `python _scripts/verify-runtime.py`** — 12 checks, all must pass. Any ❌ → auto-install → re-check → fail → **BLOCK**
-9. **Print change summary**: what files were updated, what dependencies were added/removed, any breaking changes from release notes
+```bash
+python _scripts/update-agent-runtime/update_agent_runtime.py
+```
 
-## Workspace Sync
+Optional flags:
+- `--workspace <path>` — explicit workspace (auto-detect if omitted)
+- `--dry-run` — fetch and report latest version only, no writes
 
-After updating hosts, sync the current workspace — no release zip download needed; pull directly from the latest cache's `init-workspace/assets/`:
+The script does:
+1. **Fetch** latest release from GitHub API (`api.github.com/repos/iRyantik/buy-side-research-skills/releases/latest`)
+2. **Download** zipball → extract `plugins/buy-side-research-skills/` payload
+3. **Update host caches**: copy payload to `~/.claude/plugins/cache/.../<version>/` and `~/.codex/plugins/cache/.../<version>/`
+4. **Refresh marketplace pointers**: `installed_plugins.json` + `.agents/plugins/marketplace.json` → latest version
+5. **Sync workspace**: hooks, configs, `_scripts/`, references, root docs — from the latest `init-workspace/assets/`
+6. **Run verify-runtime.py**: 12 checks, report pass/fail
+7. **Cleanup** temp files, print change summary
+
+Dependencies: Python stdlib only (`urllib`, `zipfile`, `json`, `shutil`). No `gh` CLI, no `git`, no `pip install` needed.
+
+## Workspace Sync Detail
+
+These steps are handled automatically by the script. Documented here for transparency.
 
 ### A. Hook infrastructure (`.claude/hooks/` — full tree)
 
