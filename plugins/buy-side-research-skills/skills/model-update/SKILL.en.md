@@ -12,7 +12,7 @@ Update a financial model for earnings guidance new data or revised assumptions.
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **Data sources**: Pull historical actuals from `actuals-resolved.json`, driver assumptions from `_cache/driver-map/`. Missing actuals are not filled as zero.
 - Sub-agent QA bounded; main agent owns the final workbook.
 

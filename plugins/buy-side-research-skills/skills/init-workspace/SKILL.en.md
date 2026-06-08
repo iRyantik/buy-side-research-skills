@@ -7,7 +7,7 @@ description: Initialize or repair a buy-side research workspace root scaffold �
 
 > This is the English translation of [SKILL.md](./SKILL.md). The Chinese version is the source of truth.
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `.scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
 
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
@@ -20,14 +20,14 @@ The invariant is separation of concerns:
 - `init-workspace` creates or repairs the root workspace shell + environment.
 - Each skill (ingest, financial-data, etc.) bootstraps heavy dependencies on first use via its own `bootstrap.py`.
 - `update-agent-runtime` keeps the workspace in sync with the latest plugin release.
-- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See `references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
+- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See workspace `.references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
 
 ## Responsibilities
 
 ### Responsible for
 
 **Directories:**
-- Creating root `_inbox/` and `_scripts/`.
+- Creating root `_inbox/` and `.scripts/`.
 
 **Class A — Platform-owned assets** (from `init-workspace/assets/`, copied verbatim to workspace root):
 
@@ -40,13 +40,13 @@ The invariant is separation of concerns:
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
 | `references/` | `references/` | Overwrite |
 | `references/` (full tree) | `references/` | Overwrite |
-| `_scripts/shared/` (full tree) | `_scripts/shared/` | Overwrite |
-| `_scripts/verify-runtime.py` | `_scripts/verify-runtime.py` | Overwrite |
+| `.scripts/shared/` (full tree) | `.scripts/shared/` | Overwrite |
+| `.scripts/verify-runtime.py` | `.scripts/verify-runtime.py` | Overwrite |
 | `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |
 | `AGENTS.md.template` | `AGENTS.md` | Copy if missing |
-| `edge-radar.md` | `edge-radar.md` | Copy if missing |
+| `
 | `coverage.md.template` | `COVERAGE.md` | Copy if missing |
-| `gitignore.template` | `.gitignore` | Overwrite |
+| `
 | `.env.template` | `.env.template` | Copy if missing |
 
 **Class B — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
@@ -57,7 +57,7 @@ The invariant is separation of concerns:
 for each skill_dir in skills/*/:
     if .platform exists → skip (platform skill, deployed by Class A)
 
-    dst = _scripts/<skill-name>/
+    dst = .scripts/<skill-name>/
 
     if scripts/ exists:
         cp -r scripts/* → dst/
@@ -73,12 +73,12 @@ for each skill_dir in skills/*/:
     # Agent reads them directly from the plugin cache when executing the skill.
 ```
 
-> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No per-skill registration.
+> **The rule**: `scripts/` + `assets/` → workspace `.scripts/<skill>/`. No per-file mapping. No per-skill registration.
 
 **Environment setup:**
 - Check Python 3.10+ availability.
 - Install core Python packages globally with `--user` (no venv, no sudo): `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`.
-- Run `pip install --user -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- Run `pip install --user -r` for each `.scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
 - Write `.gitignore`.
 
 **Interactive provider configuration:**
@@ -87,7 +87,7 @@ for each skill_dir in skills/*/:
 - Unconfigured providers stay as commented lines in `.env`.
 
 **Cleanup:**
-- Delete `_scripts/init-assets/` if present (legacy ps1-era artifacts).
+- Delete `.scripts/init-assets/` if present (legacy ps1-era artifacts).
 
 ### Not responsible for
 
@@ -120,26 +120,26 @@ Execute full Steps 0-10 (see Execution Flow below). All files are created.
 
 ### Repair Existing Workspace
 
-Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, edge-radar.md, COVERAGE.md). Platform-owned assets (hooks, settings, references, `.gitignore`) are overwritten. Skill scripts (Class B) are overwritten. User-created files in `_scripts/` that are not in the Class B list are left untouched.
+Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, 
 
 ## Execution Flow
 
 ```
 Step 0  Validate workspace path — must not be inside a plugin repo or install directory
-Step 1  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
+Step 2  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
         ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
-Step 2  Install core Python packages globally (no venv, no sudo):
+Step 3  Install core Python packages globally (no venv, no sudo):
           python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
         ★ pip install failure → BLOCK (core packages required for all skills)
-Step 3  Deploy Class A files (platform assets from init-workspace/assets/)
+Step 4  Deploy Class A files (platform assets from init-workspace/assets/)
         ★ mcp.json: merge strategy (see below)
-Step 4  Deploy Class B files (skill scripts to _scripts/<skill>/)
-Step 5  pip install --user -r _scripts/*/requirements*.txt (failures warn, do not block)
-Step 6  Write .gitignore
+Step 5  Deploy Class B files (skill scripts to .scripts/<skill>/)
+Step 6  pip install --user -r .scripts/*/requirements*.txt (failures warn, do not block)
+Step 1  Detect language: Chinese conversation → ZH templates, English conversation → EN templates
 Step 7  Interactive provider configuration (see Provider Configuration below)
-Step 8  ★ python _scripts/verify-runtime.py — one-click smoke test
+Step 8  ★ python .scripts/verify-runtime.py — one-click smoke test
         ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
-Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
+Step 9  Delete .scripts/init-assets/ if present (legacy cleanup)
 Step 10 Print deployment summary table
 ```
 
@@ -182,7 +182,7 @@ Agent handles `.claude/mcp.json` as follows:
 
 ### Step 9 Detail: Runtime Verification
 
-Agent runs `python _scripts/verify-runtime.py` (uses globally-installed packages from Step 2).
+Agent runs `python .scripts/verify-runtime.py` (uses globally-installed packages from Step 2).
 
 12 checks across 3 layers:
 - Layer 1 System: Python, Node.js, npx, curl
@@ -257,9 +257,9 @@ EDINET_API_KEY=your_key_here
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
-- Do not overwrite `COVERAGE.md` or `edge-radar.md` if already present.
+- Do not overwrite `COVERAGE.md` or `
 - `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
-- Do not overwrite `_scripts/` files that are not in the Class B source list (user-added scripts are preserved).
+- Do not overwrite `.scripts/` files that are not in the Class B source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.
 
 ## Workflow Links
@@ -283,5 +283,5 @@ Artifact policy:
 - Platform-owned assets deployed.
 - Skill scripts copied from canonical plugin locations.
 - Provider configuration offered interactively.
-- Legacy `_scripts/init-assets/` cleaned up.
+- Legacy `.scripts/init-assets/` cleaned up.
 - Did not create research artifacts.

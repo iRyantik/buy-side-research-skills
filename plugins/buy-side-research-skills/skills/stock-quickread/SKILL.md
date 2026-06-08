@@ -10,19 +10,21 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
+
 ## 资料收集与 Source 验证
 
-见 `references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
+见 workspace `.references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
 
 以下仅保留 stock-quickread 特有的执行流程：
 
 ```
 Step 1: /financial-data <ticker> → actuals-resolved.json
-Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
+Step 2: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>
 Step 3: Discovery — WebSearch 找候选 URL
 Step 4: Verification — verify-claim.py 逐条验证（Tier 1→2→3）
 Step 5: 图片下载 — download-image.py（--logo / --output）
@@ -30,6 +32,16 @@ Step 6: Write artifact（pre_write_gate 自动校验）
 Step 7: evidence_ledger.py auto + lint
 Step 8: actuals-to-appendix.py → 嵌入 Appendix
 ```
+
+## ⛔ HARD GATE（不可跳过）
+
+收到 stock-quickread 触发词后，**必须先完成 Step 1-3 才能写任何内容**：
+
+1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
+2. Run `/financial-data <ticker>` → 等待 `actuals-resolved.json` 就绪
+3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
+
+三项全部完成前，禁止 Write/Edit artifact。违反 → 研究无 source、数字无 provenance、结论无依据。
 
 ## 心法
 
@@ -100,7 +112,7 @@ flowchart LR
 
 > 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
 >
-> **下载方法**：`python _scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。禁止 `browser_take_screenshot`。
+> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。禁止 `browser_take_screenshot`。
 
 #### 其他业务
 
@@ -124,7 +136,7 @@ flowchart LR
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
-**(a) 生意模式判断**：agent 先判断 business model → 路由到 `references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
+**(a) 生意模式判断**：agent 先判断 business model → 路由到 `.references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
 
 **(b) 关键财务数据表（标准+弹性）**
 
@@ -175,7 +187,7 @@ flowchart LR
 
 ### 4. Growth Drivers & KPIs
 
-> agent 先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
+> agent 先判断 business model → 路由 `.references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
 
 **(a) 标准比率 pool**（从 actuals 取数，能算就算，算不出就跳过）：
 

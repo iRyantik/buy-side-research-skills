@@ -148,13 +148,13 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 以下能力由 buy-side-research-skills 插件内置，无需调用 skill 即可直接使用。
 
-### 共享脚本（`_scripts/`）
+### 共享脚本（`.scripts/`）
 
 | 脚本 | 用途 | 调用示例 |
 |---|---|---|
-| `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python _scripts/shared/verify-claim.py <url> --json` |
+| `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
 | `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
-| `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python _scripts/verify-runtime.py` |
+| `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python .scripts/verify-runtime.py` |
 | `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
 | `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
@@ -198,7 +198,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 |---|---|
 | 拉取财务数据（lite 模式） | `/financial-data --lite <TICKER>` |
 | 拉取多期数据 | `/financial-data --lite <TICKER> --periods 3Y` |
-| 检查运行时 | `python _scripts/verify-runtime.py` |
+| 检查运行时 | `python .scripts/verify-runtime.py` |
 | 更新插件+同步 workspace | `/update-agent-runtime` |
 
 ### Actuals ↔ Artifact 同步规则
@@ -232,7 +232,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ### Canvas 文件
 
-worktree 操作、`references/runtime/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）。
+worktree 操作、`.references/runtime/research-runtime.md`（五链全文档）、`.references/policy/`（策略基线）、`.references/kpi-drivers/`（KPI 模板）。
 
 ### Research Memory 系统
 
@@ -242,7 +242,7 @@ worktree 操作、`references/runtime/research-runtime.md`（五链全文档）�
 3. **事实基线** — 速查卡（thesis 盯的 5-8 个数）+ 完整表 + 已推翻认知
 4. **研究轨迹** — 已完成 artifact、下一步 5 问、已排除方向、上次读到哪
 
-**自动加载**：`memory/research/` 下的薄卡片由 `generate-memory-cards.py` 从 RESEARCH.md 自动生成，CC session 启动时自动注入。
+**自动加载**：`.memory/research/` 下的薄卡片由 `generate-memory-cards.py` 从 RESEARCH.md 自动生成，CC session 启动时自动注入。
 
 **Agent 行为**：
 - 新 session 提到公司/ticker → 先 `Read` 对应公司 RESEARCH.md + 行业 RESEARCH.md

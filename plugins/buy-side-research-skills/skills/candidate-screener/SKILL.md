@@ -10,9 +10,11 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -154,7 +156,7 @@ Top Ideas 必须给下一步验证路线：
 
 ## §3 场景推票矩阵（主表）
 
-行 = 公司，列 = 3 regime。格子格式：**方向 权重 · 当前估值 · 场景重估方向 · 一句话 · Key KPI**（从 `references/kpi-drivers/` 取该行业最重要的 1 个数字）。注意：格内用 `·` 分隔，不用 `|`（会破坏表格渲染）
+行 = 公司，列 = 3 regime。格子格式：**方向 权重 · 当前估值 · 场景重估方向 · 一句话 · Key KPI**（从 `.references/kpi-drivers/` 取该行业最重要的 1 个数字）。注意：格内用 `·` 分隔，不用 `|`（会破坏表格渲染）
 
 | 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度 | Ev |
 |---|---|---|---|---|---|---|

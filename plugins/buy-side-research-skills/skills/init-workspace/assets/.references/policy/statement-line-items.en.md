@@ -70,4 +70,4 @@
 | `[UNVERIFIED]` | number exists but source yet to be verified |
 | `[note derivation basis]` | has derivation logic, note the derivation method |
 
-> Full source policy: see `references/policy/research-policy-baseline.md` and workspace `CLAUDE.md`.
+> Full source policy: see `.references/policy/research-policy-baseline.md` and workspace `CLAUDE.md`.

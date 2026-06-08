@@ -82,7 +82,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  → Write to _cache/financial-data/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
 │
-├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
+├─ Step 2: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>
 │  → _cache/evidence/<TICKER>.evidence.json (must exist)
 │
 ├─ Step 3: Discovery — WebSearch for candidate URLs
@@ -97,7 +97,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
-│  5a. python _scripts/shared/download-image.py <url> --output <product>  (auto Tier 1→2, cache check)
+│  5a. python .scripts/shared/download-image.py <url> --output <product>  (auto Tier 1→2, cache check)
 │  5b. All tiers fail → mark [IMAGE MISSING] — only after ledger records download attempt
 │  Gate: ls _cache/images/<product>.* has file → pass. No file AND no attempt record → STOP, cannot enter Step 6.
 │
@@ -107,13 +107,13 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Tables strictly follow template (§3c=table, §4a=pool, §5=anchor table+scenario table+Ev column)
 │  Pre-write checklist: _cache/images/<product>.* file exists ✅ | [IMAGE MISSING] has attempt record ✅ | [UNVERIFIED] ≤8 ✅
 │
-├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+├─ Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
 │  → Auto-create ledger pending claims → agent fills text/quote/section → verify
 │
-├─ Step 8: python _scripts/evidence_ledger.py lint + status
+├─ Step 8: python .scripts/evidence_ledger.py lint + status
 │  → anchors aligned ✅ + 0 fabrication_risk + coverage >80%
 │
-└─ Step 9: python _scripts/financial-data/actuals-to-appendix.py <TICKER>
+└─ Step 9: python .scripts/financial-data/actuals-to-appendix.py <TICKER>
    → Generate appendix: financial data statement in artifact
 ```
 
@@ -228,7 +228,7 @@ flowchart LR
 
 **Qualitative descriptions alone are partial understanding** — readers can't tell which segment matters, which is shrinking, where anomalies are. So this section has two parts:
 
-**(a) Business Model Assessment**: agent judges business model → routes to `references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
+**(a) Business Model Assessment**: agent judges business model → routes to `.references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
 
 **(b) Key Financial Tables (standard + elastic)**
 
@@ -268,7 +268,7 @@ Tables are not the endpoint — they must have interpretation. Cover:
 
 ### 4. Growth Drivers & KPIs
 
-> Agent judges business model → routes to `references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
+> Agent judges business model → routes to `.references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
 
 **(a) Standard Ratios** (4 items, all companies required, data from actuals):
 

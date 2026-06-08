@@ -16,6 +16,11 @@ Cache: _cache/images/ + .cache.json index. Workspace-level, cross-skill shared.
 """
 from __future__ import annotations
 
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import json
 import os
@@ -161,7 +166,7 @@ def _tier2_instruction(url: str, filename: str, selector: str | None = None) -> 
         f"  browser_evaluate → find largest image matching '{sel}'\n"
         f"    → extract src/srcset, pick best resolution\n"
         f"    → fetch image as base64\n"
-        f"  Feed base64 to: python _scripts/shared/download-image.py "
+        f"  Feed base64 to: python .scripts/shared/download-image.py "
         f"--base64 \"<data>\" --output {filename}"
     )
 

@@ -12,12 +12,16 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import json
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -32,7 +36,7 @@ CODEX_SKILLS = Path.home() / ".codex" / "plugins" / "cache" / PLUGIN_NAME / "ski
 INSTALLED_PLUGINS = Path.home() / ".claude" / "plugins" / "installed_plugins.json"
 AGENTS_MARKETPLACE = Path.home() / ".agents" / "plugins" / "marketplace.json"
 
-WORKSPACE_MARKERS = ["industry", "CLAUDE.md", "_scripts"]
+WORKSPACE_MARKERS = ["industry", "CLAUDE.md", ".scripts"]
 
 
 # ── helpers ──────────────────────────────────────────────────
@@ -193,12 +197,12 @@ def sync_workspace(payload: Path, workspace: Path):
             shutil.copy2(src, dst)
     _log("host configs synced")
 
-    # C. _scripts/
-    # C1 — platform-owned scripts from assets/_scripts/
-    scripts_src = assets / "_scripts"
+    # C. .scripts/
+    # C1 — platform-owned scripts from assets/.scripts/
+    scripts_src = assets / ".scripts"
     if scripts_src.is_dir():
         for f in scripts_src.glob("*.py"):
-            shutil.copy2(f, workspace / "_scripts" / f.name)
+            shutil.copy2(f, workspace / ".scripts" / f.name)
     # C2 — skill workspace scripts (auto-discover)
     skills_dir = payload / "skills"
     if skills_dir.is_dir():
@@ -209,35 +213,30 @@ def sync_workspace(payload: Path, workspace: Path):
                 continue
             src_scripts = skill_dir / "scripts"
             if src_scripts.is_dir():
-                dst_dir = workspace / "_scripts" / skill_dir.name
+                dst_dir = workspace / ".scripts" / skill_dir.name
                 dst_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(src_scripts, dst_dir, dirs_exist_ok=True)
-    _log("_scripts/ synced")
+    _log(".scripts/ synced")
 
-    # D. References
+    # D. .references/
     refs = {
-        "references/policy": assets / "references" / "policy",
-        "references/kpi-drivers": assets / "references" / "kpi-drivers",
-        "references/runtime": assets / "references" / "runtime",
-        "references/templates": assets / "references" / "templates",
+        ".references/policy": assets / ".references" / "policy",
+        ".references/kpi-drivers": assets / ".references" / "kpi-drivers",
+        ".references/runtime": assets / ".references" / "runtime",
+        ".references/templates": assets / ".references" / "templates",
     }
     for rel, src in refs.items():
         if src.is_dir():
             dst = workspace / rel
             dst.mkdir(parents=True, exist_ok=True)
             shutil.copytree(src, dst, dirs_exist_ok=True)
-    _log("references/ synced")
+    _log(".references/ synced")
 
-    # E. Root docs
-    for fname in ["edge-radar.md"]:
-        src = assets / fname
-        if src.is_file():
-            shutil.copy2(src, workspace / fname)
-    _log("root docs synced")
+    # E. Root docs — edge-radar moved to .references/, everything else via templates
 
 
 def run_verify(workspace: Path) -> bool:
-    verify_script = workspace / "_scripts" / "verify-runtime.py"
+    verify_script = workspace / ".scripts" / "verify-runtime.py"
     if not verify_script.is_file():
         _log("verify-runtime.py not found, skipping")
         return True

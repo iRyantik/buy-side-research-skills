@@ -1,3 +1,8 @@
+
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 #!/usr/bin/env python3
 """Evidence Ledger — claim-to-source traceability for buy-side research.
 

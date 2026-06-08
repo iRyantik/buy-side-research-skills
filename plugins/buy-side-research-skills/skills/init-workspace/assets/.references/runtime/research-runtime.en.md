@@ -26,7 +26,7 @@ Hook-enforced rules (source boundary, structure floor, table render, mermaid syn
 ## 2. Source Verification Chain
 
 ```
-python _scripts/shared/verify-claim.py <url>
+python .scripts/shared/verify-claim.py <url>
 ```
 
 Automated Tier 1→2→3 fallback:
@@ -41,10 +41,10 @@ Automated Tier 1→2→3 fallback:
 Usage:
 ```
 # First attempt
-python _scripts/shared/verify-claim.py <url> --json
+python .scripts/shared/verify-claim.py <url> --json
 
 # If Tier 1 fails → script outputs Playwright instruction → agent executes → feed back
-python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
+python .scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 ```
 
 In skill artifacts, every [I#] source must pass at least Tier 1-2 verification (hook: `evidence_ledger_floor`).
@@ -93,8 +93,8 @@ Example: Revenue -> already in actuals -> don't label [S1]. Q1 orders -> not in 
 ### 2.1 Material Collection
 
 ```
-python _scripts/shared/web-extract.py <url> [--markdown]          # clean body text from web pages
-python _scripts/shared/pdf-extract.py <file_or_url> [--tables]    # PDF text + tables
+python .scripts/shared/web-extract.py <url> [--markdown]          # clean body text from web pages
+python .scripts/shared/pdf-extract.py <file_or_url> [--tables]    # PDF text + tables
 ```
 
 | Tool | Purpose | Engine chain |
@@ -108,7 +108,7 @@ Agent calls these directly when collecting web/PDF content — do not reinvent.
 
 ## 3. Evidence Protocol
 
-Subagent evidence card format: `references/policy/evidence-card-schema.json`.
+Subagent evidence card format: `.references/policy/evidence-card-schema.json`.
 
 Main agent extracts 1-3 evidence triplets per card, embedded as:
 
@@ -125,8 +125,8 @@ Minimum 1 triplet (3 lines) required by `subagent_protocol` hook.
 ## 2.5 Image Download
 
 ```
-python _scripts/shared/download-image.py --logo <TICKER>         # Logo mode (auto cache + naming)
-python _scripts/shared/download-image.py <url> --output <slug>   # Product/equipment image
+python .scripts/shared/download-image.py --logo <TICKER>         # Logo mode (auto cache + naming)
+python .scripts/shared/download-image.py <url> --output <slug>   # Product/equipment image
 ```
 
 Automated Tier 1→2 fallback:
@@ -167,7 +167,7 @@ Logo naming: `<TICKER>-logo.{ext}` (auto). Product naming: `<slug>.{ext}` (manua
 ### 4.3 Appendix
 
 ```
-python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
+python .scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
 ```
 
 **Must execute BEFORE writing the artifact body.** Embed output in `## Appendix` section. Never leave a placeholder.
@@ -190,7 +190,7 @@ Agent completes before saving artifact:
 2. Register company/industry reference in `RESEARCH.md`
 3. Update `COVERAGE.md` (if present)
 
-See `references/policy/research-policy-baseline.md` §9-11.
+See `.references/policy/research-policy-baseline.md` §9-11.
 
 ---
 

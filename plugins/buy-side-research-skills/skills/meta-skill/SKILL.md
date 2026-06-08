@@ -99,7 +99,7 @@ Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-upda
    - workspace 高层宪法模板
 3. invoked `SKILL.md`
    - runtime executable contract
-4. `references/policy/research-policy-baseline.md`
+4. workspace `.references/policy/research-policy-baseline.md`
    - authoring baseline only，not runtime authority
 
 runtime 行为上，如果 template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
@@ -110,10 +110,10 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 `references/runtime/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
+Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 workspace `.references/runtime/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
 
 Capsule 格式（不可变）：
-- MUST-read 指令 + `references/runtime/research-runtime.md` § anchor
+- MUST-read 指令 + workspace `.references/runtime/research-runtime.md` § anchor
 - Hook 防御清单（一行）
 
 禁止在 capsule 中写：
@@ -170,7 +170,7 @@ modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`�
 
 任何公共 research 规则变更，必须在同一个 change 里同步：
 
-1. `references/policy/research-policy-baseline.md`
+1. workspace `.references/policy/research-policy-baseline.md`
 2. 所有受影响的 active research `SKILL.md`
 3. 如影响 workspace 高层摘要，再改 `CLAUDE.md.template`
 4. 如影响 public behavior / package language，再改 `README.md`、`docs/release.md`、payload manifests / marketplace manifests
@@ -188,7 +188,7 @@ hooks-first 补充 hard gate：
 
 命名规则补充 hard gate：
 
-9. 如变更 research topic artifact 命名规则，必须同步 `references/policy/research-policy-baseline.md` §11。
+9. 如变更 research topic artifact 命名规则，必须同步 workspace `.references/policy/research-policy-baseline.md` §11。
 10. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
 11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml`。
 12. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
@@ -245,9 +245,9 @@ hooks-first 补充 hard gate：
 
 | 目录 | 职责 | 部署行为 | 策略 |
 |---|---|---|---|
-| `scripts/` | 可执行代码（.py, .js） | `_scripts/<skill>/` | 覆盖 |
-| `assets/` | 数据文件、配置、requirements、模板 | `_scripts/<skill>/` | 覆盖 |
-| `assets/templates/` | 用户可改的模板文件 | `_scripts/<skill>/` | 缺时补 |
+| `scripts/` | 可执行代码（.py, .js） | `.scripts/<skill>/` | 覆盖 |
+| `assets/` | 数据文件、配置、requirements、模板 | `.scripts/<skill>/` | 覆盖 |
+| `assets/templates/` | 用户可改的模板文件 | `.scripts/<skill>/` | 缺时补 |
 | `references/` | 该 skill 自己的参考文档 | **不部署** — agent 直接从 plugin cache 读取 | — |
 | `examples/` | 示例产物、示例 HTML | **不部署** — agent 直接从 plugin cache 读取 | — |
 | `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），资产走 A类部署到 workspace root，不参与 B类 auto-discovery | — | — |
@@ -418,9 +418,9 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 ```
 
 已删除的段：
-- `Global Rules Capsule` — 不再需要。全局纪律在 `references/runtime/research-runtime.md` §2.2 和 hooks。
+- `Global Rules Capsule` — 不再需要。全局纪律在 workspace `.references/runtime/research-runtime.md` §2.2 和 hooks。
 - `Source 政策` / `Source Contract` 独立 section — 并入输出结构 blockquote（一句话）。
-- `资料收集与 Source 验证` 独立 section — 并入 `references/runtime/research-runtime.md` §2。skill 只保留特有执行流程。
+- `资料收集与 Source 验证` 独立 section — 并入 workspace `.references/runtime/research-runtime.md` §2。skill 只保留特有执行流程。
 
 Research frontmatter：
 
@@ -443,7 +443,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```
@@ -463,7 +463,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 

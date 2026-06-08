@@ -67,7 +67,7 @@ Topic inference:
 ### Dependency Check
 
 ```bash
-python _scripts/ingest.py --check-deps
+python .scripts/ingest.py --check-deps
 ```
 
 Only install dependencies after explicit user confirmation.

@@ -12,7 +12,7 @@ Choose the highest-value next research question when a thread feels stuck or inc
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 Compress the current research sticking point into a single highest-leverage question. **The core value is not task management** — it is judging which question is most likely right now to change business substance, model drivers, market expectations, peer framing, or research priorities, and then deciding whether to pursue it directly or hand off to an upstream primitive first.

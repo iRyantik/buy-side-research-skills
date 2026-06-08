@@ -33,12 +33,27 @@ SUMMARY_METHODS = {"WebSearch", "unknown"}
 
 
 def _find_ledger(artifact_path: str) -> str | None:
-    """Find the evidence ledger for a given artifact."""
+    """Find the evidence ledger for a given artifact.
+
+    Checks both artifact-stem naming (<artifact>.md.evidence.json) and
+    ticker-based naming (<TICKER>.evidence.json) as a fallback.
+    """
     artifact_dir = os.path.dirname(artifact_path)
     artifact_name = os.path.basename(artifact_path)
     candidates = [
         os.path.join(artifact_dir, LEDGER_DIR, artifact_name + ".evidence.json"),
     ]
+    # Also check for ticker-named ledgers in the same directory
+    try:
+        ledger_dir = os.path.join(artifact_dir, LEDGER_DIR)
+        if os.path.isdir(ledger_dir):
+            for f in os.listdir(ledger_dir):
+                if f.endswith(".evidence.json"):
+                    fp = os.path.join(ledger_dir, f)
+                    if fp not in candidates:
+                        candidates.append(fp)
+    except OSError:
+        pass
     for c in candidates:
         if os.path.exists(c):
             return c

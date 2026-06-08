@@ -80,7 +80,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 运行：
 
 ```powershell
-python _scripts/financial-data/financial_data.py --check-deps
+python .scripts/financial-data/financial_data.py --check-deps
 _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
@@ -222,7 +222,7 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 
 > **Derived fields constraint**: 所有 derived 字段（包括 growth_rates、弹性比率、任何 arithmetic ratio）的输入必须来自 `actuals-resolved.json` 中真实已披露数据。**禁止用 FY2026E / consensus estimate / forward-looking number 作为输入计算 ratio 并写入 actuals。** 某个输入字段没有 actuals → 该 derived 字段标 `[未披露]`，不计算、不推断。
 
-**弹性采集**（先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 只抓该模板字段）：
+**弹性采集**（先判断 business model → 路由 `.references/kpi-drivers/<template>.md` → 只抓该模板字段）：
 
 | KPI | actuals 字段 | 条件 |
 |---|---|---|
@@ -320,7 +320,7 @@ Snapshot 可以链接 canonical company pack，但不把单公司 canonical data
 
 本 skill 使用：
 
-- 如果你只是想先知道 workspace 里哪些共享环境变量需要配置，先看 `init-workspace` 提供的统一环境入口与 `_scripts/init-assets/env-setup.ps1.template`。本节仍然保留 `financial-data` 自己的完整 provider / dependency / bootstrap 细节，不被那份总入口替代。
+- 如果你只是想先知道 workspace 里哪些共享环境变量需要配置，先看 `init-workspace` 提供的统一环境入口与 `.scripts/init-assets/env-setup.ps1.template`。本节仍然保留 `financial-data` 自己的完整 provider / dependency / bootstrap 细节，不被那份总入口替代。
 
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`

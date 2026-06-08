@@ -3,6 +3,11 @@
 
 from __future__ import annotations
 
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import argparse
 import csv
 import datetime as dt

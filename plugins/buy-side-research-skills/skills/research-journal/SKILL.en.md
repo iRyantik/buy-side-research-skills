@@ -12,7 +12,7 @@ Summarize completed research into durable topic notes and boss brief outputs.
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 Crystallize cognitive increments that have already been researched, clarified, and can change subsequent judgment into topic memory. **The core value is not recording the process** — it is preserving the judgments, mechanisms, drivers, source maps, open questions, and boss-ready conclusions the researcher has already earned, so future research can resume or the output can be transferred to the PM.

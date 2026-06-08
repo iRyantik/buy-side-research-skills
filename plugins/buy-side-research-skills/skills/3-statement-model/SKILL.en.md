@@ -12,7 +12,7 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **Data source**: Pull historical actuals from `actuals-resolved.json`, pull driver assumptions from `_cache/driver-map/`. Missing actuals must not be filled with zero.
 - **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
 - Sub-agent QA bounded; main agent owns the final workbook.

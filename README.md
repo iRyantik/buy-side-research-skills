@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.13.15 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.14.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.14.0 | 2026-06-08 | Workspace restructure: hide non-user-facing dirs (`.references/`, `.scripts/`, `.memory/`, `.vscode/settings.json`), bilingual init (ZH/EN templates), `_inbox/` stays visible, remove `.gitignore`. All Python scripts: `_scripts/`→`.scripts/` paths + Windows encoding fix (`sys.stdout.reconfigure`). SKILL.md batch: `references/`→`.references/`, GATE lines on all capsules, stock-quickread HARD GATE. New: `fix-bare-anchors.py` (batch fix bare source anchors). evidence_ledger hook: accept both artifact-stem and ticker-based naming. |
 | v5.13.15 | 2026-06-08 | update-agent-runtime: Python script automates full pipeline — GitHub fetch → cache populate → marketplace refresh → workspace sync → verify. Single command, stdlib only. |
 | v5.13.14 | 2026-06-08 | init-workspace: remove venv, `pip install --user` global install (no admin/sudo, designed for blank machines) |
 | v5.13.13 | 2026-06-08 | Financial-data cache restructure: remove `datasets/` middle layer (`_raw/financial-data/`, `_cache/financial-data/`), eliminate `internal/` subdirectory (14 files → 4: actuals-resolved.json, evidence-pack.json, full-filing.md, summary.md), drop copytree of `_raw`, rename `financial-data-summary.md` → `summary.md`. SEC provider cache leak fix (`_provider_cache_dir()` cross-platform). download-image.py logo priority reorder (Wikipedia → Homepage → Google Finance), `_ticker_to_domain` expanded to ~180 entries. verify-runtime.py npx.cmd + node_js key bugfixes. |

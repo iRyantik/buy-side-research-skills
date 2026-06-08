@@ -12,7 +12,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **Data source**: Retrieve historical actuals from `actuals-resolved.json`, derive driver assumptions from `_cache/driver-map/`. Missing actuals are not filled with zero.
 - **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([Needs Verification]). See §3.2.
 - Sub-agent QA bounded; main agent owns the final workbook.

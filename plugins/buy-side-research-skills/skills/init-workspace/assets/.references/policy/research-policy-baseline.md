@@ -149,8 +149,8 @@ Tier 4  标 [需查证] + Resources 记录尝试过的URL    — honest degradat
 
 写完 artifact 后必须通过以下检查才能视为完成：
 
-1. **Anchor scan**：`python _scripts/evidence_ledger.py scan <artifact> -t <TICKER>` 扫描所有 [S#]/[I#] anchor。
-2. **Lint gate**：`python _scripts/evidence_ledger.py lint <artifact> -t <TICKER>` 检查裸 anchor、死链、Resources 对齐。
+1. **Anchor scan**：`python .scripts/evidence_ledger.py scan <artifact> -t <TICKER>` 扫描所有 [S#]/[I#] anchor。
+2. **Lint gate**：`python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>` 检查裸 anchor、死链、Resources 对齐。
 3. **Density self-check**：各 skill 自行定义其高密度段（见 skill-specific density table），写完逐段扫：
    - 每段 factual claim 句尾是否有 anchor？
    - 连续 3 句以上事实 claim 中间无 source → 密度不够。

@@ -12,7 +12,7 @@ Collect label and summarize Reddit sentiment as clue-only social evidence for a 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 Turn Reddit from a noise pool into usable buy-side research clues: scrape relevant posts, label narrative clusters, identify community segmentation, crowded narratives, misleading social claims, and next-step verification tasks, and produce a list of 10–15 posts most worth reading.
@@ -27,7 +27,7 @@ The most valuable output is not a sentiment score but three things: first, diver
 
 ## Environment & Tooling
 
-If you are only looking for a workspace-level shared environment entry point, check the `_scripts/init-assets/env-setup.ps1.template` provided by `init-workspace` first. `reddit-sentiment` retains its own bootstrap because it is an additional optional-dependency skill and is not merged with `financial-data` / `ingest`.
+If you are only looking for a workspace-level shared environment entry point, check the `.scripts/init-assets/env-setup.ps1.template` provided by `init-workspace` first. `reddit-sentiment` retains its own bootstrap because it is an additional optional-dependency skill and is not merged with `financial-data` / `ingest`.
 
 This skill includes runtime tools:
 

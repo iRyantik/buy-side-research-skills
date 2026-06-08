@@ -26,7 +26,7 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
 ## 2. 来源验证链
 
 ```
-python _scripts/shared/verify-claim.py <url>
+python .scripts/shared/verify-claim.py <url>
 ```
 
 自动化 Tier 1→2→3 回退：
@@ -41,10 +41,10 @@ python _scripts/shared/verify-claim.py <url>
 消费方式：
 ```
 # 首次尝试
-python _scripts/shared/verify-claim.py <url> --json
+python .scripts/shared/verify-claim.py <url> --json
 
 # 如果 Tier 1 失败 → 脚本输出 Playwright 指令 → agent 执行 → 回传
-python _scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
+python .scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
 ```
 
 skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证（hook: `evidence_ledger_floor`）。
@@ -96,8 +96,8 @@ skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证�
 **任何文件 → markdown 的统一入口：**
 
 ```
-python _scripts/shared/to-markdown.py <file_or_url>                    # stdout markdown
-python _scripts/shared/to-markdown.py <file> --cache <TICKER> <desc>   # stdout + _cache/ 归档
+python .scripts/shared/to-markdown.py <file_or_url>                    # stdout markdown
+python .scripts/shared/to-markdown.py <file> --cache <TICKER> <desc>   # stdout + _cache/ 归档
 ```
 
 | 工具 | 用途 | 内部引擎 |
@@ -163,7 +163,7 @@ PDF → to-markdown.py 调 pdf-extract --smart:
 
 ## 3. 证据协议
 
-Subagent 产出的 evidence card 格式见 `references/policy/evidence-card-schema.json`。
+Subagent 产出的 evidence card 格式见 `.references/policy/evidence-card-schema.json`。
 
 主 agent 从每张 evidence card 取 1-3 个 evidence triplet，以三行格式嵌入 artifact：
 
@@ -180,8 +180,8 @@ source: [S#](url) or [I#](url)
 ## 2.5 图片获取链
 
 ```
-python _scripts/shared/download-image.py --logo <TICKER>         # Logo 模式（自动缓存+命名）
-python _scripts/shared/download-image.py <url> --output <slug>   # 产品/设备图
+python .scripts/shared/download-image.py --logo <TICKER>         # Logo 模式（自动缓存+命名）
+python .scripts/shared/download-image.py <url> --output <slug>   # 产品/设备图
 ```
 
 自动化 Tier 1→2 回退：
@@ -222,7 +222,7 @@ Logo 命名：`<TICKER>-logo.{ext}`（自动）。产品图命名：`<slug>.{ext
 ### 4.3 Appendix
 
 ```
-python _scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
+python .scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
 ```
 
 **必须在写 artifact 正文之前执行**，输出嵌入 `## Appendix` 节。禁止留占位符。
@@ -245,7 +245,7 @@ Agent 保存 artifact 前完成：
 2. `RESEARCH.md` 注册公司/行业引用
 3. `COVERAGE.md` 更新覆盖状态（如有）
 
-详见 `references/policy/research-policy-baseline.md` §9-11。
+详见 `.references/policy/research-policy-baseline.md` §9-11。
 
 ---
 

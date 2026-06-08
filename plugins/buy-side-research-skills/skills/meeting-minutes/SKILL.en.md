@@ -23,7 +23,7 @@ Failure mode: after reading the output, the reader still can't tell which claims
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: workspace `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **Data pipeline**: Does not invoke financial-data. Reuses existing workspace `_cache/`, teach-in, and quickread artifacts for background context.
 - **RAG chain**: Reuses existing fallback — WebSearch → WebFetch → Playwright → curl → [UNVERIFIED]. Key claims mandatory Tier 2; general claims Tier 1 minimum.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.

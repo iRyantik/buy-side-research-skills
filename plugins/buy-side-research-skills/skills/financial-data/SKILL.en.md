@@ -82,7 +82,7 @@ Europe special rules:
 Run:
 
 ```powershell
-python _scripts/financial-data/financial_data.py --check-deps
+python .scripts/financial-data/financial_data.py --check-deps
 _scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
@@ -223,7 +223,7 @@ After fetching, write into `actuals-resolved.json` under `market_data` (audit an
 
 > **Derived fields constraint**: All derived field inputs (including growth_rates, elasticity ratios, and any arithmetic ratio) must come from actual disclosed data in `actuals-resolved.json`. **Using FY2026E / consensus estimates / forward-looking numbers as inputs to compute ratios and write them into actuals is prohibited.** If a given input field has no actuals → that derived field is labeled `[未披露]`; do not compute, do not infer.
 
-**Elasticity collection** (first determine business model → route to `references/kpi-drivers/<template>.md` → only fetch fields from that template):
+**Elasticity collection** (first determine business model → route to `.references/kpi-drivers/<template>.md` → only fetch fields from that template):
 
 | KPI | actuals field | Condition |
 |---|---|---|
@@ -321,7 +321,7 @@ Snapshots may link to the canonical company pack but must not duplicate single-c
 
 This skill uses:
 
-- If you just want to first check which shared environment variables the workspace needs, consult the unified environment entry provided by `init-workspace` and `_scripts/init-assets/env-setup.ps1.template`. This section still retains `financial-data`'s own complete provider / dependency / bootstrap detail and is not replaced by that shared entry.
+- If you just want to first check which shared environment variables the workspace needs, consult the unified environment entry provided by `init-workspace` and `.scripts/init-assets/env-setup.ps1.template`. This section still retains `financial-data`'s own complete provider / dependency / bootstrap detail and is not replaced by that shared entry.
 
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`

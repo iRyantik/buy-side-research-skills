@@ -10,9 +10,11 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- `references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -106,7 +108,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> **Logo 下载**：`python _scripts/shared/download-image.py --logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。全部 tier 失败则标 `[缺 logo]`。
+> **Logo 下载**：`python .scripts/shared/download-image.py --logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。全部 tier 失败则标 `[缺 logo]`。
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 

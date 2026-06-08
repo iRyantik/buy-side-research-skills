@@ -21,7 +21,7 @@ description: Turn raw voice-transcribed meeting notes into structured research m
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: workspace `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：不调用 financial-data。优先复用 workspace 现有 `_cache/` 和 teach-in/quickread 的背景知识。
 - **RAG 链**：复用现有 Fallback——WebSearch→WebFetch→Playwright→curl→[需查证]。关键 claim 强制 Tier 2，一般 claim Tier 1 即可。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.

@@ -10,7 +10,7 @@ Collect label and summarize Reddit sentiment as clue-only social evidence for a 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把 Reddit 从噪音池变成可用的买方研究线索：抓取相关帖子，标注 narrative clusters，识别社区分层、拥挤叙事、误导性 social claims、下一步验证任务，并给出 10-15 个最值得读的帖子。
@@ -25,7 +25,7 @@ Reddit sentiment 不是为了证明公司基本面，而是为了回答：市场
 
 ## 环境与工具
 
-如果你只是在找 workspace 级共享环境入口，先看 `init-workspace` 提供的 `_scripts/init-assets/env-setup.ps1.template`。`reddit-sentiment` 继续保留自己的 bootstrap，因为它是额外可选依赖型 skill，不与 `financial-data` / `ingest` 合并。
+如果你只是在找 workspace 级共享环境入口，先看 `init-workspace` 提供的 `.scripts/init-assets/env-setup.ps1.template`。`reddit-sentiment` 继续保留自己的 bootstrap，因为它是额外可选依赖型 skill，不与 `financial-data` / `ingest` 合并。
 
 本 skill 包含 runtime 工具：
 

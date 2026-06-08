@@ -101,7 +101,7 @@ When rules conflict, resolve in the following order:
    - Workspace high-level constitution template
 3. Invoked `SKILL.md`
    - Runtime executable contract
-4. `references/policy/research-policy-baseline.md`
+4. workspace `.references/policy/research-policy-baseline.md`
    - Authoring baseline only, not runtime authority
 
 At runtime, if the template's high-level summary appears inconsistent with a specific research skill's detailed execution rules:
@@ -159,7 +159,7 @@ If a hook conflicts with prose on binary legality, hook enforcement prevails. `r
 
 Any public research rule change must synchronize within the same change:
 
-1. `references/policy/research-policy-baseline.md`
+1. workspace `.references/policy/research-policy-baseline.md`
 2. All affected active research `SKILL.md`
 3. If workspace high-level summary is affected, also update `CLAUDE.md.template`
 4. If public behavior / package language is affected, also update `README.md`, `docs/release.md`, payload manifests / marketplace manifests
@@ -177,7 +177,7 @@ Hooks-first supplementary hard gate:
 
 Naming rule supplementary hard gate:
 
-9. If research topic artifact naming rules change, must sync `references/policy/research-policy-baseline.md` §11.
+9. If research topic artifact naming rules change, must sync workspace `.references/policy/research-policy-baseline.md` §11.
 10. Every research skill that produces a topic markdown must declare `naming_mode` under `artifact_policy` in `skill.yaml`.
 11. Changing only a skill's prose / examples without changing `skill.yaml` is not allowed.
 12. Supporting visualization skills that generate topic-side HTML artifacts must write the stem-binding save contract into both `skill.yaml` and `SKILL.md`; do not create a parallel dated naming system.
@@ -234,9 +234,9 @@ The following subdirectories are permitted under each skill directory. This is t
 
 | Directory | Responsibility | Deployment Behavior | Policy |
 |---|---|---|---|
-| `scripts/` | Executable code (.py, .js) | `_scripts/<skill>/` | Overwrite |
-| `assets/` | Data files, config, requirements, templates | `_scripts/<skill>/` | Overwrite |
-| `assets/templates/` | User-modifiable template files | `_scripts/<skill>/` | Fill-if-missing |
+| `scripts/` | Executable code (.py, .js) | `.scripts/<skill>/` | Overwrite |
+| `assets/` | Data files, config, requirements, templates | `.scripts/<skill>/` | Overwrite |
+| `assets/templates/` | User-modifiable template files | `.scripts/<skill>/` | Fill-if-missing |
 | `references/` | The skill's own reference docs | **Not deployed** — agent reads directly from plugin cache | — |
 | `examples/` | Example artifacts, example HTML | **Not deployed** — agent reads directly from plugin cache | — |
 | `.platform` | Empty marker file. Presence → skill is platform-level (init-workspace, update-agent-runtime), assets go via Class-A deployment to workspace root, excluded from Class-B auto-discovery | — | — |
@@ -429,7 +429,7 @@ All consumer research skills must use the following standard template. The core 
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: workspace `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **Data pipeline**: Call `/financial-data <ticker>` for three-statement + market snapshot. Trust its results; pull data directly from `actuals-resolved.json`.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -452,7 +452,7 @@ Modeling skills use the following template. The core 4 lines are immutable; skil
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **DataSource**: Pull historical actuals from `actuals-resolved.json`, driver assumptions from `_cache/driver-map/`. Missing actuals are not zero-filled.
 - Sub-agent QA bounded; main agent owns the final workbook.
 

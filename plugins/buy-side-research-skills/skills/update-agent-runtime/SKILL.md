@@ -65,7 +65,7 @@ Auto-detect all installed hosts:
 Agent runs a single command — the script handles everything:
 
 ```bash
-python _scripts/update-agent-runtime/update_agent_runtime.py
+python .scripts/update-agent-runtime/update_agent_runtime.py
 ```
 
 Optional flags:
@@ -77,7 +77,7 @@ The script does:
 2. **Download** zipball → extract `plugins/buy-side-research-skills/` payload
 3. **Update host caches**: copy payload to `~/.claude/plugins/cache/.../<version>/` and `~/.codex/plugins/cache/.../<version>/`
 4. **Refresh marketplace pointers**: `installed_plugins.json` + `.agents/plugins/marketplace.json` → latest version
-5. **Sync workspace**: hooks, configs, `_scripts/`, references, root docs — from the latest `init-workspace/assets/`
+5. **Sync workspace**: hooks, configs, `.scripts/`, references, root docs — from the latest `init-workspace/assets/`
 6. **Run verify-runtime.py**: 12 checks, report pass/fail
 7. **Cleanup** temp files, print change summary
 
@@ -109,7 +109,7 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 - **`.codex/hooks.json`** — Codex hook config. Overwrite — plugin-owned.
 - **`.codex/mcp.example.json`** — Codex MCP example. Always sync (never customized directly).
 
-### C. Utility scripts (`_scripts/`)
+### C. Utility scripts (`.scripts/`)
 
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
 - `download-image.py` — unified image download (logo + product, Tier 1→2, cache)
@@ -137,12 +137,12 @@ for each skill_dir in skills/*/:
 
 > Adding a file to a skill's `scripts/` or `assets/` → automatically deployed. Zero changes to this skill.
 
-**Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `_scripts/` that are not in the source lists are left untouched.
+**Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `.scripts/` that are not in the source lists are left untouched.
 
 ### D. References
 
 - `references/policy/` — research-policy-baseline.md, statement-line-items.md
-- `references/kpi-drivers/` — 7 business-model templates
+- `.references/kpi-drivers/` — 7 business-model templates
 
 Overwrite all reference files. These are the canonical versions from the plugin.
 
@@ -150,7 +150,7 @@ Overwrite all reference files. These are the canonical versions from the plugin.
 
 - **`CLAUDE.md`**: patch managed sections only. Do not overwrite the entire file — the user's workspace constitution lives here. Managed sections are the RTK block and the plugin-loaded marker.
 - **`AGENTS.md`**: same conservative patch approach.
-- **`edge-radar.md`**: overwrite (plugin-owned reference doc).
+- **`.references/edge-radar.md`**: overwrite (plugin-owned reference doc).
 - **`COVERAGE.md`**: if missing, copy from `coverage.md.template`. If present, skip — user has customized.
 
 ### F. Codex cache
@@ -160,7 +160,7 @@ Refresh `~/.codex/plugins/cache/buy-side-research-skills/skills/` from the lates
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — patch managed sections only.
-- Do not overwrite `_scripts/` files that don't exist in the source assets.
+- Do not overwrite `.scripts/` files that don't exist in the source assets.
 - Do not overwrite `.claude/mcp.json` if already present (user customization).
 - Do not overwrite `.codex/config.toml` (user customization).
 - Do not overwrite `COVERAGE.md` if already present.

@@ -26,7 +26,7 @@ Example: a company discloses a segment called "Industrial Solutions," which in r
 
 ## Financial-Data Integration
 
-For elastic KPIs, first consult `references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
+For elastic KPIs, first consult `.references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
 
 1. revenue_split present → classify by source_type: `official-xbrl-dimension` = provider-structured, `filing-table-extracted` = provider-table-review → map to model bucket
 2. revenue_split missing → read `full-filing.md`, LLM extracts disclosed split → label `llm-extracted-review`
@@ -72,7 +72,7 @@ First translate the company's disclosed buckets into real business — do not ac
 
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 When encountering breakdowns like `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, immediately trigger the Senior Analyst Radar: these may not be ordinary parallel segments, but rather a mixed breakdown across the gas turbine system value chain — product units, ancillary equipment, services, controls, or end-market dimensions.
 
@@ -138,7 +138,7 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 |---|---|---|---|---|
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: `python _scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 ## 2. Business Reality → Model Driver
 
