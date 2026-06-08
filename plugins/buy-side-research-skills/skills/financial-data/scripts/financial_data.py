@@ -99,6 +99,286 @@ FULL_EXTRA_FIELDS = {
     },
 }
 
+# ---------------------------------------------------------------------------
+# Concept mapping: parse statement-line-items.md → {concept_alias: standard_field}
+# ---------------------------------------------------------------------------
+_concept_map_cache = None
+
+# Standard field name aliases: canonical name / variant → LITE_FIELDS-compatible key
+_FIELD_ALIASES = {
+    "revenue": "revenue", "sales": "revenue", "cogs": "cogs",
+    "cost_of_revenue": "cogs", "cost_of_goods_sold": "cogs",
+    "gross_profit": "gross_profit", "sg&a": "sg_and_a", "r&d": "r_and_d",
+    "operating_income": "operating_income", "ebit": "ebit", "ebitda": "ebitda",
+    "interest_expense": "interest_expense", "income_tax": "income_tax",
+    "pre_tax_income": "pre_tax_income", "pre-tax_income": "pre_tax_income",
+    "net_income": "net_income", "eps": "eps", "sbc": "sbc",
+    "d&a": "d_and_a", "d_and_a": "d_and_a", "amortization": "amortization",
+    "cash": "cash", "accounts_receivable": "accounts_receivable",
+    "inventory": "inventory", "total_current_assets": "total_current_assets",
+    "goodwill": "goodwill", "intangible_assets": "intangible_assets",
+    "total_assets": "total_assets", "short_term_debt": "short_term_debt",
+    "short-term_debt": "short_term_debt", "long_term_debt": "long_term_debt",
+    "long-term_debt": "long_term_debt", "total_debt": "total_debt",
+    "total_liabilities": "total_liabilities", "total_equity": "total_equity",
+    "market_cap": "market_cap", "bonds_payable": "bonds_payable",
+    "total_current_liabilities": "total_current_liabilities",
+    "operating_cf": "operating_cf", "capex": "capex",
+    "dividends": "dividends_paid", "dividends_paid": "dividends_paid",
+    "buybacks": "buybacks", "free_cash_flow": "free_cash_flow",
+    "order_backlog": "order_backlog", "orders": "orders",
+    "book_to_bill": "book_to_bill", "installed_base": "installed_base",
+    "employees": "employees", "customer_count": "customer_count",
+    "arr": "arr", "nrr": "nrr", "grr": "grr", "churn": "churn",
+    "production_volume": "production_volume", "utilization_pct": "utilization_pct",
+}
+
+# Common SEC US GAAP XBRL concept → standard field mappings
+# Complements statement-line-items.md label-based mappings with CamelCase XBRL concepts
+_SEC_CONCEPT_MAP = {
+    # Income Statement
+    "revenues": "revenue",
+    "revenuefromcontractwithcustomerincludingassessedtax": "revenue",
+    "revenuefromcontractwithcustomerexcludingassessedtax": "revenue",
+    "costofgoodsandservicessold": "cogs",
+    "costofrevenue": "cogs",
+    "costofsales": "cogs",
+    "grossprofit": "gross_profit",
+    "grossprofit_calculated": "gross_profit",
+    "sellinggeneralandadministrativeexpense": "sg_and_a",
+    "researchanddevelopmentexpense": "r_and_d",
+    "operatingincomeloss": "operating_income",
+    "interestexpense": "interest_expense",
+    "interestexpensenonoperating": "interest_expense",
+    "incometaxexpensebenefit": "income_tax",
+    "incomelossfromcontinuingoperationsbeforeincometaxesextraordinaryitemsnoncontrollinginterest": "pre_tax_income",
+    "netincomeloss": "net_income",
+    "profitloss": "net_income",
+    "incomelossfromcontinuingoperations": "net_income",
+    "earningspersharebasic": "eps",
+    "earningspersharediluted": "eps",
+    "incomelossfromcontinuingoperationsperbasicshare": "eps",
+    "incomelossfromcontinuingoperationsperdilutedshare": "eps",
+    "weightedaveragenumberofsharesoutstandingbasic": "shares_outstanding",
+    "weightedaveragenumberofdilutedsharesoutstanding": "shares_outstanding",
+    "sharebasedcompensation": "sbc",
+    "allocatedsharebasedcompensationexpense": "sbc",
+    "depreciation": "d_and_a",
+    "amortizationofintangibleassets": "amortization",
+    "adjustmentforamortization": "d_and_a",
+    # Balance Sheet
+    "cashandcashequivalentsatcarryingvalue": "cash",
+    "accountsreceivablenetcurrent": "accounts_receivable",
+    "inventorynet": "inventory",
+    "assets": "total_assets",
+    "goodwill": "goodwill",
+    "intangibleassetsnetexcludinggoodwill": "intangible_assets",
+    "propertyplantandequipmentnet": "ppe_net",
+    "stockholdersequity": "total_equity",
+    "assetscurrent": "total_current_assets",
+    "liabilitiescurrent": "total_current_liabilities",
+    "liabilities": "total_liabilities",
+    "liabilitiesandstockholdersequity": "total_assets",
+    "longtermdebt": "long_term_debt",
+    "longtermdebtcurrent": "short_term_debt",
+    "longtermdebtnoncurrent": "long_term_debt",
+    "accountspayablecurrent": "accounts_payable",
+    "operatingleaseliabilitycurrent": "short_term_debt",
+    "operatingleaseliabilitynoncurrent": "long_term_debt",
+    "retainedearningsaccumulateddeficit": "retained_earnings",
+    "additionalpaidincapital": "additional_paid_in_capital",
+    "commonstockvalue": "common_stock",
+    "preferredstockvalue": "preferred_stock",
+    # Cash Flow
+    "netcashprovidedbyusedinoperatingactivities": "operating_cf",
+    "paymentstoacquirepropertyplantandequipment": "capex",
+    "paymentsforrepurchaseofcommonstock": "buybacks",
+    "paymentsrelatedtotaxwithholdingforsharebasedcompensation": "buybacks",
+    "netcashprovidedbyusedininvestingactivities": "investing_cf",
+    "netcashprovidedbyusedinfinancingactivities": "financing_cf",
+    "paymentstoacquirebusinessesnetofcashacquired": "acquisitions",
+    "interestpaidnet": "interest_expense",
+    "incometaxespaidnet": "income_tax_paid",
+    "cashcashequivalentsrestrictedcashandrestrictedcashequivalentsperiodincreasedecreaseincludingexchangerateeffect": "change_in_cash",
+    "cashcashequivalentsrestrictedcashandrestrictedcashequivalents": "cash",
+    # Supplementary
+    "increasedecreaseinaccountsreceivable": "accounts_receivable",
+    "increasedecreaseininventories": "inventory",
+    "increasedecreaseinaccountspayable": "accounts_payable",
+}
+
+
+def _load_concept_map(workspace: Path = None) -> dict[str, str]:
+    """Parse statement-line-items.md → {concept_alias: standard_field}.
+
+    Dynamically builds a mapping from XBRL concepts, local-language labels,
+    and variant names to standard LITE_FIELDS-compatible field names.
+    Cached globally after first call.
+    """
+    global _concept_map_cache
+    if _concept_map_cache is not None:
+        return _concept_map_cache
+
+    if workspace is None:
+        try:
+            workspace = discover_workspace()
+        except RuntimeError:
+            _concept_map_cache = {}
+            return {}
+
+    template = workspace / "references" / "policy" / "statement-line-items.md"
+    if not template.exists():
+        _concept_map_cache = {}
+        return {}
+
+    text = template.read_text(encoding="utf-8")
+    mapping = {}
+
+    # Parse each table row. Column indices: 1=标准科目, 3=US, 4=CN, 5=HK, 6=JP, 7=KR
+    for line in text.split("\n"):
+        if not line.startswith("|") or "---" in line:
+            continue
+        cols = [c.strip() for c in line.split("|")]
+        if len(cols) < 5:
+            continue
+
+        # Derive standard field name from column 1
+        col1 = cols[1].strip()
+        raw_name = col1.lower()
+        raw_name = raw_name.replace(" ", "_").replace("/", "_")
+        raw_name = raw_name.replace("(", "").replace(")", "").replace(".", "")
+        if not raw_name or raw_name in ("?", "—", "数据点", "符号", "标记", "科目"):
+            continue
+
+        std_name = _FIELD_ALIASES.get(raw_name)
+        if std_name is None:
+            # Try stripping parenthetical (e.g. "Total Equity (Parent)" → "Total Equity")
+            base = re.sub(r'\([^)]*\)', '', col1).strip().lower()
+            base = base.replace(" ", "_").replace("/", "_").replace(".", "")
+            std_name = _FIELD_ALIASES.get(base, raw_name)
+
+        # Extract all language-specific labels and map them to std_name
+        for col_idx in (3, 4, 5, 6, 7):
+            if col_idx >= len(cols):
+                continue
+            cell = cols[col_idx].strip()
+            if not cell or cell == "—":
+                continue
+            # Split on "/" and "or" for multiple label variants in one cell
+            parts = re.split(r'\s*/\s*|\s+or\s+', cell)
+            for part in parts:
+                key = part.strip().lower()
+                # Normalize: remove spaces, special chars; keep alphanumeric + CJK
+                key = re.sub(r'[^a-z0-9一-鿿぀-ゟ゠-ヿ가-힯]', '', key)
+                if key and len(key) >= 2:
+                    mapping.setdefault(key, std_name)
+
+    # Add FIELD_ALIASES keys as direct mappings (covers fields not in statement-line-items.md)
+    for alias, std_name in _FIELD_ALIASES.items():
+        mapping.setdefault(alias, std_name)
+
+    # Add SEC XBRL concept mappings (handles CamelCase US GAAP taxonomy concepts)
+    for concept, std_name in _SEC_CONCEPT_MAP.items():
+        mapping.setdefault(concept, std_name)
+
+    _concept_map_cache = mapping
+    return mapping
+
+
+def _map_concept(concept: str, concept_map: dict = None) -> str:
+    """Map a provider concept/label to standard field name.
+
+    Examples:
+        'Revenues' → 'revenue'
+        'SellingGeneralAndAdministrativeExpense' → 'sg_and_a'
+        '売上高' → 'revenue' (JP label)
+        '매출' → 'revenue' (KR label)
+    """
+    if concept_map is None:
+        concept_map = _concept_map_cache or {}
+
+    if not concept or not isinstance(concept, str):
+        return concept.lower().replace(" ", "_") if concept else ""
+
+    # Normalize input: lowercase, remove spaces and underscores
+    key = concept.lower().replace(" ", "").replace("_", "")
+
+    # Direct lookup
+    if key in concept_map:
+        return concept_map[key]
+
+    # Try stripping trailing 's' (plural → singular: Revenues → Revenue)
+    if key.endswith('s') and len(key) > 3:
+        key_singular = key[:-1]
+        if key_singular in concept_map:
+            return concept_map[key_singular]
+
+    # Fuzzy lookup: strip common XBRL concept suffixes
+    key_clean = re.sub(
+        r'(calculated|usd|atcarryingvalue|net|current|noncurrent|'
+        r'afterallowance|forcreditloss|parent|attributableto|'
+        r'fromcontractwithcustomer|abstract|member|'
+        r'total|segment)$', '', key
+    )
+    if key_clean and key_clean != key:
+        if key_clean in concept_map:
+            return concept_map[key_clean]
+        # Try again with trailing 's' stripped from cleaned key
+        if key_clean.endswith('s') and len(key_clean) > 3:
+            if key_clean[:-1] in concept_map:
+                return concept_map[key_clean[:-1]]
+
+    # Fallback: return normalized concept name
+    return concept.lower().replace(" ", "_").replace("/", "_")
+
+
+# ---------------------------------------------------------------------------
+# Consumer helper: filter statements to lite/full field sets
+# ---------------------------------------------------------------------------
+def get_fields(statements: dict, mode: str = "lite") -> dict:
+    """Filter provider statements to lite or full field set.
+
+    Lite mode: keeps only fields in LITE_FIELDS (~46 fields).
+    Full mode: passes through all fields.
+    Consumer skills call this before reading actuals.
+    """
+    if mode == "full":
+        return statements
+
+    # Build flat allowed set from LITE_FIELDS
+    allowed = set()
+    for field_set in LITE_FIELDS.values():
+        allowed.update(field_set)
+
+    concept_map = _load_concept_map()
+
+    filtered = {}
+    for stmt_name, rows in statements.items():
+        kept_rows = []
+        for row in rows:
+            if not isinstance(row, dict):
+                kept_rows.append(row)
+                continue
+            concept = (row.get("concept") or "").lower()
+            label = (row.get("label") or "").lower()
+            if not concept and not label:
+                kept_rows.append(row)
+                continue
+
+            # Try concept first (works for SEC concepts + language labels)
+            std_name = _map_concept(concept, concept_map) if concept else ""
+            if not std_name or std_name not in allowed:
+                # Fallback: try matching via human-readable label field
+                if label:
+                    label_key = re.sub(r'[^a-z0-9]', '', label)
+                    std_name = _map_concept(label_key, concept_map)
+            if std_name in allowed:
+                kept_rows.append(row)
+        if kept_rows:
+            filtered[stmt_name] = kept_rows
+    return filtered
+
+
 PROVIDER_MODULES = {
     "us": "sec_provider",
     "cn": "akshare_provider",

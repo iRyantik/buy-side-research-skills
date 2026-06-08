@@ -137,51 +137,30 @@ If `industry/<industry>/companies/<ticker>/index.md` does not exist, the agent m
 
 ### Lite Mode Fetch (fast pre-research fetch)
 
-Trigger phrases: `/financial-data <ticker>` or "pull quick financials for <ticker>"  
-Trigger (3Y mode): `/financial-data <ticker> --periods 3Y` or "pull 3-year financial data"
+Trigger phrases: `/financial-data <ticker>` (default lite) or "pull financials for <ticker>"  
+Trigger (full mode): `/financial-data <ticker> --mode full`  
+Trigger (flexible periods): `/financial-data <ticker> --periods FY2020-FY2025`
 
 Lite mode does not parse the full filing and does not build an evidence pack. It fetches core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
 
-**`--periods 3Y` (appendix display mode)**：Enable when a consuming skill needs to render a sell-side-style appendix.
+**Period modes:**
 
-**3Y execution steps** (agent runs these in addition to the standard lite flow):
+| Mode | CLI | Periods | Fields | yfinance |
+|---|---|---|---|---|
+| **Lite** (default) | `/financial-data <ticker>` | latest FY + latest Q/H | ~46 fields (LITE_FIELDS) | market snapshot auto-fill |
+| **Full** | `--mode full` | 5 FY + 4 Q/H | ~72 fields (all) | yfinance fills provider gaps |
+| **Flexible** | `--periods FY2020-FY2025` | specified range | full field set | — |
 
-```
-1. yfinance historical IS/BS/CF
-   ticker.income_stmt / balance_sheet / cashflow
-   → latest 3 full FY columns (FY-2, FY-1, FY0)
-   ticker.quarterly_* → latest 4 completed sub-periods
-   Field mapping: fill_gaps.py YF_FIELD_MAP (Revenue→revenue, GrossProfit→gross_profit, etc.)
-   Write: income_statement.fy_y2 / fy_y1 / fy_y0 / sub_0 / sub_1 / sub_2 / sub_3
-          BS/CF same structure. latest_fy / latest_quarter preserved.
+- Period keys are read dynamically from the provider values dict (e.g. `"FY 2025"`, `"Q1 FY2026"`, `"H1 FY2025"`); do not hardcode `fy_y2/y1/y0`.
+- After the provider API returns multi-period values, the agent selects periods from the keys of `statements.<statement>[].values`.
+- All fields are written to actuals-resolved.json; consumers filter with `get_fields(statements, mode)`.
 
-2. Segment data — reuse latest fetch logic, iterate across periods
-   For each segment name (known from latest segments):
-   WebSearch "<ticker> annual report <FY year> PDF" → WebFetch/Playwright extract segment table
-   → read revenue/pct_of_total/margin into segments[].revenue[fy_y0/fy_y1/fy_y2]
-   sub-periods: search quarterly/interim reports → extract → segments[].revenue[sub_0-3]
-   segments[].periods updated to full period list.
-   Periods without retrievable segment tables are left empty — never fabricated.
-
-3. Elastic KPIs (supplementary) — same iterative logic
-   For each collected supplementary field (backlog/orders/installed_base, etc.):
-   WebSearch quarterly/annual reports → extract → supplementary.<field>.fy_y0/y1/y2/sub_0-3
-   Historical quarterly earnings call transcripts typically contain orders/book-to-bill.
-
-4. Write to actuals-resolved.json
-   All fields {value, source_layer, source_detail}. Multi-period keys per actuals_schema.json.
-
-5. Degradation & edge cases
-   - yfinance missing periods → official_web PDF fallback
-   - Half-year reporter → sub_0=H1, sub_1=H2; sub_2/sub_3 left empty
-   - Non-calendar FY (JP March year-end, etc.) → yfinance auto-aligns; agent annotates FY label
-   - sub-period dedup: same calendar date appears in fy_y0 AND sub_N → write fy_y0 only, skip in sub
-   - CN/KR/TW markets with limited yfinance coverage → default to official_web PDF extract
-```
-
-Field template: `_scripts/financial-data/actuals_schema.json`. Default `latest` mode writes only `latest_fy` + `latest_quarter`; in 3Y mode both coexist — `latest_*` keys are preserved.
-
-**Consumer contract**: Consuming skills default to `/financial-data <ticker>` (lite mode) (returns `latest_fy` + `latest_quarter`). For sell-side-style multi-period appendices, add `--periods 3Y` (writes `fy_y2/y1/y0` + `sub_0/1/2/3`). All provider routing, trust ranking, and market-data fallback chains execute inside financial-data. Consuming skill Runtime Capsules must not repeat provider names, trust chains, or subagent data-fetch flows.
+**Consumer contract**:
+- Lite (default): `/financial-data <ticker>` → latest FY + latest Q/H (~46 fields). Used by stock-quickread / candidate / peer / consensus / earnings-setup and other pre-research skills.
+- Full: `/financial-data <ticker> --mode full` → 5 FY + 4 Q/H (~72 fields). Used by 3-statement-model / dcf-model / comps-analysis and other modeling skills needing multi-period full fields.
+- Flexible: `--periods FY2020-FY2025` or `--periods Q1-FY2026`.
+- Agent reads actuals-resolved.json and calls `get_fields(statements, mode)` to obtain the required field set.
+- All provider routing, trust ranking, and market-data fallback chains execute inside financial-data. Consuming skill Runtime Capsules must not repeat provider names, trust chains, or subagent data-fetch flows.
 
 **Three-statement fetch logic**: Route to provider by market; if unavailable, degrade layer by layer: official_web → yfinance → trusted_web → broad_web. The rules follow the same provider_api + official_web priority principle as Full mode.
 

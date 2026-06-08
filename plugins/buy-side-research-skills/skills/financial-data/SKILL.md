@@ -135,51 +135,30 @@ industry/<industry>/companies/<ticker>/
 
 ### Lite Mode Fetch（研究前置快速抓取）
 
-触发语：`/financial-data <ticker>` 或 "快速拉 <ticker> 数据"  
-触发语（3Y 模式）：`/financial-data <ticker> --periods 3Y` 或 "拉 3 年完整数据"
+触发语：`/financial-data <ticker>`（默认 lite）或 "拉 <ticker> 数据"  
+触发语（full 模式）：`/financial-data <ticker> --mode full`  
+触发语（灵活期间）：`/financial-data <ticker> --periods FY2020-FY2025`
 
 Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
 
-**`--periods 3Y`（附录展示增强模式）**：当消费 skill 需要展示 sell-side 风格 appendix 时启用。
+**期间模式：**
 
-**3Y 执行步骤**（agent 在 standard lite 流程之外额外执行）：
+| 模式 | CLI | 期间 | 字段 | yfinance |
+|---|---|---|---|---|
+| **Lite**（默认） | `/financial-data <ticker>` | latest FY + latest Q/H | ~46 字段（LITE_FIELDS） | 市场快照自动填充 |
+| **Full** | `--mode full` | 5 FY + 4 Q/H | ~72 字段（全部） | yfinance 补 provider 缺口 |
+| **灵活** | `--periods FY2020-FY2025` | 指定范围 | full 字段 | — |
 
-```
-1. yfinance 拉历史 IS/BS/CF
-   ticker.income_stmt / balance_sheet / cashflow
-   → 最近 3 个完整 FY 列（FY-2, FY-1, FY0）
-   ticker.quarterly_* → 最近 4 个已完成 sub-period
-   字段映射：fill_gaps.py YF_FIELD_MAP（Revenue→revenue, GrossProfit→gross_profit 等）
-   写入：income_statement.fy_y2 / fy_y1 / fy_y0 / sub_0 / sub_1 / sub_2 / sub_3
-         BS/CF 同结构。latest_fy / latest_quarter 保留不动。
+- 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`、`"Q1 FY2026"`、`"H1 FY2025"`），不硬编码 `fy_y2/y1/y0`。
+- Provider API 返回多期 values 后，agent 从 `statements.<statement>[].values` 的 keys 中按需选取 period。
+- 全量写入 actuals-resolved.json，消费端按 `get_fields(statements, mode)` 过滤。
 
-2. 分部数据（segments）——复用 latest 获取逻辑，遍历各期间
-   对每个 segment name（从 latest segments 已知）：
-   WebSearch "<ticker> annual report <FY year> PDF" → WebFetch/Playwright extract 分部表
-   → 读取 revenue/pct_of_total/margin 填入 segments[].revenue[fy_y0/fy_y1/fy_y2]
-   sub-period：搜索 quarterly/interim report → extract → 填入 segments[].revenue[sub_0-3]
-   segments[].periods 更新为完整期间列表
-   拿不到完整分部表的期间留空，不编造。
-
-3. 弹性 KPI（supplementary）——同逻辑遍历
-   对每个已采集的 supplementary field（backlog/orders/installed_base 等）：
-   WebSearch 各季/年报 → extract → 填入 supplementary.<field>.fy_y0/y1/y2/sub_0-3
-   历史季度 earnings call transcript 通常含 orders/book-to-bill。
-
-4. 写入 actuals-resolved.json
-   所有字段 {value, source_layer, source_detail}。多期间 key 按 actuals_schema.json。
-
-5. 降级与边界
-   - yfinance 缺期间 → official_web PDF 补
-   - 半年度 reporter → sub_0=H1, sub_1=H2；sub_2/sub_3 空
-   - 非日历年 FY（JP 3 月截止等）→ yfinance 自动对齐，agent 标注 FY label
-   - sub-period 去重：同一 calendar date 出现在 fy_y0 和 sub_N → 只写 fy_y0，sub 里跳过
-   - CN/KR/TW 市场 yfinance 覆盖差 → 默认走 official_web PDF extract
-```
-
-字段模板见 `_scripts/financial-data/actuals_schema.json`。默认 `latest` 模式只写 `latest_fy` + `latest_quarter`，3Y 模式二者共存——`latest_*` 保留不删。
-
-**Consumer contract**：消费 skill 默认调用 `/financial-data <ticker>`（lite 模式）获取 `latest_fy` + `latest_quarter`。需要 sell-side 风格多期 appendix 时加 `--periods 3Y`（写入 `fy_y2/y1/y0` + `sub_0/1/2/3`）。所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
+**Consumer contract**：
+- Lite（默认）：`/financial-data <ticker>` → latest FY + latest Q/H（~46 字段）。stock-quickread / candidate / peer / consensus / earnings-setup 等研究前置 skill 使用。
+- Full：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（~72 字段）。3-statement-model / dcf-model / comps-analysis 等需要多期全字段的 modeling skill 使用。
+- 灵活：`--periods FY2020-FY2025` 或 `--periods Q1-FY2026`。
+- Agent 读取 actuals-resolved.json 后，调用 `get_fields(statements, mode)` 获取所需字段集。
+- 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
 
 **三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
