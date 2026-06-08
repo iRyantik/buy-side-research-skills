@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.13.11 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.13.12 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.13.12 | 2026-06-08 | Concept mapping (_load_concept_map from statement-line-items.md across 7 markets, _map_concept, SEC XBRL concept map 60+ entries), get_fields() consumer helper (lite/full field filter), 3Y→5Y + fy_y2/y1/y0→dynamic FY key docs alignment, financial-data SKILL.md/en.md consumer contract update |
 | v5.13.11 | 2026-06-05 | PDF auto-cache hook (multi-market IR/filing detection + auto to-markdown + delete PDF), cache-first rule in research-runtime + CLAUDE.md, to-markdown.py --rm --auto flags, common.py .pdf path detection |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK hardening, topics→industry full migration, meeting-minutes skill, §9 single-industry residence + §10 segment priority, source badge removal, CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 4-tier fallback (WebFetch→Playwright→curl→[UNVERIFIED]), evidence ledger (ticker-scoped cross-artifact reuse), sentence-level anchors across all skills, 16 hook regression tests, actuals source_map provenance |

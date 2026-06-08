@@ -13,8 +13,10 @@ Hook-enforced rules (source boundary, structure floor, table render, mermaid syn
   → _cache/financial-data/internal/actuals-resolved.json
 ```
 
-- Default: returns `latest_fy` + `latest_quarter`
-- Multi-period appendix: `--periods 3Y` (writes `fy_y2/y1/y0` + `sub_0/1/2/3`)
+- Default Lite: `/financial-data <ticker>` → latest FY + latest Q/H (~46 fields)
+- Full mode: `/financial-data <ticker> --mode full` → 5 FY + 4 Q/H (~72 fields)
+- Flexible periods: `/financial-data <ticker> --periods FY2020-FY2025`
+- Period keys read dynamically from provider values dict (e.g. `"FY 2025"`); do not hardcode `fy_y2/y1/y0`
 - All provider routing, trust ranking, and market-data fallback chains execute inside financial-data
 - Consuming skills read directly from `actuals-resolved.json` — do not repeat provider/tier declarations
 - **Sync artifacts after actuals update**: any field modified → find all artifacts referencing that ticker → sync numbers, conclusions, valuations (rule details in workspace `CLAUDE.md` §5.5)
