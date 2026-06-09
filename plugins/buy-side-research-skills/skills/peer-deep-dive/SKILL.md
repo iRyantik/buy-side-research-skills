@@ -344,7 +344,7 @@ quadrantChart
 
 ## 篇幅基准
 
-- 3-5 家：~3000 字 / 6-8 家：~5000 字 / >8 家：先按子行业/business model 分组
+- 3-5 家：~200 行 / 6-8 家：~330 行 / >8 家：先按子行业/business model 分组
 - 超过上限通常是落入了"N 份 quickread 拼贴"陷阱——回头删 §5 differential 里复述的内容
 
 ## Artifact / 保存策略

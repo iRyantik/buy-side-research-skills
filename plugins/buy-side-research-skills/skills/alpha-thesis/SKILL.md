@@ -225,7 +225,7 @@ Growth stalls + Margin holds → flat. Growth hits + Margin expands → bull re-
 
 ## 篇幅基准
 
-完整产出 **800-1500 字**。这是要拿去 pitch 的东西，必须密度高、可执行。
+完整产出 **50-100 行**。这是要拿去 pitch 的东西，必须密度高、可执行。
 
 ## Journal-First Handoff
 

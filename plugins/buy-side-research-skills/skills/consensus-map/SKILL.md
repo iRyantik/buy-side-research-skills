@@ -242,8 +242,8 @@ flowchart TD
 
 | Mode | 字数 |
 |---|---|
-| Tight Check | 600-900 |
-| Single-Name | 1200-1800 |
+| Tight Check | 35-60 |
+| Single-Name | 80-120 |
 | Industry/Theme | 1300-2000 |
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。

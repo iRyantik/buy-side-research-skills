@@ -141,7 +141,7 @@ ROI on deployed capital: ~145%
 
 ## 篇幅基准
 
-500-800 字 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
+30-50 行 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
 
 ## Workflow 联动
 

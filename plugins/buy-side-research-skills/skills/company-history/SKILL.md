@@ -181,6 +181,6 @@ timeline
 
 ## 篇幅基准
 
-- Mode A (Business Evolution)：600-1200 字 + 1 张事件表；超过 1400 字说明把 non-material history 写进来了。
-- Mode B (Disclosure Evolution)：700-1400 字 + 1 张口径表；超过 1600 字通常应拆给 `driver-map`。
+- Mode A (Business Evolution)：35-80 行 + 1 张事件表；超过 90 行说明把 non-material history 写进来了。
+- Mode B (Disclosure Evolution)：45-90 行 + 1 张口径表；超过 105 行通常应拆给 `driver-map`。
 

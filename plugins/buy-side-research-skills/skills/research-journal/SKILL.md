@@ -267,8 +267,8 @@ industry/<industry>/companies/<ticker>/index.md
 #
 ## 篇幅基准
 
-- 写入判断表：100-250 字 + 1 张表。
-- Private Research Journal：800-1800 字；低于 500 字通常没有沉淀足够 source / implication，超过 2200 字通常变成 transcript。
-- Boss Brief：500-1200 字；低于 400 字通常只是摘要，超过 1500 字通常失去 PM transfer 密度。
-- Topic Index Update：100-500 字；超过 700 字通常说明把 journal 内容塞进 index。
+- 写入判断表：6-16 行 + 1 张表。
+- Private Research Journal：50-120 行；低于 30 行通常没有沉淀足够 source / implication，超过 145 行通常变成 transcript。
+- Boss Brief：30-80 行；低于 25 行通常只是摘要，超过 100 行通常失去 PM transfer 密度。
+- Topic Index Update：100-500 字；超过 45 行通常说明把 journal 内容塞进 index。
 - Handoff block：150-350 字；只说明为什么现在不能沉淀，以及该交给哪个 skill。

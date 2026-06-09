@@ -132,8 +132,8 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 | Mode | 字数 |
 |---|---|
-| Standard | 1000-1600 |
-| Expert Call | 600-1000 |
+| Standard | 65-105 |
+| Expert Call | 40-65 |
 | Channel Check | 800-1400 |
 
 低于下限通常漏了 hypothesis 或 decision gate；超过上限在写 execution handbook。

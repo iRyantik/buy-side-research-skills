@@ -195,8 +195,8 @@ Action 只能是：
 
 ## 篇幅基准
 
-- Unsupported / Contradicted：100-250 字。
-- 单条 Claim Check：300-700 字 + 1 张 evidence 表。
+- Unsupported / Contradicted：6-16 行。
+- 单条 Claim Check：20-45 行 + 1 张 evidence 表。
 - Batch Mode：每条 1 行，最多只展开 top 1-3 条。
-- 超过 900 字通常说明已经不是 filtering，应 handoff 到其他研究 skill。
+- 超过 60 行通常说明已经不是 filtering，应 handoff 到其他研究 skill。
 

@@ -196,9 +196,9 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 ## 篇幅基准
 
-- Quick pre-mortem：600-900 字，适合快速检查一个 thesis 是否有明显盲点。
-- Full bear pre-mortem：1000-1800 字，适合 IC 前完整压测，必须包含 unit economics、会计红旗、base rate 和 path of pain。
-- 超过 2000 字通常说明在写完整 short thesis，应转入 `alpha-thesis` 的 short-only 结构或拆成多个风险模块。
+- Quick pre-mortem：35-60 行，适合快速检查一个 thesis 是否有明显盲点。
+- Full bear pre-mortem：60-120 行，适合 IC 前完整压测，必须包含 unit economics、会计红旗、base rate 和 path of pain。
+- 超过 130 行通常说明在写完整 short thesis，应转入 `alpha-thesis` 的 short-only 结构或拆成多个风险模块。
 
 ## 用法说明
 

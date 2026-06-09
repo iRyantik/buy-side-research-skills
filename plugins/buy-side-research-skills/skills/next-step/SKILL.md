@@ -217,8 +217,8 @@ Research Audit 不是 copy edit，也不是完整 review；不要逐段改写用
 
 ## 篇幅基准
 
-- Direction Coach：150-300 字；低于 100 字通常太泛，超过 400 字通常开始变成小计划。
-- Research Audit：300-600 字；超过 700 字应删掉次要观察，只保留最强结论、最大怪异点、一个问题。
-- Question Rewriter：150-350 字；默认 1-2 个问题。
-- Primitive Handoff：150-350 字；只写阻塞点、污染风险、交给哪个 skill、需要补什么。
+- Direction Coach：10-20 行；低于 6 行通常太泛，超过 25 行通常开始变成小计划。
+- Research Audit：20-40 行；超过 45 行应删掉次要观察，只保留最强结论、最大怪异点、一个问题。
+- Question Rewriter：10-23 行；默认 1-2 个问题。
+- Primitive Handoff：10-23 行；只写阻塞点、污染风险、交给哪个 skill、需要补什么。
 - 如果用户明确要求完整 plan，可以扩展，但要先说明这已经不是默认 next-step 输出。

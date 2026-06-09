@@ -334,9 +334,9 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 ## 篇幅基准
 
-- 标准 Candidate Mining（含场景）：2000-3500 字 + 4-6 张表。
-- 快速挖票：800-1500 字，Top Ideas 最多 2 个，场景定义可简化。
-- 深度 universe pass（含完整 L/S 分场景）：3500-5000 字，按 regime 分组。
+- 标准 Candidate Mining（含场景）：130-230 行 + 4-6 张表。
+- 快速挖票：50-100 行，Top Ideas 最多 2 个，场景定义可简化。
+- 深度 universe pass（含完整 L/S 分场景）：230-330 行，按 regime 分组。
 
 ## 与 information-impact 的边界
 

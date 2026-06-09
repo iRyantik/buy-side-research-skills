@@ -200,6 +200,6 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 ## 篇幅基准
 
-- 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
+- 标准：55-105 行 + 3-4 张表。低于 45 行常漏 proxy strategy；超过 120 行应收窄到核心 segment。
 
 

@@ -200,9 +200,9 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 
 ## 篇幅基准
 
-- 标准 industry-landscape：2000-3000 字
-- 低于 1800 字：产业链地图或竞争格局展开不足
-- 超过 3500 字：在替 teach-in 或 mechanism-insight 干活
+- 标准 industry-landscape：130-200 行
+- 低于 120 行：产业链地图或竞争格局展开不足
+- 超过 230 行：在替 teach-in 或 mechanism-insight 干活
 
 ## 与相邻 skill 的边界
 

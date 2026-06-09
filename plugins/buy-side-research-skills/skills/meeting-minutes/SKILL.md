@@ -198,9 +198,9 @@ industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md
 
 ## 篇幅基准
 
-- 标准纪要：2000-4000 字（含表格和 source link）
-- <1500 字：Claim 提取不全或验证不足
-- >6000 字：在替 `information-impact` 或 `industry-landscape` 干活
+- 标准纪要：130-260 行（含表格和 source link）
+- <100 行：Claim 提取不全或验证不足
+- >400 行：在替 `information-impact` 或 `industry-landscape` 干活
 
 ## 与相邻 skill 的边界
 

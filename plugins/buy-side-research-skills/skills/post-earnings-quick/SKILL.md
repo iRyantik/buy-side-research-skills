@@ -93,7 +93,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     
     ## 篇幅基准
     
-    300-500 字硬上限。超了就是做错了。
+    20-33 行硬上限。超了就是做错了。
     
     ## Workflow 联动
     

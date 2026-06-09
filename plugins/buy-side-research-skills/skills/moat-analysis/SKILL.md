@@ -299,8 +299,8 @@ Segment E      ██████ 中              ██████ 中 →
     
     ## 篇幅基准
     
-    **模式 A（单一标的）**：800-1200 字 + scorecard + 因果链 + trajectory 表 + radar chart + killer question。
-    **模式 B（范式冲击）**：1500-2500 字 + 一张图 + 逐段深挖（每段含评分表）+ 交叉因素扫描 + 总结表。segment 越多越长，但每个 segment 的因果链必须写透。
+    **模式 A（单一标的）**：50-80 行 + scorecard + 因果链 + trajectory 表 + radar chart + killer question。
+    **模式 B（范式冲击）**：100-165 行 + 一张图 + 逐段深挖（每段含评分表）+ 交叉因素扫描 + 总结表。segment 越多越长，但每个 segment 的因果链必须写透。
     
     ## Workflow 联动
     

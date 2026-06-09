@@ -136,7 +136,7 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## 篇幅基准
 
-500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
+30-80 行 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
 
 ## Workflow 联动
 

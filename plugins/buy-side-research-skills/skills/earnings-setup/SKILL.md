@@ -195,8 +195,8 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ## 篇幅基准
 
-- Pre-print setup：500-900 字
-- Post-print read：400-700 字
+- Pre-print setup：30-60 行
+- Post-print read：25-45 行
 
 超长就是抓不住重点。
 

@@ -443,7 +443,7 @@ flowchart TD
 
 ## 篇幅基准
 
-- **Builder 完整 thesis**：1200-2000 字 + 5 张表。
-- **Monitor 输出**：400-700 字。
+- **Builder 完整 thesis**：80-130 行 + 5 张表。
+- **Monitor 输出**：25-45 行。
 
 

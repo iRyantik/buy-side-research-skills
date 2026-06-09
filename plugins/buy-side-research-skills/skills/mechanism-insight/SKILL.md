@@ -219,9 +219,9 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 
 ## 篇幅基准
 
-- Quick check：500-900 字 + 1 张流程图/表
-- Full insight：1000-1800 字 + 2-4 张表
-- 超过 2000 字：范围过大，应拆成多个机制或转入 `peer-deep-dive`
+- Quick check：30-60 行 + 1 张流程图/表
+- Full insight：65-120 行 + 2-4 张表
+- 超过 130 行：范围过大，应拆成多个机制或转入 `peer-deep-dive`
 
 ## 与相邻 skill 的边界
 

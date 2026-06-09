@@ -447,6 +447,6 @@ industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-
 
 ## 篇幅基准
 
-- 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+- 标准 quickread：120-165 行。低于 120 行说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 165 行说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
 
 

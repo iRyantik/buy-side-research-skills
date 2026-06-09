@@ -242,7 +242,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## 篇幅基准
 
-300-700 字 + 1 bull/base/bear 表 + 1 假设表 + 1 sensitivity 表。
+20-45 行 + 1 bull/base/bear 表 + 1 假设表 + 1 sensitivity 表。
 
 ## Workflow 联动
 

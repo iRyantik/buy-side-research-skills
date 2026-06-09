@@ -116,7 +116,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## 篇幅基准
 
-500-800 字 + 1 timeline 表 + 1 payoff matrix + ASCII timeline。
+30-50 行 + 1 timeline 表 + 1 payoff matrix + ASCII timeline。
 
 ## Workflow 联动
 
