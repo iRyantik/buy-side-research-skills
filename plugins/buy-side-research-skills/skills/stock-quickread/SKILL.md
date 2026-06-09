@@ -22,14 +22,22 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 以下仅保留 stock-quickread 特有的执行流程。每一步都是强制步骤——不可跳过、不可替换。
 
+Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIOENCODING=utf-8。
+
 ```
-Step 1: /financial-data <ticker>
-        ★ 产出: actuals-resolved.json
+Step 1: python .scripts/financial-data/financial_data.py
+          --market <market> --identifier <TICKER> --company-slug <slug> --mode lite
+        ★ 产出: _cache/financial-data/actuals-resolved.json
+        ★ CLI 参数是 --identifier，不是 --ticker
+        ★ market: us/cn/hk/jp/kr/tw/eu
         ★ Verify: Read 确认文件存在且 "statements" 非空
         ★ Fail → STOP. 没有 actuals 不得继续.
+        ★ 如果 lite 模式缺 market_data，用 yfinance 补:
+          python -c "import yfinance as yf; t=yf.Ticker('<TICKER>'); print(t.info)"
 
 Step 2: python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>
         ★ 产出: _cache/evidence/<TICKER>.evidence.json
+        ★ -t TICKER 是必填参数，不能省略
         ★ Verify: 文件存在
         ★ Fail → STOP. 不得手动创建 ledger.
 
@@ -51,11 +59,14 @@ Step 6: Write artifact
         ★ pre_write_gate 自动校验
 
 Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
-        ★ Verify: 所有 [S#] 在 ledger 中有 entry
+        + python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>
+        ★ auto 先跑，lint 再跑。两步 -t TICKER 都必填.
+        ★ Verify: 所有 [S#] 在 ledger 中有 entry，lint 无报错
         ★ Fail → STOP. 不得手动编辑 ledger.
 
-Step 8: python .scripts/financial-data/actuals-to-appendix.py <artifact>
-        ★ Best-effort. Fail → report and continue.
+Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
+        ★ 使用 --tickers 参数（单个 ticker 也用它）
+        ★ Best-effort. Fail → report and continue without appendix.
 ```
 
 ## ⛔ HARD GATE（不可跳过）
