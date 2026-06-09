@@ -135,10 +135,15 @@ Step 4  Deploy A类 files (platform assets from init-workspace/assets/)
 Step 5  Deploy B类 files (skill scripts to .scripts/<skill>/)
 Step 6  pip install --user -r .scripts/*/requirements*.txt (failures warn, do not block)
 Step 7  Interactive provider configuration (see Provider Configuration below)
-Step 8  ★ python .scripts/verify-runtime.py — one-click smoke test
+Step 8  MCP server setup — Longbridge Bridge (market data, US/HK):
+          Claude Code: claude mcp add --transport http --scope user longbridge https://openapi.longbridge.com/mcp
+          Codex:       codex mcp add longbridge --url https://openapi.longbridge.com/mcp
+          ★ 安装后需 OAuth 认证：CC → /mcp → longbridge → Authenticate, Codex → codex mcp login longbridge
+          ★ 用户可跳过，不影响基础功能（Bridge 层不可用时自动降级到 yfinance + WebSearch）
+Step 9  ★ python .scripts/verify-runtime.py — one-click smoke test
         ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
-Step 9  Delete .scripts/init-assets/ if present (legacy cleanup)
-Step 10 Print deployment summary table
+Step 10 Delete .scripts/init-assets/ if present (legacy cleanup)
+Step 11 Print deployment summary table
 ```
 
 ### Step 1 Detail: System Dependency Check

@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `5.14.8`.
+Current release version: `5.15.0`.
 
 ## Source And Runtime Shape
 
@@ -37,7 +37,7 @@ Release zip includes only runtime/install materials copied from the payload plus
 - `plugins/buy-side-research-skills/skills/` -> `skills/`
 - `README.md`
 
-Each release also ships `longbridge-skills.zip` as a companion asset (Longbridge market-data plugin, 80+ skills). Download the zip from the same GitHub Release page and install as a local plugin.
+Longbridge market data is now accessed via MCP (v5.15.0+). Install the Longbridge MCP server globally instead of the legacy plugin zip: `claude mcp add --transport http --scope user longbridge https://openapi.longbridge.com/mcp`.
 
 Release zip must not include source-repo maintenance files:
 

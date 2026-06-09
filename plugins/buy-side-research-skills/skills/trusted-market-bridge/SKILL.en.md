@@ -61,66 +61,44 @@ This bridge may return evidence for:
 - `financial_snapshot`
 - `market_screen`
 
-## Current Account Capability Snapshot
+## MCP Tool Mapping
 
-For the currently tested Longbridge account, treat bridge support in two layers:
+Longbridge is accessed via MCP (145 tools). Map bridge domains to MCP tools:
 
-### Theoretical v1 domain coverage
+| Domain | MCP Tool | Key Parameters |
+|---|---|---|
+| `market_quote` | `mcp__longbridge__quote` | `symbols=["TICKER.US"]` |
+| `price_action` | `mcp__longbridge__candlesticks`, `mcp__longbridge__intraday` | `symbol`, date range |
+| `valuation_snapshot` | `mcp__longbridge__valuation` | `symbol` |
+| `consensus` | `mcp__longbridge__consensus`, `mcp__longbridge__forecast_eps` | `symbol` |
+| `financial_snapshot` | `mcp__longbridge__financial_statement`, `mcp__longbridge__financial_report` | `symbol` |
+| `news` | `mcp__longbridge__news` | `symbol` |
+| `company_profile` | `mcp__longbridge__company` | `symbol` |
+| `calendar` | `mcp__longbridge__finance_calendar` | `category`, `start`, `end` |
+| `fx_snapshot` | `mcp__longbridge__exchange_rate` | `symbols` |
+| `adr_ah_premium` | `mcp__longbridge__ah_premium`, `mcp__longbridge__ah_premium_intraday` | `symbol` |
+| `filings` | `mcp__longbridge__filings` | `symbol` |
+| `shareholder` | `mcp__longbridge__shareholder`, `mcp__longbridge__shareholder_top` | `symbol` |
+| `institution` | `mcp__longbridge__institution_rating`, `mcp__longbridge__institutional_views` | `symbol` |
+| `screener` | `mcp__longbridge__screener_search` | query params |
+| `industry` | `mcp__longbridge__industry_peers`, `mcp__longbridge__industry_valuation` | `symbol` |
+| `market_status` | `mcp__longbridge__market_status`, `mcp__longbridge__trading_session` | `market` |
+| `dividend` | `mcp__longbridge__dividend`, `mcp__longbridge__dividend_detail` | `symbol` |
+| `operating` | `mcp__longbridge__operating` | `symbol` |
 
-- `market_quote`
-- `price_action`
-- `valuation_snapshot`
-- `kline_snapshot`
-- `fx_snapshot`
-- `adr_ah_premium`
-- `news`
-- `filings`
-- `consensus`
-- `financial_snapshot`
-- `market_screen`
+All tools use US ticker format `TICKER.US` and HK format `CODE.HK`.
 
-### Current account empirically working
+## Installation
 
-- `market_quote`
-- `price_action`
-- `valuation_snapshot`
-- `kline_snapshot`
-- `consensus`
-- `financial_snapshot`
+```bash
+# Claude Code (global)
+claude mcp add --transport http --scope user longbridge https://openapi.longbridge.com/mcp
+# Then /mcp → longbridge → Authenticate
 
-Observed command surfaces that worked in live checks:
-
-- `quote`
-- `static`
-- `intraday`
-- `calc-index`
-- `valuation`
-- `exchange-rate`
-- `consensus`
-- `forecast-eps`
-- `financial-report`
-- `company`
-- `adr-premium`
-- `ah-premium`
-
-### Current account empirically scope-restricted
-
-- `news`
-- `filings`
-
-### Current account not yet live-checked as a bridge domain
-
-- `market_screen`
-
-Observed command surfaces that returned `403308: Target API is not in authorized scope`:
-
-- `news`
-- `filing`
-- `topic`
-
-When a domain is theoretically supported by the bridge but blocked by the current Longbridge account, use `scope_restricted` as the internal bridge status. In default `auto` mode, downstream research skills should fall back to the existing web / internet market-source path and only record the fallback reason in the final `## Resources` section. Only surface `scope_restricted` as a hard failure when the user explicitly asked for `longbridge_only`.
-
-For `market_screen`, the underlying Longbridge scanner / anomaly surfaces exist, but this bridge domain should be treated as implementation-ready rather than empirically certified until the current account is live-checked through the bridge and recorded in the maintainer test plan.
+# Codex
+codex mcp add longbridge --url https://openapi.longbridge.com/mcp
+codex mcp login longbridge
+```
 
 It must reject unsupported requests such as:
 
