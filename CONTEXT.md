@@ -39,7 +39,7 @@ Domain glossary and architecture decisions for the `buy-side-research-skills` pl
 - **Source of truth** — Chinese `SKILL.md`. English `SKILL.en.md` is translation.
 - **Sync rule** — Chinese change → English must follow in same commit. Enforced by CLAUDE.md §9.
 - **Non-translatable** — code, paths, YAML keys, tickers, financial abbreviations, CLI commands, `[需查证]`, `[UNVERIFIED]`, `[ND]`.
-- **README** — English primary (`README.md`), Chinese secondary (`README.cn.md`). Cross-linked.
+- **README** — English primary (`README.md`), Chinese secondary (`docs/README.cn.md`). Cross-linked.
 
 ### Workspace Structure
 

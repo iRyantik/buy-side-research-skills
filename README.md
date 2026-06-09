@@ -2,7 +2,7 @@
 
 > v5.14.8 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
-> 中文版：[README.cn.md](./README.cn.md)
+> 中文版：[README.cn.md](./docs/README.cn.md)
 
 ---
 

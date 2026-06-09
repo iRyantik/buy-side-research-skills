@@ -2,7 +2,7 @@
 
 > v5.13.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
-> English: [README.md](./README.md)
+> English: [README.md](../README.md)
 
 ---
 
