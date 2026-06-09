@@ -51,9 +51,9 @@ Step 4: python .scripts/shared/verify-claim.py <url> --json（Tier 1→2→3）
         ★ 每条候选 URL 至少尝试 Tier 1 HTTP
         ★ Fail per URL → 标 [UNVERIFIED]. 全部 fail → STOP.
 
-Step 5: Logo — WebSearch + browser_navigate 找公司 logo URL → browser_evaluate 提取 base64
-        产品图 — WebSearch 产品页 hero image → browser_take_screenshot 或 [缺图]
-        ★ Logo best-effort. Product image best-effort. 拿不到标 [缺图] 不 block.
+Step 5: python .scripts/shared/download-image.py <url> --output <slug>（产品图）
+        Tier 2 fallback: browser_navigate → browser_evaluate 提取 base64 → --base64
+        ★ Product image best-effort. 拿不到标 [缺图] 不 block.
 
 Step 6: Write artifact
         ★ pre_write_gate CHECK 15 自动校验（actuals/ledger 文件必须存在）
