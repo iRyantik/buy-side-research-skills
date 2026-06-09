@@ -108,7 +108,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> **Logo 下载**：`Logo: WebSearch + browser_navigate, best-effort — [缺图] if unavailable`（自动缓存，workspace 级跨 skill 共享）。全部 tier 失败则标 `[缺 logo]`。
+> **Logo 下载**：`python .scripts/shared/download-image.py <url> --output <slug>`
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 

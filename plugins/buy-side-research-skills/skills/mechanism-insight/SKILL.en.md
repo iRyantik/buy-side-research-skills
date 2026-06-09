@@ -174,7 +174,7 @@ Rating hard standards:
 
 **Product/equipment photographs are mandatory**. Source priority: company product page hero image → web search → `[缺图]`.
 
-**Download method**: `WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+**Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 ## Artifact / Save Strategy
 

@@ -72,7 +72,7 @@ First translate the company's disclosed buckets into real business — do not ac
 
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: `WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 When encountering breakdowns like `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, immediately trigger the Senior Analyst Radar: these may not be ordinary parallel segments, but rather a mixed breakdown across the gas turbine system value chain — product units, ancillary equipment, services, controls, or end-market dimensions.
 
@@ -138,7 +138,7 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 |---|---|---|---|---|
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: `WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 ## 2. Business Reality → Model Driver
 

@@ -174,7 +174,7 @@ Rating hard standards：
 
 **产品/设备实物图必须**。来源优先级：公司产品页 hero image → web search → `[缺图]`。
 
-**下载方法**：`WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`。Logo 模式：`--logo <TICKER>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ `[缺图]`。
+**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 ## Artifact / 保存策略
 

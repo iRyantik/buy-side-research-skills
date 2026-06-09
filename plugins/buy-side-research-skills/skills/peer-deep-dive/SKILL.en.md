@@ -272,7 +272,7 @@ When customer concentration is a core investment variable for the comparison sub
 
 > Competitive indicators, key customers, moat, etc. are already in the §4.3 table — do not repeat here. Include a logo per company (download to _cache/images/<ticker>-logo.png); mark `[缺 logo]` if not found.
 >
-> **Logo download**: `Logo: WebSearch + browser_navigate, best-effort — [缺图] if unavailable` — auto-cached, workspace-level, cross-skill shared. Mark `[missing logo]` if all tiers fail.
+> **Logo download**: `python .scripts/shared/download-image.py <url> --output <slug>`
 
 ## Length Benchmarks
 

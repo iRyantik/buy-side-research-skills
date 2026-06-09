@@ -144,7 +144,7 @@ flowchart LR
 
 > 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
 >
-> **下载方法**：WebSearch → browser_navigate → browser_take_screenshot 或 `[缺图]`。Logo best-effort，拿不到标 `[缺图]`。
+> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
 
 #### 其他业务
 
