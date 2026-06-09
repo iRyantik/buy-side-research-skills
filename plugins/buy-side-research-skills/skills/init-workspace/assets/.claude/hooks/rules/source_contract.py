@@ -211,7 +211,7 @@ def check(ctx: dict):
         # --- Rule 2d: non-standard inline anchor labels (have URL but wrong label format) ---
         # Catches [Yahoo Finance](url), [yfinance](url), [BESI AGM 2026](url) —
         # these must use [S#](url) or [I#](url) instead.
-        STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')
+        STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$|^actuals$|^actuals-source$')
         all_inline_anchors = re.findall(r'(!?)\[([^\]]+)\]\(([^)]+)\)', body_no_code)
         non_std_anchors = []
         for is_image, label, target in all_inline_anchors:

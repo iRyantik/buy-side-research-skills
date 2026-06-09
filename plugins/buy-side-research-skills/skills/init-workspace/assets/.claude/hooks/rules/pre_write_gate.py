@@ -448,27 +448,85 @@ def _check_content(path: str, text: str, display: str):
         i = j + 1
 
 
-    # --- CHECK 15: Pipeline report header ---
-    # Research artifacts with Pipeline report must declare step completion honestly.
-    # > Pipeline: actuals ✅ | verify-claim X/N ✅ | images ✅ | ledger ✅
-    pipeline_header = re.search(r'>\s*Pipeline:\s*(.+?)(?:\n|$)', text)
-    if pipeline_header:
-        pipeline_line = pipeline_header.group(1)
-        # Find steps marked with ❌ (failed) without explanation
-        failed_steps = re.findall(r'\b(\w+)\s*❌', pipeline_line)
-        if failed_steps:
-            # Check if there's a skip reason like [skipped: ...]
-            skip_reasons = re.findall(r'\[跳过[^]]*\]|\[skipped[^]]*\]|\[缺[^]]*\]', pipeline_line)
-            unexplained = [s for s in failed_steps
-                          if not any(s.lower() in reason.lower() for reason in skip_reasons)]
-            if unexplained:
+    # --- CHECK 15: Pipeline preconditions — files must exist ---
+    # For research artifacts under industry/*/companies/<slug>/:
+    # actuals-resolved.json, evidence ledger, and logo must exist before write.
+    # No Pipeline report parsing — check the filesystem directly.
+    companies_match = re.search(r'industry[/\\][^/\\]+[/\\]companies[/\\]([^/\\]+)', path)
+    if companies_match:
+        slug = companies_match.group(1)
+        artifact_dir = os.path.dirname(path)
+        # Walk up to find the company directory
+        company_dir = None
+        d = os.path.dirname(path)
+        for _ in range(10):
+            if os.path.basename(d) == slug and os.path.basename(os.path.dirname(d)) == "companies":
+                company_dir = d
+                break
+            parent = os.path.dirname(d)
+            if parent == d:
+                break
+            d = parent
+
+        if company_dir:
+            # Check actuals-resolved.json
+            actuals_path = os.path.join(company_dir, "_cache", "financial-data", "actuals-resolved.json")
+            if not os.path.isfile(actuals_path):
                 block(
-                    f"Blocked by pre_write_gate: {display} Pipeline report shows "
-                    f"failed mandatory steps: {', '.join(unexplained)}. "
-                    f"If these steps genuinely failed, add a skip reason like [跳过: 原因]. "
-                    f"If they were skipped intentionally, they should not be marked ❌ — "
-                    f"use ⏭️ instead."
+                    f"Blocked by pre_write_gate: {display} — "
+                    f"actuals-resolved.json not found at {actuals_path}. "
+                    f"Run: Skill(\"buy-side-research-skills:financial-data\", \"<TICKER> <market> --mode lite\") "
+                    f"or CLI fallback before writing this artifact."
                 )
+            else:
+                # Verify non-empty
+                try:
+                    with open(actuals_path, "rb") as f:
+                        if f.read(100).strip() == b"":
+                            block(
+                                f"Blocked by pre_write_gate: {display} — "
+                                f"actuals-resolved.json is empty at {actuals_path}. Re-run financial-data."
+                            )
+                except Exception:
+                    pass
+
+            # Check evidence ledger
+            evidence_dir = os.path.join(company_dir, "_cache", "evidence")
+            if not os.path.isdir(evidence_dir) or not any(
+                f.endswith(".evidence.json") for f in os.listdir(evidence_dir)
+            ):
+                block(
+                    f"Blocked by pre_write_gate: {display} — "
+                    f"no evidence ledger found under {evidence_dir}. "
+                    f"Run: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>"
+                )
+
+        # Check logo (workspace-level, by ticker from company slug)
+        workspace = None
+        wd = os.path.dirname(path)
+        for _ in range(10):
+            if os.path.isdir(os.path.join(wd, "industry")) and os.path.isfile(os.path.join(wd, "CLAUDE.md")):
+                workspace = wd
+                break
+            parent = os.path.dirname(wd)
+            if parent == wd:
+                break
+            wd = parent
+
+        if workspace:
+            images_dir = os.path.join(workspace, "_cache", "images")
+            if os.path.isdir(images_dir):
+                # Check if any logo file exists for this slug
+                logo_exists = any(
+                    f.lower().startswith(slug.lower()) and "-logo" in f.lower()
+                    for f in os.listdir(images_dir)
+                )
+                if not logo_exists:
+                    block(
+                        f"Blocked by pre_write_gate: {display} — "
+                        f"no logo found in {images_dir} for '{slug}'. "
+                        f"Run: python .scripts/shared/download-image.py --logo <TICKER>"
+                    )
 
 
 def main():

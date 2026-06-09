@@ -57,8 +57,8 @@ Step 5: python .scripts/shared/download-image.py --logo <TICKER>
         ★ Fail logo → STOP. 不得用 browser_take_screenshot 代替.
 
 Step 6: Write artifact
-        ★ MUST include Pipeline report header（见下方模板）
-        ★ pre_write_gate 自动校验
+        ★ pre_write_gate CHECK 15 自动校验（actuals/ledger/logo 文件必须存在）
+        ★ 文件在 → 放行. 文件不在 → block + 给你补全命令
 
 Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
         + python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>
@@ -95,12 +95,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
-**Pipeline 报告**（artifact 开头强制——执行报告，不能省略）：
-
-```
-> 2026-06-03 | <TICKER> | <PRICE> | MCap <VALUE>
-> Pipeline: actuals ✅ | [需查证] X | images ✅ | lint ✅ | coverage XX%
-```
+**Artifact 前置条件**：Write 前自动检查 actuals-resolved.json、evidence ledger、logo 文件存在。缺则 block。
 
 ### 1. 一眼看懂
 

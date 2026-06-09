@@ -137,10 +137,8 @@ def update_marketplace_pointers(version: str):
             for entry in data["plugins"][key]:
                 entry["version"] = version
                 entry["installPath"] = str(CLAUDE_CACHE / version)
-                entry["lastUpdated"] = subprocess.run(
-                    ["date", "-u", "+%Y-%m-%dT%H:%M:%S.000Z"],
-                    capture_output=True, text=True, timeout=5, shell=True
-                ).stdout.strip() or "2026-01-01T00:00:00.000Z"
+                from datetime import datetime, timezone
+                entry["lastUpdated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
             with open(INSTALLED_PLUGINS, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             _log("installed_plugins.json updated")

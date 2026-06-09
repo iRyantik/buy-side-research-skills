@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.14.4 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.14.5 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.14.5 | 2026-06-09 | GATE hardening: CHECK 15 → file existence checks (not Pipeline parsing), delete image_exists hook, [actuals] as standard source code, fix Windows date encoding |
 | v5.14.4 | 2026-06-09 | All consumer skills: `/financial-data` → Skill tool + CLI fallback. EN capsule `references/` → workspace `.references/`. Path sweep: `_scripts/` → `.scripts/` residuals fixed. |
 | v5.14.3 | 2026-06-09 | stock-quickread pipeline bug fixes: Step 1 direct CLI (--identifier not --ticker), actuals-to-appendix search path update, evidence_ledger -t flag required, PYTHONIOENCODING note |
 | v5.14.2 | 2026-06-08 | Pipeline discipline enforcement: CLAUDE.md §6 Workflow Execution Discipline (8 rules), Capsule GATE strengthened (50+ files), stock-quickread pipeline command hardening, pre_write_gate CHECK 15 (pipeline report header) |
