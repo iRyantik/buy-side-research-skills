@@ -6,6 +6,7 @@
     ".references/": true,
     ".memory/": true,
     ".obsidian/": true,
+    ".playwright-mcp/": true,
     ".vscode/": true,
     "_cache/": true,
     ".env": true,
