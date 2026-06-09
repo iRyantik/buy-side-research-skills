@@ -12,7 +12,7 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 ## Research Runtime Capsule
 
 **MUST read the following files before executing this skill:**
-- `references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
 **Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
@@ -156,7 +156,7 @@ Top Ideas must include next-step verification paths:
 
 ## §3 Scenario Stock-Push Matrix (Main Table)
 
-Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight · Current Valuation · Scenario Re-rating Direction · One-liner · Key KPI** (taken from `.references/kpi-drivers/`, the single most important number for this industry). Note: use `·` inside cells, NEVER `|` (breaks table rendering)
+Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight · Current Valuation · Scenario Re-rating Direction · One-liner · Key KPI** (taken from workspace `.references/kpi-drivers/`, the single most important number for this industry). Note: use `·` inside cells, NEVER `|` (breaks table rendering)
 
 | Company | Ticker | R1: [Current] | R2: [Transition] | R3: [New Paradigm] | Valuation Flip Magnitude | Ev |
 |---|---|---|---|---|---|---|

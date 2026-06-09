@@ -12,7 +12,7 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 **MUST read the following files before executing this skill:**
-- `references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
 **Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
@@ -228,7 +228,7 @@ flowchart LR
 
 **Qualitative descriptions alone are partial understanding** — readers can't tell which segment matters, which is shrinking, where anomalies are. So this section has two parts:
 
-**(a) Business Model Assessment**: agent judges business model → routes to `.references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
+**(a) Business Model Assessment**: agent judges business model → routes to workspace `.references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
 
 **(b) Key Financial Tables (standard + elastic)**
 
@@ -268,7 +268,7 @@ Tables are not the endpoint — they must have interpretation. Cover:
 
 ### 4. Growth Drivers & KPIs
 
-> Agent judges business model → routes to `.references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
+> Agent judges business model → routes to workspace `.references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
 
 **(a) Standard Ratios** (4 items, all companies required, data from actuals):
 

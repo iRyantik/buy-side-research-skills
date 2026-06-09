@@ -26,7 +26,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Financial-Data 联动
 
-弹性 KPI 先查 `.references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
+弹性 KPI 先查 workspace `.references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
 
 1. revenue_split 存在 → 按 source_type 归类：`official-xbrl-dimension` = provider-structured，`filing-table-extracted` = provider-table-review → 转 model bucket
 2. revenue_split 缺失 → 读 `full-filing.md`，LLM 抽 disclosed split → 标 `llm-extracted-review`

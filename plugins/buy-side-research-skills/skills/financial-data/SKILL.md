@@ -81,13 +81,13 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 ```powershell
 python .scripts/financial-data/financial_data.py --check-deps
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
 用户显式确认后才运行：
 
 ```powershell
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
 ### Canonical Company Fetch
@@ -222,7 +222,7 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 
 > **Derived fields constraint**: 所有 derived 字段（包括 growth_rates、弹性比率、任何 arithmetic ratio）的输入必须来自 `actuals-resolved.json` 中真实已披露数据。**禁止用 FY2026E / consensus estimate / forward-looking number 作为输入计算 ratio 并写入 actuals。** 某个输入字段没有 actuals → 该 derived 字段标 `[未披露]`，不计算、不推断。
 
-**弹性采集**（先判断 business model → 路由 `.references/kpi-drivers/<template>.md` → 只抓该模板字段）：
+**弹性采集**（先判断 business model → 路由 workspace `.references/kpi-drivers/<template>.md` → 只抓该模板字段）：
 
 | KPI | actuals 字段 | 条件 |
 |---|---|---|

@@ -33,15 +33,25 @@ def _find_actuals(workspace: Path, ticker: str) -> Path | None:
         for co_dir in companies_dir.iterdir():
             if not co_dir.is_dir():
                 continue
-            candidate = co_dir / "_cache" / "financial-data" / "internal" / "actuals-resolved.json"
-            if candidate.is_file():
-                try:
-                    with open(candidate, encoding="utf-8") as f:
-                        d = json.load(f)
-                    if d.get("ticker", "").lower() == ticker_lower:
-                        return candidate
-                except Exception:
-                    continue
+            # Try new path first (v5.13.13+), then legacy internal/ path
+            for subpath in [
+                co_dir / "_cache" / "financial-data" / "actuals-resolved.json",
+                co_dir / "_cache" / "financial-data" / "internal" / "actuals-resolved.json",
+            ]:
+                if subpath.is_file():
+                    try:
+                        with open(subpath, encoding="utf-8") as f:
+                            d = json.load(f)
+                        # Match by ticker in identity or by directory name
+                        identity = d.get("identity") or d.get("manifest") or {}
+                        stored = identity.get("ticker", "").lower()
+                        if stored == ticker_lower:
+                            return subpath
+                        # Also match by company dir name
+                        if co_dir.name.lower() == ticker_lower:
+                            return subpath
+                    except Exception:
+                        continue
             if co_dir.name.lower() == ticker_lower and candidate.is_file():
                 return candidate
     return None

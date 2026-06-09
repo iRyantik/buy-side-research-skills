@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.14.2 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.14.4 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./README.cn.md)
 
@@ -178,6 +178,8 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.14.4 | 2026-06-09 | All consumer skills: `/financial-data` → Skill tool + CLI fallback. EN capsule `references/` → workspace `.references/`. Path sweep: `_scripts/` → `.scripts/` residuals fixed. |
+| v5.14.3 | 2026-06-09 | stock-quickread pipeline bug fixes: Step 1 direct CLI (--identifier not --ticker), actuals-to-appendix search path update, evidence_ledger -t flag required, PYTHONIOENCODING note |
 | v5.14.2 | 2026-06-08 | Pipeline discipline enforcement: CLAUDE.md §6 Workflow Execution Discipline (8 rules), Capsule GATE strengthened (50+ files), stock-quickread pipeline command hardening, pre_write_gate CHECK 15 (pipeline report header) |
 | v5.14.1 | 2026-06-08 | Hide `.obsidian/` and `*.sh` in VSCode file tree |
 | v5.14.0 | 2026-06-08 | Workspace restructure: hide non-user-facing dirs (`.references/`, `.scripts/`, `.memory/`, `.vscode/settings.json`), bilingual init (ZH/EN templates), `_inbox/` stays visible, remove `.gitignore`. All Python scripts: `_scripts/`→`.scripts/` paths + Windows encoding fix (`sys.stdout.reconfigure`). SKILL.md batch: `references/`→`.references/`, GATE lines on all capsules, stock-quickread HARD GATE. New: `fix-bare-anchors.py` (batch fix bare source anchors). evidence_ledger hook: accept both artifact-stem and ticker-based naming. |

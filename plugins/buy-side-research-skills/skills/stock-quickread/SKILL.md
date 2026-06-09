@@ -22,14 +22,24 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 以下仅保留 stock-quickread 特有的执行流程。每一步都是强制步骤——不可跳过、不可替换。
 
+Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIOENCODING=utf-8。
+
 ```
-Step 1: /financial-data <ticker>
-        ★ 产出: actuals-resolved.json
+Step 1: 方法 A — Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode lite")
+        方法 B（fallback）— python .scripts/financial-data/financial_data.py
+          --market <market> --identifier <TICKER> --company-slug <slug> --mode lite
+        ★ 产出: _cache/financial-data/actuals-resolved.json
+        ★ 先试 A，A 失败再试 B
+        ★ CLI 参数是 --identifier，不是 --ticker
+        ★ market: us/cn/hk/jp/kr/tw/eu
         ★ Verify: Read 确认文件存在且 "statements" 非空
         ★ Fail → STOP. 没有 actuals 不得继续.
+        ★ 如果 lite 模式缺 market_data，用 yfinance 补:
+          python -c "import yfinance as yf; t=yf.Ticker('<TICKER>'); print(t.info)"
 
 Step 2: python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>
         ★ 产出: _cache/evidence/<TICKER>.evidence.json
+        ★ -t TICKER 是必填参数，不能省略
         ★ Verify: 文件存在
         ★ Fail → STOP. 不得手动创建 ledger.
 
@@ -51,11 +61,14 @@ Step 6: Write artifact
         ★ pre_write_gate 自动校验
 
 Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
-        ★ Verify: 所有 [S#] 在 ledger 中有 entry
+        + python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>
+        ★ auto 先跑，lint 再跑。两步 -t TICKER 都必填.
+        ★ Verify: 所有 [S#] 在 ledger 中有 entry，lint 无报错
         ★ Fail → STOP. 不得手动编辑 ledger.
 
-Step 8: python .scripts/financial-data/actuals-to-appendix.py <artifact>
-        ★ Best-effort. Fail → report and continue.
+Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
+        ★ 使用 --tickers 参数（单个 ticker 也用它）
+        ★ Best-effort. Fail → report and continue without appendix.
 ```
 
 ## ⛔ HARD GATE（不可跳过）
@@ -63,7 +76,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py <artifact>
 收到 stock-quickread 触发词后，**必须先完成 Step 1-2 才能写任何内容**：
 
 1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
-2. Run `/financial-data <ticker>` → 等待 `actuals-resolved.json` 就绪
+2. Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode lite") 或 fallback CLI → 等待 `actuals-resolved.json` 就绪
 3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
 
 三项全部完成前，禁止 Write/Edit artifact。违反 → 研究无 source、数字无 provenance、结论无依据。
@@ -161,7 +174,7 @@ flowchart LR
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
-**(a) 生意模式判断**：agent 先判断 business model → 路由到 `.references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
+**(a) 生意模式判断**：agent 先判断 business model → 路由到 workspace `.references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
 
 **(b) 关键财务数据表（标准+弹性）**
 
@@ -212,7 +225,7 @@ flowchart LR
 
 ### 4. Growth Drivers & KPIs
 
-> agent 先判断 business model → 路由 `.references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
+> agent 先判断 business model → 路由 workspace `.references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
 
 **(a) 标准比率 pool**（从 actuals 取数，能算就算，算不出就跳过）：
 

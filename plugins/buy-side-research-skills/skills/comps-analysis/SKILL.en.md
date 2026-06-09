@@ -25,17 +25,19 @@ Build comparable company valuation workbooks with peer multiples and operating m
 Each subagent independently completes two tasks:
 
   a. Fetch financial data
-     /financial-data <TICKER> --mode full
+     Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode full")
+     or fallback: python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER> --company-slug <S> --mode full
      → writes _cache/financial-data/actuals-resolved.json
 
   b. Generate evidence card
-     Read actuals + WebSearch key information → output JSON per `references/policy/evidence-card-schema.json`
+     Read actuals + WebSearch key information → output JSON per workspace `.references/policy/evidence-card-schema.json`
      Card contains: financial_highlights, business_profile, competitive_position,
                    growth_outlook, valuation_context, long_short_sentiment, scoring,
                    key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data <TICKER_N>
+  Skill("buy-side-research-skills:financial-data", "<TICKER_N> <market> --mode full")
+  or fallback CLI
   + evidence card JSON per evidence-card-schema.json
 
 Main agent continues once all subagents complete. Single ticker failure does not block others —
@@ -248,7 +250,7 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## Valuation Multiples Formulas
 
-Line-item multilingual reference: `references/policy/statement-line-items.md`.
+Line-item multilingual reference: workspace `.references/policy/statement-line-items.md`.
 
 | # | Multiple | Formula | Input Source | Common Pitfalls |
 |---|---|---|---|---|

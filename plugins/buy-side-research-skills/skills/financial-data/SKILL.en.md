@@ -83,13 +83,13 @@ Run:
 
 ```powershell
 python .scripts/financial-data/financial_data.py --check-deps
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
 Run only after explicit user confirmation:
 
 ```powershell
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
 ### Canonical Company Fetch
@@ -223,7 +223,7 @@ After fetching, write into `actuals-resolved.json` under `market_data` (audit an
 
 > **Derived fields constraint**: All derived field inputs (including growth_rates, elasticity ratios, and any arithmetic ratio) must come from actual disclosed data in `actuals-resolved.json`. **Using FY2026E / consensus estimates / forward-looking numbers as inputs to compute ratios and write them into actuals is prohibited.** If a given input field has no actuals → that derived field is labeled `[未披露]`; do not compute, do not infer.
 
-**Elasticity collection** (first determine business model → route to `.references/kpi-drivers/<template>.md` → only fetch fields from that template):
+**Elasticity collection** (first determine business model → route to workspace `.references/kpi-drivers/<template>.md` → only fetch fields from that template):
 
 | KPI | actuals field | Condition |
 |---|---|---|

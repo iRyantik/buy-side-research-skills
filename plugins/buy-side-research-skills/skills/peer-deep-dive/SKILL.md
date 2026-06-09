@@ -143,13 +143,13 @@ N 家公司共享的行业坐标系，只写一次。
 
 **跨市场规则**：同表包含 ≥2 个市场 → Table A 必填 市场/货币/市值(USD)/FX rate/as-of 5 列；Table B 加会计基准列。单市场表可省略。
 
-**弹性列规则**：如果 N 家同属一个 business model → 表里加该 `.references/kpi-drivers/` 模板的 2-3 个核心弹性列（例：全设备公司 → Backlog, Orders, Book-to-Bill）。不同 bus model 混搭 → 不加弹性列，避免口径不可比。
+**弹性列规则**：如果 N 家同属一个 business model → 表里加该 workspace `.references/kpi-drivers/` 模板的 2-3 个核心弹性列（例：全设备公司 → Backlog, Orders, Book-to-Bill）。不同 bus model 混搭 → 不加弹性列，避免口径不可比。
 
 每行 Ev 标注主要数据来源；文末 ## Resources 统一展开。
 
 #### §4.2 行业特定 KPI
 
-**先查 industry templates**：`.references/kpi-drivers/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
+**先查 industry templates**：workspace `.references/kpi-drivers/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
 
 **没有现成模板时，按 5 步推导**：
 1. 定位 4 个维度：商业模式（commodity / capital equipment / project / SaaS / platform / pre-commercial）+ 周期性 + 政策依赖 + 商业化阶段

@@ -12,7 +12,7 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 ## Research Runtime Capsule
 
 **MUST read the following files before executing this skill:**
-- `references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
 **Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
@@ -143,13 +143,13 @@ When the industry faces a structural paradigm shift (electrification / CPO / gen
 
 **Cross-market rules**: When the same table includes ≥ 2 markets → Table A must include Market / Currency / Mkt Cap (USD) / FX rate / as-of; Table B adds Accounting standard. Single-market tables may omit.
 
-**Flex-column rules**: If N companies share the same business model → add 2–3 core flex columns from the relevant `.references/kpi-drivers/` template (e.g., all equipment companies → Backlog, Orders, Book-to-Bill). Mixed business models → do not add flex columns, to avoid non-comparable conventions.
+**Flex-column rules**: If N companies share the same business model → add 2–3 core flex columns from the relevant workspace `.references/kpi-drivers/` template (e.g., all equipment companies → Backlog, Orders, Book-to-Bill). Mixed business models → do not add flex columns, to avoid non-comparable conventions.
 
 Each row's Ev column notes the primary data source; fully expanded in `## Resources` at the end of the document.
 
 #### §4.2 Industry-Specific KPIs
 
-**Check industry templates first**: `.references/kpi-drivers/`. Route by business model: order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging.
+**Check industry templates first**: workspace `.references/kpi-drivers/`. Route by business model: order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging.
 
 **When no existing template is available, derive in 5 steps**:
 1. Locate 4 dimensions: business model (commodity / capital equipment / project / SaaS / platform / pre-commercial) + cyclicality + policy dependency + commercialization stage

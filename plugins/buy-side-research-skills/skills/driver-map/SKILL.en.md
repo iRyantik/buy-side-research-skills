@@ -12,7 +12,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 ## Research Runtime Capsule
 
 **MUST read the following files before executing this skill:**
-- `references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
 **Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
@@ -26,7 +26,7 @@ Example: a company discloses a segment called "Industrial Solutions," which in r
 
 ## Financial-Data Integration
 
-For elastic KPIs, first consult `.references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
+For elastic KPIs, first consult workspace `.references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
 
 1. revenue_split present → classify by source_type: `official-xbrl-dimension` = provider-structured, `filing-table-extracted` = provider-table-review → map to model bucket
 2. revenue_split missing → read `full-filing.md`, LLM extracts disclosed split → label `llm-extracted-review`

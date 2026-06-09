@@ -71,7 +71,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 ## Resources
 ```
 
-> **Appendix 执行**：如需要财务数据附录，写 artifact 前先跑 actuals-to-appendix.py。
+> **Appendix 执行**：如需要财务数据附录，写 artifact 前先跑 `python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>`。
 
 
 ### 1. The Smartest Short Seller's Pitch（300-500 字）
@@ -96,7 +96,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## 会计红旗公式
 
-科目多语对照见 `references/policy/statement-line-items.md`。
+科目多语对照见 workspace `.references/policy/statement-line-items.md`。
 
 | # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
 |---|---|---|---|---|---|

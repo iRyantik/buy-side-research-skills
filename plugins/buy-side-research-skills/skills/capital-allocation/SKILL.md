@@ -147,7 +147,7 @@ ROI on deployed capital: ~145%
 
 | 上游 | 取什么 |
 |---|---|
-| `financial-data --periods 10Y` | 10 年 CF：buyback/dividend/capex/M&A |
+| `Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --periods FY2010-FY2025")` 或 CLI fallback | 10 年 CF：buyback/dividend/capex/M&A |
 | `company-history` | 并购整合记录 |
 | `moat-analysis` | Moat scorecard → bridge |
 

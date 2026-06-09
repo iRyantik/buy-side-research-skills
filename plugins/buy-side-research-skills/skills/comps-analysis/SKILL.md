@@ -25,7 +25,8 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
 每个 subagent 独立完成两项任务：
 
   a. 拉取财务数据
-     /financial-data <TICKER> --mode full
+     Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode full")
+     或 fallback: python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER> --company-slug <S> --mode full
      → 写入 _cache/financial-data/actuals-resolved.json
 
   b. 生成证据卡
@@ -35,7 +36,8 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
               key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  /financial-data <TICKER_N>
+  Skill("buy-side-research-skills:financial-data", "<TICKER_N> <market> --mode full")
+  或 fallback CLI
   + evidence card JSON per evidence-card-schema.json
 
 全部 subagent 完成后主 agent 继续。单 ticker 失败不影响其他——主 agent 在最终 artifact 中标注
@@ -247,7 +249,7 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## 估值倍数公式
 
-科目多语对照见 `references/policy/statement-line-items.md`。
+科目多语对照见 workspace `.references/policy/statement-line-items.md`。
 
 | # | 倍数 | 公式 | 输入来源 | 常见陷阱 |
 |---|---|---|---|---|
