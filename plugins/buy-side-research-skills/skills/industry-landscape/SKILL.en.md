@@ -140,7 +140,7 @@ Takeaway: what direction competition in this industry is moving.
 
 ## Image Requirements
 
-**Download method**: `python .scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+**Download method**: `WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 | Image Type | Required | Source |
 |---|---|---|

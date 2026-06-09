@@ -124,7 +124,7 @@ Closing trio (after Layer 6, required):
 
 Download to `_cache/images/`; embed in artifact as `![Description](relative path)`.
 
-**Download method**: `python .scripts/shared/download-image.py <url> --output <slug>`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
+**Download method**: `WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`. Logo mode: `--logo <TICKER>`. Source priority: 1) company media kit -> 2) product page hero -> 3) web search -> 4) `[missing image]`.
 
 **ASCII architecture diagrams**: I will draw them. At least 1 per layer.
 

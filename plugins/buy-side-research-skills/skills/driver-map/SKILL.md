@@ -74,7 +74,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 > 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
 >
-> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
+> **下载方法**：`WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -140,7 +140,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 |---|---|---|---|---|
 > 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
 >
-> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
+> **下载方法**：`WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。
 
 ## 2. Business Reality → Model Driver
 

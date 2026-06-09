@@ -469,28 +469,7 @@ def _check_content(path: str, text: str, display: str):
             d = parent
 
         if company_dir:
-            # Check actuals-resolved.json
-            actuals_path = os.path.join(company_dir, "_cache", "financial-data", "actuals-resolved.json")
-            if not os.path.isfile(actuals_path):
-                block(
-                    f"Blocked by pre_write_gate: {display} — "
-                    f"actuals-resolved.json not found at {actuals_path}. "
-                    f"Run: Skill(\"buy-side-research-skills:financial-data\", \"<TICKER> <market> --mode lite\") "
-                    f"or CLI fallback before writing this artifact."
-                )
-            else:
-                # Verify non-empty
-                try:
-                    with open(actuals_path, "rb") as f:
-                        if f.read(100).strip() == b"":
-                            block(
-                                f"Blocked by pre_write_gate: {display} — "
-                                f"actuals-resolved.json is empty at {actuals_path}. Re-run financial-data."
-                            )
-                except Exception:
-                    pass
-
-            # Check evidence ledger
+            # Check evidence ledger (all company research artifacts need sources)
             evidence_dir = os.path.join(company_dir, "_cache", "evidence")
             if not os.path.isdir(evidence_dir) or not any(
                 f.endswith(".evidence.json") for f in os.listdir(evidence_dir)
@@ -501,32 +480,36 @@ def _check_content(path: str, text: str, display: str):
                     f"Run: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>"
                 )
 
-        # Check logo (workspace-level, by ticker from company slug)
-        workspace = None
-        wd = os.path.dirname(path)
-        for _ in range(10):
-            if os.path.isdir(os.path.join(wd, "industry")) and os.path.isfile(os.path.join(wd, "CLAUDE.md")):
-                workspace = wd
-                break
-            parent = os.path.dirname(wd)
-            if parent == wd:
-                break
-            wd = parent
-
-        if workspace:
-            images_dir = os.path.join(workspace, "_cache", "images")
-            if os.path.isdir(images_dir):
-                # Check if any logo file exists for this slug
-                logo_exists = any(
-                    f.lower().startswith(slug.lower()) and "-logo" in f.lower()
-                    for f in os.listdir(images_dir)
-                )
-                if not logo_exists:
+            # Check actuals-resolved.json (only for skills that need financial data)
+            SKILLS_NEEDING_ACTUALS = {
+                "stock-quickread", "driver-map", "peer-deep-dive",
+                "bear-pre-mortem", "post-earnings-quick", "earnings-setup",
+                "consensus-map", "scenario-model", "alpha-thesis",
+                "pair-trade", "moat-analysis", "capital-allocation",
+            }
+            artifact_name = os.path.basename(path)
+            needs_actuals = any(
+                skill in artifact_name for skill in SKILLS_NEEDING_ACTUALS
+            )
+            if needs_actuals:
+                actuals_path = os.path.join(company_dir, "_cache", "financial-data", "actuals-resolved.json")
+                if not os.path.isfile(actuals_path):
                     block(
                         f"Blocked by pre_write_gate: {display} — "
-                        f"no logo found in {images_dir} for '{slug}'. "
-                        f"Run: python .scripts/shared/download-image.py --logo <TICKER>"
+                        f"actuals-resolved.json not found at {actuals_path}. "
+                        f"Run: Skill(\"buy-side-research-skills:financial-data\", \"<TICKER> <market> --mode lite\") "
+                        f"or CLI fallback before writing this artifact."
                     )
+                else:
+                    try:
+                        with open(actuals_path, "rb") as f:
+                            if f.read(100).strip() == b"":
+                                block(
+                                    f"Blocked by pre_write_gate: {display} — "
+                                    f"actuals-resolved.json is empty. Re-run financial-data."
+                                )
+                    except Exception:
+                        pass
 
 
 def main():

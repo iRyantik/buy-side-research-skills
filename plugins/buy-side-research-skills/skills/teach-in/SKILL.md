@@ -143,7 +143,7 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 
 下载到 `_cache/images/`；产物内嵌 `![描述](相对路径)`。
 
-**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ `[缺图]`。
+**下载方法**：`WebSearch → browser_navigate 找图片 URL → browser_take_screenshot 或 [缺图]`。Logo 模式：`--logo <TICKER>`。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ `[缺图]`。
 
 **ASCII 架构图**：我来画。每层至少 1 张。
 

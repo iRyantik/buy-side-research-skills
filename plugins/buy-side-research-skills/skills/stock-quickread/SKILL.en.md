@@ -97,7 +97,7 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
-│  5a. python .scripts/shared/download-image.py <url> --output <product>  (auto Tier 1→2, cache check)
+│  5a. python browser tools <url> --output <product>  (auto Tier 1→2, cache check)
 │  5b. All tiers fail → mark [IMAGE MISSING] — only after ledger records download attempt
 │  Gate: ls _cache/images/<product>.* has file → pass. No file AND no attempt record → STOP, cannot enter Step 6.
 │

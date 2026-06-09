@@ -51,13 +51,12 @@ Step 4: python .scripts/shared/verify-claim.py <url> --json（Tier 1→2→3）
         ★ 每条候选 URL 至少尝试 Tier 1 HTTP
         ★ Fail per URL → 标 [UNVERIFIED]. 全部 fail → STOP.
 
-Step 5: python .scripts/shared/download-image.py --logo <TICKER>
-        + python .scripts/shared/download-image.py <url> --output <slug>（产品图）
-        ★ Logo MUST exist. Product image best-effort — [缺图] if all tiers fail.
-        ★ Fail logo → STOP. 不得用 browser_take_screenshot 代替.
+Step 5: Logo — WebSearch + browser_navigate 找公司 logo URL → browser_evaluate 提取 base64
+        产品图 — WebSearch 产品页 hero image → browser_take_screenshot 或 [缺图]
+        ★ Logo best-effort. Product image best-effort. 拿不到标 [缺图] 不 block.
 
 Step 6: Write artifact
-        ★ pre_write_gate CHECK 15 自动校验（actuals/ledger/logo 文件必须存在）
+        ★ pre_write_gate CHECK 15 自动校验（actuals/ledger 文件必须存在）
         ★ 文件在 → 放行. 文件不在 → block + 给你补全命令
 
 Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
@@ -95,7 +94,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
-**Artifact 前置条件**：Write 前自动检查 actuals-resolved.json、evidence ledger、logo 文件存在。缺则 block。
+**Artifact 前置条件**：Write 前自动检查 actuals-resolved.json + evidence ledger 文件存在。缺则 block。
 
 ### 1. 一眼看懂
 
@@ -145,7 +144,7 @@ flowchart LR
 
 > 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
 >
-> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>`。Logo 模式：`--logo <TICKER>`（自动缓存，workspace 级跨 skill 共享）。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。禁止 `browser_take_screenshot`。
+> **下载方法**：WebSearch → browser_navigate → browser_take_screenshot 或 `[缺图]`。Logo best-effort，拿不到标 `[缺图]`。
 
 #### 其他业务
 

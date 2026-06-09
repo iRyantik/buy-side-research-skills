@@ -108,7 +108,7 @@ Followed by a setup table:
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> **Logo download**: `python .scripts/shared/download-image.py --logo <TICKER>` — auto-cached, workspace-level, cross-skill shared. Mark `[missing logo]` if all tiers fail.
+> **Logo download**: `Logo: WebSearch + browser_navigate, best-effort — [缺图] if unavailable` — auto-cached, workspace-level, cross-skill shared. Mark `[missing logo]` if all tiers fail.
 
 [Insert Mermaid flowchart — pair spread logic: entry spread → converge mechanism → target/exit/kill. Example below.]
 
