@@ -83,7 +83,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 - 关键证据 2-3 条
 - 对应的目标价 / 下行幅度
 
-### 2. Unit Economics 拷问
+### 2. Unit Economics 拷问 [→ Bridge: institution_rating, shareholder, valuation_snapshot]
 
 不要被 GAAP 报表带跑——质询单位经济：
 - 每一个新增客户 / 每一桶油 / 每一台机器，赚多少钱？这个数字几年来怎么变化？

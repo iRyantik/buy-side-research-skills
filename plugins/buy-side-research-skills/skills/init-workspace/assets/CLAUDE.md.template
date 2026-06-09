@@ -109,12 +109,67 @@
 - 每一条事实声明、数字、引语必须有 source link 或明确 source 描述。
 - 每个 truth-like claim 默认使用 inline clickable short anchor。
 - 每篇 research artifact 文末统一保留一个 `## Resources`。
-- source quality follows two tracks：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
+- source quality follows two tracks：
+  - 披露事实轨：`topic-local evidence cache > primary public > Bridge > web`
+  - 市场快照轨：`actuals market_data（fresh <180天）> Bridge > yfinance > WebSearch / WebFetch`
 - 同一质量层级内，优先 `home-market / local-language source`。
-- `financial-data` 视为 `topic-local evidence cache` 里最高价值的结构化财务缓存；市场/快照字段先看它和本地 `_cache`，再看 trusted third-party，最后才是 web。
+- `financial-data` CLI 是 source-of-record——写入 `actuals-resolved.json`（含 structured financials + market_data snapshot）；artifact 财务数据必须从 actuals 取，Bridge 是快照补充不是替代。
+- Bridge 是 trusted third-party 市场数据聚合层（当前实现：Longbridge MCP，覆盖 US/HK/SH/SZ/SG）。详情见 §4.1。
 - `internet source` 只补 market-snapshot track 的缺口，不冒充 company-disclosed fact；公司/披露事实仍优先 `primary public`。
 
-更完整的 claim-level source contract、fallback taxonomy、shared hook law 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
+更完整的 claim-level source contract、fallback taxonomy 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
+
+### 4.1 Unified Data Routing（`route.py`）
+
+本 workspace 的数据路由由 `capability-matrix.json` 统一管理。Agent **不手动判断优先级**——每个数据请求前调 `route.py` 获取完整 chain，按序执行。
+
+#### 路由方法
+
+```bash
+python .scripts/shared/route.py <TICKER.MARKET> <capability>
+```
+
+**返回**：完整 fallback chain（JSON），含 source / tool / params / available 字段。Agent 按 `chain` 顺序执行，第一个 `available: true` 的 source 直接使用，不需回头重查。
+
+**capability 列表**（常用）：
+
+| 类别 | capability |
+|---|---|
+| 市场实时 | `market_quote`, `price_action`, `price_intraday`, `price_history` |
+| 估值 | `valuation_snapshot`, `valuation_peer`, `valuation_history`, `valuation_rank`, `industry_valuation`, `industry_valuation_dist` |
+| 基本面 | `financial_snapshot`, `financial_snapshot_detail`, `financial_statement`, `financial_report`, `business_segments` |
+| 一致预期 | `consensus`, `forecast_eps` |
+| 事件 | `news`, `filings`, `calendar` |
+| 股东/管理 | `shareholder`, `shareholder_top`, `executive` |
+| 机构 | `institution_rating`, `institutional_views` |
+| 市场 | `fx_snapshot`, `adr_ah_premium`, `broker_holding`, `market_temperature`, `top_movers`, `market_status`, `operating`, `short_positions` |
+| 结构化 | `income_statement`, `balance_sheet`, `cash_flow`, `revenue_split` |
+| 筛选 | `industry_peers`, `screener`, `market_screen` |
+
+**完整列表**：`cat .references/routing/capability-matrix.json | python -c "import json,sys; d=json.load(sys.stdin); print('\n'.join(sorted(d['chains'].keys())))"`
+
+#### Agent 行为
+
+1. 数据请求 → `python .scripts/shared/route.py TICKER capability` → 拿到 chain
+2. Chain 第一项 → 执行 tool → 成功则用，失败则下一个
+3. 全链失败 → 报 `[UNVERIFIED]` ＋建议调 `financial-data` CLI（如需结构化数据）
+4. 写 artifact 时 → `/financial-data --lite` 是 skill Pipeline Step 1，不可用 route.py 替代
+
+#### 异常处理
+
+- `route.py` 返回 workspace_not_found → web_search 兜底
+- Chain 中某 source `available: false` → agent 跳过，reason 字段说明原因
+- Bridge 源（Longbridge MCP）不可用 → chain 自动跳过，下一个源（yfinance）补位
+
+#### 架构
+
+```
+capability-matrix.json  ← 单一真理源（字段→源→优先级）
+route.py                ← 查矩阵 + 条件判断（actuals 是否存在/fresh）
+各 skill [→ Bridge: x]  ← 标记 capability 名（不改——标记写 domain，路由由 matrix 决定）
+```
+
+新的 Bridge 源加入时只需改 `capability-matrix.json` 一个文件——skill 标记和 agent 行为都不变。
 
 ---
 

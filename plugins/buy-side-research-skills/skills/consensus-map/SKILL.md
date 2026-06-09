@@ -87,7 +87,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 [插入 Mermaid flowchart（用 flowchart TD 模拟预期堆叠结构——Mermaid 无 waterfall 类型）。示例见下方。]
 
-### Sell-Side Consensus Numbers
+### Sell-Side Consensus Numbers [→ Bridge: consensus, forecast_eps, institution_rating]
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|
@@ -97,7 +97,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Takeaway**: [市场数字共识到底集中在哪个 operating assumption]
 
-## 3. Buy-Side / Market-Implied Bar
+## 3. Buy-Side / Market-Implied Bar [→ Bridge: valuation_snapshot, valuation_peer]
 
 | Bar layer | Inference | Evidence | Confidence |
 |---|---|---|---|
@@ -108,7 +108,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Discipline**: buy-side bar 是推断，不要写成事实。
 
-## 4. Narrative And Debate Map
+## 4. Narrative And Debate Map [→ Bridge: news, institution_rating]
 
 | Debate | Consensus side | Skeptic / variant side | Evidence needed | Who has burden of proof |
 |---|---|---|---|---|
@@ -130,7 +130,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 |---|---|---|---|---|
 | [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `next-step` |
 
-## 7. What Would Change Consensus
+## 7. What Would Change Consensus [→ Bridge: calendar]
 
 - [Catalyst / data point / competitor print / company disclosure that would force revisions]
 - [What would change sell-side numbers]

@@ -150,7 +150,7 @@ Agent 根据用户 query 自动判定方向。
 > **完成 Gate**：写完扫 assumptions 表 → 每行有 source tier → 引用 actuals 的标 `[S1]`→Resources、引用外部的标 `[I#]`→Resources → `[待查]` assumption ≤3。
 
 ```markdown
-## Scenario Verdict
+## Scenario Verdict [→ Bridge: consensus, valuation_snapshot]
 
 - 一句话判断：值得继续 / 赔率一般 / 不值得继续
 - 当前价格相对 Base / Bull / Bear 的位置
@@ -187,7 +187,7 @@ Agent 根据用户 query 自动判定方向。
 | 当前市值 | $2.9B |
 | **Upside** | **+148%** |
 
-## Sensitivity
+## Sensitivity [→ Bridge: valuation_history, consensus]
 
 | 变量 | Bear | Base | Bull | 相关性 | Ev |
 |---|---|---|---|---|

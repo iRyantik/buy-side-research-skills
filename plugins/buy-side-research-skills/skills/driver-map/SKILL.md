@@ -134,7 +134,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 **结论先行**
 [一句话说明这家公司 / 业务最应该按什么 driver 理解，最大披露缺口在哪里]
 
-## 1. Reported Bucket → Business Reality
+## 1. Reported Bucket → Business Reality [→ Bridge: valuation_snapshot]
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|

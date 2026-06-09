@@ -277,7 +277,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 **行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
-### 5. 什么在驱动股价
+### 5. 什么在驱动股价 [→ Bridge: price_action, market_quote]
 > 数据锚点：actuals-resolved.json market_data + income_statement；股价历史：同文件缓存
 
 第一次看的人，读完这节应该理解这家公司**到底跟什么动**，不是记住三个变量叫 X、Y、Z。
@@ -330,7 +330,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 如果两个变量同时朝一个方向 → 可能 XX%。如果互相抵消 → 市场可能进入真空期——跟大盘漂。整个故事最大的裂缝在哪（1 句点出最脆的假设）。
 
-### 6. 市场在交易什么（consensus + 反向工程）
+### 6. 市场在交易什么（consensus + 反向工程）[→ Bridge: consensus, valuation_snapshot, valuation_peer]
 > 估值倍数：actuals-resolved.json market_data；Consensus：同文件 consensus 字段（best-effort）
 
 写"PE 25x vs 历史 18x，偏贵"是卖方水平。买方要回答的是**以当前估值，市场在隐含什么假设**——然后判断"我同意 / 不同意这个假设"。这是 alpha 的起点。
@@ -381,7 +381,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 这一节不是完整 thesis，只是把后续 `alpha-thesis` 的 variant view 起点暴露出来。
 
-### 9. 最近在发生什么
+### 9. 最近在发生什么 [→ Bridge: news, price_action]
 > 股价：actuals-resolved.json market_data（yfinance 缓存）；事件：web search
 
 **股价**：从 <日期> <价格> → 现在 <价格>，<涨跌幅>。同期大盘/板块 <涨跌幅>。[I#](https://finance.yahoo.com/...)

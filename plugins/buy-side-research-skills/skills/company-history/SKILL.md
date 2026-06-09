@@ -94,7 +94,7 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 
 ## 输出结构
 
-### Business Evolution Audit
+### Business Evolution Audit [→ Bridge: filings, dividend]
 
 ```markdown
 ## Business Evolution Audit

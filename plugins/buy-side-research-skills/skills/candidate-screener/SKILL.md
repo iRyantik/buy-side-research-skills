@@ -65,7 +65,7 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 | **Discovery edge** | 为什么可能没被 market price | 用 proxy，不写成事实 |
 | **流动性 / size** | 最小 ADV / market cap | 大中华 >= 100M USD ADV；美股 >= 50M USD ADV；小票另列风险 |
 
-## Candidate Mining / 挖票
+## Candidate Mining / 挖票 [→ Bridge: market_screen, market_temperature]
 
 统一处理主题、事件、screen 和混合条件。内部把输入拆成三种信号，而不是让用户选择 mode：
 

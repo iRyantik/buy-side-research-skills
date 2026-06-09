@@ -108,7 +108,7 @@ Check whether a news claim rumor note or data point is credible and research-rel
 ### A.3 输出结构
 
 ```markdown
-## Claim Check
+## Claim Check [→ Bridge: news, price_action]
 
 **Verdict**: Confirmed / Likely / Plausible but unconfirmed / Unsupported / Contradicted
 **Bottom line**: [一句话判断，直接说能不能信]

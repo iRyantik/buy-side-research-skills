@@ -136,7 +136,7 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 > **完成 Gate**：写完扫 scorecard → 每行 Evidence 有 [S#]/[I#] → `[待查]` 行 ≤3 → Resources 展开。
 
 ```markdown
-## Moat Scorecard
+## Moat Scorecard [→ Bridge: industry_valuation_dist, valuation_peer]
 
 | 维度 | Score | Evidence | Strength | Peer A | Peer B |
 |---|---|---|---|---|---|

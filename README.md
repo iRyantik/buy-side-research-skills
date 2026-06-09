@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.15.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.17.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./docs/README.cn.md)
 
@@ -178,6 +178,8 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.17.0 | 2026-06-09 | Unified data routing: capability-matrix.json + route.py (capability→source chain), CLAUDE.md §4.1 rewritten (prose→script), 16 skill [→ Bridge] markers, trusted-market-bridge mapping verified (34 domains) |
+| v5.16.0 | 2026-06-09 | Bridge MCP mapping verified (all 34 domains live-tested AAPL.US + 700.HK), exchange_rate param fix, financial_snapshot→financial_report_latest, CLAUDE.md template §4.1 bridge priority chain, SG market added |
 | v5.15.0 | 2026-06-09 | Longbridge MCP migration: Bridge MCP tool mapping (18 domains), init-workspace MCP setup step, delete longbridge-skills.zip |
 | v5.14.8 | 2026-06-09 | All 23 skills: word count → line count (`wc -l` verifiable). teach-in 8000-12000字 → 800-1200行. |
 | v5.14.7 | 2026-06-09 | Restore download-image.py (product/equipment only, no logo crawl — 486→140 lines) |

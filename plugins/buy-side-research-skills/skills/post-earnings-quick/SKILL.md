@@ -52,7 +52,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 ## 输出结构
 
 ```markdown
-## Verdict
+## Verdict [→ Bridge: financial_snapshot_detail]
 
 **Beat — thesis unchanged** （或其他组合）
 

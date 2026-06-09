@@ -31,7 +31,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## 四维度评分
 
-### 1. Buyback（回购）
+### 1. Buyback（回购）[→ Bridge: financial_snapshot, dividend]
 
 | 分数 | 标准 | 怎么看 |
 |---|---|---|

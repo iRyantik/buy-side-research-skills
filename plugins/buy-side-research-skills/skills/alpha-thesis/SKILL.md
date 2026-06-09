@@ -95,7 +95,7 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 - "看好 X 的长期前景"——这不是 trade，是观点。
 - "Long X / Short Y"——这是 pair，不是 alpha-thesis，改用 `pair-trade`。
 
-### 2. Variant View（量化，必须有数字）
+### 2. Variant View（量化，必须有数字）[→ Bridge: consensus, valuation_snapshot, institution_rating]
 
 明确说出：你的关键预测和 consensus 数字差多少？
 

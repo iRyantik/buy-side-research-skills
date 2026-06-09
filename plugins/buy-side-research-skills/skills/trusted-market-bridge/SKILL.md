@@ -30,14 +30,17 @@ This skill is intentionally narrow. It does not write a thesis, rank ideas, buil
 
 ## Supported Markets
 
-This bridge only supports the following markets in v1:
+This bridge supports the following markets (Longbridge MCP coverage, verified 2026-06-09):
 
-- `US`
-- `HK`
-- `SH`
-- `SZ`
+| Market | Code | Stock-level tools | Market-level tools | Notes |
+|---|---|---|---|---|
+| US | `US` | ✅ full | ✅ | quote/valuation/financials/consensus/filings/news/calendar |
+| HK | `HK` | ✅ full | ✅ | + broker_holding (CCASS) / operating / AH premium |
+| SH | `SH` | ✅ | ✅ | A-share (Shanghai) |
+| SZ | `SZ` | ✅ | ✅ | A-share (Shenzhen) |
+| SG | `SG` | limited | ✅ | market_temperature/calendar/status only |
 
-If the requested symbol belongs to Japan, Korea, Singapore, crypto, or any unsupported market:
+If the requested symbol belongs to Japan, Korea, or any unsupported market:
 
 - state that Longbridge is not covered for that market
 - return `unsupported_market`
@@ -47,44 +50,134 @@ If the requested symbol belongs to Japan, Korea, Singapore, crypto, or any unsup
 
 This bridge may return evidence for:
 
-- `market_quote`
-- `price_action`
-- `valuation_snapshot`
-- `kline_snapshot`
-- `fx_snapshot`
-- `adr_ah_premium`
-- `news`
-- `filings`
-- `consensus`
-- `financial_snapshot`
-- `market_screen`
+- `market_quote` — latest OHLCV + turnover + trade status
+- `price_action` — candlestick series + intraday minute data
+- `kline_snapshot` — quick K-line range summary
+- `valuation_snapshot` — PE/PB/PS/dividend_yield + industry percentile
+- `valuation_peer` — valuation comparison with auto-selected peers
+- `valuation_history` — multi-year PE/PB/PS time series
+- `valuation_rank` — daily valuation percentile rank
+- `industry_valuation` — peer valuation comparison
+- `industry_valuation_dist` — PE/PB/PS distribution (min/p25/median/p75/max)
+- `fx_snapshot` — all USD-cross exchange rates
+- `adr_ah_premium` — A+H premium (dual-listed stocks only)
+- `news` — latest news articles with titles + URLs
+- `filings` — SEC/exchange filing index with file URLs
+- `consensus` — analyst revenue/EBIT/EPS estimates with actual vs estimate comparison
+- `forecast_eps` — EPS forecast trend over time
+- `financial_statement` — structured IS/BS/CF with multi-year YoY
+- `financial_snapshot` — latest key indicators (revenue/net_profit/ROE/EPS)
+- `financial_snapshot_detail` — actual vs estimate + ratios + cash flow
+- `business_segments` — geographic/segment revenue breakdown
+- `company_profile` — name/employees/CEO/industry/profile
+- `calendar` — earnings/dividend/split/IPO/macro/closed events
+- `shareholder` — institutional + insider shareholders
+- `shareholder_top` — top 20 shareholders
+- `executive` — management team with bios
+- `institution_rating` — analyst ratings + target prices
+- `institutional_views` — monthly rating distribution
+- `broker_holding` — HKEX CCASS broker flow (HK only)
+- `dividend` — dividend history
+- `operating` — operating metrics (HK only)
+- `market_temperature` — market sentiment 0-100
+- `market_status` — trading session status
+- `top_movers` — price events with news context
+- `screener` — stock screening
+- `industry_peers` — sub-sector peer tree
 
 ## MCP Tool Mapping
 
-Longbridge is accessed via MCP (145 tools). Map bridge domains to MCP tools:
+Longbridge is accessed via MCP (145 tools, 15 categories). All tools verified 2026-06-09 against live data (AAPL.US + 700.HK).
 
-| Domain | MCP Tool | Key Parameters |
+### Core Market Data
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `market_quote` | `mcp__longbridge__quote` | `symbols=["AAPL.US","700.HK"]` (batch ok) | ✅ US+HK |
+| `price_action` | `mcp__longbridge__candlesticks` | `symbol`, `period` (day/week/month/year), `count` (max 1000) | ✅ |
+| `price_action` | `mcp__longbridge__intraday` | `symbol` — minute-by-minute OHLCV+turnover | ✅ |
+| `price_action` | `mcp__longbridge__history_candlesticks_by_date` | `symbol`, `period`, `forward_adjust`, `start`, `end`, `trade_sessions` | ✅ schema |
+| `kline_snapshot` | `mcp__longbridge__candlesticks` | 同上 — quick kline range summary | ✅ |
+| `market_temperature` | `mcp__longbridge__market_temperature` | `market` (HK/US/CN/SG) → temperature/valuation/sentiment 0-100 | ✅ |
+| `market_status` | `mcp__longbridge__market_status`, `mcp__longbridge__trading_session` | `market` | ✅ schema |
+| `top_movers` | `mcp__longbridge__top_movers` | `markets`, `sort` (0=time/1=change/2=heat), `limit` | ✅ |
+
+### Valuation
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `valuation_snapshot` | `mcp__longbridge__valuation` | `symbol` → PE/PB/PS/dividend_yield with industry percentile + 1yr history | ✅ |
+| `valuation_peer` | `mcp__longbridge__valuation_comparison` | `symbol`, `currency` (USD/HKD/CNY) — auto-selects industry peers, returns PE/PB/PS with monthly history | ✅ |
+| `valuation_history` | `mcp__longbridge__valuation_history` | `symbol` → long-term PE/PB/PS/dividend_yield time series | ✅ schema |
+| `valuation_rank` | `mcp__longbridge__valuation_rank` | `symbol`, `start`, `end` (yyyymmdd) → daily PE/PB/PS percentile | ✅ schema |
+| `industry_valuation` | `mcp__longbridge__industry_valuation` | `symbol` → peer valuation comparison | ✅ schema |
+| `industry_valuation_dist` | `mcp__longbridge__industry_valuation_dist` | `symbol` → PE/PB/PS distribution (min/p25/median/p75/max + current percentile) | ✅ |
+
+### Fundamentals & Financials
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `financial_statement` | `mcp__longbridge__financial_statement` | `symbol`, `kind` (IS/BS/CF/ALL), `report` (af/saf/qf/q1/q2/q3) → structured line items with YoY | ✅ multi-year |
+| `financial_report` | `mcp__longbridge__financial_report` | `symbol`, `kind`, `report` — same as financial_statement | ✅ schema |
+| `financial_snapshot` | `mcp__longbridge__financial_report_latest` ★ | `symbol` → revenue/net_profit/assets/debt/EPS/BPS/ROE/net_margin | ✅ primary |
+| `financial_snapshot_detail` | `mcp__longbridge__financial_report_snapshot` | `symbol`, `report` (qf/saf/af), `fiscal_year`, `fiscal_period` → actual vs estimate + ratios + cash flow | ✅ |
+| `business_segments` | `mcp__longbridge__business_segments` | `symbol` → geographic/segment revenue with percent + YoY | ✅ |
+| `company_profile` | `mcp__longbridge__company` | `symbol` → name/founded/employees/CEO/website/profile | ✅ |
+
+Note: `financial_report_latest` is the **best first stop** for a quick financial snapshot. Use `financial_report_snapshot` when you need estimate comparison + cash flow detail. Use `financial_statement` only when you need multi-year structured line-item tables.
+
+### Consensus & Estimates
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `consensus` | `mcp__longbridge__consensus` | `symbol` → revenue/EBIT/EPS estimates per fiscal period with actual vs estimate + beat/miss | ✅ |
+| `forecast_eps` | `mcp__longbridge__forecast_eps` | `symbol` → EPS forecast trend (median/mean/low/high) per window | ✅ |
+
+### News, Filings & Events
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `news` | `mcp__longbridge__news` | `symbol` → title/description/url/published_at | ✅ |
+| `filings` | `mcp__longbridge__filings` | `symbol` → SEC filings (US) / exchange filings (HK) with file_urls | ✅ US |
+| `calendar` | `mcp__longbridge__finance_calendar` | `category` (report/dividend/split/ipo/macrodata/closed), `start`, `end`, `market` (optional: HK/US/CN/SG/JP/UK/DE/AU) | ✅ |
+
+### Shareholders & Management
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `shareholder` | `mcp__longbridge__shareholder` | `symbol` → institutional + insider shareholders with percent + change | ✅ |
+| `shareholder_top` | `mcp__longbridge__shareholder_top` | `symbol` → top 20 shareholders per reporting period (with object_id for drill-down) | ✅ HK |
+| `executive` | `mcp__longbridge__executive` | `symbol` → management team with title + biography + wiki_url | ✅ US |
+| `institution_rating` | `mcp__longbridge__institution_rating` | `symbol` → analyst buy/hold/sell counts + target price high/low/mean + industry rank | ✅ |
+| `institutional_views` | `mcp__longbridge__institutional_views` | `symbol` → monthly rating distribution timeline | ✅ schema |
+
+### Market-Specific
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `fx_snapshot` | `mcp__longbridge__exchange_rate` | No params needed — returns all USD-cross rates (use base_currency=USD, filter other_currency=HKD/CNY/etc.) | ✅ |
+| `adr_ah_premium` | `mcp__longbridge__ah_premium` | `symbol` (A+H dual-listed only, e.g. `600036.SH` not `700.HK`) → premium K-line | ⚠️ dual-list only |
+| `adr_ah_premium` | `mcp__longbridge__ah_premium_intraday` | `symbol` — intraday premium | ⚠️ dual-list only |
+| `broker_holding` | `mcp__longbridge__broker_holding` | `symbol` (HK only) → HKEX CCASS top broker buy/sell with change | ✅ HK |
+| `dividend` | `mcp__longbridge__dividend` | `symbol` → ex_date/pay_date/amount/currency | ✅ US |
+| `operating` | `mcp__longbridge__operating` | `symbol` (HK only) → operating metrics (passenger/cargo/store counts etc.) | ✅ schema |
+| `industry_peers` | `mcp__longbridge__industry_peers` | `BK counter_id` from `industry_rank` → hierarchical sub-sector tree | ✅ schema |
+
+### Screen & Search
+
+| Domain | MCP Tool | Key Parameters | Verified |
+|---|---|---|---|
+| `screener` | `mcp__longbridge__screener_search` | query params | ✅ schema |
+| `market_screen` | `mcp__longbridge__top_movers` | `markets`, `sort`, `limit` — price events with news context | ✅ |
+
+### Symbol Format
+
+| Market | Format | Example |
 |---|---|---|
-| `market_quote` | `mcp__longbridge__quote` | `symbols=["TICKER.US"]` |
-| `price_action` | `mcp__longbridge__candlesticks`, `mcp__longbridge__intraday` | `symbol`, date range |
-| `valuation_snapshot` | `mcp__longbridge__valuation` | `symbol` |
-| `consensus` | `mcp__longbridge__consensus`, `mcp__longbridge__forecast_eps` | `symbol` |
-| `financial_snapshot` | `mcp__longbridge__financial_statement`, `mcp__longbridge__financial_report` | `symbol` |
-| `news` | `mcp__longbridge__news` | `symbol` |
-| `company_profile` | `mcp__longbridge__company` | `symbol` |
-| `calendar` | `mcp__longbridge__finance_calendar` | `category`, `start`, `end` |
-| `fx_snapshot` | `mcp__longbridge__exchange_rate` | `symbols` |
-| `adr_ah_premium` | `mcp__longbridge__ah_premium`, `mcp__longbridge__ah_premium_intraday` | `symbol` |
-| `filings` | `mcp__longbridge__filings` | `symbol` |
-| `shareholder` | `mcp__longbridge__shareholder`, `mcp__longbridge__shareholder_top` | `symbol` |
-| `institution` | `mcp__longbridge__institution_rating`, `mcp__longbridge__institutional_views` | `symbol` |
-| `screener` | `mcp__longbridge__screener_search` | query params |
-| `industry` | `mcp__longbridge__industry_peers`, `mcp__longbridge__industry_valuation` | `symbol` |
-| `market_status` | `mcp__longbridge__market_status`, `mcp__longbridge__trading_session` | `market` |
-| `dividend` | `mcp__longbridge__dividend`, `mcp__longbridge__dividend_detail` | `symbol` |
-| `operating` | `mcp__longbridge__operating` | `symbol` |
-
-All tools use US ticker format `TICKER.US` and HK format `CODE.HK`.
+| US | `TICKER.US` | `AAPL.US`, `NVDA.US` |
+| HK | `CODE.HK` | `700.HK`, `9988.HK` |
+| SH | `CODE.SH` | `600036.SH` |
+| SZ | `CODE.SZ` | `000858.SZ` |
 
 ## Installation
 
@@ -220,22 +313,15 @@ It is not:
 
 Downstream consumers may use `market_screen` to narrow the funnel or explain why a candidate entered the screen, but they must still source business linkage, disclosure facts, and company-specific truth separately.
 
-## Default Routing
+## Routing
 
-| Situation | Route |
-|---|---|
-| Need market expectations and revisions | `consensus-map` + this bridge |
-| Need pre/post earnings setup | `earnings-setup` + this bridge |
-| Need peer market context | `peer-deep-dive` + this bridge |
-| Need pair spread monitoring | `pair-trade` + this bridge |
+Data routing is managed by the unified capability matrix, not by per-skill routing tables.
 
-| Need quick market and consensus context on a new name | `stock-quickread` + this bridge |
-| Need candidate generation or anomaly-aware prioritization | `candidate-screener` + this bridge |
-| Need thesis market-pricing inputs | `alpha-thesis` + this bridge |
-| Need downside valuation and crowding context | `bear-pre-mortem` + this bridge |
-| Need industry market clues without full screening | `industry-landscape` + this bridge |
-| Need source-tracked actuals | `financial-data` |
-| Need business/segment truth | `company-history` / `driver-map` / `mechanism-insight` |
+- **Runtime routing**: `python .scripts/shared/route.py <TICKER> <capability>` — resolves capability → full source chain
+- **Capability registry**: `.references/routing/capability-matrix.json` — single source of truth for all source priorities
+- **Section-level mapping**: `.references/routing/bridge-skill-map.md` — which skill section needs which capability
+
+This bridge is one source (`longbridge_mcp`) in the matrix. Its capabilities, coverage markets, and tool mapping are defined in the matrix under `sources.longbridge_mcp` and `tool_map.longbridge_mcp`.
 
 ## Failure Discipline
 

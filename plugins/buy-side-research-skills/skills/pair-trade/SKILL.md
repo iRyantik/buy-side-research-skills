@@ -131,7 +131,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 #### 3. 估值 Spread 历史
 
-### 价差与相关性公式
+### 价差与相关性公式 [→ Bridge: price_action, valuation_snapshot, valuation_peer]
 
 | # | 计算 | 公式 | 输入来源 |
 |---|---|---|---|

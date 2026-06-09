@@ -676,7 +676,7 @@ Debt/Equity = Total Debt / Shareholders' Equity
 > DATE | TICKER | Peer Set: N companies
 
 ## 1. Peer Selection Rationale
-## 2. Multiples Comparison (PE/EV-EBITDA/PB/PS)
+## 2. Multiples Comparison (PE/EV-EBITDA/PB/PS) [→ Bridge: valuation_peer, industry_valuation]
 ## 3. Growth-Adjusted View (PEG)
 ## 4. Premium/Discount Analysis
 ## 5. Implied Valuation Range

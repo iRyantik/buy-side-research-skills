@@ -102,12 +102,67 @@ Default English output.
 - Every factual statement, number, and quote must have a source link or clear source description.
 - Every truth-like claim defaults to using an inline clickable short anchor.
 - Every research artifact must end with a unified `## Resources` section.
-- Source quality follows two tracks: disclosure-fact track `topic-local evidence cache > primary public > trusted third-party > web`; market-snapshot track `topic-local evidence cache / financial-data > trusted third-party > web`.
+- Source quality follows two tracks:
+  - Disclosure-fact track: `topic-local evidence cache > primary public > Bridge > web`
+  - Market-snapshot track: `actuals market_data (fresh <180d) > Bridge > yfinance > WebSearch / WebFetch`
 - Within the same quality tier, prioritize `home-market / local-language source`.
-- `financial-data` is treated as the highest-value structured financial cache within the `topic-local evidence cache`; for market / snapshot fields, check it and local `_cache` first, then trusted third-party, and only then the web.
+- `financial-data` CLI is source-of-record — writes `actuals-resolved.json` (structured financials + market_data snapshot); artifact financial data must come from actuals; Bridge is a snapshot supplement, not a replacement.
+- Bridge is the trusted third-party market data aggregation layer (current implementation: Longbridge MCP, covering US/HK/SH/SZ/SG). See §4.1 for details.
 - `internet source` only fills gaps in the market-snapshot track; it must not impersonate company-disclosed fact. Company/disclosure facts still prioritize `primary public`.
 
-The more complete claim-level source contract, fallback taxonomy, shared hook law, and skill-specific judgment / workflow delta are jointly determined by the invoked active skill and workspace hooks.
+The more complete claim-level source contract, fallback taxonomy, and skill-specific judgment / workflow delta are jointly determined by the invoked active skill and workspace hooks.
+
+### 4.1 Unified Data Routing (`route.py`)
+
+This workspace's data routing is managed by `capability-matrix.json`. The agent does **NOT manually evaluate priority chains** — instead, call `route.py` before each data request to receive the full chain, then execute in order.
+
+#### Routing Method
+
+```bash
+python .scripts/shared/route.py <TICKER.MARKET> <capability>
+```
+
+**Returns**: full fallback chain (JSON) with source / tool / params / available fields. Agent executes in `chain` order — first `available: true` source is used directly, no re-query needed on failure.
+
+**Common capabilities**:
+
+| Category | capability |
+|---|---|
+| Market real-time | `market_quote`, `price_action`, `price_intraday`, `price_history` |
+| Valuation | `valuation_snapshot`, `valuation_peer`, `valuation_history`, `valuation_rank`, `industry_valuation`, `industry_valuation_dist` |
+| Fundamentals | `financial_snapshot`, `financial_snapshot_detail`, `financial_statement`, `financial_report`, `business_segments` |
+| Consensus | `consensus`, `forecast_eps` |
+| Events | `news`, `filings`, `calendar` |
+| Shareholders/Mgmt | `shareholder`, `shareholder_top`, `executive` |
+| Institutional | `institution_rating`, `institutional_views` |
+| Market | `fx_snapshot`, `adr_ah_premium`, `broker_holding`, `market_temperature`, `top_movers`, `market_status`, `operating`, `short_positions` |
+| Structured | `income_statement`, `balance_sheet`, `cash_flow`, `revenue_split` |
+| Screening | `industry_peers`, `screener`, `market_screen` |
+
+**Full list**: `cat .references/routing/capability-matrix.json | python -c "import json,sys; d=json.load(sys.stdin); print('\n'.join(sorted(d['chains'].keys())))"`
+
+#### Agent Behavior
+
+1. Data request → `python .scripts/shared/route.py TICKER capability` → receive chain
+2. Chain first item → execute tool → success: use it; failure: next item
+3. All chain items fail → report `[UNVERIFIED]` + suggest `financial-data` CLI (if structured data needed)
+4. Writing an artifact → `/financial-data --lite` is skill Pipeline Step 1, NOT replaceable by route.py
+
+#### Error Handling
+
+- `route.py` returns workspace_not_found → web_search fallback
+- Chain source shows `available: false` → agent skips, reason field explains why
+- Bridge source (Longbridge MCP) unavailable → chain auto-skips, next source (yfinance) fills
+
+#### Architecture
+
+```
+capability-matrix.json  ← single source of truth (capability→source→priority)
+route.py                ← queries matrix + conditional checks (actuals exists/fresh)
+skill [→ Bridge: x]     ← marks capability name (unchanged — domain stays, routing from matrix)
+```
+
+Adding a new Bridge source only requires editing `capability-matrix.json` — skill markers and agent behavior remain unchanged.
 
 ---
 

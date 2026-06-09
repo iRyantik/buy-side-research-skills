@@ -121,7 +121,7 @@ N 家公司共享的行业坐标系，只写一次。
 - 每家公司必须填转型进展（量产/送样/在研/无公开进展）
 - 净影响必须给方向，不能写"有待观察"
 
-### §4 横向矩阵
+### §4 横向矩阵 [→ Bridge: valuation_peer, industry_valuation, industry_valuation_dist]
 
 #### §4.1 通用维度（所有行业都列）
 

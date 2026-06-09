@@ -61,7 +61,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 | 3 | Short Interest | 融券余额 ÷ 流通市值 | MKT — 港股/美股可用，A 股不透明 |
 | 4 | Short Squeeze Score | Short Interest ÷ Avg Daily Volume | MKT — 高 = 业绩 beat 时空头被迫平仓 |
 
-### 1. 当前 Setup（市场怎么定价这次 print）
+### 1. 当前 Setup（市场怎么定价这次 print）[→ Bridge: valuation_snapshot, price_action, news]
 
 结构化展示，所有数字必须附 source 和**获取时点**：
 
@@ -75,7 +75,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 | Borrow rate | 35bps | 是否便宜（无空头压力） | [I3](https://example.com/borrow-rate) |
 | 卖方修订频率（近 30 天） | 7 上修 / 1 下修 | 上修势头 → 已 priced | [I4](https://example.com/revision-breadth) |
 
-### 2. Sell-Side 数字 vs Buy-Side Bar
+### 2. Sell-Side 数字 vs Buy-Side Bar [→ Bridge: consensus, forecast_eps, institution_rating]
 - Sell-side consensus（收入、毛利、EBITDA、EPS、关键 KPI）
 - 但 buy-side bar 通常和 sell-side 不一样——可以从这些里推断：
   - 财报前的 price action（强势跑赢 → buy-side bar 已经高于 consensus）

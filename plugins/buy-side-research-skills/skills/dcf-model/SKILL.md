@@ -105,7 +105,7 @@ This applies to every merged section header in the DCF (market data, scenario bl
 
 ## DCF Process Workflow
 
-### Step 1: Data Retrieval and Validation
+### Step 1: Data Retrieval and Validation [→ Bridge: consensus]
 
 Fetch data from MCP servers, user provided data, and the web.
 

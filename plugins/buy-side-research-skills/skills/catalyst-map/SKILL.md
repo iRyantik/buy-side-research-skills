@@ -67,7 +67,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 > **完成 Gate**：写完逐行扫表 → 每行 [S#]/[I#] 或 `[待查]` → `[待查]` ≤5 → Resources 段必须展开所有 source。
 
 ```markdown
-## Catalyst Timeline
+## Catalyst Timeline [→ Bridge: calendar, news]
 
 | 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact | Ev |
 |---|---|---|---|---|---|---|---|

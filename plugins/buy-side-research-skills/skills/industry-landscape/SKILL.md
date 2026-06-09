@@ -109,7 +109,7 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 
 **产业链图之后必须跟一张价值分配总结**：哪段在吃最肥的肉、哪段在卷、利润池在往哪迁移。
 
-### 3. 竞争格局（~600 字 + 表格）
+### 3. 竞争格局（~600 字 + 表格）[→ Bridge: industry_peers, industry_valuation_dist, market_temperature]
 
 | 环节 | 格局 | 进入壁垒 | 替代威胁 | 买家议价力 | 供应商议价力 |
 |---|---|---|---|---|---|
