@@ -230,7 +230,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | **Entry point** | Zero base | Know basic concepts | Know industry terms | Know mechanism |
 | **Question** | What is this thing | Is the industry worth investing in | How does the mechanism work | How to decompose revenue / margin |
 | **Coverage** | Full chain education | Full industry | 1-2 mechanisms | Single company / segment |
-| **Images** | Physical photos | Company logo + product photos | Product physical photos | None |
+| **Images** | Physical photos | Product physical photos | Product physical photos | None |
 | **Artifact length** | 6000-8000 | 2000-3000 | 1000-1800 | 800-1500 |
 
 > Product photos: Every unit involving physical equipment/products must include 1 physical photo. Download priority: Company website Media Kit → product page hero → web search → [缺图]. Download to topic.

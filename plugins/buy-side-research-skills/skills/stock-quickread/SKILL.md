@@ -25,11 +25,10 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIOENCODING=utf-8。
 
 ```
-Step 1: 方法 A — Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode lite")
-        方法 B（fallback）— python .scripts/financial-data/financial_data.py
+Step 1: python .scripts/financial-data/financial_data.py
           --market <market> --identifier <TICKER> --company-slug <slug> --mode lite
         ★ 产出: _cache/financial-data/actuals-resolved.json
-        ★ 先试 A，A 失败再试 B
+        ★ 先执行 CLI，等待 actuals-resolved.json 就绪
         ★ CLI 参数是 --identifier，不是 --ticker
         ★ market: us/cn/hk/jp/kr/tw/eu
         ★ Verify: Read 确认文件存在且 "statements" 非空
@@ -75,7 +74,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 收到 stock-quickread 触发词后，**必须先完成 Step 1-2 才能写任何内容**：
 
 1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
-2. Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode lite") 或 fallback CLI → 等待 `actuals-resolved.json` 就绪
+2. python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --mode lite → 等待 `actuals-resolved.json` 就绪
 3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
 
 三项全部完成前，禁止 Write/Edit artifact。违反 → 研究无 source、数字无 provenance、结论无依据。

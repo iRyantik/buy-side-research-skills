@@ -87,7 +87,7 @@ Upstream → Midstream → Downstream → End Customer
 Annotate per segment:
 - What this segment does (one sentence)
 - Value pool share (% of total industry profit)
-- Representative companies (3–5) + **company logo images**
+- Representative companies (3–5)
 - Concentration trend (fragmenting → consolidating? being displaced?)
 - Import substitution status (if applicable)
 
@@ -125,8 +125,6 @@ Takeaway: what direction competition in this industry is moving.
 
 **Do not rank.** Ranking is `candidate-screener`'s job. Here only list "which companies in this industry are worth knowing about."
 
-**Company logo images**: representative companies per value chain segment must have logos.
-
 ### 7. Routing (~150 words)
 
 | Next Step | Skill |
@@ -144,7 +142,6 @@ Takeaway: what direction competition in this industry is moving.
 
 | Image Type | Required | Source |
 |---|---|---|
-| Company logo images | **Required** (representative companies per value chain segment) | Official media kit → favicon → web search → `[缺图]` |
 | Product photos | **Required** (key equipment/products) | Official product page → web search → `[缺图]` |
 
 ## Artifact / Save Strategy
@@ -176,7 +173,6 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 - ❌ Company roster turns into a ranked recommendation list — that is `candidate-screener`'s job
 - ❌ Investment judgment says "long-term bullish" without a specific regime
 - ❌ No product photos
-- ❌ No company logo images
 - ❌ Copies `teach-in` content verbatim (physical科普), skipping profit pools and investment judgment
 - ❌ Copies `mechanism-insight` content verbatim (single-mechanism deep dive), skipping the industry panorama
 - ❌ Company roster exceeds 30 names — too many, this is not a database
@@ -196,7 +192,7 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 | **Question** | What is this thing | Is the industry worth investing in | How does the mechanism work | Which to look at first |
 | **Investment judgment** | Zero | Industry-level | Mechanism-level | Company-level |
 | **Coverage** | Full-chain科普 | Full-industry value chain + profit pools | 1–2 mechanisms | Company pool ranking |
-| **Images** | Product photos | Company logos + product photos | Product photos | None |
+| **Images** | Product photos | Product photos | Product photos | None |
 | **Output length** | 6,000–8,000 words | 2,000–3,000 words | 1,000–1,800 words | 500–1,500 words |
 
 > Product images: every unit involving physical equipment/products must include 1 product photo. Download priority: Company official Media Kit → Product page hero → web search → [缺图]. Download to the topic directory.

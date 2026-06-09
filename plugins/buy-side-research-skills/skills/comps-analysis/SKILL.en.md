@@ -25,8 +25,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 Each subagent independently completes two tasks:
 
   a. Fetch financial data
-     Skill("buy-side-research-skills:financial-data", "<TICKER> <market> --mode full")
-     or fallback: python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER> --company-slug <S> --mode full
+     python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER> --company-slug <S> --mode full
      → writes _cache/financial-data/actuals-resolved.json
 
   b. Generate evidence card
@@ -36,8 +35,7 @@ Each subagent independently completes two tasks:
                    key_claims_needing_verification, evidence_triplets
 
 subagent N:
-  Skill("buy-side-research-skills:financial-data", "<TICKER_N> <market> --mode full")
-  or fallback CLI
+  python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER_N> --company-slug <S> --mode full
   + evidence card JSON per evidence-card-schema.json
 
 Main agent continues once all subagents complete. Single ticker failure does not block others —

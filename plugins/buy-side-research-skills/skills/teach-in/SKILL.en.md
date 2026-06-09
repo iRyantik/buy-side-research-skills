@@ -280,7 +280,7 @@ Equipment specs / company names → WebFetch / Playwright must attempt at least 
 | **Question** | What is this thing | Is the industry worth investing in | How does the mechanism work |
 | **Investment judgment** | **Zero** | Industry-level | Mechanism-level |
 | **Coverage** | Full-chain primer | Full industry value chain + profit pools | 1–2 mechanisms deep-dive |
-| **Images** | Product photos ≥ 10 (required) | Company logos + product photos (required) | Product photos (required) |
+| **Images** | Product photos ≥ 10 (required) | Product photos (required) | Product photos (required) |
 | **Output length** | 8,000–12,000 words | 2,000–3,000 words | 1,000–1,800 words |
 
 - `teach-in` is a **prerequisite** for `industry-landscape` and `mechanism-insight`, not a substitute.

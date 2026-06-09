@@ -112,7 +112,7 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 ### C. Utility scripts (`.scripts/`)
 
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
-- `download-image.py` — unified image download (logo + product, Tier 1→2, cache)
+- `download-image.py` — unified image download (product, Tier 1→2, cache)
 
 **C2 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
 

@@ -260,9 +260,6 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### [公司名]
 
-| ![logo](当前 topic 的 _cache/images/<ticker>-logo.png) |
-|---|
-
 **一句话定位**（在同业里的位置，10-15 字）
 
 **关键 differential**（2-3 条，每条必须有数字 + Source）
@@ -270,10 +267,8 @@ N 家公司共享的行业坐标系，只写一次。
 
 **方向判断**：多 / 空 / 中性 / 不感兴趣 + 一句话理由
 
-> 竞争力指标、核心客户、护城河等已经在 §4.3 表里，这里不重复。每公司配 logo（下载到 _cache/images/<ticker>-logo.png），找不到标 [缺 logo]。
+> 竞争力指标、核心客户、护城河等已经在 §4.3 表里，这里不重复。
 >
-> **Logo 下载**：`python .scripts/shared/download-image.py <url> --output <slug>`
-
 ### §6 Cross-Cut Insight
 
 **做不好这一节就失败了**。如果 cross-cut 真的找不到任何东西，必须明确写"未发现 X / Y / Z"并解释为什么，不能假装有内容。

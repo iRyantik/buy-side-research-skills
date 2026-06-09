@@ -98,7 +98,6 @@ Followed by a setup table:
 
 | | Long | Short |
 |---|---|---|
-| Logo | ![logo](current topic's _cache/images/asml-logo.png) | ![logo](current topic's _cache/images/amat-logo.png) |
 | Ticker | ASML.NA | AMAT |
 | Business positioning | EUV/DUV monopoly | Diversified WFE |
 | Current valuation (NTM EV/EBITDA) | 22x | 18x |
@@ -108,7 +107,6 @@ Followed by a setup table:
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
 
-> **Logo download**: `python .scripts/shared/download-image.py <url> --output <slug>`
 
 [Insert Mermaid flowchart — pair spread logic: entry spread → converge mechanism → target/exit/kill. Example below.]
 
@@ -261,7 +259,6 @@ Pair sizing is not just "equal numbers on both sides." Three sizing methods:
 
 **Pair total sizing principle**: Single pair not exceeding 5% of portfolio gross; new pair default starts at 2-3% averaging in.
 
-> Download both leg logos to current topic's — if not found, mark [缺 logo].
 
 ### A.6 Tracking Table (default research record)
 

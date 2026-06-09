@@ -260,9 +260,6 @@ When customer concentration is a core investment variable for the comparison sub
 
 #### [Company Name]
 
-| ![logo](current topic `_cache/images/<ticker>-logo.png`) |
-|---|
-
 **One-line positioning** (where the company sits among peers, 10–15 words)
 
 **Key differentials** (2–3 items, each must have a number + Source)
@@ -270,9 +267,7 @@ When customer concentration is a core investment variable for the comparison sub
 
 **Directional judgment**: Long / Short / Neutral / Not interested + one-line rationale
 
-> Competitive indicators, key customers, moat, etc. are already in the §4.3 table — do not repeat here. Include a logo per company (download to _cache/images/<ticker>-logo.png); mark `[缺 logo]` if not found.
->
-> **Logo download**: `python .scripts/shared/download-image.py <url> --output <slug>`
+> Competitive indicators, key customers, moat, etc. are already in the §4.3 table — do not repeat here.
 
 ## Length Benchmarks
 

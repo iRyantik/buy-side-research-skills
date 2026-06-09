@@ -199,10 +199,10 @@ Shared tools under `.scripts/shared/`. All skills use these — do not reinvent.
 | Tool | Purpose | Usage |
 |---|---|---|
 | `verify-claim.py` | Source verification chain (Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
-| `download-image.py` | Image download (product/logo, workspace-level cache, cross-skill shared) | `python .scripts/shared/download-image.py --logo <TICKER>` or `<url> --output <slug>` |
+| `download-image.py` | Image download (product, workspace-level cache, cross-skill shared) | `python .scripts/shared/download-image.py <url> --output <slug>` |
 | `verify-runtime.py` | One-click 12-item runtime dependency check | `python .scripts/verify-runtime.py` |
 
-**Image rules**: Logo: `--logo <TICKER>` (auto-cached). Product: `<url> --output <slug>`. `browser_take_screenshot` is FORBIDDEN — hook CHECK 6a blocks it. `[missing]` only after all tiers exhausted.
+**Image rules**: Product: `<url> --output <slug>`. `browser_take_screenshot` is FORBIDDEN — hook CHECK 6a blocks it. `[missing]` only after all tiers exhausted.
 
 **Source verification rules**: Every `[I#]` source must pass at least Tier 1-2. `[UNVERIFIED]` only after all tiers fail.
 
@@ -219,7 +219,7 @@ Built into the buy-side-research-skills plugin. Available without invoking any s
 | Script | Purpose | Usage |
 |---|---|---|
 | `shared/verify-claim.py` | Source verification chain (HTTP→Playwright→curl→[UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
-| `shared/download-image.py` | Image download (product/logo, workspace-level cache) | `--logo <TICKER>` or `<url> --output <slug>` |
+| `shared/download-image.py` | Image download (product, workspace-level cache) | `<url> --output <slug>` |
 | `shared/verify-runtime.py` | One-click 12-item dependency check | `python .scripts/verify-runtime.py` |
 | `shared/web-extract.py` | Clean body text from web pages | `<url> [--markdown]` |
 | `shared/to-markdown.py` | Any file → markdown (PDF/Word/Excel/PPT/Web auto-routed) | `<file> [--cache <TICKER> <desc>]` |
@@ -282,7 +282,6 @@ Triggers automatically on every Write/Edit to a research artifact:
 
 ### Image Rules
 
-- Logo: `download-image.py --logo <TICKER>` (auto-cached, once per ticker per workspace)
 - Product: `download-image.py <url> --output <slug>`
 - `browser_take_screenshot` is **FORBIDDEN** — hook CHECK 6a blocks it
 - `[missing]` only allowed after all tiers (HTTP→Playwright) exhausted

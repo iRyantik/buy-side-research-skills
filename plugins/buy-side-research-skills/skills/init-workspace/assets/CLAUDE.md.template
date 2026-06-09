@@ -208,7 +208,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | 脚本 | 用途 | 调用示例 |
 |---|---|---|
 | `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
-| `shared/download-image.py` | 图片下载（产品图/logo，workspace 级缓存跨 skill 共享） | `--logo <TICKER>` 或 `<url> --output <slug>` |
+| `shared/download-image.py` | 图片下载（产品图，workspace 级缓存跨 skill 共享） | `<url> --output <slug>` |
 | `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python .scripts/verify-runtime.py` |
 | `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
 | `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
@@ -267,7 +267,6 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 ### 图片规则
 
-- Logo：`download-image.py --logo <TICKER>`（自动缓存，同一 ticker 全 workspace 只下一次）
 - 产品图：`download-image.py <url> --output <slug>`
 - **禁止** `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
 - `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
