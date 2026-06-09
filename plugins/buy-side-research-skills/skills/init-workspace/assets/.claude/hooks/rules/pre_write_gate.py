@@ -448,6 +448,29 @@ def _check_content(path: str, text: str, display: str):
         i = j + 1
 
 
+    # --- CHECK 15: Pipeline report header ---
+    # Research artifacts with Pipeline report must declare step completion honestly.
+    # > Pipeline: actuals ✅ | verify-claim X/N ✅ | images ✅ | ledger ✅
+    pipeline_header = re.search(r'>\s*Pipeline:\s*(.+?)(?:\n|$)', text)
+    if pipeline_header:
+        pipeline_line = pipeline_header.group(1)
+        # Find steps marked with ❌ (failed) without explanation
+        failed_steps = re.findall(r'\b(\w+)\s*❌', pipeline_line)
+        if failed_steps:
+            # Check if there's a skip reason like [skipped: ...]
+            skip_reasons = re.findall(r'\[跳过[^]]*\]|\[skipped[^]]*\]|\[缺[^]]*\]', pipeline_line)
+            unexplained = [s for s in failed_steps
+                          if not any(s.lower() in reason.lower() for reason in skip_reasons)]
+            if unexplained:
+                block(
+                    f"Blocked by pre_write_gate: {display} Pipeline report shows "
+                    f"failed mandatory steps: {', '.join(unexplained)}. "
+                    f"If these steps genuinely failed, add a skip reason like [跳过: 原因]. "
+                    f"If they were skipped intentionally, they should not be marked ❌ — "
+                    f"use ⏭️ instead."
+                )
+
+
 def main():
     payload = load_stdin_payload()
     if not payload:

@@ -20,22 +20,47 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 见 workspace `.references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
 
-以下仅保留 stock-quickread 特有的执行流程：
+以下仅保留 stock-quickread 特有的执行流程。每一步都是强制步骤——不可跳过、不可替换。
 
 ```
-Step 1: /financial-data <ticker> → actuals-resolved.json
-Step 2: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>
-Step 3: Discovery — WebSearch 找候选 URL
-Step 4: Verification — verify-claim.py 逐条验证（Tier 1→2→3）
-Step 5: 图片下载 — download-image.py（--logo / --output）
-Step 6: Write artifact（pre_write_gate 自动校验）
-Step 7: evidence_ledger.py auto + lint
-Step 8: actuals-to-appendix.py → 嵌入 Appendix
+Step 1: /financial-data <ticker>
+        ★ 产出: actuals-resolved.json
+        ★ Verify: Read 确认文件存在且 "statements" 非空
+        ★ Fail → STOP. 没有 actuals 不得继续.
+
+Step 2: python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>
+        ★ 产出: _cache/evidence/<TICKER>.evidence.json
+        ★ Verify: 文件存在
+        ★ Fail → STOP. 不得手动创建 ledger.
+
+Step 3: Discovery — WebSearch 找候选 source URL
+        ★ 目标: ≥ 8 条候选 URL
+        ★ Fail → 有多少用多少，但必须报告缺少多少.
+
+Step 4: python .scripts/shared/verify-claim.py <url> --json（Tier 1→2→3）
+        ★ 每条候选 URL 至少尝试 Tier 1 HTTP
+        ★ Fail per URL → 标 [UNVERIFIED]. 全部 fail → STOP.
+
+Step 5: python .scripts/shared/download-image.py --logo <TICKER>
+        + python .scripts/shared/download-image.py <url> --output <slug>（产品图）
+        ★ Logo MUST exist. Product image best-effort — [缺图] if all tiers fail.
+        ★ Fail logo → STOP. 不得用 browser_take_screenshot 代替.
+
+Step 6: Write artifact
+        ★ MUST include Pipeline report header（见下方模板）
+        ★ pre_write_gate 自动校验
+
+Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+        ★ Verify: 所有 [S#] 在 ledger 中有 entry
+        ★ Fail → STOP. 不得手动编辑 ledger.
+
+Step 8: python .scripts/financial-data/actuals-to-appendix.py <artifact>
+        ★ Best-effort. Fail → report and continue.
 ```
 
 ## ⛔ HARD GATE（不可跳过）
 
-收到 stock-quickread 触发词后，**必须先完成 Step 1-3 才能写任何内容**：
+收到 stock-quickread 触发词后，**必须先完成 Step 1-2 才能写任何内容**：
 
 1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
 2. Run `/financial-data <ticker>` → 等待 `actuals-resolved.json` 就绪

@@ -290,6 +290,26 @@ High-level routing hints:
 
 For specific procedures, fallback boundaries, and parallel strategies, the invoked skill governs.
 
+### Workflow Execution Discipline
+
+The following rules apply to ALL skill pipeline steps. Non-negotiable. Cannot be bypassed.
+
+1. **Pipeline steps are NOT optional**: Every step defined in a skill is mandatory. Agent has no authority to judge a step as "unnecessary" or "skippable." Execute ALL, without exception.
+
+2. **Step failure → Report + STOP**: If any step errors, Agent MUST report the specific error and STOP. Do NOT invent workarounds, do NOT silently downgrade, do NOT substitute with "similar" tools. If an alternative is needed, explicitly report to the user and wait for approval.
+
+3. **Preconditions MUST be verified**: Before starting the next step, confirm that the previous step's output actually exists. Do not assume "it should be done." If Step 2 requires actuals-resolved.json, Read the file after Step 1 and verify it exists and is not empty.
+
+4. **Tools are NOT substitutable**: The script/command specified by a skill is the ONLY execution path. Do NOT use browser_take_screenshot instead of download-image.py, do NOT use WebSearch instead of verify-claim.py, do NOT hand-write markdown instead of evidence_ledger.py.
+
+5. **Do NOT pre-judge that a company/industry is "not worth it"**: Complete the current skill before passing judgment. You can say "not worth it" in the conclusion — but not during execution.
+
+6. **Sub-agents inherit parent constraints**: When using the Agent tool, the prompt MUST include: "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
+
+7. **After compaction, re-read the Skill**: After conversation summarization, the Agent does not know which steps have been completed. Before continuing, re-Read the current skill's SKILL.md + Capsule-referenced files.
+
+8. **Best-effort ≠ Optional**: Steps marked best-effort MUST still be attempted. Only skip after a genuine attempt that failed, and only after reporting the failure.
+
 ---
 
 ## 7. UTF-8 Text Discipline

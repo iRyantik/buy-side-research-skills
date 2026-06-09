@@ -282,6 +282,26 @@ skill 是决策工具，不是装饰性模板。
 
 具体 procedure、fallback 边界和并行策略，以被调用 skill 为准。
 
+### Workflow 执行纪律
+
+以下规则适用于所有 skill 的所有 pipeline 步骤。不可绕过，不可协商。
+
+1. **Pipeline 步骤不可裁减**：Skill 定义的每一步都是强制步骤。Agent 没有权限判断某步骤"不需要"或"可以跳过"。全部执行，无一例外。
+
+2. **步骤失败 → 报告 + STOP**：任何步骤报错，Agent 必须报告具体错误信息并停止流程。不得发明替代方案，不得静默降级，不得用"看起来类似"的工具替换。如需替代，必须显式向用户报告并等待批准。
+
+3. **前置条件必须验证**：下一步开始前，必须确认上一步的产出物真实存在。不得假设"应该已经好了"。如 Step 2 需要 actuals-resolved.json，必须在 Step 1 完成后用 Read 确认文件存在且非空。
+
+4. **工具不可替换**：Skill 明确指定的脚本/命令就是唯一执行路径。不得用 browser_take_screenshot 代替 download-image.py，不得用 WebSearch 代替 verify-claim.py，不得手写 markdown 代替 evidence_ledger.py。
+
+5. **不得提前判断"不值得"**：正在执行的 skill 必须跑完。不得在中途判断"这个公司没意思"或"这个行业太小"而提前终止。完成后可以在结论里说不值得，但不能在执行中判断。
+
+6. **子 Agent 继承父级约束**：使用 Agent tool 分派子任务时，prompt 中必须包含 "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
+
+7. **Compact/Summary 后重新读 Skill**：对话被压缩后，Agent 不知道哪些步骤已完成。继续工作前必须重新 Read 当前 skill 的 SKILL.md 全文 + Capsule 引用的文件。
+
+8. **Best-effort ≠ Optional**：标记为 best-effort 的步骤仍然必须尝试。仅在尝试后确实失败且已报告用户时才能跳过。
+
 ---
 
 ## 7. UTF-8 文本纪律
