@@ -568,6 +568,28 @@ def _is_quarterly_request(periods: str | None) -> bool:
 def _period_from_document(document_meta: dict[str, Any], data: dict[str, Any]) -> str:
     doc_type = str(document_meta.get("doc_type_code") or "")
     period_end = str(document_meta.get("period_end") or data.get("fiscal_year_end") or "")
+
+    # Fallback: infer from filing_datetime if period_end is empty
+    if not period_end or period_end.strip() == "":
+        filing_dt = str(document_meta.get("filing_datetime") or "")
+        if filing_dt:
+            filing_match = re.search(r"(20\d{2}|19\d{2})", filing_dt)
+            if filing_match:
+                filing_year = int(filing_match.group(1))
+                if doc_type == "120":
+                    # Annual report filed ~3-4 months after FY end
+                    return f"FY{filing_year - 1}"
+                elif doc_type == "160":
+                    return f"FY{filing_year}H1"
+                elif doc_type == "140":
+                    return f"FY{filing_year - 1}Q3"
+            # If we have doc description, try to parse quarter
+            desc = str(document_meta.get("doc_description") or "")
+            desc_match = re.search(r"(20\d{2}|19\d{2})", desc)
+            if desc_match:
+                return _period_from_end(desc_match.group(1))
+        return _period_from_end(period_end)
+
     if doc_type == "120":
         return _period_from_end(period_end)
     fiscal_year = _fiscal_year_from_period_end(period_end)

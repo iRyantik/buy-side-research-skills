@@ -1253,6 +1253,7 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
             "never_fill_missing_with_zero": True,
             "model_input_gate": "use completeness/source_map before workbook population",
         },
+        "identity": identity or {},
         "statements": financials or {},
         "completeness": completeness,
         "source_map": source_map,

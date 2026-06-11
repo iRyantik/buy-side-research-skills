@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `5.20.0`.
+Current release version: `5.21.0`.
 
 ## Source And Runtime Shape
 
@@ -165,4 +165,5 @@ The package should not preinstall Docling, EdgarTools, AKShare, edinet-tools, da
 5. docs/release.md                     → Current release version: `X.X.X`
 6. README.md                           → > vX.X.X
 7. git tag                             → vX.X.X
+8. GitHub Release                       → gh release create vX.X.X
 ```
