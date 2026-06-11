@@ -308,9 +308,42 @@ def _render_market_data(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _normalize_split_rows(rows: list) -> list:
+    """Convert supplement/split-type rows → segments format {type, name, periods[], revenue: {}}.
+
+    Input: [{split_type, member_label, concept, values: {FY2025: 100}}]
+    Output: [{type, name, periods[], revenue: {FY2025: 100}}]
+    """
+    result = []
+    for row in rows:
+        st = row.get("split_type", "business_line")
+        name = row.get("member_label", row.get("member", "?"))
+        values = row.get("values", {})
+        if not values:
+            continue
+        if name not in {s["name"] for s in result}:
+            result.append({"type": st, "name": name, "periods": [], "revenue": {}})
+        entry = next(s for s in result if s["name"] == name)
+        for p, v in values.items():
+            if p not in entry["periods"]:
+                entry["periods"].append(p)
+            entry["revenue"][p] = v
+    return result
+
+
 def _render_segments(data: dict) -> str:
-    """Render segment breakdown tables."""
+    """Render segment/revenue split breakdown tables.
+
+    Accepts both formats:
+    - SEC format: data["segments"]["segments"] with {type, name, periods[list], revenue: {period: val}}
+    - Supplement format: data["revenue_split"] with {split_type, member_label, concept: "revenue", values: {period: val}}
+    """
     segments = data.get("segments", {}).get("segments", [])
+    if not segments:
+        # Fallback: supplement revenue_split → normalize to segments format
+        split_rows = data.get("revenue_split") or []
+        if split_rows:
+            segments = _normalize_split_rows(split_rows)
     if not segments:
         return ""
 
@@ -460,12 +493,11 @@ def _render_fill_rate(data: dict) -> str:
 def _merge_supplement_rows(data: dict, section: str, supp_rows: list):
     """Merge _supplement statement rows into appendix-format period dict.
 
-    supp_rows: [{"concept": "revenue", "values": {"FY2025": 24030}, "source": "quartr"}, ...]
-    Merged into data[section] which is {fy_y0: {revenue: X, period: "FY2024"}, ...}
+    After merging, reassigns slots to standard fy_y{N}/sub_{N} naming
+    so the renderer picks up supplement periods.
     """
     section_data = data.get(section, {})
     if not isinstance(section_data, dict) or not section_data:
-        # If no provider appendix data, build from supplement only
         section_data = {}
         data[section] = section_data
 
@@ -475,7 +507,6 @@ def _merge_supplement_rows(data: dict, section: str, supp_rows: list):
         if not concept or not values:
             continue
         for period, value in values.items():
-            # Find matching period slot
             found = False
             for slot, slot_data in section_data.items():
                 if slot_data.get("period") == period:
@@ -483,9 +514,23 @@ def _merge_supplement_rows(data: dict, section: str, supp_rows: list):
                     found = True
                     break
             if not found:
-                # Create new slot for this period
                 slot = f"_supp_{period.replace(' ', '_').replace('-', '_').lower()}"
                 section_data[slot] = {"period": period, concept: value}
+
+    # Reassign slots to standard naming (fy_y{N}/sub_{N}) sorted by period
+    if section_data:
+        import re as _re
+        def _period_sort_key(item):
+            slot, entry = item
+            p = str(entry.get("period", slot))
+            fy_m = _re.search(r'FY(\d{4})', p)
+            return fy_m.group(1) if fy_m else p
+        sorted_items = sorted(section_data.items(), key=_period_sort_key, reverse=True)
+        new_data = {}
+        for idx, (old_slot, entry) in enumerate(sorted_items):
+            new_slot = f"fy_y{idx}" if idx < 4 else f"sub_{idx - 4}"
+            new_data[new_slot] = entry
+        data[section] = new_data
 
 
 # ── single ticker ───────────────────────────────────────
