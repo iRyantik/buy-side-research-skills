@@ -460,10 +460,14 @@ def ensure_company_topic(workspace: Path, company_slug: str) -> Path:
             tp = ind / "companies" / company_slug
             if tp.is_dir():
                 return tp
-    raise RuntimeError(
-        f"Company directory not found under industry/*/companies/{company_slug}. "
-        f"Run new-session first to create the company workspace."
-    )
+    # Auto-create: pick first available industry dir, or default to "technology"
+    if not industry_dir.is_dir():
+        industry_dir.mkdir(parents=True, exist_ok=True)
+    industry_dirs = [d for d in industry_dir.iterdir() if d.is_dir()]
+    target_ind = industry_dirs[0] if industry_dirs else (industry_dir / "technology")
+    company_dir = target_ind / "companies" / company_slug
+    company_dir.mkdir(parents=True, exist_ok=True)
+    return company_dir
 
 
 def load_provider(market: str):
@@ -480,6 +484,13 @@ def load_provider(market: str):
 # Central normalizer
 # ---------------------------------------------------------------------------
 CONFIDENCE_ORDER = {"model-ready": 0, "evidence-ready": 1, "provider-normalized-review": 2, "partial": 3, "provider-gap": 4, "unavailable": 5, "failed": 5}
+
+
+def _safe_json_dump(data, path: Path):
+    """Write JSON with Unicode minus → ASCII hyphen normalization (#13)."""
+    text = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+    text = text.replace("−", "-")  # Unicode minus sign
+    path.write_text(text + "\n", encoding="utf-8")
 
 # Policy: providers must fail honestly (provider_gap) when dependencies, credentials,
 # or market coverage are missing rather than returning empty partial results.
@@ -1438,13 +1449,12 @@ def main() -> int:
         else:
             output = write_snapshot(args, normalized, workspace, rid)
 
-        # Lite mode: auto-fill yfinance market snapshot
+        # Lite mode: unified closeout (market_data fill + revenue_split persist + FY supplement)
         if getattr(args, "mode", "latest_core") == "lite":
+            actuals_path = None
             try:
-                import yfinance as yf
                 data_dir = output.get("financial_data_dir", "")
                 if not data_dir:
-                    # Fallback: find company dir from workspace
                     tp = ensure_company_topic(workspace, args.company_slug)
                     data_dir = str(tp / "_cache" / "financial-data")
                 actuals_path = Path(data_dir) / "actuals-resolved.json"
@@ -1455,29 +1465,62 @@ def main() -> int:
                     actuals = {}
             except Exception:
                 actuals = {}
-            try:
-                t = yf.Ticker(args.identifier)
-                info = t.info
-                actuals["market_data"] = {
-                    "price": info.get("currentPrice"),
-                    "market_cap": info.get("marketCap"),
-                    "pe_ttm": info.get("trailingPE"),
-                    "pe_ntm": info.get("forwardPE"),
-                    "pb": info.get("priceToBook"),
-                    "ps_ttm": info.get("priceToSalesTrailing12Months"),
-                    "ev_ebitda": info.get("enterpriseToEbitda"),
-                    "ev_sales": info.get("enterpriseToRevenue"),
-                    "dividend_yield_pct": info.get("dividendYield"),
-                    "beta": info.get("beta"),
-                    "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
-                    "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
-                }
-            except Exception:
-                actuals["market_data"] = {}
+
+            # 1. market_data fill: yfinance → Bridge fields
+            md = actuals.get("market_data") or {}
+            if not md or not md.get("pe_ttm") or not md.get("market_cap"):
+                try:
+                    import yfinance as yf
+                    t = yf.Ticker(args.identifier)
+                    info = t.info
+                    md.update({k: v for k, v in {
+                        "price": info.get("currentPrice"),
+                        "market_cap": info.get("marketCap"),
+                        "pe_ttm": info.get("trailingPE"),
+                        "pe_ntm": info.get("forwardPE"),
+                        "pb": info.get("priceToBook"),
+                        "ps_ttm": info.get("priceToSalesTrailing12Months"),
+                        "ev_ebitda": info.get("enterpriseToEbitda"),
+                        "ev_sales": info.get("enterpriseToRevenue"),
+                        "dividend_yield_pct": info.get("dividendYield"),
+                        "beta": info.get("beta"),
+                        "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
+                        "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
+                    }.items() if v is not None})
+                    actuals["market_data"] = md
+                except Exception:
+                    if not md:
+                        actuals["market_data"] = {}
+
+            # 2. revenue_split persist: if lite result has revenue_split, write it back
+            if normalized.get("items_extracted"):
+                has_split = "revenue_split" in normalized.get("items_extracted", [])
+                existing_split = actuals.get("statements", {}).get("revenue_split") if "statements" in actuals else None
+                if has_split and not existing_split:
+                    actuals.setdefault("statements", {})
+                    actuals["statements"]["revenue_split"] = normalized.get("revenue_split") or []
+
+            # 3. supplement missing FY (e.g. EDINET only returns 2FY)
+            periods_fetched = len(normalized.get("periods_fetched", []))
+            has_is = "income_statement" in normalized.get("items_extracted", [])
+            if has_is and periods_fetched < 3 and args.market in ("jp", "kr", "tw"):
+                try:
+                    import yfinance as yf
+                    t = yf.Ticker(args.identifier)
+                    fin = t.financials
+                    if fin is not None and not fin.empty:
+                        supplement = {col.year: {"revenue": fin.loc["Total Revenue", col] if "Total Revenue" in fin.index else None} for col in fin.columns[:4]}
+                        actuals.setdefault("_supplement", {})
+                        actuals["_supplement"]["yfinance_income_annual"] = {
+                            str(yr): val for yr, val in supplement.items() if val
+                        }
+                except Exception:
+                    pass
+
+            # 4. write back
             try:
                 actuals_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(actuals_path, "w", encoding="utf-8") as f:
-                    json.dump(actuals, f, indent=2, ensure_ascii=False, default=str)
+                _safe_json_dump(actuals, actuals_path)
             except Exception:
                 pass
 

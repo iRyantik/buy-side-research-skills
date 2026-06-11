@@ -23,9 +23,25 @@ import json
 import re
 import subprocess
 import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 from html.parser import HTMLParser
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+
+
+# Domains known to return HTTP 403 with anti-bot protection
+# Tier 1 is skipped for these; verification routes directly to Tier 2 (Playwright)
+KNOWN_403_DOMAINS = {
+    "marketscreener.com", "tipranks.com", "simplywall.st",
+    "macrotrends.net", "stockanalysis.com", "financecharts.com",
+    "finviz.com", "tradingview.com", "wsj.com",
+}
+
+
+def _should_skip_tier1(url: str) -> bool:
+    return any(d in url for d in KNOWN_403_DOMAINS)
 
 
 # ── Tier 1: HTTP ────────────────────────────────────────
@@ -149,15 +165,18 @@ def verify(url: str, max_tier: int = 3,
         result["text"] = playwright_text[:10000]
         return result
 
-    # Tier 1: HTTP
+    # Tier 1: HTTP (skip if known 403 domain)
     if max_tier >= 1:
-        text, err = _tier1_http(url)
-        if text:
-            result["status"] = "verified"
-            result["tier"] = "WebFetch"
-            result["text"] = text[:10000]
-            return result
-        result["tier1_error"] = err
+        if _should_skip_tier1(url):
+            result["tier1_error"] = "skipped — known 403 domain, routing to Tier 2"
+        else:
+            text, err = _tier1_http(url)
+            if text:
+                result["status"] = "verified"
+                result["tier"] = "WebFetch"
+                result["text"] = text[:10000]
+                return result
+            result["tier1_error"] = err
 
     # Tier 2: Playwright MCP (requires agent)
     if max_tier >= 2:

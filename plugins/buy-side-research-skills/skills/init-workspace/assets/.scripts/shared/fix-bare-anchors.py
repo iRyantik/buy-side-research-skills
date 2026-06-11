@@ -72,7 +72,10 @@ def fix_bare_anchors(text: str) -> tuple[str, int]:
             )
             fixed_lines.append(fixed)
 
-    return "\n".join(fixed_lines), count
+    fixed = "\n".join(fixed_lines)
+    # Post-process: detect and fix || merged table cells (bug #3)
+    fixed = re.sub(r'\|\s*\|\s*\|', '| |', fixed)
+    return fixed, count
 
 
 def main():

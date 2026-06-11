@@ -38,7 +38,7 @@ SOURCE_WORDS = {
 
 # Labels that are NOT sources — research annotations in Chinese/English
 NON_SOURCE_LABELS = {
-    '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认',
+    '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认', 'UNVERIFIED',
     'actuals', 'actuals-source',
     'ND', 'NA', 'N/A', 'TBD', 'TODO',
     '待确认', '待补', '待查', '注', '注意', '重要',

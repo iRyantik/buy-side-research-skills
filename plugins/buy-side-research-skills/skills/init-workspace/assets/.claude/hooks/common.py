@@ -240,6 +240,9 @@ def _is_separator(line: str) -> bool:
 
 def count_pipe_columns(line: str) -> int:
     clean = line.strip()
+    # Normalize double-pipe || → | (fixes fix-bare-anchors table corruption residue)
+    while "||" in clean:
+        clean = clean.replace("||", "|")
     if clean.startswith("|"):
         clean = clean[1:]
     if clean.endswith("|"):

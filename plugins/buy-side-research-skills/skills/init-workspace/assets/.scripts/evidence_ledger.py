@@ -455,6 +455,16 @@ def cmd_verify(artifact_path: str, ticker: str, payload: str):
     print(f"[{cid}] verified — tier={claim['tier']} method={claim['method']}")
 
 
+def _infer_ticker(path_s: str) -> str:
+    """Infer ticker from artifact path: industry/<slug>/companies/<ticker>/..."""
+    parts = Path(path_s).parts
+    if "companies" in parts:
+        idx = list(parts).index("companies")
+        if idx + 1 < len(parts):
+            return parts[idx + 1]
+    return ""
+
+
 def main():
     parser = argparse.ArgumentParser(description="Evidence Ledger for research artifacts")
     sub = parser.add_subparsers(dest="command")
@@ -478,29 +488,32 @@ def main():
 
     p_scan = sub.add_parser("scan", help="Scan artifact for new anchors vs ticker ledger")
     p_scan.add_argument("artifact", help="Artifact .md path")
-    p_scan.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_scan.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
 
     p_batch = sub.add_parser("batch", help="Batch upgrade claims")
     p_batch.add_argument("path", help="Artifact path (for dir resolution)")
-    p_batch.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_batch.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
     p_batch.add_argument("payload", help="JSON payload: {claims:[{id,status,method,...}], provenance:''}")
 
     p_auto = sub.add_parser("auto", help="Auto-create pending claims from artifact anchors")
     p_auto.add_argument("artifact", help="Artifact .md path")
-    p_auto.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_auto.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
 
     p_attempt = sub.add_parser("attempt", help="Log verification attempt")
     p_attempt.add_argument("path", help="Artifact path (for dir)")
-    p_attempt.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_attempt.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
     p_attempt.add_argument("payload", help='JSON: {"claim_id":"C4","tier":1,"method":"WebFetch","result":"403"}')
 
     p_verify = sub.add_parser("verify", help="Mark claim as verified")
     p_verify.add_argument("path", help="Artifact path (for dir)")
-    p_verify.add_argument("-t", "--ticker", required=True, help="Ticker")
+    p_verify.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
     p_verify.add_argument("payload", help='JSON: {"claim_id":"C4","tier":2,"method":"Playwright","text":"...","quote":"..."}')
 
     args = parser.parse_args()
     ticker = getattr(args, "ticker", None) or ""
+    if not ticker:
+        path_val = getattr(args, "path", None) or getattr(args, "artifact", None) or ""
+        ticker = _infer_ticker(path_val)
 
     if args.command == "init":
         cmd_init(args.path, ticker)
