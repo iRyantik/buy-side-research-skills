@@ -435,6 +435,11 @@ def render_single(workspace: Path, ticker: str) -> str:
         return f"\n> Appendix skipped - no actuals-resolved.json found for {ticker}\n"
 
     d = _load_actuals(actuals_path)
+    # Prefer appendix_statements (period-keyed, standard field names) over raw statements
+    appendix = d.get("appendix_statements") or {}
+    for section in ("income_statement", "balance_sheet", "cash_flow"):
+        if section in appendix:
+            d[section] = appendix[section]
     currency = d.get("currency", "")
     co_name = d.get("company", ticker)
     actual_ticker = d.get("ticker", ticker)

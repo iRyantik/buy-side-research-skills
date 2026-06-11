@@ -167,6 +167,34 @@ _SEC_CONCEPT_MAP = {
     "weightedaveragenumberofsharesoutstandingbasic": "shares_outstanding",
     "weightedaveragenumberofdilutedsharesoutstanding": "shares_outstanding",
     "sharebasedcompensation": "sbc",
+# EDINET/DART provider concept mappings (snake_case English → standard)
+"net_sales": "revenue",
+"total_revenue": "revenue",
+"operating_income": "ebit",
+"ordinary_income": "ebt",
+"net_income": "net_income",
+"income_before_taxes": "pre_tax_income",
+"non_operating_income": "non_operating_income",
+"non_operating_expenses": "non_operating_expenses",
+"income_taxes": "income_tax",
+"total_assets": "total_assets",
+"current_assets": "current_assets",
+"noncurrent_assets": "noncurrent_assets",
+"cash_and_deposits": "cash",
+"property_plant_equipment": "ppe",
+"deferred_tax_assets": "deferred_tax_assets",
+"total_liabilities": "total_liabilities",
+"current_liabilities": "current_liabilities",
+"net_assets": "equity",
+"retained_earnings": "retained_earnings",
+"short_term_loans_payable": "short_term_debt",
+"long_term_loans_payable": "long_term_debt",
+"bonds_payable": "bonds_payable",
+"commercial_paper": "commercial_paper",
+"operating_cash_flow": "operating_cf",
+"investing_cash_flow": "investing_cf",
+"financing_cash_flow": "financing_cf",
+"depreciation_amortization": "depreciation",
     "allocatedsharebasedcompensationexpense": "sbc",
     "depreciation": "d_and_a",
     "amortizationofintangibleassets": "amortization",
@@ -231,7 +259,9 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
             _concept_map_cache = {}
             return {}
 
-    template = workspace / "references" / "policy" / "statement-line-items.md"
+    template = workspace / ".references" / "policy" / "statement-line-items.md"
+    if not template.exists():
+        template = workspace / "references" / "policy" / "statement-line-items.md"
     if not template.exists():
         _concept_map_cache = {}
         return {}
@@ -282,9 +312,9 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
     for alias, std_name in _FIELD_ALIASES.items():
         mapping.setdefault(alias, std_name)
 
-    # Add SEC XBRL concept mappings (handles CamelCase US GAAP taxonomy concepts)
+    # Add SEC/EDINET/DART concept mappings (override FIELD_ALIASES identity mappings)
     for concept, std_name in _SEC_CONCEPT_MAP.items():
-        mapping.setdefault(concept, std_name)
+        mapping[concept] = std_name
 
     _concept_map_cache = mapping
     return mapping
@@ -305,7 +335,12 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
     if not concept or not isinstance(concept, str):
         return concept.lower().replace(" ", "_") if concept else ""
 
-    # Normalize input: lowercase, remove spaces and underscores
+    # Try raw concept first (provider concepts like net_sales, operating_income)
+    raw_key = concept.lower()
+    if raw_key in concept_map:
+        return concept_map[raw_key]
+
+    # Normalize: lowercase, remove spaces and underscores
     key = concept.lower().replace(" ", "").replace("_", "")
 
     # Direct lookup
@@ -410,6 +445,20 @@ def module_available(name: str) -> bool:
 def slugify(value: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.strip().lower())
     return value.strip("-") or "unknown"
+
+
+# Map internal market codes to yfinance ticker suffixes
+_YF_SUFFIX = {
+    "hk": "HK", "sh": "SS", "sz": "SZ",
+    "jp": "T", "kr": "KS", "tw": "TW", "sg": "SI",
+}
+
+
+def _yf_ticker(identifier: str, market: str) -> str:
+    suffix = _YF_SUFFIX.get(market.lower(), "")
+    if suffix and not identifier.upper().endswith(f".{suffix}"):
+        return f"{identifier}.{suffix}"
+    return identifier
 
 
 def sha256_file(path: Path) -> str:
@@ -519,6 +568,10 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
             financials_raw[key] = val
     financials_raw = filter_financials_by_period(financials_raw, request.get("periods", "latest"))
 
+    # Build appendix-consumable format: period-keyed dict with standard field names
+    concept_map = _load_concept_map()
+    appendix_statements = _build_appendix_format(financials_raw, concept_map)
+
     filing_info = provider_result.get("filing", {}) or {}
     errors = list(provider_result.get("errors", []))
     data_gaps = list(provider_result.get("data_gaps", []))
@@ -559,6 +612,7 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
         "provider_status": provider_status,
         "company": company,
         "financials_raw": financials_raw,
+        "appendix_statements": appendix_statements,
         "filing": filing_info,
         "completeness": completeness_items,
         "errors": errors,
@@ -995,6 +1049,49 @@ def chunk_full_filing(text: str, max_chars: int = 12000) -> list[dict[str, Any]]
 # ---------------------------------------------------------------------------
 # Source-map builder
 # ---------------------------------------------------------------------------
+def _build_appendix_format(financials_raw: dict, concept_map: dict) -> dict[str, dict]:
+    """Convert list-of-rows → period-keyed dict with standard field names.
+
+    All providers store statements as [{concept, label, values: {period: value}}].
+    actuals-to-appendix.py needs {fy_0: {revenue: X, period: "FY2024"}} format.
+    This function builds the appendix format without changing financials_raw.
+    """
+    result = {}
+    for stmt_type, rows in financials_raw.items():
+        if not isinstance(rows, list) or not rows:
+            continue
+        # Collect all periods across all rows
+        all_periods = set()
+        field_periods: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            concept = str(row.get("concept") or "").strip()
+            label = str(row.get("label") or "").strip()
+            std_name = _map_concept(concept, concept_map) if concept else ""
+            if not std_name and label:
+                label_key = re.sub(r'[^a-z0-9]', '', label.lower())
+                std_name = _map_concept(label_key, concept_map)
+            if not std_name:
+                std_name = label.lower().replace(" ", "_") if label else concept
+            values = row.get("values", {})
+            for period, value in values.items():
+                all_periods.add(period)
+                field_periods.setdefault(std_name, {})[period] = value
+        if not all_periods:
+            continue
+        # Build period-keyed dict: {fy_0: {revenue: X, period: "FY2024"}, fy_1: {...}}
+        sorted_periods = sorted(all_periods, reverse=True)
+        appendix = {}
+        for idx, period in enumerate(sorted_periods):
+            slot = f"fy_{idx}" if idx < 3 else f"sub_{idx - 3}"
+            entry: dict[str, Any] = {"period": period}
+            for field, pdict in field_periods.items():
+                if period in pdict:
+                    entry[field] = pdict[period]
+            appendix[slot] = entry
+        result[stmt_type] = appendix
+    return result
+
+
 def _build_source_map(provider: str, filing: dict, financials: dict,
                       completeness: list[dict[str, Any]]) -> dict:
     """Build source-map.json tracing each data dimension to its source."""
@@ -1186,6 +1283,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         filing=filing,
         filing_md=filing_md,
         financials=financials,
+        appendix_statements=normalized.get("appendix_statements", {}),
         completeness=normalized["completeness"],
         source_map=source_map,
         cross_check=cross_check,
@@ -1203,8 +1301,10 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
                            raw_dir: Path,
                            identity: dict[str, Any], filing: dict[str, Any],
                            filing_md: str, financials: dict[str, Any],
-                           completeness: list[dict[str, Any]], source_map: dict[str, Any],
-                           cross_check: dict[str, Any]) -> None:
+                           appendix_statements: dict[str, Any] | None = None,
+                           completeness: list[dict[str, Any]] | None = None,
+                           source_map: dict[str, Any] | None = None,
+                           cross_check: dict[str, Any] | None = None) -> None:
     """Write consumer-facing files to _cache/financial-data/.
 
     Only 4 files: evidence-pack.json (audit pointer), actuals-resolved.json
@@ -1240,6 +1340,7 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
         "cross_check": cross_check,
         "provider_timing": cross_check.get("provider_timing", {}),
         "statements": financials or {},
+        "appendix_statements": appendix_statements or {},
     }
     write_json(out_dir / "evidence-pack.json", evidence_pack)
 
@@ -1255,6 +1356,7 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
         },
         "identity": identity or {},
         "statements": financials or {},
+        "appendix_statements": appendix_statements or {},
         "completeness": completeness,
         "source_map": source_map,
         "unmapped_items": [
@@ -1472,7 +1574,8 @@ def main() -> int:
             if not md or not md.get("pe_ttm") or not md.get("market_cap"):
                 try:
                     import yfinance as yf
-                    t = yf.Ticker(args.identifier)
+                    yf_id = _yf_ticker(args.identifier, args.market)
+                    t = yf.Ticker(yf_id)
                     info = t.info
                     md.update({k: v for k, v in {
                         "price": info.get("currentPrice"),
@@ -1506,7 +1609,8 @@ def main() -> int:
             if has_is and periods_fetched < 3 and args.market in ("jp", "kr", "tw"):
                 try:
                     import yfinance as yf
-                    t = yf.Ticker(args.identifier)
+                    yf_id = _yf_ticker(args.identifier, args.market)
+                    t = yf.Ticker(yf_id)
                     fin = t.financials
                     if fin is not None and not fin.empty:
                         supplement = {col.year: {"revenue": fin.loc["Total Revenue", col] if "Total Revenue" in fin.index else None} for col in fin.columns[:4]}
