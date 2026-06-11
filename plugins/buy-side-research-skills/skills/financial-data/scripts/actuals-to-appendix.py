@@ -621,7 +621,13 @@ def render_multi(workspace: Path, tickers: list[str]) -> str:
     for t in tickers:
         p = _find_actuals(workspace, t)
         if p:
-            data_map[t] = _load_actuals(p)
+            d = _load_actuals(p)
+            # Normalize: apply appendix_statements so multi-ticker reads standard format
+            appendix = d.get("appendix_statements") or {}
+            for section in ("income_statement", "balance_sheet", "cash_flow"):
+                if section in appendix:
+                    d[section] = appendix[section]
+            data_map[t] = d
 
     if not data_map:
         return "\n> Appendix skipped - no actuals found for any ticker\n"
@@ -633,12 +639,13 @@ def render_multi(workspace: Path, tickers: list[str]) -> str:
 
     for t, d in data_map.items():
         cells = []
+        is_data = d.get("income_statement", {})
+        latest_fy = is_data.get("fy_y0", is_data.get("latest_fy", {}))
         for key, _ in _KEY_METRICS_FIELDS:
             if key == "market_cap":
                 v = _extract_val(d.get("market_data", {}).get(key))
             else:
-                is_fy = d.get("income_statement", {}).get("latest_fy", {})
-                v = _extract_val(is_fy.get(key))
+                v = _extract_val(latest_fy.get(key))
             cells.append(_fmt_val(v) if v is not None else "-")
 
         ev_ebitda = _extract_val(d.get("market_data", {}).get("ev_ebitda"))
