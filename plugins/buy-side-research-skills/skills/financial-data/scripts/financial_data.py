@@ -1082,7 +1082,7 @@ def _build_appendix_format(financials_raw: dict, concept_map: dict) -> dict[str,
         sorted_periods = sorted(all_periods, reverse=True)
         appendix = {}
         for idx, period in enumerate(sorted_periods):
-            slot = f"fy_{idx}" if idx < 3 else f"sub_{idx - 3}"
+            slot = f"fy_y{idx}" if idx < 3 else f"sub_{idx - 3}"
             entry: dict[str, Any] = {"period": period}
             for field, pdict in field_periods.items():
                 if period in pdict:
