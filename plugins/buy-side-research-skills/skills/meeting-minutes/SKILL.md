@@ -159,9 +159,9 @@ Tier 4: [需查证] —— honest degradation
 
 ## Artifact / 保存策略
 
-写入行业 topic 目录：
+写入行业 topic：
 ```
-industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md
+industry/<industry>/panorama/meeting-minutes/YYYY-MM-DD-call-summary-<qualifier>.md
 ```
 
 - 路径不明 → agent 按 policy baseline §11 自动创建。

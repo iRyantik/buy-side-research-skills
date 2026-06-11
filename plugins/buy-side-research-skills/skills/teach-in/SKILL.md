@@ -206,9 +206,9 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
+industry/<industry-slug>/panorama/teach-in/YYYY-MM-DD-teach-in-<qualifier>.md
 ```
 
 路径解析由 agent 按 policy baseline §11 自动完成。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。

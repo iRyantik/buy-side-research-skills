@@ -180,18 +180,29 @@ route.py                ← 查矩阵 + 条件判断（actuals 是否存在/fres
 ```text
 industry/
   <industry-slug>/
-    index.md                  # 行业 overview + 公司注册表
+    panorama/                 # 行业全景产出（按 skill 分类）
+      teach-in/
+      industry-landscape/
+      mechanism-insight/
+      peer-deep-dive/
+      candidate-screener/
+      scenario-model/
+      consensus-map/
+      market-sizing/
+      other/                  # 非 skill 产出的行业分析
     companies/
-      <ticker>/               # 公司子目录——一个公司一个窝
+      <ticker>/               # 公司深掘——一个公司一个窝
         [YYYY-MM-DD]-*.md
         _cache/
-    [YYYY-MM-DD]-*.md        # 行业级 artifact
+    RESEARCH.md               # 行业 overview + 公司注册表
     _cache/
 COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / priority / next catalyst）
 ```
 
 基本约束：
-- 公司 artifact 落 `industry/<industry>/companies/<ticker>/`，行业 artifact 落行业根
+- 公司 artifact 落 `industry/<industry>/companies/<ticker>/`
+- 行业级 artifact 落 `industry/<industry>/panorama/<skill-slug>/`
+- 非 skill 产出的行业分析落 `panorama/other/`
 - 跨行业公司在多个行业 `index.md` 注册 reference，文件不搬
 - `_cache/` 存放 source-tracked 解析材料、evidence pack、结构化数据
 - topic artifact 命名由 `new-session` 统一解析

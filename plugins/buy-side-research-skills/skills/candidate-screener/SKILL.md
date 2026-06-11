@@ -281,7 +281,7 @@ Top Ideas 必须给下一步验证路线：
 写入行业 topic：
 
 ```text
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+industry/<industry>/panorama/candidate-screener/YYYY-MM-DD-candidate-screener.md
 ```
 
 路径不明 -> `agent` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。

@@ -178,9 +178,9 @@ Rating hard standards：
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
+industry/<industry-slug>/panorama/mechanism-insight/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 ```
 
 `naming_mode = required_qualifier`，qualifier 按具体机制/设备/工艺命名。

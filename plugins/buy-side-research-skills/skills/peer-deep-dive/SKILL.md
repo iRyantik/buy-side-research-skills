@@ -345,7 +345,7 @@ quadrantChart
 ## Artifact / 保存策略
 
 写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+    industry/<industry>/panorama/peer-deep-dive/YYYY-MM-DD-peer-deep-dive.md
 
 路径不明 → agent 按 policy baseline §11 自动创建。
 

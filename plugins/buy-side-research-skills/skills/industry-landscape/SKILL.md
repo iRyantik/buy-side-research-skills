@@ -162,9 +162,9 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
+industry/<industry-slug>/panorama/industry-landscape/YYYY-MM-DD-industry-landscape.md
 ```
 
 `naming_mode = optional_qualifier`：完整行业全景用默认名；只覆盖某段 value chain slice 时追加 qualifier。

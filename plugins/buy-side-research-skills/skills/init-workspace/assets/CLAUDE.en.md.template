@@ -173,18 +173,29 @@ This workspace is organized around industry topics. Companies are subdirectories
 ```text
 industry/
   <industry-slug>/
-    index.md                  # Industry overview + company registry
+    panorama/                 # Industry-level output (by skill)
+      teach-in/
+      industry-landscape/
+      mechanism-insight/
+      peer-deep-dive/
+      candidate-screener/
+      scenario-model/
+      consensus-map/
+      market-sizing/
+      other/                  # Non-skill industry analysis
     companies/
-      <ticker>/               # Company subdirectory — one home per company
+      <ticker>/               # Company deep-dive — one home per company
         [YYYY-MM-DD]-*.md
         _cache/
-    [YYYY-MM-DD]-*.md        # Industry-level artifact
+    RESEARCH.md               # Industry overview + company registry
     _cache/
 COVERAGE.md                   # Coverage status tracker (thesis stage / priority / next catalyst)
 ```
 
 Core constraints:
-- Company artifacts go in `industry/<industry>/companies/<ticker>/`; industry artifacts go in the industry root
+- Company artifacts go in `industry/<industry>/companies/<ticker>/`
+- Industry-level artifacts go in `industry/<industry>/panorama/<skill-slug>/`
+- Non-skill industry analysis goes in `panorama/other/`
 - Cross-industry companies are registered as references in multiple industry `index.md` files; the files themselves do not move
 - `_cache/` stores source-tracked parsed materials, evidence packs, and structured data
 - Topic artifact naming is resolved uniformly by `new-session`
