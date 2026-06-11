@@ -1494,12 +1494,11 @@ def main() -> int:
                         actuals["market_data"] = {}
 
             # 2. revenue_split persist: if lite result has revenue_split, write it back
-            if normalized.get("items_extracted"):
-                has_split = "revenue_split" in normalized.get("items_extracted", [])
-                existing_split = actuals.get("statements", {}).get("revenue_split") if "statements" in actuals else None
-                if has_split and not existing_split:
-                    actuals.setdefault("statements", {})
-                    actuals["statements"]["revenue_split"] = normalized.get("revenue_split") or []
+            has_split = "revenue_split" in normalized.get("items_extracted", [])
+            existing_split = actuals.get("statements", {}).get("revenue_split") if "statements" in actuals else None
+            if has_split and not existing_split:
+                actuals.setdefault("statements", {})
+                actuals["statements"]["revenue_split"] = provider_result.get("revenue_split") or []
 
             # 3. supplement missing FY (e.g. EDINET only returns 2FY)
             periods_fetched = len(normalized.get("periods_fetched", []))
