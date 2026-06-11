@@ -385,6 +385,36 @@ def _render_consensus(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _render_data_availability(data: dict) -> str:
+    """Render data availability from completeness array (all actuals data items)."""
+    completeness = data.get("completeness") or []
+    if not completeness:
+        return ""
+
+    status_icon = {
+        "model-ready": "[OK]",
+        "evidence-ready": "[OK]",
+        "provider-normalized-review": "[REVIEW]",
+        "partial": "[PARTIAL]",
+        "provider-gap": "[GAP]",
+        "unavailable": "-",
+        "failed": "[FAIL]",
+    }
+
+    lines = ["### Data Availability", ""]
+    lines.append("| Data Item | Status | Provider | Note |")
+    lines.append("|---|---|---|---|")
+    for item in completeness:
+        data_item = item.get("data_item", "?")
+        status = item.get("status", "unknown")
+        provider = item.get("source_provider", "—")
+        caveat = item.get("caveat", "")
+        icon = status_icon.get(status, "❓")
+        lines.append(f"| {data_item} | {icon} {status} | {provider} | {caveat} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _render_fill_rate(data: dict) -> str:
     """Render fill rate summary."""
     total = 0
@@ -471,6 +501,10 @@ def render_single(workspace: Path, ticker: str) -> str:
     cons_t = _render_consensus(d)
     if cons_t:
         lines.append(cons_t)
+
+    avail_t = _render_data_availability(d)
+    if avail_t:
+        lines.append(avail_t)
 
     fr_t = _render_fill_rate(d)
     if fr_t:
