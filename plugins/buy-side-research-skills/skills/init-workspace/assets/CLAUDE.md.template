@@ -226,7 +226,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
 
-### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
+### 自动 Hook 防御（`pre_write_gate` 14 CHECKS）
 
 每次 Write/Edit 研究 artifact 时自动触发，无需手动调用：
 
@@ -246,7 +246,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | 11 | Evidence 验证覆盖率 <80% |
 | 12 | Mermaid diagram type 无效（如 `scatterchart`） |
 | 13 | 表格列数不匹配 / 缺分隔行 / >12 列未拆分 |
-
+| 14 | artifact 含分部/segment 数据但 actuals 无 revenue_split |
 ### 其他自动 Hook
 
 | Hook | 触发时机 | 检查内容 |
@@ -314,6 +314,20 @@ worktree 操作、`.references/runtime/research-runtime.md`（五链全文档）
 - 每次产出 artifact 后 → 更新对应 RESEARCH.md 的相关 section（≤5 分钟，增量维护）
 - Hook 会在写 artifact 后提醒更新，但最终由 agent 负责
 - RESEARCH.md 是覆盖更新（非 append），只保留最新状态
+
+### 5.6 数据落地规则
+
+任何研究过程中发现的某家公司的数据——不论来源、不论格式、不论用什么工具获取——必须落地到该公司的 `actuals-resolved.json`。
+
+来源可以是：provider pipeline / yfinance / Bridge / Playwright 爬虫 / PDF 手动提取 / Quartr earnings call 摘要 / WebSearch / 任何其他方式。
+
+写入方式：`Read` 当前 actuals → 在 `_supplement` key 下追加数据 → `Edit` 写回。
+
+Edit actuals 前必须先 Read——old_string 包含当前 `_supplement` 全文，防止覆盖已有数据。
+
+写涉及某公司的 artifact 之前，artifact 里该公司的每个数字必须能从它的 `actuals-resolved.json` 复算——能对上才能过。
+
+每家公司的 `actuals-resolved.json` 是该公司在本 workspace 的数据唯一真理源。
 
 ---
 

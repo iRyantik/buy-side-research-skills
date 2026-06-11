@@ -511,6 +511,46 @@ def _check_content(path: str, text: str, display: str):
                     except Exception:
                         pass
 
+    # --- CHECK 16: _supplement coverage ---
+    # If artifact contains segment/revenue split data, verify it's in actuals
+    # (either statements.revenue_split or _supplement.revenue_split)
+    if companies_match and content:
+        company_dir_check = company_dir if 'company_dir' in dir() else None
+        if not company_dir_check:
+            d2 = os.path.dirname(path)
+            for _ in range(10):
+                if os.path.basename(d2) == slug and os.path.basename(os.path.dirname(d2)) == "companies":
+                    company_dir_check = d2
+                    break
+                parent2 = os.path.dirname(d2)
+                if parent2 == d2: break
+                d2 = parent2
+        if company_dir_check:
+            actuals_path2 = os.path.join(company_dir_check, "_cache", "financial-data", "actuals-resolved.json")
+            if os.path.isfile(actuals_path2):
+                try:
+                    import json
+                    with open(actuals_path2, encoding="utf-8") as f:
+                        a = json.load(f)
+                except Exception:
+                    a = {}
+                # Check if artifact has segment/split data that's missing from actuals
+                has_segment_in_artifact = bool(
+                    re.search(r'(?i)(?:revenue_split|segment.*revenue|分部.*收入|分部.*营收|product.*line|地理.*收入|地域.*收入|按.*拆分|收入占比)', content)
+                )
+                has_segment_in_actuals = bool(
+                    a.get("statements", {}).get("revenue_split") or
+                    a.get("_supplement", {}).get("revenue_split")
+                )
+                if has_segment_in_artifact and not has_segment_in_actuals:
+                    msg = (
+                        f"⚠️ pre_write_gate CHECK 16: {display} — "
+                        f"artifact contains segment/split data but actuals has no revenue_split "
+                        f"(either as statements.revenue_split or _supplement.revenue_split). "
+                        f"Land the data in actuals._supplement.revenue_split before writing."
+                    )
+                    block(msg)
+
 
 def main():
     payload = load_stdin_payload()

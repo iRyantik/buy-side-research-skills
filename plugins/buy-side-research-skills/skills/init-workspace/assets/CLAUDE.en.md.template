@@ -238,7 +238,7 @@ Built into the buy-side-research-skills plugin. Available without invoking any s
 | `financial-data/actuals-to-appendix.py` | Sell-side appendix from actuals-resolved.json | `--tickers T1,T2,...` |
 | `evidence_ledger.py` | Evidence ledger management | Track claim verification status |
 
-### Auto Hook Defense (`pre_write_gate` 13 CHECKS)
+### Auto Hook Defense (`pre_write_gate` 14 CHECKS)
 
 Triggers automatically on every Write/Edit to a research artifact:
 
@@ -258,6 +258,7 @@ Triggers automatically on every Write/Edit to a research artifact:
 | 11 | Evidence verification coverage <80% |
 | 12 | Invalid Mermaid diagram type (e.g., `scatterchart`) |
 | 13 | Table column mismatch / missing separator / >12 columns |
+| 14 | Artifact has segment/split data but actuals lacks revenue_split |
 
 ### Other Auto Hooks
 
@@ -322,6 +323,20 @@ Every industry and company directory has a `RESEARCH.md` (fixed uppercase name) 
 - After each artifact → Update the corresponding RESEARCH.md's relevant section (≤5 minutes, incremental)
 - Hook reminds after artifact write, but agent is ultimately responsible
 - RESEARCH.md is overwrite-update (not append), keeping only latest state
+
+### 5.6 Data Landing Rule
+
+Any company-level data discovered during research — regardless of source, format, or tool used — MUST be landed in that company's `actuals-resolved.json`.
+
+Sources can be: provider pipeline / yfinance / Bridge / Playwright scraping / PDF manual extraction / Quartr earnings call summaries / WebSearch / any other method.
+
+How: `Read` current actuals → append data under `_supplement` key → `Edit` to write back.
+
+Must `Read` actuals before `Edit` — old_string contains the current `_supplement` full text, preventing overwrites.
+
+Before writing an artifact involving a company, every number in that artifact for that company must be recalculable from its `actuals-resolved.json`. If it can't be traced back, don't write it.
+
+Each company's `actuals-resolved.json` is the single source of data truth in this workspace.
 
 ---
 

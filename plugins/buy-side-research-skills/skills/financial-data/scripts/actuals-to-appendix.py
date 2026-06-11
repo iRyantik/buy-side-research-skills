@@ -457,6 +457,37 @@ def _render_fill_rate(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _merge_supplement_rows(data: dict, section: str, supp_rows: list):
+    """Merge _supplement statement rows into appendix-format period dict.
+
+    supp_rows: [{"concept": "revenue", "values": {"FY2025": 24030}, "source": "quartr"}, ...]
+    Merged into data[section] which is {fy_y0: {revenue: X, period: "FY2024"}, ...}
+    """
+    section_data = data.get(section, {})
+    if not isinstance(section_data, dict) or not section_data:
+        # If no provider appendix data, build from supplement only
+        section_data = {}
+        data[section] = section_data
+
+    for row in supp_rows:
+        concept = row.get("concept", "")
+        values = row.get("values") or {}
+        if not concept or not values:
+            continue
+        for period, value in values.items():
+            # Find matching period slot
+            found = False
+            for slot, slot_data in section_data.items():
+                if slot_data.get("period") == period:
+                    slot_data[concept] = value
+                    found = True
+                    break
+            if not found:
+                # Create new slot for this period
+                slot = f"_supp_{period.replace(' ', '_').replace('-', '_').lower()}"
+                section_data[slot] = {"period": period, concept: value}
+
+
 # ── single ticker ───────────────────────────────────────
 
 def render_single(workspace: Path, ticker: str) -> str:
@@ -470,6 +501,20 @@ def render_single(workspace: Path, ticker: str) -> str:
     for section in ("income_statement", "balance_sheet", "cash_flow"):
         if section in appendix:
             d[section] = appendix[section]
+
+    # Merge _supplement: agent-discovered data (Quartr, Futunn, PDF, Playwright, etc.)
+    supplement = d.get("_supplement") or {}
+    for section in ("income_statement", "balance_sheet", "cash_flow"):
+        supp_rows = supplement.get(section) or []
+        if supp_rows and isinstance(supp_rows, list):
+            _merge_supplement_rows(d, section, supp_rows)
+
+    # _supplement revenue_split as fallback
+    if not d.get("revenue_split"):
+        supp_split = supplement.get("revenue_split") or []
+        if supp_split:
+            d["revenue_split"] = supp_split
+
     currency = d.get("currency", "")
     co_name = d.get("company", ticker)
     actual_ticker = d.get("ticker", ticker)
