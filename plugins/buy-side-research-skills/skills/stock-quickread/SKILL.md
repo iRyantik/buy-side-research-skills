@@ -20,6 +20,8 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 见 workspace `.references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
 
+**数据流规则**：任何公司级数据——不论来源（Playwright/PDF/WebSearch/Quartr）——在写入 md 表格之前，必须先落地到 actuals._supplement。actuals 是 fact source，artifact 是 display。不落地则 pre_write_gate CHECK 16 会 block.
+
 以下仅保留 stock-quickread 特有的执行流程。每一步都是强制步骤——不可跳过、不可替换。
 
 Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIOENCODING=utf-8。

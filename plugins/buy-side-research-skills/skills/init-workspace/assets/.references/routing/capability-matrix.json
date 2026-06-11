@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "version": "5.28.0",
+    "version": "5.29.0",
     "description": "Unified source capability matrix for buy-side research data routing. Single source of truth for capability→source priority chains. route.py reads this file at runtime to resolve data requests.",
     "last_updated": "2026-06-09"
   },

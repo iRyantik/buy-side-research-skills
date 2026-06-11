@@ -246,7 +246,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | 11 | Evidence 验证覆盖率 <80% |
 | 12 | Mermaid diagram type 无效（如 `scatterchart`） |
 | 13 | 表格列数不匹配 / 缺分隔行 / >12 列未拆分 |
-| 14 | artifact 含分部/segment 数据但 actuals 无 revenue_split |
+| 14 | artifact 含分部/segment 表格但 actuals 无 revenue_split → block + 给补数命令 |
 ### 其他自动 Hook
 
 | Hook | 触发时机 | 检查内容 |
