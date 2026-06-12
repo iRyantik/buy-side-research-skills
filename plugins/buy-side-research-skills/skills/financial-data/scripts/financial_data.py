@@ -1289,9 +1289,14 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         cross_check=cross_check,
     )
 
-    # Cleanup: keep only latest 2 runs (raw + cache)
-    _cleanup_old_runs(raw_dir.parent, keep=2)
-    _cleanup_old_runs(cache_dir.parent, keep=2)
+    # Cleanup: raw financial-data no longer needed after cache is written
+    raw_fin = topic_path / "_raw" / "financial-data"
+    if raw_fin.is_dir():
+        try:
+            import shutil
+            shutil.rmtree(raw_fin)
+        except OSError:
+            pass
 
     return {
         "raw": str(raw_dir), "cache": str(cache_dir),
@@ -1299,22 +1304,6 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         "financial_data_summary_path": str(topic_path / "_cache" / "financial-data" / "summary.md"),
         "financial_data_dir": str(topic_path / "_cache" / "financial-data"),
     }
-
-
-def _cleanup_old_runs(runs_dir: Path, keep: int = 2):
-    """Delete old timestamped run directories, keeping the latest N."""
-    if not runs_dir.is_dir():
-        return
-    dirs = sorted(
-        [d for d in runs_dir.iterdir() if d.is_dir()],
-        key=lambda d: d.name, reverse=True
-    )
-    for old in dirs[keep:]:
-        try:
-            import shutil
-            shutil.rmtree(old)
-        except OSError:
-            pass
 
 
 def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str, Any],
