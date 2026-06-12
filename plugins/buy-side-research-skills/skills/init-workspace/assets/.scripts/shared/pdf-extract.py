@@ -54,7 +54,7 @@ def _try_pymupdf(path: Path) -> tuple[str, list[dict]] | None:
             if tab.row_count > 1:
                 tables.append({
                     "page": page.number + 1,
-                    "rows": [[cell.text if cell.text else "" for cell in row.cells] for row in tab.rows],
+                    "rows": [[(cell.text or "") if cell else "" for cell in row.cells] for row in tab.rows if row and row.cells],
                 })
     doc.close()
     return "\n".join(full_text), tables

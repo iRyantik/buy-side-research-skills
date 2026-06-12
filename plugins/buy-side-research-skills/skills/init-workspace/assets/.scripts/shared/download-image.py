@@ -87,6 +87,13 @@ def download(url: str, output: str, workspace: Path) -> dict:
     except URLError as e:
         return {"status": "error", "key": output, "error": f"HTTP: {e}", "next": "Try Playwright browser_navigate"}
 
+    # Detect CDN anti-hotlink: content is HTML/JSON, not an actual image
+    preview = data[:200].lstrip()
+    if preview and (preview[:1] == b"<" or preview[:1] == b"{"):
+        return {"status": "error", "key": output,
+                "error": "CDN returned HTML/JSON (anti-hotlink), not an image",
+                "next": "Try Playwright Tier 2: browser_navigate → browser_evaluate → fetch image → --base64"}
+
     ext = _guess_ext(data)
     filename = f"{output}.{ext}"
     fpath = workspace / CACHE_DIR / filename

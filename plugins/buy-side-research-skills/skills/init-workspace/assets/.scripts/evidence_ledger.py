@@ -242,7 +242,11 @@ def cmd_lint(artifact_path: str, ticker: str = ""):
         sys.exit(1)
 
     ledger = _load_ledger(ledger_path)
-    ledger_codes = {c.get("source", "") for c in ledger["claims"]}
+    # Filter claims to this artifact only (ledger is shared per ticker)
+    artifact_name = os.path.basename(artifact_path)
+    artifact_claims = [c for c in ledger["claims"]
+                       if artifact_name in (c.get("provenances") or [])]
+    ledger_codes = {c.get("source", "") for c in artifact_claims}
     missing = artifact_codes - ledger_codes
     extra = ledger_codes - artifact_codes
 
@@ -251,7 +255,7 @@ def cmd_lint(artifact_path: str, ticker: str = ""):
         issues.append(f"  {len(missing)} anchor(s) in artifact NOT in ledger: {sorted(missing)[:10]}")
     if extra:
         issues.append(f"  {len(extra)} source(s) in ledger NOT in artifact: {sorted(extra)[:10]}")
-    fab_risks = [c for c in ledger["claims"] if c.get("status") == "fabrication_risk"]
+    fab_risks = [c for c in artifact_claims if c.get("status") == "fabrication_risk"]
     if fab_risks:
         issues.append(f"  {len(fab_risks)} FABRICATION_RISK: {[c['id'] for c in fab_risks]}")
 
