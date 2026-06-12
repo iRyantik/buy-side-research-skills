@@ -127,6 +127,76 @@ Evidence status 只能用：
 
 Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case；只能进入 sensitivity、scenario 或标 `[来源待补]`，直到有更强 source。
 
+### Step 5: Driver Cascade Tree（驱动传导树）
+
+**每个 business bucket 必须配一棵 ASCII 树**，从宏观 driver → 量/价/产能/政策 → 收入贡献。树的目标不是重复表格数据——是**显示因果链**。读者看完树应该能回答：这条业务线增长来自量还是价？哪个分支最脆弱？周期因素占多少？
+
+格式：
+
+```
+业务线收入 ¥XX亿 (FY20XX, +XX%, OPM XX%)
+│
+├─ 子业务/产品线 A ~XX%  ← 一句话定位
+│   ├─ 量：[具体数字 + source]
+│   │     → 传导路径（宏观→中观→公司）
+│   ├─ 价：[ASP 区间 + 方向]
+│   │     → 传导路径（换代/mix/定价权）
+│   ├─ 产能/并购：[扩产 timeline 或收购贡献]
+│   └─ 结构性风险：[如 CPO design-out——方向标注 🟢/🔴/⚪]
+│
+├─ 子业务/产品线 B ~XX%
+│   └─ ...
+│
+└─ 注意事项：[周期因素占比、一次性因素、最脆的假设]
+```
+
+**强制规则**：
+- 每个叶子节点必须有 source 或标 `[推算]`
+- 量/价必须分叉——禁止"量价齐升"糊弄过去
+- 结构性风险（CPO、技术替代、监管变化）必须在树里标注方向
+- 如果某子业务的量/价驱动和部门整体不同——必须分叉说明
+
+### Step 6: Management Tone Tracker（管理层措辞追踪 — 按需）
+
+**如果覆盖了 ≥2 个季度的 IR 材料**（tanshin、transcript、earnings call summary），必须追踪管理层定性措辞的方向变化。这不是锦上添花——管理层措辞的方向性 escalation/de-escalation 往往领先实际数据 1-2 个季度。
+
+格式：
+
+```
+Q1 (日期): "[原话]"  → 情绪判断（谨慎/坚挺/乐观）
+Q2 (日期): "[原话]"  → 情绪变化方向
+  ↓
+FY Full (日期): "[原话]" → 最终判断
+  ↓
+指引：FY+1 +XX%
+
+解读：[1-2 句——措辞变化是否对应实际数据变化？是领先指标还是滞后确认？]
+```
+
+**强制规则**：
+- 每个引语必须有 source（tanshin 页数或 transcript timestamp）
+- 情绪判断不能凭空——必须是措辞的明确变化（堅調→良好、回復→拡大）
+- 如果措辞和数据方向背离——必须在"解读"里指出矛盾
+
+### Step 7: Growth Decomposition（增速拆解）
+
+把 headline 增速拆成结构件，回答"增长质量"问题。
+
+```
+整体收入增速 +XX%
+│
+├─ 量贡献 +Xpp     （出货量/产能增长——可跟踪）
+├─ 价/mix 贡献 +Xpp （ASP 上行/高利润品类占比提升——结构性还是周期性？）
+├─ 并购贡献 +Xpp   （M&A inorganic——必须可追溯到 acquisition disclosure）
+├─ 周期贡献 +Xpp   （去库存恢复/一次性因素——不可持续）
+└─ 汇率贡献 +Xpp   （如有显著敞口——标汇率假设）
+```
+
+**强制规则**：
+- 每项必须有数字或标 `[推算]`
+- 周期贡献必须说明"从什么恢复到什么"（如：光モニター去库存→恢复正常订货）
+- 并购贡献必须引用 acquisition date + first consolidation quarter
+
 ## 输出结构
 
 ```markdown
@@ -135,7 +205,7 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 **结论先行**
 [一句话说明这家公司 / 业务最应该按什么 driver 理解，最大披露缺口在哪里]
 
-## 1. Reported Bucket → Business Reality [→ Bridge: valuation_snapshot]
+## 1. Reported Bucket → Business Reality [→ Bridge: valuation_snapshot] [→ Bridge: valuation_snapshot]
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
@@ -145,6 +215,38 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 > artifact 引用：`![描述](_cache/images/<slug>.png)`
 
 ## 2. Business Reality → Model Driver
+
+**本节由两部分组成：驱动传导树（必填）+ 驱动表（选填——当树不足以容纳所有细节时补表）。**
+
+### 2.x [业务线] —— 驱动传导树
+
+```
+[业务线] 收入 XX (FY20XX, +XX%, OPM XX%)
+│
+├─ 子业务 A ~XX%  ← 一句话定位
+│   ├─ 场景：[装在哪/谁在用/干什么用——≤20 字]
+│   ├─ 量：[具体数字 + source]
+│   │     → 传导路径（宏观→中观→公司）
+│   ├─ 价：[ASP 区间 + 方向]
+│   │     → 传导路径（换代/mix/定价权）
+│   ├─ 产能/并购：[扩产 timeline 或收购贡献]
+│   └─ 结构性风险：[方向标注 🟢/🔴/⚪]
+│
+├─ 子业务 B ~XX%
+│   ├─ 场景：[...]
+│   └─ ...
+│
+└─ 注意事项：[周期因素占比、一次性因素、最脆的假设]
+```
+
+**强制规则**：
+- 每个产品级节点必须有 `场景：`——读者不需要光学知识就能理解这东西用在哪
+- 每个叶子节点必须有 source 或标 `[推算]`
+- 量/价必须分叉——禁止"量价齐升"
+- 结构性风险必须标注方向
+- 树覆盖不到的数据细节 → 补表
+
+### 2.y [选填——驱动表]
 
 | Business bucket | Primary driver | Secondary driver | Observable KPI | Confidence |
 |---|---|---|---|---|
@@ -159,13 +261,45 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 | Driver claim | Evidence status | Proxy to use | Risk of proxy | Model treatment |
 |---|---|---|---|---|
 
-## 5. Weird Buckets / Senior Analyst Radar
+## 5. Management Tone Tracker（如有 ≥2 季度 IR 材料）
+
+```
+Q1 (日期): "[原话]"  → 情绪
+Q2 (日期): "[原话]"  → 变化方向
+  ↓
+FY Full: "[原话]"
+  ↓
+指引：FY+1 +XX%
+
+解读：[措辞变化是否对应数据？领先还是滞后？]
+```
+
+## 6. Weird Buckets / Senior Analyst Radar
 
 **这里值得深挖**
 - 怪异点：[披露 / bucket / KPI 哪里不自然]
 - 可能说明：[1-2 个解释]
 
-## 6. Implications
+## 7. Growth Decomposition & Synthesis（增速拆解与合成）
+
+```
+整体收入增速 +XX%
+│
+├─ 量贡献 +Xpp     （出货量/产能增长）
+├─ 价/mix 贡献 +Xpp （ASP 上行/品类 mix）
+├─ 并购贡献 +Xpp   （M&A inorganic）
+├─ 周期贡献 +Xpp   （去库存恢复等一次性因素）
+└─ 汇率贡献 +Xpp   （如有显著敞口）
+```
+
+```
+FY+1 增速路径：
+├─ 业务线 A 继续增长 → XX-XX 增量
+├─ 业务线 B 正常化   → XX-XX 增量
+└─ 汇率敏感性：XX 前提 → ±XX
+```
+
+## 8. Implications
 
 - [这个 driver map 会如何改变 model / thesis / peer compare]
 
@@ -199,9 +333,13 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 - ❌ sub-agent evidence card 未经主 agent 抽查 URL 和口径统一直接当 final driver tree。
 - ❌ 用户只要 driver-map 却输出 DCF / comps；要搭 model 却不 handoff 到 modeling skills。
 - ❌ driver confidence Low 被后续 thesis 当核心事实；清楚认知未进 `research-journal`。
+- ❌ 只有表格没有驱动传导树——读者看不到因果链、只能自己从表里推导量价关系
+- ❌ 量/价写在一起（"量价齐升"）——必须分叉说明各自贡献和不确定性
+- ❌ 增速拆解不做——headline +31% 混在一起，分不清结构性增长 vs 周期性反弹 vs 并购贡献
+- ❌ 有多季度 IR 材料但不追踪管理层措辞变化——漏掉领先指标（措辞 escalation 往往领先数据 1-2 季度）
 
 ## 篇幅基准
 
-- 标准：55-105 行 + 3-4 张表。低于 45 行常漏 proxy strategy；超过 120 行应收窄到核心 segment。
+- 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
 
