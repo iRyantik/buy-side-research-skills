@@ -122,28 +122,58 @@ def check(output: str, workspace: Path) -> dict:
     return {"status": "not_cached", "key": output}
 
 
+def _find_industry_root(start: Path) -> Path | None:
+    """Walk up from start to find nearest industry/<slug>/ directory."""
+    for parent in [start.resolve(), *start.resolve().parents]:
+        if parent.parent and parent.parent.name == "industry" and parent.name not in ("companies", "_cache", "_inbox"):
+            return parent
+    return None
+
+
+def _image_cache_dir(industry_root: Path, topic: str = "", company: str = "") -> Path:
+    """Resolve image cache directory for topic-level or company-level images."""
+    if company:
+        d = industry_root / "companies" / company / "_cache" / "images"
+    elif topic:
+        d = industry_root / "_cache" / "images" / topic
+    else:
+        d = industry_root / "_cache" / "images"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def main():
     p = argparse.ArgumentParser(description="Download product/equipment images with cache")
     p.add_argument("url", nargs="?", help="Image URL")
     p.add_argument("--output", required=True, help="Output slug (e.g. 'my-product')")
+    p.add_argument("--topic", help="Industry topic subdirectory (e.g. 'teach-in')")
+    p.add_argument("--company", help="Company ticker slug (e.g. 'santec')")
     p.add_argument("--base64", help="Base64 image data (Tier 2 fallback)")
     p.add_argument("--check", action="store_true", help="Check cache only")
-    p.add_argument("--workspace", help="Workspace path (default: auto-detect)")
     args = p.parse_args()
 
-    workspace = Path(args.workspace).resolve() if args.workspace else Path.cwd()
-    # Walk up to find workspace root
-    for parent in [workspace, *workspace.parents]:
-        if (parent / "industry").is_dir() and (parent / "CLAUDE.md").is_file():
-            workspace = parent
-            break
+    start = Path.cwd()
+    industry_root = _find_industry_root(start)
+    if not industry_root:
+        # Fallback: use workspace root _cache
+        ws = start.resolve()
+        for parent in [ws, *ws.parents]:
+            if (parent / "industry").is_dir() and (parent / "CLAUDE.md").is_file():
+                ws = parent
+                break
+        cache_dir = ws / "_cache" / "images"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        cache_dir = _image_cache_dir(industry_root,
+                                      topic=args.topic or "",
+                                      company=args.company or "")
 
     if args.check:
-        result = check(args.output, workspace)
+        result = check(args.output, cache_dir)
     elif args.base64:
-        result = download_base64(args.base64, args.output, workspace)
+        result = download_base64(args.base64, args.output, cache_dir)
     elif args.url:
-        result = download(args.url, args.output, workspace)
+        result = download(args.url, args.output, cache_dir)
     else:
         print("ERROR: url or --base64 required", file=sys.stderr)
         return 1
