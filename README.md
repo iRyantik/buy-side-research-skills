@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.30.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.31.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./docs/README.cn.md)
 
@@ -178,7 +178,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
-| v5.30.0 | 2026-06-11 | panorama/ directory structure: 6 industry-level skills save to panorama/<skill-slug>/, CLAUDE.md §5 updated, workspace migrated (70 files) |
+| v5.31.0 | 2026-06-11 | panorama/ directory structure: 6 industry-level skills save to panorama/<skill-slug>/, CLAUDE.md §5 updated, workspace migrated (70 files) |
 | v5.19.0 | 2026-06-11 | Bugfix spectrum: #4 auto-create dir, #11 evidence_ledger -t optional, #5/#7/#9 fill engine, #3 table corruption, #12 column count, #14 UNVERIFIED exclude, #15 403 domains, #10/#13 Unicode |
 | v5.18.0 | 2026-06-09 | Bugfix: Skill()→CLI (7 locations, 3 skills), remove all logo downloads (16 files, 6 skills), research-runtime §2.5 simplified to product-only |
 | v5.17.0 | 2026-06-09 | Unified data routing: capability-matrix.json + route.py (capability→source chain), CLAUDE.md §4.1 rewritten (prose→script), 16 skill [→ Bridge] markers, trusted-market-bridge mapping verified (34 domains) |

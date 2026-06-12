@@ -45,7 +45,7 @@ _STRIP_TAGS = re.compile(
 
 _STRIP_COMMENTS = re.compile(r"<!--.*?-->", re.DOTALL)
 _STRIP_ATTRS = re.compile(r'\s(?:class|style|id|data-\w+|aria-\w+|role|tabindex|on\w+)\s*=\s*"[^"]*"', re.IGNORECASE)
-_STRIP_EMPTY_TAGS = re.compile(r"<(?:div|span|p|li|td|th|tr|section|article|ul|ol|dl|blockquote)\b[^>]*>\s*</\1>", re.IGNORECASE)
+_STRIP_EMPTY_TAGS = re.compile(r"<(div|span|p|li|td|th|tr|section|article|ul|ol|dl|blockquote)\b[^>]*>\s*</\1>", re.IGNORECASE)
 
 
 def _clean_html(html: str) -> str:
