@@ -429,7 +429,7 @@ def _discover_report_documents(entity: Any, years: list[int], api_key: str | Non
 
     last_error = None
     doc_types = {"140", "160", "120"} if quarterly else {"120"}
-    max_documents = 4 if quarterly else 2  # collect >=2 then pick latest by submitDateTime
+    max_documents = 4 if quarterly else 1
     budget_seconds = EDINET_DISCOVERY_BUDGET_SECONDS_QUARTERLY if quarterly else EDINET_DISCOVERY_BUDGET_SECONDS_ANNUAL
     started_at = time.perf_counter()
     matches_by_doc_id: dict[str, dict[str, Any]] = {}
@@ -467,10 +467,7 @@ def _discover_report_documents(entity: Any, years: list[int], api_key: str | Non
                     doc_id = str(item.get("docID") or "").strip()
                     if doc_id:
                         matches_by_doc_id[doc_id] = item
-        # For annual: collect at least 2 candidates, then pick the latest by date
-        if not quarterly and len(matches_by_doc_id) >= 2:
-            break
-        if quarterly and len(matches_by_doc_id) >= max_documents:
+        if len(matches_by_doc_id) >= max_documents:
             break
 
     if matches_by_doc_id:
@@ -478,9 +475,8 @@ def _discover_report_documents(entity: Any, years: list[int], api_key: str | Non
             matches_by_doc_id.values(),
             key=lambda item: str(item.get("submitDateTime") or ""),
             reverse=True,
-        )
-        take = max_documents if quarterly else 1
-        return [Document(item) for item in ordered[:take]]
+        )[:max_documents]
+        return [Document(item) for item in ordered]
     if last_error:
         raise RuntimeError(f"docID discovery failed after API/cache error: {last_error}")
     return []
