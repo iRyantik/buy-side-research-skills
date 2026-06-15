@@ -75,7 +75,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 > 每个核心 segment 配产品/设备图：下载到公司 `_cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![描述](_cache/images/<slug>.png)`
+> artifact 引用：`![描述](../../../../_cache/images/<slug>.png)`
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -212,7 +212,7 @@ FY Full (日期): "[原话]" → 最终判断
 > 每个核心 segment 配产品/设备图：下载到公司 `_cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![描述](_cache/images/<slug>.png)`
+> artifact 引用：`![描述](../../../../_cache/images/<slug>.png)`
 
 ## 2. Business Reality → Model Driver
 

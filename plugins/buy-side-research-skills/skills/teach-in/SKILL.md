@@ -144,7 +144,7 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 下载到行业 `_cache/images/teach-in/`。
 
 **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic teach-in` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-artifact 引用：`![描述](../../_cache/images/teach-in/<slug>.png)`
+artifact 引用：`![描述](../../../../_cache/images/teach-in/<slug>.png)`
 
 **ASCII 架构图**：我来画。每层至少 1 张。
 

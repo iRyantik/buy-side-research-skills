@@ -185,7 +185,7 @@ Example: `TSMC SoIC uses hybrid bonding for 3D stacking [S1](url). BESI D2W bond
 
 **What It Looks Like** (1–2 focus product images)
 
-| ![Product](_cache/images/<slug>-<product>.png) |
+| ![Product](../../../../_cache/images/<slug>-<product>.png) |
 |---|
 | *Product Name — Function (≤15 words)* |
 

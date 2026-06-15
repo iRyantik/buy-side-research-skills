@@ -123,7 +123,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 
 **长这样**（焦点产品图 1-2 张）
 
-| ![产品](当前 topic 的 _cache/images/<slug>-<product>.png) |
+| ![产品](../../../../_cache/images/<slug>-<product>.png) |
 |---|
 | *产品名 — 功能（≤15字）* |
 
@@ -146,7 +146,7 @@ flowchart LR
 > 图片只放焦点业务的。其他业务不配图。下载到公司 `_cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![产品](_cache/images/<slug>.png)`
+> artifact 引用：`![产品](../../../../_cache/images/<slug>.png)`
 
 #### 其他业务
 
