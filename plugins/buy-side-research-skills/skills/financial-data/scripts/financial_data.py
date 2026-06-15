@@ -499,7 +499,7 @@ def discover_workspace(source: Path | None = None) -> Path:
     raise RuntimeError("Could not discover workspace. Pass --workspace or run init-workspace first.")
 
 
-def ensure_company_topic(workspace: Path, company_slug: str) -> Path:
+def ensure_company_topic(workspace: Path, company_slug: str, industry_slug: str = "") -> Path:
     # Search industry/*/companies/<slug> for the company directory
     industry_dir = workspace / "industry"
     if industry_dir.is_dir():
@@ -509,11 +509,13 @@ def ensure_company_topic(workspace: Path, company_slug: str) -> Path:
             tp = ind / "companies" / company_slug
             if tp.is_dir():
                 return tp
-    # Auto-create: pick first available industry dir, or default to "technology"
-    if not industry_dir.is_dir():
-        industry_dir.mkdir(parents=True, exist_ok=True)
-    industry_dirs = [d for d in industry_dir.iterdir() if d.is_dir()]
-    target_ind = industry_dirs[0] if industry_dirs else (industry_dir / "technology")
+    # Not found — auto-create under specified industry
+    if not industry_slug:
+        raise RuntimeError(
+            f"Company directory not found for {company_slug}. "
+            f"Pass --industry <slug> to auto-create under that industry."
+        )
+    target_ind = industry_dir / industry_slug
     company_dir = target_ind / "companies" / company_slug
     company_dir.mkdir(parents=True, exist_ok=True)
     return company_dir
@@ -1210,7 +1212,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
                          workspace: Path, rid: str) -> dict[str, Any]:
     company_slug = slugify(args.company_slug)
     canonical_id = slugify(args.canonical_id or args.identifier)
-    topic_path = ensure_company_topic(workspace, company_slug)
+    topic_path = ensure_company_topic(workspace, company_slug, getattr(args, 'industry', '') or '')
     rel_tail = Path("financial-data") / args.market / canonical_id / rid
     raw_dir = topic_path / "_raw" / rel_tail
     cache_dir = topic_path / "_cache" / rel_tail
@@ -1516,6 +1518,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--workspace")
     p.add_argument("--output-scope", choices=("canonical_company", "current_topic_snapshot"), default="canonical_company")
     p.add_argument("--company-slug")
+    p.add_argument("--industry", help="Industry slug (e.g. 'optical-module-equipment') — auto-creates directory if new")
     p.add_argument("--topic")
     p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu"), help="Market route")
     p.add_argument("--identifier", help="Ticker, CIK, filing URL, or market-specific identifier")
@@ -1567,7 +1570,7 @@ def main() -> int:
             try:
                 data_dir = output.get("financial_data_dir", "")
                 if not data_dir:
-                    tp = ensure_company_topic(workspace, args.company_slug)
+                    tp = ensure_company_topic(workspace, args.company_slug, getattr(args, 'industry', '') or '')
                     data_dir = str(tp / "_cache" / "financial-data")
                 actuals_path = Path(data_dir) / "actuals-resolved.json"
                 if actuals_path.exists():

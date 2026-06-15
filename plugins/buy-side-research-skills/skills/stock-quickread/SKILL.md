@@ -28,7 +28,7 @@ Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIO
 
 ```
 Step 1: python .scripts/financial-data/financial_data.py
-          --market <market> --identifier <TICKER> --company-slug <slug> --mode lite
+          --market <market> --identifier <TICKER> --company-slug <slug> --industry <industry-slug> --mode lite
         ★ 产出: _cache/financial-data/actuals-resolved.json
         ★ 先执行 CLI，等待 actuals-resolved.json 就绪
         ★ CLI 参数是 --identifier，不是 --ticker
@@ -73,10 +73,15 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 
 ## ⛔ HARD GATE（不可跳过）
 
-收到 stock-quickread 触发词后，**必须先完成 Step 1-2 才能写任何内容**：
+收到 stock-quickread 触发词后，**必须先完成 Step 0-2 才能写任何内容**：
 
+0. 确定行业归属：
+   → 查会话上下文（当前讨论哪个行业/topic）
+   → WebSearch "<公司名> sector industry classification" 确认
+   → 对 workspace `industry/*/` 目录——能匹配就复用，不能则用新 slug
 1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
-2. python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --mode lite → 等待 `actuals-resolved.json` 就绪
+2. python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --industry <industry-slug> --mode lite → 等待 `actuals-resolved.json` 就绪
+   （CLI 自动创建 industry/<slug>/companies/<ticker>/ 目录）
 3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
 
 三项全部完成前，禁止 Write/Edit artifact。违反 → 研究无 source、数字无 provenance、结论无依据。
