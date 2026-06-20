@@ -5,7 +5,7 @@ description: Initialize or repair a buy-side research workspace root scaffold â€
 
 # Init Workspace
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `.scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz/coverage-monitor into `.scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
 
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
@@ -80,6 +80,7 @@ for each skill_dir in skills/*/:
 - Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
 - User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).
 - Unconfigured providers stay as commented lines in `.env`.
+- Coverage-monitor delivery env placeholders (`SMTP_*`, `COVERAGE_EMAIL_TO`, `WECOM_WEBHOOK_URL`) are shipped in `.env.template` only; they are optional and not part of provider credential setup.
 
 **Cleanup:**
 - Delete `.scripts/init-assets/` if present (legacy ps1-era artifacts).
@@ -272,6 +273,7 @@ EDINET_API_KEY=your_key_here
 | User wants to upgrade plugin + sync workspace | Use `update-agent-runtime` |
 | User wants to create a new topic | Automatic â€” save artifact to target path, scaffolding auto-creates directories |
 | User wants to fix workspace runtime only | Use `update-agent-runtime` (or re-run init-workspace in repair mode) |
+| User wants daily coverage briefs or intraday alerts | Use `coverage-monitor` after init finishes |
 
 Artifact policy:
 

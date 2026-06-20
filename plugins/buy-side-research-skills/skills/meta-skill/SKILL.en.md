@@ -367,9 +367,12 @@ Operations skills:
 
 | Skill | Purpose |
 |---|---|
+| `coverage-monitor` | Turn `COVERAGE.md` into daily briefs and intraday alerts |
 | `init-workspace` | Create / repair research workspace scaffold |
+| `integrate` | Merge a child topic into a parent topic and update indexes |
 | `ingest` | Convert raw material into source-tracked `_cache/` markdown |
 | `meta-skill` | Create / modify / review this plugin's skills, metadata, docs, manifests, and governance |
+| `update-agent-runtime` | Upgrade the installed runtime and sync workspace assets |
 
 Active skills must remain flat at the payload root: `plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`. Do not physically move into `skills/research/` or `skills/operations/`.
 
@@ -389,24 +392,27 @@ Each principle is a hard rule; violating it requires a rewrite.
 
 ### 5. Research SKILL.md Required Structure
 
-Recommended skeleton for complex research skills:
+All research skills use the following section order. Items marked mandatory cannot be omitted; optional items are added only when needed.
 
-1. Frontmatter (short trigger-only description)
-2. Define the skill's failure criteria at the top
-3. `Philosophy`
-4. `Global Rules Capsule`
-5. `Research Runtime Capsule`
-6. `Trigger Scenarios`
-7. `Input Clarification Requirements`
-8. `Mode A / Mode B / Mixed Mode` (optional — only when the skill genuinely has different execution paths. Single-execution skills skip this section)
-9. `Output Structure`
-10. `Artifact / Save Policy`
-11. `Workflow Integration`
-12. `Anti-Pattern Self-Check`
-13. `Length Benchmarks`
-14. `Boundaries with Adjacent Skills`
+```
+1. Frontmatter (short trigger-only description, <=140 chars) [mandatory]
+2. # Title [mandatory]
+3. Research Runtime Capsule [mandatory] - forced read of references/runtime/ format (see §5.1)
+4. Philosophy [mandatory] - 1-3 paragraphs on what it solves and where it fails most easily
+5. Trigger Scenarios [mandatory]
+6. Input Clarification Requirements [optional] - add when input is complex
+7. Execution Modes (Mode A/B/C) [optional] - only for genuinely multi-mode skills
+8. Output Structure [mandatory] - includes fenced ```markdown artifact skeleton + source contract
+9. Artifact / Save Policy [mandatory]
+10. Boundaries with Adjacent Skills [mandatory]
+11. Anti-Pattern Self-Check [mandatory] - >=10 items, mechanically inspectable
+12. Length Benchmarks [mandatory] - lower/upper bound and what exceeding it implies
+```
 
-Short coach-type research skills can have short user-visible output, but the runtime structure cannot be omitted: `Philosophy`, `Workflow Integration`, `Anti-Pattern Self-Check`, and `Length Benchmarks` remain mandatory. `Source Policy` is no longer a skill-local mandatory section.
+Deleted sections:
+- `Global Rules Capsule` - no longer needed. Global discipline lives in workspace `.references/runtime/research-runtime.md` §2.2 and hooks.
+- standalone `Source Policy` / `Source Contract` section - merged into a one-line contract inside Output Structure.
+- standalone `Material Collection and Source Verification` section - merged into workspace `.references/runtime/research-runtime.md` §2. Skills keep only their unique execution logic.
 
 Research frontmatter:
 
@@ -423,26 +429,23 @@ To prevent skill card descriptions from appearing blank again, active `SKILL.md`
 
 #### §5.1 Research Runtime Capsule Standard Template
 
-All consumer research skills must use the following standard template. The core 4 lines are immutable; skill-specific customization is at most 3 lines, may only address "how to use data," and must not repeat provider names or trust chains.
+All research skills must use the following forced-read format. The core 3 lines are immutable.
 
 ```markdown
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: workspace `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data <ticker>` for three-statement + market snapshot. Trust its results; pull data directly from `actuals-resolved.json`.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**Read these files before executing this skill:**
+- workspace `.references/runtime/research-runtime.md` §1 (data acquisition chain) §2 (source verification chain) §2.1 (material collection) §2.2 (source discipline) §2.5 (image download chain) §4 (output contract) §5 (save contract)
 
-[Skill-specific data usage rules if any, ≤3 lines, no provider names/trust chains]
+**Automatic hook defenses:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```
 
-**Self-check checklist** (must pass when writing/modifying a skill):
-- [ ] Is the capsule ≤ 7 lines?
-- [ ] Does it duplicate hook or shared baseline content?
-- [ ] Does it contain a trust chain like `provider_api > official_web > yfinance`?
-- [ ] Does it contain detailed "three-statement data front-loaded subagent" steps?
-- [ ] Does it contain "market-snapshot fields default to..."?
-- [ ] Is skill-specific customization ≤ 3 lines and free of provider names?
+Rules:
+- The core 3 lines are immutable. Adjust § anchors only when the skill truly does not need one of them.
+- Do not restate tier fallback chains, provider names, trust chains, or subagent workflow in the capsule.
+- Do not write `data pipeline: call /financial-data` here; that already lives in `references/runtime/` §1.
+- Do not write `Sub-agent outputs: evidence_cards_only`; that already lives in `references/runtime/` §3.
+- Put skill-specific runtime nuance in `Philosophy` or `Execution Modes`, not in the capsule.
 
 #### §5.2 Modeling Runtime Capsule Standard Template
 
@@ -539,6 +542,7 @@ Artifact policy:
 - Only research skills that produce topic markdown declare `artifact_policy.naming_mode`; allowed values are only `plain`, `optional_qualifier`, `required_qualifier`.
 - `none`, `external_workbook`, `cache_artifact`, `workspace_scaffold`, `topic_scaffold` do not declare `naming_mode`.
 - `research-journal` only writes earned insight / Boss Brief / topic index updates; it is not a generic save target for all skills.
+- `coverage-tracker` may use `earned_memory` for the workspace-root `COVERAGE.md`; that file is workspace memory, not a topic result.
 - `init-workspace` uses `workspace_scaffold`, only creating / repairing the workspace.
 - `ingest` uses `cache_artifact`, only writing `_cache/` operational markdown.
 
@@ -663,7 +667,7 @@ Research skill:
 - Frontmatter name + trigger-only description.
 - `skill.yaml` has `category: research` and valid `research_layer`.
 - Philosophy 1-3 paragraphs.
-- Includes current version `Global Rules Capsule`.
+- Includes current version `Research Runtime Capsule`.
 - If `Source Policy` is retained, only skill-specific non-binary increments; shared legality must not flow back.
 - Trigger scenarios are specific.
 - Output structure at section level + field level.

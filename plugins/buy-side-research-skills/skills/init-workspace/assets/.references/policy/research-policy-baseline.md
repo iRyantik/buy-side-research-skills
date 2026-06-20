@@ -313,7 +313,7 @@ linter 报错 → 修到 pass 才交付。
 
 1. **行业目录**：`industry/<industry>/` 不存在 → `mkdir -p` + 创建 `index.md`（含行业名 + 当前问题 + 研究产出 + 待解决问题占位）
 2. **公司目录**：`industry/<industry>/companies/<ticker>/` 不存在 → `mkdir -p`
-3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <行业> | <公司名> | <ticker> | ✅ | index.md | active |`
+3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <ticker> | <公司名> | <行业> | T3 | A3 | building | <YYYY-MM-DD> |  |  | auto-registered |`
 4. **行业 index.md 注册**：artifact 不在行业 `index.md` 研究产出列表 → 追加一行时间倒序 artifact link
 5. **不要做的事**：不创建 `_inbox/`（不需要了）、不创建 `_cache/`（financial-data 按需自建）、不预建目录、不阻塞主流程
 

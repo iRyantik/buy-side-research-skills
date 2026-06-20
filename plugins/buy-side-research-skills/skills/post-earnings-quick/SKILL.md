@@ -77,7 +77,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 **Thesis: unchanged.** 1.6T upgrade driver intact. GT orders beat supports thesis. Guidance raise consistent with our base case.
 
-**Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
+**Next**: update coverage-tracker fields so coverage-monitor picks up the new stage / trigger. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
 ```
@@ -106,7 +106,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     | 下游 | 场景 |
     |---|---|
     | `stock-quickread` | thesis needs full review |
-    | `coverage-tracker` | 更新 stage/priority |
+    | `coverage-tracker` | 更新 stage / review date / next trigger / alert tier |
     | `driver-map` | guidance 改变 driver 假设 |
     
     ## 与相邻 skill 的边界

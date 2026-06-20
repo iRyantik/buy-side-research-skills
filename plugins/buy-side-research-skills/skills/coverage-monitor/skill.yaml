@@ -1,0 +1,48 @@
+metadata_schema_version: 1
+name: 'coverage-monitor'
+id: 'coverage-monitor'
+display_name: 'Coverage Monitor'
+version: '1.0.0'
+system_generation: '5.37.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Generate daily coverage briefs and intraday material-event alerts from workspace coverage state.'
+description: 'Generate daily coverage briefs and intraday material-event alerts from workspace coverage state.'
+tags:
+  - 'coverage-monitor'
+  - 'daily-brief'
+  - 'intraday-alerts'
+  - 'email'
+  - 'wecom'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'coverage monitor'
+    - 'daily coverage brief'
+    - 'monitor my coverage'
+    - 'send today coverage brief'
+    - '持仓监控'
+    - '覆盖日报'
+    - '盘中提醒'
+  description: 'Trigger when the user wants daily monitoring or intraday alerts for workspace coverage.'
+capabilities:
+  modes:
+    - 'doctor'
+    - 'normalize-coverage'
+    - 'daily'
+    - 'intraday'
+  requirements:
+    - 'use COVERAGE.md as the coverage source of truth'
+    - 'discover researched companies from industry/*/companies/*'
+    - 'generate the fixed five-section daily brief'
+    - 'intraday alerts default to A1 names only'
+    - 'email delivery uses SMTP_* plus COVERAGE_EMAIL_TO'
+    - 'wecom delivery uses WECOM_WEBHOOK_URL'
+    - 'missing market data or delivery credentials must fail honestly'
+artifact_policy:
+  save_policy: 'cache_artifact'
+  default_artifact: 'daily-coverage-brief.md'
+  canonical_location: 'reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.md'
+  save_trigger: 'write report files only for daily mode without --dry-run; intraday writes dedupe state only when alerts are sent'

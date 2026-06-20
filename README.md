@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.36.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.37.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./docs/README.cn.md)
 
@@ -95,7 +95,7 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 
 ---
 
-## 3. Complete Skill Catalog (39 skills)
+## 3. Complete Skill Catalog (40 skills)
 
 ### Triage Layer
 
@@ -115,6 +115,7 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 | `teach-in` | Zero-to-one physical intuition | "What is an optical module?" |
 | `industry-landscape` | Full industry picture + investment thesis | "Run industry-landscape on xxx sector" |
 | `financial-data` | Financial statements + market snapshot | "Pull xxx financials" |
+| `trusted-market-bridge` | Pull US/HK/CN market evidence via Longbridge MCP | "Use trusted-market-bridge on xxx" |
 | `market-sizing` | TAM / SAM / SOM breakdown | "How big is this market?" |
 | `mechanism-insight` | Deep-dive a single mechanism or equipment chain | "How does a die bonder work?" |
 | `driver-map` | Revenue / margin driver decomposition | "What drives xxx's revenue?" |
@@ -139,6 +140,7 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 | `3-statement-model` | Full financial model | "Build a model for xxx" |
 | `dcf-model` | DCF valuation | "Value xxx using DCF" |
 | `comps-analysis` | Comparable company analysis | "Value xxx using comps" |
+| `model-update` | Update a model for earnings or revised assumptions | "Refresh the model for xxx" |
 
 ### Supporting Layer
 
@@ -152,6 +154,17 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 |---|---|---|
 | `research-journal` | Capture earned research insights | "Record today's findings" |
 | `coverage-tracker` | Track coverage status and priorities | "Update coverage priorities" |
+
+### Operations Layer
+
+| Skill | One-Liner | Trigger |
+|---|---|---|
+| `coverage-monitor` | Daily coverage briefs and intraday material-event alerts | "Send today's coverage brief" |
+| `init-workspace` | Scaffold or repair a research workspace | "Initialize a research workspace" |
+| `ingest` | Convert raw files into source-tracked workspace cache | "Ingest this filing / transcript" |
+| `integrate` | Merge a child topic into a parent topic and update indexes | "Integrate this topic into the parent" |
+| `meta-skill` | Create or update plugin skills, metadata, docs, and governance | "Modify this skill" |
+| `update-agent-runtime` | Upgrade the installed plugin runtime and sync workspace assets | "/update-agent-runtime" |
 
 ---
 
@@ -178,6 +191,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.37.0 | 2026-06-20 | coverage-monitor skill: objective coverage tiers, canonical COVERAGE.md contract, daily coverage brief, intraday alerts, and email/WeCom delivery support. |
 | v5.36.0 | 2026-06-15 | alpha-thesis template upgrade: §1→Thesis, new §2 Exposure Map, §3 Variant View 3 components, §6 dual-year multi-row with Upside bottom-row. Image path fix: all artifact refs → ../../../../_cache/images/ (8 files, 5 skills) |
 | v5.36.0 | 2026-06-11 | panorama/ directory structure: 6 industry-level skills save to panorama/<skill-slug>/, CLAUDE.md §5 updated, workspace migrated (70 files) |
 | v5.19.0 | 2026-06-11 | Bugfix spectrum: #4 auto-create dir, #11 evidence_ledger -t optional, #5/#7/#9 fill engine, #3 table corruption, #12 column count, #14 UNVERIFIED exclude, #15 403 domains, #10/#13 Unicode |

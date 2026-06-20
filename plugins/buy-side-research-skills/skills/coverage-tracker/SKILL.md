@@ -1,16 +1,16 @@
 ---
 name: coverage-tracker
-description: Auto-maintained coverage state tracking — tier, direction, conviction, stage, next trigger. Any company researched in the workspace is covered.
+description: Maintain objective workspace coverage state with research tiers, alert tiers, review dates, and next triggers.
 ---
 
 # Coverage Tracker
 
-Auto-maintained coverage state at workspace root. Not portfolio positions — research state machine. Any company that has an artifact in this workspace is automatically in the table. Companion to `research-journal`: tracker manages state, journal manages earned insight.
+`coverage-tracker` maintains objective coverage state at workspace root. It is not a portfolio tracker. Any company that has been researched in this workspace belongs in `COVERAGE.md`; this skill decides how closely it should be watched and what should trigger the next review.
 
 ## Research Runtime Capsule
 
 **执行本 skill 前必须先读取以下文件：**
-- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§4（产出合约）§5（保存合约）
 
 **自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
@@ -18,96 +18,80 @@ Auto-maintained coverage state at workspace root. Not portfolio positions — re
 
 ## 心法
 
-你不是在"决定覆盖谁"——你是在"标记状态"。任何在这个 workspace 里被研究过的公司（有任何 artifact 写在 `industry/<industry>/companies/<ticker>/` 下），自动属于你的 coverage。COVERAGE.md 的存在不需要主动创建——首次写入公司-level artifact 时自动创建（若无）并加 entry。
+这不是“决定研究质量”的表，而是“决定监控强度”的表。真正要避免的是主观化：不能把 tier 绑到“我很喜欢这家公司”或者“conviction 很高”这种感受上。tier 必须基于可观察信息：ticker 是否完整、最近是否真的 review 过、有没有明确 trigger、是否进入 active/testing、是否需要盘中提醒。
 
-分 Tier 是你唯一的主动决策：**有些公司值得每周盯，有些不值得。** Tier 是资源分配，不是研究质量评级。一张表里 Tier 2 比 Tier 1 多才是正常的。
-
-Direction 和 Conviction 自动从上游 skill 同步（candidate-screener→direction，alpha-thesis→conviction），不重复录入。Stage 随研究进展自动推进，只有 downgrade（active→monitoring→dormant）需要手动确认。
+`coverage-tracker` 管状态，`coverage-monitor` 管发送。前者决定什么名字应该进入哪一层 watchlist，后者才把这张表转成日报和盘中提醒。
 
 ## 触发场景
 
-- "更新 coverage"
-- "coverage 里 MYCR 状态是什么"
-- "重排 coverage 优先级"
-- "把 BESI 升到 Tier 1"
-- "把联讯降 dormant——CPO 远远没到"
-- 任何深看后自动提示更新
-
-## 自动创建规则
-
-任何 skill 写入 `industry/<industry>/companies/<ticker>/` 时：
-
-1. 检查 workspace 根目录是否有 `COVERAGE.md`
-2. 没有 → 创建空表 + 加该 ticker，stage=building, tier=3
-3. 有 → 查表里有没有这个 ticker
-   - 没有 → 加一行，stage=building, tier=3
-   - 有 → 不自动修改
+- “更新 coverage”
+- “重排 coverage 优先级”
+- “这家公司现在是 T1 还是 T2”
+- “把这个名字降成 daily-only”
+- “更新 last review / next trigger”
+- 任何深度研究、财报准备、财报后复盘之后
 
 ## 输出结构
 
-`COVERAGE.md`，workspace 根目录：
+写入 workspace 根目录 `COVERAGE.md`：
 
 ```markdown
-## Coverage
+# Coverage Map
 
-| Ticker | Company | Tier | Direction | Conviction | Stage | Last Review | Next Trigger | Notes |
-|---|---|---|---|---|---|---|---|---|
-| MYCR SS | Mycronic | 1 | Long | High | active | 2026-06-01 | Q2 GT orders | Alpha thesis done; catalyst in 3M |
-| BESI NA | Besi | 2 | Long | Medium | testing | 2026-05-15 | TSMC COUPE 2027 | Early thesis; waiting on TSMC |
-| 688808 | 联讯仪器 | 2 | Short | High | monitoring | 2026-05-20 | PE <200x or CPO news | Bubble watch; thesis holds |
-| 300757 | 罗博特科 | 3 | — | — | building | 2026-05-10 | ficonTEC Q orders | Too early; data not yet pulled |
+> 本文件是 workspace coverage source of truth。研究过的公司进入表；`coverage-monitor` 消费本表生成日报和盘中提醒。
+
+| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
+|---|---|---|---|---|---|---|---|---|---|
+| MYCR.ST | Mycronic | optical-module-equipment | T1 | A1 | active | 2026-06-20 | 2026-07-15 Q2 results | yes | core name |
+| 6777.T | santec | optical-module-equipment | T2 | A2 | testing | 2026-06-18 | customer order update | daily | waiting for confirmation |
+| 688808.SS | 联讯仪器 | semicap | T4 | A3 | dormant | 2026-05-10 |  | no | parked until thesis changes |
 ```
 
-## 字段说明
+字段要求：
 
-| 字段 | 谁填 | 值 |
-|---|---|---|
-| **Tier** | 研究员 | `1` = 本周花时间在这 / `2` = 定期跟踪，等 catalyst / `3` = radar 边缘观察 |
-| **Direction** | 自动（可手动改）| Long / Short / —（未形成方向）。自动来源：candidate-screener 的 L/S 方向、alpha-thesis 的 thesis direction |
-| **Conviction** | 自动（可手动改）| High / Medium / Low / —。自动来源：alpha-thesis 的 conviction level |
-| **Stage** | 自动+手动 | `building` → `testing` → `active` → `monitoring` → `dormant` |
-| **Last Review** | 自动 | 最近一次深度研究 artifact 的日期 |
-| **Next Trigger** | 自动 | catalyst-map 的最近 catalyst |
-
-## Thesis Stages
-
-| Stage | 定义 | Transition 触发 |
-|---|---|---|
-| **building** | 刚出现在 workspace 里，正在收集信息 | 自动——任何 skill 首次写入公司目录 |
-| **testing** | 方向形成、正在验证 | 完成 stock-quickread + 至少 1 个 deep-work skill（自动） |
-| **active** | 有 conviction thesis，密切监控 | alpha-thesis 写完（自动） |
-| **monitoring** | thesis 成立但 no urgency | catalyst >6M away，或研究员手动降级 |
-| **dormant** | thesis 破了或不值得花时间 | kill criteria 触发，或研究员手动降级 |
-
-## 反模式
-
-- ❌ 不做 auto-create——没建表就没 coverage
-- ❌ Stage 永远 building——做了 alpha-thesis 还不更新
-- ❌ 所有 ticker 都是 Tier 1——不分级等于没做资源分配
-- ❌ Direction/Conviction 不自动同步——需要研究员手动填已经在 candidate-screener 里给过的方向
-- ❌ 记持仓/盈亏——这不是 portfolio tracker
-- ❌ 不联 research-journal——stage 变了但 journal 里没说明为什么
-
-## 篇幅基准
-
-单表，持续更新。不生成 dated artifact。
-
-## Workflow 联动
-
-| 上游 | 自动取什么 |
+| 字段 | 含义 |
 |---|---|
-| 任何 skill 写入公司目录 | 自动创建 entry（ticker + stage=building） |
-| `candidate-screener` | Direction（L/S）+ Tier 参考 |
-| `alpha-thesis` | Conviction |
-| `catalyst-map` | Next Trigger |
-| `research-journal` | Stage transition 触发原因 |
+| `Research Tier` | `T1` core / `T2` active / `T3` radar / `T4` dormant |
+| `Alert Tier` | `A1` intraday / `A2` daily-only / `A3` no alert |
+| `Stage` | `building` / `testing` / `active` / `monitoring` / `dormant` |
+| `Last Review` | 最近一次真正研究或重大更新日期 |
+| `Next Trigger` | 下一个需要回来看这家公司的一句话事件 |
+| `Monitor` | `core` / `yes` / `daily` / `no` |
 
-| 下游 | 场景 |
-|---|---|
-| 研究员 | 每周看 Tier 1 + Next Trigger，决定本周时间分配 |
+> `Research Tier` 和 `Alert Tier` 必须读取真实状态字段，不得用 subjective conviction 直接代替。
+
+## Artifact / 保存策略
+
+写入 workspace 根目录：
+
+```text
+COVERAGE.md
+```
+
+这是持续维护的 workspace-level memory 表，不生成 dated artifact。
 
 ## 与相邻 skill 的边界
 
-- 不做 investment thesis → `alpha-thesis`
-- 不做 catalyst tracking → `catalyst-map`
-- 不做 portfolio tracking → 这不是持仓表
+- 不写 thesis、不做 variant view → `alpha-thesis`
+- 不做催化剂链本体 → `catalyst-map`
+- 不发送日报或盘中提醒 → `coverage-monitor`
+- 不记录仓位、成本、PnL → 不属于本系统
+
+## 反模式自查
+
+- ❌ 把 `Research Tier` 建立在“High conviction”这种主观判断上。
+- ❌ 所有名字都给 `T1`，没有资源分配意义。
+- ❌ `Alert Tier` 和 `Research Tier` 完全不区分，导致所有名字都盘中提醒。
+- ❌ `A2` / `A3` 还配置成 intraday watch。
+- ❌ 研究产物已经新增，但 `Last Review` 不更新。
+- ❌ `Next Trigger` 留空，但又把名字放进 `T1`。
+- ❌ ticker 缺失还放进 `A1`。
+- ❌ dormant 名字仍然保留 `Monitor=yes`。
+- ❌ 只改表格，不在 `research-journal` 或相关研究产物中解释状态变化。
+- ❌ 把这张表扩展成 portfolio tracker。
+
+## 篇幅基准
+
+- 这是单表维护 skill，不写长文。
+- 用户可见更新说明通常 5-20 行即可。
+- `COVERAGE.md` 应保持紧凑；如果 Notes 变成长段分析，说明你把研究 memo 塞错地方了。

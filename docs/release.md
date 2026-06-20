@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `5.36.0`.
+Current release version: `5.37.0`.
 
 ## Source And Runtime Shape
 
@@ -88,6 +88,10 @@ skills/research-viz/assets/template.html
 skills/research-viz/assets/template-interactive.html
 skills/research-viz/references/*.md
 skills/research-viz/examples/*.html
+skills/coverage-monitor/SKILL.md
+skills/coverage-monitor/SKILL.en.md
+skills/coverage-monitor/skill.yaml
+skills/coverage-monitor/scripts/**/*.py
 skills/update-agent-runtime/SKILL.md
 skills/update-agent-runtime/skill.yaml
 skills/update-agent-runtime/scripts/update_agent_runtime.py

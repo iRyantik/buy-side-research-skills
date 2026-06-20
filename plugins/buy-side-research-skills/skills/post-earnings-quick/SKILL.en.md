@@ -77,7 +77,7 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 
 **Thesis: unchanged.** 1.6T upgrade driver intact. GT orders beat supports thesis. Guidance raise consistent with our base case.
 
-**Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
+**Next**: update coverage-tracker fields so coverage-monitor picks up the new stage / trigger. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
 ```
@@ -89,7 +89,7 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 - ❌ Not distinguishing one-time vs recurring
 - ❌ Exceeding 500 words — turning into a full review
 - ❌ Not stating thesis status — "needs further observation" is not a judgment
-- ❌ Not updating coverage-tracker
+- ❌ Not updating coverage-tracker fields after a material post-print change
 
 ## Length Benchmark
 
@@ -106,7 +106,7 @@ Hard cap of 300–500 words. If it exceeds that, you are doing it wrong.
 | Downstream | Scenario |
 |---|---|
 | `stock-quickread` | thesis needs full review |
-| `coverage-tracker` | update stage/priority |
+| `coverage-tracker` | update stage / review date / next trigger / alert tier |
 | `driver-map` | guidance changes driver assumptions |
 
 ## Boundaries with Adjacent Skills

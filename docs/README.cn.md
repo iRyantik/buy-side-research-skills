@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v5.13.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.37.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > English: [README.md](../README.md)
 
@@ -95,7 +95,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 ---
 
-## 3. 完整 Skill 清单（38 个）
+## 3. 完整 Skill 清单（40 个）
 
 ### Triage 层（快速判断）
 
@@ -114,6 +114,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 | `teach-in` | 零基础建立物理直觉 | "光模块是什么" |
 | `industry-landscape` | 行业全景+投资判断 | "用 industry-landscape 看 xxx 行业" |
 | `financial-data` | 三表+市场快照 | "拉 xxx 的财务数据" |
+| `trusted-market-bridge` | 通过 Longbridge MCP 拉 US/HK/CN 市场证据 | "用 trusted-market-bridge 看 xxx" |
 | `market-sizing` | TAM/SAM/SOM 拆解 | "这个市场有多大" |
 | `mechanism-insight` | 技术/工程机制深挖 | "固晶机怎么工作的" |
 | `driver-map` | 收入/利润驱动拆解 | "xxx 靠什么赚钱" |
@@ -138,6 +139,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 | `3-statement-model` | 完整三表模型 | "给 xxx 搭个模型" |
 | `dcf-model` | DCF 估值 | "用 DCF 给 xxx 估值" |
 | `comps-analysis` | 可比估值 | "用 comps 给 xxx 估值" |
+| `model-update` | 财报后或假设变化后刷新模型 | "更新 xxx 的模型" |
 
 ### Supporting 层（辅助）
 
@@ -151,6 +153,17 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 |---|---|---|
 | `research-journal` | 沉淀研究认知 | "记录今天的发现" |
 | `coverage-tracker` | 跟踪覆盖公司状态 | "更新 coverage 优先级" |
+
+### Operations 层（运行与治理）
+
+| Skill | 一句话 | 触发 |
+|---|---|---|
+| `coverage-monitor` | 生成覆盖日报和盘中重大事项提醒 | "发今天的 coverage brief" |
+| `init-workspace` | 初始化或修复研究 workspace | "初始化研究工作区" |
+| `ingest` | 把 raw 文件转成 source-tracked cache | "把这个文件 ingest 进来" |
+| `integrate` | 把子 topic 合并进父 topic 并更新索引 | "把这个 topic 合并进去" |
+| `meta-skill` | 修改 skill、metadata、docs 和治理规则 | "改这个 skill" |
+| `update-agent-runtime` | 升级已安装插件并同步 workspace runtime | "/update-agent-runtime" |
 
 ---
 
@@ -177,6 +190,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v5.37.0 | 2026-06-20 | coverage-monitor：客观 coverage tier、canonical COVERAGE.md、覆盖日报、盘中提醒、email/WeCom 发送链 |
 | v5.13.0 | 2026-06 | Moat分析升级：五维因果链+可证伪条件、范式冲击护城河模板（segment级因果传导） |
 | v5.11.1 | 2026-06 | Pre-write gate 11 CHECK、topics→industry全量迁移、meeting-minutes新skill、§9单行业归属+§10分部优先级、source标记简化(删badge)、CONTEXT.md |
 | v5.6.0 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |

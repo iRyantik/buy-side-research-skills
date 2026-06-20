@@ -232,7 +232,8 @@ Geographic segments are secondary and should only be used when business segments
 | L/S pair | `pair-trade` |
 | Financial statements / structured actuals | `financial-data` |
 | Model / DCF / comps | `3-statement-model` / `dcf-model` / `comps-analysis` |
-| Track coverage status | `coverage-tracker` |
+| Track coverage state | `coverage-tracker` |
+| Generate daily coverage briefs / intraday alerts | `coverage-monitor` |
 | Capture earned insights | `research-journal` |
 | Structure voice-transcribed meeting notes | `meeting-minutes` |
 | Upgrade plugin / sync workspace | `update-agent-runtime` |

@@ -378,9 +378,12 @@ Operations skills：
 
 | Skill | 用途 |
 |---|---|
+| `coverage-monitor` | 把 `COVERAGE.md` 变成覆盖日报和盘中提醒 |
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
+| `integrate` | 合并子 topic 到父 topic 并更新索引 |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
+| `update-agent-runtime` | 升级已安装 runtime 并同步 workspace 资产 |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -550,6 +553,7 @@ Artifact policy：
 - 只有会落 topic markdown 的 research skill 才声明 `artifact_policy.naming_mode`；可选值只允许 `plain`、`optional_qualifier`、`required_qualifier`。
 - `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
+- `coverage-tracker` 作为 memory skill，可用 `earned_memory` 写 workspace 根目录 `COVERAGE.md`；它不是 topic result。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
 
@@ -674,7 +678,7 @@ Research skill：
 - Frontmatter name + trigger-only description。
 - `skill.yaml` 有 `category: research` 和合法 `research_layer`。
 - 心法 1-3 段。
-- 包含当前版本 `Global Rules Capsule`。
+- 包含当前版本 `Research Runtime Capsule`。
 - 若保留 `Source 政策`，只能写 skill-specific non-binary 增量；shared legality 不得回流。
 - 触发场景具体。
 - 输出结构章节级 + 字段级。

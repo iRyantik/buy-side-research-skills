@@ -1,26 +1,42 @@
 metadata_schema_version: 1
-name: coverage-tracker
-id: coverage-tracker
-display_name: Coverage Tracker
-version: 1.0.0
-system_generation: 5.0.0
-author: buy-side-research-system
-namespace: research.equity
-category: research
-research_layer: memory
-summary: Lightweight coverage state tracking — thesis stage, last deep dive, next catalyst, priority.
-description: Track covered company states with thesis stage, last review date, next catalyst date, and priority ranking.
-tags: [coverage-tracker, coverage, tracking, research-priority]
+name: 'coverage-tracker'
+id: 'coverage-tracker'
+display_name: 'Coverage Tracker'
+version: '1.2.0'
+system_generation: '5.37.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'research'
+research_layer: 'memory'
+summary: 'Maintain objective workspace coverage state with research tiers, alert tiers, review dates, and next triggers.'
+description: 'Maintain objective workspace coverage state with research tiers, alert tiers, review dates, and next triggers.'
+tags:
+  - 'coverage-tracker'
+  - 'coverage'
+  - 'watchlist'
+  - 'research-priority'
+  - 'alert-tier'
 trigger:
-  type: keyword
-  keywords: [coverage, update coverage, coverage tracker, 覆盖跟踪, 重排优先级, coverage status]
-  description: Trigger when user wants to update or review coverage state.
+  type: 'keyword'
+  keywords:
+    - 'coverage'
+    - 'update coverage'
+    - 'coverage tracker'
+    - '覆盖跟踪'
+    - '重排优先级'
+    - 'coverage status'
+  description: 'Trigger when the user wants to update or review objective workspace coverage state.'
 capabilities:
-  generates: coverage.md table with thesis state and priority
-  feeds_into: [candidate-screener, research-journal]
-  requirements: [each entry must have thesis_stage, last_deep_dive date, next_catalyst date, priority]
+  generates: 'workspace COVERAGE.md with research tiers, alert tiers, stage, review date, and next trigger'
+  feeds_into:
+    - 'coverage-monitor'
+    - 'research-journal'
+  requirements:
+    - 'each entry must have research_tier, alert_tier, stage, last_review, and next_trigger'
+    - 'research tier must stay objective and not depend on subjective conviction'
+    - 'alert tier separates daily monitoring from intraday alerting'
 artifact_policy:
-  save_policy: default_topic_result
-  default_artifact: coverage.md
-  canonical_location: coverage.md
-  save_trigger: save at workspace root; always update after deep research on a company
+  save_policy: 'earned_memory'
+  default_artifact: 'COVERAGE.md'
+  canonical_location: 'COVERAGE.md'
+  save_trigger: 'update at workspace root whenever coverage state, review date, or trigger meaningfully changes'

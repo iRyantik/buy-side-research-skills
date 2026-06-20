@@ -196,7 +196,7 @@ industry/
         _cache/
     RESEARCH.md               # 行业 overview + 公司注册表
     _cache/
-COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / priority / next catalyst）
+COVERAGE.md                   # 覆盖状态 source of truth（Research Tier / Alert Tier / Last Review / Next Trigger）
 ```
 
 基本约束：
@@ -356,6 +356,7 @@ skill 是决策工具，不是装饰性模板。
 - 三表/结构化 actuals -> `financial-data`
 - 模型 / DCF / comps -> `3-statement-model` / `dcf-model` / `comps-analysis`
 - 跟踪覆盖状态 -> `coverage-tracker`
+- 生成覆盖日报 / 盘中提醒 -> `coverage-monitor`
 - 沉淀认知 -> `research-journal`
 - 更新插件 / 同步 workspace -> `update-agent-runtime`
 
@@ -397,4 +398,3 @@ skill 是决策工具，不是装饰性模板。
 
 - 本文件服务用户 research workspace。
 - 插件开发治理维护在 plugin dev repo root `CLAUDE.md`，不在本文件展开。
-

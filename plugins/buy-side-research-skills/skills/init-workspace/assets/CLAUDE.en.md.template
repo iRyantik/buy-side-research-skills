@@ -189,7 +189,7 @@ industry/
         _cache/
     RESEARCH.md               # Industry overview + company registry
     _cache/
-COVERAGE.md                   # Coverage status tracker (thesis stage / priority / next catalyst)
+COVERAGE.md                   # Coverage source of truth (Research Tier / Alert Tier / Last Review / Next Trigger)
 ```
 
 Core constraints:
@@ -364,7 +364,8 @@ High-level routing hints:
 - L/S pair → `pair-trade`
 - Financial statements / structured actuals → `financial-data`
 - Model / DCF / comps → `3-statement-model` / `dcf-model` / `comps-analysis`
-- Track coverage status → `coverage-tracker`
+- Track coverage state → `coverage-tracker`
+- Generate daily coverage briefs / intraday alerts → `coverage-monitor`
 - Capture earned insights → `research-journal`
 - Upgrade plugin / sync workspace → `update-agent-runtime`
 

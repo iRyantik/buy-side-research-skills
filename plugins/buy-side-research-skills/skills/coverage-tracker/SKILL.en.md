@@ -1,113 +1,99 @@
 ---
 name: coverage-tracker
-description: Auto-maintained coverage state tracking — tier, direction, conviction, stage, next trigger. Any company researched in the workspace is covered.
+description: Maintain objective workspace coverage state with research tiers, alert tiers, review dates, and next triggers.
 ---
 
 > This is the English translation of [SKILL.md](./SKILL.md). The Chinese version is the source of truth.
 
 # Coverage Tracker
 
-Auto-maintained coverage state at workspace root. Not portfolio positions — research state machine. Any company that has an artifact in this workspace is automatically in the table. Companion to `research-journal`: tracker manages state, journal manages earned insight.
+`coverage-tracker` maintains objective coverage state at the workspace root. It is not a portfolio tracker. Any company already researched in this workspace belongs in `COVERAGE.md`; this skill decides how closely it should be watched and what should trigger the next review.
 
 ## Research Runtime Capsule
 
 **MUST read the following files before executing this skill:**
-- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §4 (Output Contract) §5 (Save Contract)
 
 **Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
+**GATE**: Read workspace `.references/runtime/research-runtime.en.md` BEFORE any action. All runtime rules in that file + hooks — this capsule only states what is unique to this skill.
+
 ## Mindset
 
-You are not "deciding who to cover" — you are "marking state." Any company that has been researched in this workspace (i.e., has any artifact under `industry/<industry>/companies/<ticker>/`) automatically belongs to your coverage. COVERAGE.md does not need to be created proactively — it is auto-created (if absent) and the entry added on the first write of a company-level artifact.
+This is not a research-quality table. It is a monitoring-intensity table. The main failure mode is subjectivity: tiering cannot be driven by "I like this company" or "conviction is high." Tiering must be driven by observable facts: whether the ticker is complete, whether the name was actually reviewed recently, whether a concrete trigger exists, whether the research state is active/testing, and whether the name deserves intraday alerting.
 
-Assigning Tier is your only active decision: **some companies are worth watching weekly, others are not.** Tier is a resource-allocation decision, not a research-quality rating. It is normal for a table to have more Tier 2 than Tier 1 names.
-
-Direction and Conviction are auto-synced from upstream skills (candidate-screener → direction, alpha-thesis → conviction) — no duplicate data entry. Stage advances automatically with research progress; only downgrades (active → monitoring → dormant) require manual confirmation.
+`coverage-tracker` owns state. `coverage-monitor` owns delivery. The tracker decides which names belong in which watch tier; the monitor turns that table into daily briefs and intraday alerts.
 
 ## Trigger Scenarios
 
 - "update coverage"
-- "what's MYCR status in coverage"
 - "re-rank coverage priority"
-- "bump BESI to Tier 1"
-- "downgrade Lianxun to dormant — CPO is way out"
-- Auto-prompt to update after any deep-dive
-
-## Auto-Create Rules
-
-When any skill writes to `industry/<industry>/companies/<ticker>/`:
-
-1. Check whether `COVERAGE.md` exists at workspace root.
-2. If not → create empty table + add the ticker, stage=building, tier=3.
-3. If yes → look up the ticker in the table.
-   - Not present → add a row, stage=building, tier=3.
-   - Present → do not auto-modify.
+- "is this company T1 or T2 now"
+- "downgrade this name to daily-only"
+- "update last review / next trigger"
+- After any deep-dive, earnings setup, or post-earnings review
 
 ## Output Structure
 
-`COVERAGE.md`, at workspace root:
+Write to workspace-root `COVERAGE.md`:
 
 ```markdown
-## Coverage
+# Coverage Map
 
-| Ticker | Company | Tier | Direction | Conviction | Stage | Last Review | Next Trigger | Notes |
-|---|---|---|---|---|---|---|---|---|
-| MYCR SS | Mycronic | 1 | Long | High | active | 2026-06-01 | Q2 GT orders | Alpha thesis done; catalyst in 3M |
-| BESI NA | Besi | 2 | Long | Medium | testing | 2026-05-15 | TSMC COUPE 2027 | Early thesis; waiting on TSMC |
-| 688808 | Lianxun Instruments | 2 | Short | High | monitoring | 2026-05-20 | PE <200x or CPO news | Bubble watch; thesis holds |
-| 300757 | Robotec | 3 | — | — | building | 2026-05-10 | ficonTEC Q orders | Too early; data not yet pulled |
+> This file is the workspace coverage source of truth. Researched companies belong here; `coverage-monitor` consumes it for daily briefs and intraday alerts.
+
+| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
+|---|---|---|---|---|---|---|---|---|---|
+| MYCR.ST | Mycronic | optical-module-equipment | T1 | A1 | active | 2026-06-20 | 2026-07-15 Q2 results | yes | core name |
+| 6777.T | santec | optical-module-equipment | T2 | A2 | testing | 2026-06-18 | customer order update | daily | waiting for confirmation |
+| 688808.SS | Lianxun Instruments | semicap | T4 | A3 | dormant | 2026-05-10 |  | no | parked until thesis changes |
 ```
 
-## Field Definitions
+Field rules:
 
-| Field | Who Fills It | Values |
-|---|---|---|
-| **Tier** | Researcher | `1` = spend time here this week / `2` = track regularly, wait for catalyst / `3` = radar, peripheral watch |
-| **Direction** | Auto (manual override) | Long / Short / — (no direction formed). Auto source: candidate-screener L/S direction, alpha-thesis thesis direction |
-| **Conviction** | Auto (manual override) | High / Medium / Low / —. Auto source: alpha-thesis conviction level |
-| **Stage** | Auto + Manual | `building` → `testing` → `active` → `monitoring` → `dormant` |
-| **Last Review** | Auto | Date of the most recent deep-research artifact |
-| **Next Trigger** | Auto | Nearest catalyst from catalyst-map |
+| Field | Meaning |
+|---|---|
+| `Research Tier` | `T1` core / `T2` active / `T3` radar / `T4` dormant |
+| `Alert Tier` | `A1` intraday / `A2` daily-only / `A3` no alert |
+| `Stage` | `building` / `testing` / `active` / `monitoring` / `dormant` |
+| `Last Review` | Date of the latest real research or material update |
+| `Next Trigger` | The next one-line event that should bring the name back on screen |
+| `Monitor` | `core` / `yes` / `daily` / `no` |
 
-## Thesis Stages
+> `Research Tier` and `Alert Tier` must reflect real state fields. They must not be replaced by subjective conviction.
 
-| Stage | Definition | Transition Trigger |
-|---|---|---|
-| **building** | Just appeared in workspace, information gathering in progress | Auto — any skill writes to the company directory for the first time |
-| **testing** | Direction formed, under verification | stock-quickread completed + at least 1 deep-work skill (auto) |
-| **active** | Conviction thesis in place, close monitoring | alpha-thesis completed (auto) |
-| **monitoring** | Thesis holds but no urgency | Catalyst >6M away, or researcher manually downgrades |
-| **dormant** | Thesis broken or not worth the time | Kill criteria triggered, or researcher manually downgrades |
+## Artifact / Save Policy
 
-## Anti-Patterns
+Write to workspace root:
 
-- ❌ No auto-create — no table means no coverage
-- ❌ Stage stuck at building forever — alpha-thesis done but stage not updated
-- ❌ Every ticker is Tier 1 — no differentiation equals no resource allocation
-- ❌ Direction/Conviction not auto-synced — researcher manually fills in direction already given in candidate-screener
-- ❌ Tracking positions/P&L — this is not a portfolio tracker
-- ❌ Not linking to research-journal — stage changed but journal has no explanation why
+```text
+COVERAGE.md
+```
+
+This is a continuously maintained workspace-level memory table. No dated artifact is created.
+
+## Boundaries With Adjacent Skills
+
+- Does not write the thesis or variant view → `alpha-thesis`
+- Does not own the catalyst chain itself → `catalyst-map`
+- Does not send daily or intraday alerts → `coverage-monitor`
+- Does not track positions, cost basis, or P&L → outside this system
+
+## Anti-Pattern Self-Check
+
+- ❌ Building `Research Tier` directly from "High conviction."
+- ❌ Making every name `T1`, which destroys prioritization.
+- ❌ Treating `Alert Tier` as identical to `Research Tier`, so everything gets intraday alerts.
+- ❌ Marking `A2` or `A3` names for intraday watch anyway.
+- ❌ Adding research artifacts without updating `Last Review`.
+- ❌ Leaving `Next Trigger` empty while still calling the name `T1`.
+- ❌ Keeping a missing-ticker row in `A1`.
+- ❌ Leaving a dormant row with `Monitor=yes`.
+- ❌ Changing the table without explaining the state change in `research-journal` or adjacent research output.
+- ❌ Expanding this table into a portfolio tracker.
 
 ## Output Size Baseline
 
-Single table, continuously updated. No dated artifact generated.
-
-## Workflow Links
-
-| Upstream | What Is Auto-Pulled |
-|---|---|
-| Any skill writing to a company directory | Auto-create entry (ticker + stage=building) |
-| `candidate-screener` | Direction (L/S) + Tier reference |
-| `alpha-thesis` | Conviction |
-| `catalyst-map` | Next Trigger |
-| `research-journal` | Stage transition rationale |
-
-| Downstream | Scenario |
-|---|---|
-| Researcher | Weekly review of Tier 1 + Next Trigger to decide time allocation for the week |
-
-## Boundaries with Adjacent Skills
-
-- Does not do investment thesis → `alpha-thesis`
-- Does not do catalyst tracking → `catalyst-map`
-- Does not do portfolio tracking → this is not a positions table
+- This is a single-table maintenance skill, not a long-form writing skill.
+- User-facing update notes should usually stay within 5-20 lines.
+- `COVERAGE.md` should remain compact; if Notes become paragraph-length analysis, the research memo is in the wrong place.
