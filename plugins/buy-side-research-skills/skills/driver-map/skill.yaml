@@ -85,4 +85,4 @@ workflow:
     - 'pair-trade'
     - 'research-journal'
   can_trigger:
-    - 'next-step'
+    - ''

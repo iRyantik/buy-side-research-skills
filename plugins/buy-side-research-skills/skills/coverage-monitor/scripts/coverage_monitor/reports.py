@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 from html import escape
-import re
 from typing import Any
 
 from .coverage import CoverageEntry
-from .news import NewsItem
+from .news import ImportantMoverExplainer, NewsItem
+from .signals import assess_snapshot, quote_exception_status, summarize_data_health
 
 
 ALERT_KEYWORDS = (
@@ -32,7 +32,7 @@ def _today_return(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) ->
 
 
 def _format_today_return(value: float | None) -> str:
-    return "n/a" if value is None else f"{value:+.2f}%"
+    return "—" if value is None else f"{value:+.2f}%"
 
 
 def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple[Any, ...]:
@@ -47,11 +47,6 @@ def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]
         -abs(move or 0.0),
         (entry.ticker or entry.company).lower(),
     )
-
-
-def _safe_slug(value: str) -> str:
-    token = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return token or "unknown"
 
 
 def _coverage_slug(value: str) -> str:
@@ -101,46 +96,46 @@ def _format_metric(value: float | None, suffix: str = "", digits: int = 2, na: s
     return f"{value:+.{digits}f}{suffix}" if suffix == "%" else f"{value:.{digits}f}{suffix}"
 
 
-def _headline_link(snapshot: dict[str, Any]) -> str:
-    headline = str(snapshot.get("headline") or "No linked headline")
-    url = str(snapshot.get("url") or "").strip()
-    if url:
-        return f'<a href="{escape(url)}">{escape(headline)}</a>'
-    return escape(headline)
+def _headline_link(item: NewsItem) -> str:
+    if not item.url:
+        return escape(item.title)
+    return f'<a href="{escape(item.url)}">{escape(item.title)}</a>'
 
 
 def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
-    move = _today_return(entry, {entry.ticker or entry.company: snapshot})
-    volume = _float_metric(snapshot, "volume_ratio")
-    gap = _float_metric(snapshot, "gap_pct")
-    signals: list[str] = []
-    if move is not None and abs(move) >= 5:
-        signals.append("涨跌幅已到 material threshold")
-    if volume is not None and volume >= 1.5:
-        signals.append("量能同步放大")
-    if gap is not None and abs(gap) >= 2:
-        signals.append("开盘跳空明显")
-    if snapshot.get("near_20d_high"):
-        signals.append("价格贴近 20D high")
-    if snapshot.get("near_20d_low"):
-        signals.append("价格贴近 20D low")
-    if not signals:
-        signals.append("价格有波动，但 tape 级信号还不算极端")
-    if snapshot.get("headline"):
-        tail = "当前有 headline 可回看，但仍需区分公司新闻和行业 read-through。"
-    else:
-        tail = "暂未锁定公司级 headline，更像 tape 或行业 read-through 驱动。"
-    return f"{'；'.join(signals)}。{tail}"
+    assessment = assess_snapshot(snapshot)
+    if not assessment:
+        return "价格有波动，但还没到本轮 daily mover 的 material threshold。"
+    label = "重要异动" if assessment.is_important else "普通异动"
+    return f"{label}触发项：{' / '.join(assessment.highlight_tags or assessment.trigger_tags)}。"
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
     if entry.monitor_status != "Core Watch":
         return False
-    move = abs(float(snapshot.get("price_move_pct") or 0.0))
-    if move >= 5.0:
+    assessment = assess_snapshot(snapshot)
+    if assessment and assessment.is_important:
         return True
     headline = str(snapshot.get("headline") or "").lower()
     return any(keyword in headline for keyword in ALERT_KEYWORDS)
+
+
+def _mover_entries(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]]) -> list[tuple[CoverageEntry, dict[str, Any], Any]]:
+    movers: list[tuple[CoverageEntry, dict[str, Any], Any]] = []
+    for entry in entries:
+        snapshot = snapshots.get(entry.ticker or entry.company, {})
+        assessment = assess_snapshot(snapshot)
+        if not assessment:
+            continue
+        movers.append((entry, snapshot, assessment))
+    return sorted(
+        movers,
+        key=lambda item: (
+            0 if item[2].is_important else 1,
+            -abs(float(item[1].get("price_move_pct") or 0.0)),
+            (item[0].ticker or item[0].company).lower(),
+        ),
+    )
 
 
 def render_daily_markdown(
@@ -150,47 +145,50 @@ def render_daily_markdown(
     gaps: list[str],
     company_news: dict[str, list[NewsItem]] | None = None,
     industry_readthroughs: dict[str, list[NewsItem]] | None = None,
+    important_explainers: dict[str, ImportantMoverExplainer] | None = None,
 ) -> str:
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
     for entry in entries:
         grouped[entry.industry or "unclassified"].append(entry)
     company_news = company_news or {}
     industry_readthroughs = industry_readthroughs or {}
+    important_explainers = important_explainers or {}
     core_entries = [entry for entry in entries if entry.monitor_status == "Core Watch"]
-    movers = sorted(
-        [entry for entry in entries if snapshots.get(entry.ticker or entry.company)],
-        key=lambda entry: abs(float(snapshots.get(entry.ticker or entry.company, {}).get("price_move_pct") or 0)),
-        reverse=True,
-    )
+    movers = _mover_entries(entries, snapshots)
+    health_summary = summarize_data_health(gaps)
 
     lines = [
         f"# Daily Coverage Brief — {today}",
         "",
         "## 1. Executive Snapshot",
         f"- Coverage: {len(entries)} names | Core Watch: {len(core_entries)}",
-        f"- Price snapshots: {len(snapshots)} captured | gaps: {len(gaps)}",
+        f"- Material movers: {len(movers)} | data issues: {len(gaps)}",
     ]
     if movers:
-        top = movers[0]
-        top_snapshot = snapshots.get(top.ticker or top.company, {})
-        lines.append(f"- Top move: `{top.ticker or top.company}` {top.company} {top_snapshot.get('price_move_pct', 0)}%")
+        top_entry, top_snapshot, top_assessment = movers[0]
+        label = "important" if top_assessment.is_important else "ordinary"
+        lines.append(
+            f"- Top move: `{top_entry.ticker or top_entry.company}` {top_entry.company} "
+            f"{top_snapshot.get('price_move_pct', 0):+.2f}% ({label})"
+        )
+    if health_summary:
+        lines.append(f"- Data Health: {'; '.join(health_summary)}")
     lines.extend(["", "## 2. Price Movers & Explanations"])
     if movers:
-        for entry in movers:
-            snapshot = snapshots.get(entry.ticker or entry.company, {})
+        for entry, snapshot, assessment in movers:
             move = float(snapshot.get("price_move_pct") or 0)
-            volume = snapshot.get("volume_ratio", 0)
-            gap = snapshot.get("gap_pct", 0)
-            headline = snapshot.get("headline") or "No linked headline from market provider"
-            marker = []
-            if snapshot.get("near_20d_high"):
-                marker.append("20D high")
-            if snapshot.get("near_20d_low"):
-                marker.append("20D low")
-            marker_text = f" | {', '.join(marker)}" if marker else ""
-            lines.append(f"- `{entry.ticker or entry.company}` {entry.company}: {move:+.2f}% | vol {volume}x | gap {gap:+.2f}%{marker_text} — {headline}")
+            volume = snapshot.get("volume_ratio", "n/a")
+            gap = snapshot.get("gap_pct", "n/a")
+            lines.append(
+                f"- `{entry.ticker or entry.company}` {entry.company}: {move:+.2f}% | vol {volume}x | gap {gap:+.2f}% "
+                f"| {' / '.join(assessment.highlight_tags or assessment.trigger_tags)}"
+            )
+            if assessment.is_important and (entry.ticker or entry.company) in important_explainers:
+                explainer = important_explainers[entry.ticker or entry.company]
+                lines.append(f"  - summary: {explainer.summary}")
+                lines.append(f"  - confidence: {explainer.confidence}")
     else:
-        lines.append("- No quote snapshots available.")
+        lines.append("- No material movers in this run.")
 
     lines.extend(["", "## 3. Core Watch Company News"])
     for entry in core_entries:
@@ -201,9 +199,11 @@ def render_daily_markdown(
             continue
         first = items[0]
         lines.append(f"- `{key}` {entry.company}: [{first.title}]({first.url})")
+        status = quote_exception_status(snapshots.get(key, {}), report_day=today)
+        if status:
+            lines.append(f"  - Quote status: {status}")
 
     lines.extend(["", "## 4. Industry Read-Throughs"])
-
     for industry in sorted(grouped):
         lines.append(f"### {industry}")
         items = industry_readthroughs.get(industry, [])
@@ -213,6 +213,7 @@ def render_daily_markdown(
                 lines.append(f"- [{item.title}]({item.url}){tier}")
         else:
             lines.append("- No industry read-through item collected.")
+
     lines.extend(["", "## 5. Coverage Gaps"])
     if gaps:
         for gap_item in gaps[:80]:
@@ -232,8 +233,11 @@ def render_daily_markdown(
         ]
     )
     for entry in sorted(entries, key=lambda item: _universe_sort_key(item, snapshots)):
+        key = entry.ticker or entry.company
+        status = quote_exception_status(snapshots.get(key, {}), report_day=today)
+        status_suffix = f" ({status})" if status else ""
         lines.append(
-            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
+            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_suffix} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -248,11 +252,6 @@ def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dic
     return "\n".join(lines) + "\n"
 
 
-def _snapshot_value(snapshot: dict[str, Any], field: str, default: str = "") -> str:
-    value = snapshot.get(field, default)
-    return escape(str(value))
-
-
 def render_dashboard_html(
     entries: list[CoverageEntry],
     snapshots: dict[str, dict[str, Any]],
@@ -260,30 +259,58 @@ def render_dashboard_html(
     gaps: list[str],
     company_news: dict[str, list[NewsItem]] | None = None,
     industry_readthroughs: dict[str, list[NewsItem]] | None = None,
+    important_explainers: dict[str, ImportantMoverExplainer] | None = None,
 ) -> str:
     company_news = company_news or {}
     industry_readthroughs = industry_readthroughs or {}
+    important_explainers = important_explainers or {}
     core_entries = [entry for entry in entries if entry.monitor_status == "Core Watch"]
-    movers = sorted(
-        [entry for entry in entries if snapshots.get(entry.ticker or entry.company)],
-        key=lambda entry: abs(float(snapshots.get(entry.ticker or entry.company, {}).get("price_move_pct") or 0)),
-        reverse=True,
-    )
+    movers = _mover_entries(entries, snapshots)
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
     for entry in entries:
         grouped[entry.industry or "unclassified"].append(entry)
     industry_list = sorted(grouped)
-    market_values = sorted({_market_label(entry) for entry in movers if _market_label(entry) != "n/a"})
+    market_values = sorted({_market_label(entry) for entry, _, _ in movers if _market_label(entry) != "n/a"})
+    health_summary = summarize_data_health(gaps)
+
     mover_cards: list[str] = []
-    for entry in movers:
-        snapshot = snapshots.get(entry.ticker or entry.company, {})
+    for entry, snapshot, assessment in movers:
         move = _today_return(entry, snapshots)
         volume = _float_metric(snapshot, "volume_ratio")
         gap = _float_metric(snapshot, "gap_pct")
         ret_class = _return_class(move)
+        key = entry.ticker or entry.company
+        trigger_pills = "".join(f'<span class="pill trigger">{escape(tag)}</span>' for tag in (assessment.highlight_tags or assessment.trigger_tags))
+        importance_pill = '<span class="pill importance">Important Move</span>' if assessment.is_important else '<span class="pill importance ordinary">Mover</span>'
+        explainer = important_explainers.get(key)
+        explainer_block = ""
+        if explainer:
+            evidence_html = "".join(
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in explainer.evidence[:5]
+            ) or "<li>No external evidence retained.</li>"
+            filing_html = "".join(
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'official')}</span></li>" for item in explainer.filings_evidence[:3]
+            ) or "<li>No filing / official release captured.</li>"
+            explainer_block = f"""
+                <div class="explainer">
+                  <div class="explainer-top">
+                    <span class="pill confidence">{escape(explainer.confidence)}</span>
+                    <span class="confidence-label">Confidence</span>
+                  </div>
+                  <p class="body-copy">{escape(explainer.summary)}</p>
+                  <details open><summary>News / Evidence</summary><ul>{evidence_html}</ul></details>
+                  <details><summary>Filings / Official</summary><ul>{filing_html}</ul></details>
+                </div>
+            """
+        else:
+            fallback_news = company_news.get(key, [])
+            evidence_html = "".join(
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:4]
+            ) or "<li>No direct company evidence collected.</li>"
+            explainer_block = f'<details><summary>News / Evidence</summary><ul>{evidence_html}</ul></details>'
         mover_cards.append(
             f"""
-            <article class="mover-card mover" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
+            <article class="mover-card mover {'important-move' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
               <div class="ticker-block">
                 <div class="ticker">{escape(entry.ticker or entry.company)}</div>
                 <div class="company">{escape(entry.company)} · {escape(entry.industry)}</div>
@@ -291,7 +318,9 @@ def render_dashboard_html(
                 <div class="chip-row">
                   <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
                   <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
+                  {importance_pill}
                 </div>
+                <div class="chip-row">{trigger_pills}</div>
               </div>
               <div>
                 <div class="metric-row">
@@ -301,11 +330,12 @@ def render_dashboard_html(
                   <div class="metric"><b>{escape(str(snapshot.get("market_time") or today))}</b><span>market time</span></div>
                 </div>
                 <p class="body-copy">{escape(_mover_explanation(entry, snapshot))}</p>
-                <details><summary>News / Evidence</summary><ul><li>{_headline_link(snapshot)}</li></ul></details>
+                {explainer_block}
               </div>
             </article>
             """
         )
+
     core_cards: list[str] = []
     for entry in core_entries:
         key = entry.ticker or entry.company
@@ -314,16 +344,20 @@ def render_dashboard_html(
             f"<li><a href=\"{escape(item.url)}\">{escape(item.title)}</a><span> · {escape(item.source or 'source')}</span></li>"
             for item in news_items[:6]
         ) or "<li>No company news found in this run.</li>"
+        status = quote_exception_status(snapshots.get(key, {}), report_day=today)
+        status_line = f'<p class="status-line">Quote status: {escape(status)}</p>' if status else ""
         core_cards.append(
             f"""
             <article class="card">
               <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
               <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}</h3>
               <p class="body-copy">核心监控位默认每天搜公司级 news / results / contract / order。当前下一触发点：{escape(entry.next_trigger or 'pending update')}。</p>
+              {status_line}
               <details open><summary>News / Evidence</summary><ul>{news_html}</ul></details>
             </article>
             """
         )
+
     industry_sections: list[str] = []
     for industry in industry_list:
         items = industry_readthroughs.get(industry, [])
@@ -354,18 +388,23 @@ def render_dashboard_html(
             </article>
             """
         )
+
     gap_items = "".join(f"<li>{escape(gap)}</li>" for gap in gaps[:100]) or "<li>No material gap in this run.</li>"
+    health_items = "".join(f"<li>{escape(item)}</li>" for item in health_summary) or "<li>No material data issue summary in this run.</li>"
     universe_rows: list[str] = []
     for entry in sorted(entries, key=lambda item: _universe_sort_key(item, snapshots)):
+        key = entry.ticker or entry.company
         move = _today_return(entry, snapshots)
         ret_class = _return_class(move)
+        status = quote_exception_status(snapshots.get(key, {}), report_day=today)
+        status_html = f' <span class="pill status">{escape(status)}</span>' if status else ""
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
               <td>{escape(entry.ticker or '')}</td>
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
-              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span></td>
+              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
               <td>{escape(entry.coverage_status)}</td>
               <td>{escape(entry.monitor_status)}</td>
               <td>{escape(entry.last_review)}</td>
@@ -373,6 +412,7 @@ def render_dashboard_html(
             </tr>
             """
         )
+
     return f"""<!doctype html>
 <html lang="zh-Hans">
 <head>
@@ -417,16 +457,6 @@ main {{ width: min(1440px, calc(100vw - 36px)); margin: 28px auto 48px; }}
     linear-gradient(135deg,rgba(255,255,255,.96),rgba(255,255,255,.66)),
     radial-gradient(circle at 88% 18%,rgba(37,99,235,.16),transparent 28%);
   box-shadow: var(--shadow);
-}}
-.hero::after {{
-  content: "";
-  position: absolute;
-  right: -95px;
-  top: -120px;
-  width: 310px;
-  height: 310px;
-  border-radius: 999px;
-  background: rgba(37,99,235,.10);
 }}
 .hero-top {{
   position: relative;
@@ -474,6 +504,15 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .kpi .label {{ color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }}
 .kpi .value {{ margin-top: 8px; font-size: 31px; font-weight: 950; letter-spacing: -.04em; }}
 .kpi .hint {{ margin-top: 5px; color: var(--muted); font-size: 12px; }}
+.health-card {{
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+  padding: 14px 16px;
+}}
+.health-card h3 {{ margin: 0 0 6px; font-size: 16px; }}
+.health-card ul {{ margin: 0; padding-left: 18px; }}
 .tab-nav {{
   position: sticky;
   top: 0;
@@ -540,6 +579,7 @@ select, input {{
   padding: 18px;
 }}
 .mover-card {{ display: grid; grid-template-columns: 220px 1fr; gap: 18px; margin-bottom: 14px; }}
+.important-move {{ border-color: rgba(183,121,31,.32); box-shadow: 0 16px 48px rgba(183,121,31,.12); }}
 .ticker-block {{ border-right: 1px solid var(--line); padding-right: 16px; }}
 .ticker {{ font-size: 24px; font-weight: 950; letter-spacing: -.04em; }}
 .company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
@@ -562,6 +602,7 @@ details {{
   border-radius: 16px;
   background: rgba(255,255,255,.72);
   padding: 10px 12px;
+  margin-top: 8px;
 }}
 summary {{ cursor: pointer; font-weight: 950; color: #1e3a8a; }}
 ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
@@ -581,6 +622,15 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
 .pill.coverage.radar {{ background: var(--slate-soft); color: var(--slate); }}
 .pill.monitor.core-watch {{ background: var(--green-soft); color: var(--green); }}
 .pill.monitor.daily-watch {{ background: var(--slate-soft); color: var(--slate); }}
+.pill.importance {{ background: var(--amber-soft); color: var(--amber); }}
+.pill.importance.ordinary {{ background: var(--slate-soft); color: var(--slate); }}
+.pill.trigger {{ background: rgba(255,255,255,.82); color: #334155; }}
+.pill.status {{ background: rgba(248,250,252,.9); color: #475569; margin-left: 6px; }}
+.pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
+.explainer {{ margin-top: 10px; }}
+.explainer-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
+.confidence-label {{ color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; }}
+.status-line {{ color: var(--muted); font-size: 13px; margin: 0 0 10px; }}
 .table-card {{
   overflow: hidden;
   border: 1px solid var(--line);
@@ -639,9 +689,13 @@ tr:last-child td {{ border-bottom: 0; }}
     </div>
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Coverage Universe</div><div class="value">{len(entries)}</div><div class="hint">COVERAGE.md registered names</div></div>
-      <div class="kpi"><div class="label">Material Movers</div><div class="value">{len(movers)}</div><div class="hint">return / volume / gap / high-low trigger</div></div>
+      <div class="kpi"><div class="label">Material Movers</div><div class="value">{len(movers)}</div><div class="hint">return / volume / gap trigger</div></div>
       <div class="kpi"><div class="label">Core Watch</div><div class="value">{len(core_entries)}</div><div class="hint">daily company search list</div></div>
       <div class="kpi"><div class="label">Data Issues</div><div class="value">{len(gaps)}</div><div class="hint">quote / source / delivery gaps</div></div>
+    </div>
+    <div class="health-card">
+      <h3>Data Health</h3>
+      <ul>{health_items}</ul>
     </div>
   </section>
 
@@ -656,7 +710,7 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Movers</h2>
-        <p>只放有日内或日终价格波动证据的名字。先给 return / volume ratio / gap / price state，再压一句中文解释为什么可能动。</p>
+        <p>只放命中本轮 material threshold 的名字。先给 return / volume ratio / gap，再压一句中文解释，重要异动额外给 evidence 与 filing layer。</p>
       </div>
     </div>
     <div class="filter-bar">
@@ -664,7 +718,7 @@ tr:last-child td {{ border-bottom: 0; }}
       <select id="industryFilter"><option value="all">Industry · All</option>{''.join(f'<option value="{escape(industry)}">{escape(industry)}</option>' for industry in industry_list)}</select>
       <select id="sortMode"><option value="abs">Sort · Abs return</option><option value="up">Only up</option><option value="down">Only down</option></select>
     </div>
-    {''.join(mover_cards) or '<article class="card">No quote snapshots available in this run.</article>'}
+    {''.join(mover_cards) or '<article class="card">No material movers in this run.</article>'}
   </section>
 
   <section id="core" class="tab-panel">
@@ -691,7 +745,7 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Universe</h2>
-        <p>覆盖全部注册名字。这里显示 Today Return / Coverage / Monitor，并保留 objective workflow contract：quickread 进 Building，deep-work 只触发 Core review，不盲升。</p>
+        <p>覆盖全部注册名字。这里只在异常时展示 quote status，不把状态系统做成正文主角。</p>
       </div>
     </div>
     <div class="filter-bar">
@@ -764,16 +818,3 @@ function applyUniverseFilters() {{
 </script>
 </body>
 </html>"""
-
-
-def render_html(markdown_text: str, title: str) -> str:
-    return (
-        "<!doctype html>\n"
-        "<html><head><meta charset=\"utf-8\">"
-        f"<title>{escape(title)}</title>"
-        "<style>body{font-family:Georgia,serif;max-width:980px;margin:40px auto;padding:0 20px;line-height:1.5;color:#1d1d1f;background:#f5f1e8}"
-        "pre{white-space:pre-wrap;font-family:'SFMono-Regular',Consolas,monospace;background:#fffdf8;padding:24px;border:1px solid #d9cfb8;border-radius:12px}</style>"
-        "</head><body>"
-        f"<pre>{escape(markdown_text)}</pre>"
-        "</body></html>"
-    )

@@ -20,7 +20,7 @@ description: Maintain objective workspace coverage state with coverage status, m
 
 这不是“决定研究质量”的表，而是“决定监控强度”的表。真正要避免的是主观化：不能把 coverage 状态绑到“我很喜欢这家公司”或者“conviction 很高”这种感受上。状态必须基于可观察信息：ticker 是否完整、最近是否真的 review 过、有没有明确 trigger、是否已有公司级 artifact、是否需要每日公司新闻扫描。
 
-`coverage-tracker` 管状态，`coverage-monitor` 管发送。前者决定每个名字的 `Coverage` 和 `Monitor`，后者把这张表转成日报和盘中提醒。
+`coverage-tracker` 管状态，`coverage-monitor` 管发送。前者决定每个名字的 `Coverage` 和 `Monitor`，后者把这张表转成日报和盘中提醒。`coverage-tracker` 不负责异动阈值、news 搜索、important mover explainer、Data Health 或 quote status 呈现。
 
 ## 触发场景
 

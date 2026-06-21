@@ -2,8 +2,6 @@
 ticker: <TICKER>
 industry: <industry-slug>
 updated: YYYY-MM-DD
-stage: new | tracking | sizing | conviction | exited
-conviction: 1-10
 ---
 
 > 关联行业：[<行业名>](../RESEARCH.md)

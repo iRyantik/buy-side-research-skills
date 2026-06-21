@@ -191,7 +191,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 |---|---|
 | Mechanism is explained; need to decompose revenue / margin / backlog drivers | `driver-map` |
 | Mechanism affects model | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| Mechanism exposes high-value unknowns but unclear how to ask | `next-step` |
+| Mechanism exposes high-value unknowns but unclear how to ask | `` |
 | Mechanism explains peer divergence or KPI incomparability | `peer-deep-dive` |
 | Mechanism forms a long / short variant view | `alpha-thesis` |
 | Zero base; need to build physical intuition first | `teach-in` |

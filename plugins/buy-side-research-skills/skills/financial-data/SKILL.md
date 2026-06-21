@@ -442,7 +442,7 @@ Segment rule:
 | 用户要解释 revenue bucket 或 driver | `financial-data` 后交给 `driver-map` |
 | 用户要建模、DCF、comps、更新 workbook | `financial-data` 可作为 optional input 给 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | theme / industry 需要一篮子公司数据 | 用 `current_topic_snapshot`，并链接 canonical company pack |
-| 数据缺口影响模型或研究优先级 | `next-step` / `driver-map` / `company-history` |
+| 数据缺口影响模型或研究优先级 | `` / `driver-map` / `company-history` |
 
 Artifact policy：
 

@@ -22,7 +22,7 @@ description: Maintain objective workspace coverage state with coverage status, m
 
 This is not a research-quality table. It is a monitoring-intensity table. The main failure mode is subjectivity: coverage status cannot be driven by "I like this company" or "conviction is high." Status must be driven by observable facts: whether the ticker is complete, whether the name was actually reviewed recently, whether a concrete trigger exists, and whether company-level artifacts exist.
 
-`coverage-tracker` owns state. `coverage-monitor` owns delivery. The tracker decides each name's `Coverage` and `Monitor`; the monitor turns that table into daily briefs and intraday alerts.
+`coverage-tracker` owns state. `coverage-monitor` owns delivery. The tracker decides each name's `Coverage` and `Monitor`; the monitor turns that table into daily briefs and intraday alerts. `coverage-tracker` does not own mover thresholds, news search, important-mover explainers, data-health rendering, or quote-status presentation.
 
 ## Trigger Scenarios
 

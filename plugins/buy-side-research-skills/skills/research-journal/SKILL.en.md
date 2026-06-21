@@ -52,7 +52,7 @@ Journal entries should read like notes a serious researcher writes to their futu
 | **Write purpose** | journal / Boss Brief / index update | Default to journal; use Boss Brief when user mentions PM / boss |
 | **Source status** | sourced / mixed / unsourced | When mixed, write only sourced conclusions; unsourced stays as open question |
 | **Research maturity** | noticed / researched / settled / disputed | Only researched or above can be crystallized |
-| **Upstream artifacts** | mechanism-insight / driver-map / next-step / peer / thesis / model | First assess whether already digested; do not mechanically copy-paste |
+| **Upstream artifacts** | mechanism-insight / driver-map /  / peer / thesis / model | First assess whether already digested; do not mechanically copy-paste |
 
 If the path is missing but the user explicitly requests a file write, first suggest a path and indicate confirmation is needed; if the user only wants a conversation summary, do not write to disk.
 
@@ -121,7 +121,7 @@ Before writing, confirm or extract from materials:
 - 3–5 final takeaways.
 - Must-retain key data / sources / as-of.
 - Biggest debate / variant view.
-- Implications for model, thesis, peer framing, or next-step research priority.
+- Implications for model, thesis, peer framing, or  research priority.
 
 The Boss Brief may use these headings, but do not mechanically cram them all in:
 - `Conclusion`

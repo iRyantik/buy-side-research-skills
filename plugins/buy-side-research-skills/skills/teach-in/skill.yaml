@@ -62,7 +62,7 @@ workflow:
   stage: 'research-primitive'
   can_follow:
     - 'ingest'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'industry-landscape'
     - 'mechanism-insight'
@@ -71,7 +71,7 @@ workflow:
     - 'driver-map'
     - 'consensus-map'
   can_trigger:
-    - 'next-step'
+    - ''
   decision_point: '不是研究产出，而是研究前置条件——建立物理直觉后，应该用 industry-landscape 判断行业投资价值，或用 mechanism-insight 深挖单段机制'
 quality_gates:
   anti_patterns:

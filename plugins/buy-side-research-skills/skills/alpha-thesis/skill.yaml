@@ -52,7 +52,7 @@ capabilities:
     - 'main_agent_synthesis_required for thesis and position sizing'
     - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
     - 'use pair-trade for Long X Short Y, hedge candidates, and hedged structures'
-  journal_first_handoff: 'research-journal or next-step'
+  journal_first_handoff: 'research-journal or '
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'alpha-thesis.md'
@@ -64,12 +64,12 @@ workflow:
   prerequisites:
     - 'stock-quickread'
     - 'consensus-map when variant-view gap is not yet explicit'
-  next_steps:
+  s:
     - 'primary-research-plan'
     - 'bear-pre-mortem'
     - 'earnings-setup'
     - 'research-journal'
-    - 'next-step'
+    - ''
   decision_point: 'conviction 是否真实'
 required_sections:
   - 'variant_view_vs_consensus'

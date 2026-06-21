@@ -147,7 +147,7 @@ The criterion is not "is this newsworthy" but whether it could potentially chang
 - Research prioritization
 - An anomaly flagged by `Senior Analyst Radar`
 
-If there are high-value questions, output 1-2 questions most worth asking AI, and suggest triggering `next-step`. If it merely confirms a fact without research increment, end there — do not force an expansion.
+If there are high-value questions, output 1-2 questions most worth asking AI, and suggest triggering ``. If it merely confirms a fact without research increment, end there — do not force an expansion.
 
 ## Batch Mode
 
@@ -158,14 +158,14 @@ Used for morning briefs or rapid multi-item filtering. Output retains only filte
 
 | Title | Source quality | Verdict | Research relevance | Action |
 |---|---|---|---|---|
-| [title] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + one sentence] | Drop / Ask 1-2 AI questions / Trigger next-step / Save later via research-journal |
+| [title] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + one sentence] | Drop / Ask 1-2 AI questions / Trigger  / Save later via research-journal |
 ```
 
 Action must be one of:
 
 - `Drop`
 - `Ask 1-2 AI questions`
-- `Trigger next-step`
+- `Trigger `
 - `Save later via research-journal`
 
 `Unsupported` / `Contradicted` default to `Drop`. Do not save unless the user explicitly requests an audit trail.

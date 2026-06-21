@@ -128,7 +128,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Variant slot | Direction | Why it may be mispriced | Needed proof | Next source |
 |---|---|---|---|---|
-| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `next-step` |
+| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `` |
 
 ## 7. What Would Change Consensus [→ Bridge: calendar]
 

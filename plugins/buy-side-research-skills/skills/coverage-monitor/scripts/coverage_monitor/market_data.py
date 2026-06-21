@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 from .coverage import CoverageEntry
 from .tickers import build_ticker_runtime
 
 
-def collect_snapshots(entries: list[CoverageEntry]) -> tuple[dict[str, dict[str, Any]], list[str]]:
+def collect_snapshots(entries: list[CoverageEntry], today: str | None = None) -> tuple[dict[str, dict[str, Any]], list[str]]:
     snapshots: dict[str, dict[str, Any]] = {}
     gaps: list[str] = []
     try:
@@ -21,15 +22,18 @@ def collect_snapshots(entries: list[CoverageEntry]) -> tuple[dict[str, dict[str,
             continue
         if not ticker_runtime.is_quoteable:
             gaps.append(f"{entry.company}: {ticker_runtime.gap}")
+            snapshots[key] = {"quote_status": "No Data"}
             continue
         try:
             ticker = yf.Ticker(ticker_runtime.quote_ticker)
             history = ticker.history(period="45d", interval="1d", auto_adjust=False)
         except Exception as exc:  # pragma: no cover - network/provider dependent
             gaps.append(f"{entry.ticker}: quote_fetch_failed ({exc.__class__.__name__})")
+            snapshots[key] = {"quote_status": "No Data"}
             continue
         if history.empty:
             gaps.append(f"{entry.ticker}: empty_quote_history")
+            snapshots[key] = {"quote_status": "No Data"}
             continue
         closes = history["Close"].dropna().tolist()
         last_price = float(closes[-1])
@@ -60,6 +64,16 @@ def collect_snapshots(entries: list[CoverageEntry]) -> tuple[dict[str, dict[str,
             "near_20d_low": near_low,
             "market_time": str(history.index[-1].date()),
         }
+        if len(closes) < 2 or volume_ratio == 0.0 or gap_pct == 0.0:
+            snapshot["quote_status"] = "Partial"
+            gaps.append(f"{entry.ticker}: quote_status:Partial")
+        if today:
+            try:
+                if (date.fromisoformat(today) - history.index[-1].date()).days > 5:
+                    snapshot["quote_status"] = "Stale"
+                    gaps.append(f"{entry.ticker}: quote_status:Stale")
+            except ValueError:
+                pass
         try:
             news_items = getattr(ticker, "news", []) or []
         except Exception:  # pragma: no cover - network/provider dependent

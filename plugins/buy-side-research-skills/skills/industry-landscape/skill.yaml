@@ -68,7 +68,7 @@ workflow:
     - 'teach-in'
     - 'ingest'
     - 'information-impact'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'mechanism-insight'
     - 'candidate-screener'
@@ -79,7 +79,7 @@ workflow:
     - 'alpha-thesis'
     - 'research-journal'
   can_trigger:
-    - 'next-step'
+    - ''
   decision_point: '行业是否值得继续研究、利润集中在产业链哪一段、下一步该看机制深挖还是公司筛选'
 quality_gates:
   anti_patterns:

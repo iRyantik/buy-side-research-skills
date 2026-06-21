@@ -15,7 +15,7 @@ Collect label and summarize Reddit sentiment as clue-only social evidence for a 
 - Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
-Turn Reddit from a noise pool into usable buy-side research clues: scrape relevant posts, label narrative clusters, identify community segmentation, crowded narratives, misleading social claims, and next-step verification tasks, and produce a list of 10–15 posts most worth reading.
+Turn Reddit from a noise pool into usable buy-side research clues: scrape relevant posts, label narrative clusters, identify community segmentation, crowded narratives, misleading social claims, and  verification tasks, and produce a list of 10–15 posts most worth reading.
 
 This skill fails if the output treats Reddit as a factual source, writes only "retail is bullish / bearish", lacks sample coverage and caveats, omits Recommended Reading, or fails to route social claims to filings / market data / primary sources for verification.
 

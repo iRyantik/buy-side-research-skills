@@ -490,47 +490,43 @@ def _render_fill_rate(data: dict) -> str:
     return "\n".join(lines)
 
 
-def _merge_supplement_rows(data: dict, section: str, supp_rows: list):
-    """Merge _supplement statement rows into appendix-format period dict.
+def _pivot_statements(rows: list) -> dict:
+    """Convert [{concept, values: {FY2024: 100}}] → {fy_y0: {revenue: 100, period: 'FY2024'}}.
 
-    After merging, reassigns slots to standard fy_y{N}/sub_{N} naming
-    so the renderer picks up supplement periods.
+    Handles both provider rows and _supplement rows — same format.
+    Replaces the old appendix_statements intermediate layer.
     """
-    section_data = data.get(section, {})
-    if not isinstance(section_data, dict) or not section_data:
-        section_data = {}
-        data[section] = section_data
+    result = {}
+    import re as _re
 
-    for row in supp_rows:
-        concept = row.get("concept", "")
+    for row in rows:
         values = row.get("values") or {}
-        if not concept or not values:
+        if not values:
+            continue
+        concept = row.get("concept") or row.get("label") or row.get("member_label") or ""
+        if not concept:
             continue
         for period, value in values.items():
-            found = False
-            for slot, slot_data in section_data.items():
+            for slot, slot_data in result.items():
                 if slot_data.get("period") == period:
                     slot_data[concept] = value
-                    found = True
                     break
-            if not found:
-                slot = f"_supp_{period.replace(' ', '_').replace('-', '_').lower()}"
-                section_data[slot] = {"period": period, concept: value}
+            else:
+                result[f"_pivot_{period}"] = {"period": period, concept: value}
 
-    # Reassign slots to standard naming (fy_y{N}/sub_{N}) sorted by period
-    if section_data:
-        import re as _re
-        def _period_sort_key(item):
-            slot, entry = item
-            p = str(entry.get("period", slot))
-            fy_m = _re.search(r'FY(\d{4})', p)
-            return fy_m.group(1) if fy_m else p
-        sorted_items = sorted(section_data.items(), key=_period_sort_key, reverse=True)
-        new_data = {}
-        for idx, (old_slot, entry) in enumerate(sorted_items):
-            new_slot = f"fy_y{idx}" if idx < 4 else f"sub_{idx - 4}"
-            new_data[new_slot] = entry
-        data[section] = new_data
+    if not result:
+        return {}
+
+    # Reassign slots to standard naming sorted by period
+    def _period_sort_key(item):
+        p = str(item[1].get("period", ""))
+        m = _re.search(r'FY(\d{4})', p)
+        return m.group(1) if m else p
+    sorted_items = sorted(result.items(), key=_period_sort_key, reverse=True)
+    new_data = {}
+    for idx, (_, entry) in enumerate(sorted_items):
+        new_data[f"fy_y{idx}" if idx < 4 else f"sub_{idx - 4}"] = entry
+    return new_data
 
 
 # ── single ticker ───────────────────────────────────────
@@ -541,21 +537,19 @@ def render_single(workspace: Path, ticker: str) -> str:
         return f"\n> Appendix skipped - no actuals-resolved.json found for {ticker}\n"
 
     d = _load_actuals(actuals_path)
-    # Prefer appendix_statements (period-keyed, standard field names) over raw statements
-    appendix = d.get("appendix_statements") or {}
-    for section in ("income_statement", "balance_sheet", "cash_flow"):
-        if section in appendix:
-            d[section] = appendix[section]
+    stmts = d.get("statements") or {}
 
-    # Merge _supplement: agent-discovered data (Quartr, Futunn, PDF, Playwright, etc.)
+    # Pivot provider + supplement rows directly into period-keyed format
     supplement = d.get("_supplement") or {}
     for section in ("income_statement", "balance_sheet", "cash_flow"):
+        provider_rows = stmts.get(section) or []
         supp_rows = supplement.get(section) or []
-        if supp_rows and isinstance(supp_rows, list):
-            _merge_supplement_rows(d, section, supp_rows)
+        all_rows = list(provider_rows) + (list(supp_rows) if isinstance(supp_rows, list) else [])
+        if all_rows:
+            d[section] = _pivot_statements(all_rows)
 
     # _supplement revenue_split as fallback
-    if not d.get("revenue_split"):
+    if not stmts.get("revenue_split") and not d.get("revenue_split"):
         supp_split = supplement.get("revenue_split") or []
         if supp_split:
             d["revenue_split"] = supp_split
@@ -622,11 +616,14 @@ def render_multi(workspace: Path, tickers: list[str]) -> str:
         p = _find_actuals(workspace, t)
         if p:
             d = _load_actuals(p)
-            # Normalize: apply appendix_statements so multi-ticker reads standard format
-            appendix = d.get("appendix_statements") or {}
+            stmts = d.get("statements") or {}
+            supp = d.get("_supplement") or {}
             for section in ("income_statement", "balance_sheet", "cash_flow"):
-                if section in appendix:
-                    d[section] = appendix[section]
+                provider_rows = stmts.get(section) or []
+                supp_rows = supp.get(section) or []
+                all_rows = list(provider_rows) + (list(supp_rows) if isinstance(supp_rows, list) else [])
+                if all_rows:
+                    d[section] = _pivot_statements(all_rows)
             data_map[t] = d
 
     if not data_map:

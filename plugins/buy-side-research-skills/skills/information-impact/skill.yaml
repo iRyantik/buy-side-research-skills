@@ -45,7 +45,7 @@ capabilities:
     - 'Research Relevance'
     - 'Batch Filter'
   can_trigger:
-    - 'next-step'
+    - ''
   feeds_into:
     - 'research-journal'
   requirements:

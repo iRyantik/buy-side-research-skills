@@ -39,7 +39,7 @@ Before earnings you cannot just list consensus. First confirm whether the key ob
 | KPI mechanism meaning | The industry mechanism, equipment chain, capacity units, or process flow behind the KPI to watch is clearly understood | Handoff to `mechanism-insight` first |
 | KPI / segment definition | Definitions of KPIs, segments, backlog, orders, book-to-bill, and their revenue recognition relationships are clear | Handoff to `driver-map` first |
 | Buy-side bar | The actual buy-side expectation can be mapped to revenue / margin / backlog / price-volume-mix drivers | Handoff to `driver-map` first |
-| Thesis linkage | The 3 observation points for this print can be mapped to assumptions or catalysts in `alpha-thesis` | If the issue is unclear research direction, trigger `next-step` |
+| Thesis linkage | The 3 observation points for this print can be mapped to assumptions or catalysts in `alpha-thesis` | If the issue is unclear research direction, trigger `` |
 
 If not passed, output a minimal handoff block first:
 
@@ -162,7 +162,7 @@ Post-print must explicitly state whether the research judgment has changed, not 
 | `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | Whether research views or related thesis need to be updated or rewritten |
 | `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | Whether `3-statement-model / dcf-model / comps-analysis / model-update` needs to be triggered |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | Whether a judgment increment worth crystallizing or showing the boss has been formed |
-| `next_step_trigger` | `no` / `yes` | Whether a high-value question has been exposed that needs `next-step` to unpack further |
+| `_trigger` | `no` / `yes` | Whether a high-value question has been exposed that needs `` to unpack further |
 | `mechanism_map_trigger` | `no` / `yes` | Whether `mechanism-insight` needs to be triggered due to equipment chains, engineering constraints, capacity units, process flows, or know-how gaps |
 | `driver_map_trigger` | `no` / `yes` | Whether `driver-map` needs to be triggered due to changes in segments, KPI definitions, backlog, orders, margin, price / volume / mix |
 

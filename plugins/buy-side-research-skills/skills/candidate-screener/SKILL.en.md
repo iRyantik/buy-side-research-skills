@@ -129,7 +129,7 @@ Default to six-dimension scoring. Do not rank by theme heat alone:
 
 **Step 5: Next Verification**
 
-Top Ideas must include next-step verification paths:
+Top Ideas must include  verification paths:
 
 - Company first-pass: `stock-quickread`
 - Business / segment / KPI to model driver: `driver-map`

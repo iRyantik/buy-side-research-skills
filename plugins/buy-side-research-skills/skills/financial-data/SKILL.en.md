@@ -443,7 +443,7 @@ Segment rule:
 | User wants to explain revenue buckets or drivers | After `financial-data`, hand to `driver-map` |
 | User wants to model, DCF, comps, update workbook | `financial-data` can serve as optional input to `3-statement-model / dcf-model / comps-analysis / model-update` |
 | Theme / industry needs a basket of company data | Use `current_topic_snapshot`, and link to the canonical company pack |
-| Data gaps affect model or research priority | `next-step` / `driver-map` / `company-history` |
+| Data gaps affect model or research priority | `` / `driver-map` / `company-history` |
 
 Artifact policy:
 

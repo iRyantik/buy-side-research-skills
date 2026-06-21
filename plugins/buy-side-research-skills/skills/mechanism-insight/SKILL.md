@@ -192,7 +192,7 @@ industry/<industry-slug>/panorama/mechanism-insight/YYYY-MM-DD-mechanism-insight
 |---|---|
 | 机制已讲清，需拆 revenue / margin / backlog driver | `driver-map` |
 | 机制影响 model | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 机制暴露高价值疑点但不知道怎么问 | `next-step` |
+| 机制暴露高价值疑点但不知道怎么问 | `` |
 | 机制解释了 peer 差异或 KPI 不可比 | `peer-deep-dive` |
 | 机制形成 long / short variant view | `alpha-thesis` |
 | 零基础需要先建立物理直觉 | `teach-in` |

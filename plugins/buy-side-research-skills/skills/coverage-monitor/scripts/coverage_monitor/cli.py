@@ -240,12 +240,28 @@ def _write_report_files(workspace: Path, stem: str, markdown_text: str, html_tex
 def _run_daily(workspace: Path, today: str | None, dry_run: bool) -> int:
     run_day = today or datetime.now().date().isoformat()
     universe = build_universe(workspace, today=run_day)
-    snapshots, snapshot_gaps = collect_snapshots(universe.entries)
-    company_news, company_news_gaps = collect_company_news(universe.entries, snapshots)
-    industry_readthroughs, industry_gaps = collect_industry_readthroughs(workspace)
+    snapshots, snapshot_gaps = collect_snapshots(universe.entries, today=run_day)
+    company_news, important_explainers, company_news_gaps = collect_company_news(universe.entries, snapshots, today=run_day)
+    industry_readthroughs, industry_gaps = collect_industry_readthroughs(workspace, today=run_day)
     gaps = sorted(set(universe.gaps + snapshot_gaps + company_news_gaps + industry_gaps))
-    markdown_text = render_daily_markdown(universe.entries, snapshots, run_day, gaps, company_news, industry_readthroughs)
-    html_text = render_dashboard_html(universe.entries, snapshots, run_day, gaps, company_news, industry_readthroughs)
+    markdown_text = render_daily_markdown(
+        universe.entries,
+        snapshots,
+        run_day,
+        gaps,
+        company_news,
+        industry_readthroughs,
+        important_explainers,
+    )
+    html_text = render_dashboard_html(
+        universe.entries,
+        snapshots,
+        run_day,
+        gaps,
+        company_news,
+        industry_readthroughs,
+        important_explainers,
+    )
     if dry_run:
         print(markdown_text)
         return 0
@@ -297,7 +313,7 @@ def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: 
     while True:
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         universe = build_universe(workspace, today=datetime.now().date().isoformat())
-        snapshots, snapshot_gaps = collect_snapshots(universe.entries)
+        snapshots, snapshot_gaps = collect_snapshots(universe.entries, today=datetime.now().date().isoformat())
         state = load_state(workspace)
         sent_event_ids = set(state.get("sent_event_ids", []))
         alert_entries, new_event_ids = _collect_intraday_alerts(universe.entries, snapshots, sent_event_ids)

@@ -398,14 +398,14 @@ flowchart TD
 |---|---|---|
 | Spread 已到 target + 两边 thesis played out | **close study / trim study** | 建议沉淀到 `research-journal` |
 | Spread 接近 target 但有一边 thesis 仍 valid | **trim study**，保留部分 exposure 的研究建议 | 用户决定是否行动 |
-| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / re-underwrite add case** | 触发 `next-step` |
+| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / re-underwrite add case** | 触发 `` |
 | Spread 反向到 kill / 一边 thesis invalidated | **close study / re-underwrite** | 触发 `bear-pre-mortem` |
 | Spread 不动但 carry cost > 30% 预期收益 | **review expected return after carry** | 更新 `pair-note.md` |
 | 单边 single-name 事件触发 | **close immediately as research recommendation** | 触发 `bear-pre-mortem` 或 `earnings-setup` |
 
 ### B.4 Monitor 输出篇幅
 
-400-700 字。Monitor 是定期检查工具，不是 deep analysis。需要深挖时触发 `next-step` 或 `bear-pre-mortem`。
+400-700 字。Monitor 是定期检查工具，不是 deep analysis。需要深挖时触发 `` 或 `bear-pre-mortem`。
 
 ---
 

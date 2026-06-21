@@ -147,7 +147,7 @@ Evidence cards must carry source, status (verified / plausible / unverified / di
 Sub-agents must not:
 - Write final research artifacts
 - Make investment judgments
-- Decide routing or next-step recommendations
+- Decide routing or  recommendations
 - Run unstructured searches beyond their assigned evidence-gathering scope
 - Return claims without source or status markup
 

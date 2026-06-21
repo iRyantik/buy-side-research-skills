@@ -22,6 +22,10 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 - 对 `stock-quickread` / deep-work artifact 落盘后的 coverage workflow 做 objective 检查：quickread 进 `Building Coverage`，deep-work 只触发 `Core Coverage` review，不盲目自动升级。
 - 规范化 coverage 表到 canonical 列。
 - 生成 dashboard-style daily coverage brief：4 tabs 固定为 `Movers` / `Core Watch` / `Industry Tape` / `Universe`。
+- 用更严格的 mover contract 筛选普通异动与重要异动：普通异动 `5% / 3.0x / 7%`，重要异动 `8% / 4.0x / 10%`。
+- 共享 company news 与 industry read-through 的搜索运行时：`live web search -> direct fetch/html parse -> Playwright fallback -> honest fail`。
+- 只对重要异动生成轻量 explainer：`summary` / `confidence` / `evidence` / `filings_evidence`。
+- 在 dashboard 中以极轻量 `Data Health` 汇总关键缺口，并只在异常时显示 quote status。
 - 对 `Core Watch` 名单运行 intraday material-event alert。
 - 通过 email 发送摘要正文 + 完整 HTML 附件。
 - 缺少行情、新闻或发送凭证时 honest fail，保留 gap。
@@ -97,6 +101,7 @@ reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.html
 
 - Workspace script entrypoint: `python .scripts/coverage-monitor/run_coverage_monitor.py`
 - Provider path: optional `yfinance` quote/news snapshot
+- Search path: live web search first, then direct fetch / HTML parse, with Playwright as JS-heavy fallback only
 - Delivery path: Python stdlib `smtplib` email only
 
 示例命令：
@@ -139,6 +144,15 @@ python .scripts/coverage-monitor/run_coverage_monitor.py intraday --once --dry-r
 
 Daily brief 的 HTML 固定为 4-tab dashboard，风格参考 `today` 原型但内容按 coverage workflow 重构；Markdown 仍保留摘要和 universe 表，不再把 Markdown 包进 `<pre>`。`intraday` 只输出命中的 alert 名单和事件说明，不追加长篇研究分析。
 
+关键 daily contract：
+
+- `Movers` 只展示命中 mover threshold 的名字，不再因为 `near 20d high/low` 单独入选。
+- 重要异动卡片默认并入 news + filing / official release 证据层。
+- `Core Watch` 默认每天搜公司级 news，不等价格异动。
+- `Industry Tape` 先扫 `Daily Signal Sources`，source 没有新东西时再 fallback general news。
+- `Universe` 默认不显示 `OK`；quote freshness / data status 只在 `Partial` / `No Data` / `Stale` 时 exception-only 呈现。
+- `Data Health` 只做轻量汇总，不做 appendix，不让状态系统抢正文版面。
+
 Artifact policy：
 
 - `save_policy`: `cache_artifact`
@@ -151,6 +165,7 @@ Artifact policy：
 - ticker 缺失 / `IPO pending` / `private`：保留在 coverage gaps，不做行情抓取。
 - 多 ticker（如 `002487 CH / 1081 HK`）：第一个作为 quote primary，全部作为 search alias。
 - `yfinance` 不可用：继续生成报告，标注 `yfinance_unavailable`。
+- `search_link` 不算成功结果；没有结构化结果时必须保留 gap，而不是伪装“搜到了”。
 - email 凭证缺失：继续生成报告，标注 delivery gap，不伪装成功发送。
 - workspace 路径不存在：退出并返回非零状态。
 

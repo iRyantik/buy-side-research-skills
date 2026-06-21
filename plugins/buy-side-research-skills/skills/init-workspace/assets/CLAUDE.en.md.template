@@ -324,6 +324,20 @@ Every industry and company directory has a `RESEARCH.md` (fixed uppercase name) 
 - Hook reminds after artifact write, but agent is ultimately responsible
 - RESEARCH.md is overwrite-update (not append), keeping only latest state
 
+### Coverage Maintenance
+
+After any skill produces an artifact about a company, agent auto-updates COVERAGE.md.
+
+**Coverage tiers** (filesystem-based, no memory reliance):
+- `Core Coverage`: alpha-thesis / deep-work ≥2 / deep-work ≥1 + full model
+- `Building Coverage`: stock-quickread / driver-map / ≥1 deep-work artifact
+- `Radar`: company dir exists but no qualifying artifact
+- Last Review > 90 days → flag for downgrade, do not auto-downgrade
+
+**Monitor frequency**: Core → Core Watch | Building/Radar → Daily Watch
+
+**Trigger**: agent writes artifact → update COVERAGE.md. Monitor script verifies from filesystem before daily report as safety net.
+
 ### 5.6 Data Landing Rule
 
 Any company-level data discovered during research — regardless of source, format, or tool used — MUST be landed in that company's `actuals-resolved.json`.

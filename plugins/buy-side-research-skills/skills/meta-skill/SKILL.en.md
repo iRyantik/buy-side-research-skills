@@ -357,7 +357,7 @@ Research layers:
 
 | Layer | Skills | Purpose |
 |---|---|---|
-| `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `next-step` | Filter information, rapid judgment, post-earnings rapid reaction, social sentiment, identify the next highest-leverage question |
+| `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `` | Filter information, rapid judgment, post-earnings rapid reaction, social sentiment, identify the next highest-leverage question |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | Lay the foundation: zero-to-one physical intuition, industry landscape, structured financial + market data, TAM estimation, company business/disclosure history, market expectations, industry mechanisms, model drivers |
 | `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | Deep research: scenario-based L/S ranking, horizontal comparison (same market / cross-market), competitive moat, catalyst chain, management capital allocation, thesis, odds memo, modeling |
 | `supporting` | `research-viz` | Visualization post-processing |

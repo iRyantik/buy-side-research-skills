@@ -61,9 +61,9 @@ workflow:
   stage: 'validation'
   prerequisites:
     - 'alpha-thesis or topic research notes'
-  next_steps:
+  s:
     - 'research-journal'
-    - 'next-step'
+    - ''
   success_criteria: '看完想做空'
 required_sections:
   - 'smartest_short_seller_pitch'

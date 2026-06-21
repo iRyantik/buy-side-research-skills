@@ -52,7 +52,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
 | **研究成熟度** | noticed / researched / settled / disputed | 只有 researched 以上才能沉淀 |
-| **上游产物** | mechanism-insight / driver-map / next-step / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
+| **上游产物** | mechanism-insight / driver-map /  / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
 
 如果路径缺失但用户明确要求写文件，先给出建议路径并说明需要确认；如果用户只要对话总结，则不落盘。
 

@@ -64,7 +64,7 @@ workflow:
   can_follow:
   - stock-quickread
   - driver-map
-  - next-step
+  - 
   - information-impact
   feeds_into:
   - driver-map

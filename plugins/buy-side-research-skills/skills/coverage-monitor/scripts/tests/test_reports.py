@@ -1,5 +1,5 @@
 from coverage_monitor.coverage import CoverageEntry
-from coverage_monitor.news import NewsItem
+from coverage_monitor.news import ImportantMoverExplainer, NewsItem
 from coverage_monitor.reports import render_daily_markdown, render_dashboard_html, should_alert_intraday
 
 
@@ -41,14 +41,24 @@ def test_dashboard_html_uses_four_tab_dashboard_shell():
                 monitor_status="Core Watch",
             )
         ],
-        snapshots={"SPCX US": {"price_move_pct": 5.2, "volume_ratio": 1.5, "gap_pct": 0.2, "last_price": 200, "market_time": "2026-06-21"}},
+        snapshots={"SPCX US": {"price_move_pct": 8.2, "volume_ratio": 4.2, "gap_pct": 10.2, "last_price": 200, "market_time": "2026-06-21"}},
         today="2026-06-21",
         gaps=[],
         company_news={"SPCX US": [NewsItem(title="SpaceX news", url="https://example.com", source="example")]},
+        important_explainers={
+            "SPCX US": ImportantMoverExplainer(
+                summary="公司级证据与官方披露都支持这次异动。",
+                confidence="High",
+                evidence=[NewsItem(title="SpaceX news", url="https://example.com", source="example")],
+                filings_evidence=[NewsItem(title="Q2 results", url="https://example.com/ir", source="official")],
+            )
+        },
         industry_readthroughs={"aerospace": [NewsItem(title="Aerospace read-through", url="https://example.com/a", source="example", tier="P1")]},
     )
     for text in ["Daily Coverage Dashboard", "Movers", "Core Watch", "Industry Tape", "Universe"]:
         assert text in html
+    assert "Data Health" in html
+    assert "Confidence" in html
     assert 'class="tab-button active" data-tab="movers"' in html
     assert 'id="universeTable"' in html
     assert "Today Return" in html
@@ -104,8 +114,56 @@ def test_dashboard_html_orders_universe_with_semantic_priority_before_abs_return
     assert ordered == sorted(ordered)
 
 
+def test_dashboard_html_only_lists_threshold_movers_and_highlights_important():
+    entries = [
+        CoverageEntry(ticker="AAA US", company="Alpha", industry="aerospace", coverage_status="Building Coverage", monitor_status="Daily Watch"),
+        CoverageEntry(ticker="BBB US", company="Beta", industry="aerospace", coverage_status="Core Coverage", monitor_status="Core Watch"),
+        CoverageEntry(ticker="CCC US", company="Gamma", industry="aerospace", coverage_status="Radar", monitor_status="Daily Watch"),
+    ]
+    snapshots = {
+        "AAA US": {"price_move_pct": 5.2, "volume_ratio": 3.1, "gap_pct": 7.4, "market_time": "2026-06-21"},
+        "BBB US": {"price_move_pct": 8.4, "volume_ratio": 4.3, "gap_pct": 10.6, "market_time": "2026-06-21"},
+        "CCC US": {"price_move_pct": 2.0, "volume_ratio": 1.1, "gap_pct": 1.2, "near_20d_high": True, "market_time": "2026-06-21"},
+    }
+    html = render_dashboard_html(
+        entries=entries,
+        snapshots=snapshots,
+        today="2026-06-21",
+        gaps=[],
+        important_explainers={
+            "BBB US": ImportantMoverExplainer(
+                summary="Beta 有强公司级催化。",
+                confidence="High",
+                evidence=[NewsItem(title="Beta contract win", url="https://example.com/beta", source="example")],
+                filings_evidence=[],
+            )
+        },
+    )
+    movers_html = html.split('<section id="movers"', 1)[1].split('<section id="core"', 1)[0]
+    assert "AAA US" in movers_html
+    assert "BBB US" in movers_html
+    assert "CCC US" not in movers_html
+    assert "Important Move" in movers_html
+
+
+def test_dashboard_html_shows_exception_only_quote_status():
+    entries = [
+        CoverageEntry(ticker="AAA US", company="Alpha", industry="aerospace", coverage_status="Core Coverage", monitor_status="Core Watch"),
+        CoverageEntry(ticker="BBB US", company="Beta", industry="aerospace", coverage_status="Building Coverage", monitor_status="Daily Watch"),
+    ]
+    snapshots = {
+        "AAA US": {"price_move_pct": 6.0, "volume_ratio": 3.4, "gap_pct": 7.2, "quote_status": "Partial", "market_time": "2026-06-21"},
+        "BBB US": {"market_time": "2026-06-21"},
+    }
+    html = render_dashboard_html(entries=entries, snapshots=snapshots, today="2026-06-21", gaps=["BBB US: weak_search_results"])
+    universe_html = html.split('<section id="universe"', 1)[1]
+    assert "Partial" in universe_html
+    assert "Quote status: Partial" in html
+    assert "OK" not in html
+
+
 def test_intraday_alert_only_for_core_watch_material_events():
     entry = CoverageEntry(ticker="MYCR SS", company="Mycronic", monitor_status="Core Watch")
-    assert should_alert_intraday(entry, {"price_move_pct": 8.0, "headline": "earnings released"})
+    assert should_alert_intraday(entry, {"price_move_pct": 8.0, "volume_ratio": 4.0, "gap_pct": 10.0, "headline": "earnings released"})
     entry.monitor_status = "Daily Watch"
-    assert not should_alert_intraday(entry, {"price_move_pct": 8.0, "headline": "earnings released"})
+    assert not should_alert_intraday(entry, {"price_move_pct": 8.0, "volume_ratio": 4.0, "gap_pct": 10.0, "headline": "earnings released"})

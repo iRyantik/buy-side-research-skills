@@ -399,14 +399,14 @@ Evaluate the long thesis and short thesis from §A.4.5 separately:
 |---|---|---|
 | Spread reached target + both leg theses played out | **close study / trim study** | Recommend logging to `research-journal` |
 | Spread near target but one leg thesis still valid | **trim study**, retain partial exposure as research recommendation | User decides whether to act |
-| Spread moved opposite but not at kill + both theses still valid | **monitor / re-underwrite add case** | Trigger `next-step` |
+| Spread moved opposite but not at kill + both theses still valid | **monitor / re-underwrite add case** | Trigger `` |
 | Spread hit kill / one leg thesis invalidated | **close study / re-underwrite** | Trigger `bear-pre-mortem` |
 | Spread unchanged but carry cost > 30% of expected return | **review expected return after carry** | Update `pair-note.md` |
 | Single-name event triggered on one leg | **close immediately as research recommendation** | Trigger `bear-pre-mortem` or `earnings-setup` |
 
 ### B.4 Monitor Output Length
 
-400-700 words. Monitor is a periodic check tool, not deep analysis. When deeper digging is needed, trigger `next-step` or `bear-pre-mortem`.
+400-700 words. Monitor is a periodic check tool, not deep analysis. When deeper digging is needed, trigger `` or `bear-pre-mortem`.
 
 ---
 

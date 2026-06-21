@@ -64,7 +64,7 @@ workflow:
     - 'mechanism-insight'
     - 'research-journal'
   can_trigger:
-    - 'next-step'
+    - ''
   decision_point: '不是研究产出，是信息过滤和初步溯源——建立对一场会议的基础认知后，深挖单条 claim 用 information-impact，深挖公司用 stock-quickread'
 quality_gates:
   anti_patterns:

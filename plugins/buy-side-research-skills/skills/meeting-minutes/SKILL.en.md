@@ -152,8 +152,8 @@ Cite existing teach-in / mechanism-insight artifacts where available.
 
 ## 6. Follow-Up Questions
 
-- Specific, verifiable next-step question 1
-- Specific, verifiable next-step question 2
+- Specific, verifiable  question 1
+- Specific, verifiable  question 2
 
 ## Resources
 

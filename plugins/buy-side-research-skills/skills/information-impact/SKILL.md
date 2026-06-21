@@ -147,7 +147,7 @@ Check whether a news claim rumor note or data point is credible and research-rel
 - 研究优先级
 - 一个 `Senior Analyst Radar` 识别出的怪异点
 
-如果有高价值疑点，输出 1-2 个最值得问 AI 的问题，并建议触发 `next-step`。如果只是确认了一个事实但没有研究增量，可以结束，不要强行扩展。
+如果有高价值疑点，输出 1-2 个最值得问 AI 的问题，并建议触发 ``。如果只是确认了一个事实但没有研究增量，可以结束，不要强行扩展。
 
 ## Batch Mode
 
@@ -158,14 +158,14 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 | Title | Source quality | Verdict | Research relevance | Action |
 |---|---|---|---|---|
-| [标题] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + 一句话] | Drop / Ask 1-2 AI questions / Trigger next-step / Save later via research-journal |
+| [标题] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + 一句话] | Drop / Ask 1-2 AI questions / Trigger  / Save later via research-journal |
 ```
 
 Action 只能是：
 
 - `Drop`
 - `Ask 1-2 AI questions`
-- `Trigger next-step`
+- `Trigger `
 - `Save later via research-journal`
 
 `Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。

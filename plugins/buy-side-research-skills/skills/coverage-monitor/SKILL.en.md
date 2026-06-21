@@ -24,6 +24,10 @@ Responsible for:
 - Running objective coverage-workflow checks after `stock-quickread` and deep-work artifacts land: quickread promotes to `Building Coverage`, while deep-work only triggers `Core Coverage` review instead of blind auto-upgrades.
 - Normalizing the coverage table to canonical columns.
 - Generating a dashboard-style daily coverage brief with fixed tabs: `Movers`, `Core Watch`, `Industry Tape`, and `Universe`.
+- Applying stricter mover thresholds: ordinary movers `5% / 3.0x / 7%`, important movers `8% / 4.0x / 10%`.
+- Sharing the same search runtime for company news and industry read-through: `live web search -> direct fetch/html parse -> Playwright fallback -> honest fail`.
+- Building a lightweight explainer for important movers only: `summary`, `confidence`, `evidence`, and `filings_evidence`.
+- Showing a lightweight `Data Health` summary plus exception-only quote status when the quote is `Partial`, `No Data`, or `Stale`.
 - Running intraday material-event alerts for the `Core Watch` list only.
 - Delivering output through email: summary body plus full HTML attachment.
 - Failing honestly when quote/news or delivery credentials are unavailable.
@@ -101,6 +105,7 @@ Scan only the `Core Watch` list for material events. Default behavior is one pas
 
 - Workspace script entrypoint: `python .scripts/coverage-monitor/run_coverage_monitor.py`
 - Provider path: optional `yfinance` quote/news snapshot
+- Search path: live web search first, then direct fetch / HTML parse, with Playwright as the JS-heavy fallback only
 - Delivery path: Python stdlib `smtplib` email only
 
 Example commands:
@@ -143,6 +148,15 @@ Default output stays short and actionable:
 
 Daily HTML files always use the fixed 4-tab dashboard shell. The visual language references the `today` prototype, but the content is rebuilt around the coverage workflow. Markdown remains a short summary plus the universe table. `intraday` outputs only the triggered alert list and event explanation, not a long research memo.
 
+Key daily contract:
+
+- `Movers` only includes names that cross the mover thresholds; `near 20d high/low` no longer qualifies by itself.
+- Important-mover cards automatically merge news plus filing / official-release evidence.
+- `Core Watch` searches company-level news every day even without price moves.
+- `Industry Tape` scans `Daily Signal Sources` first and falls back to general news only when those sources have no new signal.
+- `Universe` does not show `OK`; quote freshness / data status appears only as exception-only `Partial` / `No Data` / `Stale`.
+- `Data Health` stays lightweight. No appendix and no status-heavy takeover of the dashboard.
+
 Artifact policy:
 
 - `save_policy`: `cache_artifact`
@@ -155,6 +169,7 @@ Artifact policy:
 - Missing ticker / `IPO pending` / `private`: keep the row in coverage gaps and skip quote fetching.
 - Multi-ticker rows such as `002487 CH / 1081 HK`: use the first ticker as quote primary and all tickers as search aliases.
 - `yfinance` unavailable: continue report generation and record `yfinance_unavailable`.
+- `search_link` does not count as a successful result; if no structured result exists, preserve a gap instead of pretending search succeeded.
 - Missing email credentials: continue report generation and record delivery gaps instead of claiming success.
 - Missing workspace path: exit with a non-zero code.
 

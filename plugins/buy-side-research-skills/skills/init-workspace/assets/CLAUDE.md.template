@@ -315,6 +315,20 @@ worktree 操作、`.references/runtime/research-runtime.md`（五链全文档）
 - Hook 会在写 artifact 后提醒更新，但最终由 agent 负责
 - RESEARCH.md 是覆盖更新（非 append），只保留最新状态
 
+### Coverage 维护
+
+产出涉及某公司的 artifact 后，agent 自动更新 COVERAGE.md。
+
+**Coverage 级别**（文件系统判断，不靠记忆）：
+- `Core Coverage`：有 alpha-thesis / deep-work ≥2 / deep-work ≥1 + 完整 model
+- `Building Coverage`：有 stock-quickread / driver-map / 至少 1 个 deep-work
+- `Radar`：有公司目录但 artifact 不满足以上任一
+- Last Review > 90 天 → 提醒降级但不自动降
+
+**Monitor 频率**：Core → Core Watch | Building/Radar → Daily Watch
+
+**触发**：agent 写完 artifact → 顺手更新。monitor 脚本跑日报前扫文件系统兜底纠正。
+
 ### 5.6 数据落地规则
 
 任何研究过程中发现的某家公司的数据——不论来源、不论格式、不论用什么工具获取——必须落地到该公司的 `actuals-resolved.json`。

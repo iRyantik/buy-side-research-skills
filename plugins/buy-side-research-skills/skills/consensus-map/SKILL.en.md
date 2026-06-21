@@ -128,7 +128,7 @@ Example prose claim: `Market-implied expectations require backlog conversion to 
 
 | Variant slot | Direction | Why it may be mispriced | Needed proof | Next source |
 |---|---|---|---|---|
-| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `next-step` |
+| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `` |
 
 ## 7. What Would Change Consensus
 

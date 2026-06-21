@@ -570,10 +570,6 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
             financials_raw[key] = val
     financials_raw = filter_financials_by_period(financials_raw, request.get("periods", "latest"))
 
-    # Build appendix-consumable format: period-keyed dict with standard field names
-    concept_map = _load_concept_map()
-    appendix_statements = _build_appendix_format(financials_raw, concept_map)
-
     filing_info = provider_result.get("filing", {}) or {}
     errors = list(provider_result.get("errors", []))
     data_gaps = list(provider_result.get("data_gaps", []))
@@ -614,7 +610,6 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
         "provider_status": provider_status,
         "company": company,
         "financials_raw": financials_raw,
-        "appendix_statements": appendix_statements,
         "filing": filing_info,
         "completeness": completeness_items,
         "errors": errors,
@@ -1051,49 +1046,6 @@ def chunk_full_filing(text: str, max_chars: int = 12000) -> list[dict[str, Any]]
 # ---------------------------------------------------------------------------
 # Source-map builder
 # ---------------------------------------------------------------------------
-def _build_appendix_format(financials_raw: dict, concept_map: dict) -> dict[str, dict]:
-    """Convert list-of-rows → period-keyed dict with standard field names.
-
-    All providers store statements as [{concept, label, values: {period: value}}].
-    actuals-to-appendix.py needs {fy_0: {revenue: X, period: "FY2024"}} format.
-    This function builds the appendix format without changing financials_raw.
-    """
-    result = {}
-    for stmt_type, rows in financials_raw.items():
-        if not isinstance(rows, list) or not rows:
-            continue
-        # Collect all periods across all rows
-        all_periods = set()
-        field_periods: dict[str, dict[str, Any]] = {}
-        for row in rows:
-            concept = str(row.get("concept") or "").strip()
-            label = str(row.get("label") or "").strip()
-            std_name = _map_concept(concept, concept_map) if concept else ""
-            if not std_name and label:
-                label_key = re.sub(r'[^a-z0-9]', '', label.lower())
-                std_name = _map_concept(label_key, concept_map)
-            if not std_name:
-                std_name = label.lower().replace(" ", "_") if label else concept
-            values = row.get("values", {})
-            for period, value in values.items():
-                all_periods.add(period)
-                field_periods.setdefault(std_name, {})[period] = value
-        if not all_periods:
-            continue
-        # Build period-keyed dict: {fy_0: {revenue: X, period: "FY2024"}, fy_1: {...}}
-        sorted_periods = sorted(all_periods, reverse=True)
-        appendix = {}
-        for idx, period in enumerate(sorted_periods):
-            slot = f"fy_y{idx}" if idx < 3 else f"sub_{idx - 3}"
-            entry: dict[str, Any] = {"period": period}
-            for field, pdict in field_periods.items():
-                if period in pdict:
-                    entry[field] = pdict[period]
-            appendix[slot] = entry
-        result[stmt_type] = appendix
-    return result
-
-
 def _build_source_map(provider: str, filing: dict, financials: dict,
                       completeness: list[dict[str, Any]]) -> dict:
     """Build source-map.json tracing each data dimension to its source."""
@@ -1285,7 +1237,6 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         filing=filing,
         filing_md=filing_md,
         financials=financials,
-        appendix_statements=normalized.get("appendix_statements", {}),
         completeness=normalized["completeness"],
         source_map=source_map,
         cross_check=cross_check,
@@ -1312,7 +1263,6 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
                            raw_dir: Path,
                            identity: dict[str, Any], filing: dict[str, Any],
                            filing_md: str, financials: dict[str, Any],
-                           appendix_statements: dict[str, Any] | None = None,
                            completeness: list[dict[str, Any]] | None = None,
                            source_map: dict[str, Any] | None = None,
                            cross_check: dict[str, Any] | None = None) -> None:
@@ -1351,7 +1301,6 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
         "cross_check": cross_check,
         "provider_timing": cross_check.get("provider_timing", {}),
         "statements": financials or {},
-        "appendix_statements": appendix_statements or {},
     }
     write_json(out_dir / "evidence-pack.json", evidence_pack)
 
@@ -1367,7 +1316,6 @@ def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str
         },
         "identity": identity or {},
         "statements": financials or {},
-        "appendix_statements": appendix_statements or {},
         "completeness": completeness,
         "source_map": source_map,
         "unmapped_items": [
