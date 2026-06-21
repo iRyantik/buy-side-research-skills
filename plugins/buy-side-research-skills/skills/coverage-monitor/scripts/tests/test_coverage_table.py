@@ -1,52 +1,76 @@
 from coverage_monitor.coverage import CoverageEntry, parse_coverage_markdown, render_coverage_markdown
-from coverage_monitor.tiering import derive_alert_tier, derive_research_tier
+from coverage_monitor.tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
 
 
-def test_parse_legacy_coverage_table():
+def test_parse_coverage_table_uses_semantic_status_fields():
     text = """# Coverage Map
 
-| 行业 | 公司 | Ticker | 主行业 | 文件位置 | 最新 artifact | 状态 |
-|---|---|---|---|---|---|---|
-| optical-module-equipment | Mycronic | MYCR.ST | equipment | industry/optical-module-equipment/companies/mycronic | 2026-05-30-stock-quickread-mycronic.md | active |
+## Coverage
+| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|
+| SPCX US | SpaceX | aerospace | Core Coverage | Core Watch | 2026-05-22 | news | listed |
 """
     rows = parse_coverage_markdown(text)
-    assert rows[0].ticker == "MYCR.ST"
-    assert rows[0].company == "Mycronic"
-    assert rows[0].industry == "optical-module-equipment"
-    assert rows[0].stage == "active"
+    assert len(rows) == 1
+    assert rows[0].ticker == "SPCX US"
+    assert rows[0].coverage_status == "Core Coverage"
+    assert rows[0].monitor_status == "Core Watch"
 
 
-def test_render_normalized_columns():
+def test_parse_prefers_coverage_section_over_contract_table():
+    text = """# Coverage Map
+
+## Coverage Contract
+| Field | Values | Contract |
+|---|---|---|
+| Coverage | Core Coverage / Building Coverage / Radar | contract |
+
+## Coverage
+| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|
+| 6777 JP | Santec | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |
+"""
+    rows = parse_coverage_markdown(text)
+    assert len(rows) == 1
+    assert rows[0].ticker == "6777 JP"
+    assert rows[0].company == "Santec"
+
+
+def test_render_normalized_columns_use_new_contract_only():
     rows = parse_coverage_markdown("""## Coverage
-| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
-|---|---|---|---|---|---|---|---|---|---|
-| 6777.T | santec | optical-module-equipment | T1 | A1 | active | 2026-06-01 | earnings | yes | core |
+| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|
+| 6777 JP | Santec | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |
 """)
     output = render_coverage_markdown(rows)
-    assert "| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |" in output
-    assert "| 6777.T | santec | optical-module-equipment | T1 | A1 | active | 2026-06-01 | earnings | yes | core |" in output
+    assert "| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |" in output
+    assert "Research Tier" not in output
+    assert "Alert Tier" not in output
+    assert "| 6777 JP | Santec | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |" in output
 
 
-def test_research_tier_uses_artifacts_trigger_and_recency_not_conviction():
+def test_coverage_status_defaults_to_building_and_core_requires_review_gate():
     entry = CoverageEntry(
-        ticker="MYCR.ST",
+        ticker="MYCR SS",
         company="Mycronic",
-        stage="active",
         last_review="2026-06-01",
         next_trigger="2026-07-15 earnings",
         notes="conviction unknown",
+        quickread_artifact_count=1,
+        deepwork_artifact_count=1,
+        has_research_memory=True,
     )
-    assert derive_research_tier(entry, today="2026-06-20", artifact_count=3) == "T1"
+    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building Coverage"
+    assert should_trigger_core_review(entry, today="2026-06-20")
 
     entry.notes = "High conviction"
     entry.next_trigger = ""
-    assert derive_research_tier(entry, today="2026-06-20", artifact_count=3) == "T2"
+    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building Coverage"
+    assert not should_trigger_core_review(entry, today="2026-06-20")
 
 
-def test_alert_tier_is_separate_from_research_tier():
-    entry = CoverageEntry(ticker="6777.T", company="santec", research_tier="T1", monitor="yes")
-    assert derive_alert_tier(entry) == "A1"
-    entry.monitor = "daily"
-    assert derive_alert_tier(entry) == "A2"
-    entry.monitor = "no"
-    assert derive_alert_tier(entry) == "A3"
+def test_monitor_status_is_separate_from_coverage_status():
+    entry = CoverageEntry(ticker="6777 JP", company="Santec", coverage_status="Core Coverage")
+    assert derive_monitor_status(entry) == "Core Watch"
+    entry.coverage_status = "Building Coverage"
+    assert derive_monitor_status(entry) == "Daily Watch"

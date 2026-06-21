@@ -14,16 +14,17 @@ class CoverageEntry:
     ticker: str
     company: str
     industry: str = ""
-    research_tier: str = ""
-    alert_tier: str = ""
-    stage: str = ""
+    coverage_status: str = ""
+    monitor_status: str = ""
     last_review: str = ""
     next_trigger: str = ""
-    monitor: str = ""
     notes: str = ""
     source_path: str = ""
     latest_artifact: str = ""
     artifact_count: int = 0
+    quickread_artifact_count: int = 0
+    deepwork_artifact_count: int = 0
+    has_research_memory: bool = False
 
 
 @dataclass
@@ -36,12 +37,12 @@ HEADER_ALIASES = {
     "ticker": "ticker",
     "company": "company",
     "industry": "industry",
-    "research tier": "research_tier",
-    "alert tier": "alert_tier",
-    "stage": "stage",
+    "coverage": "coverage_status",
+    "coverage status": "coverage_status",
+    "monitor": "monitor_status",
+    "monitor status": "monitor_status",
     "last review": "last_review",
     "next trigger": "next_trigger",
-    "monitor": "monitor",
     "notes": "notes",
     "source path": "source_path",
     "latest artifact": "latest_artifact",
@@ -50,7 +51,7 @@ HEADER_ALIASES = {
     "主行业": "industry",
     "文件位置": "source_path",
     "最新 artifact": "latest_artifact",
-    "状态": "stage",
+    "状态": "coverage_status",
 }
 
 
@@ -58,12 +59,10 @@ CANONICAL_HEADERS = [
     ("Ticker", "ticker"),
     ("Company", "company"),
     ("Industry", "industry"),
-    ("Research Tier", "research_tier"),
-    ("Alert Tier", "alert_tier"),
-    ("Stage", "stage"),
+    ("Coverage", "coverage_status"),
+    ("Monitor", "monitor_status"),
     ("Last Review", "last_review"),
     ("Next Trigger", "next_trigger"),
-    ("Monitor", "monitor"),
     ("Notes", "notes"),
 ]
 
@@ -74,6 +73,26 @@ def normalize_company_token(value: str) -> str:
 
 
 def normalize_ticker(value: str) -> str:
+    return value.strip()
+
+
+def normalize_coverage_status(value: str) -> str:
+    token = re.sub(r"\s+", " ", value.strip()).lower()
+    if token in {"core coverage", "core"}:
+        return "Core Coverage"
+    if token in {"building coverage", "building", "coverage building"}:
+        return "Building Coverage"
+    if token in {"radar", "candidate"}:
+        return "Radar"
+    return value.strip()
+
+
+def normalize_monitor_status(value: str) -> str:
+    token = re.sub(r"\s+", " ", value.strip()).lower()
+    if token in {"core watch", "core", "yes", "true"}:
+        return "Core Watch"
+    if token in {"daily watch", "daily", "daily-only"}:
+        return "Daily Watch"
     return value.strip()
 
 
@@ -101,9 +120,24 @@ def _find_first_table(lines: list[str]) -> tuple[list[str], list[list[str]]]:
     return [], []
 
 
+def _find_coverage_table(lines: list[str]) -> tuple[list[str], list[list[str]]]:
+    """Prefer the canonical table under `## Coverage`; fall back for legacy files."""
+    coverage_heading_index: int | None = None
+    for index, line in enumerate(lines):
+        if re.match(r"^#{2,6}\s+Coverage\s*$", line.strip(), flags=re.IGNORECASE):
+            coverage_heading_index = index
+            break
+    if coverage_heading_index is None:
+        return _find_first_table(lines)
+    header, rows = _find_first_table(lines[coverage_heading_index + 1 :])
+    if header:
+        return header, rows
+    return _find_first_table(lines)
+
+
 def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
     lines = text.splitlines()
-    header_row, body_rows = _find_first_table(lines)
+    header_row, body_rows = _find_coverage_table(lines)
     if not header_row:
         return []
 
@@ -125,12 +159,10 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
             ticker=normalize_ticker(data["ticker"]),
             company=data["company"].strip(),
             industry=data["industry"].strip(),
-            research_tier=data["research_tier"].strip(),
-            alert_tier=data["alert_tier"].strip(),
-            stage=data["stage"].strip(),
+            coverage_status=normalize_coverage_status(data["coverage_status"]),
+            monitor_status=normalize_monitor_status(data["monitor_status"]),
             last_review=data["last_review"].strip(),
             next_trigger=data["next_trigger"].strip(),
-            monitor=data["monitor"].strip(),
             notes=data["notes"].strip(),
             source_path=data["source_path"].strip(),
             latest_artifact=data["latest_artifact"].strip(),

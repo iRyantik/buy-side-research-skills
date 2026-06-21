@@ -430,14 +430,22 @@ If the quickread uncovers complex revenue structure, strange segment buckets, or
 
 Write to industry topic:
 ```
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company>.md
+industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md
 ```
 
 - Path unclear → agent auto-creates per policy baseline §11.
-- Company qualifier extracted from company slug (e.g., `mycronic`, `robotchnik`).
+- `ticker-slug` is normalized from the display ticker: lowercase; spaces, dots, and slashes become `-`; keep the market suffix (for example `6777-jp`, `spcx-us`, `0522-hk`, `xk4-de`).
+- `company-slug` is normalized from the company name (for example `mycronic`, `robotchnik`). For unlisted or ticker-pending companies, use `no-ticker-<company-slug>` instead of company-only naming.
+
+## Coverage Update
+
+After completing `stock-quickread`, the agent must check workspace-root `COVERAGE.md`:
+
+- If the company is not registered yet, add a row with default `Coverage = Building Coverage` and `Monitor = Daily Watch`.
+- If the company is already `Radar`, promote it to `Building Coverage` and keep or add `Monitor = Daily Watch`.
+- A single `stock-quickread` must not auto-upgrade a name to `Core Coverage`; `Core Coverage` is reviewed only after deep-work artifacts such as `alpha-thesis`, `peer-deep-dive`, `earnings-setup`, `scenario-model`, `driver-map`, or `catalyst-map`.
+- Update `Last Review` to the artifact date and write `Next Trigger` as the next real event or datapoint that should bring the company back on screen.
 
 ## Word Count Baseline
 
 - Standard quickread: 1,800–2,500 words. Below 1,800 indicates insufficient §5 driver expansion — the most informative section. Above 2,500 indicates doing `company-history` or `driver-map` work; split or deduplicate.
-
-

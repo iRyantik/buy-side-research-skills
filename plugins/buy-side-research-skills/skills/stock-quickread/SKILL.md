@@ -151,7 +151,7 @@ flowchart LR
 > 图片只放焦点业务的。其他业务不配图。下载到公司 `_cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![产品](../../../../_cache/images/<slug>.png)`
+> artifact 引用：`![产品](_cache/images/<slug>.png)`
 
 #### 其他业务
 
@@ -446,11 +446,21 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 写入公司 primary 行业目录：
 ```
-industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<company-slug>.md
+industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md
 ```
 
 - 路径不明 → 先 handoff `agent` 解析行业和公司。
-- 公司 qualifier 从 company slug 提取（如 `mycronic`、`robotchnik`）。
+- `ticker-slug` 从展示 ticker 规范化而来：小写，空格 / 点号 / 斜杠转 `-`，保留市场后缀（如 `6777-jp`、`spcx-us`、`0522-hk`、`xk4-de`）。
+- `company-slug` 从公司名规范化而来（如 `mycronic`、`robotchnik`）。如果公司未上市或 ticker 待定，用 `no-ticker-<company-slug>`，不要只写公司名。
+
+## Coverage 更新
+
+完成 `stock-quickread` 后，必须检查 workspace 根目录 `COVERAGE.md`：
+
+- 若公司尚未注册，新增一行，默认 `Coverage = Building Coverage`、`Monitor = Daily Watch`。
+- 若公司已是 `Radar`，升级为 `Building Coverage`，保留或补充 `Monitor = Daily Watch`。
+- 不因为一篇 `stock-quickread` 直接升级到 `Core Coverage`；`Core Coverage` 由 `alpha-thesis`、`peer-deep-dive`、`earnings-setup`、`scenario-model`、`driver-map`、`catalyst-map` 等 deep-work artifact 完成后触发 review。
+- 同步更新 `Last Review` 为 artifact 日期，`Next Trigger` 写成下一次真正需要回看的事件或数据点。
 
 ## 篇幅基准
 

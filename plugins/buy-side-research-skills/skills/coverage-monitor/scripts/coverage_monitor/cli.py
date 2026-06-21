@@ -5,6 +5,7 @@ from dataclasses import replace
 from datetime import datetime
 import os
 from pathlib import Path
+import re
 import time
 from typing import Sequence
 
@@ -18,11 +19,31 @@ from .coverage import (
     parse_coverage_markdown,
     render_coverage_markdown,
 )
-from .delivery import send_email, send_wecom
+from .delivery import send_email, workspace_env
 from .market_data import collect_snapshots
-from .reports import render_alert_markdown, render_daily_markdown, render_html, should_alert_intraday
+from .news import collect_company_news, collect_industry_readthroughs
+from .reports import render_alert_markdown, render_daily_markdown, render_dashboard_html, should_alert_intraday
 from .state import build_event_id, load_state, save_state
-from .tiering import derive_alert_tier, derive_research_tier
+from .tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
+
+
+QUICKREAD_ARTIFACT_TOKENS = ("stock-quickread",)
+DEEPWORK_ARTIFACT_TOKENS = (
+    "alpha-thesis",
+    "peer-deep-dive",
+    "earnings-setup",
+    "scenario-model",
+    "driver-map",
+    "catalyst-map",
+    "moat-analysis",
+    "consensus-map",
+    "dcf-model",
+    "3-statement-model",
+    "bear-pre-mortem",
+    "capital-allocation",
+    "company-history",
+    "pair-trade",
+)
 
 
 def _workspace_root(path: str | Path | None) -> Path:
@@ -37,13 +58,23 @@ def _relative_posix(path: Path, workspace: Path) -> str:
         return path.as_posix()
 
 
-def _latest_artifact_details(company_dir: Path) -> tuple[int, str, str]:
+def _artifact_inventory(company_dir: Path) -> tuple[int, str, str, int, int, bool]:
     artifacts = [artifact for artifact in list_markdown_artifacts(company_dir) if artifact.name.lower() != "index.md"]
     if not artifacts:
-        return 0, "", ""
+        return 0, "", "", 0, 0, (company_dir / "RESEARCH.md").exists()
     dated = [artifact for artifact in artifacts if extract_date_prefix(artifact.name)]
     latest = sorted(dated or artifacts, key=lambda item: item.name)[-1]
-    return len(artifacts), latest.name, extract_date_prefix(latest.name)
+    names = [artifact.name.lower() for artifact in artifacts]
+    quickread_count = sum(any(token in name for token in QUICKREAD_ARTIFACT_TOKENS) for name in names)
+    deepwork_count = sum(any(token in name for token in DEEPWORK_ARTIFACT_TOKENS) for name in names)
+    return (
+        len(artifacts),
+        latest.name,
+        extract_date_prefix(latest.name),
+        quickread_count,
+        deepwork_count,
+        (company_dir / "RESEARCH.md").exists(),
+    )
 
 
 def build_universe(workspace: Path, today: str | None = None) -> CoverageUniverse:
@@ -57,8 +88,19 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
 
     merged: dict[str, CoverageEntry] = {}
 
+    has_coverage_rows = bool(rows)
+
+    def row_key(entry: CoverageEntry) -> str:
+        company_token = normalize_company_token(entry.company)
+        industry_token = normalize_company_token(entry.industry)
+        if company_token:
+            return f"{industry_token}:{company_token}"
+        if entry.source_path.strip():
+            return entry.source_path.strip().lower()
+        return entry.ticker.strip().upper()
+
     def upsert(entry: CoverageEntry) -> None:
-        key = entry.ticker.strip().upper() or entry.source_path.strip() or normalize_company_token(entry.company)
+        key = row_key(entry)
         if not key:
             return
         if key not in merged:
@@ -69,12 +111,10 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             "ticker",
             "company",
             "industry",
-            "research_tier",
-            "alert_tier",
-            "stage",
+            "coverage_status",
+            "monitor_status",
             "last_review",
             "next_trigger",
-            "monitor",
             "notes",
             "source_path",
             "latest_artifact",
@@ -88,7 +128,14 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
         upsert(row)
 
     for company_dir in discover_company_directories(workspace):
-        artifact_count, latest_artifact, artifact_date = _latest_artifact_details(company_dir)
+        (
+            artifact_count,
+            latest_artifact,
+            artifact_date,
+            quickread_count,
+            deepwork_count,
+            has_research_memory,
+        ) = _artifact_inventory(company_dir)
         relative_path = _relative_posix(company_dir, workspace)
         industry = company_dir.parents[1].name if len(company_dir.parents) >= 2 else ""
         slug = company_dir.name
@@ -97,7 +144,10 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             if entry.source_path and entry.source_path == relative_path:
                 matched_key = key
                 break
-            if normalize_company_token(entry.company) == slug:
+            normalized_slug = normalize_company_token(slug)
+            normalized_company = normalize_company_token(entry.company)
+            company_parts = {part for part in re.split(r"[^a-z0-9]+", normalized_company) if part}
+            if normalized_company == normalized_slug or normalized_slug in company_parts or normalized_company.endswith(f"-{normalized_slug}"):
                 matched_key = key
                 break
         if matched_key:
@@ -106,8 +156,14 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             entry.industry = entry.industry or industry
             entry.latest_artifact = latest_artifact or entry.latest_artifact
             entry.artifact_count = max(entry.artifact_count, artifact_count)
+            entry.quickread_artifact_count = max(entry.quickread_artifact_count, quickread_count)
+            entry.deepwork_artifact_count = max(entry.deepwork_artifact_count, deepwork_count)
+            entry.has_research_memory = entry.has_research_memory or has_research_memory
             if artifact_date and not entry.last_review:
                 entry.last_review = artifact_date
+            continue
+        if has_coverage_rows:
+            gaps.append(f"unregistered_company_dir:{relative_path}")
             continue
         upsert(
             CoverageEntry(
@@ -118,16 +174,32 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
                 latest_artifact=latest_artifact,
                 last_review=artifact_date,
                 artifact_count=artifact_count,
+                quickread_artifact_count=quickread_count,
+                deepwork_artifact_count=deepwork_count,
+                has_research_memory=has_research_memory,
             )
         )
 
     entries = list(merged.values())
     for entry in entries:
-        entry.research_tier = entry.research_tier or derive_research_tier(entry, today=today, artifact_count=entry.artifact_count)
-        entry.alert_tier = entry.alert_tier or derive_alert_tier(entry)
+        entry.coverage_status = entry.coverage_status or derive_coverage_status(
+            entry, today=today, artifact_count=entry.artifact_count
+        )
+        entry.monitor_status = entry.monitor_status or derive_monitor_status(entry)
         if not entry.last_review and entry.latest_artifact:
             entry.last_review = extract_date_prefix(entry.latest_artifact)
-    entries.sort(key=lambda item: (item.research_tier or "T9", item.industry.lower(), item.company.lower()))
+        if entry.coverage_status != "Core Coverage" and should_trigger_core_review(entry, today=today):
+            gaps.append(f"core_review_due:{entry.ticker or entry.company}")
+    coverage_rank = {"Core Coverage": 0, "Building Coverage": 1, "Radar": 2}
+    monitor_rank = {"Core Watch": 0, "Daily Watch": 1}
+    entries.sort(
+        key=lambda item: (
+            item.industry.lower(),
+            coverage_rank.get(item.coverage_status, 9),
+            monitor_rank.get(item.monitor_status, 9),
+            item.company.lower(),
+        )
+    )
     return CoverageUniverse(entries=entries, gaps=gaps)
 
 
@@ -137,7 +209,8 @@ def _doctor(workspace: Path) -> int:
     print(f"entries={len(universe.entries)}")
     if universe.gaps:
         print("gaps=" + "; ".join(universe.gaps))
-    missing_env = [name for name in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "COVERAGE_EMAIL_TO", "WECOM_WEBHOOK_URL") if not os.environ.get(name)]
+    environment = workspace_env(workspace)
+    missing_env = [name for name in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "COVERAGE_EMAIL_TO") if not environment.get(name)]
     if missing_env:
         print("delivery_gaps=" + ", ".join(missing_env))
     return 0
@@ -168,17 +241,27 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool) -> int:
     run_day = today or datetime.now().date().isoformat()
     universe = build_universe(workspace, today=run_day)
     snapshots, snapshot_gaps = collect_snapshots(universe.entries)
-    gaps = sorted(set(universe.gaps + snapshot_gaps))
-    markdown_text = render_daily_markdown(universe.entries, snapshots, run_day, gaps)
-    html_text = render_html(markdown_text, f"Daily Coverage Brief {run_day}")
+    company_news, company_news_gaps = collect_company_news(universe.entries, snapshots)
+    industry_readthroughs, industry_gaps = collect_industry_readthroughs(workspace)
+    gaps = sorted(set(universe.gaps + snapshot_gaps + company_news_gaps + industry_gaps))
+    markdown_text = render_daily_markdown(universe.entries, snapshots, run_day, gaps, company_news, industry_readthroughs)
+    html_text = render_dashboard_html(universe.entries, snapshots, run_day, gaps, company_news, industry_readthroughs)
     if dry_run:
         print(markdown_text)
         return 0
     stem = f"{run_day}-daily-coverage-brief"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
-    delivery_gaps.extend(send_email(f"Daily Coverage Brief {run_day}", markdown_text, html_text))
-    delivery_gaps.extend(send_wecom(f"Daily Coverage Brief {run_day}", markdown_text))
+    email_body = "\n".join(markdown_text.splitlines()[:18]) + "\n\nFull dashboard HTML is attached."
+    delivery_gaps.extend(
+        send_email(
+            f"Daily Coverage Brief {run_day}",
+            email_body,
+            None,
+            env=workspace_env(workspace),
+            attachments=[html_path],
+        )
+    )
     state = load_state(workspace)
     state["last_daily_report_date"] = run_day
     save_state(workspace, state)
@@ -223,8 +306,7 @@ def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: 
             if dry_run:
                 print(markdown_text)
             else:
-                send_email(f"Intraday Coverage Alerts {now}", markdown_text)
-                send_wecom(f"Intraday Coverage Alerts {now}", markdown_text)
+                send_email(f"Intraday Coverage Alerts {now}", markdown_text, env=workspace_env(workspace))
                 state["sent_event_ids"] = sorted(sent_event_ids.union(new_event_ids))
                 state["last_intraday_run_at"] = now
                 save_state(workspace, state)

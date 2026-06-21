@@ -1,6 +1,6 @@
 ---
 name: coverage-tracker
-description: Maintain objective workspace coverage state with research tiers, alert tiers, review dates, and next triggers.
+description: Maintain objective workspace coverage state with coverage status, monitor status, review dates, and next triggers.
 ---
 
 > This is the English translation of [SKILL.md](./SKILL.md). The Chinese version is the source of truth.
@@ -20,15 +20,15 @@ description: Maintain objective workspace coverage state with research tiers, al
 
 ## Mindset
 
-This is not a research-quality table. It is a monitoring-intensity table. The main failure mode is subjectivity: tiering cannot be driven by "I like this company" or "conviction is high." Tiering must be driven by observable facts: whether the ticker is complete, whether the name was actually reviewed recently, whether a concrete trigger exists, whether the research state is active/testing, and whether the name deserves intraday alerting.
+This is not a research-quality table. It is a monitoring-intensity table. The main failure mode is subjectivity: coverage status cannot be driven by "I like this company" or "conviction is high." Status must be driven by observable facts: whether the ticker is complete, whether the name was actually reviewed recently, whether a concrete trigger exists, and whether company-level artifacts exist.
 
-`coverage-tracker` owns state. `coverage-monitor` owns delivery. The tracker decides which names belong in which watch tier; the monitor turns that table into daily briefs and intraday alerts.
+`coverage-tracker` owns state. `coverage-monitor` owns delivery. The tracker decides each name's `Coverage` and `Monitor`; the monitor turns that table into daily briefs and intraday alerts.
 
 ## Trigger Scenarios
 
 - "update coverage"
 - "re-rank coverage priority"
-- "is this company T1 or T2 now"
+- "is this company Core Coverage or Building Coverage now"
 - "downgrade this name to daily-only"
 - "update last review / next trigger"
 - After any deep-dive, earnings setup, or post-earnings review
@@ -42,25 +42,25 @@ Write to workspace-root `COVERAGE.md`:
 
 > This file is the workspace coverage source of truth. Researched companies belong here; `coverage-monitor` consumes it for daily briefs and intraday alerts.
 
-| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
-|---|---|---|---|---|---|---|---|---|---|
-| MYCR.ST | Mycronic | optical-module-equipment | T1 | A1 | active | 2026-06-20 | 2026-07-15 Q2 results | yes | core name |
-| 6777.T | santec | optical-module-equipment | T2 | A2 | testing | 2026-06-18 | customer order update | daily | waiting for confirmation |
-| 688808.SS | Lianxun Instruments | semicap | T4 | A3 | dormant | 2026-05-10 |  | no | parked until thesis changes |
+| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|
+| MYCR SS | Mycronic | optical-module-equipment | Core Coverage | Core Watch | 2026-06-20 | 2026-07-15 Q2 results | core name |
+| 6777 JP | Santec | optical-module-equipment | Building Coverage | Daily Watch | 2026-06-18 | customer order update | waiting for confirmation |
+| IPO pending | Lieqi | optical-module-equipment | Radar | Daily Watch |  | IPO status watch | candidate |
 ```
 
 Field rules:
 
 | Field | Meaning |
 |---|---|
-| `Research Tier` | `T1` core / `T2` active / `T3` radar / `T4` dormant |
-| `Alert Tier` | `A1` intraday / `A2` daily-only / `A3` no alert |
-| `Stage` | `building` / `testing` / `active` / `monitoring` / `dormant` |
+| `Coverage` | `Core Coverage` / `Building Coverage` / `Radar` |
+| `Monitor` | `Core Watch` / `Daily Watch` |
 | `Last Review` | Date of the latest real research or material update |
 | `Next Trigger` | The next one-line event that should bring the name back on screen |
-| `Monitor` | `core` / `yes` / `daily` / `no` |
 
-> `Research Tier` and `Alert Tier` must reflect real state fields. They must not be replaced by subjective conviction.
+> `Coverage` and `Monitor` must reflect real state fields. They must not be replaced by subjective conviction.
+
+Upgrade rule: `stock-quickread` defaults to `Building Coverage` + `Daily Watch`; deep-work artifacts trigger `Core Coverage` review.
 
 ## Artifact / Save Policy
 
@@ -81,14 +81,13 @@ This is a continuously maintained workspace-level memory table. No dated artifac
 
 ## Anti-Pattern Self-Check
 
-- ❌ Building `Research Tier` directly from "High conviction."
-- ❌ Making every name `T1`, which destroys prioritization.
-- ❌ Treating `Alert Tier` as identical to `Research Tier`, so everything gets intraday alerts.
-- ❌ Marking `A2` or `A3` names for intraday watch anyway.
+- ❌ Building `Coverage` directly from "High conviction."
+- ❌ Making every name `Core Coverage`, which destroys prioritization.
+- ❌ Treating `Monitor` as identical to `Coverage`, so everything gets intraday alerts.
+- ❌ Marking `Daily Watch` names for intraday watch by default.
 - ❌ Adding research artifacts without updating `Last Review`.
-- ❌ Leaving `Next Trigger` empty while still calling the name `T1`.
-- ❌ Keeping a missing-ticker row in `A1`.
-- ❌ Leaving a dormant row with `Monitor=yes`.
+- ❌ Leaving `Next Trigger` empty while still calling the name `Core Coverage`.
+- ❌ Keeping a missing-ticker row in `Core Watch`.
 - ❌ Changing the table without explaining the state change in `research-journal` or adjacent research output.
 - ❌ Expanding this table into a portfolio tracker.
 

@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v5.37.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v5.38.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./docs/README.cn.md)
 
@@ -191,6 +191,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
+| v5.38.0 | 2026-06-21 | coverage-monitor daily v2: today-style 4-tab HTML dashboard (`Movers` / `Core Watch` / `Industry Tape` / `Universe`), semantic Coverage/Monitor display, objective deep-work Core review prompts, email summary + full HTML attachment, and stock-quickread coverage-registration contract sync. |
 | v5.37.0 | 2026-06-20 | coverage-monitor skill: objective coverage tiers, canonical COVERAGE.md contract, daily coverage brief, intraday alerts, and email/WeCom delivery support. |
 | v5.36.0 | 2026-06-15 | alpha-thesis template upgrade: §1→Thesis, new §2 Exposure Map, §3 Variant View 3 components, §6 dual-year multi-row with Upside bottom-row. Image path fix: all artifact refs → ../../../../_cache/images/ (8 files, 5 skills) |
 | v5.36.0 | 2026-06-11 | panorama/ directory structure: 6 industry-level skills save to panorama/<skill-slug>/, CLAUDE.md §5 updated, workspace migrated (70 files) |

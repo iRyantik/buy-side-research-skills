@@ -7,7 +7,7 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 
 # Coverage Monitor
 
-`coverage-monitor` turns workspace coverage state into a monitoring loop: normalize `COVERAGE.md`, build the watchlist from researched companies, generate a daily brief, and send intraday alerts for material events on the highest-priority names. It is an operations skill, not a research skill.
+`coverage-monitor` turns workspace coverage state into a monitoring loop: normalize `COVERAGE.md`, build the watchlist from researched companies, generate a dashboard-style daily brief, and deliver an email summary with the full HTML attachment. It is an operations skill, not a research skill.
 
 ## Mindset
 
@@ -19,11 +19,13 @@ Two failure modes matter most: turning it into a positions or P&L tracker, or ma
 
 Responsible for:
 
-- Reading workspace `COVERAGE.md` and existing artifacts under `industry/*/companies/*`.
+- Reading the `## Coverage` table in workspace `COVERAGE.md` as the ticker/company/coverage-status source of truth.
+- Using existing artifacts under `industry/*/companies/*` only to supplement artifact path, latest artifact, and artifact count.
+- Running objective coverage-workflow checks after `stock-quickread` and deep-work artifacts land: quickread promotes to `Building Coverage`, while deep-work only triggers `Core Coverage` review instead of blind auto-upgrades.
 - Normalizing the coverage table to canonical columns.
-- Generating the fixed five-section daily coverage brief.
-- Running intraday material-event alerts for the `A1` watchlist only.
-- Delivering output through email and WeCom webhook.
+- Generating a dashboard-style daily coverage brief with fixed tabs: `Movers`, `Core Watch`, `Industry Tape`, and `Universe`.
+- Running intraday material-event alerts for the `Core Watch` list only.
+- Delivering output through email: summary body plus full HTML attachment.
 - Failing honestly when quote/news or delivery credentials are unavailable.
 
 Not responsible for:
@@ -32,6 +34,7 @@ Not responsible for:
 - Rewriting research conclusions, generating theses, or replacing `coverage-tracker`.
 - Depending on FMP, EODHD, or any paid API in v1.
 - Personal WeChat automation.
+- Installing OS-level scheduled tasks; daily mode is manually triggered in this version.
 
 ## Trigger And Input
 
@@ -56,9 +59,9 @@ Inputs:
 Dependency inputs:
 
 - `COVERAGE.md` is the coverage source of truth.
-- `coverage-tracker` owns `Research Tier`, `Alert Tier`, `Last Review`, and `Next Trigger`.
-- `industry/*/companies/*` is used to discover researched companies that were never registered.
-- Optional delivery env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `COVERAGE_EMAIL_TO`, `WECOM_WEBHOOK_URL`.
+- `coverage-tracker` owns `Coverage`, `Monitor`, `Last Review`, and `Next Trigger`.
+- `industry/*/companies/*` only supplements registered-company artifact metadata; when `COVERAGE.md` exists, unregistered directories are reported as gaps.
+- Optional delivery env: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `COVERAGE_EMAIL_TO`. The script reads workspace `.env` without overriding existing environment variables.
 
 ## Execution Modes
 
@@ -72,13 +75,14 @@ Rewrite legacy or inconsistent `COVERAGE.md` headers into the canonical table. `
 
 ### Mode C: `daily`
 
-Generate the fixed five-section daily brief:
+Generate the dashboard-style daily brief. The HTML always uses 4 tabs:
 
-1. `Top Alerts`
-2. `Industry Coverage`
-3. `Upcoming Triggers`
-4. `Data & Monitor Gaps`
-5. `Appendix: Full Watchlist Snapshot`
+1. `Movers`
+2. `Core Watch`
+3. `Industry Tape`
+4. `Universe`
+
+`Coverage Gaps` no longer owns its own tab; it lives inside the `Universe` tab alongside the coverage contract and registry table.
 
 Normal mode writes:
 
@@ -87,15 +91,17 @@ reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.md
 reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.html
 ```
 
+Normal mode also attempts email delivery: summary body plus full HTML dashboard attachment. `--dry-run` renders to stdout only; it does not write files or send email.
+
 ### Mode D: `intraday`
 
-Scan only the `A1` watchlist for material events. Default behavior is one pass; `--interval-minutes` enables polling. Sent events are deduplicated.
+Scan only the `Core Watch` list for material events. Default behavior is one pass; `--interval-minutes` enables polling. Sent events are deduplicated.
 
 ## Tool Resources
 
 - Workspace script entrypoint: `python .scripts/coverage-monitor/run_coverage_monitor.py`
 - Provider path: optional `yfinance` quote/news snapshot
-- Delivery path: Python stdlib `smtplib` + WeCom webhook
+- Delivery path: Python stdlib `smtplib` email only
 
 Example commands:
 
@@ -126,17 +132,16 @@ Default output stays short and actionable:
 
 ## Coverage
 - [watchlist count]
-- [A1 / A2 / A3 distribution]
+- [Core Watch / Daily Watch distribution]
 
 ## Delivery
 - [email sent / skipped]
-- [wecom sent / skipped]
 
 ## Gaps
 - [...]
 ```
 
-Daily brief files always use the fixed five-section structure. `intraday` outputs only the triggered alert list and event explanation, not a long research memo.
+Daily HTML files always use the fixed 4-tab dashboard shell. The visual language references the `today` prototype, but the content is rebuilt around the coverage workflow. Markdown remains a short summary plus the universe table. `intraday` outputs only the triggered alert list and event explanation, not a long research memo.
 
 Artifact policy:
 
@@ -147,29 +152,32 @@ Artifact policy:
 ## Failure Handling
 
 - Missing `COVERAGE.md`: continue with company discovery from `industry/*/companies/*` and report the gap.
-- Missing ticker: keep the row in the appendix, downgrade to `A3`, and skip intraday alerts.
+- Missing ticker / `IPO pending` / `private`: keep the row in coverage gaps and skip quote fetching.
+- Multi-ticker rows such as `002487 CH / 1081 HK`: use the first ticker as quote primary and all tickers as search aliases.
 - `yfinance` unavailable: continue report generation and record `yfinance_unavailable`.
-- Missing email or WeCom credentials: continue report generation and record delivery gaps instead of claiming success.
+- Missing email credentials: continue report generation and record delivery gaps instead of claiming success.
 - Missing workspace path: exit with a non-zero code.
 
 ## Workflow Links
 
 | Upstream | Role |
 |---|---|
-| `coverage-tracker` | Provides `Research Tier`, `Alert Tier`, `Last Review`, and `Next Trigger` |
-| `stock-quickread` / `alpha-thesis` / `earnings-setup` / `post-earnings-quick` | Their outputs should push coverage state and trigger updates |
+| `coverage-tracker` | Provides `Coverage`, `Monitor`, `Last Review`, and `Next Trigger` |
+| `stock-quickread` | Registers or promotes names into `Building Coverage` + `Daily Watch` |
+| `alpha-thesis` / `peer-deep-dive` / `earnings-setup` / `scenario-model` / `driver-map` / `catalyst-map` | Trigger `Core Coverage` review prompts without subjective auto-upgrades |
 | `research-journal` | Explains why coverage state changed |
 
 | Downstream | Role |
 |---|---|
-| Daily researcher workflow | Daily brief every day; intraday alerts for `A1` only |
+| Daily researcher workflow | Daily brief every day; intraday alerts for `Core Watch` only |
 | `/update-agent-runtime` | Syncs this skill's scripts into workspace `.scripts/coverage-monitor/` |
 
 ## Safety Self-Check
 
 - ❌ Turning this skill into a research report template.
-- ❌ Tying `Research Tier` or `Alert Tier` to subjective conviction.
+- ❌ Tying `Coverage` or `Monitor` to subjective conviction.
 - ❌ Introducing broker, P&L, or positions data.
 - ❌ Reporting "sent" when delivery env is missing.
-- ❌ Spamming intraday alerts for `A2` or `A3` by default.
+- ❌ Claiming scheduled delivery is implemented.
+- ❌ Spamming intraday alerts for `Daily Watch` by default.
 - ❌ Inventing a watchlist without workspace artifacts.

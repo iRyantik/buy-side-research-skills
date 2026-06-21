@@ -5,7 +5,7 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 
 # Coverage Monitor
 
-`coverage-monitor` turns workspace coverage state into a monitoring loop: normalize `COVERAGE.md`, build the watchlist from researched companies, generate a daily brief, and send intraday alerts for material events on the highest-priority names. It is an operations skill, not a research skill.
+`coverage-monitor` turns workspace coverage state into a monitoring loop: normalize `COVERAGE.md`, build the watchlist from researched companies, generate a dashboard-style daily brief, and send email delivery with the full HTML attachment. It is an operations skill, not a research skill.
 
 ## 心法
 
@@ -17,11 +17,13 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 
 负责：
 
-- 读取 workspace `COVERAGE.md` 和 `industry/*/companies/*` 已有研究产物。
+- 读取 workspace `COVERAGE.md` 的 `## Coverage` 表作为 ticker/company/coverage-status source of truth。
+- 用 `industry/*/companies/*` 已有研究产物补充 artifact path、latest artifact、artifact_count。
+- 对 `stock-quickread` / deep-work artifact 落盘后的 coverage workflow 做 objective 检查：quickread 进 `Building Coverage`，deep-work 只触发 `Core Coverage` review，不盲目自动升级。
 - 规范化 coverage 表到 canonical 列。
-- 生成固定五段式 daily coverage brief。
-- 对 `A1` 名单运行 intraday material-event alert。
-- 通过 email / WeCom webhook 发送结果。
+- 生成 dashboard-style daily coverage brief：4 tabs 固定为 `Movers` / `Core Watch` / `Industry Tape` / `Universe`。
+- 对 `Core Watch` 名单运行 intraday material-event alert。
+- 通过 email 发送摘要正文 + 完整 HTML 附件。
 - 缺少行情、新闻或发送凭证时 honest fail，保留 gap。
 
 不负责：
@@ -30,6 +32,7 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 - 不改写研究结论，不生成 thesis，不替代 `coverage-tracker`。
 - 不依赖 FMP / EODHD / 其他付费 API 才能工作。
 - 不做个人微信自动化。
+- 不负责安装 OS-level 定时任务；本轮 daily 是手动触发。
 
 ## 触发与输入
 
@@ -54,9 +57,9 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 依赖输入：
 
 - `COVERAGE.md` 为 coverage source of truth。
-- `coverage-tracker` 维护 `Research Tier` / `Alert Tier` / `Last Review` / `Next Trigger`。
-- `industry/*/companies/*` 目录用于发现已研究但未注册的公司。
-- 可选 delivery env：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USER`、`SMTP_PASSWORD`、`COVERAGE_EMAIL_TO`、`WECOM_WEBHOOK_URL`。
+- `coverage-tracker` 维护 `Coverage` / `Monitor` / `Last Review` / `Next Trigger`。
+- `industry/*/companies/*` 目录只补充已注册公司的 artifact metadata；有 `COVERAGE.md` 时未注册目录只进入 gap。
+- 可选 delivery env：`SMTP_HOST`、`SMTP_PORT`、`SMTP_USER`、`SMTP_PASSWORD`、`COVERAGE_EMAIL_TO`。脚本会读取 workspace `.env`，不覆盖用户环境变量。
 
 ## 执行模式
 
@@ -70,13 +73,14 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 
 ### Mode C: `daily`
 
-生成固定五段式日报：
+生成 dashboard-style 日报。HTML 固定为 4 个 tabs：
 
-1. `Top Alerts`
-2. `Industry Coverage`
-3. `Upcoming Triggers`
-4. `Data & Monitor Gaps`
-5. `Appendix: Full Watchlist Snapshot`
+1. `Movers`
+2. `Core Watch`
+3. `Industry Tape`
+4. `Universe`
+
+其中 `Coverage Gaps` 不再单独占一个 tab，而是收进 `Universe` tab 的 contract / gap 区块。
 
 正常模式写入：
 
@@ -87,13 +91,13 @@ reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.html
 
 ### Mode D: `intraday`
 
-只对 `A1` 名单扫描 material event。默认一轮运行；`--interval-minutes` 可循环。已发送事件去重，不重复轰炸。
+只对 `Core Watch` 名单扫描 material event。默认一轮运行；`--interval-minutes` 可循环。已发送事件去重，不重复轰炸。
 
 ## 工具资源
 
 - Workspace script entrypoint: `python .scripts/coverage-monitor/run_coverage_monitor.py`
 - Provider path: optional `yfinance` quote/news snapshot
-- Delivery path: Python stdlib `smtplib` + WeCom webhook
+- Delivery path: Python stdlib `smtplib` email only
 
 示例命令：
 
@@ -124,17 +128,16 @@ python .scripts/coverage-monitor/run_coverage_monitor.py intraday --once --dry-r
 
 ## Coverage
 - [watchlist 条目数]
-- [A1 / A2 / A3 分布]
+- [Core Watch / Daily Watch 分布]
 
 ## Delivery
 - [email sent / skipped]
-- [wecom sent / skipped]
 
 ## Gaps
 - [...]
 ```
 
-Daily brief 的文件内结构固定为五段。`intraday` 只输出命中的 alert 名单和事件说明，不追加长篇研究分析。
+Daily brief 的 HTML 固定为 4-tab dashboard，风格参考 `today` 原型但内容按 coverage workflow 重构；Markdown 仍保留摘要和 universe 表，不再把 Markdown 包进 `<pre>`。`intraday` 只输出命中的 alert 名单和事件说明，不追加长篇研究分析。
 
 Artifact policy：
 
@@ -145,29 +148,33 @@ Artifact policy：
 ## 失败处理
 
 - `COVERAGE.md` 缺失：继续从 `industry/*/companies/*` 发现已研究公司，并显式报告 gap。
-- ticker 缺失：保留在 watchlist appendix，但降到 `A3`，不做盘中提醒。
+- ticker 缺失 / `IPO pending` / `private`：保留在 coverage gaps，不做行情抓取。
+- 多 ticker（如 `002487 CH / 1081 HK`）：第一个作为 quote primary，全部作为 search alias。
 - `yfinance` 不可用：继续生成报告，标注 `yfinance_unavailable`。
-- email / WeCom 凭证缺失：继续生成报告，标注 delivery gap，不伪装成功发送。
+- email 凭证缺失：继续生成报告，标注 delivery gap，不伪装成功发送。
 - workspace 路径不存在：退出并返回非零状态。
 
 ## Workflow 联动
 
 | 上游 | 作用 |
 |---|---|
-| `coverage-tracker` | 提供 `Research Tier` / `Alert Tier` / `Last Review` / `Next Trigger` |
-| `stock-quickread` / `alpha-thesis` / `earnings-setup` / `post-earnings-quick` | 产出会推动 coverage 状态和触发器更新 |
+| `coverage-tracker` | 提供 `Coverage` / `Monitor` / `Last Review` / `Next Trigger` |
+| `stock-quickread` | 默认把名字注册/升级到 `Building Coverage` + `Daily Watch` |
+| `alpha-thesis` / `peer-deep-dive` / `earnings-setup` / `scenario-model` / `driver-map` / `catalyst-map` | 产出会触发 `Core Coverage` review 提示，但不主观自动升级 |
 | `research-journal` | 解释 coverage 状态变化的原因 |
 
 | 下游 | 作用 |
 |---|---|
-| researcher 日常工作流 | 每日收日报；A1 名单盘中接提醒 |
+| researcher 日常工作流 | 每日收日报；Core Watch 名单盘中接提醒 |
 | `/update-agent-runtime` | 把本 skill 的脚本同步到 workspace `.scripts/coverage-monitor/` |
 
 ## 安全自查
 
 - ❌ 把这个 skill 写成研究报告模板。
-- ❌ 把 `Research Tier` 和 `Alert Tier` 绑定到主观 conviction。
+- ❌ 把 `Coverage` 和 `Monitor` 绑定到主观 conviction。
 - ❌ 引入 broker、PnL 或持仓字段。
 - ❌ 缺 delivery env 还汇报“已发送”。
-- ❌ 对 `A2` / `A3` 默认发盘中轰炸。
+- ❌ 把定时发送说成已实现。
+- ❌ 对 `Daily Watch` 默认发盘中轰炸。
 - ❌ 无 workspace artifact 却凭空造 watchlist。
+正常模式还会尝试发送 email：正文为摘要，完整 HTML dashboard 作为附件。`--dry-run` 只渲染到 stdout，不写文件、不发送。

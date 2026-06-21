@@ -34,6 +34,8 @@ capabilities:
   requirements:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
+    - 'must update COVERAGE.md so new names default to Building Coverage plus Daily Watch'
+    - 'must not auto-upgrade a single quickread to Core Coverage'
     - 'market-snapshot fields default to topic-local evidence cache / financial-data then trusted-market-bridge then web fallback'
     - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action consensus and financial_snapshot'
     - 'financial_snapshot from trusted-market-bridge is quick context only, not company-truth or financial-data replacement'
@@ -45,8 +47,8 @@ capabilities:
     - 'sub-agent_opt_in_only unless the user explicitly requests sub-agent / delegate / parallel evidence collection'
 artifact_policy:
   save_policy: 'default_topic_result'
-  default_artifact: 'stock-quickread.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
+  default_artifact: 'stock-quickread-<ticker-slug>-<company-slug>.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md'
   naming_mode: 'plain'
   save_trigger: 'always save to industry topic'
 workflow:
