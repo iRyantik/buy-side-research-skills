@@ -79,9 +79,9 @@ def normalize_ticker(value: str) -> str:
 def normalize_coverage_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core coverage", "core"}:
-        return "Core Coverage"
+        return "Core"
     if token in {"building coverage", "building", "coverage building"}:
-        return "Building Coverage"
+        return "Building"
     if token in {"radar", "candidate"}:
         return "Radar"
     return value.strip()
@@ -90,9 +90,9 @@ def normalize_coverage_status(value: str) -> str:
 def normalize_monitor_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core watch", "core", "yes", "true"}:
-        return "Core Watch"
+        return "Core"
     if token in {"daily watch", "daily", "daily-only"}:
-        return "Daily Watch"
+        return "Daily"
     return value.strip()
 
 
@@ -215,14 +215,14 @@ def compute_coverage_tier(company_dir: Path) -> str:
     has_quickread = any(p in names for p in QUICKREAD_PATTERNS)
     has_model = "3-statement-model" in names or "dcf-model" in names
     if has_thesis or deepwork_count >= 2 or (deepwork_count >= 1 and has_model):
-        return "Core Coverage"
+        return "Core"
     elif has_quickread or deepwork_count >= 1:
-        return "Building Coverage"
+        return "Building"
     return "Radar"
 
 
 def compute_monitor_status(coverage_tier: str) -> str:
-    return "Core Watch" if coverage_tier == "Core Coverage" else "Daily Watch"
+    return "Core" if coverage_tier == "Core" else "Daily"
 
 
 def extract_date_prefix(value: str) -> str:

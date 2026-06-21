@@ -82,7 +82,10 @@ def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
 
     snapshots: dict[str, dict[str, Any]] = {}
     gaps: list[str] = []
-    targets = [e for e in entries if e.ticker or e.company]
+    # Skip unlisted/IPO/private — yfinance hangs on them
+    _SKIP_TICKER = {"ipo pending", "private", ""}
+    targets = [e for e in entries
+               if e.ticker and e.ticker.strip().lower() not in _SKIP_TICKER]
 
     with ThreadPoolExecutor(max_workers=min(max_workers, len(targets))) as pool:
         futures = {pool.submit(_fetch_one_snapshot, e, today): e for e in targets}

@@ -19,14 +19,19 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 
 - 读取 workspace `COVERAGE.md` 的 `## Coverage` 表作为 ticker/company/coverage-status source of truth。
 - 用 `industry/*/companies/*` 已有研究产物补充 artifact path、latest artifact、artifact_count。
-- 对 `stock-quickread` / deep-work artifact 落盘后的 coverage workflow 做 objective 检查：quickread 进 `Building Coverage`，deep-work 只触发 `Core Coverage` review，不盲目自动升级。
-- 规范化 coverage 表到 canonical 列。
+- 对 `stock-quickread` / deep-work artifact 落盘后的 coverage workflow 做 objective 检查：quickread 进 `Building`，deep-work 只触发 `Core` review，不盲目自动升级。
+- 规范化 coverage 表到 canonical 列。Coverage: `Core` / `Building` / `Radar`。Monitor: `Core` / `Daily`。
 - 生成 dashboard-style daily coverage brief：4 tabs 固定为 `Movers` / `Core Watch` / `Industry Tape` / `Universe`。
 - 用更严格的 mover contract 筛选普通异动与重要异动：普通异动 `5% / 3.0x / 7%`，重要异动 `8% / 4.0x / 10%`。
-- 共享 company news 与 industry read-through 的搜索运行时：`live web search -> direct fetch/html parse -> Playwright fallback -> honest fail`。
-- 只对重要异动生成轻量 explainer：`summary` / `confidence` / `evidence` / `filings_evidence`。
-- 在 dashboard 中以极轻量 `Data Health` 汇总关键缺口，并只在异常时显示 quote status。
-- 对 `Core Watch` 名单运行 intraday material-event alert。
+- Industry Tape 三层新闻采集：RSS feed（Substack `/feed` + trade pub 自动发现）→ Playwright 无头浏览器刮首页 → Agent WebSearch domain 搜索。
+- 对无 RSS 的 P1 trade pub 自动 Playwright 刮首页头条，刮不到标记 agent fallback。
+- 每个行业 source 池由 `RESEARCH.md` 的 `### Daily Signal Sources` 表定义，按 Tier 区别对待。
+- Mover explainer：对所有异动（重要+普通）生成中文 summary + evidence link。普通异动默认收起，点击展开。
+- Core Watch 每只股票合成一句话中文总结，显示最近关键事件。
+- 日报通过 agent enrichment JSON（`--enrichment`）注入 agent 搜索结果：mover explainers、core_watch_news、industry_summaries、industry_searches。
+- `--skip-fetch` 支持缓存重渲染（0.3s），agent 搜完新闻后即时更新日报。
+- Universe 表价格按市场格式化（¥/₩/$/€ + 市场规则小数位），Partial 状态用琥珀色圆点`·`轻标记。
+- IPO pending / private ticker 自动跳过 yfinance 采集。
 - 通过 email 发送摘要正文 + 完整 HTML 附件。
 - 缺少行情、新闻或发送凭证时 honest fail，保留 gap。
 

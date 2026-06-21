@@ -36,8 +36,8 @@ def _format_today_return(value: float | None) -> str:
 
 
 def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple[Any, ...]:
-    coverage_rank = {"Core Coverage": 0, "Building Coverage": 1, "Radar": 2}
-    monitor_rank = {"Core Watch": 0, "Daily Watch": 1}
+    coverage_rank = {"Core": 0, "Building": 1, "Radar": 2}
+    monitor_rank = {"Core": 0, "Daily": 1}
     move = _today_return(entry, snapshots)
     return (
         entry.industry.lower(),
@@ -50,19 +50,12 @@ def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]
 
 
 def _coverage_slug(value: str) -> str:
-    mapping = {
-        "Core Coverage": "core",
-        "Building Coverage": "building",
-        "Radar": "radar",
-    }
+    mapping = {"Core": "core", "Building": "building", "Radar": "radar"}
     return mapping.get(value, "unknown")
 
 
 def _monitor_slug(value: str) -> str:
-    mapping = {
-        "Core Watch": "core-watch",
-        "Daily Watch": "daily-watch",
-    }
+    mapping = {"Core": "core-watch", "Daily": "daily-watch"}
     return mapping.get(value, "unknown")
 
 
@@ -96,6 +89,41 @@ def _format_metric(value: float | None, suffix: str = "", digits: int = 2, na: s
     return f"{value:+.{digits}f}{suffix}" if suffix == "%" else f"{value:.{digits}f}{suffix}"
 
 
+# Currency + decimal rules by market suffix
+_MARKET_PRICE_RULES: dict[str, tuple[str, int]] = {
+    ".T":   ("¥",   0),   # JPY — no decimals
+    ".KS":  ("₩",   0),   # KRW
+    ".KQ":  ("₩",   0),   # KOSDAQ
+    ".TW":  ("NT$",  1),   # TWD
+    ".HK":  ("HK$",  2),   # HKD
+    ".SS":  ("¥",   2),   # CNY Shanghai
+    ".SZ":  ("¥",   2),   # CNY Shenzhen
+    ".ST":  ("kr",   1),   # SEK
+    ".DE":  ("€",   2),   # EUR Xetra
+    ".AS":  ("€",   2),   # EUR Amsterdam
+    ".NA":  ("€",   2),   # EUR Amsterdam (alt)
+    ".L":   ("£",   2),   # GBP London
+    ".KL":  ("RM",   2),   # MYR
+    ".US":  ("$",   2),   # USD
+}
+
+
+def _format_price(quote_ticker: str, price: float | None) -> str:
+    """Format price with currency symbol and market-appropriate decimals."""
+    if price is None:
+        return "n/a"
+    # Default: USD with 2 decimals
+    symbol, decimals = "$", 2
+    for suffix, (sym, dec) in _MARKET_PRICE_RULES.items():
+        if quote_ticker.upper().endswith(suffix):
+            symbol, decimals = sym, dec
+            break
+    # For large values, use comma separators
+    if price >= 10_000:
+        return f"{symbol}{price:,.{decimals}f}"
+    return f"{symbol}{price:.{decimals}f}"
+
+
 def _headline_link(item: NewsItem) -> str:
     if not item.url:
         return escape(item.title)
@@ -105,13 +133,13 @@ def _headline_link(item: NewsItem) -> str:
 def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
     assessment = assess_snapshot(snapshot)
     if not assessment:
-        return "价格有波动，但还没到本轮 daily mover 的 material threshold。"
+        return ""
     label = "重要异动" if assessment.is_important else "普通异动"
-    return f"{label}触发项：{' / '.join(assessment.highlight_tags or assessment.trigger_tags)}。"
+    return f"{label}——{entry.company} 今日触发 mover 阈值。"
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    if entry.monitor_status != "Core Watch":
+    if entry.monitor_status != "Core":
         return False
     assessment = assess_snapshot(snapshot)
     if assessment and assessment.is_important:
@@ -138,6 +166,12 @@ def _mover_entries(entries: list[CoverageEntry], snapshots: dict[str, dict[str, 
     )
 
 
+def _core_watch_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple:
+    """Core Watch: sort by |return| descending — most notable first."""
+    move = _today_return(entry, snapshots)
+    return (1 if move is None else 0, -abs(move or 0.0))
+
+
 def render_daily_markdown(
     entries: list[CoverageEntry],
     snapshots: dict[str, dict[str, Any]],
@@ -145,15 +179,24 @@ def render_daily_markdown(
     gaps: list[str],
     company_news: dict[str, list[NewsItem]] | None = None,
     industry_readthroughs: dict[str, list[NewsItem]] | None = None,
-    important_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    mover_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    industry_summaries: dict[str, str] | None = None,
+    industry_searches: dict[str, list[NewsItem]] | None = None,
+    core_watch_summaries: dict[str, str] | None = None,
 ) -> str:
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
     for entry in entries:
         grouped[entry.industry or "unclassified"].append(entry)
     company_news = company_news or {}
     industry_readthroughs = industry_readthroughs or {}
-    important_explainers = important_explainers or {}
-    core_entries = [entry for entry in entries if entry.monitor_status == "Core Watch"]
+    mover_explainers = mover_explainers or {}
+    industry_summaries = industry_summaries or {}
+    industry_searches = industry_searches or {}
+    core_watch_summaries = core_watch_summaries or {}
+    core_entries = sorted(
+        [e for e in entries if e.monitor_status == "Core"],
+        key=lambda e: _core_watch_sort_key(e, snapshots),
+    )
     movers = _mover_entries(entries, snapshots)
     health_summary = summarize_data_health(gaps)
 
@@ -180,13 +223,16 @@ def render_daily_markdown(
             volume = snapshot.get("volume_ratio", "n/a")
             gap = snapshot.get("gap_pct", "n/a")
             lines.append(
-                f"- `{entry.ticker or entry.company}` {entry.company}: {move:+.2f}% | vol {volume}x | gap {gap:+.2f}% "
-                f"| {' / '.join(assessment.highlight_tags or assessment.trigger_tags)}"
+                f"- `{entry.ticker or entry.company}` {entry.company}: {move:+.2f}% | vol {volume}x | gap {gap:+.2f}%"
             )
-            if assessment.is_important and (entry.ticker or entry.company) in important_explainers:
-                explainer = important_explainers[entry.ticker or entry.company]
-                lines.append(f"  - summary: {explainer.summary}")
+            key = entry.ticker or entry.company
+            if key in mover_explainers:
+                explainer = mover_explainers[key]
+                lines.append(f"  - {explainer.summary}")
                 lines.append(f"  - confidence: {explainer.confidence}")
+                if explainer.evidence:
+                    for ev in explainer.evidence[:3]:
+                        lines.append(f"  - [{ev.title}]({ev.url})")
     else:
         lines.append("- No material movers in this run.")
 
@@ -194,25 +240,46 @@ def render_daily_markdown(
     for entry in core_entries:
         key = entry.ticker or entry.company
         items = company_news.get(key, [])
-        if not items:
-            lines.append(f"- `{key}` {entry.company}: no company news found.")
-            continue
-        first = items[0]
-        lines.append(f"- `{key}` {entry.company}: [{first.title}]({first.url})")
+        move = _today_return(entry, snapshots)
+        move_str = _format_today_return(move)
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
-        if status:
-            lines.append(f"  - Quote status: {status}")
+        status_dot = " ·" if status else ""
+        summary = core_watch_summaries.get(key, "")
+        if not items:
+            lines.append(f"- `{key}` {entry.company} ({move_str}{status_dot}): no company news found.")
+            continue
+        lines.append(f"- `{key}` {entry.company} ({move_str}{status_dot}):")
+        if summary:
+            lines.append(f"  {summary}")
+        for item in items[:3]:
+            lines.append(f"  - [{item.title}]({item.url})")
 
     lines.extend(["", "## 4. Industry Read-Throughs"])
     for industry in sorted(grouped):
-        lines.append(f"### {industry}")
+        summary = industry_summaries.get(industry, "")
+        heading = f"### {industry}"
+        if summary:
+            heading += f" — {summary}"
+        lines.append(heading)
         items = industry_readthroughs.get(industry, [])
         if items:
-            for item in items[:5]:
-                tier = f" ({item.tier})" if item.tier else ""
-                lines.append(f"- [{item.title}]({item.url}){tier}")
-        else:
-            lines.append("- No industry read-through item collected.")
+            # Group articles by source
+            by_source: dict[str, list[NewsItem]] = {}
+            for item in items:
+                by_source.setdefault(item.source, []).append(item)
+            for source_name, source_items in by_source.items():
+                lines.append(f"- **{source_name}** ({len(source_items)} 篇):")
+                for article in source_items[:3]:
+                    date_str = f" ({article.published_at})" if article.published_at else ""
+                    lines.append(f"  - [{article.title}]({article.url}){date_str}")
+        search_items = industry_searches.get(industry, [])
+        if search_items:
+            lines.append(f"- **Web 搜索** ({len(search_items)} 条):")
+            for si in search_items[:6]:
+                date_str = f" ({si.published_at})" if si.published_at else ""
+                lines.append(f"  - [{si.title}]({si.url}){date_str}")
+        if not items and not search_items:
+            lines.append("- 今日无行业 read-through 内容。")
 
     lines.extend(["", "## 5. Coverage Gaps"])
     if gaps:
@@ -235,11 +302,76 @@ def render_daily_markdown(
     for entry in sorted(entries, key=lambda item: _universe_sort_key(item, snapshots)):
         key = entry.ticker or entry.company
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
-        status_suffix = f" ({status})" if status else ""
+        status_dot = " ·" if status else ""
         lines.append(
-            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_suffix} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
+            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_dot} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
         )
     return "\n".join(lines) + "\n"
+
+
+def render_email_body(
+    entries: list[CoverageEntry],
+    snapshots: dict[str, dict[str, Any]],
+    today: str,
+    mover_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    core_watch_summaries: dict[str, str] | None = None,
+    industry_summaries: dict[str, str] | None = None,
+    gaps: list[str] | None = None,
+) -> str:
+    """Plain-text email body — all movers with full explanation, all Core Watch, all industries."""
+    mover_explainers = mover_explainers or {}
+    core_watch_summaries = core_watch_summaries or {}
+    industry_summaries = industry_summaries or {}
+
+    movers = _mover_entries(entries, snapshots)
+    core_entries = sorted(
+        [e for e in entries if e.monitor_status == "Core"],
+        key=lambda e: _core_watch_sort_key(e, snapshots),
+    )
+    grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
+    for entry in entries:
+        grouped[entry.industry or "unclassified"].append(entry)
+
+    lines = [f"Daily Coverage Brief — {today}", ""]
+
+    # All movers with full explanation + 1 evidence link
+    if movers:
+        lines.append(f"━━━ Price Movers ({len(movers)}) ━━━")
+        for entry, _snapshot, _assessment in movers:
+            move = _today_return(entry, snapshots)
+            ticker = entry.ticker or entry.company
+            expl = mover_explainers.get(ticker)
+            lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
+            if expl:
+                lines.append(f"  {expl.summary}")
+                if expl.evidence:
+                    ev = expl.evidence[0]
+                    lines.append(f"  -> {ev.title} ({ev.url})")
+            lines.append("")
+
+    # All Core Watch with full summaries
+    core_with_news = [(e, core_watch_summaries.get(e.ticker or e.company, ""))
+                      for e in core_entries if core_watch_summaries.get(e.ticker or e.company)]
+    if core_with_news:
+        lines.append(f"━━━ Core Watch ({len(core_with_news)}) ━━━")
+        for entry, summary in core_with_news:
+            move = _today_return(entry, snapshots)
+            lines.append(f"{entry.ticker or entry.company} {entry.company} {_format_today_return(move)}")
+            lines.append(f"  {summary}")
+            lines.append("")
+
+    # All industries with full summaries
+    if industry_summaries:
+        lines.append(f"━━━ Industry ({len(industry_summaries)}) ━━━")
+        for industry in sorted(grouped):
+            s = industry_summaries.get(industry, "")
+            if s:
+                lines.append(f"{industry}")
+                lines.append(f"  {s}")
+                lines.append("")
+
+    lines.append("Full dashboard HTML attached.")
+    return "\n".join(lines)
 
 
 def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]], now_label: str) -> str:
@@ -259,12 +391,21 @@ def render_dashboard_html(
     gaps: list[str],
     company_news: dict[str, list[NewsItem]] | None = None,
     industry_readthroughs: dict[str, list[NewsItem]] | None = None,
-    important_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    mover_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    industry_summaries: dict[str, str] | None = None,
+    industry_searches: dict[str, list[NewsItem]] | None = None,
+    core_watch_summaries: dict[str, str] | None = None,
 ) -> str:
     company_news = company_news or {}
     industry_readthroughs = industry_readthroughs or {}
-    important_explainers = important_explainers or {}
-    core_entries = [entry for entry in entries if entry.monitor_status == "Core Watch"]
+    mover_explainers = mover_explainers or {}
+    industry_summaries = industry_summaries or {}
+    industry_searches = industry_searches or {}
+    core_watch_summaries = core_watch_summaries or {}
+    core_entries = sorted(
+        [e for e in entries if e.monitor_status == "Core"],
+        key=lambda e: _core_watch_sort_key(e, snapshots),
+    )
     movers = _mover_entries(entries, snapshots)
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
     for entry in entries:
@@ -280,9 +421,8 @@ def render_dashboard_html(
         gap = _float_metric(snapshot, "gap_pct")
         ret_class = _return_class(move)
         key = entry.ticker or entry.company
-        trigger_pills = "".join(f'<span class="pill trigger">{escape(tag)}</span>' for tag in (assessment.highlight_tags or assessment.trigger_tags))
         importance_pill = '<span class="pill importance">Important Move</span>' if assessment.is_important else '<span class="pill importance ordinary">Mover</span>'
-        explainer = important_explainers.get(key)
+        explainer = mover_explainers.get(key)
         explainer_block = ""
         if explainer:
             evidence_html = "".join(
@@ -298,8 +438,8 @@ def render_dashboard_html(
                     <span class="confidence-label">Confidence</span>
                   </div>
                   <p class="body-copy">{escape(explainer.summary)}</p>
-                  <details open><summary>News / Evidence</summary><ul>{evidence_html}</ul></details>
-                  <details><summary>Filings / Official</summary><ul>{filing_html}</ul></details>
+                  <details><summary>Evidence ({len(explainer.evidence)})</summary><ul>{evidence_html}</ul></details>
+                  <details><summary>Filings ({len(explainer.filings_evidence)})</summary><ul>{filing_html}</ul></details>
                 </div>
             """
         else:
@@ -307,7 +447,7 @@ def render_dashboard_html(
             evidence_html = "".join(
                 f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:4]
             ) or "<li>No direct company evidence collected.</li>"
-            explainer_block = f'<details><summary>News / Evidence</summary><ul>{evidence_html}</ul></details>'
+            explainer_block = f'<details><summary>Evidence</summary><ul>{evidence_html}</ul></details>'
         mover_cards.append(
             f"""
             <article class="mover-card mover {'important-move' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
@@ -320,16 +460,14 @@ def render_dashboard_html(
                   <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
                   {importance_pill}
                 </div>
-                <div class="chip-row">{trigger_pills}</div>
               </div>
               <div>
                 <div class="metric-row">
                   <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>volume ratio</span></div>
                   <div class="metric"><b>{escape(_format_metric(gap, "%", digits=2))}</b><span>gap</span></div>
-                  <div class="metric"><b>{escape(str(snapshot.get("last_price") or "n/a"))}</b><span>last price</span></div>
+                  <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>last price</span></div>
                   <div class="metric"><b>{escape(str(snapshot.get("market_time") or today))}</b><span>market time</span></div>
                 </div>
-                <p class="body-copy">{escape(_mover_explanation(entry, snapshot))}</p>
                 {explainer_block}
               </div>
             </article>
@@ -345,15 +483,16 @@ def render_dashboard_html(
             for item in news_items[:6]
         ) or "<li>No company news found in this run.</li>"
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
-        status_line = f'<p class="status-line">Quote status: {escape(status)}</p>' if status else ""
+        status_dot = ' <span class=\"status-dot\" title=\"Quote: ' + escape(status) + '\"></span>' if status else ""
+        stock_summary = core_watch_summaries.get(key, "")
+        summary_line = f'<p class=\"body-copy\">{escape(stock_summary)}</p>' if stock_summary else ""
         core_cards.append(
             f"""
             <article class="card">
               <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
-              <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}</h3>
-              <p class="body-copy">核心监控位默认每天搜公司级 news / results / contract / order。当前下一触发点：{escape(entry.next_trigger or 'pending update')}。</p>
-              {status_line}
-              <details open><summary>News / Evidence</summary><ul>{news_html}</ul></details>
+              <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}{status_dot}</h3>
+              {summary_line}
+              <details><summary>News ({len(news_items)})</summary><ul>{news_html}</ul></details>
             </article>
             """
         )
@@ -362,15 +501,34 @@ def render_dashboard_html(
     for industry in industry_list:
         items = industry_readthroughs.get(industry, [])
         linked_names = ", ".join(entry.company for entry in sorted(grouped[industry], key=lambda item: _universe_sort_key(item, snapshots))[:8])
-        sources_html = "".join(
-            f"""
-            <div class="source-line">
-              <b><a href="{escape(item.url)}">{escape(item.title)}</a></b>
-              <span>{escape(item.source or 'source')} {escape(item.tier or '')}</span>
-            </div>
-            """
-            for item in items[:12]
-        ) or '<div class="source-line"><b>No source item collected.</b><span>Fallback search also returned nothing durable.</span></div>'
+        # Group by source
+        by_source: dict[str, list[NewsItem]] = {}
+        for item in items:
+            by_source.setdefault(item.source, []).append(item)
+        sources_html_parts: list[str] = []
+        for source_name, source_items in by_source.items():
+            article_html = "".join(
+                f"""<div class="source-line">
+                  <b><a href="{escape(a.url)}">{escape(a.title)}</a></b>
+                  <span>{'· ' + escape(a.published_at) if a.published_at else ''}</span>
+                </div>"""
+                for a in source_items[:3]
+            )
+            sources_html_parts.append(
+                f'<details class="source-group"><summary>{escape(source_name)} ({len(source_items)} 篇)</summary>{article_html}</details>'
+            )
+        sources_html = "".join(sources_html_parts[:12]) if sources_html_parts else ""
+        # Add WebSearch results
+        search_items = industry_searches.get(industry, [])
+        if search_items:
+            search_html = "".join(
+                f"""<div class="source-line search-result">
+                  <b><a href="{escape(si.url)}">{escape(si.title)}</a></b>
+                  <span>Web · {escape(si.source or '')} {'· ' + escape(si.published_at) if si.published_at else ''}</span>
+                </div>"""
+                for si in search_items[:8]
+            )
+            sources_html += f'<details><summary>Web 搜索 ({len(search_items)} 条)</summary>{search_html}</details>'
         industry_sections.append(
             f"""
             <article class="card industry-card">
@@ -382,7 +540,7 @@ def render_dashboard_html(
                 </div>
               </div>
               <div>
-                <p class="body-copy">今日行业 read-through 覆盖 {escape(linked_names or 'n/a')}。Substack / trade media / official source 全扫；没有新内容时才 fallback general news。</p>
+                <p class="body-copy">{escape(industry_summaries.get(industry) or "")}</p>
                 <div class="source-stack">{sources_html}</div>
               </div>
             </article>
@@ -397,7 +555,9 @@ def render_dashboard_html(
         move = _today_return(entry, snapshots)
         ret_class = _return_class(move)
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
-        status_html = f' <span class="pill status">{escape(status)}</span>' if status else ""
+        status_html = f' <span class="status-dot" title="Quote: {escape(status)}"></span>' if status else ""
+        trigger = entry.next_trigger or ""
+        title_attr = f' title="{escape(trigger)}"' if len(trigger) > 30 else ""
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
@@ -405,10 +565,10 @@ def render_dashboard_html(
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
               <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
-              <td>{escape(entry.coverage_status)}</td>
-              <td>{escape(entry.monitor_status)}</td>
-              <td>{escape(entry.last_review)}</td>
-              <td>{escape(entry.next_trigger)}</td>
+              <td class="narrow">{escape(entry.coverage_status)}</td>
+              <td class="narrow">{escape(entry.monitor_status)}</td>
+              <td class="narrow">{escape(entry.last_review)}</td>
+              <td{title_attr}>{escape(trigger)}</td>
             </tr>
             """
         )
@@ -448,24 +608,19 @@ body {{
 a {{ color: inherit; }}
 main {{ width: min(1440px, calc(100vw - 36px)); margin: 28px auto 48px; }}
 .hero {{
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 32px;
-  padding: 32px;
-  background:
-    linear-gradient(135deg,rgba(255,255,255,.96),rgba(255,255,255,.66)),
-    radial-gradient(circle at 88% 18%,rgba(37,99,235,.16),transparent 28%);
-  box-shadow: var(--shadow);
-}}
-.hero-top {{
-  position: relative;
-  z-index: 1;
   display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-start;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 4px 12px rgba(15,23,42,.06);
+  font-size: 13px;
+  flex-wrap: wrap;
 }}
+.hero-date {{ color: var(--muted); font-weight: 700; margin-right: auto; }}
+.hero-stat {{ color: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }}
 .eyebrow {{
   color: var(--blue);
   letter-spacing: .16em;
@@ -473,46 +628,10 @@ main {{ width: min(1440px, calc(100vw - 36px)); margin: 28px auto 48px; }}
   font-size: 12px;
   font-weight: 900;
 }}
-h1 {{ margin: 10px 0; font-size: clamp(34px,5vw,60px); line-height: 1.02; letter-spacing: -.055em; }}
-h2 {{ margin: 0; font-size: 25px; letter-spacing: -.04em; }}
+h1 {{ display: none; }}
+h2 {{ margin: 0; font-size: 18px; letter-spacing: -.03em; }}
 h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
-.subtitle {{ max-width: 880px; color: var(--muted); font-size: 15px; line-height: 1.78; }}
-.status-badge {{
-  border: 1px solid rgba(37,99,235,.22);
-  background: rgba(219,234,254,.85);
-  color: #1d4ed8;
-  border-radius: 999px;
-  padding: 9px 13px;
-  font-size: 14px;
-  font-weight: 900;
-  white-space: nowrap;
-}}
-.kpi-grid {{
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
-  gap: 14px;
-  margin-top: 28px;
-}}
-.kpi {{
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: rgba(255,255,255,.72);
-  padding: 18px;
-}}
-.kpi .label {{ color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }}
-.kpi .value {{ margin-top: 8px; font-size: 31px; font-weight: 950; letter-spacing: -.04em; }}
-.kpi .hint {{ margin-top: 5px; color: var(--muted); font-size: 12px; }}
-.health-card {{
-  margin-top: 16px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255,255,255,.72);
-  padding: 14px 16px;
-}}
-.health-card h3 {{ margin: 0 0 6px; font-size: 16px; }}
-.health-card ul {{ margin: 0; padding-left: 18px; }}
+.subtitle {{ display: none; }}
 .tab-nav {{
   position: sticky;
   top: 0;
@@ -579,7 +698,20 @@ select, input {{
   padding: 18px;
 }}
 .mover-card {{ display: grid; grid-template-columns: 220px 1fr; gap: 18px; margin-bottom: 14px; }}
-.important-move {{ border-color: rgba(183,121,31,.32); box-shadow: 0 16px 48px rgba(183,121,31,.12); }}
+.mover-details {{ margin-top: 10px; }}
+.mover-details > summary {{
+  cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
+}}
+.source-group {{ margin-bottom: 4px; }}
+.source-group > summary {{
+  cursor: pointer; font-weight: 800; color: #334155; padding: 4px 0; font-size: 14px;
+}}
+.search-block-label {{
+  margin-top: 10px; padding: 6px 12px; font-size: 12px; font-weight: 900; text-transform: uppercase;
+  color: var(--blue); background: var(--blue-soft); border-radius: 12px; display: inline-block;
+}}
+.mover {{ border-left: 4px solid var(--slate-soft); }}
+.important-move {{ border-left: 4px solid var(--amber); }}
 .ticker-block {{ border-right: 1px solid var(--line); padding-right: 16px; }}
 .ticker {{ font-size: 24px; font-weight: 950; letter-spacing: -.04em; }}
 .company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
@@ -622,10 +754,19 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
 .pill.coverage.radar {{ background: var(--slate-soft); color: var(--slate); }}
 .pill.monitor.core-watch {{ background: var(--green-soft); color: var(--green); }}
 .pill.monitor.daily-watch {{ background: var(--slate-soft); color: var(--slate); }}
-.pill.importance {{ background: var(--amber-soft); color: var(--amber); }}
-.pill.importance.ordinary {{ background: var(--slate-soft); color: var(--slate); }}
+.pill.importance {{ background: var(--amber-soft); color: var(--amber); font-size: 11px; }}
+.pill.importance.ordinary {{ background: var(--slate-soft); color: var(--slate); font-size: 10px; opacity: .7; }}
 .pill.trigger {{ background: rgba(255,255,255,.82); color: #334155; }}
 .pill.status {{ background: rgba(248,250,252,.9); color: #475569; margin-left: 6px; }}
+.status-dot {{
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-left: 3px;
+  vertical-align: middle;
+  cursor: help;
+}}
 .pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
 .explainer {{ margin-top: 10px; }}
 .explainer-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
@@ -638,22 +779,43 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   background: var(--card);
   box-shadow: 0 14px 44px rgba(15,23,42,.07);
 }}
-table {{ width: 100%; border-collapse: collapse; font-size: 14.5px; }}
+.table-card table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; }}
 th, td {{
-  padding: 13px 14px;
-  border-bottom: 1px solid rgba(148,163,184,.22);
+  padding: 3px 5px;
+  border-bottom: 1px solid rgba(148,163,184,.18);
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
+  height: 28px;
 }}
 th {{
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   background: rgba(248,250,252,.82);
+}}
+td:first-child, th:first-child {{ padding-left: 12px; }}  /* Ticker — clear card border radius */
+td:nth-child(1) {{ white-space: nowrap; }}       /* Ticker */
+td:nth-child(4) {{ white-space: nowrap; }}       /* Today Return */
+td:nth-child(8) {{                                /* Next Trigger */
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: default;
 }}
 tr:last-child td {{ border-bottom: 0; }}
+.gaps-footer {{
+  margin: 20px 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}}
+.gaps-footer summary {{
+  cursor: pointer;
+  color: var(--slate);
+  font-weight: 700;
+}}
+.gaps-footer ul {{ margin: 8px 0 0; padding-left: 18px; font-size: 12px; }}
 #universeTable tr[data-coverage="core"] td:nth-child(5) {{ color: #1d4ed8; font-weight: 950; }}
 #universeTable tr[data-coverage="building"] td:nth-child(5) {{ color: var(--amber); font-weight: 950; }}
 #universeTable tr[data-coverage="radar"] td:nth-child(5) {{ color: var(--slate); font-weight: 950; }}
@@ -667,7 +829,7 @@ tr:last-child td {{ border-bottom: 0; }}
 .source-line span {{ display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }}
 @media (max-width: 960px) {{
   .hero-top, .section-head {{ flex-direction: column; align-items: flex-start; }}
-  .kpi-grid, .grid-2 {{ grid-template-columns: 1fr; }}
+  .grid-2 {{ grid-template-columns: 1fr; }}
   .mover-card, .industry-card {{ grid-template-columns: 1fr; }}
   .ticker-block {{ border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 14px; }}
   .metric-row {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
@@ -677,26 +839,12 @@ tr:last-child td {{ border-bottom: 0; }}
 <body>
 <main>
   <section class="hero">
-    <div class="hero-top">
-      <div>
-        <div class="eyebrow">Coverage Monitor Daily</div>
-        <h1>Daily Coverage Dashboard</h1>
-        <div class="subtitle">
-          English handles structure; 中文负责判断解释。日报只做日终 coverage monitoring，不做仓位/P&amp;L，不把研究 memo 重新写一遍。
-        </div>
-      </div>
-      <div class="status-badge">{escape(today)} · workspace coverage</div>
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="label">Coverage Universe</div><div class="value">{len(entries)}</div><div class="hint">COVERAGE.md registered names</div></div>
-      <div class="kpi"><div class="label">Material Movers</div><div class="value">{len(movers)}</div><div class="hint">return / volume / gap trigger</div></div>
-      <div class="kpi"><div class="label">Core Watch</div><div class="value">{len(core_entries)}</div><div class="hint">daily company search list</div></div>
-      <div class="kpi"><div class="label">Data Issues</div><div class="value">{len(gaps)}</div><div class="hint">quote / source / delivery gaps</div></div>
-    </div>
-    <div class="health-card">
-      <h3>Data Health</h3>
-      <ul>{health_items}</ul>
-    </div>
+    <span class="eyebrow">Coverage Monitor</span>
+    <span class="hero-date">{escape(today)}</span>
+    <span class="hero-stat">{len(entries)} names</span>
+    <span class="hero-stat">{len(movers)} movers</span>
+    <span class="hero-stat">{len(core_entries)} Core Watch</span>
+    <span class="hero-stat">{len(gaps)} gaps</span>
   </section>
 
   <nav class="tab-nav" aria-label="Dashboard tabs">
@@ -710,7 +858,6 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Movers</h2>
-        <p>只放命中本轮 material threshold 的名字。先给 return / volume ratio / gap，再压一句中文解释，重要异动额外给 evidence 与 filing layer。</p>
       </div>
     </div>
     <div class="filter-bar">
@@ -725,7 +872,6 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Core Watch</h2>
-        <p>Core Coverage / Core Watch 名单每天都搜公司级 news，不等价格异动。没有 material update 也应留下 evidence log。</p>
       </div>
     </div>
     <div class="grid-2">{''.join(core_cards) or '<article class="card">No Core Watch companies registered.</article>'}</div>
@@ -735,7 +881,6 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Industry Tape</h2>
-        <p>按行业扫 Daily Signal Sources。Substack / trade media / official 都扫；都没有新东西时，再 fallback general news。</p>
       </div>
     </div>
     <div class="stack">{''.join(industry_sections) or '<article class="card">No industry read-through source configured.</article>'}</div>
@@ -745,26 +890,22 @@ tr:last-child td {{ border-bottom: 0; }}
     <div class="section-head">
       <div>
         <h2>Universe</h2>
-        <p>覆盖全部注册名字。这里只在异常时展示 quote status，不把状态系统做成正文主角。</p>
       </div>
     </div>
     <div class="filter-bar">
       <select id="universeIndustry"><option value="all">Industry · All</option>{''.join(f'<option value="{escape(industry)}">{escape(industry)}</option>' for industry in industry_list)}</select>
-      <select id="universeCoverage"><option value="all">Coverage · All</option><option value="core">Core Coverage</option><option value="building">Building Coverage</option><option value="radar">Radar</option></select>
+      <select id="universeCoverage"><option value="all">Coverage · All</option><option value="core">Core</option><option value="building">Building</option><option value="radar">Radar</option></select>
       <input id="universeSearch" placeholder="Search ticker / company">
     </div>
-    <article class="card">
-      <span class="pill coverage core">Coverage Contract</span>
-      <h3>Coverage is the displayed research state</h3>
-      <p class="body-copy">展示层和底层都只保留 `Coverage` + `Monitor` 语义字段，不再保留旧 T/A contract。不同状态直接用含义名字显示。</p>
-      <details><summary>Coverage Gaps ({len(gaps)})</summary><ul>{gap_items}</ul></details>
-    </article>
     <div class="table-card">
       <table id="universeTable">
         <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Today Return</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
         <tbody>{''.join(universe_rows)}</tbody>
       </table>
     </div>
+  </section>
+  <section class="gaps-footer">
+    <details><summary>Coverage Gaps ({len(gaps)})</summary><ul>{gap_items}</ul></details>
   </section>
 </main>
 <script>

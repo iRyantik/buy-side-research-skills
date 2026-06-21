@@ -3,29 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from html import unescape
-import os
 from pathlib import Path
-import json
 import re
-import shutil
-import subprocess
-from typing import Protocol
-from urllib.parse import parse_qs, quote_plus, unquote, urlparse
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from .coverage import CoverageEntry
 from .signals import assess_snapshot
-from .tickers import build_ticker_runtime
-
-
-OFFICIAL_DOMAINS = (
-    "sec.gov",
-    "hkexnews.hkex.com.hk",
-    "edinet-fsa.go.jp",
-    "dart.fss.or.kr",
-    "englishdart.fss.or.kr",
-    "mops.twse.com.tw",
-)
 
 
 @dataclass(frozen=True)
@@ -47,290 +31,126 @@ class ImportantMoverExplainer:
     filings_evidence: list[NewsItem]
 
 
-class SearchProvider(Protocol):
-    def search(self, query: str, max_results: int) -> list[NewsItem]:
-        ...
-
-
-class CodexCliSearchProvider:
-    def __init__(self, timeout_seconds: int = 180, model: str = "gpt-5.4", working_dir: Path | None = None):
-        self.timeout_seconds = timeout_seconds
-        self.model = model
-        self.working_dir = working_dir
-        self.executable = _resolve_codex_executable()
-
-    def search(self, query: str, max_results: int) -> list[NewsItem]:
-        prompt = (
-            "Use live web search to find stock or industry news. Return ONLY valid JSON with a top-level "
-            "`results` array. Each result must include title, url, source, snippet, and published_at.\n"
-            f"Query: {query}\n"
-            f"Limit: {max_results}\n"
-        )
-        command = [
-            self.executable,
-            "--search",
-            "exec",
-            "--model",
-            self.model,
-            "--skip-git-repo-check",
-            "--ephemeral",
-            "--color",
-            "never",
-        ]
-        if self.working_dir is not None:
-            command.extend(["--cd", str(self.working_dir)])
-        command.append("-")
-        completed = subprocess.run(
-            command,
-            input=prompt,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-            timeout=self.timeout_seconds,
-            check=False,
-        )
-        if completed.returncode != 0:
-            raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or f"exit {completed.returncode}")
-        payload = _parse_results_json_from_text(completed.stdout)
-        return _search_results_from_payload(payload, query=query, max_results=max_results)
-
-
-class HtmlSearchProvider:
-    def search(self, query: str, max_results: int) -> list[NewsItem]:
-        items = _ddg_links(query, max_results=max_results)
-        if items:
-            return items
-        return _bing_links(query, max_results=max_results)
-
-
-def _resolve_search_provider() -> SearchProvider:
-    provider_name = str(os.environ.get("COVERAGE_MONITOR_SEARCH_PROVIDER", "html")).strip().lower()
-    if provider_name == "codex_cli":
-        try:
-            return CodexCliSearchProvider()
-        except Exception:
-            return HtmlSearchProvider()
-    return HtmlSearchProvider()
-
-
-def _fetch_text(url: str, timeout: int = 8) -> str:
-    request = Request(url, headers={"User-Agent": "Mozilla/5.0 coverage-monitor"})
-    with urlopen(request, timeout=timeout) as response:  # nosec - user-controlled research sources
-        data = response.read(600_000)
-    return data.decode("utf-8", errors="ignore")
-
-
-def _fetch_text_playwright(url: str, timeout: int = 8000) -> str:
-    try:
-        from playwright.sync_api import sync_playwright
-    except Exception as exc:  # pragma: no cover - optional dependency
-        raise RuntimeError("playwright_unavailable") from exc
-    with sync_playwright() as playwright:  # pragma: no cover - optional dependency
-        browser = playwright.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, wait_until="networkidle", timeout=timeout)
-        content = page.content()
-        browser.close()
-    return content
-
-
-def _fetch_text_with_fallbacks(url: str, timeout: int = 8) -> str:
-    try:
-        return _fetch_text(url, timeout=timeout)
-    except Exception:
-        return _fetch_text_playwright(url, timeout=max(timeout * 1000, 8000))
-
-
-def _html_title(html_text: str) -> str:
-    match = re.search(r"<title[^>]*>(.*?)</title>", html_text, flags=re.IGNORECASE | re.DOTALL)
-    if not match:
-        return ""
-    title = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(1))).strip()
-    return unescape(title)
-
-
-def _meta_description(html_text: str) -> str:
-    match = re.search(
-        r'<meta[^>]+(?:name|property)=["\'](?:description|og:description)["\'][^>]+content=["\'](.*?)["\']',
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        return ""
-    description = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(1))).strip()
-    return unescape(description)
-
-
-
-
-def _normalize_result_url(raw_url: str) -> str:
-    if raw_url.startswith("//"):
-        raw_url = f"https:{raw_url}"
-    elif raw_url.startswith("/"):
-        raw_url = f"https://duckduckgo.com{raw_url}"
-    parsed = urlparse(raw_url)
-    if "duckduckgo.com" in parsed.netloc and parsed.path.startswith("/l/"):
-        target = parse_qs(parsed.query).get("uddg", [""])[0]
-        if target:
-            return unquote(target)
-    return raw_url
-
-
-def _ddg_links(query: str, max_results: int = 5) -> list[NewsItem]:
-    url = f"https://duckduckgo.com/html/?q={quote_plus(query)}"
-    try:
-        html_text = _fetch_text(url)
-    except Exception:
-        return []
-    items: list[NewsItem] = []
-    for match in re.finditer(r'class="result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', html_text, flags=re.IGNORECASE | re.DOTALL):
-        href = _normalize_result_url(unescape(match.group(1)))
-        title = unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(2))).strip())
-        if title and href:
-            items.append(NewsItem(title=title, url=href, source=urlparse(href).netloc, query=query))
-        if len(items) >= max_results:
-            break
-    return items
-
-
-def _decode_bing_url(href: str) -> str:
-    parsed = urlparse(href)
-    encoded = parse_qs(parsed.query).get("u", [""])[0]
-    if not encoded.startswith("a1"):
-        return href
-    payload = encoded[2:]
-    try:
-        import base64
-
-        padding = "=" * (-len(payload) % 4)
-        return base64.urlsafe_b64decode((payload + padding).encode("ascii")).decode("utf-8", errors="ignore")
-    except Exception:
-        return href
-
-
-def _bing_links(query: str, max_results: int = 5) -> list[NewsItem]:
-    url = f"https://www.bing.com/search?q={quote_plus(query)}"
-    try:
-        html_text = _fetch_text(url)
-    except Exception:
-        return []
-    items: list[NewsItem] = []
-    for block in re.findall(r'<li class="b_algo".*?</li>', html_text, flags=re.IGNORECASE | re.DOTALL):
-        match = re.search(r"<h2[^>]*>\s*<a[^>]*href=\"([^\"]+)\"[^>]*>(.*?)</a>", block, flags=re.IGNORECASE | re.DOTALL)
-        if not match:
-            continue
-        href = _decode_bing_url(unescape(match.group(1)))
-        title = unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(2))).strip())
-        if title and href:
-            items.append(NewsItem(title=title, url=href, source=urlparse(href).netloc, query=query))
-        if len(items) >= max_results:
-            break
-    return items
-
-
-def _parse_results_json_from_text(text: str) -> dict:
-    stripped = text.strip()
-    decoder = json.JSONDecoder()
-    try:
-        parsed = json.loads(stripped)
-        if isinstance(parsed, dict) and isinstance(parsed.get("results"), list):
-            return parsed
-    except json.JSONDecodeError:
-        pass
-    for index, char in enumerate(stripped):
-        if char != "{":
-            continue
-        try:
-            parsed, _ = decoder.raw_decode(stripped[index:])
-            if isinstance(parsed, dict) and isinstance(parsed.get("results"), list):
-                return parsed
-        except json.JSONDecodeError:
-            continue
-    raise RuntimeError(f"invalid_search_json:{stripped[:300]}")
-
-
-def _search_results_from_payload(payload: dict, query: str, max_results: int) -> list[NewsItem]:
-    items: list[NewsItem] = []
-    for row in payload.get("results", []):
-        if not isinstance(row, dict):
-            continue
-        url = str(row.get("url", "")).strip()
-        title = str(row.get("title", "")).strip()
-        if not url or not title:
-            continue
-        source = str(row.get("source", "")).strip() or urlparse(url).netloc or "web"
-        snippet = str(row.get("snippet", "")).strip()
-        published = str(row.get("published_at", "") or "").strip()
-        items.append(NewsItem(title=title, url=url, source=source, summary=snippet, published_at=published, query=query))
-        if len(items) >= max_results:
-            break
-    return items
-
-
-def _resolve_codex_executable() -> str:
-    for name in ("codex.exe", "codex.cmd", "codex"):
-        path = shutil.which(name)
-        if path:
-            return path
-    raise RuntimeError("codex_cli_unavailable")
-
+# ── helpers ────────────────────────────────────────────
 
 def _dedupe_news(items: list[NewsItem], max_results: int | None = None) -> list[NewsItem]:
-    seen_urls: set[str] = set()
+    seen: set[str] = set()
     deduped: list[NewsItem] = []
     for item in items:
-        if not item.url or item.source == "search_link" or item.url in seen_urls:
+        if not item.url or item.source == "search_link" or item.url in seen:
             continue
-        seen_urls.add(item.url)
+        seen.add(item.url)
         deduped.append(item)
         if max_results is not None and len(deduped) >= max_results:
             break
     return deduped
 
 
-def _token_set(entry: CoverageEntry) -> set[str]:
-    runtime = build_ticker_runtime(entry.ticker, entry.company)
-    raw_tokens = [entry.company, *(runtime.search_aliases or ())]
-    tokens: set[str] = set()
-    for raw in raw_tokens:
-        for token in re.findall(r"[a-z0-9]+", raw.lower()):
-            if len(token) >= 3 and token not in {"news", "stock", "latest", "results", "company"}:
-                tokens.add(token)
-    return tokens
-
-
-def _relevant_news_items(items: list[NewsItem], entry: CoverageEntry) -> list[NewsItem]:
-    tokens = _token_set(entry)
-    filtered = []
-    for item in items:
-        haystack = f"{item.title} {item.summary} {item.url}".lower()
-        if any(token in haystack for token in tokens):
-            filtered.append(item)
-    return filtered or items
-
-
-def _is_official_like_item(item: NewsItem) -> bool:
-    parsed = urlparse(item.url)
-    domain = parsed.netloc.lower()
-    title = f"{item.title} {item.summary}".lower()
-    if any(source in domain for source in OFFICIAL_DOMAINS):
-        return True
-    if any(token in domain for token in ("investor", "ir.", "newsroom", "press", "relations")):
-        return True
-    if any(token in title for token in ("results", "press release", "investor", "filing", "8-k", "annual report", "quarterly report")):
-        return True
-    return False
-
-
 def _source_host(url: str) -> str:
     return urlparse(url).netloc.lower()
 
 
-def build_company_search_queries(entry: CoverageEntry, today: str) -> list[str]:
-    runtime = build_ticker_runtime(entry.ticker, entry.company)
-    query = f"{entry.ticker} {entry.company} news earnings guidance order backlog results after:{today}"
-    return [query.strip()]
+def _fetch_text(url: str, timeout: int = 12) -> str:
+    request = Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
+    with urlopen(request, timeout=timeout) as response:
+        data = response.read(600_000)
+    return data.decode("utf-8", errors="ignore")
+
+
+def _html_title(html_text: str) -> str:
+    match = re.search(r"<title[^>]*>(.*?)</title>", html_text, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return ""
+    return unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(1))).strip())
+
+
+def _meta_description(html_text: str) -> str:
+    match = re.search(
+        r'<meta[^>]+(?:name|property)=["\'](?:description|og:description)["\'][^>]+content=["\'](.*?)["\']',
+        html_text, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return ""
+    return unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", match.group(1))).strip())
+
+
+def _fetch_text_with_fallbacks(url: str, timeout: int = 15) -> str:
+    """HTTP GET first; falls to Playwright on exception or Cloudflare challenge page."""
+    try:
+        text = _fetch_text(url, timeout=timeout)
+        if _is_cloudflare_challenge(text):
+            raise RuntimeError("Cloudflare challenge detected")
+        return text
+    except Exception:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url, wait_until="domcontentloaded", timeout=max(timeout * 1000, 15000))
+                page.wait_for_timeout(3000)
+                content = page.content()
+                browser.close()
+            return content
+        except Exception:
+            raise
+
+
+def _is_cloudflare_challenge(html_text: str) -> bool:
+    """Detect Cloudflare JS challenge or bot-block pages."""
+    lower = html_text[:2000].lower()
+    cf_markers = (
+        "just a moment",           # Cloudflare JS challenge
+        "cf-browser-verify",       # Cloudflare browser check
+        "attention required!",     # Cloudflare block
+        "please enable cookies",   # common CF message
+        "#cf-challenge-running",   # legacy CF challenge
+    )
+    return any(marker in lower for marker in cf_markers)
+
+
+# ── company news (headlines only — agent handles Core Watch via WebSearch) ──
+
+def collect_company_news(
+    entries: list[CoverageEntry],
+    snapshots: dict[str, dict],
+    today: str | None = None,
+) -> tuple[dict[str, list[NewsItem]], list[str], list[str]]:
+    """Collect yfinance headlines. Returns (news_map, gaps, agent_needed_keys).
+
+    News search is agent-driven — this function only collects what's available
+    from yfinance snapshots. The caller should use WebSearch/Longbridge for
+    Core Watch stocks that need real news.
+    """
+    result: dict[str, list[NewsItem]] = {}
+    gaps: list[str] = []
+    agent_needed: list[str] = []
+
+    for entry in entries:
+        key = entry.ticker or entry.company
+        if not key:
+            continue
+
+        snapshot = snapshots.get(key, {})
+        items: list[NewsItem] = []
+
+        # yfinance headline (free)
+        if snapshot.get("headline") and snapshot.get("url"):
+            items.append(NewsItem(
+                title=str(snapshot["headline"]), url=str(snapshot["url"]),
+                source="yfinance", summary="Latest provider headline.",
+                published_at=str(snapshot.get("published_at") or ""),
+            ))
+
+        # Core Watch or important mover — agent must search via WebSearch
+        assessment = assess_snapshot(snapshot) if snapshot else None
+        if entry.monitor_status == "Core" or (assessment and assessment.is_important):
+            agent_needed.append(key)
+
+        result[key] = items
+        if not items and entry.monitor_status == "Core":
+            gaps.append(f"{key}: no_yfinance_headline — agent should search via WebSearch")
+
+    return result, sorted(set(gaps)), sorted(set(agent_needed))
 
 
 def build_important_mover_explainer(
@@ -363,14 +183,169 @@ def build_important_mover_explainer(
     )
 
 
-def _search_all(provider: SearchProvider, queries: list[str], max_results: int) -> list[NewsItem]:
-    items: list[NewsItem] = []
-    for query in queries:
-        try:
-            items.extend(provider.search(query, max_results=max_results))
-        except Exception:
-            continue
+# ── Playwright headline scraper (fallback for P1 no-RSS sources) ──
+
+def _scrape_headlines(url: str, max_items: int = 5) -> list[tuple[str, str, str]]:
+    """Use headless Playwright to extract article headlines from a homepage.
+    Returns list of (title, url, published_at)."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return []
+
+    results: list[tuple[str, str, str]] = []
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            page.wait_for_timeout(3000)
+
+            # Extract article-like links: <a> wrapping <h2>/<h3> or with headline classes
+            links = page.evaluate("""() => {
+                const results = [];
+                const seen = new Set();
+                // Find all <a> with substantial text or wrapping a heading
+                const candidates = document.querySelectorAll('a');
+                for (const a of candidates) {
+                    const text = (a.textContent || '').trim();
+                    if (text.length < 20 || text.length > 300) continue;
+                    const href = a.href;
+                    if (!href || href === location.href || href.startsWith('javascript:')) continue;
+                    // Skip nav/footer links
+                    if (a.closest('nav, footer, .nav, .footer, .menu, .sidebar')) continue;
+                    const key = href;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    // Prefer links with heading children
+                    const hasHeading = a.querySelector('h1, h2, h3, h4');
+                    results.push({title: text, url: href, score: hasHeading ? 2 : 1});
+                }
+                // Sort: heading-wrapped first, then by position
+                return results.sort((a, b) => b.score - a.score).slice(0, 20);
+            }""")
+
+            for item in links[:max_items]:
+                title = item.get("title", "").strip()
+                article_url = item.get("url", "")
+                if title and article_url:
+                    results.append((title, article_url, ""))
+
+            browser.close()
+    except Exception:
+        pass
+    return results
+
+
+# ── RSS feed parsing ───────────────────────────────────
+
+def _is_substack_url(url: str) -> bool:
+    return "substack.com" in urlparse(url).netloc.lower()
+
+
+def _get_rss_feed_url(source_url: str) -> str | None:
+    """Determine RSS feed URL for a source. Substack appends /feed;
+    other sites try RSS auto-discovery from homepage HTML.
+    Returns None if no feed found.
+    """
+    if _is_substack_url(source_url):
+        return source_url.rstrip("/") + "/feed"
+
+    # Try RSS auto-discovery from homepage
+    try:
+        html = _fetch_text(source_url, timeout=12)
+    except Exception:
+        return None
+
+    # <link rel="alternate" type="application/rss+xml" href="...">
+    for pattern in (
+        r'<link[^>]+type=[\"\']application/rss\+xml[\"\'][^>]+href=[\"\']([^\"\']+)[\"\']',
+        r'<link[^>]+href=[\"\']([^\"\']+)[\"\'][^>]+type=[\"\']application/rss\+xml[\"\']',
+    ):
+        m = re.search(pattern, html, re.IGNORECASE)
+        if m:
+            feed_url = m.group(1)
+            if feed_url.startswith("/"):
+                from urllib.parse import urljoin
+                feed_url = urljoin(source_url, feed_url)
+            return feed_url
+    return None
+
+
+def _parse_rss_items(feed_text: str) -> list[tuple[str, str, str]]:
+    """Parse RSS 2.0 or Atom feed. Returns list of (title, url, published_at)."""
+    items: list[tuple[str, str, str]] = []
+
+    # Extract all <item> or <entry> blocks
+    # RSS 2.0: <item><title>...</title><link>...</link><pubDate>...</pubDate></item>
+    # Atom: <entry><title>...</title><link href="..."/><published>...</published></entry>
+    item_blocks = re.findall(r'<item[>\s](.*?)</item>', feed_text, re.DOTALL)
+    if not item_blocks:
+        item_blocks = re.findall(r'<entry[>\s](.*?)</entry>', feed_text, re.DOTALL)
+
+    for block in item_blocks:
+        # Title (handle CDATA)
+        title_m = re.search(r'<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>', block, re.DOTALL)
+        title = title_m.group(1).strip() if title_m else ""
+        # Clean HTML entities
+        title = unescape(title).replace("&apos;", "'").replace("&amp;", "&")
+
+        # URL: RSS <link>text</link> or Atom <link href="..."/>
+        url = ""
+        link_m = re.search(r'<link[^>]*>(.*?)</link>', block, re.DOTALL)
+        if link_m:
+            url = link_m.group(1).strip()
+        if not url:
+            link_m = re.search(r'<link[^>]+href=[\"\']([^\"\']+)[\"\']', block)
+            if link_m:
+                url = link_m.group(1).strip()
+
+        # Date: RSS <pubDate> or Atom <published>/<updated>
+        date_str = ""
+        for tag in ("pubDate", "published", "updated", "dc:date"):
+            date_m = re.search(f'<{tag}>(.*?)</{tag}>', block)
+            if date_m:
+                date_str = date_m.group(1).strip()
+                break
+
+        if title and len(title) > 10:  # skip feed-level titles
+            items.append((title, url, date_str))
+
     return items
+
+
+def _parse_date_to_str(date_str: str) -> str:
+    """Convert various date formats to 'MM-DD HH:MM' string."""
+    if not date_str:
+        return ""
+    try:
+        from email.utils import parsedate_to_datetime
+        dt = parsedate_to_datetime(date_str)
+        return dt.strftime("%m-%d %H:%M")
+    except Exception:
+        pass
+    # Try ISO format
+    try:
+        from datetime import datetime as dt_mod
+        dt = dt_mod.fromisoformat(date_str.replace("Z", "+00:00").replace("+00:00", "+00:00"))
+        return dt.strftime("%m-%d %H:%M")
+    except Exception:
+        return date_str[:16]
+
+
+# ── industry read-throughs ──────────────────────────────
+
+@dataclass
+class SourceResult:
+    """Result from fetching a single industry source."""
+    source_name: str
+    source_url: str
+    tier: str
+    articles: list[NewsItem]       # today's articles (RSS items within 48h)
+    has_rss: bool = False
+    is_dry: bool = False           # RSS available but no recent articles
+    needs_agent: bool = False      # P1 with no RSS — agent should domain-search
+    gap_msg: str = ""
 
 
 def parse_daily_signal_sources(research_md: Path) -> list[dict[str, str]]:
@@ -385,7 +360,7 @@ def parse_daily_signal_sources(research_md: Path) -> list[dict[str, str]]:
     if start is None:
         return []
     table_lines = []
-    for line in lines[start + 1 :]:
+    for line in lines[start + 1:]:
         if table_lines and not line.lstrip().startswith("|"):
             break
         if line.lstrip().startswith("|"):
@@ -404,101 +379,169 @@ def parse_daily_signal_sources(research_md: Path) -> list[dict[str, str]]:
     return sources
 
 
-def collect_company_news(
-    entries: list[CoverageEntry],
-    snapshots: dict[str, dict],
-    today: str | None = None,
-    provider: SearchProvider | None = None,
-    max_workers: int = 5,
-) -> tuple[dict[str, list[NewsItem]], dict[str, ImportantMoverExplainer], list[str]]:
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+def _fetch_one_source(industry: str, source: dict[str, str], today: str | None = None) -> SourceResult:
+    """Fetch a single industry source via RSS feed.
+    Returns SourceResult with today's articles, status flags, and gap info."""
+    from datetime import datetime as dt_mod, timedelta, timezone
 
-    provider = provider or _resolve_search_provider()
-    result: dict[str, list[NewsItem]] = {}
-    explainers: dict[str, ImportantMoverExplainer] = {}
-    gaps: list[str] = []
-    day_label = today or datetime.now().date().isoformat()
+    source_name = source.get("来源", "")
+    source_url = source.get("URL", "")
+    tier = source.get("Tier", "P1")
+    host = _source_host(source_url)
 
-    targets = [e for e in entries if e.monitor_status == "Core Watch"
-               or (assess_snapshot(snapshots.get(e.ticker or e.company or "", {})).is_important
-                   if assess_snapshot(snapshots.get(e.ticker or e.company or "", {})) else False)]
+    # Resolve reference date
+    if today:
+        ref_date = dt_mod.fromisoformat(today).date()
+    else:
+        ref_date = dt_mod.now(timezone.utc).date()
+    cutoff = ref_date - timedelta(days=1)  # 48h window for weekends
 
-    def _search_one(entry: CoverageEntry) -> tuple[str, list[NewsItem]]:
-        key = entry.ticker or entry.company
-        snapshot = snapshots.get(key, {})
-        items: list[NewsItem] = []
-        if snapshot.get("headline") and snapshot.get("url"):
-            items.append(NewsItem(title=str(snapshot["headline"]), url=str(snapshot["url"]),
-                         source="yfinance", summary="Latest provider headline.",
-                         published_at=str(snapshot.get("published_at") or "")))
-        queries = build_company_search_queries(entry, day_label)
-        ddg_items = _search_all(provider, queries, max_results=5)
-        items = _dedupe_news([*items, *_relevant_news_items(ddg_items, entry)], max_results=6)
-        return key, items
+    # Try RSS
+    rss_url = _get_rss_feed_url(source_url)
+    if not rss_url:
+        # P1 without RSS → try Playwright headline scrape, then fallback to agent
+        if tier == "P1":
+            scraped = _scrape_headlines(source_url, max_items=5)
+            if scraped:
+                articles = []
+                for title, article_url, _date in scraped:
+                    articles.append(NewsItem(
+                        title=title, url=article_url,
+                        source=source_name or host, tier=tier,
+                    ))
+                return SourceResult(
+                    source_name=source_name or host, source_url=source_url, tier=tier,
+                    articles=articles, has_rss=False, is_dry=False,
+                )
+            return SourceResult(
+                source_name=source_name or host, source_url=source_url, tier=tier,
+                articles=[], has_rss=False, needs_agent=True,
+                gap_msg=f"{industry}: P1_NO_RSS_NO_PLAYWRIGHT:{source_name or source_url}",
+            )
+        # P0/P2 without RSS → just note
+        return SourceResult(
+            source_name=source_name or host, source_url=source_url, tier=tier,
+            articles=[], has_rss=False, is_dry=True,
+            gap_msg=f"{industry}: NO_RSS:{source_name or source_url} (tier={tier})",
+        )
 
-    with ThreadPoolExecutor(max_workers=min(max_workers, len(targets))) as pool:
-        futures = {pool.submit(_search_one, entry): entry for entry in targets}
-        for future in as_completed(futures):
-            key, items = future.result()
-            if not items:
-                gaps.append(f"{key}: no_company_news_found")
-            result[key] = items
+    # Fetch and parse RSS
+    try:
+        feed_text = _fetch_text_with_fallbacks(rss_url)
+        all_items = _parse_rss_items(feed_text)
+    except Exception as exc:
+        return SourceResult(
+            source_name=source_name or host, source_url=source_url, tier=tier,
+            articles=[], has_rss=True, is_dry=True,
+            gap_msg=f"{industry}: RSS_FETCH_FAIL:{source_name or source_url} ({exc.__class__.__name__})",
+        )
 
-    return result, explainers, sorted(set(gaps))
+    # Filter to recent articles
+    articles: list[NewsItem] = []
+    for title, article_url, date_str in all_items:
+        parsed_date = _parse_date_to_str(date_str)
+        is_recent = False
+        if date_str:
+            try:
+                from email.utils import parsedate_to_datetime
+                dt = parsedate_to_datetime(date_str)
+                if dt.date() >= cutoff:
+                    is_recent = True
+            except Exception:
+                pass
+        if is_recent:
+            articles.append(NewsItem(
+                title=title,
+                url=article_url or source_url,
+                source=source_name or host,
+                tier=tier,
+                published_at=parsed_date,
+            ))
 
+    if articles:
+        return SourceResult(
+            source_name=source_name or host, source_url=source_url, tier=tier,
+            articles=articles, has_rss=True, is_dry=False,
+        )
 
-def _source_search_queries(industry: str, source: dict[str, str], today: str) -> list[str]:
-    url = source.get("URL", "")
-    host = _source_host(url)
-    source_name = source.get("来源", "") or host
-    queries = [
-        f"{industry} {source_name} after:{today}",
-        f"site:{host} {industry} latest",
-    ]
-    return [query for query in dict.fromkeys(queries) if query.strip()]
+    # RSS available but no recent articles
+    if tier == "P1":
+        latest_info = ""
+        if all_items:
+            latest_info = f" (latest: {all_items[0][0][:60]} @ {_parse_date_to_str(all_items[0][2])})"
+        return SourceResult(
+            source_name=source_name or host, source_url=source_url, tier=tier,
+            articles=[], has_rss=True, is_dry=True, needs_agent=True,
+            gap_msg=f"{industry}: P1_DRY:{source_name or source_url}{latest_info}",
+        )
+
+    return SourceResult(
+        source_name=source_name or host, source_url=source_url, tier=tier,
+        articles=[], has_rss=True, is_dry=True,
+    )
 
 
 def collect_industry_readthroughs(
     workspace: Path,
     today: str | None = None,
-    provider: SearchProvider | None = None,
-) -> tuple[dict[str, list[NewsItem]], list[str]]:
-    provider = provider or _resolve_search_provider()
+    max_workers: int = 8,
+) -> tuple[dict[str, list[NewsItem]], dict[str, list[SourceResult]], list[str]]:
+    """Fetch industry sources via RSS feed. Returns (articles_by_industry, source_results_by_industry, gaps).
+    Parallel fetch — wall clock = slowest single source.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     industry_root = workspace / "industry"
-    result: dict[str, list[NewsItem]] = {}
-    gaps: list[str] = []
     if not industry_root.exists():
-        return result, ["industry_dir_missing"]
-    day_label = today or datetime.now().date().isoformat()
+        return {}, {}, ["industry_dir_missing"]
+
+    # Collect all fetchable (industry, source) pairs
+    tasks: list[tuple[str, dict[str, str]]] = []
+    industry_sources: dict[str, list[dict[str, str]]] = {}
     for research_md in sorted(industry_root.glob("*/RESEARCH.md")):
         industry = research_md.parent.name
-        sources = parse_daily_signal_sources(research_md)
-        items: list[NewsItem] = []
-        for source in sources:
+        sources = []
+        for source in parse_daily_signal_sources(research_md):
             url = source.get("URL", "")
-            if not url or url == "varies by company":
+            if not url or url.startswith("varies by"):
                 continue
-            host = _source_host(url)
-            try:
-                html_text = _fetch_text_with_fallbacks(url)
-                title = _html_title(html_text)
-            except Exception as exc:
-                gaps.append(f"{industry}: source_fetch_failed:{source.get('来源') or url} ({exc.__class__.__name__})")
-                continue
-            if title:
-                items.append(
-                    NewsItem(
-                        title=title,
-                        url=url,
-                        source=source.get("来源", "") or host,
-                        summary=_meta_description(html_text) or source.get("Use For", ""),
-                        tier=source.get("Tier", ""),
-                    )
-                )
-        if not items:
-            fallback_items = _search_all(provider, [f"{industry} industry news latest after:{day_label}"], max_results=5)
-            items.extend(_dedupe_news(fallback_items, max_results=5))
-            if not items:
-                gaps.append(f"{industry}: no_industry_readthrough_found")
-        result[industry] = _dedupe_news(items, max_results=12)
-    return result, sorted(set(gaps))
+            sources.append(source)
+            tasks.append((industry, source))
+        industry_sources[industry] = sources
+
+    if not tasks:
+        return {}, {}, ["no_fetchable_sources"]
+
+    gaps: list[str] = []
+    results_by_industry: dict[str, list[SourceResult]] = {}
+
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(tasks))) as pool:
+        futures = {pool.submit(_fetch_one_source, ind, src, today): (ind, src) for ind, src in tasks}
+        for future in as_completed(futures):
+            result = future.result()
+            industry = futures[future][0]
+            results_by_industry.setdefault(industry, []).append(result)
+            if result.gap_msg:
+                gaps.append(result.gap_msg)
+
+    # Build articles dict (only sources with real articles)
+    articles_by_industry: dict[str, list[NewsItem]] = {}
+    for industry, results in results_by_industry.items():
+        all_articles: list[NewsItem] = []
+        for r in results:
+            all_articles.extend(r.articles)
+        articles_by_industry[industry] = _dedupe_news(all_articles, max_results=30)
+
+    # Check: any industry where ALL P1 sources need agent intervention?
+    for industry in sorted(industry_sources):
+        if industry not in results_by_industry:
+            gaps.append(f"{industry}: no_industry_readthrough_found")
+            continue
+        results = results_by_industry[industry]
+        p1_results = [r for r in results if r.tier == "P1"]
+        if p1_results and all(r.needs_agent for r in p1_results):
+            domains = [_source_host(r.source_url) for r in p1_results]
+            if domains:
+                gaps.append(f"{industry}: ALL_P1_NEEDS_AGENT — domain-search: {', '.join(domains)}")
+
+    return articles_by_industry, results_by_industry, sorted(set(gaps))
