@@ -33,7 +33,7 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 不负责：
 
 - 不跟踪持仓、成本、PnL、exposure 或 broker 账户。
-- 不改写研究结论，不生成 thesis，不替代 `coverage-tracker`。
+- 不改写研究结论，不生成 thesis。
 - 不依赖 FMP / EODHD / 其他付费 API 才能工作。
 - 不做个人微信自动化。
 - 不负责安装 OS-level 定时任务；本轮 daily 是手动触发。
@@ -89,8 +89,8 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 正常模式写入：
 
 ```text
-reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.md
-reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.html
+daily/YYYY-MM-DD-brief.md
+daily/YYYY-MM-DD-brief.html
 ```
 
 ### Mode D: `intraday`
@@ -157,7 +157,7 @@ Artifact policy：
 
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `daily-coverage-brief.md`
-- `canonical_location`: `reports/coverage-monitor/YYYY-MM-DD-daily-coverage-brief.md`
+- `canonical_location`: `daily/YYYY-MM-DD-coverage.md`
 
 ## 失败处理
 
@@ -173,9 +173,9 @@ Artifact policy：
 
 | 上游 | 作用 |
 |---|---|
-| `coverage-tracker` | 提供 `Coverage` / `Monitor` / `Last Review` / `Next Trigger` |
-| `stock-quickread` | 默认把名字注册/升级到 `Building Coverage` + `Daily Watch` |
-| `alpha-thesis` / `peer-deep-dive` / `earnings-setup` / `scenario-model` / `driver-map` / `catalyst-map` | 产出会触发 `Core Coverage` review 提示，但不主观自动升级 |
+| COVERAGE.md (agent rule) | agent 产出 artifact 后自动维护，monitor 脚本跑前扫文件系统纠正 |
+| `stock-quickread` | 首次出现自动注册 `Building Coverage` + `Daily Watch` |
+| `alpha-thesis` / `peer-deep-dive` / `earnings-setup` / `scenario-model` / `driver-map` / `catalyst-map` | 产出后 `compute_coverage_tier()` 从文件系统自动判断是否 Core |
 | `research-journal` | 解释 coverage 状态变化的原因 |
 
 | 下游 | 作用 |
