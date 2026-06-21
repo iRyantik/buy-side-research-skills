@@ -200,6 +200,31 @@ def list_markdown_artifacts(company_dir: Path) -> list[Path]:
     return sorted(path for path in company_dir.glob("*.md") if path.is_file())
 
 
+DEEPWORK_PATTERNS = (
+    "alpha-thesis", "peer-deep-dive", "earnings-setup", "scenario-model",
+    "consensus-map", "bear-pre-mortem", "driver-map", "moat-analysis",
+    "catalyst-map", "capital-allocation", "3-statement-model", "dcf-model",
+)
+QUICKREAD_PATTERNS = ("stock-quickread", "company-history", "post-earnings-quick")
+
+
+def compute_coverage_tier(company_dir: Path) -> str:
+    names = " ".join(f.name.lower() for f in company_dir.glob("*.md"))
+    has_thesis = "alpha-thesis" in names
+    deepwork_count = sum(1 for p in DEEPWORK_PATTERNS if p in names)
+    has_quickread = any(p in names for p in QUICKREAD_PATTERNS)
+    has_model = "3-statement-model" in names or "dcf-model" in names
+    if has_thesis or deepwork_count >= 2 or (deepwork_count >= 1 and has_model):
+        return "Core Coverage"
+    elif has_quickread or deepwork_count >= 1:
+        return "Building Coverage"
+    return "Radar"
+
+
+def compute_monitor_status(coverage_tier: str) -> str:
+    return "Core Watch" if coverage_tier == "Core Coverage" else "Daily Watch"
+
+
 def extract_date_prefix(value: str) -> str:
     match = DATE_PREFIX_RE.match(value.strip())
     return match.group(1) if match else ""

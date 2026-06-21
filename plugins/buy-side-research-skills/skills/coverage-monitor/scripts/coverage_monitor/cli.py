@@ -265,7 +265,7 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool) -> int:
     if dry_run:
         print(markdown_text)
         return 0
-    stem = f"{run_day}-daily-coverage-brief"
+    stem = f"{run_day}-brief"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
     email_body = "\n".join(markdown_text.splitlines()[:18]) + "\n\nFull dashboard HTML is attached."

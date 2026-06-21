@@ -162,24 +162,6 @@ def _meta_description(html_text: str) -> str:
     return unescape(description)
 
 
-def _enrich_result(item: NewsItem) -> NewsItem:
-    if not item.url or item.source == "search_link":
-        return item
-    try:
-        html_text = _fetch_text_with_fallbacks(item.url)
-    except Exception:
-        return item
-    title = _html_title(html_text) or item.title
-    summary = item.summary or _meta_description(html_text)
-    return NewsItem(
-        title=title,
-        url=item.url,
-        source=item.source,
-        summary=summary,
-        tier=item.tier,
-        published_at=item.published_at,
-        query=item.query,
-    )
 
 
 def _normalize_result_url(raw_url: str) -> str:
@@ -347,22 +329,8 @@ def _source_host(url: str) -> str:
 
 def build_company_search_queries(entry: CoverageEntry, today: str) -> list[str]:
     runtime = build_ticker_runtime(entry.ticker, entry.company)
-    alias_text = " ".join(runtime.search_aliases[:2] or (entry.company,))
-    queries = [
-        f"{entry.ticker} {runtime.quote_ticker} {entry.company} stock news after:{today}",
-        f"{alias_text} earnings guidance order backlog contract results",
-    ]
-    return list(dict.fromkeys(query.strip() for query in queries if query.strip()))
-
-
-def _build_official_search_queries(entry: CoverageEntry, today: str) -> list[str]:
-    runtime = build_ticker_runtime(entry.ticker, entry.company)
-    alias_text = " ".join(runtime.search_aliases[:2] or (entry.company,))
-    queries = [
-        f"{alias_text} investor relations results after:{today}",
-        f"{alias_text} press release filing annual report quarterly report after:{today}",
-    ]
-    return list(dict.fromkeys(query.strip() for query in queries if query.strip()))
+    query = f"{entry.ticker} {entry.company} news earnings guidance order backlog results after:{today}"
+    return [query.strip()]
 
 
 def build_important_mover_explainer(
@@ -441,53 +409,41 @@ def collect_company_news(
     snapshots: dict[str, dict],
     today: str | None = None,
     provider: SearchProvider | None = None,
+    max_workers: int = 5,
 ) -> tuple[dict[str, list[NewsItem]], dict[str, ImportantMoverExplainer], list[str]]:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     provider = provider or _resolve_search_provider()
     result: dict[str, list[NewsItem]] = {}
     explainers: dict[str, ImportantMoverExplainer] = {}
     gaps: list[str] = []
-    for entry in entries:
+    day_label = today or datetime.now().date().isoformat()
+
+    targets = [e for e in entries if e.monitor_status == "Core Watch"
+               or (assess_snapshot(snapshots.get(e.ticker or e.company or "", {})).is_important
+                   if assess_snapshot(snapshots.get(e.ticker or e.company or "", {})) else False)]
+
+    def _search_one(entry: CoverageEntry) -> tuple[str, list[NewsItem]]:
         key = entry.ticker or entry.company
-        if not key:
-            continue
         snapshot = snapshots.get(key, {})
-        assessment = assess_snapshot(snapshot)
-        if entry.monitor_status != "Core Watch" and not (assessment and assessment.is_important):
-            continue
-        snapshot_items: list[NewsItem] = []
+        items: list[NewsItem] = []
         if snapshot.get("headline") and snapshot.get("url"):
-            snapshot_items.append(
-                NewsItem(
-                    title=str(snapshot["headline"]),
-                    url=str(snapshot["url"]),
-                    source="yfinance",
-                    summary="Latest provider headline.",
-                    published_at=str(snapshot.get("published_at") or ""),
-                )
-            )
-        day_label = today or datetime.now().date().isoformat()
-        general_items = _search_all(provider, build_company_search_queries(entry, day_label), max_results=5)
-        general_items = _relevant_news_items(general_items, entry)
-        official_items: list[NewsItem] = []
-        if assessment and assessment.is_important:
-            official_items = _search_all(provider, _build_official_search_queries(entry, day_label), max_results=4)
-            official_items = [
-                _enrich_result(item)
-                for item in _relevant_news_items(official_items, entry)
-                if _is_official_like_item(item)
-            ]
-        merged_items = _dedupe_news([*snapshot_items, *general_items, *official_items], max_results=6)
-        if not merged_items:
-            gaps.append(f"{key}: no_company_news_found")
-        result[key] = merged_items
-        if len(merged_items) <= 1:
-            gaps.append(f"{key}: weak_search_results")
-        if assessment and assessment.is_important:
-            official_deduped = _dedupe_news(official_items, max_results=3)
-            if not official_deduped:
-                gaps.append(f"{key}: filing_unavailable")
-            if merged_items or official_deduped:
-                explainers[key] = build_important_mover_explainer(entry, snapshot, merged_items, official_deduped)
+            items.append(NewsItem(title=str(snapshot["headline"]), url=str(snapshot["url"]),
+                         source="yfinance", summary="Latest provider headline.",
+                         published_at=str(snapshot.get("published_at") or "")))
+        queries = build_company_search_queries(entry, day_label)
+        ddg_items = _search_all(provider, queries, max_results=5)
+        items = _dedupe_news([*items, *_relevant_news_items(ddg_items, entry)], max_results=6)
+        return key, items
+
+    with ThreadPoolExecutor(max_workers=min(max_workers, len(targets))) as pool:
+        futures = {pool.submit(_search_one, entry): entry for entry in targets}
+        for future in as_completed(futures):
+            key, items = future.result()
+            if not items:
+                gaps.append(f"{key}: no_company_news_found")
+            result[key] = items
+
     return result, explainers, sorted(set(gaps))
 
 
