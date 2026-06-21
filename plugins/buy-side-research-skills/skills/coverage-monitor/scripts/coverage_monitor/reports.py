@@ -295,7 +295,7 @@ def render_daily_markdown(
             "",
             "## Universe",
             "",
-            "| Ticker | Company | Industry | Today Return | Coverage | Monitor | Last Review | Next Trigger |",
+            "| Ticker | Company | Industry | Return | Coverage | Monitor | Last Review | Next Trigger |",
             "|---|---|---|---|---|---|---|---|",
         ]
     )
@@ -557,7 +557,6 @@ def render_dashboard_html(
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
         status_html = f' <span class="status-dot" title="Quote: {escape(status)}"></span>' if status else ""
         trigger = entry.next_trigger or ""
-        title_attr = f' title="{escape(trigger)}"' if len(trigger) > 30 else ""
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
@@ -568,7 +567,7 @@ def render_dashboard_html(
               <td class="narrow">{escape(entry.coverage_status)}</td>
               <td class="narrow">{escape(entry.monitor_status)}</td>
               <td class="narrow">{escape(entry.last_review)}</td>
-              <td{title_attr}>{escape(trigger)}</td>
+              <td>{escape(trigger)}</td>
             </tr>
             """
         )
@@ -636,31 +635,29 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   position: sticky;
   top: 0;
   z-index: 20;
-  margin: 18px 0;
+  margin: 18px 0 32px;
   display: flex;
-  gap: 10px;
-  padding: 10px;
+  gap: 12px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: rgba(255,255,255,.82);
+  border-radius: 16px;
+  background: rgba(255,255,255,.92);
   backdrop-filter: blur(18px);
-  box-shadow: 0 10px 35px rgba(15,23,42,.08);
+  box-shadow: 0 4px 16px rgba(15,23,42,.06);
   overflow-x: auto;
 }}
+.tab-panel {{ scroll-margin-top: 80px; }}
 .tab-button {{
-  border: 0;
-  border-radius: 16px;
-  padding: 12px 18px;
-  background: transparent;
+  display: inline-block;
+  border-radius: 12px;
+  padding: 8px 14px;
   color: var(--muted);
-  font-weight: 950;
-  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: none;
   white-space: nowrap;
 }}
-.tab-button.active {{ color: white; background: #132238; box-shadow: 0 12px 24px rgba(19,34,56,.24); }}
-.tab-panel {{ display: none; }}
-.tab-panel.active {{ display: block; animation: rise .22s ease-out; }}
-@keyframes rise {{ from {{ opacity: 0; transform: translateY(8px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+.tab-button:hover {{ background: rgba(19,34,56,.06); color: var(--ink); }}
 .section-head {{
   display: flex;
   justify-content: space-between;
@@ -669,25 +666,6 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   margin: 18px 2px 12px;
 }}
 .section-head p {{ margin: 6px 0 0; max-width: 840px; color: var(--muted); line-height: 1.68; }}
-.filter-bar {{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px;
-  margin-bottom: 14px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: rgba(255,255,255,.72);
-}}
-select, input {{
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: white;
-  color: var(--ink);
-  font-weight: 800;
-  min-width: 160px;
-}}
 .grid-2 {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }}
 .stack {{ display: grid; gap: 14px; }}
 .card, .mover-card {{
@@ -773,13 +751,14 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
 .confidence-label {{ color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; }}
 .status-line {{ color: var(--muted); font-size: 13px; margin: 0 0 10px; }}
 .table-card {{
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--card);
   box-shadow: 0 14px 44px rgba(15,23,42,.07);
 }}
-.table-card table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; }}
+.table-card table {{ min-width: 700px; width: 100%; border-collapse: collapse; font-size: 12.5px; }}
 th, td {{
   padding: 3px 5px;
   border-bottom: 1px solid rgba(148,163,184,.18);
@@ -796,14 +775,8 @@ th {{
 }}
 td:first-child, th:first-child {{ padding-left: 12px; }}  /* Ticker — clear card border radius */
 td:nth-child(1) {{ white-space: nowrap; }}       /* Ticker */
-td:nth-child(4) {{ white-space: nowrap; }}       /* Today Return */
-td:nth-child(8) {{                                /* Next Trigger */
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: default;
-}}
+td:nth-child(4) {{ white-space: nowrap; }}       /* Return */
+td:nth-child(8) {{ white-space: normal; word-break: break-word; }}
 tr:last-child td {{ border-bottom: 0; }}
 .gaps-footer {{
   margin: 20px 0 8px;
@@ -848,22 +821,17 @@ tr:last-child td {{ border-bottom: 0; }}
   </section>
 
   <nav class="tab-nav" aria-label="Dashboard tabs">
-    <button class="tab-button active" data-tab="movers">Movers</button>
-    <button class="tab-button" data-tab="core">Core Watch</button>
-    <button class="tab-button" data-tab="industry">Industry Tape</button>
-    <button class="tab-button" data-tab="universe">Universe</button>
+    <a class="tab-button" href="#movers">Movers</a>
+    <a class="tab-button" href="#core">Core Watch</a>
+    <a class="tab-button" href="#industry">Industry Tape</a>
+    <a class="tab-button" href="#universe">Universe</a>
   </nav>
 
-  <section id="movers" class="tab-panel active">
+  <section id="movers" class="tab-panel">
     <div class="section-head">
       <div>
         <h2>Movers</h2>
       </div>
-    </div>
-    <div class="filter-bar">
-      <select id="marketFilter"><option value="all">Market · All</option>{''.join(f'<option value="{escape(market)}">{escape(market)}</option>' for market in market_values)}</select>
-      <select id="industryFilter"><option value="all">Industry · All</option>{''.join(f'<option value="{escape(industry)}">{escape(industry)}</option>' for industry in industry_list)}</select>
-      <select id="sortMode"><option value="abs">Sort · Abs return</option><option value="up">Only up</option><option value="down">Only down</option></select>
     </div>
     {''.join(mover_cards) or '<article class="card">No material movers in this run.</article>'}
   </section>
@@ -892,14 +860,9 @@ tr:last-child td {{ border-bottom: 0; }}
         <h2>Universe</h2>
       </div>
     </div>
-    <div class="filter-bar">
-      <select id="universeIndustry"><option value="all">Industry · All</option>{''.join(f'<option value="{escape(industry)}">{escape(industry)}</option>' for industry in industry_list)}</select>
-      <select id="universeCoverage"><option value="all">Coverage · All</option><option value="core">Core</option><option value="building">Building</option><option value="radar">Radar</option></select>
-      <input id="universeSearch" placeholder="Search ticker / company">
-    </div>
     <div class="table-card">
       <table id="universeTable">
-        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Today Return</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
+        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Return</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
         <tbody>{''.join(universe_rows)}</tbody>
       </table>
     </div>
@@ -908,54 +871,5 @@ tr:last-child td {{ border-bottom: 0; }}
     <details><summary>Coverage Gaps ({len(gaps)})</summary><ul>{gap_items}</ul></details>
   </section>
 </main>
-<script>
-const buttons = Array.from(document.querySelectorAll(".tab-button"));
-const panels = Array.from(document.querySelectorAll(".tab-panel"));
-buttons.forEach((button) => {{
-  button.addEventListener("click", () => {{
-    buttons.forEach((b) => b.classList.remove("active"));
-    panels.forEach((p) => p.classList.remove("active"));
-    button.classList.add("active");
-    document.getElementById(button.dataset.tab).classList.add("active");
-  }});
-}});
-
-const marketFilter = document.getElementById("marketFilter");
-const industryFilter = document.getElementById("industryFilter");
-const sortMode = document.getElementById("sortMode");
-const movers = Array.from(document.querySelectorAll(".mover"));
-function applyMoverFilters() {{
-  if (!marketFilter || !industryFilter || !sortMode) return;
-  const market = marketFilter.value;
-  const industry = industryFilter.value;
-  const mode = sortMode.value;
-  movers.forEach((card) => {{
-    const ret = Number(card.dataset.return || "0");
-    const okMarket = market === "all" || card.dataset.market === market;
-    const okIndustry = industry === "all" || card.dataset.industry === industry;
-    const okMode = mode === "abs" || (mode === "up" && ret > 0) || (mode === "down" && ret < 0);
-    card.style.display = okMarket && okIndustry && okMode ? "grid" : "none";
-  }});
-}}
-[marketFilter, industryFilter, sortMode].forEach((node) => node && node.addEventListener("change", applyMoverFilters));
-
-const universeIndustry = document.getElementById("universeIndustry");
-const universeCoverage = document.getElementById("universeCoverage");
-const universeSearch = document.getElementById("universeSearch");
-const universeRows = Array.from(document.querySelectorAll("#universeTable tbody tr"));
-function applyUniverseFilters() {{
-  if (!universeIndustry || !universeCoverage || !universeSearch) return;
-  const industry = universeIndustry.value;
-  const coverage = universeCoverage.value;
-  const needle = universeSearch.value.trim().toLowerCase();
-  universeRows.forEach((row) => {{
-    const okIndustry = industry === "all" || row.dataset.industry === industry;
-    const okCoverage = coverage === "all" || row.dataset.coverage === coverage;
-    const okSearch = !needle || row.innerText.toLowerCase().includes(needle);
-    row.style.display = okIndustry && okCoverage && okSearch ? "" : "none";
-  }});
-}}
-[universeIndustry, universeCoverage, universeSearch].forEach((node) => node && node.addEventListener("input", applyUniverseFilters));
-</script>
 </body>
 </html>"""
