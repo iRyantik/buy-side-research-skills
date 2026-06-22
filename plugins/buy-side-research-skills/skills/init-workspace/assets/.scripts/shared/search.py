@@ -23,11 +23,15 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 stock
 _QUOTE_URL_PATTERNS = [
     r'/(?:quote|equities|stocks/quotes|finance/beta/quote|stocks/[A-Z]+)/',
     r'/stock/[^/]+$',
+    r'/stock/[^/]+/(?:index|news|chart)',
     r'/corp/go\.php',
     r'/investing/stocks/',
     r'/nkd/company/',
+    r'/market-data/stocks/',
+    r'/markets/companies/',
     r'/data/equities/tearsheet/',
     r'stockanalysis\.com/(?:stocks|quote)/',
+    r'tradingview\.com/symbols/',
 ]
 
 
