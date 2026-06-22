@@ -1,15 +1,17 @@
 {
   "files.exclude": {
+    ".cache/": true,
+    "**/__pycache__": true,
     ".claude/": true,
     ".codex/": true,
-    ".scripts/": true,
-    ".references/": true,
     ".memory/": true,
     ".obsidian/": true,
     ".playwright-mcp/": true,
     ".vscode/": true,
-    "_cache/": true,
+    ".references/": true,
+    ".scripts/": true,
     ".env": true,
-    "*.sh": true
+    "**/.raw/": true,
+    ".proxy-config": true
   }
 }

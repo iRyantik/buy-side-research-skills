@@ -35,8 +35,8 @@ def _find_actuals(workspace: Path, ticker: str) -> Path | None:
                 continue
             # Try new path first (v5.13.13+), then legacy internal/ path
             for subpath in [
-                co_dir / "_cache" / "financial-data" / "actuals-resolved.json",
-                co_dir / "_cache" / "financial-data" / "internal" / "actuals-resolved.json",
+                co_dir / ".cache" / "financial-data" / "actuals-resolved.json",
+                co_dir / ".cache" / "financial-data" / "internal" / "actuals-resolved.json",
             ]:
                 if subpath.is_file():
                     try:
