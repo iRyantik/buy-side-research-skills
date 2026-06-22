@@ -456,7 +456,6 @@ def render_dashboard_html(
         gap = _float_metric(snapshot, "gap_pct")
         ret_class = _return_class(move)
         key = entry.ticker or entry.company
-        importance_pill = '<span class="pill importance">Important Move</span>' if assessment.is_important else '<span class="pill importance ordinary">Mover</span>'
         explainer = mover_explainers.get(key)
         explainer_block = ""
         if explainer:
@@ -483,8 +482,8 @@ def render_dashboard_html(
         m_price = _format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price"))
         m_cap = snapshot.get("market_cap")
         m_pe = snapshot.get("pe_trailing")
-        m_meta = [f'<b class="cw-price">{escape(m_price)}</b>']
-        if m_cap: m_meta.append(f'<span class="cw-meta">{escape(_format_cap(m_cap))}</span>')
+        m_meta = [f'<span class="cw-price">{escape(m_price)}</span>']
+        if m_cap: m_meta.append(f'<span class="cw-meta">Cap {escape(_format_cap(m_cap))}</span>')
         if m_pe is not None: m_meta.append(f'<span class="cw-meta">PE {m_pe:.1f}x</span>')
 
         m_ret_pills = []
@@ -508,7 +507,6 @@ def render_dashboard_html(
                 <div class="chip-row">
                   <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
                   <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
-                  {importance_pill}
                 </div>
               </div>
               <div>
@@ -825,8 +823,6 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
 .pill.coverage.radar {{ background: var(--slate-soft); color: var(--slate); }}
 .pill.monitor.core-watch {{ background: var(--green-soft); color: var(--green); }}
 .pill.monitor.daily-watch {{ background: var(--slate-soft); color: var(--slate); }}
-.pill.importance {{ background: var(--amber-soft); color: var(--amber); font-size: 11px; }}
-.pill.importance.ordinary {{ background: var(--slate-soft); color: var(--slate); font-size: 10px; opacity: .7; }}
 .pill.trigger {{ background: rgba(255,255,255,.82); color: #334155; }}
 .pill.status {{ background: rgba(248,250,252,.9); color: #475569; margin-left: 6px; }}
 .status-dot {{
@@ -846,13 +842,8 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   margin: 3px 0;
   font-variant-numeric: tabular-nums;
 }}
-.cw-price {{
-  font-size: 14px; color: var(--ink); font-weight: 800;
-}}
-.cw-meta {{
-  font-size: 11.5px; color: var(--slate); font-weight: 600;
-  background: rgba(148,163,184,.12);
-  padding: 2px 6px; border-radius: 5px;
+.cw-price, .cw-meta {{
+  font-size: 12.5px; color: var(--slate); font-weight: 600;
 }}
 .ret-pill {{
   display: inline-block;
