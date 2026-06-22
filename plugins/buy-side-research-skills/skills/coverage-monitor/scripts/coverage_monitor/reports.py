@@ -752,7 +752,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   box-shadow: 0 14px 44px rgba(15,23,42,.08);
   padding: 18px;
 }}
-.mover-card {{ display: grid; grid-template-columns: 260px 1fr; gap: 14px; margin-bottom: 14px; }}
+.mover-card {{ display: grid; grid-template-columns: 290px 1fr; gap: 12px; margin-bottom: 14px; }}
 .mover-details {{ margin-top: 10px; }}
 .mover-details > summary {{
   cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
