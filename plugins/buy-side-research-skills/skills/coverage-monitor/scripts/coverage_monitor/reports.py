@@ -35,6 +35,16 @@ def _format_today_return(value: float | None) -> str:
     return "—" if value is None else f"{value:+.2f}%"
 
 
+def _format_return_hover(snapshot: dict[str, Any]) -> str:
+    """Build title attribute for return cell: 1m / YTD / 1y."""
+    parts = []
+    for label, key in [("1m", "ret_1m"), ("YTD", "ret_ytd"), ("1y", "ret_1y")]:
+        v = snapshot.get(key)
+        if v is not None:
+            parts.append(f"{label} {v:+.1f}%")
+    return " · ".join(parts) if parts else ""
+
+
 def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple[Any, ...]:
     coverage_rank = {"Core": 0, "Building": 1, "Radar": 2}
     monitor_rank = {"Core": 0, "Daily": 1}
@@ -229,7 +239,6 @@ def render_daily_markdown(
             if key in mover_explainers:
                 explainer = mover_explainers[key]
                 lines.append(f"  - {explainer.summary}")
-                lines.append(f"  - confidence: {explainer.confidence}")
                 if explainer.evidence:
                     for ev in explainer.evidence[:3]:
                         lines.append(f"  - [{ev.title}]({ev.url})")
@@ -303,8 +312,12 @@ def render_daily_markdown(
         key = entry.ticker or entry.company
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
         status_dot = " ·" if status else ""
+        return_str = _format_today_return(_today_return(entry, snapshots))
+        s = snapshots.get(entry.ticker or entry.company, {})
+        hist = _format_return_hover(s)
+        return_str = f"{return_str} ({hist})" if hist else return_str
         lines.append(
-            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_dot} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
+            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {return_str}{status_dot} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -433,10 +446,6 @@ def render_dashboard_html(
             ) or "<li>No filing / official release captured.</li>"
             explainer_block = f"""
                 <div class="explainer">
-                  <div class="explainer-top">
-                    <span class="pill confidence">{escape(explainer.confidence)}</span>
-                    <span class="confidence-label">Confidence</span>
-                  </div>
                   <p class="body-copy">{escape(explainer.summary)}</p>
                   <details><summary>Evidence ({len(explainer.evidence)})</summary><ul>{evidence_html}</ul></details>
                   <details><summary>Filings ({len(explainer.filings_evidence)})</summary><ul>{filing_html}</ul></details>
@@ -463,10 +472,11 @@ def render_dashboard_html(
               </div>
               <div>
                 <div class="metric-row">
-                  <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>volume ratio</span></div>
-                  <div class="metric"><b>{escape(_format_metric(gap, "%", digits=2))}</b><span>gap</span></div>
-                  <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>last price</span></div>
-                  <div class="metric"><b>{escape(str(snapshot.get("market_time") or today))}</b><span>market time</span></div>
+                  <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>vol</span></div>
+                  <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>price</span></div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1m"), "%", digits=1) if _float_metric(snapshot, "ret_1m") is not None else "n/a")}</b><span>1m</span></div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_ytd"), "%", digits=1) if _float_metric(snapshot, "ret_ytd") is not None else "n/a")}</b><span>YTD</span></div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1y"), "%", digits=1) if _float_metric(snapshot, "ret_1y") is not None else "n/a")}</b><span>1y</span></div>
                 </div>
                 {explainer_block}
               </div>
@@ -557,13 +567,16 @@ def render_dashboard_html(
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
         status_html = f' <span class="status-dot" title="Quote: {escape(status)}"></span>' if status else ""
         trigger = entry.next_trigger or ""
+        ret_snapshot = snapshots.get(entry.ticker or entry.company, {})
+        hover_title = _format_return_hover(ret_snapshot)
+        title_attr = f' title="{escape(hover_title)}"' if hover_title else ""
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
               <td>{escape(entry.ticker or '')}</td>
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
-              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
+              <td{title_attr}><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
               <td class="narrow">{escape(entry.coverage_status)}</td>
               <td class="narrow">{escape(entry.monitor_status)}</td>
               <td class="narrow">{escape(entry.last_review)}</td>
@@ -697,7 +710,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .return.pos, .up, .ret.pos {{ color: var(--green); background: var(--green-soft); }}
 .return.neg, .down, .ret.neg {{ color: var(--red); background: var(--red-soft); }}
 .ret.na {{ color: var(--muted); font-weight: 800; background: transparent; }}
-.metric-row {{ display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 10px 0 12px; }}
+.metric-row {{ display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 10px 0 12px; }}
 .metric {{
   border: 1px solid var(--line);
   border-radius: 16px;
