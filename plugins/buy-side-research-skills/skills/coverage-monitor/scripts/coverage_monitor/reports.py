@@ -556,6 +556,7 @@ def render_dashboard_html(
             <article class="card">
               <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
               <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}{status_dot}</h3>
+              <div class="company">{escape(entry.industry)}</div>
               <div class="core-bar">{''.join(meta_parts)}</div>
               <div class="core-bar">{''.join(ret_pills)}</div>
               {summary_line}
