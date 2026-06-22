@@ -541,7 +541,7 @@ def render_dashboard_html(
                   </div>
                 </div>
                 <div class="detail-body">
-                  <div class="rail-label">异动原因</div>
+                  <div class="rail-label">Why It Moved</div>
                   <p class="body-copy">{escape(body_text)}</p>
                   {source_line}
                   <details class="evidence-box">
