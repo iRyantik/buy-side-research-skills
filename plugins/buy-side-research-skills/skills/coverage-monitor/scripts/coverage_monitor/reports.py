@@ -99,6 +99,15 @@ def _format_metric(value: float | None, suffix: str = "", digits: int = 2, na: s
     return f"{value:+.{digits}f}{suffix}" if suffix == "%" else f"{value:.{digits}f}{suffix}"
 
 
+def _metric_ret(snapshot: dict[str, Any], key: str, label: str) -> str:
+    """Render a mover-card metric for a return column with color."""
+    v = snapshot.get(key)
+    if v is None:
+        return f"<b>n/a</b><span>{label}</span>"
+    c = "pos" if v >= 0 else "neg"
+    return f"<b class=\"ret {c}\">{v:+.1f}%</b><span>{label}</span>"
+
+
 # Currency + decimal rules by market suffix
 _MARKET_PRICE_RULES: dict[str, tuple[str, int]] = {
     ".T":   ("¥",   0),   # JPY — no decimals
@@ -474,9 +483,9 @@ def render_dashboard_html(
                 <div class="metric-row">
                   <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>vol</span></div>
                   <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>price</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1m"), "%", digits=1) if _float_metric(snapshot, "ret_1m") is not None else "n/a")}</b><span>1m</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_ytd"), "%", digits=1) if _float_metric(snapshot, "ret_ytd") is not None else "n/a")}</b><span>YTD</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1y"), "%", digits=1) if _float_metric(snapshot, "ret_1y") is not None else "n/a")}</b><span>1y</span></div>
+                  <div class="metric">{_metric_ret(snapshot, "ret_1m", "1m")}</div>
+                  <div class="metric">{_metric_ret(snapshot, "ret_ytd", "YTD")}</div>
+                  <div class="metric">{_metric_ret(snapshot, "ret_1y", "1y")}</div>
                 </div>
                 {explainer_block}
               </div>
@@ -714,10 +723,12 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .ticker {{ font-size: 24px; font-weight: 950; letter-spacing: -.04em; }}
 .company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
 .return {{ display: inline-flex; margin-top: 13px; border-radius: 999px; padding: 8px 11px; font-size: 20px; font-weight: 950; }}
-.return.pos, .up, .ret.pos {{ color: var(--green); background: var(--green-soft); }}
-.return.neg, .down, .ret.neg {{ color: var(--red); background: var(--red-soft); }}
-td.ret.pos, td.ret.neg {{ background: transparent; font-weight: 600; }}
-td.ret.na {{ color: var(--muted); font-weight: 400; }}
+.ret.pos, .ret.neg {{ font-weight: 600; }}
+.return.pos, .up {{ color: var(--green); background: var(--green-soft); }}
+.return.neg, .down {{ color: var(--red); background: var(--red-soft); }}
+.ret.pos {{ color: var(--green); background: var(--green-soft); }}
+.ret.neg {{ color: var(--red); background: var(--red-soft); }}
+.ret.na {{ color: var(--muted); font-weight: 400; }}
 .metric-row {{ display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 10px 0 12px; }}
 .metric {{
   border: 1px solid var(--line);
