@@ -572,14 +572,15 @@ def render_dashboard_html(
             v = ret_snapshot.get(key)
             if v is None: return "<td class=\"ret na\">—</td>"
             c = "pos" if v >= 0 else "neg"
-            return f"<td class=\"ret {c}\">{v:+.1f}%</td>"
+            dec = 2 if key == "price_move_pct" else 1
+            return f"<td class=\"ret {c}\">{v:+.{dec}f}%</td>"
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
               <td>{escape(entry.ticker or '')}{status_html}</td>
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
-              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span></td>
+              {_ret_td("price_move_pct")}
               {_ret_td("ret_1m")}
               {_ret_td("ret_ytd")}
               {_ret_td("ret_1y")}
