@@ -70,7 +70,7 @@ If missing → prompt user to run `/init-workspace`.
 ```
 audio .mp3/.wav/.m4a
   ↓
-① Mandatory language prompt (en/zh/ja/ko/...), no default
+① Language detection + confirmation: infer language from filename/source path/user message, then ask user "Detected audio language is X. Transcribe in X?" Run only after user confirms. No default, no guessing
   ↓
 ② Bitrate check: <32kbps → block, request ≥64kbps version
   ↓

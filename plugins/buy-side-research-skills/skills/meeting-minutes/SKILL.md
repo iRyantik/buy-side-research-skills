@@ -68,7 +68,7 @@ description: 把音频/转录稿转化为结构化研究输出——briefing（�
 ```
 audio .mp3/.wav/.m4a
   ↓
-① 强制问 language（en/zh/ja/ko/...），不给默认
+① Language detection + confirmation：先根据文件名/来源路径/用户消息语言推断，然后向用户确认 "检测到音频语言为 X，用 X 转录？" 确认后再跑。不给默认、不过自己猜
   ↓
 ② Bitrate check：<32kbps → block，提示提供 ≥64kbps 版本
   ↓
