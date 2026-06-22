@@ -22,7 +22,7 @@ description: Turn raw voice-transcribed meeting notes into structured research m
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
 - Shared runtime baseline: workspace `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：不调用 financial-data。优先复用 workspace 现有 `_cache/` 和 teach-in/quickread 的背景知识。
+- **数据管道**：不调用 financial-data。优先复用 workspace 现有 `.cache/` 和 teach-in/quickread 的背景知识。
 - **RAG 链**：复用现有 Fallback——WebSearch→WebFetch→Playwright→curl→[需查证]。关键 claim 强制 Tier 2，一般 claim Tier 1 即可。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
@@ -72,7 +72,7 @@ description: Turn raw voice-transcribed meeting notes into structured research m
 复用的优先顺序与降级逻辑：
 
 ```
-Tier 0: workspace 现有 _cache/ —— teach-in/quickread/actuals → 直接引用
+Tier 0: workspace 现有 .cache/ —— teach-in/quickread/actuals → 直接引用
 Tier 1: WebSearch → WebFetch(url) → 提取原文
 Tier 2: Playwright MCP browser_navigate + browser_snapshot → 提取原文
 Tier 3: curl -sL url → 提取正文
@@ -88,7 +88,7 @@ Tier 4: [需查证] —— honest degradation
 **Step 5: 补充公司和行业背景**
 
 对每个被提及的公司，从以下来源自动拉取背景（不新建，只引用已有缓存和 artifact）：
-- `industry/<industry>/companies/<ticker>/_cache/` → actuals, quickread
+- `industry/<industry>/companies/<ticker>/.cache/` → actuals, quickread
 - `industry/<industry>/` → teach-in, industry-landscape
 - 无现有缓存 → WebSearch 补核心信息（≤ 3 句）
 
@@ -159,13 +159,25 @@ Tier 4: [需查证] —— honest degradation
 
 ## Artifact / 保存策略
 
-写入行业 topic：
+**Artifact（可见）**——落在公司目录，与其它研究产出并列：
+
 ```
-industry/<industry>/panorama/meeting-minutes/YYYY-MM-DD-call-summary-<qualifier>.md
+industry/<industry>/companies/<ticker>/YYYY-MM-DD-<call-type>_summary.md
 ```
 
+**Raw 数据（隐藏）**——原始录音和转写稿落在公司 cache：
+
+```
+industry/<industry>/companies/<ticker>/.cache/meeting-minutes/
+  raw/                              ← 原始录音 .mp3（隐藏）
+     YYYY-MM-DD-<call-type>.mp3
+  transcripts/                      ← 转写稿 .txt/.json（隐藏）
+     YYYY-MM-DD-<call-type>_verbatim.txt
+     YYYY-MM-DD-<call-type>_verbatim.json
+```
+
+- `<call-type>` = `earnings-call` / `ir-call` / `expert-interview` / `industry-call` / `sellside-call`
 - 路径不明 → agent 按 policy baseline §11 自动创建。
-- qualifier 用会议主题或主讲机构（如 `optical-test-equipment`、`citi-2026-outlook`）。
 
 ## Workflow 联动
 
