@@ -18,43 +18,63 @@ import requests
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 stock-monitor/0.1"
 
-# ── title-pattern filters ──────────────────────────────
+# ── content-based news scoring ──────────────────────────
 
-_NEWS_BLACKLIST = [
-    # English patterns
-    r"(?i)\bstock price quote\b",
-    r"(?i)\bhistorical data\b",
-    r"(?i)\bcompany profile\b",
-    r"(?i)\bstock overview\b",
-    r"(?i)\bcompany information\b",
-    r"(?i)\bstatistics & valuation\b",
-    r"(?i)\bstock forecast\b",
-    # Chinese patterns — quote pages
-    r"股票(?:历史数据|股价_股价行情|行情_走势图)",
-    r"(?:最新价格|实时走势图|股价分析预测)",
-    r"公司简介",
-    r"股票吧行情",
-    r"个股行情",
-    r"股票行情(?!.*(?:跌|涨|停|异动|主力|资金|公告|减持|增持|收购|合同|订单|业绩|利润))",
-    r"_股票行情_",
-    r"股票(?:消息公告|行情分析|行情报价)",
-    # English quote pages by domain pattern in title
-    r"(?i)stock price \|.*quote",
-    r"(?i)stock price.*barron",
-    r"(?i)stock price.*morningstar",
-    r"(?i)stock price.*marketwatch",
-]
+def _news_score(title: str, snippet: str = "", url: str = "") -> int:
+    """Score a DDG result: higher = more likely real news. Threshold >= 25."""
+    score = 0
+
+    # ── 正向信号 (positive signals) ──
+    NEG_SIGNALS = (
+        '跌','涨','涨停','跌停','异动','主力','资金','减持','增持',
+        '收购','合同','订单','签约','宣布','发布','获批','上市','暴跌','飙升',
+        '净卖出','净买入','板块跌幅','跳空','翻倍','新高','新低',
+        'announces','launches','wins','secures','signs','raises',
+        'cuts','slumps','surges','jumps','drops','beats','misses',
+        'contract','order','backlog','IPO','acquires','partners',
+        'guidance','earnings','revenue','profit','dividend',
+    )
+    for w in NEG_SIGNALS:
+        if w in title:
+            score += 35
+            break  # one strong signal is enough
+
+    if len(title.strip()) > 30:
+        score += 10
+    if len(snippet) > 80:
+        score += 15
+    if re.search(r'[\d,.]+[万亿兆千百亿]|[\d,.]+[BMK]b?|[\d,.]+%|¥[\d,]+|₩[\d,]+|\$[\d,]+|USD [\d,]+', title):
+        score += 10
+
+    # ── 负向信号 (negative signals) ──
+    if re.search(r'(?i)\bstock price (?:quote|overview|news & analysis)\b', title):
+        score -= 60
+    if re.search(r'(?i)\b(?:company profile|historical data|stock forecast)\b', title):
+        score -= 50
+    if re.search(r'股票(?:历史数据|行情_走势图|行情_新浪|行情_九方|行情分析|股价行情|消息公告)', title):
+        score -= 50
+    if re.search(r'(?:最新价格|行情_走势图|实时走势图)', title):
+        score -= 50
+    if re.search(r'_股票(?:行情|股价)_', title):
+        score -= 40
+    if len(title) < 20 and len(snippet) < 40:
+        score -= 30
+    # URL-based: clear quote pages get heavy penalty
+    if re.search(r'/(?:quote|equities|stocks/quotes|finance/beta/quote)/', url):
+        score -= 25
+    elif '/stock/' in url and not re.search(r'/news|/article|/story|/press', url):
+        score -= 15
+    if re.search(r'(?i)stock price.*(?:quote|chart|overview)', title):
+        score -= 25
+
+    return score
 
 
-def _is_news_title(title: str) -> bool:
-    """Filter out stock quote pages, profile pages, and other non-news."""
-    for pattern in _NEWS_BLACKLIST:
-        if re.search(pattern, title):
-            return False
-    # Skip very short titles (usually nav links)
+def _is_news_title(title: str, snippet: str = "", url: str = "") -> bool:
+    """Score-based: >= 30 = keep as news."""
     if len(title.strip()) < 10:
         return False
-    return True
+    return _news_score(title, snippet, url) >= 20
 
 
 # ── DDG HTML parsing ───────────────────────────────────
@@ -110,9 +130,9 @@ def ddg_search(query: str, max_results: int = 10, timeout: int = 15) -> list[dic
 
 
 def ddg_search_news(query: str, max_results: int = 10, timeout: int = 15) -> list[dict]:
-    """DDG search with title-pattern news filtering."""
-    raw = ddg_search(query, max_results=max_results, timeout=timeout)
-    return [r for r in raw if _is_news_title(r["title"])]
+    """DDG search with content-based news scoring."""
+    raw = ddg_search(query, max_results=max_results * 2, timeout=timeout)
+    return [r for r in raw if _is_news_title(r["title"], r.get("snippet", ""), r.get("url", ""))][:max_results]
 
 
 def ddg_multi_search(
