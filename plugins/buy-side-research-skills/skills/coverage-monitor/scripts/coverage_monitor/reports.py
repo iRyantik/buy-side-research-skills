@@ -775,7 +775,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   align-items: baseline;
 }}
 .ticker {{ font-size: 22px; font-weight: 950; letter-spacing: -.04em; }}
-.company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
+.company {{ margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.35; }}
 .ticker-row .return {{
   display: inline-flex;
   border-radius: 8px;
