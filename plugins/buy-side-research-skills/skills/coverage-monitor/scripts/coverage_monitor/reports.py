@@ -262,7 +262,7 @@ def render_daily_markdown(
                 explainer = mover_explainers[key]
                 lines.append(f"  - {explainer.summary}")
                 if explainer.evidence:
-                    for ev in explainer.evidence[:3]:
+                    for ev in explainer.evidence[:8]:
                         lines.append(f"  - [{ev.title}]({ev.url})")
     else:
         lines.append("- No material movers in this run.")
@@ -282,7 +282,7 @@ def render_daily_markdown(
         lines.append(f"- `{key}` {entry.company} ({move_str}{status_dot}):")
         if summary:
             lines.append(f"  {summary}")
-        for item in items[:3]:
+        for item in items[:6]:
             lines.append(f"  - [{item.title}]({item.url})")
 
     lines.extend(["", "## 4. Industry Read-Throughs"])
@@ -300,7 +300,7 @@ def render_daily_markdown(
                 by_source.setdefault(item.source, []).append(item)
             for source_name, source_items in by_source.items():
                 lines.append(f"- **{source_name}** ({len(source_items)} 篇):")
-                for article in source_items[:3]:
+                for article in source_items[:5]:
                     date_str = f" ({article.published_at})" if article.published_at else ""
                     lines.append(f"  - [{article.title}]({article.url}){date_str}")
         search_items = industry_searches.get(industry, [])
@@ -460,10 +460,10 @@ def render_dashboard_html(
         explainer_block = ""
         if explainer:
             evidence_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in explainer.evidence[:5]
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in explainer.evidence[:10]
             ) or "<li>No external evidence retained.</li>"
             filing_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'official')}</span></li>" for item in explainer.filings_evidence[:3]
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'official')}</span></li>" for item in explainer.filings_evidence[:7]
             ) or "<li>No filing / official release captured.</li>"
             explainer_block = f"""
                 <div class="explainer">
@@ -475,7 +475,7 @@ def render_dashboard_html(
         else:
             fallback_news = company_news.get(key, [])
             evidence_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:4]
+                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:8]
             ) or "<li>No direct company evidence collected.</li>"
             explainer_block = f'<details><summary>Evidence</summary><ul>{evidence_html}</ul></details>'
         # Mover price + cap + PE + return pills
@@ -526,7 +526,7 @@ def render_dashboard_html(
         news_items = company_news.get(key, [])
         news_html = "".join(
             f"<li><a href=\"{escape(item.url)}\">{escape(item.title)}</a><span> · {escape(item.source or 'source')}</span></li>"
-            for item in news_items[:6]
+            for item in news_items[:10]
         ) or "<li>No company news found in this run.</li>"
         s = snapshots.get(key, {})
         status = quote_exception_status(s, report_day=today)
@@ -579,12 +579,12 @@ def render_dashboard_html(
                   <b><a href="{escape(a.url)}">{escape(a.title)}</a></b>
                   <span>{'· ' + escape(a.published_at) if a.published_at else ''}</span>
                 </div>"""
-                for a in source_items[:3]
+                for a in source_items[:5]
             )
             sources_html_parts.append(
                 f'<details class="source-group"><summary>{escape(source_name)} ({len(source_items)} 篇)</summary>{article_html}</details>'
             )
-        sources_html = "".join(sources_html_parts[:12]) if sources_html_parts else ""
+        sources_html = "".join(sources_html_parts[:20]) if sources_html_parts else ""
         # Add WebSearch results
         search_items = industry_searches.get(industry, [])
         if search_items:
