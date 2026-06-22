@@ -35,7 +35,7 @@ trigger:
 capabilities:
   modes:
     - 'Full Minutes (transcript → structured notes + RAG verification)'
-  output_path: 'industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md'
+  # output_path: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<call-type>_summary.md'
   requirements:
     - 'correct transcription errors (company names, terms, products)'
     - 'produce name correction table (raw → correct + ticker)'
@@ -50,7 +50,7 @@ capabilities:
 artifact_policy:
   save_policy: 'optional_topic_result'
   default_artifact: 'call-summary.md'
-  canonical_location: 'industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<call-type>_summary.md'
   naming_mode: 'required_qualifier'
   save_trigger: 'save when user asks to preserve the minutes as dated topic research artifact'
 workflow:
@@ -64,7 +64,7 @@ workflow:
     - 'mechanism-insight'
     - 'research-journal'
   can_trigger:
-    - ''
+    - 'next-step'
   decision_point: '不是研究产出，是信息过滤和初步溯源——建立对一场会议的基础认知后，深挖单条 claim 用 information-impact，深挖公司用 stock-quickread'
 quality_gates:
   anti_patterns:
