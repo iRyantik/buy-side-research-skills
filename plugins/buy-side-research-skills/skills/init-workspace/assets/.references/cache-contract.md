@@ -6,11 +6,11 @@
 
 | Path | VSCode | Rationale |
 |---|---|---|
-| `.cache/` (root) | Hidden | Machine cache: coverage-monitor state, shared images |
-| `**/.raw/` | Hidden | Raw provider payloads, not human-readable |
-| `**/cache/` (industry/company) | Visible | Research materials: financial data, disclosures, evidence |
-| `**/models/` | Visible | Financial model files (Excel), researcher needs to open |
-| `**/inbox/` | Visible | Incoming research materials to process |
+| `**/.cache/` | Hidden | All caches: coverage-monitor state, financial data, disclosures, evidence |
+| `**/.raw/` | Hidden | Raw provider payloads |
+| `**/.inbox/` | Hidden | Industry/company-level inbox |
+| `inbox/` (root) | Visible | Workspace inbox, daily use |
+| `**/models/` | Visible | Financial model files, researcher needs to open |
 
 ## Directory Layout
 
@@ -20,25 +20,22 @@
   images/                                   ← shared product/logo cache (download-image.py)
 
 industry/<slug>/
-  cache/                                    ← industry-level research cache (visible)
-    images/                                 ← industry charts, photos
-    evidence/                               ← research evidence packs
-    institution/                            ← institutional reports
-  inbox/                                    ← incoming materials to process (visible)
-  .raw/                                     ← raw provider payloads (hidden)
+  .cache/                                   ← industry-level cache (hidden)
+  .inbox/                                   ← incoming materials (hidden)
+  .raw/                                     ← raw payloads (hidden)
 
   companies/<ticker>/
-    cache/                                  ← company-level research cache (visible)
+    .cache/                                 ← company-level cache (hidden)
       financial-data/                       ← actuals-resolved.json, summary.md
-        .raw/                               ← raw provider payloads, filings (hidden)
+        .raw/                               ← raw provider payloads (hidden)
       disclosure/                           ← cached company filings
       driver-map/                           ← driver-map artifact cache + history
       datasets/                             ← scraped/scrapi datasets
       evidence/                             ← claim evidence packs
       images/                               ← company/product images
-    models/                                 ← financial models (visible)
-    inbox/                                  ← company-specific incoming materials (visible)
-    .raw/                                   ← raw data (hidden)
+    models/                                 ← visible
+    .inbox/                                 ← hidden
+    .raw/                                   ← hidden
 ```
 
 ## Per-Skill Contract

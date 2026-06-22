@@ -1,6 +1,7 @@
 {
   "files.exclude": {
-    ".cache/": true,
+    "**/.cache/": true,
+    "**/.inbox/": true,
     "**/__pycache__": true,
     ".claude/": true,
     ".codex/": true,
