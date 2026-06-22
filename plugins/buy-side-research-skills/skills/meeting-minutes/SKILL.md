@@ -87,7 +87,7 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 
 产物：`_scratchpad.json`，存入 `.cache/meeting-minutes/`。语言中立（key 用英文，values 保留原语言）。
 
-**① 术语纠正**：找出现有 teach-in/quickread 匹配术语，纠正明显错误。保留原始文本供 appendix 正名对照使用。不确定标 `[待确认]`。
+**① 术语纠正**：找出现有 teach-in/quickread 匹配术语，纠正明显错误。**公司名、股票代码必须走 WebSearch 核实**（特别是 transcript 中不完整或疑似误拼的公司名）。保留原始文本供 appendix 正名对照使用。不确定标 `[待确认]`。
 
 **② 实体提取**：公司/产品/客户/项目/数字。
 
