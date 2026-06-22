@@ -707,7 +707,7 @@ main {{ width: min(1440px, calc(100vw - 36px)); margin: 28px auto 48px; }}
 }}
 h1 {{ display: none; }}
 h2 {{ margin: 0; font-size: 18px; letter-spacing: -.03em; }}
-h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
+h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 .subtitle {{ display: none; }}
 .tab-nav {{
   position: sticky;
@@ -809,7 +809,7 @@ details {{
 }}
 summary {{ cursor: pointer; font-weight: 950; color: #1e3a8a; }}
 ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
-.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }}
+.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }}
 .pill {{
   display: inline-flex;
   align-items: center;
@@ -841,7 +841,7 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin: 3px 0;
+  margin: 4px 0;
   font-variant-numeric: tabular-nums;
 }}
 .cw-price, .cw-meta {{
