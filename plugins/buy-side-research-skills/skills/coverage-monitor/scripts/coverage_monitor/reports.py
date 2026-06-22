@@ -488,7 +488,7 @@ def render_dashboard_html(
         if m_pe is not None: m_meta.append(f'<span class="cw-meta">PE {m_pe:.1f}x</span>')
 
         m_ret_pills = []
-        for rk, rl in [("price_move_pct","1d"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
+        for rk, rl in [("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
             v = snapshot.get(rk)
             if v is not None:
                 c = "pos" if v >= 0 else "neg"
