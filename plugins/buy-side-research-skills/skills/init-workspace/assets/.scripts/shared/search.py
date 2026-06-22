@@ -21,12 +21,13 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 stock
 # ── URL-level coarse filter ─────────────────────────────
 
 _QUOTE_URL_PATTERNS = [
-    r'/(?:quote|equities|stocks/quotes|finance/beta/quote)/',
+    r'/(?:quote|equities|stocks/quotes|finance/beta/quote|stocks/[A-Z]+)/',
     r'/stock/[^/]+$',
     r'/corp/go\.php',
     r'/investing/stocks/',
     r'/nkd/company/',
     r'/data/equities/tearsheet/',
+    r'stockanalysis\.com/(?:stocks|quote)/',
 ]
 
 
