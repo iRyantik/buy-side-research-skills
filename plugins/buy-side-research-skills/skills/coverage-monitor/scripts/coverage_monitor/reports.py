@@ -541,6 +541,7 @@ def render_dashboard_html(
                   </div>
                 </div>
                 <div class="detail-body">
+                  <div class="rail-label">异动原因</div>
                   <p class="body-copy">{escape(body_text)}</p>
                   {source_line}
                   <details class="evidence-box">
@@ -868,8 +869,8 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 }}
 .fact-rail {{
   display: grid;
-  gap: 14px;
-  padding: 18px;
+  gap: 10px;
+  padding: 12px 14px;
   border-right: 1px solid var(--line);
   background: rgba(248,250,252,.68);
 }}
@@ -883,33 +884,33 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 }}
 .snapshot-grid {{
   display: grid;
-  grid-template-columns: repeat(3,minmax(0,1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 6px;
 }}
 .snapshot-item {{
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 12px;
   background: rgba(255,255,255,.86);
-  padding: 10px 11px;
+  padding: 7px 9px;
 }}
 .snapshot-item b {{
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.2;
 }}
 .snapshot-item span {{
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .06em;
 }}
 .detail-body {{
   display: grid;
-  gap: 10px;
-  padding: 18px 20px;
+  gap: 8px;
+  padding: 14px 18px;
 }}
 .tag-row {{
   display: flex;
