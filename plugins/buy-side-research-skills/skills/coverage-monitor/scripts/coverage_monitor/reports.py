@@ -521,8 +521,6 @@ def render_dashboard_html(
             _metric_ret(snapshot, "ret_ytd", "YTD"),
             _metric_ret(snapshot, "ret_1y", "1y"),
         ]
-        trigger_tags = "".join(f'<span class="tag-chip">{escape(tag)}</span>' for tag in assessment.trigger_tags)
-
         mover_cards.append(
             f"""
             <article class="coverage-card mover-card {'important' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
@@ -530,9 +528,8 @@ def render_dashboard_html(
                 <div class="identity-copy">
                   <div class="ticker-line">
                     <span class="ticker">{escape(entry.ticker or entry.company)}</span>
-                    {primary_name_html}
                   </div>
-                  <div class="industry-line">{escape(entry.industry)}</div>
+                  <div class="company-line">{primary_name_html} · {escape(entry.industry)} · <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span> <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span></div>
                 </div>
                 <div class="day-return-pill {ret_class}">{escape(_format_today_return(move))}</div>
               </div>
@@ -542,16 +539,8 @@ def render_dashboard_html(
                     <div class="rail-label">Market Snapshot</div>
                     <div class="snapshot-grid">{''.join(snapshot_tiles)}</div>
                   </div>
-                  <div class="rail-group">
-                    <div class="rail-label">Coverage</div>
-                    <div class="pill-row">
-                      <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
-                      <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
-                    </div>
-                  </div>
                 </div>
                 <div class="detail-body">
-                  <div class="tag-row">{trigger_tags}</div>
                   <p class="body-copy">{escape(body_text)}</p>
                   {source_line}
                   <details class="evidence-box">
@@ -604,15 +593,10 @@ def render_dashboard_html(
                     <span class="core-ticker">{escape(entry.ticker or entry.company)}</span>
                     <span class="core-return {escape(ret_class)}">{escape(_format_today_return(_today_return(entry, snapshots)))}</span>
                   </div>
-                  <div class="core-company-line">{primary_name_html}{status_dot}</div>
-                  <div class="core-industry">{escape(entry.industry)}</div>
+                  <div class="core-company-line">{primary_name_html} · {escape(entry.industry)}{status_dot}</div>
                 </div>
               </div>
               <div class="core-quote-grid">{''.join(quote_blocks)}</div>
-              <div class="pill-row coverage-row">
-                <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
-                <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
-              </div>
               <div class="return-strip">{''.join(return_blocks)}</div>
               {summary_line}
               {quote_status_line}
