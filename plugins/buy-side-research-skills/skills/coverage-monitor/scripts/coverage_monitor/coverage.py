@@ -13,6 +13,7 @@ DATE_PREFIX_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})")
 class CoverageEntry:
     ticker: str
     company: str
+    company_native: str = ""
     industry: str = ""
     coverage_status: str = ""
     monitor_status: str = ""
@@ -36,6 +37,8 @@ class CoverageUniverse:
 HEADER_ALIASES = {
     "ticker": "ticker",
     "company": "company",
+    "company (en)": "company",
+    "company (native)": "company_native",
     "industry": "industry",
     "coverage": "coverage_status",
     "coverage status": "coverage_status",
@@ -57,7 +60,8 @@ HEADER_ALIASES = {
 
 CANONICAL_HEADERS = [
     ("Ticker", "ticker"),
-    ("Company", "company"),
+    ("Company (EN)", "company"),
+    ("Company (Native)", "company_native"),
     ("Industry", "industry"),
     ("Coverage", "coverage_status"),
     ("Monitor", "monitor_status"),

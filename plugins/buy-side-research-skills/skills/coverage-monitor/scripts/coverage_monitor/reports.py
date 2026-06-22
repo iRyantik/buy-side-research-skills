@@ -779,8 +779,8 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 .ticker-row .return {{
   display: inline-flex;
   border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 18px; font-weight: 950;
+  padding: 5px 12px;
+  font-size: 20px; font-weight: 950;
   flex-shrink: 0;
   color: #fff;
 }}
@@ -809,7 +809,7 @@ details {{
 }}
 summary {{ cursor: pointer; font-weight: 950; color: #1e3a8a; }}
 ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
-.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }}
+.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }}
 .pill {{
   display: inline-flex;
   align-items: center;
@@ -840,8 +840,8 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin: 4px 0;
+  gap: 10px;
+  margin: 6px 0;
   font-variant-numeric: tabular-nums;
 }}
 .cw-price, .cw-meta {{
