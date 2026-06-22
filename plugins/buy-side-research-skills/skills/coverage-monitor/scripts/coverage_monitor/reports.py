@@ -304,7 +304,7 @@ def render_daily_markdown(
             "",
             "## Universe",
             "",
-            "| Ticker | Company | Industry | Return | 1m | YTD | 1y | Coverage | Monitor | Last Review | Next Trigger |",
+            "| Ticker | Company | Industry | Today | 1m | YTD | 1y | Coverage | Monitor | Last Review | Next Trigger |",
             "|---|---|---|---|---|---|---|---|---|---|---|",
         ]
     )
@@ -317,7 +317,7 @@ def render_daily_markdown(
         ret_ytd = _format_today_return(s.get("ret_ytd")).replace("%","") if s.get("ret_ytd") is not None else "—"
         ret_1y = _format_today_return(s.get("ret_1y")).replace("%","") if s.get("ret_1y") is not None else "—"
         lines.append(
-            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_dot} | {ret_1m} | {ret_ytd} | {ret_1y} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
+            f"| {entry.ticker or ''}{status_dot} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))} | {ret_1m} | {ret_ytd} | {ret_1y} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -576,10 +576,10 @@ def render_dashboard_html(
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
-              <td>{escape(entry.ticker or '')}</td>
+              <td>{escape(entry.ticker or '')}{status_html}</td>
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
-              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
+              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span></td>
               {_ret_td("ret_1m")}
               {_ret_td("ret_ytd")}
               {_ret_td("ret_1y")}
@@ -881,7 +881,7 @@ tr:last-child td {{ border-bottom: 0; }}
     </div>
     <div class="table-card">
       <table id="universeTable">
-        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Return</th><th>1m</th><th>YTD</th><th>1y</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
+        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
         <tbody>{''.join(universe_rows)}</tbody>
       </table>
     </div>
