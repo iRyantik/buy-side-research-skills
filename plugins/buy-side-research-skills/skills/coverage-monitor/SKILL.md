@@ -43,6 +43,20 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 - 不做个人微信自动化。
 - 不负责安装 OS-level 定时任务；本轮 daily 是手动触发。
 
+## Agent 新闻搜索语言规则
+
+Agent 对 Core Watch / Mover 做 WebSearch 时，按市场使用本地语言：
+
+| 市场 | 搜索语言 |
+|---|---|
+| CN / HK | 简体中文 |
+| TW | 繁体中文 |
+| JP | 日本語 |
+| KS | 한국어 |
+| US / EU / SE / UK / MY | English |
+
+优先搜索本地财经媒体和交易所公告，而非通用新闻聚合。
+
 ## 触发与输入
 
 触发短语包括：
