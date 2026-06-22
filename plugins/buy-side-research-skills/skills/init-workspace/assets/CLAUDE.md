@@ -273,6 +273,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | `shared/describe-figures.py` | 图表描述提取（从 docling/pymupdf 缓存 markdown 中提取 figure 并生成带编号描述） | `<markdown_path>` |
 | `shared/verify-table-crosscheck.py` | 表格数值交叉验证（PDFPlumber vs Docling/cache markdown） | `<markdown_path> [--pdf <pdf_path>]` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
+| `shared/search.py` | DDG HTML 新闻搜索（无需 API key，双语搜 + 行情页过滤） | `from search import ddg_search_news; ddg_search_news("query")` → list[dict] |
 
 ### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
 
