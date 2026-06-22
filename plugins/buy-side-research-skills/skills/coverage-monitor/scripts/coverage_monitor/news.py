@@ -111,7 +111,7 @@ def _is_cloudflare_challenge(html_text: str) -> bool:
 # ── company news: DDG HTML search per stock ──────────────
 
 def _ddg_company_queries(entry: CoverageEntry) -> list[str]:
-    """Build DDG search queries: native + English + announcement/filing."""
+    """Build DDG search queries: native language + English."""
     queries = []
     native = (entry.company_native or "").strip()
     en = (entry.company or "").strip()
@@ -126,11 +126,6 @@ def _ddg_company_queries(entry: CoverageEntry) -> list[str]:
         queries.append(f"{en} {ticker} news")
     elif en:
         queries.append(f"{en} news")
-    # Announcement / filing query
-    if ticker:
-        queries.append(f"{ticker} announcement OR filing OR results OR contract OR order")
-    elif en:
-        queries.append(f"{en} announcement OR contract OR results")
     return queries
 
 
