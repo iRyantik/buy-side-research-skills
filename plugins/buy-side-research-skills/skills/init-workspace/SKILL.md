@@ -76,6 +76,7 @@ for each skill_dir in skills/*/:
 - Check Python 3.10+ availability.
 - Install core dependencies globally with `--user`（no venv, no sudo）: `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`。
 - Run `pip install --user -r` for each `.scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- **ffmpeg**: Check availability (`ffmpeg -version`). If missing → download portable ffmpeg.exe from https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip and extract to `.scripts/shared/ffmpeg.exe`. On macOS: `brew install ffmpeg`.
 **Interactive provider configuration:**
 - Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
 - User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).
@@ -233,6 +234,10 @@ After file deployment, display a single table and ask the user to configure data
 ├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
 │ 4    │ FinMind   │ FINMIND_TOKEN                 │ https://finmindtrade.com/      │
 │      │ (台股)    │                               │ 免费注册获取 Token              │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 5    │ Whisper   │ WHISPER_API_KEY               │ 用户自备 OpenAI 兼容端点        │
+│      │ (转录)    │ WHISPER_API_BASE              │ 如有默认 key 直接贴入 .env       │
+│      │           │ WHISPER_MODEL                 │                                │
 └──────┴───────────┴──────────────────────────────┴────────────────────────────────┘
 
 还没有 key 的去对应地址申请，有 key 的直接贴给我。
@@ -254,6 +259,11 @@ EDINET_API_KEY=your_key_here
 
 # FinMind（台股）
 # FINMIND_TOKEN=
+
+# Whisper（转录，OpenAI 兼容 API）
+# WHISPER_API_KEY=sk-xxx
+# WHISPER_API_BASE=https://api.vveai.com/v1
+# WHISPER_MODEL=whisper-large-v3-turbo
 ```
 
 `.gitignore` already includes `.env` — the file stays local and is never committed.
