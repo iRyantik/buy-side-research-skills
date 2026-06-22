@@ -64,16 +64,28 @@ Agent 每次调 `daily` 必须走完整 5 步，不允许跳过 agent 搜索直�
 ```
 1. python run_coverage_monitor.py daily --dry-run
 2. 读 agent_work gap → 获取 pending_movers / pending_core / pending_industries
-3. Agent 并行 WebSearch:
-   - 每只 Mover（含普通异动）—— 按市场本地语言搜原因
-   - 每只 Core Watch —— 同上
-   - 每个行业 —— WebSearch "[industry] news this week"
+3. Agent 并行搜索（每只 Core Watch / Mover 走 2-3 通道，每条 ≥3 篇）:
+
+   **通道 A——WebSearch 本地语言**（必须）
+   - 按 CLAUDE.md §3.1 市场→语言映射
+   - 搜 "[Native Name] [ticker] 新闻/뉴스/ニュース 2026年6月"
+
+   **通道 B——WebSearch 英文**（补充）
+   - 搜 "[Company EN] [ticker] news June 2026"
+
+   **通道 C——Longbridge MCP `news`**（US/HK/SH/SZ/SG 市场可用）
+   - 搜 ticker 最近新闻
+
+   **Mover explainer**: ≥3 条 evidence，summary 中文
+   **Core Watch**: ≥3 条 news items，每条含中文 summary
+
 4. 搜索结果写入 enrichment-YYYY-MM-DD.json
 5. python run_coverage_monitor.py daily --enrichment <.json>
 ```
 
 **硬门**：
 - `agent_work` 的 `pending_*` 数字必须归零才算完成
+- 每只 Core Watch / Mover ≥3 条 news items
 - enrichment 文件名按日期——每天新文件，不重用
 - Dry-run 不算完成——必须有 enrichment + 正式输出
 
