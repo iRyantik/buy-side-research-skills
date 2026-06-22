@@ -753,7 +753,7 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
   box-shadow: 0 14px 44px rgba(15,23,42,.08);
   padding: 18px;
 }}
-.mover-card {{ display: grid; grid-template-columns: 290px 1fr; gap: 12px; margin-bottom: 14px; }}
+.mover-card {{ display: grid; grid-template-columns: 280px 1fr; gap: 12px; margin-bottom: 14px; }}
 .mover-details {{ margin-top: 10px; }}
 .mover-details > summary {{
   cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
@@ -779,8 +779,8 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 .ticker-row .return {{
   display: inline-flex;
   border-radius: 8px;
-  padding: 5px 12px;
-  font-size: 20px; font-weight: 950;
+  padding: 4px 10px;
+  font-size: 18px; font-weight: 950;
   flex-shrink: 0;
   color: #fff;
 }}
@@ -809,7 +809,7 @@ details {{
 }}
 summary {{ cursor: pointer; font-weight: 950; color: #1e3a8a; }}
 ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
-.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }}
+.chip-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }}
 .pill {{
   display: inline-flex;
   align-items: center;
@@ -840,16 +840,16 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin: 6px 0;
+  gap: 6px;
+  margin: 4px 0;
   font-variant-numeric: tabular-nums;
 }}
 .cw-price, .cw-meta {{
-  font-size: 14px; color: var(--slate); font-weight: 600;
+  font-size: 12.5px; color: var(--slate); font-weight: 600;
 }}
 .ret-pill {{
-  font-size: 14px; font-weight: 700;
-  margin-right: 10px; white-space: nowrap;
+  font-size: 12px; font-weight: 700;
+  margin-right: 8px; white-space: nowrap;
   letter-spacing: .02em;
 }}
 .ret-pill.pos {{ color: var(--green); }}
