@@ -304,20 +304,20 @@ def render_daily_markdown(
             "",
             "## Universe",
             "",
-            "| Ticker | Company | Industry | Return | Coverage | Monitor | Last Review | Next Trigger |",
-            "|---|---|---|---|---|---|---|---|",
+            "| Ticker | Company | Industry | Return | 1m | YTD | 1y | Coverage | Monitor | Last Review | Next Trigger |",
+            "|---|---|---|---|---|---|---|---|---|---|---|",
         ]
     )
     for entry in sorted(entries, key=lambda item: _universe_sort_key(item, snapshots)):
         key = entry.ticker or entry.company
         status = quote_exception_status(snapshots.get(key, {}), report_day=today)
         status_dot = " ·" if status else ""
-        return_str = _format_today_return(_today_return(entry, snapshots))
         s = snapshots.get(entry.ticker or entry.company, {})
-        hist = _format_return_hover(s)
-        return_str = f"{return_str} ({hist})" if hist else return_str
+        ret_1m = _format_today_return(s.get("ret_1m")).replace("%","") if s.get("ret_1m") is not None else "—"
+        ret_ytd = _format_today_return(s.get("ret_ytd")).replace("%","") if s.get("ret_ytd") is not None else "—"
+        ret_1y = _format_today_return(s.get("ret_1y")).replace("%","") if s.get("ret_1y") is not None else "—"
         lines.append(
-            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {return_str}{status_dot} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
+            f"| {entry.ticker or ''} | {entry.company} | {entry.industry} | {_format_today_return(_today_return(entry, snapshots))}{status_dot} | {ret_1m} | {ret_ytd} | {ret_1y} | {entry.coverage_status} | {entry.monitor_status} | {entry.last_review} | {entry.next_trigger} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -568,15 +568,21 @@ def render_dashboard_html(
         status_html = f' <span class="status-dot" title="Quote: {escape(status)}"></span>' if status else ""
         trigger = entry.next_trigger or ""
         ret_snapshot = snapshots.get(entry.ticker or entry.company, {})
-        hover_title = _format_return_hover(ret_snapshot)
-        title_attr = f' title="{escape(hover_title)}"' if hover_title else ""
+        def _ret_td(key: str) -> str:
+            v = ret_snapshot.get(key)
+            if v is None: return "<td class=\"ret na\">—</td>"
+            c = "pos" if v >= 0 else "neg"
+            return f"<td class=\"ret {c}\">{v:+.1f}%</td>"
         universe_rows.append(
             f"""
             <tr data-industry="{escape(entry.industry)}" data-coverage="{escape(_coverage_slug(entry.coverage_status))}" data-monitor="{escape(_monitor_slug(entry.monitor_status))}">
               <td>{escape(entry.ticker or '')}</td>
               <td>{escape(entry.company)}</td>
               <td>{escape(entry.industry)}</td>
-              <td{title_attr}><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
+              <td><span class="ret {ret_class}">{escape(_format_today_return(move))}</span>{status_html}</td>
+              {_ret_td("ret_1m")}
+              {_ret_td("ret_ytd")}
+              {_ret_td("ret_1y")}
               <td class="narrow">{escape(entry.coverage_status)}</td>
               <td class="narrow">{escape(entry.monitor_status)}</td>
               <td class="narrow">{escape(entry.last_review)}</td>
@@ -771,7 +777,7 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   background: var(--card);
   box-shadow: 0 14px 44px rgba(15,23,42,.07);
 }}
-.table-card table {{ min-width: 700px; width: 100%; border-collapse: collapse; font-size: 12.5px; }}
+.table-card table {{ min-width: 900px; width: 100%; border-collapse: collapse; font-size: 12px; }}
 th, td {{
   padding: 3px 5px;
   border-bottom: 1px solid rgba(148,163,184,.18);
@@ -802,9 +808,9 @@ tr:last-child td {{ border-bottom: 0; }}
   font-weight: 700;
 }}
 .gaps-footer ul {{ margin: 8px 0 0; padding-left: 18px; font-size: 12px; }}
-#universeTable tr[data-coverage="core"] td:nth-child(5) {{ color: #1d4ed8; font-weight: 950; }}
-#universeTable tr[data-coverage="building"] td:nth-child(5) {{ color: var(--amber); font-weight: 950; }}
-#universeTable tr[data-coverage="radar"] td:nth-child(5) {{ color: var(--slate); font-weight: 950; }}
+#universeTable tr[data-coverage="core"] td:nth-child(8) {{ color: #1d4ed8; font-weight: 950; }}
+#universeTable tr[data-coverage="building"] td:nth-child(8) {{ color: var(--amber); font-weight: 950; }}
+#universeTable tr[data-coverage="radar"] td:nth-child(8) {{ color: var(--slate); font-weight: 950; }}
 #universeTable tr[data-monitor="core-watch"] td:nth-child(6) {{ color: var(--green); font-weight: 950; }}
 #universeTable tr[data-monitor="daily-watch"] td:nth-child(6) {{ color: var(--slate); font-weight: 900; }}
 .industry-card {{ display: grid; grid-template-columns: 260px 1fr; gap: 18px; align-items: start; }}
@@ -875,7 +881,7 @@ tr:last-child td {{ border-bottom: 0; }}
     </div>
     <div class="table-card">
       <table id="universeTable">
-        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Return</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
+        <thead><tr><th>Ticker</th><th>Company</th><th>Industry</th><th>Return</th><th>1m</th><th>YTD</th><th>1y</th><th>Coverage</th><th>Monitor</th><th>Last Review</th><th>Next Trigger</th></tr></thead>
         <tbody>{''.join(universe_rows)}</tbody>
       </table>
     </div>

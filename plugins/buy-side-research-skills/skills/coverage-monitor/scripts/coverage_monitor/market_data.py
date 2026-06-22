@@ -25,28 +25,50 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
     previous_price = float(closes[-2]) if len(closes) >= 2 else last_price
     price_move_pct = 0.0 if previous_price == 0 else ((last_price - previous_price) / previous_price) * 100.0
 
-    # Historical returns: 1m (~21d), YTD, 1y
+    # Historical returns — use Date index, not list index
+    import pandas as pd
+
     def _ret(baseline: float, current: float) -> float | None:
         if not baseline or baseline == 0:
             return None
         return round(((current - baseline) / baseline) * 100.0, 1)
 
-    # 1m: ~21 trading days back (capped at available data)
-    idx_1m = max(0, len(closes) - 22)
-    ret_1m = _ret(float(closes[idx_1m]), last_price) if len(closes) >= 5 else None
+    def _return_since(history, lookback_days: int) -> float | None:
+        """Return pct change from ~lookback calendar days ago to last close."""
+        if len(history) < 5:
+            return None
+        try:
+            last_date = history.index[-1]
+            target_date = last_date - pd.Timedelta(days=lookback_days)
+            # Handle tz-aware vs tz-naive
+            if hasattr(last_date, 'tz') and last_date.tz is not None:
+                if target_date.tz is None:
+                    target_date = target_date.tz_localize(last_date.tz)
+            mask = history.index >= target_date
+            window = history.loc[mask, "Close"].dropna()
+            if len(window) >= 2:
+                return _ret(float(window.iloc[0]), last_price)
+        except Exception:
+            pass
+        return None
 
-    # YTD: first close on or after Jan 1 of current year (use index dates)
-    import pandas as pd
+    ret_1m = _return_since(history, 30)
+    ret_1y = _return_since(history, 365)
+
+    # YTD: first close on or after Jan 1 of current year
+    ret_ytd = None
     try:
+        last_date = history.index[-1]
         current_year = pd.Timestamp.now().year if today is None else int(today[:4])
-        ytd_mask = history.index >= pd.Timestamp(f"{current_year}-01-01")
+        ytd_ts = pd.Timestamp(f"{current_year}-01-01")
+        if hasattr(last_date, 'tz') and last_date.tz is not None and ytd_ts.tz is None:
+            ytd_ts = ytd_ts.tz_localize(last_date.tz)
+        ytd_mask = history.index >= ytd_ts
         ytd_closes = history.loc[ytd_mask, "Close"].dropna()
-        ret_ytd = _ret(float(ytd_closes.iloc[0]), last_price) if len(ytd_closes) >= 2 else None
+        if len(ytd_closes) >= 2:
+            ret_ytd = _ret(float(ytd_closes.iloc[0]), last_price)
     except Exception:
-        ret_ytd = None
-
-    # 1y: earliest available close if we have >= 6 months of data
-    ret_1y = _ret(float(closes[0]), last_price) if len(closes) >= 120 else None
+        pass
 
     volumes = history.get("Volume")
     volume_ratio = 0.0
