@@ -716,7 +716,8 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .return {{ display: inline-flex; margin-top: 13px; border-radius: 999px; padding: 8px 11px; font-size: 20px; font-weight: 950; }}
 .return.pos, .up, .ret.pos {{ color: var(--green); background: var(--green-soft); }}
 .return.neg, .down, .ret.neg {{ color: var(--red); background: var(--red-soft); }}
-.ret.na {{ color: var(--muted); font-weight: 800; background: transparent; }}
+td.ret.pos, td.ret.neg {{ background: transparent; font-weight: 600; }}
+td.ret.na {{ color: var(--muted); font-weight: 400; }}
 .metric-row {{ display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 10px 0 12px; }}
 .metric {{
   border: 1px solid var(--line);
