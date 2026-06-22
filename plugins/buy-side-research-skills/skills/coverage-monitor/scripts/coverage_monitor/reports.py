@@ -498,9 +498,11 @@ def render_dashboard_html(
             f"""
             <article class="mover-card mover {'important-move' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
               <div class="ticker-block">
-                <div class="ticker">{escape(entry.ticker or entry.company)}</div>
+                <div class="ticker-row">
+                  <span class="ticker">{escape(entry.ticker or entry.company)}</span>
+                  <span class="return {ret_class}">{escape(_format_today_return(move))}</span>
+                </div>
                 <div class="company">{escape(entry.company)} · {escape(entry.industry)}</div>
-                <div class="return {ret_class}">{escape(_format_today_return(move))}</div>
                 <div class="core-bar">{''.join(m_meta)}</div>
                 <div class="core-bar">{''.join(m_ret_pills)}</div>
                 <div class="chip-row">
@@ -768,9 +770,20 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .mover {{ border-left: 4px solid var(--slate-soft); }}
 .important-move {{ border-left: 4px solid var(--amber); }}
 .ticker-block {{ border-right: 1px solid var(--line); padding-right: 16px; }}
-.ticker {{ font-size: 24px; font-weight: 950; letter-spacing: -.04em; }}
+.ticker-row {{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}}
+.ticker {{ font-size: 22px; font-weight: 950; letter-spacing: -.04em; }}
 .company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
-.return {{ display: inline-flex; margin-top: 13px; border-radius: 999px; padding: 8px 11px; font-size: 20px; font-weight: 950; }}
+.ticker-row .return {{
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 19px; font-weight: 950;
+  flex-shrink: 0;
+}}
 .ret.pos, .ret.neg {{ font-weight: 600; }}
 .return.pos, .up {{ color: var(--green); background: var(--green-soft); }}
 .return.neg, .down {{ color: var(--red); background: var(--red-soft); }}
