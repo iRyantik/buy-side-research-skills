@@ -52,7 +52,7 @@ description: 把音频/转录稿转化为结构化研究输出——briefing（�
 | **行业/公司** | 主要讨论的行业和公司 | 从文本推断，未知标 [需确认] |
 | **日期** | 会议日期 | 未知用当前日期 + [需确认] |
 | **输出语言** | 默认中文，可选 `--en` 出英文版 | 中文 |
-| **输出模式** | 默认 both（briefing + qa），可选 `--qa` 只出 qa | both |
+| **输出模式** | 默认 --briefing，可选 --qa 出 Q&A、--all 两个都出 | briefing |
 
 ---
 
@@ -113,7 +113,7 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 - 事实直接陈述，不写"管理层表示/坦言/强调/承认"开头的叙事句
 - 英文原文全部翻译融入正文，不保留 `"English quote"` 格式
 - 不设"关键点"独立段落，实质性分析融入 prose 末尾
-- 不跨公司点评（如"比 DPC Holdings 温和得多"）、不替读者判断"有趣/反直觉/最重要"
+- 跨公司对比需有上下文和逻辑支撑，不抛一句孤立判断
 
 ---
 
@@ -144,7 +144,22 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 | Company | Ticker | Business | Relevance |
 |---|---|---|---|
 
+有 stock-quickread → 直接引用，不重新查。
+
 ## Industry Context
+
+有 teach-in / industry-landscape → 直接引用，不重新查。
+
+## Listed Companies
+
+纪要中提到的所有上市公司，含代码、主营业务、与会议内容的关系。
+
+| Company | Ticker | Business | Mention Context |
+|---|---|---|---|
+
+## Technical / Industry Background
+
+对会议涉及的关键技术概念或行业背景做解释。有机制洞察类 artifact → 引用。
 
 ## Claim Verification
 
@@ -178,7 +193,7 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 ```
 
 appendix 从上到下越来越内部：
-- `Company Profile` + `Industry Context`：外发可保留，无敏感信息
+- `Company Profile` + `Listed Companies` + `Industry Context` + `Technical Background`：外发可保留
 - `Claim Verification`：内用，含 `[需查证]` 标签
 - `Name Corrections`：内用
 - `Follow-Up`：内用
@@ -261,7 +276,7 @@ appendix 分层规则同 briefing。
 - ❌ 出现英文引号原文——全部翻译融入中文
 - ❌ 出现"管理层开场/坦言/强调"叙事句——事实直接陈述
 - ❌ 独立"关键点"段落——融入 prose
-- ❌ 跨公司点评
+- ❌ 抛孤立判断句的跨公司对比（"X 比 Y 温和得多"无上下文支撑）
 - ❌ 背景补充凭空编公司介绍
 - ❌ 正文字段挂 `[需查证]` / `[讲者观点]` 标签——仅 appendix 使用
 - ❌ 敏感内容（"不要录音"、"未公开"）未经标注发布

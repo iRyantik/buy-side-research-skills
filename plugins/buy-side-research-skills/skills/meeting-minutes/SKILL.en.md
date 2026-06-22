@@ -54,7 +54,7 @@ This skill does three things: **correct → contextualize → attach sources**.
 | **Industry / Company** | Primary industry and companies | Infer from text; mark [TO CONFIRM] if uncertain |
 | **Date** | Meeting date | Today's date + [TO CONFIRM] if unknown |
 | **Output language** | Default EN, `--zh` for Chinese | English |
-| **Output mode** | Default both (briefing + qa), `--qa` for Q&A only | Both |
+| **Output mode** | Default --briefing, --qa for Q&A, --all for both | Briefing |
 
 ---
 
@@ -114,7 +114,7 @@ Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral
 **Style rules**:
 - Facts stated directly; no "management noted / admitted / emphasized" narrative scaffolding
 - No separate "Key Takeaway" callout boxes — substance woven into prose
-- No cross-company editorializing
+- Cross-company comparison allowed with context and reasoning — no one-line editorial judgments without support
 - English edition may retain original quotes where they add precision; Chinese edition translates all
 
 ---
@@ -144,7 +144,22 @@ Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral
 | Company | Ticker | Business | Relevance |
 |---|---|---|---|
 
+If stock-quickread exists → reference it directly, do not re-search.
+
 ## Industry Context
+
+If teach-in / industry-landscape exists → reference it directly, do not re-search.
+
+## Listed Companies
+
+All listed companies mentioned in the call, with ticker, business, and context.
+
+| Company | Ticker | Business | Mention Context |
+|---|---|---|---|
+
+## Technical / Industry Background
+
+Explain key technical concepts or industry context mentioned in the call. Reference mechanism-insight / teach-in artifacts where available.
 
 ## Claim Verification
 
@@ -178,7 +193,7 @@ Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral
 ```
 
 Appendix layers, top to bottom:
-- `Company Profile` + `Industry Context`: safe for external sharing
+- `Company Profile` + `Listed Companies` + `Industry Context` + `Technical Background`: safe for external sharing
 - `Claim Verification`: internal use, contains `[UNVERIFIED]` tags
 - `Name Corrections`: internal use
 - `Follow-Up`: internal use
@@ -260,7 +275,7 @@ Industry-level (industry panel / sell-side call):
 ### Output
 - ❌ "Management kicked off by stating / admitted / emphasized" narrative scaffolding — state facts directly
 - ❌ Separate "Key Takeaway" callout sections — weave into prose
-- ❌ Cross-company editorializing
+- ❌ Isolated cross-company judgment without context ("X is milder than Y" with no reasoning)
 - ❌ Fabricating company background — must cite cache or web source
 - ❌ Verification tags in body text — appendix only
 - ❌ Sensitive content published without flagging
