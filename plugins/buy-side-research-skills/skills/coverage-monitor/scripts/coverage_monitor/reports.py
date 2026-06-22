@@ -479,6 +479,21 @@ def render_dashboard_html(
                 f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:4]
             ) or "<li>No direct company evidence collected.</li>"
             explainer_block = f'<details><summary>Evidence</summary><ul>{evidence_html}</ul></details>'
+        # Mover price + cap + PE + return pills
+        m_price = _format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price"))
+        m_cap = snapshot.get("market_cap")
+        m_pe = snapshot.get("pe_trailing")
+        m_meta = [f'<b class="cw-price">{escape(m_price)}</b>']
+        if m_cap: m_meta.append(f'<span class="cw-meta">{escape(_format_cap(m_cap))}</span>')
+        if m_pe is not None: m_meta.append(f'<span class="cw-meta">PE {m_pe:.1f}x</span>')
+
+        m_ret_pills = []
+        for rk, rl in [("price_move_pct","1d"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
+            v = snapshot.get(rk)
+            if v is not None:
+                c = "pos" if v >= 0 else "neg"
+                m_ret_pills.append(f'<span class="ret-pill {c}">{rl}&nbsp;{v:+.1f}%</span>')
+
         mover_cards.append(
             f"""
             <article class="mover-card mover {'important-move' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
@@ -486,6 +501,8 @@ def render_dashboard_html(
                 <div class="ticker">{escape(entry.ticker or entry.company)}</div>
                 <div class="company">{escape(entry.company)} · {escape(entry.industry)}</div>
                 <div class="return {ret_class}">{escape(_format_today_return(move))}</div>
+                <div class="core-bar">{''.join(m_meta)}</div>
+                <div class="core-bar">{''.join(m_ret_pills)}</div>
                 <div class="chip-row">
                   <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
                   <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
@@ -495,10 +512,7 @@ def render_dashboard_html(
               <div>
                 <div class="metric-row">
                   <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>vol</span></div>
-                  <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>price</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1m"), "%", digits=1) if _float_metric(snapshot, "ret_1m") is not None else "n/a")}</b><span>1m</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_ytd"), "%", digits=1) if _float_metric(snapshot, "ret_ytd") is not None else "n/a")}</b><span>YTD</span></div>
-                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1y"), "%", digits=1) if _float_metric(snapshot, "ret_1y") is not None else "n/a")}</b><span>1y</span></div>
+                  <div class="metric"><b>{escape(_format_metric(gap, "%", digits=2))}</b><span>gap</span></div>
                 </div>
                 {explainer_block}
               </div>
@@ -738,7 +752,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   box-shadow: 0 14px 44px rgba(15,23,42,.08);
   padding: 18px;
 }}
-.mover-card {{ display: grid; grid-template-columns: 220px 1fr; gap: 18px; margin-bottom: 14px; }}
+.mover-card {{ display: grid; grid-template-columns: 240px 1fr; gap: 16px; margin-bottom: 14px; }}
 .mover-details {{ margin-top: 10px; }}
 .mover-details > summary {{
   cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
@@ -763,7 +777,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .ret.pos {{ color: var(--green); background: var(--green-soft); }}
 .ret.neg {{ color: var(--red); background: var(--red-soft); }}
 .ret.na {{ color: var(--muted); font-weight: 400; }}
-.metric-row {{ display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 10px 0 12px; }}
+.metric-row {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 6px 0 4px; }}
 .metric {{
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -895,7 +909,6 @@ tr:last-child td {{ border-bottom: 0; }}
   .grid-2 {{ grid-template-columns: 1fr; }}
   .mover-card, .industry-card {{ grid-template-columns: 1fr; }}
   .ticker-block {{ border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 14px; }}
-  .metric-row {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
 }}
 </style>
 </head>
