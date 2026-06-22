@@ -845,11 +845,11 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   font-variant-numeric: tabular-nums;
 }}
 .cw-price, .cw-meta {{
-  font-size: 12.5px; color: var(--slate); font-weight: 600;
+  font-size: 14px; color: var(--slate); font-weight: 600;
 }}
 .ret-pill {{
-  font-size: 12px; font-weight: 700;
-  margin-right: 8px; white-space: nowrap;
+  font-size: 14px; font-weight: 700;
+  margin-right: 10px; white-space: nowrap;
   letter-spacing: .02em;
 }}
 .ret-pill.pos {{ color: var(--green); }}
