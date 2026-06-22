@@ -465,8 +465,16 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     industry_searches = enrichment.get("industry_searches", {})
     core_watch_summaries = enrichment.get("core_watch_summaries", {})
     merged_company_news = dict(company_news)
+    # Enrichment adds to script results, doesn't replace
     for key, items in enrichment.get("core_watch_news", {}).items():
-        merged_company_news[key] = items
+        if key not in merged_company_news or not merged_company_news[key]:
+            merged_company_news[key] = items
+        else:
+            # Script (DDG) has results — enrichment appends
+            existing_urls = {item.url for item in merged_company_news[key] if item.url}
+            for item in items:
+                if item.url not in existing_urls:
+                    merged_company_news[key].append(item)
     # Clean gaps based on enrichment coverage
     gaps = _clean_gaps_for_enrichment(gaps, enrichment, entries, snapshots)
 
