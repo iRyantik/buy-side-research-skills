@@ -163,7 +163,7 @@ def collect_company_news(
 
         snapshot = snapshots.get(key, {})
         assessment = assess_snapshot(snapshot) if snapshot else None
-        needs_news = entry.monitor_status == "Core Watch" or (assessment and assessment.is_important)
+        needs_news = entry.monitor_status == "Core" or (assessment and assessment.is_important)
 
         if not needs_news:
             continue

@@ -83,9 +83,9 @@ def normalize_ticker(value: str) -> str:
 def normalize_coverage_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core coverage", "core"}:
-        return "Core Coverage"
+        return "Core"
     if token in {"building coverage", "building", "coverage building"}:
-        return "Building Coverage"
+        return "Building"
     if token in {"radar", "candidate"}:
         return "Radar"
     return value.strip()
@@ -94,9 +94,9 @@ def normalize_coverage_status(value: str) -> str:
 def normalize_monitor_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core watch", "core", "yes", "true"}:
-        return "Core Watch"
+        return "Core"
     if token in {"daily watch", "daily", "daily-only"}:
-        return "Daily Watch"
+        return "Daily"
     return value.strip()
 
 

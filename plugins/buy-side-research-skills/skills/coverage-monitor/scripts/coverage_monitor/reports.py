@@ -46,8 +46,8 @@ def _format_return_hover(snapshot: dict[str, Any]) -> str:
 
 
 def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple[Any, ...]:
-    coverage_rank = {"Core Coverage": 0, "Building Coverage": 1, "Radar": 2}
-    monitor_rank = {"Core Watch": 0, "Daily Watch": 1}
+    coverage_rank = {"Core": 0, "Building": 1, "Radar": 2}
+    monitor_rank = {"Core": 0, "Daily": 1}
     move = _today_return(entry, snapshots)
     return (
         entry.industry.lower(),
@@ -60,12 +60,12 @@ def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]
 
 
 def _coverage_slug(value: str) -> str:
-    mapping = {"Core Coverage": "core", "Building Coverage": "building", "Radar": "radar"}
+    mapping = {"Core": "core", "Building": "building", "Radar": "radar"}
     return mapping.get(value, "unknown")
 
 
 def _monitor_slug(value: str) -> str:
-    mapping = {"Core Watch": "core-watch", "Daily Watch": "daily-watch"}
+    mapping = {"Core": "core-watch", "Daily": "daily-watch"}
     return mapping.get(value, "unknown")
 
 
@@ -192,7 +192,7 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    if entry.monitor_status != "Core Watch":
+    if entry.monitor_status != "Core":
         return False
     assessment = assess_snapshot(snapshot)
     if assessment and assessment.is_important:
@@ -247,7 +247,7 @@ def render_daily_markdown(
     industry_searches = industry_searches or {}
     core_watch_summaries = core_watch_summaries or {}
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core Watch"],
+        [e for e in entries if e.monitor_status == "Core"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     movers = _mover_entries(entries, snapshots)
@@ -381,7 +381,7 @@ def render_email_body(
 
     movers = _mover_entries(entries, snapshots)
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core Watch"],
+        [e for e in entries if e.monitor_status == "Core"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
@@ -459,7 +459,7 @@ def render_dashboard_html(
     industry_searches = industry_searches or {}
     core_watch_summaries = core_watch_summaries or {}
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core Watch"],
+        [e for e in entries if e.monitor_status == "Core"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     movers = _mover_entries(entries, snapshots)
