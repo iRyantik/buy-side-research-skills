@@ -525,33 +525,25 @@ def render_dashboard_html(
         cap = s.get("market_cap")
         pe = s.get("pe_trailing")
         cap_str = _format_cap(cap) if cap else ""
-        pe_str = f"PE {pe}x" if pe else ""
-        meta_parts = [price_str]
-        if cap_str: meta_parts.append(f"Cap {cap_str}")
-        if pe_str: meta_parts.append(pe_str)
-        meta_bar = " · ".join(meta_parts) if meta_parts else ""
+        meta_parts = [f'<b class="cw-price">{escape(price_str)}</b>']
+        if cap_str: meta_parts.append(f'<span class="cw-meta">{escape(cap_str)}</span>')
+        if pe: meta_parts.append(f'<span class="cw-meta">PE {pe:.1f}x</span>')
 
-        # Return bar
-        def _ret_span(k: str, label: str) -> str:
-            v = s.get(k)
-            if v is None: return ""
-            c = "pos" if v >= 0 else "neg"
-            return f"<span class=\"ret {c}\">{v:+.1f}%</span> · "
-        ret_parts = []
-        for rk, rl in [("price_move_pct","Today"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
+        # Return pills
+        ret_pills = []
+        for rk, rl in [("price_move_pct","D"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
             v = s.get(rk)
             if v is not None:
                 c = "pos" if v >= 0 else "neg"
-                ret_parts.append(f"<span class=\"ret {c}\">{rl} {v:+.1f}%</span>")
-        ret_bar = " · ".join(ret_parts) if ret_parts else ""
+                ret_pills.append(f'<span class="ret-pill {c}">{rl}&nbsp;{v:+.1f}%</span>')
 
         core_cards.append(
             f"""
             <article class="card">
               <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
               <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}{status_dot}</h3>
-              <div class="meta-bar">{escape(meta_bar)}</div>
-              <div class="ret-bar">{ret_bar}</div>
+              <div class="core-bar">{''.join(meta_parts)}</div>
+              <div class="core-bar">{''.join(ret_pills)}</div>
               {summary_line}
               <details><summary>News ({len(news_items)})</summary><ul>{news_html}</ul></details>
             </article>
@@ -819,19 +811,30 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   vertical-align: middle;
   cursor: help;
 }}
-.meta-bar {{
-  font-size: 12.5px; color: var(--slate); font-weight: 700;
-  margin: 4px 0 2px;
+.core-bar {{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
   font-variant-numeric: tabular-nums;
 }}
-.ret-bar {{
-  font-size: 12px; margin: 2px 0 6px;
-  font-variant-numeric: tabular-nums;
+.cw-price {{
+  font-size: 14px; color: var(--ink); font-weight: 800;
 }}
-.ret-bar .ret.pos, .ret-bar .ret.neg {{
-  padding: 1px 5px; border-radius: 4px;
-  margin: 0 2px;
+.cw-meta {{
+  font-size: 11.5px; color: var(--slate); font-weight: 600;
+  background: rgba(148,163,184,.12);
+  padding: 2px 6px; border-radius: 5px;
 }}
+.ret-pill {{
+  display: inline-block;
+  font-size: 11.5px; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+  letter-spacing: .02em;
+}}
+.ret-pill.pos {{ color: var(--green); background: var(--green-soft); }}
+.ret-pill.neg {{ color: var(--red); background: var(--red-soft); }}
 .pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
 .explainer {{ margin-top: 10px; }}
 .explainer-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
