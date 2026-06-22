@@ -132,8 +132,6 @@ Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral
 
 <prose with embedded background>
 
-When multiple sub-points belong to the same company/topic, merge into one section with bold sub-headings (e.g. **Thesis 1:**, **Core Business:**), rather than splitting into separate sections.
-
 ## 2. <Topic 2>
 
 ...
