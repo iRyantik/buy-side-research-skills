@@ -483,9 +483,9 @@ def render_dashboard_html(
                 <div class="metric-row">
                   <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>vol</span></div>
                   <div class="metric"><b>{escape(_format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price")))}</b><span>price</span></div>
-                  <div class="metric">{_metric_ret(snapshot, "ret_1m", "1m")}</div>
-                  <div class="metric">{_metric_ret(snapshot, "ret_ytd", "YTD")}</div>
-                  <div class="metric">{_metric_ret(snapshot, "ret_1y", "1y")}</div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1m"), "%", digits=1) if _float_metric(snapshot, "ret_1m") is not None else "n/a")}</b><span>1m</span></div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_ytd"), "%", digits=1) if _float_metric(snapshot, "ret_ytd") is not None else "n/a")}</b><span>YTD</span></div>
+                  <div class="metric"><b>{escape(_format_metric(_float_metric(snapshot, "ret_1y"), "%", digits=1) if _float_metric(snapshot, "ret_1y") is not None else "n/a")}</b><span>1y</span></div>
                 </div>
                 {explainer_block}
               </div>
