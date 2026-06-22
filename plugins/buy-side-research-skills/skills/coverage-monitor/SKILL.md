@@ -198,3 +198,29 @@ Artifact policy：
 - ❌ 对 `Daily Watch` 默认发盘中轰炸。
 - ❌ 无 workspace artifact 却凭空造 watchlist。
 正常模式还会尝试发送 email：正文为摘要，完整 HTML dashboard 作为附件。`--dry-run` 只渲染到 stdout，不写文件、不发送。
+
+## 邮箱配置
+
+在 workspace `.env` 中设置（`init-workspace` 自动生成 `.env.template`）：
+
+```
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASSWORD=your-app-password
+COVERAGE_EMAIL_TO=recipient@example.com
+```
+
+`doctor` 命令会检查缺失并提示。
+
+## Workflow 联动
+
+本 skill 已吸收原 `coverage-tracker` 的职责：
+- `normalize-coverage` 命令规范 COVERAGE.md
+- `build_universe` 从文件系统自动判断 Coverage/Monitor 状态
+- agent 产出 artifact 后直接更新 COVERAGE.md 字段，不再需要独立 tracker skill
+
+| 下游 | 作用 |
+|---|---|
+| researcher 日常工作流 | 每日收日报；Core Watch 名单盘中接提醒 |
+| `/update-agent-runtime` | 把本 skill 的脚本同步到 workspace `.scripts/coverage-monitor/` |
