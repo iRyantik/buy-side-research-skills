@@ -752,7 +752,7 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
   box-shadow: 0 14px 44px rgba(15,23,42,.08);
   padding: 18px;
 }}
-.mover-card {{ display: grid; grid-template-columns: 240px 1fr; gap: 16px; margin-bottom: 14px; }}
+.mover-card {{ display: grid; grid-template-columns: 260px 1fr; gap: 14px; margin-bottom: 14px; }}
 .mover-details {{ margin-top: 10px; }}
 .mover-details > summary {{
   cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
@@ -777,14 +777,15 @@ h3 {{ margin: 10px 0 12px; font-size: 22px; letter-spacing: -.04em; }}
 .company {{ margin-top: 6px; color: var(--muted); line-height: 1.45; }}
 .ticker-row .return {{
   display: inline-flex;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 19px; font-weight: 950;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 18px; font-weight: 950;
   flex-shrink: 0;
+  color: #fff;
 }}
 .ret.pos, .ret.neg {{ font-weight: 600; }}
-.return.pos, .up {{ color: var(--green); background: var(--green-soft); }}
-.return.neg, .down {{ color: var(--red); background: var(--red-soft); }}
+.return.pos, .up {{ color: #fff; background: var(--green); }}
+.return.neg, .down {{ color: #fff; background: var(--red); }}
 .ret.pos {{ color: var(--green); background: var(--green-soft); }}
 .ret.neg {{ color: var(--red); background: var(--red-soft); }}
 .ret.na {{ color: var(--muted); font-weight: 400; }}
@@ -846,13 +847,12 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   font-size: 12.5px; color: var(--slate); font-weight: 600;
 }}
 .ret-pill {{
-  display: inline-block;
-  font-size: 11.5px; font-weight: 700;
-  padding: 2px 7px; border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+  margin-right: 8px; white-space: nowrap;
   letter-spacing: .02em;
 }}
-.ret-pill.pos {{ color: var(--green); background: var(--green-soft); }}
-.ret-pill.neg {{ color: var(--red); background: var(--red-soft); }}
+.ret-pill.pos {{ color: var(--green); }}
+.ret-pill.neg {{ color: var(--red); }}
 .pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
 .explainer {{ margin-top: 10px; }}
 .explainer-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
