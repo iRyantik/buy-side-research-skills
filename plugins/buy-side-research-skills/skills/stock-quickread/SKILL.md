@@ -389,9 +389,16 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 这一节不是完整 thesis，只是把后续 `alpha-thesis` 的 variant view 起点暴露出来。
 
 ### 9. 最近在发生什么 [→ Bridge: news, price_action]
-> 股价：actuals-resolved.json market_data（yfinance 缓存）；事件：web search
+> 股价：actuals-resolved.json market_data（yfinance 缓存）；新闻：DDG 脚本搜
 
 **股价**：从 <日期> <价格> → 现在 <价格>，<涨跌幅>。同期大盘/板块 <涨跌幅>。[I#](https://finance.yahoo.com/...)
+
+**新闻采集**：
+```bash
+python .scripts/shared/search.py --query "<Native Name> <ticker>" --news
+python .scripts/shared/search.py --query "<Company EN> <ticker>" --news
+```
+返回 3-8 条结构化新闻（title + URL + snippet），过滤行情页。
 
 **事件**（每条带 source）：
 - <日期> <事件> → 股价 <涨跌 X%> [S#](...)

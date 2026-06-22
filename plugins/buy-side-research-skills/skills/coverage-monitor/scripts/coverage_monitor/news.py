@@ -108,18 +108,38 @@ def _is_cloudflare_challenge(html_text: str) -> bool:
     return any(marker in lower for marker in cf_markers)
 
 
-# ── company news (headlines only — agent handles Core Watch via WebSearch) ──
+# ── company news: DDG HTML search per stock ──────────────
+
+def _ddg_company_queries(entry: CoverageEntry) -> list[str]:
+    """Build DDG search queries: native language + English."""
+    queries = []
+    native = (entry.company_native or "").strip()
+    en = (entry.company or "").strip()
+    ticker = (entry.ticker or "").strip()
+    # Native language query
+    if native and ticker:
+        queries.append(f"{native} {ticker}")
+    elif native:
+        queries.append(native)
+    # English query
+    if en and ticker:
+        queries.append(f"{en} {ticker} news")
+    elif en:
+        queries.append(f"{en} news")
+    return queries
+
 
 def collect_company_news(
     entries: list[CoverageEntry],
     snapshots: dict[str, dict],
     today: str | None = None,
+    ddg_enabled: bool = True,
 ) -> tuple[dict[str, list[NewsItem]], list[str], list[str]]:
-    """Collect yfinance headlines. Returns (news_map, gaps, agent_needed_keys).
+    """Collect news via DDG HTML search for Core Watch + Mover stocks.
+    Returns (news_map, gaps, agent_needed_keys).
 
-    News search is agent-driven — this function only collects what's available
-    from yfinance snapshots. The caller should use WebSearch/Longbridge for
-    Core Watch stocks that need real news.
+    DDG search runs per stock — script does the raw news gathering.
+    Agent still needed for Chinese/English summaries via enrichment.
     """
     result: dict[str, list[NewsItem]] = {}
     gaps: list[str] = []
@@ -131,24 +151,48 @@ def collect_company_news(
             continue
 
         snapshot = snapshots.get(key, {})
+        assessment = assess_snapshot(snapshot) if snapshot else None
+        needs_news = entry.monitor_status == "Core" or (assessment and assessment.is_important)
+
+        if not needs_news:
+            continue
+
         items: list[NewsItem] = []
 
-        # yfinance headline (free)
-        if snapshot.get("headline") and snapshot.get("url"):
+        # DDG bilingual search
+        if ddg_enabled:
+            try:
+                import sys, os
+                _shared = os.path.join(os.path.dirname(__file__), "..", "..", "shared")
+                if _shared not in sys.path:
+                    sys.path.insert(0, os.path.abspath(_shared))
+                from search import ddg_multi_search
+                queries = _ddg_company_queries(entry)
+                if queries:
+                    raw = ddg_multi_search(queries, max_results_per=8, dedup=True)
+                    for r in raw:
+                        items.append(NewsItem(
+                            title=r["title"], url=r["url"],
+                            source=r.get("source", "ddg"),
+                            summary=r.get("snippet", ""),
+                        ))
+            except Exception:
+                pass  # DDG unavailable → honest gap
+
+        # yfinance headline fallback
+        if not items and snapshot.get("headline") and snapshot.get("url"):
             items.append(NewsItem(
                 title=str(snapshot["headline"]), url=str(snapshot["url"]),
                 source="yfinance", summary="Latest provider headline.",
                 published_at=str(snapshot.get("published_at") or ""),
             ))
 
-        # Core Watch or important mover — agent must search via WebSearch
-        assessment = assess_snapshot(snapshot) if snapshot else None
-        if entry.monitor_status == "Core" or (assessment and assessment.is_important):
-            agent_needed.append(key)
+        if items:
+            agent_needed.append(key)  # still needs agent to write Chinese summary
+        else:
+            gaps.append(f"{key}: no_news_found — DDG and yfinance both empty")
 
         result[key] = items
-        if not items and entry.monitor_status == "Core":
-            gaps.append(f"{key}: no_yfinance_headline — agent should search via WebSearch")
 
     return result, sorted(set(gaps)), sorted(set(agent_needed))
 
