@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v5.38.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.4.1 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > English: [README.md](../README.md)
 
@@ -190,6 +190,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v6.4.1 | 2026-06-22 | coverage-monitor renderer 收口：ticker-first mover 卡、紧凑 Core Watch 双列卡、公司 native+English 双语名去重显示、official/filing 证据并入统一 `Evidence` 折叠区，以及 `Core Coverage` / `Building Coverage` / `Core Watch` / `Daily Watch` 语义状态统一。 |
 | v5.38.0 | 2026-06-21 | coverage-monitor daily v2：today 风格 4-tab HTML dashboard（`Movers` / `Core Watch` / `Industry Tape` / `Universe`）、语义化 Coverage/Monitor 展示、deep-work Core review 提示、email 摘要正文 + 完整 HTML 附件，以及 stock-quickread coverage 注册契约同步 |
 | v5.37.0 | 2026-06-20 | coverage-monitor：客观 coverage tier、canonical COVERAGE.md、覆盖日报、盘中提醒、email/WeCom 发送链 |
 | v5.13.0 | 2026-06 | Moat分析升级：五维因果链+可证伪条件、范式冲击护城河模板（segment级因果传导） |

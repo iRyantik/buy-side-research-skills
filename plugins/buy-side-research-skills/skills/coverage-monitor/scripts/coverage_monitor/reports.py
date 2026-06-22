@@ -46,8 +46,8 @@ def _format_return_hover(snapshot: dict[str, Any]) -> str:
 
 
 def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]]) -> tuple[Any, ...]:
-    coverage_rank = {"Core": 0, "Building": 1, "Radar": 2}
-    monitor_rank = {"Core": 0, "Daily": 1}
+    coverage_rank = {"Core Coverage": 0, "Building Coverage": 1, "Radar": 2}
+    monitor_rank = {"Core Watch": 0, "Daily Watch": 1}
     move = _today_return(entry, snapshots)
     return (
         entry.industry.lower(),
@@ -60,12 +60,12 @@ def _universe_sort_key(entry: CoverageEntry, snapshots: dict[str, dict[str, Any]
 
 
 def _coverage_slug(value: str) -> str:
-    mapping = {"Core": "core", "Building": "building", "Radar": "radar"}
+    mapping = {"Core Coverage": "core", "Building Coverage": "building", "Radar": "radar"}
     return mapping.get(value, "unknown")
 
 
 def _monitor_slug(value: str) -> str:
-    mapping = {"Core": "core-watch", "Daily": "daily-watch"}
+    mapping = {"Core Watch": "core-watch", "Daily Watch": "daily-watch"}
     return mapping.get(value, "unknown")
 
 
@@ -103,9 +103,30 @@ def _metric_ret(snapshot: dict[str, Any], key: str, label: str) -> str:
     """Render a mover-card metric for a return column with color."""
     v = snapshot.get(key)
     if v is None:
-        return f"<b>n/a</b><span>{label}</span>"
+        return f'<div class="snapshot-item"><b>n/a</b><span>{label}</span></div>'
     c = "pos" if v >= 0 else "neg"
-    return f"<b class=\"ret {c}\">{v:+.1f}%</b><span>{label}</span>"
+    return f'<div class="snapshot-item"><b class="ret {c}">{v:+.1f}%</b><span>{label}</span></div>'
+
+
+def _display_names(entry: CoverageEntry) -> tuple[str, str | None]:
+    primary = (entry.company_native or "").strip() or (entry.company or "").strip()
+    secondary = (entry.company or "").strip()
+    if not secondary:
+        return primary, None
+    if primary.strip().casefold() == secondary.strip().casefold():
+        return secondary, None
+    if primary and primary != secondary:
+        return primary, secondary
+    return secondary, None
+
+
+def _company_identity_html(entry: CoverageEntry, extra_class: str = "") -> str:
+    primary, secondary = _display_names(entry)
+    if not primary:
+        return ""
+    secondary_html = f'<span class="company-en">{escape(secondary)}</span>' if secondary else ""
+    class_attr = f' class="{extra_class}"' if extra_class else ""
+    return f'<span{class_attr}>{escape(primary)}{secondary_html}</span>'
 
 
 # Currency + decimal rules by market suffix
@@ -171,7 +192,7 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    if entry.monitor_status != "Core":
+    if entry.monitor_status != "Core Watch":
         return False
     assessment = assess_snapshot(snapshot)
     if assessment and assessment.is_important:
@@ -226,7 +247,7 @@ def render_daily_markdown(
     industry_searches = industry_searches or {}
     core_watch_summaries = core_watch_summaries or {}
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core"],
+        [e for e in entries if e.monitor_status == "Core Watch"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     movers = _mover_entries(entries, snapshots)
@@ -360,7 +381,7 @@ def render_email_body(
 
     movers = _mover_entries(entries, snapshots)
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core"],
+        [e for e in entries if e.monitor_status == "Core Watch"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
@@ -438,7 +459,7 @@ def render_dashboard_html(
     industry_searches = industry_searches or {}
     core_watch_summaries = core_watch_summaries or {}
     core_entries = sorted(
-        [e for e in entries if e.monitor_status == "Core"],
+        [e for e in entries if e.monitor_status == "Core Watch"],
         key=lambda e: _core_watch_sort_key(e, snapshots),
     )
     movers = _mover_entries(entries, snapshots)
@@ -457,64 +478,87 @@ def render_dashboard_html(
         ret_class = _return_class(move)
         key = entry.ticker or entry.company
         explainer = mover_explainers.get(key)
-        explainer_block = ""
+        source_names: list[str] = []
+        evidence_items: list[NewsItem] = []
         if explainer:
-            evidence_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in explainer.evidence[:10]
-            ) or "<li>No external evidence retained.</li>"
-            filing_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'official')}</span></li>" for item in explainer.filings_evidence[:7]
-            ) or "<li>No filing / official release captured.</li>"
-            explainer_block = f"""
-                <div class="explainer">
-                  <p class="body-copy">{escape(explainer.summary)}</p>
-                  <details><summary>Evidence ({len(explainer.evidence)})</summary><ul>{evidence_html}</ul></details>
-                  <details><summary>Filings ({len(explainer.filings_evidence)})</summary><ul>{filing_html}</ul></details>
-                </div>
-            """
+            seen_evidence: set[tuple[str, str]] = set()
+            for item in [*explainer.evidence, *explainer.filings_evidence]:
+                dedupe_key = ((item.url or "").strip(), item.title.strip())
+                if dedupe_key in seen_evidence:
+                    continue
+                seen_evidence.add(dedupe_key)
+                evidence_items.append(item)
+                if item.source:
+                    source_names.append(item.source)
+            body_text = explainer.summary
         else:
             fallback_news = company_news.get(key, [])
-            evidence_html = "".join(
-                f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in fallback_news[:8]
-            ) or "<li>No direct company evidence collected.</li>"
-            explainer_block = f'<details><summary>Evidence</summary><ul>{evidence_html}</ul></details>'
-        # Mover price + cap + PE + return pills
+            evidence_items.extend(fallback_news[:8])
+            for item in fallback_news[:8]:
+                if item.source:
+                    source_names.append(item.source)
+            body_text = _mover_explanation(entry, snapshot) or "未抓到足够直接证据，保留到后续补查。"
+
+        evidence_html = "".join(
+            f"<li>{_headline_link(item)}<span> · {escape(item.source or 'source')}</span></li>" for item in evidence_items
+        ) or "<li>No direct company evidence collected.</li>"
+        source_line = ""
+        unique_sources = [name for name in dict.fromkeys(source_names) if name]
+        if unique_sources:
+            source_line = f'<div class="source-inline">Sources · {escape("、".join(unique_sources[:6]))}</div>'
+
         m_price = _format_price(snapshot.get("quote_ticker", ""), _float_metric(snapshot, "last_price"))
         m_cap = snapshot.get("market_cap")
         m_pe = snapshot.get("pe_trailing")
-        m_meta = [f'<span class="cw-price">{escape(m_price)}</span>']
-        if m_cap: m_meta.append(f'<span class="cw-meta">Cap {escape(_format_cap(m_cap))}</span>')
-        if m_pe is not None: m_meta.append(f'<span class="cw-meta">PE {m_pe:.1f}x</span>')
-
-        m_ret_pills = []
-        for rk, rl in [("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
-            v = snapshot.get(rk)
-            if v is not None:
-                c = "pos" if v >= 0 else "neg"
-                m_ret_pills.append(f'<span class="ret-pill {c}">{rl}&nbsp;{v:+.1f}%</span>')
+        primary_name_html = _company_identity_html(entry, extra_class="company-name")
+        snapshot_tiles = [
+            f'<div class="snapshot-item"><b>{escape(m_price)}</b><span>Price</span></div>',
+            f'<div class="snapshot-item"><b>{escape(_format_cap(m_cap) if m_cap else "n/a")}</b><span>Cap</span></div>',
+            f'<div class="snapshot-item"><b>{escape(f"{m_pe:.1f}x" if m_pe is not None else "n/a")}</b><span>PE</span></div>',
+            f'<div class="snapshot-item"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>Vol</span></div>',
+            f'<div class="snapshot-item"><b>{escape(_format_metric(gap, "%", digits=2))}</b><span>Gap</span></div>',
+            _metric_ret(snapshot, "ret_1m", "1m"),
+            _metric_ret(snapshot, "ret_ytd", "YTD"),
+            _metric_ret(snapshot, "ret_1y", "1y"),
+        ]
+        trigger_tags = "".join(f'<span class="tag-chip">{escape(tag)}</span>' for tag in assessment.trigger_tags)
 
         mover_cards.append(
             f"""
-            <article class="mover-card mover {'important-move' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
-              <div class="ticker-block">
-                <div class="ticker-row">
-                  <span class="ticker">{escape(entry.ticker or entry.company)}</span>
-                  <span class="return {ret_class}">{escape(_format_today_return(move))}</span>
+            <article class="coverage-card mover-card {'important' if assessment.is_important else ''}" data-market="{escape(_market_label(entry))}" data-industry="{escape(entry.industry)}" data-return="{escape(str(move or 0.0))}">
+              <div class="identity-bar">
+                <div class="identity-copy">
+                  <div class="ticker-line">
+                    <span class="ticker">{escape(entry.ticker or entry.company)}</span>
+                    {primary_name_html}
+                  </div>
+                  <div class="industry-line">{escape(entry.industry)}</div>
                 </div>
-                <div class="company">{escape(entry.company)} · {escape(entry.industry)}</div>
-                <div class="core-bar">{''.join(m_meta)}</div>
-                <div class="core-bar">{''.join(m_ret_pills)}</div>
-                <div class="chip-row">
-                  <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
-                  <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
-                </div>
+                <div class="day-return-pill {ret_class}">{escape(_format_today_return(move))}</div>
               </div>
-              <div>
-                <div class="metric-row">
-                  <div class="metric"><b>{escape(_format_metric(volume, "x", digits=2))}</b><span>vol</span></div>
-                  <div class="metric"><b>{escape(_format_metric(gap, "%", digits=2))}</b><span>gap</span></div>
+              <div class="card-body">
+                <div class="fact-rail">
+                  <div class="rail-group">
+                    <div class="rail-label">Market Snapshot</div>
+                    <div class="snapshot-grid">{''.join(snapshot_tiles)}</div>
+                  </div>
+                  <div class="rail-group">
+                    <div class="rail-label">Coverage</div>
+                    <div class="pill-row">
+                      <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
+                      <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
+                    </div>
+                  </div>
                 </div>
-                {explainer_block}
+                <div class="detail-body">
+                  <div class="tag-row">{trigger_tags}</div>
+                  <p class="body-copy">{escape(body_text)}</p>
+                  {source_line}
+                  <details class="evidence-box">
+                    <summary>Evidence ({len(evidence_items)})</summary>
+                    <ul>{evidence_html}</ul>
+                  </details>
+                </div>
               </div>
             </article>
             """
@@ -529,37 +573,49 @@ def render_dashboard_html(
             for item in news_items[:10]
         ) or "<li>No company news found in this run.</li>"
         s = snapshots.get(key, {})
+        ret_class = _return_class(_today_return(entry, snapshots))
         status = quote_exception_status(s, report_day=today)
-        status_dot = ' <span class=\"status-dot\" title=\"Quote: ' + escape(status) + '\"></span>' if status else ""
+        status_dot = ' <span class="status-dot" title="Quote: ' + escape(status) + '"></span>' if status else ""
         stock_summary = core_watch_summaries.get(key, "")
         summary_line = f'<p class=\"body-copy\">{escape(stock_summary)}</p>' if stock_summary else ""
-
-        # Price + cap + PE bar
+        primary_name_html = _company_identity_html(entry, extra_class="core-company")
         price_str = _format_price(s.get("quote_ticker", ""), s.get("last_price"))
         cap = s.get("market_cap")
         pe = s.get("pe_trailing")
-        cap_str = _format_cap(cap) if cap else ""
-        meta_parts = [f'<b class="cw-price">{escape(price_str)}</b>']
-        if cap_str: meta_parts.append(f'<span class="cw-meta">{escape(cap_str)}</span>')
-        if pe: meta_parts.append(f'<span class="cw-meta">PE {pe:.1f}x</span>')
-
-        # Return pills
-        ret_pills = []
-        for rk, rl in [("price_move_pct","D"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
+        quote_status_line = f'<div class="status-line">Quote status: {escape(status)}</div>' if status else ""
+        quote_blocks = [
+            f'<div class="core-quote-item"><span>Price</span><b>{escape(price_str)}</b></div>',
+            f'<div class="core-quote-item"><span>Cap</span><b>{escape(_format_cap(cap) if cap else "n/a")}</b></div>',
+            f'<div class="core-quote-item"><span>PE</span><b>{escape(f"{pe:.1f}x" if pe is not None else "n/a")}</b></div>',
+        ]
+        return_blocks = []
+        for rk, rl in [("ret_1m", "1m"), ("ret_ytd", "YTD"), ("ret_1y", "1y")]:
             v = s.get(rk)
-            if v is not None:
-                c = "pos" if v >= 0 else "neg"
-                ret_pills.append(f'<span class="ret-pill {c}">{rl}&nbsp;{v:+.1f}%</span>')
+            c = "na" if v is None else ("pos" if v >= 0 else "neg")
+            value = "—" if v is None else f"{v:+.1f}%"
+            return_blocks.append(f'<div class="return-cell {c}"><span>{rl}</span><b>{escape(value)}</b></div>')
 
         core_cards.append(
             f"""
-            <article class="card">
-              <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
-              <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}{status_dot}</h3>
-              <div class="company">{escape(entry.industry)}</div>
-              <div class="core-bar">{''.join(meta_parts)}</div>
-              <div class="core-bar">{''.join(ret_pills)}</div>
+            <article class="core-watch-card">
+              <div class="core-head">
+                <div>
+                  <div class="core-ticker-line">
+                    <span class="core-ticker">{escape(entry.ticker or entry.company)}</span>
+                    <span class="core-return {escape(ret_class)}">{escape(_format_today_return(_today_return(entry, snapshots)))}</span>
+                  </div>
+                  <div class="core-company-line">{primary_name_html}{status_dot}</div>
+                  <div class="core-industry">{escape(entry.industry)}</div>
+                </div>
+              </div>
+              <div class="core-quote-grid">{''.join(quote_blocks)}</div>
+              <div class="pill-row coverage-row">
+                <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
+                <span class="pill monitor {escape(_monitor_slug(entry.monitor_status))}">{escape(entry.monitor_status)}</span>
+              </div>
+              <div class="return-strip">{''.join(return_blocks)}</div>
               {summary_line}
+              {quote_status_line}
               <details><summary>News ({len(news_items)})</summary><ul>{news_html}</ul></details>
             </article>
             """
@@ -746,59 +802,156 @@ h3 {{ margin: 8px 0 2px; font-size: 20px; letter-spacing: -.04em; }}
 .section-head p {{ margin: 6px 0 0; max-width: 840px; color: var(--muted); line-height: 1.68; }}
 .grid-2 {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }}
 .stack {{ display: grid; gap: 14px; }}
-.card, .mover-card {{
+.card {{
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--card);
   box-shadow: 0 14px 44px rgba(15,23,42,.08);
   padding: 18px;
 }}
-.mover-card {{ display: grid; grid-template-columns: 280px 1fr; gap: 12px; margin-bottom: 14px; }}
-.mover-details {{ margin-top: 10px; }}
-.mover-details > summary {{
-  cursor: pointer; font-weight: 800; color: #1e3a8a; padding: 6px 0; border-bottom: 1px dashed var(--line); margin-bottom: 8px;
+.coverage-card {{
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-left: 4px solid rgba(37,99,235,.35);
+  border-radius: 24px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 18px 52px rgba(15,23,42,.09);
 }}
-.source-group {{ margin-bottom: 4px; }}
-.source-group > summary {{
-  cursor: pointer; font-weight: 800; color: #334155; padding: 4px 0; font-size: 14px;
-}}
-.search-block-label {{
-  margin-top: 10px; padding: 6px 12px; font-size: 12px; font-weight: 900; text-transform: uppercase;
-  color: var(--blue); background: var(--blue-soft); border-radius: 12px; display: inline-block;
-}}
-.mover {{ border-left: 4px solid var(--slate-soft); }}
-.important-move {{ border-left: 4px solid var(--amber); }}
-.ticker-block {{ border-right: 1px solid var(--line); padding-right: 16px; }}
-.ticker-row {{
+.coverage-card.mover-card {{ margin-bottom: 14px; }}
+.coverage-card.important {{ border-left-color: var(--amber); }}
+.identity-bar {{
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, rgba(37,99,235,.08), rgba(255,255,255,.96) 54%);
+}}
+.coverage-card.important .identity-bar {{
+  background: linear-gradient(90deg, rgba(183,121,31,.12), rgba(255,255,255,.96) 54%);
+}}
+.ticker-line {{
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
+  gap: 10px 14px;
 }}
-.ticker {{ font-size: 22px; font-weight: 950; letter-spacing: -.04em; }}
-.company {{ margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 1.35; }}
-.ticker-row .return {{
+.ticker {{
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: -.055em;
+  line-height: 1;
+}}
+.company-name {{
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 780;
+  letter-spacing: -.02em;
+}}
+.company-en {{
+  color: var(--muted);
+  font-size: .84em;
+  font-weight: 650;
+}}
+.company-en::before {{
+  content: "·";
+  margin: 0 7px;
+  color: var(--muted);
+}}
+.industry-line {{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}}
+.day-return-pill {{
+  min-width: 116px;
+  border-radius: 14px;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -.05em;
+}}
+.day-return-pill.pos {{ color: var(--green); background: var(--green-soft); }}
+.day-return-pill.neg {{ color: var(--red); background: var(--red-soft); }}
+.day-return-pill.na {{ color: var(--muted); background: rgba(226,232,240,.55); }}
+.card-body {{
+  display: grid;
+  grid-template-columns: 330px minmax(0,1fr);
+}}
+.fact-rail {{
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-right: 1px solid var(--line);
+  background: rgba(248,250,252,.68);
+}}
+.rail-group {{ display: grid; gap: 8px; }}
+.rail-label {{
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}}
+.snapshot-grid {{
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}}
+.snapshot-item {{
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,.86);
+  padding: 10px 11px;
+}}
+.snapshot-item b {{
+  display: block;
+  font-size: 14px;
+  line-height: 1.2;
+}}
+.snapshot-item span {{
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}}
+.detail-body {{
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+}}
+.tag-row {{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}}
+.tag-chip {{
   display: inline-flex;
-  border-radius: 8px;
-  padding: 4px 10px;
-  font-size: 18px; font-weight: 950;
-  flex-shrink: 0;
-  color: #fff;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(248,250,252,.94);
+  border: 1px solid var(--line);
+  color: #334155;
+  font-size: 11px;
+  font-weight: 850;
 }}
+.source-inline {{
+  color: var(--muted);
+  font-size: 13px;
+}}
+.evidence-box {{ margin-top: 0; }}
 .ret.pos, .ret.neg {{ font-weight: 600; }}
-.return.pos, .up {{ color: #fff; background: var(--green); }}
-.return.neg, .down {{ color: #fff; background: var(--red); }}
 .ret.pos {{ color: var(--green); background: var(--green-soft); }}
 .ret.neg {{ color: var(--red); background: var(--red-soft); }}
 .ret.na {{ color: var(--muted); font-weight: 400; }}
-.metric-row {{ display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 6px 0 4px; }}
-.metric {{
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(248,250,252,.78);
-  padding: 11px;
-}}
-.metric b {{ display: block; font-size: 15px; }}
-.metric span {{ display: block; margin-top: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }}
 .body-copy {{ color: #334155; font-size: 15px; line-height: 1.75; margin: 0 0 12px; }}
 details {{
   border: 1px solid var(--line);
@@ -836,28 +989,97 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   vertical-align: middle;
   cursor: help;
 }}
-.core-bar {{
+.core-watch-card {{
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 14px 44px rgba(15,23,42,.08);
+  padding: 18px;
+}}
+.core-ticker-line {{
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0;
-  font-variant-numeric: tabular-nums;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
 }}
-.cw-price, .cw-meta {{
-  font-size: 12.5px; color: var(--slate); font-weight: 600;
+.core-ticker {{
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -.045em;
 }}
-.ret-pill {{
-  font-size: 12px; font-weight: 700;
-  margin-right: 8px; white-space: nowrap;
-  letter-spacing: .02em;
+.core-return {{
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -.04em;
 }}
-.ret-pill.pos {{ color: var(--green); }}
-.ret-pill.neg {{ color: var(--red); }}
-.pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
-.explainer {{ margin-top: 10px; }}
-.explainer-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
-.confidence-label {{ color: var(--muted); font-size: 12px; font-weight: 900; text-transform: uppercase; }}
+.core-return.pos {{ color: var(--green); }}
+.core-return.neg {{ color: var(--red); }}
+.core-return.na {{ color: var(--muted); }}
+.core-company-line {{
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 760;
+}}
+.core-industry {{
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}}
+.core-quote-grid {{
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 12px;
+}}
+.core-quote-item {{
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(248,250,252,.8);
+  padding: 10px 11px;
+}}
+.core-quote-item span {{
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}}
+.core-quote-item b {{
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+}}
+.coverage-row {{ margin-top: 10px; }}
+.return-strip {{
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+}}
+.return-cell {{
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(248,250,252,.8);
+  padding: 10px 11px;
+}}
+.return-cell span {{
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}}
+.return-cell b {{
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+}}
+.return-cell.pos b {{ color: var(--green); }}
+.return-cell.neg b {{ color: var(--red); }}
+.return-cell.na b {{ color: var(--muted); }}
 .status-line {{ color: var(--muted); font-size: 13px; margin: 0 0 10px; }}
 .table-card {{
   overflow-x: auto;
@@ -912,8 +1134,16 @@ tr:last-child td {{ border-bottom: 0; }}
 @media (max-width: 960px) {{
   .hero-top, .section-head {{ flex-direction: column; align-items: flex-start; }}
   .grid-2 {{ grid-template-columns: 1fr; }}
-  .mover-card, .industry-card {{ grid-template-columns: 1fr; }}
-  .ticker-block {{ border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 14px; }}
+  .card-body, .industry-card {{ grid-template-columns: 1fr; }}
+  .fact-rail {{ border-right: 0; border-bottom: 1px solid var(--line); }}
+}}
+@media (max-width: 720px) {{
+  .identity-bar {{ flex-direction: column; align-items: flex-start; }}
+  .day-return-pill {{ min-width: 0; }}
+  .snapshot-grid {{ grid-template-columns: repeat(2,minmax(0,1fr)); }}
+}}
+@media (max-width: 520px) {{
+  .core-quote-grid, .return-strip {{ grid-template-columns: 1fr; }}
 }}
 </style>
 </head>

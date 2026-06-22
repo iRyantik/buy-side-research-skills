@@ -395,7 +395,7 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
         cleaned.append(gap)
 
     # Summarize what agent did / still needs to do
-    core_watch = [e for e in entries if e.monitor_status == "Core"]
+    core_watch = [e for e in entries if e.monitor_status == "Core Watch"]
     unresolved_news = {e.ticker or e.company for e in core_watch} - core_news
 
     # Movers that triggered but don't have an explainer yet

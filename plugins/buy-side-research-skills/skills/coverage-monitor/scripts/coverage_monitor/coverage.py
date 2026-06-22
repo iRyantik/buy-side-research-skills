@@ -83,9 +83,9 @@ def normalize_ticker(value: str) -> str:
 def normalize_coverage_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core coverage", "core"}:
-        return "Core"
+        return "Core Coverage"
     if token in {"building coverage", "building", "coverage building"}:
-        return "Building"
+        return "Building Coverage"
     if token in {"radar", "candidate"}:
         return "Radar"
     return value.strip()
@@ -94,9 +94,9 @@ def normalize_coverage_status(value: str) -> str:
 def normalize_monitor_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
     if token in {"core watch", "core", "yes", "true"}:
-        return "Core"
+        return "Core Watch"
     if token in {"daily watch", "daily", "daily-only"}:
-        return "Daily"
+        return "Daily Watch"
     return value.strip()
 
 
@@ -162,6 +162,7 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
         entry = CoverageEntry(
             ticker=normalize_ticker(data["ticker"]),
             company=data["company"].strip(),
+            company_native=data["company_native"].strip(),
             industry=data["industry"].strip(),
             coverage_status=normalize_coverage_status(data["coverage_status"]),
             monitor_status=normalize_monitor_status(data["monitor_status"]),

@@ -22,12 +22,14 @@ Responsible for:
 - Reading the `## Coverage` table in workspace `COVERAGE.md` as the ticker/company/coverage-status source of truth.
 - Using existing artifacts under `industry/*/companies/*` only to supplement artifact path, latest artifact, and artifact count.
 - Running objective coverage-workflow checks after `stock-quickread` and deep-work artifacts land: quickread promotes to `Building Coverage`, while deep-work only triggers `Core Coverage` review instead of blind auto-upgrades.
-- Normalizing the coverage table to canonical columns.
+- Normalizing the coverage table to canonical columns: Coverage uses `Core Coverage` / `Building Coverage` / `Radar`, and Monitor uses `Core Watch` / `Daily Watch`.
 - Generating a dashboard-style daily coverage brief with fixed tabs: `Movers`, `Core Watch`, `Industry Tape`, and `Universe`.
 - Applying stricter mover thresholds: ordinary movers `5% / 3.0x / 7%`, important movers `8% / 4.0x / 10%`.
 - Sharing the same search runtime for company news and industry read-through: `live web search -> direct fetch/html parse -> Playwright fallback -> honest fail`.
-- Building a lightweight explainer for important movers only: `summary`, `confidence`, `evidence`, and `filings_evidence`.
-- Showing a lightweight `Data Health` summary plus exception-only quote status when the quote is `Partial`, `No Data`, or `Stale`.
+- Rendering `Movers` as ticker-first full-width cards: large ticker, native + English company names, left `Market Snapshot` / `Coverage` rail, and a single `Evidence` disclosure on the right.
+- Merging official / filing evidence into that single `Evidence` disclosure instead of rendering a separate `Filings` block.
+- Rendering `Core Watch` as compact two-column cards: ticker stays visually first, native + English company names appear together, and `price / cap / PE` plus `1m / YTD / 1y` are split across two rows.
+- Showing exception-only quote status when the quote is `Partial`, `No Data`, or `Stale`.
 - Running intraday material-event alerts for the `Core Watch` list only.
 - Delivering output through email: summary body plus full HTML attachment.
 - Failing honestly when quote/news or delivery credentials are unavailable.
@@ -151,11 +153,11 @@ Daily HTML files always use the fixed 4-tab dashboard shell. The visual language
 Key daily contract:
 
 - `Movers` only includes names that cross the mover thresholds; `near 20d high/low` no longer qualifies by itself.
-- Important-mover cards automatically merge news plus filing / official-release evidence.
+- Dual-name rule: native name is primary and English name is secondary; identical names are deduped automatically.
+- Important-mover cards automatically merge news plus filing / official-release evidence into one `Evidence` disclosure.
 - `Core Watch` searches company-level news every day even without price moves.
 - `Industry Tape` scans `Daily Signal Sources` first and falls back to general news only when those sources have no new signal.
 - `Universe` does not show `OK`; quote freshness / data status appears only as exception-only `Partial` / `No Data` / `Stale`.
-- `Data Health` stays lightweight. No appendix and no status-heavy takeover of the dashboard.
 
 Artifact policy:
 

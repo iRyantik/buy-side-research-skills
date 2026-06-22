@@ -1,15 +1,5 @@
 from coverage_monitor.coverage import CoverageEntry
-from coverage_monitor.news import (
-    NewsItem,
-    build_company_search_queries,
-    build_important_mover_explainer,
-    collect_company_news,
-)
-
-
-class SearchLinkOnlyProvider:
-    def search(self, query: str, max_results: int) -> list[NewsItem]:
-        return [NewsItem(title=f"Search: {query}", url="https://www.bing.com/search?q=test", source="search_link")]
+from coverage_monitor.news import NewsItem, build_company_search_queries, build_important_mover_explainer, collect_company_news
 
 
 def test_build_company_search_queries_follow_today_style():
@@ -38,12 +28,12 @@ def test_build_important_mover_explainer_prefers_official_evidence():
 
 def test_collect_company_news_does_not_treat_search_link_as_success():
     entry = CoverageEntry(ticker="MYCR SS", company="Mycronic", monitor_status="Core Watch")
-    company_news, explainers, gaps = collect_company_news(
+    company_news, gaps, agent_needed = collect_company_news(
         [entry],
         {"MYCR SS": {"price_move_pct": 8.2, "volume_ratio": 4.0, "gap_pct": 10.1}},
         today="2026-06-21",
-        provider=SearchLinkOnlyProvider(),
+        ddg_enabled=False,
     )
     assert company_news["MYCR SS"] == []
-    assert "MYCR SS" not in explainers
-    assert any("no_company_news_found" in gap for gap in gaps)
+    assert "MYCR SS" not in agent_needed
+    assert any("no_news_found" in gap for gap in gaps)

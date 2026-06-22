@@ -36,6 +36,7 @@ def test_dashboard_html_uses_four_tab_dashboard_shell():
             CoverageEntry(
                 ticker="SPCX US",
                 company="SpaceX",
+                company_native="太空探索技术公司",
                 industry="aerospace",
                 coverage_status="Core Coverage",
                 monitor_status="Core Watch",
@@ -45,7 +46,7 @@ def test_dashboard_html_uses_four_tab_dashboard_shell():
         today="2026-06-21",
         gaps=[],
         company_news={"SPCX US": [NewsItem(title="SpaceX news", url="https://example.com", source="example")]},
-        important_explainers={
+        mover_explainers={
             "SPCX US": ImportantMoverExplainer(
                 summary="公司级证据与官方披露都支持这次异动。",
                 confidence="High",
@@ -57,14 +58,18 @@ def test_dashboard_html_uses_four_tab_dashboard_shell():
     )
     for text in ["Daily Coverage Dashboard", "Movers", "Core Watch", "Industry Tape", "Universe"]:
         assert text in html
-    assert "Data Health" in html
-    assert "Confidence" in html
-    assert 'class="tab-button active" data-tab="movers"' in html
+    assert "Data Health" not in html
+    assert "Confidence" not in html
     assert 'id="universeTable"' in html
-    assert "Today Return" in html
+    assert "Today" in html
     assert 'data-coverage="core"' in html
     assert "Core Coverage" in html
     assert "Core Watch" in html
+    assert "太空探索技术公司" in html
+    assert "SpaceX" in html
+    assert "Evidence (2)" in html
+    assert "Q2 results" in html
+    assert "Filings (" not in html
 
 
 def test_dashboard_html_orders_universe_with_semantic_priority_before_abs_return():
@@ -117,7 +122,7 @@ def test_dashboard_html_orders_universe_with_semantic_priority_before_abs_return
 def test_dashboard_html_only_lists_threshold_movers_and_highlights_important():
     entries = [
         CoverageEntry(ticker="AAA US", company="Alpha", industry="aerospace", coverage_status="Building Coverage", monitor_status="Daily Watch"),
-        CoverageEntry(ticker="BBB US", company="Beta", industry="aerospace", coverage_status="Core Coverage", monitor_status="Core Watch"),
+        CoverageEntry(ticker="BBB US", company="Beta", company_native="贝塔", industry="aerospace", coverage_status="Core Coverage", monitor_status="Core Watch"),
         CoverageEntry(ticker="CCC US", company="Gamma", industry="aerospace", coverage_status="Radar", monitor_status="Daily Watch"),
     ]
     snapshots = {
@@ -130,7 +135,7 @@ def test_dashboard_html_only_lists_threshold_movers_and_highlights_important():
         snapshots=snapshots,
         today="2026-06-21",
         gaps=[],
-        important_explainers={
+        mover_explainers={
             "BBB US": ImportantMoverExplainer(
                 summary="Beta 有强公司级催化。",
                 confidence="High",
@@ -143,7 +148,9 @@ def test_dashboard_html_only_lists_threshold_movers_and_highlights_important():
     assert "AAA US" in movers_html
     assert "BBB US" in movers_html
     assert "CCC US" not in movers_html
-    assert "Important Move" in movers_html
+    assert "Important Move" not in movers_html
+    assert "贝塔" in movers_html
+    assert "Beta 有强公司级催化。" in movers_html
 
 
 def test_dashboard_html_shows_exception_only_quote_status():
@@ -160,6 +167,27 @@ def test_dashboard_html_shows_exception_only_quote_status():
     assert "Partial" in universe_html
     assert "Quote status: Partial" in html
     assert "OK" not in html
+
+
+def test_dashboard_html_dedupes_identical_native_and_english_names():
+    html = render_dashboard_html(
+        entries=[
+            CoverageEntry(
+                ticker="6777 JP",
+                company="santec",
+                company_native="santec",
+                industry="optical-module-equipment",
+                coverage_status="Core Coverage",
+                monitor_status="Core Watch",
+            )
+        ],
+        snapshots={"6777 JP": {"last_price": 5170, "market_time": "2026-06-21"}},
+        today="2026-06-21",
+        gaps=[],
+    )
+    assert "santec</span>" in html
+    card_html = html.split('<section id="core"', 1)[1].split('<section id="industry"', 1)[0]
+    assert '<span class="company-en">' not in card_html
 
 
 def test_intraday_alert_only_for_core_watch_material_events():

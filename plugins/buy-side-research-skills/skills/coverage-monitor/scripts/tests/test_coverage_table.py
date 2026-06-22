@@ -6,15 +6,16 @@ def test_parse_coverage_table_uses_semantic_status_fields():
     text = """# Coverage Map
 
 ## Coverage
-| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
-|---|---|---|---|---|---|---|---|
-| SPCX US | SpaceX | aerospace | Core Coverage | Core Watch | 2026-05-22 | news | listed |
+| Ticker | Company | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|---|
+| SPCX US | SpaceX | 太空探索技术公司 | aerospace | Core Coverage | Core Watch | 2026-05-22 | news | listed |
 """
     rows = parse_coverage_markdown(text)
     assert len(rows) == 1
     assert rows[0].ticker == "SPCX US"
     assert rows[0].coverage_status == "Core Coverage"
     assert rows[0].monitor_status == "Core Watch"
+    assert rows[0].company_native == "太空探索技术公司"
 
 
 def test_parse_prefers_coverage_section_over_contract_table():
@@ -38,15 +39,15 @@ def test_parse_prefers_coverage_section_over_contract_table():
 
 def test_render_normalized_columns_use_new_contract_only():
     rows = parse_coverage_markdown("""## Coverage
-| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
-|---|---|---|---|---|---|---|---|
-| 6777 JP | Santec | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |
+| Ticker | Company | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|---|
+| 6777 JP | Santec | サンテック | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |
 """)
     output = render_coverage_markdown(rows)
-    assert "| Ticker | Company | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |" in output
+    assert "| Ticker | Company (EN) | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |" in output
     assert "Research Tier" not in output
     assert "Alert Tier" not in output
-    assert "| 6777 JP | Santec | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |" in output
+    assert "| 6777 JP | Santec | サンテック | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |" in output
 
 
 def test_coverage_status_defaults_to_building_and_core_requires_review_gate():

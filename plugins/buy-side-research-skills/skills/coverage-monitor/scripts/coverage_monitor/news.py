@@ -129,6 +129,17 @@ def _ddg_company_queries(entry: CoverageEntry) -> list[str]:
     return queries
 
 
+def build_company_search_queries(entry: CoverageEntry, today: str | None = None) -> list[str]:
+    queries = _ddg_company_queries(entry)
+    if today:
+        enriched: list[str] = []
+        for query in queries:
+            enriched.append(f"{query} after:{today}")
+            enriched.append(f"{query} earnings guidance after:{today}")
+        return enriched
+    return queries
+
+
 def collect_company_news(
     entries: list[CoverageEntry],
     snapshots: dict[str, dict],
@@ -152,7 +163,7 @@ def collect_company_news(
 
         snapshot = snapshots.get(key, {})
         assessment = assess_snapshot(snapshot) if snapshot else None
-        needs_news = entry.monitor_status == "Core" or (assessment and assessment.is_important)
+        needs_news = entry.monitor_status == "Core Watch" or (assessment and assessment.is_important)
 
         if not needs_news:
             continue

@@ -34,7 +34,7 @@ def derive_coverage_status(entry: CoverageEntry, today: str | date | None = None
     has_last_review = bool(entry.last_review.strip())
 
     if (has_ticker or has_company) and (quickread_count >= 1 or effective_artifact_count >= 1 or has_last_review):
-        return "Building"
+        return "Building Coverage"
     if has_company:
         return "Radar"
     return "Radar"
@@ -56,6 +56,6 @@ def should_trigger_core_review(entry: CoverageEntry, today: str | date | None = 
 
 
 def derive_monitor_status(entry: CoverageEntry) -> str:
-    if entry.coverage_status == "Core" and entry.ticker.strip():
-        return "Core"
-    return "Daily"
+    if entry.coverage_status == "Core Coverage" and entry.ticker.strip():
+        return "Core Watch"
+    return "Daily Watch"

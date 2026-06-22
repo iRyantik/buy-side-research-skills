@@ -20,14 +20,16 @@ description: Generate daily coverage briefs and intraday material-event alerts f
 - 读取 workspace `COVERAGE.md` 的 `## Coverage` 表作为 ticker/company/coverage-status source of truth。
 - 用 `industry/*/companies/*` 已有研究产物补充 artifact path、latest artifact、artifact_count。
 - 对 `stock-quickread` / deep-work artifact 落盘后的 coverage workflow 做 objective 检查：quickread 进 `Building`，deep-work 只触发 `Core` review，不盲目自动升级。
-- 规范化 coverage 表到 canonical 列。Coverage: `Core` / `Building` / `Radar`。Monitor: `Core` / `Daily`。
+- 规范化 coverage 表到 canonical 列。Coverage: `Core Coverage` / `Building Coverage` / `Radar`。Monitor: `Core Watch` / `Daily Watch`。
 - 生成 dashboard-style daily coverage brief：4 tabs 固定为 `Movers` / `Core Watch` / `Industry Tape` / `Universe`。
 - 用更严格的 mover contract 筛选普通异动与重要异动：普通异动 `5% / 3.0x / 7%`，重要异动 `8% / 4.0x / 10%`。
 - Industry Tape 三层新闻采集：RSS feed（Substack `/feed` + trade pub 自动发现）→ Playwright 无头浏览器刮首页 → Agent WebSearch domain 搜索。
 - 对无 RSS 的 P1 trade pub 自动 Playwright 刮首页头条，刮不到标记 agent fallback。
 - 每个行业 source 池由 `RESEARCH.md` 的 `### Daily Signal Sources` 表定义，按 Tier 区别对待。
-- Mover explainer：对所有异动（重要+普通）生成中文 summary + evidence link。普通异动默认收起，点击展开。
-- Core Watch 每只股票合成一句话中文总结，显示最近关键事件。
+- `Movers` 用 ticker-first full-width card：大 ticker、native + English company name、左侧 `Market Snapshot` / `Coverage` rail、右侧中文解释主文与单一 `Evidence` 折叠区。
+- `Evidence` 折叠区吸收 official / filing evidence，不再单独出 `Filings` 卡。
+- `Core Watch` 用紧凑双列卡：ticker 在第一视觉层，native + English company name 同显，`price / cap / PE` 与 `1m / YTD / 1y` 分两行展示。
+- Core Watch 每只股票合成一句话中文总结，显示最近关键事件；quote 异常只做 exception-only 轻提示。
 - 日报通过 agent enrichment JSON（`--enrichment`）注入 agent 搜索结果：mover explainers、core_watch_news、industry_summaries、industry_searches。
 - `--skip-fetch` 支持缓存重渲染（0.3s），agent 搜完新闻后即时更新日报。
 - Universe 表价格按市场格式化（¥/₩/$/€ + 市场规则小数位），Partial 状态用琥珀色圆点`·`轻标记。
@@ -192,7 +194,8 @@ Daily brief 的 HTML 固定为 4-tab dashboard，风格参考 `today` 原型但�
 关键 daily contract：
 
 - `Movers` 只展示命中 mover threshold 的名字，不再因为 `near 20d high/low` 单独入选。
-- 重要异动卡片默认并入 news + filing / official release 证据层。
+- dual-name 显示规则：native name 为主、English name 为次；若两者相同则自动去重。
+- 重要异动卡片默认并入 news + filing / official release 证据层，统一收进单一 `Evidence` 折叠区。
 - `Core Watch` 默认每天搜公司级 news，不等价格异动。
 - `Industry Tape` 先扫 `Daily Signal Sources`，source 没有新东西时再 fallback general news。
 - `Universe` 默认不显示 `OK`；quote freshness / data status 只在 `Partial` / `No Data` / `Stale` 时 exception-only 呈现。
