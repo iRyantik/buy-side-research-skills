@@ -66,13 +66,16 @@ Agent 每次调 `daily` 必须走完整 5 步，不允许跳过 agent 搜索直�
 ```
 1. python run_coverage_monitor.py daily --dry-run
 2. 读 agent_work gap → 获取 pending_movers / pending_core / pending_industries
-3. Agent 基于脚本已搜好的 news items 写中文总结（不再搜原始新闻）:
+3. Agent 审 DDG 结果 + 写中文总结:
 
-   **脚本已做**: DDG 双语搜索 → 每只 Core Watch/Mover 返回 3-8 条 news items
-   **Agent 做**: 读 news items → 写:
-     - Core Watch: stock summary (一句话中文)
-     - Mover explainer: summary + ≥2 条 evidence 引用
-     - Industry summary: 基于 RSS + WebSearch 结果的中文段落
+   **脚本已做**: DDG 双语搜索 → URL 级粗筛（去掉 /quote/ /equities/ 等行情页）
+   **Agent 做**:
+     ① 审 DDG 结果——去伪新闻（Stock Price Quote、Chart & IPO Details 等）
+     ② 每只 Core Watch/Mover 保留 ≥3 条真新闻
+     ③ 写:
+       - Core Watch: stock summary (一句话中文)
+       - Mover explainer: summary + ≥2 条 evidence 引用
+       - Industry summary: 基于 RSS + WebSearch 结果的中文段落
 
 4. 写入 enrichment-YYYY-MM-DD.json
 5. python run_coverage_monitor.py daily --enrichment <.json>
