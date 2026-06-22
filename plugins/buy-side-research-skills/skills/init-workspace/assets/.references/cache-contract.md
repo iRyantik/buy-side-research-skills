@@ -30,6 +30,7 @@ industry/<slug>/
         .raw/                               ← raw provider payloads (hidden)
       disclosure/                           ← cached company filings
       driver-map/                           ← driver-map artifact cache + history
+      meeting-minutes/                      ← raw recordings + transcripts (hidden)
       datasets/                             ← scraped/scrapi datasets
       evidence/                             ← claim evidence packs
       images/                               ← company/product images
@@ -42,19 +43,20 @@ industry/<slug>/
 
 | Skill | Writes to | Rebuildable? |
 |---|---|---|
-| `financial-data` | `cache/financial-data/` | Yes (providers re-fetchable) |
+| `financial-data` | `.cache/financial-data/` | Yes (providers re-fetchable) |
 | `coverage-monitor` | `.cache/coverage-monitor/` | Yes (recreated each run) |
-| `stock-quickread` | `cache/disclosure/`, `cache/images/` | Yes |
-| `driver-map` | `cache/driver-map/` | No (history snapshots) |
-| `ingest` | `cache/disclosure/` | Yes |
-| `mechanism-insight` | `cache/evidence/` | Yes |
-| `industry-landscape` | `cache/evidence/` | Yes |
-| `teach-in` | `cache/evidence/` | Yes |
-| `peer-deep-dive` | `cache/evidence/` | Yes |
-| `download-image.py` | `cache/images/` | Yes |
+| `stock-quickread` | `.cache/disclosure/`, `.cache/images/` | Yes |
+| `driver-map` | `.cache/driver-map/` | No (history snapshots) |
+| `ingest` | `.cache/disclosure/` | Yes |
+| `meeting-minutes` | `.cache/meeting-minutes/` | Yes (raw recordings/transcripts); artifact→company dir |
+| `mechanism-insight` | `.cache/evidence/` | Yes |
+| `industry-landscape` | `.cache/evidence/` | Yes |
+| `teach-in` | `.cache/evidence/` | Yes |
+| `peer-deep-dive` | `.cache/evidence/` | Yes |
+| `download-image.py` | `.cache/images/` | Yes |
 
 ## Deletion Rules
 
-- **Safe**: `.cache/coverage-monitor/`, `cache/disclosure/`, `cache/evidence/`, `cache/images/`
-- **Preserve**: `cache/financial-data/actuals-resolved.json`, `cache/driver-map/history/`
+- **Safe**: `.cache/coverage-monitor/`, `.cache/disclosure/`, `.cache/evidence/`, `.cache/images/`, `.cache/meeting-minutes/`
+- **Preserve**: `.cache/financial-data/actuals-resolved.json`, `.cache/driver-map/history/`
 - **Check first**: `.raw/` — regeneratable if actuals-resolved.json fresh (<180d)
