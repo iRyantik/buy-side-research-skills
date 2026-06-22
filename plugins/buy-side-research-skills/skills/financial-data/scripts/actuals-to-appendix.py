@@ -44,7 +44,7 @@ def _find_actuals(workspace: Path, ticker: str) -> Path | None:
                             d = json.load(f)
                         # Match by ticker in identity or by directory name
                         identity = d.get("identity") or d.get("manifest") or {}
-                        stored = identity.get("ticker", "").lower()
+                        stored = (identity.get("ticker") or identity.get("stock_code", "")).lower()
                         if stored == ticker_lower:
                             return subpath
                         # Also match by company dir name
