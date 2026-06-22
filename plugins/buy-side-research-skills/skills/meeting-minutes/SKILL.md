@@ -141,8 +141,27 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 
 ## Company Profile                                         ← appendix 起点
 
-| Company | Ticker | Business | Relevance |
-|---|---|---|---|
+仅在公司级 meeting 出现（earnings call / IR / expert call on a single company）。行业级跳过，直接进 Listed Companies。
+
+核心维度（必填）：
+
+| Dimension | Detail |
+|---|---|
+| Company | |
+| Ticker | |
+| Business | <一句话> |
+| Key Platforms / Products | |
+| End Markets | |
+
+可选维度（有则填，无则省略）：
+
+| Dimension | Detail |
+|---|---|
+| Revenue & Growth | |
+| Margin Profile | |
+| Key Customers | |
+| Key Suppliers | |
+| Competitive Position | |
 
 有 stock-quickread → 直接引用，不重新查。
 
@@ -152,10 +171,13 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 
 ## Listed Companies
 
-纪要中提到的所有上市公司，含代码、主营业务、与会议内容的关系。
+纪要中提到的所有上市公司（不含主体公司 Profile）。业务描述详细，1-2 句，含关键产品或市场地位。最后一列按会议上下文命名。
 
-| Company | Ticker | Business | Mention Context |
+| Company | Ticker | Business | <Context Column> |
 |---|---|---|---|
+| 联讯仪器 | 688808 CH | 光通信测试仪器国产 #1：采样示波器、误码仪、光功率计 | 全球唯二量产 1.6T 采样示波器 |
+
+第四列命名按会议主题：如"光测试/CPO 布局""航空供应链定位""AI 服务器相关业务"等。
 
 ## Technical / Industry Background
 

@@ -141,8 +141,27 @@ Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral
 
 ## Company Profile                                         ← appendix boundary
 
-| Company | Ticker | Business | Relevance |
-|---|---|---|---|
+Company-level meetings only (earnings call / IR / expert call on a single company). Industry-level meetings skip this section, go directly to Listed Companies.
+
+Core dimensions (required):
+
+| Dimension | Detail |
+|---|---|
+| Company | |
+| Ticker | |
+| Business | <one sentence> |
+| Key Platforms / Products | |
+| End Markets | |
+
+Optional dimensions (fill if available, omit otherwise):
+
+| Dimension | Detail |
+|---|---|
+| Revenue & Growth | |
+| Margin Profile | |
+| Key Customers | |
+| Key Suppliers | |
+| Competitive Position | |
 
 If stock-quickread exists → reference it directly, do not re-search.
 
@@ -152,9 +171,9 @@ If teach-in / industry-landscape exists → reference it directly, do not re-sea
 
 ## Listed Companies
 
-All listed companies mentioned in the call, with ticker, business, and context.
+All listed companies mentioned in the call (excluding the main Company Profile subject). Business descriptions are detailed, 1-2 sentences with key products or market position. The last column header is contextual to the meeting topic.
 
-| Company | Ticker | Business | Mention Context |
+| Company | Ticker | Business | <Context Column> |
 |---|---|---|---|
 
 ## Technical / Industry Background
