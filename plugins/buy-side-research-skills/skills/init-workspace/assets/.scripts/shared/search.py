@@ -32,6 +32,18 @@ _QUOTE_URL_PATTERNS = [
     r'/data/equities/tearsheet/',
     r'stockanalysis\.com/(?:stocks|quote)/',
     r'tradingview\.com/symbols/',
+    r'/stocks/[^/]+/(?:quote|price|chart)',
+    r'/money/stockdetails/',
+    r'/quote\.ashx',
+    r'perplexity\.ai/finance/',
+    r'alphapilot\.tech/finance/',
+    r'foxbusiness\.com/quote',
+    r'tipranks\.com/stocks/',
+    r'morningstar\.com/stocks/',
+    r'quantsightpro\.com/',
+    r'finviz\.com/quote',
+    r'cnn\.com/markets/stocks/',
+    r'wsj\.com/market-data/quotes/',
 ]
 
 
