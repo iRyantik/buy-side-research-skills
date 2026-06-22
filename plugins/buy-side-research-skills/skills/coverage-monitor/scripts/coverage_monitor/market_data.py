@@ -97,7 +97,18 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
         "ret_ytd": ret_ytd,
         "ret_1y": ret_1y,
         "market_time": str(history.index[-1].date()),
+        "market_cap": None,
+        "pe_trailing": None,
     }
+    # Fetch market cap + PE (lightweight info call)
+    try:
+        info = ticker.info
+        if info.get("marketCap"):
+            snapshot["market_cap"] = info["marketCap"]
+        if info.get("trailingPE"):
+            snapshot["pe_trailing"] = round(float(info["trailingPE"]), 1)
+    except Exception:
+        pass
     gap = ""
     if len(closes) < 2 or volume_ratio == 0.0 or gap_pct == 0.0:
         snapshot["quote_status"] = "Partial"

@@ -127,6 +127,19 @@ _MARKET_PRICE_RULES: dict[str, tuple[str, int]] = {
 }
 
 
+def _format_cap(market_cap: float | None) -> str:
+    """Format market cap: ¥25.3tn / $36.7B / ₩18.5tn."""
+    if market_cap is None:
+        return ""
+    if market_cap >= 1e12:
+        return f"{market_cap/1e12:.1f}tn"
+    if market_cap >= 1e9:
+        return f"{market_cap/1e9:.1f}B"
+    if market_cap >= 1e6:
+        return f"{market_cap/1e6:.0f}M"
+    return f"{market_cap:.0f}"
+
+
 def _format_price(quote_ticker: str, price: float | None) -> str:
     """Format price with currency symbol and market-appropriate decimals."""
     if price is None:
@@ -501,15 +514,44 @@ def render_dashboard_html(
             f"<li><a href=\"{escape(item.url)}\">{escape(item.title)}</a><span> · {escape(item.source or 'source')}</span></li>"
             for item in news_items[:6]
         ) or "<li>No company news found in this run.</li>"
-        status = quote_exception_status(snapshots.get(key, {}), report_day=today)
+        s = snapshots.get(key, {})
+        status = quote_exception_status(s, report_day=today)
         status_dot = ' <span class=\"status-dot\" title=\"Quote: ' + escape(status) + '\"></span>' if status else ""
         stock_summary = core_watch_summaries.get(key, "")
         summary_line = f'<p class=\"body-copy\">{escape(stock_summary)}</p>' if stock_summary else ""
+
+        # Price + cap + PE bar
+        price_str = _format_price(s.get("quote_ticker", ""), s.get("last_price"))
+        cap = s.get("market_cap")
+        pe = s.get("pe_trailing")
+        cap_str = _format_cap(cap) if cap else ""
+        pe_str = f"PE {pe}x" if pe else ""
+        meta_parts = [price_str]
+        if cap_str: meta_parts.append(f"Cap {cap_str}")
+        if pe_str: meta_parts.append(pe_str)
+        meta_bar = " · ".join(meta_parts) if meta_parts else ""
+
+        # Return bar
+        def _ret_span(k: str, label: str) -> str:
+            v = s.get(k)
+            if v is None: return ""
+            c = "pos" if v >= 0 else "neg"
+            return f"<span class=\"ret {c}\">{v:+.1f}%</span> · "
+        ret_parts = []
+        for rk, rl in [("price_move_pct","Today"),("ret_1m","1m"),("ret_ytd","YTD"),("ret_1y","1y")]:
+            v = s.get(rk)
+            if v is not None:
+                c = "pos" if v >= 0 else "neg"
+                ret_parts.append(f"<span class=\"ret {c}\">{rl} {v:+.1f}%</span>")
+        ret_bar = " · ".join(ret_parts) if ret_parts else ""
+
         core_cards.append(
             f"""
             <article class="card">
               <span class="pill coverage {escape(_coverage_slug(entry.coverage_status))}">{escape(entry.coverage_status)}</span>
               <h3>{escape(entry.ticker or entry.company)} · {escape(entry.company)}{status_dot}</h3>
+              <div class="meta-bar">{escape(meta_bar)}</div>
+              <div class="ret-bar">{ret_bar}</div>
               {summary_line}
               <details><summary>News ({len(news_items)})</summary><ul>{news_html}</ul></details>
             </article>
@@ -776,6 +818,19 @@ ul {{ margin: 10px 0 0; padding-left: 18px; color: #334155; line-height: 1.7; }}
   margin-left: 3px;
   vertical-align: middle;
   cursor: help;
+}}
+.meta-bar {{
+  font-size: 12.5px; color: var(--slate); font-weight: 700;
+  margin: 4px 0 2px;
+  font-variant-numeric: tabular-nums;
+}}
+.ret-bar {{
+  font-size: 12px; margin: 2px 0 6px;
+  font-variant-numeric: tabular-nums;
+}}
+.ret-bar .ret.pos, .ret-bar .ret.neg {{
+  padding: 1px 5px; border-radius: 4px;
+  margin: 0 2px;
 }}
 .pill.confidence {{ background: var(--blue-soft); color: #1d4ed8; }}
 .explainer {{ margin-top: 10px; }}
