@@ -124,11 +124,22 @@ Scratchpad must include a  field where every fact is paired with a web search UR
 
 **Two templates: briefing + qa.** Each in the default language, optionally in the other language. Internal components embedded as appendix.
 
-**Style rules**:
-- Facts stated directly; no "management noted / admitted / emphasized" narrative scaffolding
-- No separate "Key Takeaway" callout boxes — substance woven into prose
-- Cross-company comparison allowed with context and reasoning — no one-line editorial judgments without support
-- English edition may retain original quotes where they add precision; Chinese edition translates all
+**Style rules** — the following are PROHIBITED, rewrite on violation:
+
+| # | Prohibition | Example |
+|---|---|---|
+| ① | Narrative scaffolding | "Management kicked off by stating" "The analyst spent a few minutes explaining" |
+| ② | English source quotes in non-English output | "the company is actually older than the United States" |
+| ③ | Standalone "Key Takeaway" sections | pros ending with separate "Key Takeaway:" block |
+| ④ | Isolated cross-company judgments | "Much milder than DPC Holdings" |
+| ⑤ | Judgment on reader's behalf | "This is the single most important variable" "Worth watching closely" |
+| ⑥ | Rhetorical metaphors | "Crown jewels" "true moat" "master of your own destiny" "like baking cupcakes" |
+| ⑦ | Colloquial/evaluative phrasing | "deal is hot" "that's great for them" "a small player" "still sucks" |
+| ⑧ | Meta commentary on the meeting itself | "The analyst pressed with a key question" "The analyst used a jewelry metaphor" "The analyst gave an example" |
+| ⑨ | Emotional/colorful phrasing | "older than America" "insulting offers" "the most extreme proof" |
+| ⑩ | Intensifying adverbs and editorial qualifiers | "far exceeds" "near-monopoly" "inevitably low" "crushing leverage" |
+
+Allowed: Neutral attribution of analyst/speaker views ("The analyst's view is" "Management believes"), buy-side question context.
 
 ---
 
@@ -182,7 +193,7 @@ If stock-quickread exists → reference it directly, do not re-search.
 
 If teach-in / industry-landscape exists → reference it directly, do not re-search.
 
-## Listed Companies
+## Listed Companies Mentioned
 
 All listed companies mentioned in the call (excluding the main Company Profile subject). Business descriptions are detailed, 1-2 sentences with key products or market position. The last column header is contextual to the meeting topic.
 
