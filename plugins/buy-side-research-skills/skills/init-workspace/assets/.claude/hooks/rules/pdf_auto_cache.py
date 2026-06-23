@@ -171,7 +171,7 @@ def _resolve_cache_path(workspace: str, ticker: str | None, source_type: tuple,
                                     ".cache", "disclosure", sub)
                 os.makedirs(base, exist_ok=True)
                 return os.path.join(base, filename)
-        # Fallback: workspace-level _cache
+        # Fallback: workspace-level .cache
         base = os.path.join(workspace, ".cache", "disclosure", sub)
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)

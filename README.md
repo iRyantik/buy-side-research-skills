@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI Research Toolkit
 
-> v6.5.6 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.5.7 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 >
 > 中文版：[README.cn.md](./docs/README.cn.md)
 
@@ -191,7 +191,7 @@ Tell Claude `/update-agent-runtime`. Automatically pulls the latest GitHub relea
 
 | Version | Date | Key Changes |
 |---|---|---|
-| v6.5.6 | 2026-06-22 | coverage-monitor renderer polish: ticker-first mover cards, compact Core Watch cards, native+English company names with dedupe, unified `Evidence` disclosure for filing/official links, and canonical `Core Coverage` / `Building Coverage` / `Core Watch` / `Daily Watch` runtime state. |
+| v6.5.7 | 2026-06-22 | coverage-monitor renderer polish: ticker-first mover cards, compact Core Watch cards, native+English company names with dedupe, unified `Evidence` disclosure for filing/official links, and canonical `Core Coverage` / `Building Coverage` / `Core Watch` / `Daily Watch` runtime state. |
 | v6.4.0 | 2026-06-21 | coverage-monitor daily v2: today-style 4-tab HTML dashboard (`Movers` / `Core Watch` / `Industry Tape` / `Universe`), semantic Coverage/Monitor display, objective deep-work Core review prompts, email summary + full HTML attachment, and stock-quickread coverage-registration contract sync. |
 | v6.4.0 | 2026-06-20 | coverage-monitor skill: objective coverage tiers, canonical COVERAGE.md contract, daily coverage brief, intraday alerts, and email/WeCom delivery support. |
 | v6.4.0 | 2026-06-15 | alpha-thesis template upgrade: §1→Thesis, new §2 Exposure Map, §3 Variant View 3 components, §6 dual-year multi-row with Upside bottom-row. Image path fix: all artifact refs → ../../../../_cache/images/ (8 files, 5 skills) |
