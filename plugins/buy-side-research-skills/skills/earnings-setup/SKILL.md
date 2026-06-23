@@ -10,8 +10,10 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: implied move, short squeeze score, and any ratio derived from financial statements use actuals-resolved.json.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -183,7 +185,19 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Source Contract
+
+**密度表**：
+
+| Section | 强制标 source | 豁免 |
+|---|---|---|
+| Consensus vs buy-side bar | consensus 数字的 source（provider+as-of）、buy-side bar 依据 | 研究员 bar 推断本身 |
+| Pre-print 决策树 | 每个 scenario 的阈值数字出处（guidance/history/peer） | — |
+| 历史反应模式 | 每次 beat/miss 的 actual vs consensus 具体数字+source | — |
+
+**完成 Gate**：写完扫 consensus 数字 → 每个数字有 provider+as-of → buy-side bar 有推理链 → `[待查]` ≤3 → Resources 展开。
 
 ## 反模式自查
 
@@ -207,3 +221,12 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 - Post-print read：400-700 字
 
 超长就是抓不住重点。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

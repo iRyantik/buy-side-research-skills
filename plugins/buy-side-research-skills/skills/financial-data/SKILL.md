@@ -27,15 +27,14 @@ description: Fetch or parse source-tracked company financial data by market and 
 - raw evidence 层至少包含 `provider_payload.json`、`identity-source.json`；存在真实 filing source 时还要写 `filings/<filing-id>/source.*`、`source-metadata.json`、`source.sha256`。
 - 生成 public `financial-data-summary.md`；机器文件进入 `internal/`，包括 `evidence-pack.json`、`actuals-resolved.json`、`full-filing.md`、`manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json`、`source-map.json` 和 `cross-check.json`。
 - 输出字段级 completeness matrix：三表和 `revenue_split` 分开标状态。
-- 支持 current topic snapshot：`topics/<topic>/_cache/datasets/financial-data-snapshot/<run-id>/`。
+- 支持 current topic snapshot：`industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/`。
 - 对 dependency gap、credential gap、provider gap fail honestly。
 
 不负责：
 
 - 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-history` / `driver-map`。
 - 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
-- **Full mode**：不拉 consensus、price、EV、FX、peer multiples 或 market data。
-- **Lite mode**：拉市场快照数据（股价、市值、PE/PB/PS、consensus），走四层降级链：`Bridge → yfinance → WebSearch → Google Finance`。详见 Lite Mode 市场数据段。
+- Full / Lite 均自动拉市场快照数据（股价、市值、PE/PB/PS/EV/EBITDA 等），走统一增量 fill 引擎：`yfinance(全量) → Bridge(覆盖US/HK/SH/SZ) → WebSearch(逐字段) → Google Finance(兜底)`。详见市场数据段。
 - Bridge 在 actuals 里只做 cross-check（不替代 provider_api）；在市场数据里做 US/HK/SH/SZ primary。
 - 不把 `_cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
 - 不创建 dated research Markdown artifact。
@@ -132,7 +131,7 @@ industry/<industry>/companies/<ticker>/
 
 `_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
-如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，block 并提示先用 `new-session` 创建 company topic；不要静默创建复杂 topic 树。
+如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，由 agent 按 policy baseline §11 自动创建目录和索引后继续。
 
 
 ### Lite Mode Fetch（研究前置快速抓取）
@@ -145,29 +144,48 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三�
 
 **三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
-**市场数据获取逻辑**（trust-based fill，对齐 actuals）：
+**市场数据获取逻辑**（unified incremental fill engine）：
 
-Trust 排名：`Bridge > yfinance > WebSearch > Google Finance`
+Trust 排名：`yfinance > Bridge > WebSearch > Google Finance`
+
+引擎逻辑：每层一次尽可能填多 → 填完立即标记缺口 → 下层只补剩余缺口。
 
 ```
-1. 按需拉取所有可用层（Bridge 仅 US/HK/SH/SZ）
-2. 每层返回时标 [source_layer | as-of]
-3. 每个字段取最高 trust 层的非空值
-4. 高 trust 可覆盖低 trust：先拿到 yfinance PE 35x，后拿到 Bridge PE 34x → 用 Bridge
-5. 低 trust 不覆盖高 trust：yfinance 不能覆盖已有 Bridge 值
-6. 所有层都无值 → [估值待补]
+Layer 1: yfinance(全量) → ticker.info 一次返回 ~50 字段，零额外成本
+  填入: price, mcap, PE TTM, PE NTM, PB, PS, EV/EBITDA, EV/Sales, Dividend Yield, Beta
+  → 检查点: 填了 N1/11，缺口列表
+
+Layer 2: Bridge(覆盖 US/HK/SH/SZ) → 高 trust 覆盖 yfinance 已填字段
+  补: consensus EPS, Target Price, FX
+  → 检查点: 填了 N2/11，缺口列表
+
+Layer 3: RAG 回退链(逐字段补缺) → 只搜剩余缺口，禁止 AI 摘要数字直接写入
+  3a. WebSearch 找候选 URL（每条 2-5 个候选）
+  3b. WebFetch 打开候选 → 读原文 → 确认数字在页面里 → 写入
+  3c. WebFetch 失败 → Playwright MCP browser_navigate + snapshot → 写入
+  3d. Playwright 失败 → curl 原始 HTML → 写入
+  3e. 全失败 → 字段留 null，不写入（不假装置信）
+  核心字段(Rev/EBIT/NI/TA/MCap)走全四层；重要字段(GP/FCF/CapEx)走两层；补充字段(β/Div)一层即可
+  优先本地语言：CN→中文+英文，JP→日本語+English，KR→한국어+English，欧美→English
+  验证成功 → 标 source_layer=official_web 或 provider_api，source_detail 含 verified URL
+  → 检查点: 填了 N3/11，缺口列表
+
+Layer 4: Google Finance(一次 fetch 补多 gap) → URL 兜底
+  仍缺 → 字段留 null
 ```
 
-每层 Source 说明：
+每层检查点示例：
+```
+yfinance:  8/11, 缺 EV/EBITDA, PEG, Target Price
+Bridge:    9/11, 剩 PEG, Target Price
+RAG:       10/11, 剩 PEG (WebFetch全失败)
+→ PEG = null（不写入）
+```
+```
 
-1. **Bridge (Longbridge)** — 仅 US/HK/SH/SZ。调 `trusted-market-bridge`，拿 `market_quote` + `valuation_snapshot` + `consensus`。返回结构化数据
-2. **yfinance** — 全球。Python 库，US 最成熟；JP/KR/TW/EU 可能缺字段
-3. **WebSearch** — 全球。搜 `"<ticker> PE ratio market cap stock price"`，从搜索结果摘要（StockAnalysis/MarketScreener 等聚合站）提取。LLM 解析文本
-4. **Google Finance** — WebFetch 全球兜底
+不设 official_web 层：交易所官网只发交易数据 PDF，不计算 PE/PB。
 
-不设 official_web 层：交易所官网只发交易数据 PDF（开盘/收盘/量），不计算 PE/PB/市值。估值指标是数据聚合商计算产物。
-
-拉完后将市场快照写入 `actuals-resolved.json` 的 `market_data` 字段做审计锚（不替代下次拉取）。
+拉完后写入 `actuals-resolved.json` 的 `market_data`（审计锚，不替代下次拉取）。
 
 **Lite 写入的最小字段**：
 
@@ -189,7 +207,53 @@ Trust 排名：`Bridge > yfinance > WebSearch > Google Finance`
 | Consensus EPS | EPS 预期（NTM） | best-effort | Bridge > WebSearch |
 | Beta | 波动率 | 选填 | yfinance |
 | 股价历史 | 1 年期日线（驱动因素分析） | 必填 | yfinance |
-| 补充 | 股本、SBC、backlog | 有则抓 | provider_api > official_web |
+| 补充-标准 | 股本、SBC | 有则抓 | provider_api > official_web |
+| growth_rates | revenue_yoy_fy, revenue_yoy_q | 必填——agent 拉完两期数据后计算 | derived |
+
+> **Derived fields constraint**: 所有 derived 字段（包括 growth_rates、弹性比率、任何 arithmetic ratio）的输入必须来自 `actuals-resolved.json` 中真实已披露数据。**禁止用 FY2026E / consensus estimate / forward-looking number 作为输入计算 ratio 并写入 actuals。** 某个输入字段没有 actuals → 该 derived 字段标 `[未披露]`，不计算、不推断。
+
+**弹性采集**（先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 只抓该模板字段）：
+
+| KPI | actuals 字段 | 条件 |
+|---|---|---|
+| Order Backlog | `supplementary.order_backlog` | order-driven / long-cycle / tech-manufacturing——IR segment |
+| Orders / Bookings | `supplementary.orders` | 同上——IR quarterly |
+| Installed Base | `supplementary.installed_base` | order-driven / tech-manufacturing——annual report |
+| Production Volume | `supplementary.production_volume` | process-industry——IR quarterly |
+| Unit Cost | `supplementary.unit_cost` | process-industry——IR / annual |
+| Utilization | `supplementary.utilization` | process-industry / utility-infra——IR / mgmt |
+| Regulated Asset Base | `supplementary.regulated_asset_base` | utility-infra——regulatory filing |
+| Capacity MW | `supplementary.capacity_mw` | utility-infra——IR / annual |
+| ARR | `supplementary.arr` | saas-software——IR / earnings call |
+| GRR | `supplementary.grr` | saas-software——IR / earnings call |
+| NRR | `supplementary.nrr` | saas-software——IR / earnings call |
+| Churn % | `supplementary.churn_pct` | saas-software——IR / earnings call |
+| Customer Count | `supplementary.customer_count` | saas-software / ai-emerging——IR |
+| Segment Backlog | `segments[].metric="order_backlog"` | order-driven / long-cycle——IR segment |
+| Segment Orders | `segments[].metric="orders"` | order-driven / tech-manufacturing——IR segment |
+
+搜不到标 `[未披露]`，不 block 主流程。
+
+**泛化兜底**：读完 IR/earnings call 后，发现 template 未覆盖但对 thesis 有意义的 KPI → `supplementary.custom_metrics: [{kpi, value, source, relevance}]`。不限数量，但每个都要过"这指标如果删了会影响结论吗"自检。
+
+**停止条件**（满足任一即停）：
+- 标准 33 字段全填 + 本 bus model 弹性字段全填 → 停
+- 连续 2 层（如 yfinance→Bridge）没有任何新字段被填 → 停
+- 剩余缺口全是 `[未披露]`（公司不公布）→ 停
+
+**Topic-facts.json 写入**：拉完后将估值、TAM 相关、弹性 KPI 的定量事实写入 `_cache/topic-facts.json`（本 topic 下的公司级事实缓存，供下游 skill 搜前复用，减少重复搜索）。
+
+**source_map 生成（Provenance 透传）**：actuals 中每个字段已有 source_detail（含 PDF 页码+URL 或 yfinance 来源）。拉完后扫描全部字段的 source_detail，去重 → 生成 `source_map` 写入 actuals-resolved.json：
+
+```json
+"source_map": {
+  "S_1": {"source_layer": "official_web", "url": "https://...Q1-2026.pdf", "detail": "Besi Q1-26 Results PDF p1", "label": "S5"},
+  "I_1": {"source_layer": "yfinance", "url": null, "detail": "BESI.AS yfinance", "label": "I10"},
+  "I_2": {"source_layer": "WebSearch", "url": "https://...", "detail": "...", "label": "I11"}
+}
+```
+
+> **消费 skill 使用方式**：读 actuals-resolved.json → 读 source_map → artifact 里标 [S5](url) 或 [I10] 而非 [actuals]。revenue 用 [S5] 指向官方 PDF，而非模糊的 "actuals"。
 
 **数据完整性规则**：
 
@@ -209,18 +273,34 @@ Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`sou
 
 ### Fill-Gaps Mode（补 Layer 3 缺口）
 
-触发语：
+触发语：`/financial-data --fill-gaps <ticker>` 或 "补全 xxx 的财务数据"
 
-读完  后，只对  的字段调 provider API 补填。不做 full filing 解析，不建 evidence pack。
+流程：读 actuals → 遍历 null 字段 → **分两轨补填**：
 
-流程：读 actuals → 遍历 null 字段 → 按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值 → 写回。填不了的标 [ND]。5-10 秒/公司。
+**三表补缺**：按 market 路由 provider（US→EdgarTools, CN→AKShare, JP→EDINET, KR→OpenDART, TW→FinMind, EU→openesef）→ 填值。provider 缺时按以下 web fallback 策略逐层搜索。填不了的标 [ND]。
+
+**市场数据补缺**：走统一增量 fill 引擎（yfinance → Bridge → WebSearch → Google Finance），只补 actuals 里缺失的字段。已有字段不覆盖。5-15 秒/公司。
+
+**Web Fallback 策略（通用规则）**：先用 `site:` 限定首选域名 → 不加 site 用关键词 → 还搜不到标 `[ND]`。每个 query 同时用**本地语言 + 英文**各搜一次。
+
+| 市场 | 三表 | 收入拆分 | 估值 | Consensus |
+|---|---|---|---|---|
+| **US** | `site:sec.gov <ticker> 10-K` → `site:stockanalysis.com <ticker> financials` → 裸搜 | `site:sec.gov <ticker> segment revenue` → 裸搜 | `site:yahoo.com <ticker> statistics` | `site:marketscreener.com <ticker> consensus` |
+| **CN** | `site:eastmoney.com <ticker> 利润表` → `site:10jqka.com.cn <公司名>` → 裸搜 | `site:cninfo.com.cn <ticker> 营业收入构成` → 裸搜 | `site:eastmoney.com <ticker> PE PB 市值` | `site:eastmoney.com <ticker> 盈利预测` |
+| **HK** | `site:aastocks.com <code> 利润表` → `site:xueqiu.com <code> 财务` → 裸搜 | `site:hkexnews.hk <code> 分部收入` → 裸搜 | `site:aastocks.com <code>` | `site:marketscreener.com <ticker>.HK consensus` |
+| **JP** | `site:finance.yahoo.co.jp <code> 決算` → `site:kabutan.jp <code> 業績` → 裸搜 | `<code> セグメント別売上高` → `<code> 決算説明会` | `site:finance.yahoo.co.jp <code>` → `site:kabutan.jp <code>` | `site:marketscreener.com <code>.T consensus` |
+| **KR** | `site:comp.fnguide.com <gicode>` → `site:finance.naver.com <code> 재무제표` → 裸搜 | `site:dart.fss.or.kr <code> 사업부문별` → 裸搜 | `site:comp.fnguide.com <gicode>` → `site:markets.hankyung.com <code>` | `site:comp.fnguide.com <gicode>` → `site:marketscreener.com <ticker>.KS` |
+| **TW** | `site:goodinfo.tw <code>` → `site:mops.twse.com.tw <code> 财务报告` → 裸搜 | `<code> 營收 產品別 部門別` | `site:goodinfo.tw <code>` | `site:marketscreener.com <code>.TW consensus` |
+| **EU** | `site:yahoo.com <ticker> financials` → 裸搜 | `<ticker> revenue by segment` → 裸搜 | `site:yahoo.com <ticker> statistics` | `site:marketscreener.com <ticker> consensus` |
+
+跨市场通用：Consensus 首选 MarketScreener，估值首选 stockanalysis.com > yahoo.com。未覆盖市场（SG/IN/AU/SEA）按英文裸搜 → `[ND]`。
 
 ### Current Topic Snapshot
 
 用于 theme / industry / peer 工作流：
 
 ```text
-topics/<topic-slug>/_cache/datasets/financial-data-snapshot/<run-id>/
+industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/
   snapshot-index.md
   peer-completeness.json
 ```
@@ -341,7 +421,7 @@ Segment rule:
 - 缺 `EDGAR_IDENTITY`：US SEC route failed，不声称 SEC/XBRL 可用。
 - 缺 `DART_API_KEY`：KR route failed，不写假 DART 数据。
 - EU ticker-only 无法 discovery：输出 `provider-gap`，提示改用 `filing_url` 或 `local_esef_package`。
-- Topic 不存在：block，提示先用 `new-session` 创建 `industry/<industry>/companies/<ticker>/` 或目标 topic。
+- Topic 不存在：agent 按 policy baseline §11 自动创建目录和索引。
 - Provider 返回字段缺失：写 partial pack 和 completeness matrix，不推断未披露 revenue split。
 
 ## Workflow 联动
@@ -359,7 +439,7 @@ Artifact policy：
 
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `financials.md`
-- `canonical_location`: `topics/company/[company-slug]/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
 
 ## 安全自查
 

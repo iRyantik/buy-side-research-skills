@@ -10,7 +10,7 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把一个投资假设转成可执行的 primary research plan。**核心不是写问题清单**——是选对 hypothesis、找对 persona、设对 decision gate。问题清单只是执行工具。
@@ -118,7 +118,15 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Source Contract
+
+- Hypothesis register 每行的"现有 source"列必须标 `[S#](url)` 或 `[I#](url)` 或 `[待查]`。
+- Triangulation 方案每条 source idea 必须注明 source type（persona/public/filing/expert）。
+- 专家访谈问题里引用的数字 → 标出处（哪份 report/filing 里有这个数字）。
+
+**完成 Gate**：写完扫 hypothesis register → 每行 Source 列非空 → `[待查]` >50% 行则标 coverage <50%。
 
 ## 反模式自查
 

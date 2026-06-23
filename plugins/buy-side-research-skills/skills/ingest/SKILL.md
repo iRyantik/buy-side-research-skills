@@ -11,20 +11,20 @@ description: Convert raw research files into source-tracked topic cache markdown
 
 The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-`new-session` prepares the topic root and `_inbox/`. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
+Agent (per policy baseline §11) auto-creates the topic root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
 
 ## 职责边界
 
 负责：
 - Convert TXT, Markdown, CSV, PDF, DOCX, PPTX, XLSX, XLSM, and supported workbook-style files.
-- Write source-tracked Markdown to `topics/<namespace>/<topic-slug>/_cache/[source-filename].md`.
+- Write source-tracked Markdown to `industry/<industry>/companies/<ticker>/_cache/[source-filename].md`.
 - Create `_raw/<category>/` and `_cache/` on first conversion.
 - Move successfully converted source files from topic `_inbox/` to `_raw/<category>/`.
 - Report converted / skipped / failed summary.
 - Fail honestly on dependency or conversion gaps.
 
 不负责：
-- Do not create topic roots or `index.md`; use `new-session`.
+- Do not create topic roots or `index.md`; agent auto-creates them per policy baseline §11 before calling ingest.
 - Do not move files already under `_raw/`.
 - Do not write investment conclusions or earned insight.
 - Do not treat `_cache/` as original source.
@@ -40,8 +40,8 @@ Trigger phrases:
 - "把 PDF / Excel / PPT 转成 cache"
 
 Pre-condition:
-- `topics/<namespace>/<topic-slug>/index.md` must already exist.
-- Topic `_inbox/` normally comes from `new-session`.
+- `industry/<industry>/companies/<ticker>/index.md` must already exist.
+- Topic `_inbox/` normally auto-created by agent per policy baseline §11.
 
 Inputs:
 
@@ -56,8 +56,8 @@ Inputs:
 
 Topic inference:
 - explicit `--topic industry/space-launch` wins.
-- source under `topics/industry/space-launch/_inbox/` resolves to `industry/space-launch`.
-- source under `topics/company/rklb/_raw/filings/` resolves to `company/rklb`.
+- source under `industry/space-launch/_inbox/` resolves to `industry/space-launch`.
+- source under `industry/optical-module-equipment/companies/robo-technik/_raw/filings/` resolves to `company/rklb`.
 - root `_inbox/<topic>/` remains supported for unclassified staging.
 - if no topic can be inferred, fail or require explicit `--topic`; do not silently create a new topic.
 
@@ -144,8 +144,8 @@ Cache header must include:
 
 ## Topic
 - topic: [...]
-- cache: `topics/<namespace>/<topic-slug>/_cache/`
-- raw: `topics/<namespace>/<topic-slug>/_raw/<category>/`
+- cache: `industry/<industry>/companies/<ticker>/_cache/`
+- raw: `industry/<industry>/companies/<ticker>/_raw/<category>/`
 
 ## Route / Dependency
 - document_type: [...]
@@ -159,7 +159,7 @@ Cache header must include:
 
 ## 失败处理
 
-- Missing topic root: block and ask user to run `new-session`.
+- Missing topic root: agent auto-creates per policy baseline §11.
 - Source path missing: failed, no cache written.
 - Workspace cannot be discovered: ask for `--workspace`.
 - Dependency missing: report exact package and bootstrap command.
@@ -170,8 +170,8 @@ Cache header must include:
 
 | Scenario | Handling |
 |---|---|
-| Workspace has no `topics/` | Use `init-workspace` |
-| Topic root is missing | Use `new-session` |
+| Workspace has no `industry/` | Use `init-workspace` |
+| Topic root is missing | Agent auto-creates per policy baseline §11 |
 | User has files in topic `_inbox/` | Use `ingest` |
 | Cache is annual report / 10-K / 20-F | Feed `company-history` or `driver-map` |
 | Cache is industry report / technical paper | Feed `industry-landscape` or `mechanism-insight` |

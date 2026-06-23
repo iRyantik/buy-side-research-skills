@@ -10,7 +10,7 @@ Collect label and summarize Reddit sentiment as clue-only social evidence for a 
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把 Reddit 从噪音池变成可用的买方研究线索：抓取相关帖子，标注 narrative clusters，识别社区分层、拥挤叙事、误导性 social claims、下一步验证任务，并给出 10-15 个最值得读的帖子。
@@ -84,7 +84,7 @@ skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
 | 输入 | 必填 | 默认 |
 |---|---|---|
 | `subject` | 是 | 用户给出的公司 / ticker / 事件 / 主题 |
-| `topic_path` | 是 | 若不明确，先用 `new-session` 解析 |
+| `topic_path` | 是 | 若不明确，agent 按 policy baseline §11 自动解析 |
 | `keywords` | 是 | subject + ticker + event words |
 | `subreddits` | 建议 | `stocks,investing,wallstreetbets,SecurityAnalysis,ValueInvesting`，再加主题社区 |
 | `from_date` / `to_date` | 是 | 最近 7 天 |
@@ -101,10 +101,10 @@ skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
 
 ```text
 run_id = YYYY-MM-DDTHH-MM-SSZ
-scrapi_dir = topics/[namespace]/[topic]/_raw/datasets/reddit-sentiment/[run_id]/scrapi
-raw_dir = topics/[namespace]/[topic]/_raw/datasets/reddit-sentiment/[run_id]
-cache_dir = topics/[namespace]/[topic]/_cache/datasets/reddit-sentiment/[run_id]
-report_path = topics/[namespace]/[topic]/[YYYY-MM-DD]-reddit-sentiment.md
+scrapi_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]/scrapi
+raw_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]
+cache_dir = industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run_id]
+report_path = industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-reddit-sentiment.md
 ```
 
 ### Phase 1: ScrapiReddit 采集
@@ -239,7 +239,7 @@ _cache/datasets/reddit-sentiment/[run_id]/
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 

@@ -4,6 +4,9 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
+import os as _os
+_ARTIFACT_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
+def _is_artifact(fp): return bool(_ARTIFACT_RE.match(_os.path.basename(fp)))
 
 # Only capture raw financial amounts: $1.23B, HK$45M, ¥500bn, HK$550M, 73.80亿, etc.
 # Exclude ratios (37.8%, 0.71x), stock codes (0522), small numbers
@@ -125,11 +128,19 @@ def check(ctx: dict):
 
         company_slug = m.group(1).lower()
         root = ctx.get("cwd", "")
-        financial_data_path = os.path.join(
-            root, "topics", "company", company_slug,
-            "_cache", "financial-data", "internal", "actuals-resolved.json"
-        )
-        if not os.path.isfile(financial_data_path):
+        # Walk industry/ tree to find actuals-resolved.json for this company
+        financial_data_path = None
+        industry_root = os.path.join(root, "industry")
+        if os.path.isdir(industry_root):
+            for industry_name in os.listdir(industry_root):
+                candidate = os.path.join(
+                    industry_root, industry_name, "companies", company_slug,
+                    "_cache", "financial-data", "internal", "actuals-resolved.json"
+                )
+                if os.path.isfile(candidate):
+                    financial_data_path = candidate
+                    break
+        if not financial_data_path:
             continue  # financial_data_gate handles this
 
         try:

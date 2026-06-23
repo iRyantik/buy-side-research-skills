@@ -10,7 +10,7 @@ Check whether a news claim rumor note or data point is credible and research-rel
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 判断一条信息能不能信，以及它是否产生值得继续研究的问题。**核心价值不是写新闻解读**，而是在信息淹没时快速过滤：哪些是事实、哪些只是线索、哪些值得继续问。
@@ -178,6 +178,21 @@ Action 只能是：
 
 对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
 
+## Source Contract
+
+信息冲击分析处理的是"刚刚发生的事"，source freshness 比 source depth 更重要。
+
+**密度表**：
+
+| Section | 强制标 source | 豁免 |
+|---|---|---|
+| 事件定性 | 事件来源（filing URL/新闻 URL/IR PDF）+时间 | 研究员判断 |
+| 价格反应 | price move % + time window → `[I#](url)` 行情源 | — |
+| Consensus delta | revised consensus vs pre-event → 每个数字有 provider+date | — |
+| Peer spillover | peer 价格变动的 source | — |
+
+**完成 Gate**：写完扫 → 每个事件有 source link → 每个 price move 有行情源 → `[待查]` ≤2 → Resources 展开。
+
 ## 反模式自查
 
 ### Source 类
@@ -203,3 +218,12 @@ Action 只能是：
 - 单条 Claim Check：300-700 字 + 1 张 evidence 表。
 - Batch Mode：每条 1 行，最多只展开 top 1-3 条。
 - 超过 900 字通常说明已经不是 filtering，应 handoff 到其他研究 skill。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

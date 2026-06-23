@@ -78,7 +78,6 @@ artifact_policy:
 workflow:
   stage: 'expectations-foundation'
   can_follow:
-    - 'new-session'
     - 'ingest'
     - 'stock-quickread'
     - 'industry-landscape'

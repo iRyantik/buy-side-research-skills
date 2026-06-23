@@ -99,7 +99,7 @@ Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-upda
    - workspace 高层宪法模板
 3. invoked `SKILL.md`
    - runtime executable contract
-4. `_shared/research-policy-baseline.md`
+4. `references/policy/research-policy-baseline.md`
    - authoring baseline only，not runtime authority
 
 runtime 行为上，如果 template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
@@ -157,7 +157,7 @@ modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`�
 
 任何公共 research 规则变更，必须在同一个 change 里同步：
 
-1. `_shared/research-policy-baseline.md`
+1. `references/policy/research-policy-baseline.md`
 2. 所有受影响的 active research `SKILL.md`
 3. 如影响 workspace 高层摘要，再改 `CLAUDE.md.template`
 4. 如影响 public behavior / package language，再改 `README.md`、`docs/release.md`、payload manifests / marketplace manifests
@@ -175,9 +175,9 @@ hooks-first 补充 hard gate：
 
 命名规则补充 hard gate：
 
-9. 如变更 research topic artifact 命名规则，必须同步 `new-session` 的 runtime naming decision tree。
+9. 如变更 research topic artifact 命名规则，必须同步 `references/policy/research-policy-baseline.md` §11。
 10. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
-11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml` 与 `new-session`。
+11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml`。
 12. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
 
 ## UTF-8 文本纪律
@@ -223,6 +223,39 @@ hooks-first 补充 hard gate：
 - 不创建空的 `scripts/`、`assets/`、`references/` 目录。
 - 不把 examples 当 runtime dependency。
 - 不把 root `screens/`、`peers/`、`quickreads/`、`cross-market/` 恢复为 active artifact 默认路径。
+
+## Skill Directory Spec
+
+每个 skill 目录下允许以下子目录。这是收口——新 skill 只能创建这里列出的目录，init-workspace 和 update-agent-runtime 的 auto-discovery 也只处理这些。
+
+### 目录定义
+
+| 目录 | 职责 | 部署行为 | 策略 |
+|---|---|---|---|
+| `scripts/` | 可执行代码（.py, .js） | `_scripts/<skill>/` | 覆盖 |
+| `assets/` | 数据文件、配置、requirements、模板 | `_scripts/<skill>/` | 覆盖 |
+| `assets/templates/` | 用户可改的模板文件 | `_scripts/<skill>/` | 缺时补 |
+| `references/` | 该 skill 自己的参考文档 | **不部署** — agent 直接从 plugin cache 读取 | — |
+| `examples/` | 示例产物、示例 HTML | **不部署** — agent 直接从 plugin cache 读取 | — |
+| `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），资产走 A类部署到 workspace root，不参与 B类 auto-discovery | — | — |
+
+### 规则
+
+1. **不部署 ≠ 不重要** — `references/` 和 `examples/` 是该 skill 的 canonical 参考和示例，agent 执行 skill 时能直接从 plugin cache 读。不能因为不落地 workspace 就删。
+2. **没有 runtime 需求不创建空目录** — 如果 skill 不需要脚本或 assets，就不建 `scripts/` / `assets/`。
+3. **不要在此清单外新增目录** — 如果有新需求，先来改这个 spec，再建目录。
+4. **B类 auto-discovery** — init-workspace 和 update-agent-runtime 的 B类规则就是遍历 `skills/*/scripts/` + `skills/*/assets/`。加新文件到这些目录 → 自动部署，零改动。
+
+### Deployment 矩阵总览
+
+```
+skills/<skill>/scripts/          →  _scripts/<skill>/          覆盖
+skills/<skill>/assets/           →  _scripts/<skill>/          覆盖
+skills/<skill>/assets/templates/ →  _scripts/<skill>/          缺时补
+skills/<skill>/references/       →  (不部署，agent 读 cache)
+skills/<skill>/examples/         →  (不部署，agent 读 cache)
+skills/<skill>/.platform         →  A类，部署到 workspace root
+```
 
 ## 运行输出契约
 
@@ -304,7 +337,7 @@ AI 不是 status tracker，而是 senior analyst coach：帮研究员问更好�
 Topic-centric 组织：
 
 ```text
-topics/
+industry/
   [topic-namespace]/[topic-slug]/
     index.md
     [YYYY-MM-DD]-research-journal.md
@@ -324,8 +357,8 @@ Research layers：
 |---|---|---|
 | `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `next-step` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | 打地基：零基础物理直觉、行业全景、结构化财务+市场数据、TAM 估算、公司业务/披露历史、市场预期、行业机制、model driver |
-| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、建模 |
-| `supporting` | `scenario-model`, `research-viz` | 场景量化测算（被 candidate-screener/alpha-thesis 调用）、可视化后处理 |
+| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、赔率 memo、建模 |
+| `supporting` | `research-viz` | 可视化后处理 |
 | `memory` | `research-journal`, `coverage-tracker` | 沉淀 earned insight、跟踪已覆盖公司状态和优先级 |
 
 Operations skills：
@@ -335,8 +368,6 @@ Operations skills：
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
-| `new-session` | 创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 artifact save path |
-| `new-session` | 将 industry/theme workbench 中确定属于单公司的研究沉淀到 canonical company topic |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -396,8 +427,8 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 [如有 skill-specific 数据使用规则，≤3 行，不写 provider 名/trust chain]
@@ -419,7 +450,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
@@ -508,8 +539,6 @@ Artifact policy：
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
-- `new-session` 使用 `topic_scaffold`，只创建 / 定位 topic root、确保 `index.md` + `_inbox/`、解析日期化 result path，并轻量更新 `index.md`，不写研究结论。
-- `new-session` 使用 `none`，只移动确定属于单公司的 workbench 文件并更新 provenance，不写研究结论；whole-topic directory merge 仍属于 `integrate`。
 
 默认 naming tier：
 - `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`、`moat-analysis`、`catalyst-map`、`capital-allocation`、`post-earnings-quick`

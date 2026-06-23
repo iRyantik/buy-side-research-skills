@@ -10,7 +10,7 @@ Summarize completed research into durable topic notes and boss brief outputs.
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把已经研究过、想清楚、能改变后续判断的认知增量沉淀成 topic memory。**核心价值不是记录过程**，而是把研究员已经赚到的判断、机制、driver、source map、open question 和 Boss-ready conclusion 留下来，方便未来继续研究或向 PM transfer。
@@ -46,7 +46,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 
 | 维度 | 含义 | 默认处理 |
 |---|---|---|
-| **topic path** | topic root 下的日期化 Markdown 文件 | 用户未给路径时，先 handoff 到 `new-session` 创建 / 解析路径，不擅自创建复杂目录 |
+| **topic path** | topic root 下的日期化 Markdown 文件 | 用户未给路径时，agent 按 policy baseline §11 自动创建目录 |
 | **研究对象** | 主题 / 公司 / 事件 / peer set / thesis | 从上下文推断；不清楚时问 1 个澄清问题 |
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
@@ -261,7 +261,7 @@ industry/<industry>/companies/<ticker>/index.md
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 

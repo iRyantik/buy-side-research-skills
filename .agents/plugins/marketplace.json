@@ -15,7 +15,7 @@
       },
       "category": "Research",
       "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
-      "version": "4.6.2",
+      "version": "5.7.0",
       "author": {
         "name": "buy-side-research-system"
       },
@@ -33,8 +33,6 @@
         "mispriced",
         "pure-play",
         "hidden-winners",
-        "挖票",
-        "找票",
         "reddit-sentiment",
         "social-sentiment",
         "financial-data",
@@ -53,5 +51,6 @@
         "codex"
       ]
     }
-  ]
+  ],
+  "version": "5.7.0"
 }

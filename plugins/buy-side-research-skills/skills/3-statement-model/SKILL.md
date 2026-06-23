@@ -10,12 +10,14 @@ Build source-tracked 3-statement models with historical actuals and formula-driv
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: derived ratios within the model (ROIC, margins, turnover ratios, FCF conversion, etc.) must use actuals-resolved.json disclosed data. No estimate input for computed ratios.
 - Final delivery is not complete until the workbook's checks block can be read programmatically and passes with zeroed numeric checks plus an explicit pass-status summary.
 
 
@@ -418,3 +420,12 @@ When Master Status shows errors:
 3. Navigate to source tab to investigate
 4. Fix the underlying issue
 5. Return to Checks tab to verify resolution
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

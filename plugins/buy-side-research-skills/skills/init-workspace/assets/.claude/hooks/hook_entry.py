@@ -15,6 +15,7 @@ RUNTIMES = {"claude", "codex"}
 PRE_TOOL_USE_RULES = [
     "workspace_guard",
     "financial_data_gate",
+    "pre_write_gate",
 ]
 POST_TOOL_USE_RULES = [
     # Global structure & source
@@ -27,16 +28,17 @@ POST_TOOL_USE_RULES = [
     # Provider: market-snapshot + disclosure source boundaries
     "provider.market_snapshot_source_boundary",
     "provider.disclosure_fact_source_boundary",
-    "provider.cross_market_parity",
     "provider.social_clue_only",
     # Viz: delivery contract
     "viz.viz_delivery_contract",
     # Fact governance: provenance + claim proximity
     "fact_provenance",
     "claim_source_proximity",
+    "evidence_ledger_floor",
 ]
 STOP_RULES = [
     "source_contract",
+    "evidence_ledger_floor",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [

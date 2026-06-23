@@ -77,7 +77,6 @@ artifact_policy:
 workflow:
   stage: 'primary-research-design'
   can_follow:
-    - 'new-session'
     - 'ingest'
     - 'consensus-map'
     - 'driver-map'

@@ -10,7 +10,7 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - This skill MUST NOT make any investment judgment. It is a pure engineering-literacy builder. Hand off to `industry-landscape`, `mechanism-insight`, or downstream research skills for investment conclusions.
 
 ## 心法
@@ -54,11 +54,17 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 
 ## 输出结构
 
-### 6 层认知递进
+### 7+1 层认知递进
 
-每层回答一个核心问题，按 WHY → WHERE → WHAT → HOW → WHY NOW → WHO 递进。
+每层回答一个核心问题，按 WHY THIS CATEGORY → WHY → WHERE → WHAT → HOW → WHY NOW → WHO → TAKEAWAY 递进。
 
 ```
+Phase 0: WHY THIS CATEGORY — 为什么需要这一类东西（品类存在的物理必然性）
+  Layer 0: 物理极限 → 品类存在理由
+          例：电信号在铜线上带宽×距离=常数 → 高速下跑不远 → 光模块必须存在
+          例：PCB 制造是统计缺陷过程 → AOI 只能看不能测 → 电测必须存在
+          必须回答："最直观的替代方案为什么不行？"
+
 Phase 1: WHY — 为什么需要这个东西
   Layer 1: 物理约束与设计动机
           电为什么不够用 → 光为什么是必然 → 这个东西解决了什么物理问题
@@ -68,8 +74,13 @@ Phase 2: WHERE — 长什么样、装在哪
           数据中心→机柜→服务器→网卡→端口→这个东西→它连接的另一端
 
 Phase 3: WHAT — 里面是什么、用什么做的
-  Layer 3: 内部结构 + 材料
-          拆开看里面的每个部件 + 每个部件用什么材料做 + 为什么选这个材料
+  Layer 3: 内部结构 + 部件拆解
+          拆开看里面的每个部件 + 每个部件做什么
+
+  Layer 3.5: 材料深潜（半导体/先进制造/材料密集型行业**强制**）
+          材料×功能矩阵（哪种材料→能做什么→不能做什么→谁供应）
+          每种材料的物理原理（为什么选它而不是别的）
+          材料选择如何影响下游设备需求
 
 Phase 4: HOW — 怎么做出来的
   Layer 4: 全链制造（从原材料到出货）
@@ -77,43 +88,99 @@ Phase 4: HOW — 怎么做出来的
 
 Phase 5: WHY NOW — 为什么在升级换代
   Layer 5: 代际驱动力
-          物理极限推动升级 + 每一代精度/测试/封装怎么跳 + 下一代范式（如 CPO）
+          物理极限推动升级 + 每一代精度/测试/封装怎么跳 + 下一代范式 + 设备超级周期逻辑
 
 Phase 6: WHO — 谁在做（纯事实，不判断）
-  Layer 6: 全链公司站位表 + Routing Handoff
+  Layer 6: 全链公司站位表 + 竞争壁垒维度拆解
           每一站标注：全球玩家/中国玩家/精度天花板
-          末尾显式 handoff 到下游 skill
+          壁垒评分表（精度硬/测试联动/客户锁入 ⭐⭐⭐）
+
+文末三件套（Layer 6 之后，必填）:
+  三句话总结 — 物理直觉压缩，非投资判断
+  最容易犯的错误 — 给读者的认知校准表
+  下一层可追的问题 + Routing Handoff
 ```
 
 ### 每层硬要求
 
-| Layer | ASCII 架构图 | 实物图 | 术语表 | 尺度比较 | Source |
-|---|---|---|---|---|---|
-| 1 | 必须（物理对比） | 不需要 | 不需要 | 必须（数量级对比） | IEEE/物理标准/教材 |
-| 2 | 必须（空间缩放） | **必须**（产品实物+安装位置） | 必须（端口/接口标准） | 必须 | 产品页/MSA 规范/数据中心架构 |
-| 3 | 必须（爆炸图） | **必须**（拆解实物） | 必须（每个部件） | **必须**（尺度阶梯） | 产品页/teardown/BOM 分析 |
-| 4 | 必须（全链流程图） | **必须**（关键设备实物） | 必须（每道工序） | 不需要 | 官网设备页/招股书/行业报告 |
-| 5 | 必须（代际对照图） | 不需要 | 必须（新技术名词） | 不需要 | 标准组织/代际 roadmap |
-| 6 | 不需要（纯表格） | **必须**（代表公司 logo 图） | 不需要 | 不需要 | 招股书/公司官网/行业报告 |
+| Layer | ASCII 架构图 | 实物图 | 术语表 | 尺度比较 | 良率瓶颈 | 价值量 | Source |
+|---|---|---|---|---|---|---|---|
+| 0 | 必须（物理极限对比） | 不需要 | 不需要 | 必须（常数数量级） | 不需要 | 不需要 | 物理教材/IEEE/标准组织 |
+| 1 | 必须（物理对比） | 不需要 | 不需要 | 必须（数量级对比） | 不需要 | 不需要 | IEEE/物理标准/教材 |
+| 2 | 必须（空间缩放） | **必须**（产品实物+安装位置） | 必须（端口/接口标准） | 必须 | 不需要 | 不需要 | 产品页/MSA 规范/数据中心架构 |
+| 3 | 必须（爆炸图） | **必须**（拆解实物） | 必须（每个部件） | **必须**（尺度阶梯） | 不需要 | 不需要 | 产品页/teardown/BOM 分析 |
+| 3.5 | 必须（材料×功能矩阵） | **必须**（材料实物/晶圆/截面 SEM） | 必须（材料名+特性） | 必须（晶圆尺寸/厚度对比） | 不需要 | 不需要 | MatWeb/CRC/材料数据库/晶圆厂 |
+| 4 | 必须（全链流程图） | **必须**（关键设备实物） | 必须（每道工序） | 不需要 | **必须**（⭐⭐⭐） | **必须**（若设备行业） | 官网设备页/招股书/行业报告 |
+| 5 | 必须（代际对照图） | 不需要 | 必须（新技术名词） | 不需要 | 不需要 | 不需要 | 标准组织/代际 roadmap |
+| 6 | 不需要（纯表格） | **必须**（代表公司产品/logo 图） | 不需要 | 不需要 | 不需要 | **必须**（设备段百分比） | 招股书/公司官网/行业报告 |
+| 文末 | 不需要 | 不需要 | 不需要 | 不需要 | — | — | — |
 
 ### 图片要求
 
 **实物图下载优先级**：公司官网 Media Kit → 产品页 hero image → web search 产品图 → 行业代表性图 → `[缺图]`
 
-下载到 `_cache/images/teach-in/`；产物内嵌 `![描述](相对路径)`。
+下载到 `_cache/images/`；产物内嵌 `![描述](相对路径)`。
+
+**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` + 设 `{{MAX_IMAGES}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
 
 **ASCII 架构图**：我来画。每层至少 1 张。
+
+### Layer 3.5：材料深潜（半导体/先进制造/材料密集型行业强制）
+
+当行业类型涉及半导体、先进制造、精密设备、新材料时，Layer 3 之后**必须**插入材料深潜层。消费品牌/软件/互联网可跳过。
+
+**材料 × 功能矩阵表（必填）**：
+
+| 材料 | 中文名 | 能做什么 | 不能做什么 | 材料供应商（上游） | 器件/设备厂（下游） |
+|---|---|---|---|---|---|
+
+**每种材料的大白话物理原理**（2-3 段/材料）：
+
+- 为什么选这个材料（物理机制，不是"因为性能好"）
+- 它的替代材料是什么、为什么没赢
+- 这个材料的选择如何约束下游设备的设计
+
+**材料→设备需求映射**（必填）：
+
+- 材料物理特性如何决定了加工/测试精度要求
+- 举个例子：InP 晶圆最大 4 英寸 → 单片产出少 → 设备吞吐量更重要
 
 ### Routing Handoff（Layer 6 末尾必填）
 
 ```markdown
 ## 下一步
 
-- 判断行业是否值得投资、产业链利润分配 → `/industry-landscape`
-- 深挖某个设备段/机制的运作和价值捕获 → `/mechanism-insight <具体机制>`
-- 筛选公司优先级 → `/candidate-screener`
-- 快速扫单家公司 → `/stock-quickread <ticker>`
+| 想做什么 | 用哪个 skill |
+|---|---|
+| 判断这个行业值不值得投、产业链利润分配 | `/industry-landscape` |
+| 深挖某个设备段/机制的运作和价值捕获 | `/mechanism-insight <具体机制>` |
+| 筛选公司优先级、排研究顺序 | `/candidate-screener` |
+| 快速扫单家公司 | `/stock-quickread <ticker>` |
+| 拆解公司收入/利润 driver | `/driver-map` |
 ```
+
+### 文末三件套（Layer 6 之后，必填）
+
+**三句话总结**（必填）：
+
+3 句话压缩物理直觉。不做投资判断（不出现"值得投""估值""推荐"）。每句一个 insight，对应 Layer 1-5 的核心认知压缩。
+
+格式：
+```markdown
+### 三句话
+
+1. **<insight 1>** — <物理约束或品类存在理由>
+2. **<insight 2>** — <制造/设备链的核心矛盾>
+3. **<insight 3>** — <代际升级或范式变化的驱动力>
+```
+
+**最容易犯的错误**（必填）：
+
+给**读者**的认知校准——不是给 AI 的反模式。格式：`| X 不要这么想 | ✓ 要这么想 |` 表格，5-7 行。覆盖：品类边界、技术路线、竞争格局、升级逻辑、精度壁垒。
+
+**下一层可追的问题**（必填）：
+
+5-7 个具体问题——具体到一个数字、一个事件、一份文件能回答。后跟标准 Routing Handoff 表格。
 
 ## Artifact / 保存策略
 
@@ -122,7 +189,7 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 ```
 
-路径解析优先复用 `new-session` 的 topic 解析结果。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
+路径解析由 agent 按 policy baseline §11 自动完成。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
 
 ## Workflow 联动
 
@@ -139,10 +206,17 @@ industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 
 ### 结构类
 - ❌ 输出变成了投资分析报告（出现"值得投""估值合理""推荐关注"）
-- ❌ 跳过了材料层但这是半导体/先进制造行业
+- ❌ 跳过了材料层（Layer 3.5）但这是半导体/先进制造/精密设备行业
+- ❌ 缺少 Layer 0（品类存在理由）——直接从 Layer 1 物理约束切入
 - ❌ 尺度对比只写数字没有日常类比
 - ❌ 没有一张 ASCII 架构图——纯文字科普必定失败
-- ❌ 6 层中任何一层完全缺失且无说明
+- ❌ 7+1 层中任何一层完全缺失且无说明
+- ❌ 文末缺少三句话总结、最容易犯的错误或下一层问题
+- ❌ 正文图 < 8 张（设备/制造行业 < 10 张）
+- ❌ Layer 4 没有良率瓶颈分析（设备/制造业）
+- ❌ Layer 6 只有公司名单没有竞争壁垒维度拆解（精度硬/测试联动/客户锁入）
+- ❌ Layer 6 缺少设备价值量占比（若为设备行业）
+- ❌ Layer 5 没有解释"为什么这是设备公司的超级周期"（若为设备行业）
 
 ### 物理直觉类
 - ❌ 只说"用光因为快"，不讲电信号的带宽-距离乘积极限
@@ -155,9 +229,33 @@ industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 - ❌ 用了整页网页截图而不是产品 hero image
 
 ### Source 类
+
+**Source Density（每层最低锚点密度）**
+
+| Layer | 强制标 source 的内容 | 可豁免 |
+|---|---|---|
+| 0 品类存在理由 | 每个物理常数、每条数量级对比、替代方案的数据 | 常识类比（如"头发丝 80μm"） |
+| 1 物理约束 | 每个物理常数、每条数量级类比 | 常识类比（如"头发丝 80μm"） |
+| 2 空间拓扑 | 设备重量/体积/环境要求、产品图 source URL | ASCII 架构图 |
+| 3 内部结构 | 每个部件的材料选择原因、探针/底座精度数字 | 爆炸图（原创图） |
+| 3.5 材料深潜 | 每种材料的物理特性数据（CTE、硬度、密度等）、晶圆尺寸/产能、供应商名 | 物理常识（如"硅不发光——间接带隙"） |
+| 4 全链制造 | 每道工序的精度数字、设备型号/报价、良率数据 | 工序名称（通用知识） |
+| 5 代际 | 每个 L/S 数字、每代层数范围、IPC/标准文件引用、TAM 数据 | 趋势方向性判断 |
+| 6 公司站位 | 每家公司名称+定位+精度天花板、设备价值量百分比 | — |
+| 文末三件套 | 不需要（压缩总结，非新事实） | — |
+
+**Source 类型**：`[S#](url)` 设备商产品页/规格书，`[I#](url)` 第三方行业报告/新闻，`[P#](url)` 物理常数/材料数据库/教材。
+
+物理常数 → 至少引用一个可查 source（MatWeb/CRC/教材），不做 WebFetch 验证。
+设备规格/公司名 → WebFetch/Playwright 至少试到 Tier 2；全失败标 `[待查]`。
+
 - ❌ 物理常数无 source
 - ❌ 术语解释无 source
 - ❌ 公司名单无 source
+- ❌ Layer 1/3 材料选择用了"因为性能好"而没有物理依据+source
+- ❌ 正文零 inline anchor——只有文末 Resources 列表
+
+**完成 Gate**：写完逐层扫 density → `[待查]` 数量 ≤8 → 标 Pipeline coverage → 图片 ≥10 张 → 文末三件套齐全 → Resources 段 ≥15 条引用 source。
 
 ### Routing 类
 - ❌ Layer 6 末尾没有 Routing Handoff
@@ -165,9 +263,11 @@ industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 
 ## 篇幅基准
 
-- 标准 teach-in：6000-8000 字（含 ASCII 图和图片链接）
-- 低于 5000 字：Layer 3（制造链）或 Layer 4（代际驱动力）展开不足
-- 超过 10000 字：在替 `mechanism-insight` 或 `industry-landscape` 干活，应拆分
+- 标准 teach-in：8000-12000 字（含 ASCII 图和图片链接）
+- 低于 6000 字：Layer 3/4/5 展开不足（制造链、代际驱动力或材料深潜缺失）
+- 超过 15000 字：在替 `mechanism-insight` 或 `industry-landscape` 干活，应拆分
+- **图片量基准**：正文图 ≥ 10 张（含实物图和材料截面/SEM 图）。<8 张 → 缺图警告，<5 张 → block
+- **Source 基准**：每层 ≥ 2 个 inline anchor（Layer 0 和文末除外）。文末 Resources ≥ 15 条
 
 ## 与相邻 skill 的边界
 
@@ -177,8 +277,8 @@ industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 | **问题** | 这东西是什么 | 行业值不值得投 | 机制怎么运作 |
 | **投研判断** | **零** | 行业级 | 机制级 |
 | **覆盖** | 全链科普 | 全行业产业链+价值池 | 1-2 个机制深挖 |
-| **图片** | 实物图（必须） | 公司 logo + 产品实物图（必须） | 产品实物图（必须） |
-| **产物长度** | 6000-8000 字 | 2000-3000 字 | 1000-1800 字 |
+| **图片** | 实物图 ≥10 张（必须） | 公司 logo + 产品实物图（必须） | 产品实物图（必须） |
+| **产物长度** | 8000-12000 字 | 2000-3000 字 | 1000-1800 字 |
 
 - `teach-in` 是 `industry-landscape` 和 `mechanism-insight` 的**前置条件**，不是替代品。
 - `teach-in` 不做投资判断；`industry-landscape` 做行业级投资判断；`mechanism-insight` 做机制级价值捕获判断。

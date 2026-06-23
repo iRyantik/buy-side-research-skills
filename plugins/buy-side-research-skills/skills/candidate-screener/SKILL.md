@@ -10,8 +10,10 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: screening ratios (PE, PEG, EV/EBITDA, FCF Yield, ROIC, etc.) use actuals-resolved.json. Consensus data may appear as a separate column but never feeds into ratio computation.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -144,6 +146,8 @@ Top Ideas 必须给下一步验证路线：
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值倍数、概率百分比、Flip 幅度、spread 差、评分数字的列，**每行必须带 source anchor**（[S#](url) 或 [I#](url)）。估值来自 market_data 标 `[I#]`，业务数据来自 actuals 标 actuals，外部行业报告标 `[I#]`。
+
 ```markdown
 ## §1 结论先行
 
@@ -151,18 +155,18 @@ Top Ideas 必须给下一步验证路线：
 
 ## §2 场景定义
 
-| Regime | 定义 | 概率 | Catalyst Trigger | 估值环境 |
-|---|---|---|---|---|
-| R1: [当前主导] | ... | 60% | — | PE 15-30x |
+| Regime | 定义 | 概率 | Catalyst Trigger | 估值环境 | Ev |
+|---|---|---|---|---|---|
+| R1: [当前主导] | ... | 60% | — | PE 15-30x | [S#](url) |
 | R2: [过渡期] | ... | 30% | [事件+阈值] | 稀缺溢价 |
 | R3: [新范式] | ... | 10% | [事件+阈值] | 杀旧业务估值 |
 
 ## §3 场景推票矩阵（主表）
 
-行 = 公司，列 = 3 regime。格子格式：**方向 权重 | 当前估值 | 场景重估方向 | 一句话**
+行 = 公司，列 = 3 regime。格子格式：**方向 权重 | 当前估值 | 场景重估方向 | 一句话 | Key KPI（从 `references/kpi-drivers/` 取该行业最重要的 1 个数字）**
 
-| 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度 |
-|---|---|---|---|---|---|
+| 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度  Ev |
+|---|---|---|---|---|---|---|
 | AAA | TICKER | Long 高 | PE 18x | ↑ | 逻辑 | Long 高 | → ↑ | 逻辑 | Long 高 | → ↑↑ | 逻辑 | +60% |
 
 估值 Flip = R1→R3 的重估幅度，必须量化。负值 = regime 切换时空仓收益。
@@ -171,13 +175,13 @@ Top Ideas 必须给下一步验证路线：
 
 ### §4.1 稳健多仓（全场景 work）
 
-| 票 | 当前估值 | 全场景逻辑 | 上行 | 下行 |
-|---|---|---|---|---|
+| 票 | 当前估值 | 全场景逻辑 | 上行 | 下行  Ev |
+|---|---|---|---|---|---|
 
 ### §4.2 场景推票表（反向索引：场景→动作→票）
 
-| 场景触发 | 动作 | 票 | 仓位 | 策略原型 | 当前估值 | 目标估值 | 逻辑 |
-|---|---|---|---|---|---|---|---|
+| 场景触发 | 动作 | 票 | 仓位 | 策略原型 | 当前估值 | 目标估值 | 逻辑  Ev |
+|---|---|---|---|---|---|---|---|---|
 | 当前 base | Long | AAA | 核心 | 代际升级 | PE 18x | PE 25x | ... |
 | CPO>15% | Long | BBB | 小赌注 | 小赌注 | PS 8x | PS 20x | 0→1 |
 
@@ -185,25 +189,25 @@ Top Ideas 必须给下一步验证路线：
 
 ### §4.3 方向翻转型（估值 flip 最大）
 
-| 票 | R1→R3 估值路径 | Flip 幅度 | 核心逻辑 |
-|---|---|---|---|
+| 票 | R1→R3 估值路径 | Flip 幅度 | 核心逻辑  Ev |
+|---|---|---|---|---|
 
 ### §4.4 估值收敛对（spread trade，可选）
 
-| Long | Short | 当前 spread | 合理 spread | 收敛催化剂 |
-|---|---|---|---|---|
+| Long | Short | 当前 spread | 合理 spread | 收敛催化剂  Ev |
+|---|---|---|---|---|---|
 
 ## §5 Base Case 漏斗（当前 regime 下）
 
 ### Top Ideas (1-3)
 
-| # | 票 | 一句话 | Purity | Growth | 估值 | Discovery | Scenario | 总分 |
-|---|---|---|---|---|---|---|---|---|
+| # | 票 | 一句话 | Purity | Growth | 估值 | Discovery | Scenario | 总分  Ev |
+|---|---|---|---|---|---|---|---|---|---|
 
 ### Scenario Bets（小赌注层）
 
-| 票 | 赌的场景 | 当前估值 | 目标估值 | 为什么不等确认后再买 |
-|---|---|---|---|---|
+| 票 | 赌的场景 | 当前估值 | 目标估值 | 为什么不等确认后再买  Ev |
+|---|---|---|---|---|---|
 
 ### Watchlist
 
@@ -212,18 +216,18 @@ Top Ideas 必须给下一步验证路线：
 
 ### Rejects
 
-| 票 | 当前估值 | 为什么拒 |
-|---|---|---|
+| 票 | 当前估值 | 为什么拒  Ev |
+|---|---|---|---|
 
 ## §6 Catalyst 日历 + 估值触发点
 
-| 时间 | 事件 | 影响票 | 估值触发 | 场景切换 |
-|---|---|---|---|---|
+| 时间 | 事件 | 影响票 | 估值触发 | 场景切换  Ev |
+|---|---|---|---|---|---|
 
 ## §7 Kill Criteria（平仓条件）
 
-| 票 | 平仓信号 | 估值底线 |
-|---|---|---|
+| 票 | 平仓信号 | 估值底线  Ev |
+|---|---|---|---|
 
 ## AI Universe Caveat
 
@@ -287,7 +291,7 @@ Top Ideas 必须给下一步验证路线：
 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 ```
 
-路径不明 -> `new-session` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
+路径不明 -> `agent` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
 
 ## Workflow 联动
 
@@ -357,3 +361,12 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 - "光模块设备链有没有纯度高、增长快、估值便宜、没被发现的票" -> `candidate-screener`
 - "听说 X 是 NVIDIA 光模块供应商，靠谱吗" -> `information-impact`
 - "这个新闻是真的，而且想按新闻逻辑找受益股" -> 先 `information-impact`，再 `candidate-screener`
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

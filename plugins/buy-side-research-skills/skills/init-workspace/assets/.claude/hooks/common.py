@@ -120,18 +120,59 @@ def get_resources_section_text(text: str) -> Optional[str]:
     return None
 
 def get_resources_entries(text: str) -> list[dict]:
-    """Parse `- [S1](url) = metadata` entries from Resources section."""
+    """Parse Resources entries supporting 4 formats:
+    1a. `- [S1](url) — metadata`  (URL in parens, dash-separated description)
+    1b. `- [S1](url) metadata`    (URL in parens, space-separated description, no dash)
+    2.  `- [S1](url)`             (bare: URL only, no description)
+    3.  `- [S1] metadata — url`   (loose: URL at end, not in parens — legacy format)
+    """
     entries = []
     resources = get_resources_section_text(text) or ""
-    # With metadata
-    for m in re.finditer(r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*=\s*(?P<meta>.*)$', resources):
-        entries.append({"code": m.group("code"), "target": m.group("target").strip(), "metadata": m.group("meta").strip()})
-    seen = {e["code"] for e in entries}
-    # Bare (no metadata)
-    for m in re.finditer(r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*$', resources):
-        if m.group("code") not in seen:
-            entries.append({"code": m.group("code"), "target": m.group("target").strip(), "metadata": ""})
-            seen.add(m.group("code"))
+    seen = set()
+
+    # Format 1a: `- [S1](url) — metadata` (dash-separated description after URL)
+    for m in re.finditer(
+        r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*[—\-]\s*(?P<meta>.+)$',
+        resources
+    ):
+        code = m.group("code")
+        if code not in seen:
+            entries.append({"code": code, "target": m.group("target").strip(),
+                            "metadata": m.group("meta").strip()})
+            seen.add(code)
+
+    # Format 1b: `- [S1](url) metadata` (space-separated description, no dash)
+    for m in re.finditer(
+        r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s+(?P<meta>[^\s].*)$',
+        resources
+    ):
+        code = m.group("code")
+        if code not in seen:
+            entries.append({"code": code, "target": m.group("target").strip(),
+                            "metadata": m.group("meta").strip()})
+            seen.add(code)
+
+    # Format 2: `- [S1](url)` (URL in parens, no metadata afterward)
+    for m in re.finditer(
+        r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)(?:[^\]]*)\]\((?P<target>[^)]+)\)\s*$',
+        resources
+    ):
+        code = m.group("code")
+        if code not in seen:
+            entries.append({"code": code, "target": m.group("target").strip(), "metadata": ""})
+            seen.add(code)
+
+    # Format 3: `- [S1] metadata — url` (URL at end, not in parens — legacy/loose format)
+    for m in re.finditer(
+        r'(?im)^\s*-\s*\[(?P<code>[SPILBGR]+\d+)\]\s+(?P<meta>.+?)\s+[—\-]\s+(?P<target>https?://\S+)\s*$',
+        resources
+    ):
+        code = m.group("code")
+        if code not in seen:
+            entries.append({"code": code, "target": m.group("target").strip(),
+                            "metadata": m.group("meta").strip()})
+            seen.add(code)
+
     return entries
 
 def get_short_anchor_matches(text: str) -> list[dict]:

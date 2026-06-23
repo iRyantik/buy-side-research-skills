@@ -1,13 +1,13 @@
 _inbox/
 _scripts/
-topics/*/_inbox/
-topics/*/_raw/
-topics/*/_cache/
-topics/*/_models/
-topics/*/*/_inbox/
-topics/*/*/_raw/
-topics/*/*/_cache/
-topics/*/*/_models/
+industry/*/companies/*/_inbox/
+industry/*/companies/*/_raw/
+industry/*/companies/*/_cache/
+industry/*/companies/*/_models/
+industry/*/companies/*/*/_inbox/
+industry/*/companies/*/*/_raw/
+industry/*/companies/*/*/_cache/
+industry/*/companies/*/*/_models/
 
 .claude/
 .codex/

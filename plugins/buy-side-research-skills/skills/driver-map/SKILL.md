@@ -10,8 +10,9 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
+- **Actuals-only**: margin breakdowns, price/volume/mix ratios, and all quantitative driver ratios use actuals-resolved.json disclosed data. No forward estimate as ratio input.
 - Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
 
 把公司披露口径翻译成真实业务和可建模 driver。**核心价值不是写一个收入拆分表**，而是防止研究员和 AI 把会计 segment、管理层 narrative、卖方分类或概念股标签误当成经济实质。
@@ -28,7 +29,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Financial-Data 联动
 
-从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
+弹性 KPI 先查 `references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
 
 1. revenue_split 存在 → 按 source_type 归类：`official-xbrl-dimension` = provider-structured，`filing-table-extracted` = provider-table-review → 转 model bucket
 2. revenue_split 缺失 → 读 `full-filing.md`，LLM 抽 disclosed split → 标 `llm-extracted-review`
@@ -74,7 +75,9 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 | [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](./_cache/sources/company-annual-report.md) | [缺口] |
 
-> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.png`——① 公司 Media Kit → ② web search 产品图 → ③ 找不到用行业代表图 → ④ 标 [缺图]。
+> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
+>
+> **下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。详见 `stock-quickread` SKILL.md。
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -138,7 +141,9 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
-> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.png`——① 公司 Media Kit → ② web search 产品图 → ③ 找不到用行业代表图 → ④ 标 [缺图]。
+> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
+>
+> **下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。详见 `stock-quickread` SKILL.md。
 
 ## 2. Business Reality → Model Driver
 
@@ -174,7 +179,17 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Growth Quality（200 字）
+
+基于上述 driver 拆解，回答三个增长质量问题：
+
+| 维度 | 判断 | 证据 |
+|---|---|---|
+| Organic vs M&A | 过去 3Y 增长中 ~X% organic | M&A 贡献 ~Y%（acquisition disclosure 推算） |
+| Leading Indicator | [Backlog YoY / Orders YoY / Capacity ramp] | [具体数字] |
+| Margin Trajectory | [扩张/稳定/压缩] | EBIT margin FY N-2 X% → FY N Y% |
 
 ## 反模式自查
 
@@ -191,3 +206,12 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 ## 篇幅基准
 
 - 标准：900-1600 字 + 3-4 张表。低于 700 字常漏 proxy strategy；超过 1800 字应收窄到核心 segment。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

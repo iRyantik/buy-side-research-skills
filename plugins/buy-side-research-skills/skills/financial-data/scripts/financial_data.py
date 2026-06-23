@@ -25,10 +25,10 @@ Output contract:
   _cache/.../cross-check.json
 
 Modeling input aliases:
-  topics/company/<company-slug>/_cache/financial-data/financial-data-summary.md
-  topics/company/<company-slug>/_cache/financial-data/internal/evidence-pack.json
-  topics/company/<company-slug>/_cache/financial-data/internal/actuals-resolved.json
-  topics/company/<company-slug>/_cache/financial-data/internal/full-filing.md
+  industry/<industry>/companies/<ticker>/_cache/financial-data/financial-data-summary.md
+  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/evidence-pack.json
+  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json
+  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/full-filing.md
 """
 
 from __future__ import annotations

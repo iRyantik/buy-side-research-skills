@@ -10,8 +10,10 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: reverse-engineered implied growth, implied margin, and reverse DCF use actuals-resolved.json historical data as anchor. Consensus/forward estimates are the object of analysis, not inputs to ratio computation.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -68,6 +70,8 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 用于单家公司、单个 ticker 或已锁定的 stock idea。
 
 ### 输出结构
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
 
 ```markdown
 ## Verdict
@@ -171,7 +175,9 @@ flowchart TD
 
 用于行业、主题、value chain 或 demand pocket 的共识地图。不要伪造单一 EPS consensus；用可观察 KPI 和 anchor-name expectation 来替代。
 
-### 输出结构差异
+### 输出结构
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。差异
 
 在 Standard 结构基础上做以下替换：
 
@@ -213,7 +219,15 @@ flowchart TD
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Implied Growth Check
+
+当前 PE × ROE × payout → 反推隐含永续 growth。对比 consensus 3Y revenue CAGR：
+
+- Implied growth > consensus → 市场在 price 比共识更乐观——搞清楚多出来的是什么
+- Consensus > implied growth → safety margin 存在
+- 如果 consensus 3Y growth 远低于 implied growth → multiple re-rate risk
 
 ## 反模式自查
 
@@ -243,3 +257,12 @@ flowchart TD
 | Industry/Theme | 1300-2000 |
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

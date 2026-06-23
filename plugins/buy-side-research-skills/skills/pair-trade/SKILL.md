@@ -10,8 +10,10 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: spread ratios, Z-score inputs, and valuation multiples use actuals-resolved.json.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -58,7 +60,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
 
 如果当前没有明确 dated result path：
-- 先 handoff 到 `new-session` 创建 / 解析路径，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。
+- agent 按 policy baseline §11 自动创建目录，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。
 - 让用户确认 topic / slug 后再保存。
 - 不要回退到 v2 的 `pairs/[LONG]-[SHORT]/spread-log.md`。
 
@@ -113,6 +115,8 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
+
+> Logo 下载：读 `_scripts/download-product-image.js`，设 `{{SELECTOR}}` 为 `.logo img` 或公司首页 logo 选择器，调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，下载到 `_cache/images/<ticker>-logo.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 
@@ -343,7 +347,7 @@ flowchart TD
 2. 如果 baseline 不完整，不输出 Spread 状态、P/L attribution、Thesis health 或 Action 建议；只输出 `Missing Baseline Checklist`，建议先用 Builder 生成或补齐 `pair-note.md`。
 3. 如果 baseline 完整，拉取或要求补充当前 spread 数据 + as-of 时间戳。
 4. 输出 4 部分：Spread 状态、P/L 来源拆解、Thesis 健康度、Research action。
-5. 默认把本次 review 追加 / 更新到当前日期化保存路径的 `pair-note.md`；如果当前没有明确 dated result path，先 handoff 到 `new-session` 创建 / 解析路径并让用户确认。
+5. 默认把本次 review 追加 / 更新到当前日期化保存路径的 `pair-note.md`；如果当前没有明确 dated result path，agent 按 policy baseline §11 自动创建目录。
 
 #### Missing Baseline Checklist
 
@@ -428,7 +432,7 @@ flowchart TD
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 
@@ -455,3 +459,12 @@ flowchart TD
 
 - **Builder 完整 thesis**：1200-2000 字 + 5 张表。
 - **Monitor 输出**：400-700 字。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

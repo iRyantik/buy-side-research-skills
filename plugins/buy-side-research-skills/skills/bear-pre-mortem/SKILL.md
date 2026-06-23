@@ -10,8 +10,10 @@ Stress test an investment thesis and build the strongest opposing case with sour
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: DSO, inventory turnover, OCF/NI, Capex/D&A, and all diagnostic ratios use actuals-resolved.json. No estimate-derived ratios.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -83,7 +85,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## 会计红旗公式
 
-科目多语对照见 `skills/_shared/statement-line-items.md`。
+科目多语对照见 `references/policy/statement-line-items.md`。
 
 | # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
 |---|---|---|---|---|---|
@@ -154,7 +156,31 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Growth Break Scenario
+
+如果 revenue growth 从 X% 跌到 Y%：
+- Margin impact: EBIT margin Z% → Z'%（fixed cost leverage reverse）
+- Multiple impact: PE Xx → Yx（growth de-rate）
+- Implied downside: −A%
+
+最可能触发 growth break 的信号：[1-2 个 leading indicator]
+
+## Source Contract
+
+> 空头压测对 source 真实性要求最高——"可能出问题"必须有具体的 filing/page/数字，不能只靠"看起来可疑"。
+
+**密度表**：
+
+| Section | 强制标 source | 豁免 |
+|---|---|---|
+| §1 空头 narrative | 每个指控对应的具体数字/事件 | narrative 本身 |
+| §3 红旗 walk | 每行 DSO/库存/OCF/Capex/SBC 的 filing source+页码 | 红旗判断 |
+| §4 Base rate | 每个历史可比案例的 ticker+年份+跌幅+source | — |
+| §5 Kill criteria | 每条触发条件的阈值出处（filing/IR/history） | — |
+
+**完成 Gate**：写完扫 §3 → 每行有 filing source → §4 每个案例有 ticker+source → `[待查]` ≤5 → Resources 展开。
 
 ## 反模式自查
 
@@ -185,3 +211,12 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 ## 用法说明
 
 本 skill 在 `alpha-thesis` 写完之后、IC memo 提交之前使用。如果压力测试之后原 thesis 还站得住，conviction 是真的；如果发现明显盲点，回去修 thesis、降低 sizing，或者直接放弃这单 trade。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

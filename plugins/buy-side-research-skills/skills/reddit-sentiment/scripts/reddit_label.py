@@ -374,7 +374,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Label and export Reddit sentiment data")
     parser.add_argument("--scrapi-dir", required=True, type=Path, help="ScrapiReddit output directory")
     parser.add_argument("--labels", required=True, type=Path, help="Cluster labels JSON config")
-    parser.add_argument("--topic", required=True, type=Path, help="Topic output root, e.g. topics/company/spacex")
+    parser.add_argument("--topic", required=True, type=Path, help="Topic output root, e.g. industry/aerospace/companies/spacex")
     parser.add_argument("--subject", required=True, help="Research subject shown in outputs")
     parser.add_argument("--topic-terms", default="", help="Comma-separated topic relevance terms")
     parser.add_argument("--from", dest="from_date", required=True, help="Start date YYYY-MM-DD")

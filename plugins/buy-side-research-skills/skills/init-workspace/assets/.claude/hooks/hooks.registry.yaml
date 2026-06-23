@@ -1,157 +1,226 @@
 hooks:
+  # === Global (all artifacts) ===
   - name: source_contract
-    file: global/source_contract.ps1
+    file: rules/source_contract.py
     layer: global
     events: [PostToolUse, Stop]
-    scope: [markdown_artifact, html_artifact]
+    scope: [research_artifact]
     severity: block
   - name: table_render_integrity
-    file: global/table_render_integrity.ps1
+    file: rules/table_render_integrity.py
     layer: global
-    events: [PostToolUse, Stop]
-    scope: [markdown_artifact]
+    events: [PostToolUse]
+    scope: [research_artifact]
     severity: block
   - name: workspace_guard
-    file: global/workspace_guard.ps1
+    file: rules/workspace_guard.py
     layer: global
     events: [PreToolUse]
     scope: [workspace_mutation]
     severity: block
   - name: subagent_protocol
-    file: global/subagent_protocol.ps1
+    file: rules/subagent_protocol.py
     layer: global
     events: [SubagentStop]
     scope: [subagent_output]
     severity: block
-  - name: claim_qualification
-    file: narrative/claim_qualification.ps1
-    layer: narrative
-    events: [PostToolUse, Stop]
-    scope: [information-impact, candidate-screener]
+  - name: financial_data_gate
+    file: rules/financial_data_gate.py
+    layer: global
+    events: [PreToolUse]
+    scope: [financial-data]
     severity: block
-  - name: primary_research_compliance
-    file: provider/primary_research_compliance.ps1
-    layer: provider
-    events: [PostToolUse, Stop]
-    scope: [primary-research-plan]
-    severity: block
-  - name: cross_market_parity
-    file: provider/cross_market_parity.ps1
-    layer: provider
-    events: [PostToolUse, Stop]
-    scope: []
-    severity: warn
-  - name: social_clue_only
-    file: provider/social_clue_only.ps1
-    layer: provider
-    events: [PostToolUse, Stop]
-    scope: [reddit-sentiment]
-    severity: block
-  - name: disclosure_fact_source_boundary
-    file: provider/disclosure_fact_source_boundary.ps1
-    layer: provider
-    events: [PostToolUse, Stop]
-    scope: [company-history, mechanism-insight, driver-map, primary-research-plan, information-impact]
-    severity: block
+
+  # === Provider ===
   - name: market_snapshot_source_boundary
-    file: provider/market_snapshot_source_boundary.ps1
+    file: rules/provider/market_snapshot_source_boundary.py
     layer: provider
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [stock-quickread, consensus-map, earnings-setup, pair-trade, alpha-thesis, bear-pre-mortem, peer-deep-dive, industry-landscape, candidate-screener, information-impact]
     severity: block
-  - name: model_statement_presence
-    file: modeling/model_statement_presence.ps1
+  - name: disclosure_fact_source_boundary
+    file: rules/provider/disclosure_fact_source_boundary.py
+    layer: provider
+    events: [PostToolUse]
+    scope: [company-history, mechanism-insight, driver-map, primary-research-plan, information-impact]
+    severity: block
+  - name: social_clue_only
+    file: rules/provider/social_clue_only.py
+    layer: provider
+    events: [PostToolUse]
+    scope: [reddit-sentiment]
+    severity: block
+
+  # === Modeling ===
+  - name: model_checks_result
+    file: rules/modeling/model_checks_result.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [3-statement-model]
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model, comps-analysis]
+    severity: block
+  - name: model_meta_sheet
+    file: rules/modeling/model_meta_sheet.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model, comps-analysis]
     severity: block
   - name: model_balance_integrity
-    file: modeling/model_balance_integrity.ps1
+    file: rules/modeling/model_balance_integrity.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [3-statement-model, model-update]
     severity: block
-  - name: no_hardcoded_formula_assumption
-    file: modeling/no_hardcoded_formula_assumption.ps1
+  - name: model_statement_presence
+    file: rules/modeling/model_statement_presence.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [3-statement-model, dcf-model]
+    events: [PostToolUse]
+    scope: [3-statement-model]
     severity: block
-  - name: missing_actuals_not_zero
-    file: modeling/missing_actuals_not_zero.ps1
+  - name: model_missing_actuals
+    file: rules/modeling/model_missing_actuals.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [3-statement-model, dcf-model, model-update]
     severity: block
-  - name: historical_actuals_fill_floor
-    file: modeling/historical_actuals_fill_floor.ps1
+  - name: model_no_hardcoded
+    file: rules/modeling/model_no_hardcoded.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model]
+    severity: block
+  - name: actuals_cross_check
+    file: rules/modeling/model_actuals_cross_check.py
+    layer: modeling
+    events: [PostToolUse]
     scope: [3-statement-model]
     severity: block
-  - name: driver_breakdown_coverage_floor
-    file: modeling/driver_breakdown_coverage_floor.ps1
+  - name: driver_cross_check
+    file: rules/modeling/model_driver_cross_check.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [3-statement-model]
     severity: block
-  - name: valuation_basis_required
-    file: modeling/valuation_basis_required.ps1
+  - name: internal_consistency
+    file: rules/modeling/model_internal_consistency.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [dcf-model, comps-analysis, model-update]
-    severity: block
-  - name: three_statement_structure_floor
-    file: modeling/three_statement_structure_floor.ps1
-    layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [3-statement-model]
     severity: block
-  - name: three_statement_audit_floor
-    file: modeling/three_statement_audit_floor.ps1
+  - name: dcf_linked_to_3sm
+    file: rules/modeling/model_dcf_linked_to_3sm.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [3-statement-model]
+    events: [PostToolUse]
+    scope: [dcf-model]
     severity: block
-  - name: three_statement_driver_floor
-    file: modeling/three_statement_driver_floor.ps1
+  - name: dcf_input_sourcing
+    file: rules/modeling/model_dcf_input_sourcing.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [3-statement-model]
+    events: [PostToolUse]
+    scope: [dcf-model]
     severity: block
-  - name: three_statement_checks_result_floor
-    file: modeling/three_statement_checks_result_floor.ps1
+  - name: comps_sourced
+    file: rules/modeling/model_comps_sourced.py
     layer: modeling
-    events: [Stop]
-    scope: [3-statement-model]
+    events: [PostToolUse]
+    scope: [comps-analysis]
+    severity: block
+  - name: comps_structure_floor
+    file: rules/modeling/comps_structure_floor.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [comps-analysis]
     severity: block
   - name: dcf_structure_floor
-    file: modeling/dcf_structure_floor.ps1
+    file: rules/modeling/dcf_structure_floor.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [dcf-model]
     severity: block
   - name: dcf_audit_floor
-    file: modeling/dcf_audit_floor.ps1
+    file: rules/modeling/dcf_audit_floor.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [dcf-model]
     severity: block
-  - name: comps_structure_floor
-    file: modeling/comps_structure_floor.ps1
+  - name: three_statement_structure_floor
+    file: rules/modeling/three_statement_structure_floor.py
     layer: modeling
-    events: [PostToolUse, Stop]
-    scope: [comps-analysis]
+    events: [PostToolUse]
+    scope: [3-statement-model]
     severity: block
-  - name: model_update_change_map_floor
-    file: modeling/model_update_change_map_floor.ps1
+  - name: three_statement_audit_floor
+    file: rules/modeling/three_statement_audit_floor.py
     layer: modeling
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
+    scope: [3-statement-model]
+    severity: block
+  - name: three_statement_driver_floor
+    file: rules/modeling/three_statement_driver_floor.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model]
+    severity: block
+  - name: model_period_floor
+    file: rules/modeling/model_period_floor.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model]
+    severity: warn
+  - name: model_driver_breakdown
+    file: rules/modeling/model_driver_breakdown.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model]
+    severity: block
+  - name: model_historical_actuals
+    file: rules/modeling/model_historical_actuals.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model]
+    severity: block
+  - name: model_statement_structure
+    file: rules/modeling/model_statement_structure.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [3-statement-model, dcf-model, comps-analysis]
+    severity: block
+  - name: model_update_change_map
+    file: rules/modeling/model_update_change_map.py
+    layer: modeling
+    events: [PostToolUse]
     scope: [model-update]
     severity: block
+  - name: model_valuation_basis
+    file: rules/modeling/model_valuation_basis.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [dcf-model, comps-analysis, model-update]
+    severity: block
+  - name: model_dcf_tv_wacc_sanity
+    file: rules/modeling/model_dcf_tv_wacc_sanity.py
+    layer: modeling
+    events: [PostToolUse]
+    scope: [dcf-model]
+    severity: warn
+
+  # === Fact Governance ===
+  - name: fact_provenance
+    file: rules/fact_provenance.py
+    layer: governance
+    events: [PostToolUse]
+    scope: [research_artifact]
+    severity: block
+  - name: claim_source_proximity
+    file: rules/claim_source_proximity.py
+    layer: governance
+    events: [PostToolUse]
+    scope: [research_artifact]
+    severity: block
+
+  # === Viz ===
   - name: viz_delivery_contract
-    file: viz/viz_delivery_contract.ps1
+    file: rules/viz/viz_delivery_contract.py
     layer: viz
-    events: [PostToolUse, Stop]
+    events: [PostToolUse]
     scope: [research-viz]
     severity: block

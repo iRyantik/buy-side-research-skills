@@ -2,26 +2,26 @@ metadata_schema_version: 1
 name: scenario-model
 id: scenario-model
 display_name: Scenario Model
-version: 1.0.0
+version: 1.0.1
 system_generation: 5.0.0
 author: buy-side-research-system
 namespace: research.equity
 category: research
-research_layer: supporting
-summary: Quick scenario sizing — TAM x share x margin x PE = implied market cap. Phase 1 assumptions, Phase 2 calculation.
-description: Quick scenario sizing with Phase 1 assumption gathering and Phase 2 calculation. Feeds candidate-screener scenario push table.
+research_layer: deep-work
+summary: Deep-work odds memo — bull/base/bear sizing, implied value, and assumption priority for a scenario-driven thesis.
+description: Quantify a scenario thesis into a verdict-first odds memo with bull/base/bear sizing and source-tracked assumptions.
 tags: [scenario-model, scenario-sizing, scenario-pnl, what-if]
 trigger:
   type: keyword
   keywords: [scenario sizing, 场景测算, 如果x会怎样, 理论市值, implied market cap, scenario P&L, 情景分析]
-  description: Trigger when user wants to size a scenario-driven investment thesis.
+  description: Trigger when user wants to size a scenario-driven investment thesis, test odds, or reverse-engineer what must be true for a target valuation.
 capabilities:
-  generates: scenario P&L + implied market cap + upside percentage
+  generates: odds memo + bull/base/bear scenario table + implied market cap + upside/downside percentage
   feeds_into: [candidate-screener, alpha-thesis, pair-trade, bear-pre-mortem]
-  requirements: [Phase 1 must output assumption table for researcher review, Phase 2 produces sizing]
+  requirements: [must output a verdict-first odds memo, Phase 1 must output assumption table for researcher review, Phase 2 produces sizing]
 artifact_policy:
   save_policy: optional_topic_result
   default_artifact: scenario-model.md
   canonical_location: industry/<industry>/YYYY-MM-DD-scenario-model-<qualifier>.md
   naming_mode: required_qualifier
-  save_trigger: save when user asks to preserve the scenario sizing
+  save_trigger: save when user asks to preserve the scenario odds memo or scenario sizing

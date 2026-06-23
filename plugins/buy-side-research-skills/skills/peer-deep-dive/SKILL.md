@@ -10,8 +10,10 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only ratio rule**: cross-company comparison ratios (PE, EV/EBITDA, PEG, ROIC, FCF Yield, margins, etc.) use actuals-resolved.json disclosed data only. No forward estimate as ratio input.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -33,6 +35,8 @@ Compare companies in one industry with sourced KPI matrices and research ranking
 **核心检验**：把"行业 lens"和"cross-cut insight"两节抽掉，剩下的内容是不是 N 份精简 quickread？如果是，重写。
 
 ## 输出结构
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
 
 ### §0 任务定义 & Preflight
 
@@ -100,15 +104,20 @@ N 家公司共享的行业坐标系，只写一次。
 
 #### §4.1 通用维度（所有行业都列）
 
-| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
+| 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 会计基准 | 收入(LTM) | 收入 YoY | **利润 YoY** | **Margin Δ(bp)** | EBITDA margin | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | FCF yield | **PE TTM** | **PE NTM** | **PEG** | PB | EV/EBITDA | EV/Sales | 资本返还/FCF | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | IFRS | 7.9B | +12% | -4% | -120bp | 24% | 22% | 0.1x | 0.6x | 2.1% | 35x | 18x | 1.9x | 7.4x | 29x | 7.0x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | CAS | ~1.5B | +30% | N/A(亏损) | N/A | ~15% | N/A | N/A | N/A | N/A | N/A | N/A | N/A | 50x | ~100x | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
 
-**跨市场规则**：如果同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准这 5 列必填。单市场表可省略。此规则在反模式自查中强制检查。
+**跨市场规则**：同表包含 ≥2 个市场 → 市场/货币/市值(USD)/FX rate/会计基准 5 列必填。单市场表可省略。
+
+**弹性列规则**：如果 N 家同属一个 business model → 表里加该 `references/kpi-drivers/` 模板的 2-3 个核心弹性列（例：全设备公司 → Backlog, Orders, Book-to-Bill）。不同 bus model 混搭 → 不加弹性列，避免口径不可比。
 
 每行 Ev 标注主要数据来源；文末 ## Resources 统一展开。
 
 #### §4.2 行业特定 KPI
 
-**先查现成模板**：`references/industries/` 目录下有 crystallized KPI 模板的行业直接使用（aerospace-defense / oil-gas / renewable-energy / nuclear / advanced-manufacturing / software-ai-applications 等）。
+**先查 industry templates**：`references/kpi-drivers/`。按 business model 路由：order-driven / process-industry / long-cycle / utility-infra / tech-manufacturing / saas-software / ai-emerging。
 
 **没有现成模板时，按 5 步推导**：
 1. 定位 4 个维度：商业模式（commodity / capital equipment / project / SaaS / platform / pre-commercial）+ 周期性 + 政策依赖 + 商业化阶段
@@ -124,7 +133,9 @@ N 家公司共享的行业坐标系，只写一次。
 每家公司的主力业务单独拆一行，比较核心竞争力指标。
 
 | 公司 | 主力业务 | 市占率（台数）| 市占率（金额）| 竞争力指标 | 最新进展 | 核心客户 | 护城河 | 最大软肋 |
-|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|
+| MRSI/Mycronic | 高端固晶 | 21% | Top 3 | 精度 ±1μm | 1.6T LEAP 量产 | 未具名 | 精度代际筛人 | CPO 验证未完成 |
+| ficonTEC | 有源耦合 | 10-15% | 可能 #1 | 精度 ±0.3μm | CPO 博通独家量产 | Broadcom, NVIDIA | 客户锁入+算法 | 客户高度集中 |
 
 **通用规则**：
 - 竞争力指标：设备行业用精度段（如 1m），汽车用续航/自动驾驶级别，消费品用价格带/定位，半导体用制程节点
@@ -228,6 +239,8 @@ N 家公司共享的行业坐标系，只写一次。
 **方向判断**：多 / 空 / 中性 / 不感兴趣 + 一句话理由
 
 > 竞争力指标、核心客户、护城河等已经在 §4.3 表里，这里不重复。每公司配 logo（下载到 _cache/images/<ticker>-logo.png），找不到标 [缺 logo]。
+>
+> **Logo 下载**：读 `_scripts/download-product-image.js`，设 `{{SELECTOR}}` 为 logo 选择器（如 `.logo img`），调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，其余流程同产品图下载。
 
 ### §6 Cross-Cut Insight
 
@@ -252,6 +265,7 @@ N 家公司共享的行业坐标系，只写一次。
 
 格式：
 > **错配点**：X PE 28x TTM，Y PE 18x TTM——X 增长 25% / Y 增长 22%
+> **Growth-adjusted view**：PEG X=1.1x vs Y=0.8x——表面 X 贵，growth-adjusted Y 更贵
 > **预期 spread**：增速差 ~14%，PE 正常 spread 应 ~20-30%
 > **实际 spread**：PE gap 55%（X 比 Y 贵 55%）
 > **解读**：市场可能给了 X 过高的 CPO 溢价，或 Y 有未 price in 的风险。EV/EBITDA（X 35x vs Y 22x）同样指向这个 gap
@@ -306,7 +320,7 @@ quadrantChart
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 
@@ -331,3 +345,12 @@ quadrantChart
 **§6（cross-cut）**
 - 找不到 insight 却硬写——必须说"未发现 X，"并解释原因
 - 估值比较只说"偏贵/便宜"不做反向工程
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

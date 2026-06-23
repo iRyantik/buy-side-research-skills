@@ -10,8 +10,9 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 
@@ -23,7 +24,128 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 - 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-insight`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
 - 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
 
+## 资料收集与 Source 验证
 
+### 纪律
+
+**禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+
+### Source 优先级（强制）
+
+```
+1. actuals-resolved.json    本地缓存，机器采集，零延迟，最高置信
+   → 从 `source_map` 字段读取对应的 [S#](url) 标签。不在 artifact 中写裸 [actuals]。
+
+2. [S#] 公司披露            IR PDF、年报、AGM presentation、earnings transcript
+   → actuals 没有的字段：订单细节、管理层原话、产品路线图、产能计划
+   → WebFetch 验证原文 → 标 [S1-S9]
+
+3. [I#] 第三方              行业报告、新闻媒体(Bits&Chips等)、Yahoo Finance、卖方报告
+   → actuals 和公司披露都覆盖不到：市占率、TAM、竞争格局、卖方 target、consensus
+   → WebFetch/Playwright 验证原文 → 标 [I1-I20]
+
+同一 claim 只引用最高优先级的一个 source。
+例: Revenue → actuals 已有 → 不标 [S1]。Q1 订单 → actuals 没 → [S1]。TSMC占60%+ → 公司不披露 → [I1]。
+```
+
+### 二层数据管线
+
+| 层 | 来源 | 适用 |
+|---|---|---|
+| 0-Actuals | `actuals-resolved.json` — 本地缓存，已校验 | §3 财务表、§4 比率、Market Cap/PE。**不经过网络** |
+| 1-External | 公司 IR、年报 PDF、行业报告、卖方报告、新闻 | §1 业务拆分、§5 产能/定价/行业变化/叙事、§6 consensus、§7 多空、§9 事件 |
+
+### 页面抓取 Fallback 链
+
+WebFetch 经常失败（403/503/JS 渲染空返回）。**必须按优先级降级，不能只试一次就放弃：**
+
+```
+Tier 1  WebFetch(url)                        — 静态页面，最快
+   ↓ 失败
+Tier 2  Playwright MCP browser_navigate + browser_snapshot  — JS 渲染、auth 墙
+   ↓ 失败
+Tier 3  bash: curl -sL url | python 提取正文    — 原始 HTML，最后手段
+   ↓ 失败
+Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradation
+```
+
+**每个外部 claim 至少试到 Tier 2。** Tier 1+2 全失败才能标 [需查证]。
+
+### 平台兼容
+
+| 工具 | Claude Code | Codex |
+|---|---|---|
+| WebFetch | `WebFetch` tool | 无内置——跳过 Tier 1 |
+| Playwright MCP | `mcp__playwright__browser_*` | 需安装 MCP server |
+| curl fallback | `Bash` tool | `run_shell_command` |
+| 最终降级 | `[需查证]` | `[需查证]` |
+
+> Codex 路径：WebSearch → Playwright MCP browser_navigate → curl → [需查证]。Claude Code 路径：WebSearch → WebFetch → Playwright MCP → curl → [需查证]。
+
+### 执行流程（Gate 式——每步有中间产物，下步检查上步）
+
+```
+┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+│  → 拉三表核心科目 + 分部 + 弹性 supplementary + market_data
+│  → 写入 _cache/financial-data/internal/actuals-resolved.json
+│  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。
+│
+├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
+│  → _cache/evidence/<TICKER>.evidence.json (must exist)
+│
+├─ Step 3: Discovery — WebSearch 找候选 URL
+│  Gate: 每条必查 claim 有 ≥2 个候选 URL
+│
+├─ Step 4: Verification — 按 Fallback 链逐条验证
+│  Tier 0: actuals-resolved.json → 直接取，ledger method=actuals
+│  Tier 1: WebFetch(url) → success? → ledger method=WebFetch, attempt logged
+│  Tier 2: Playwright browser_navigate → success? → ledger method=Playwright, attempt logged
+│  Tier 3: curl → success? → ledger method=curl, attempt logged
+│  Tier 4: [需查证] → only if ALL tiers failed, attempt logged as failed
+│  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
+│
+├─ Step 5: 图片下载（HARD GATE——以下每一步必须执行，不可跳过）
+│  5a. 读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
+│  5b. Playwright MCP browser_run_code_unsafe → 解码 base64 → 写入 _cache/images/<product>.<ext>
+│  5c. Playwright 失败 → curl 直接取产品页 HTML → 提取 <img> src → curl 下载图片
+│  5d. 以上全失败 → 调用 Playwright browser_navigate 到产品页 → browser_take_screenshot
+│  5e. 以上全失败 → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
+│  5f. 标 [缺图] ——仅在 ledger 有 ≥1 条 image download attempt 记录后才允许
+│  Gate: ls _cache/images/<product>.* 有文件 → 通过。无文件 且 无 attempt 记录 → STOP，不可进入 Step 6。
+│
+├─ Step 6: Write artifact
+│  每句 claim 句尾 [S#](URL) / [I#](URL)
+│  已验证的 source 不额外标注——只标 [需查证]（未验证的 claim）
+│  表格式严格按模板（§3c=表, §4a=池, §5=锚点表+场景表+Ev列）
+│  Pre-write checklist: _cache/images/<product>.* 文件存在 ✅ | [缺图] 有 attempt 记录 ✅ | [需查证] ≤8 ✅
+│
+├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+│  → 自动创建 ledger pending claims → agent 补 text/quote/section → verify
+│
+└─ Step 8: python _scripts/evidence_ledger.py lint + status
+   → anchors 对齐 ✅ + 0 fabrication_risk + coverage >80%
+```
+
+### Source 编号规则
+
+- `[S1]`–`[S9]`：公司披露（IR PDF、年报、AGM presentation）
+- `[I1]`–`[I20]`：第三方来源（行业报告、新闻、卖方、Yahoo Finance）
+- URL 取到页面级即可——不需要 #anchor fragment
+- 同一 URL 被多处引用 → 复用同一编号
+
+### Source 标记约定
+
+- 已验证的 source：`[S#](url)` 或 `[I#](url)`——不附加任何 badge。默认 `[S#]/[I#]` = 已验证。
+- 未验证的 claim：标 `[需查证]`——仅当所有 fallback 层级都失败后才使用。
+- actuals Tier 0：从 `source_map` 读取对应 [S#] 标签，不写裸 `[actuals]`。
+- 标记位置：正文句尾或表格 Ev 列。验证状态细节在 evidence ledger 中追踪，不在 artifact 中展示。
+
+### 反模式
+
+- ❌ 凭记忆构造 URL（`tsmc.com/SoIC`）——必须 WebFetch 验证过
+- ❌ 一个 WebSearch 摘要对应 3 个 claim 各挂不同 URL——摘要数字不能当 source
+- ❌ URL 返回 404 仍挂在 Resources 里——删掉，换能打开的
+- ❌ actuals-resolved.json 能拿的数字也去 WebSearch——直接读本地，零耗时
 
 ## 心法
 
@@ -35,19 +157,26 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
+**Pipeline 报告**（artifact 开头强制——执行报告，不能省略）：
+
+```
+> 2026-06-03 | <TICKER> | <PRICE> | MCap <VALUE>
+> Pipeline: actuals ✅ | [需查证] X | images ✅ | lint ✅ | coverage XX%
+```
+
 ### 1. 一眼看懂
 
 #### 业务总览
 
 先列一张表，扫一眼就知道公司几块业务、哪块是热点。**焦点选在披露的最底层**——如果部门内部产品线客户/价值链完全不同（比如 Mycronic 的 GT 部门），就拆到产品线级标 [推算]；如果部门本身是纯的（比如 ASMPT 的 SEMI），留在部门级即可。
 
-| 业务 | 部门 | 干嘛的（大白话） | 收入占比 | 市场态度 |
-|---|---|---|---|---|
-| A | PG | <一句话> | 51% | 稳定 |
-| B | GT | <一句话> | ~8% [推算] | 🔥 焦点 |
-| C | GT | <一句话> | ~6% [推算] | 🔥 焦点 |
+| 业务 | 部门 | 干嘛的（大白话） | 收入占比 | 估算依据 | 市场态度 |
+|---|---|---|---|---|---|
+| A | PG | <一句话> | 51% | 公司披露 [S#](url) | 稳定 |
+| B | GT | <一句话> | ~8% | 订单 mix + IR 口头指引 [推算] [S#](url) | 🔥 焦点 |
+| C | GT | <一句话> | ~6% | 同上 [推算] [S#](url) | 🔥 焦点 |
 
-> 收入优先取公司披露的最低层级。部门有数字用部门，产品线只有估算的标 [推算]。从这张表就能看出：<一句话总结——哪个在赚钱、哪个在涨、哪个在拖>。
+> 收入优先取公司披露的最低层级。部门有数字用部门，产品线只有估算的标 [推算] 并**必须写估算依据和 source**（订单 mix、IR commentary、行业报告等），不能只写"估计"二字。从这张表就能看出：<一句话总结——哪个在赚钱、哪个在涨、哪个在拖>。
 
 #### 🔥 市场现在最关心什么
 
@@ -55,7 +184,9 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ##### 焦点 1：<产品线>（归属 <部门>，收入 <占比>）
 
-**为什么重要**（1-2 句——为什么这是当前最大的投资叙事）
+**为什么重要**（1-2 句——为什么这是当前最大的投资叙事。每个事实 claim 句尾 `[S#](url)` 或 `[I#](url)`，技术路线/客户名/市占率/产能/订单等必须 source）
+
+例：`TSMC SoIC 用 hybrid bonding 做 3D 堆叠 [S1](url)，BESI D2W bonder 全球唯一量产验证 [S2](url)。20 个逻辑客户 + 三大内存厂全在 eval [S3](url)。`
 
 **长这样**（焦点产品图 1-2 张）
 
@@ -71,13 +202,26 @@ flowchart LR
 ```
 
 **怎么收钱**
-> 一次性设备 / 设备+耗材 / 订阅制 / 维护费
+> 一次性设备 / 设备+耗材 / 订阅制 / 维护费。含定价/产能/客户数等事实 claim 的必须标 source。
+
+例：> 一次性设备（hybrid bonder EUR 3-5M/台）+ 服务。产能从 ~180 台/年扩到 250 台/年 [S#](url)
 
 ##### 焦点 2：<产品线>
 
 （同上结构——为什么重要 / 长这样 / 在什么位置 / 怎么收钱。焦点业务必须放图——找不到标 [缺图]，不能跳过。）
 
-> 图片只放焦点业务的。其他业务不配图。① 公司官网 Media Kit → ② web search 产品图 → ③ 找不到用行业代表性图 → ④ 实在没有标 [缺图]。下载到 `当前 topic 的 _cache/images/<slug>-<product>.png`。
+> 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
+>
+> **下载方法**（需要 Playwright MCP 插件）：
+> 1. 读 `_scripts/download-product-image.js`
+> 2. 替换 `{{TARGET_URL}}` 为目标页面 URL（公司 Media Kit → 产品页 → Google Images 搜索）
+> 3. 调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
+> 4. 解码返回的 `images[0].base64`，写入带实际 extension 的目标路径
+>    - Windows PowerShell: `[IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($image.base64))`
+>    - macOS: `IMAGE_BASE64="$base64" OUT_PATH="$outPath" python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["OUT_PATH"]).write_bytes(base64.b64decode(os.environ["IMAGE_BASE64"]))'`
+> 5. 所有途径都失败 → 标 `[缺图]`
+>
+> **图片来源优先级**：① 公司官网 Media Kit → ② 产品页 hero image → ③ web search 产品图 → ④ 行业代表性图 → ⑤ `[缺图]`
 
 #### 其他业务
 
@@ -101,30 +245,45 @@ flowchart LR
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
-**(a) 关键财务数据表（必填）**
+**(a) 生意模式判断**：agent 先判断 business model → 路由到 `references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
+
+**(b) 关键财务数据表（标准+弹性）**
 
 按分部拆开（如果是单分部公司，按产品线 / 地区 / 客户类型替代），最少包含以下列。每个分部分别列出**最近一期完整年度（或最近 LTM）**和**最近一个 Q/H period**两行的数据（含同比变化）。期间拆行为独立行；period label 必须读取 `actuals-resolved.json` 的真实标签 / basis，不得把 HK H1 写成 Q2 或 Q4。
 
-| 分部 | 期间 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | Ev |
-|---|---|---|---|---|---|---|---|---|
-| 分部 A | FY2024 | 45% | +12% | EBIT | 65% | 28% | [S1](./_cache/sources/company-annual-report.md) |
-| 分部 B | FY2024 | 35% | +3% | EBIT | 25% | 14% | [S10](./_cache/sources/fy2024-segment-note.md) |
-| 分部 C | FY2024 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
-| **整体** | **FY2024** | **100%** | **+5%** | EBIT | **100%** | **19%** | [S11](./_cache/sources/fy2024-income-statement.md) |
-| 分部 A | H1 FY2025 / Q1 2026 | 43% | +8% | EBIT | 62% | 26% | [S9](./_cache/sources/qh-segment-note.md) |
-| 分部 B | H1 FY2025 / Q1 2026 | 36% | +2% | EBIT | 24% | 13% | [S9](./_cache/sources/qh-segment-note.md) |
-| 分部 C | H1 FY2025 / Q1 2026 | 21% | -6% | [ND] | — | — | [S9](./_cache/sources/qh-segment-note.md) |
-| **整体** | **H1 FY2025 / Q1 2026** | **100%** | **+4%** | EBIT | **100%** | **18%** | [S12](./_cache/sources/qh-income-statement.md) |
+| 分部 | 期间 | 收入 | 收入占比 | 收入 YoY | 利润 | 利润口径 | 利润占比 | 利润率 | 利润率 YoY | Ev |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 分部 A | FY2024 | 1,200 | 45% | +12% | 336 | EBIT | 65% | 28% | +2pp | [S1](./_cache/sources/company-annual-report.md) |
+| 分部 B | FY2024 | 933 | 35% | +3% | 131 | EBIT | 25% | 14% | +1pp | [S10](./_cache/sources/fy2024-segment-note.md) |
+| 分部 C | FY2024 | 533 | 20% | -8% | [ND]——公司未披露分部利润 | — | — | — | — | [S10](./_cache/sources/fy2024-segment-note.md) |
+| **整体** | **FY2024** | **2,667** | **100%** | **+5%** | 517 | EBIT | **100%** | **19%** | +2pp | [S11](./_cache/sources/fy2024-income-statement.md) |
+| 分部 A | H1 FY2025 | 620 | 43% | +8% | 161 | EBIT | 62% | 26% | -2pp | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 B | H1 FY2025 | 518 | 36% | +2% | 67 | EBIT | 24% | 13% | -1pp | [S9](./_cache/sources/qh-segment-note.md) |
+| 分部 C | H1 FY2025 | 302 | 21% | -6% | [ND] | — | — | — | — | [S9](./_cache/sources/qh-segment-note.md) |
+| **整体** | **H1 FY2025** | **1,440** | **100%** | **+4%** | 259 | EBIT | **100%** | **18%** | -1pp | [S12](./_cache/sources/qh-income-statement.md) |
 
 正文 claim 示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./_cache/sources/company-annual-report.md)`
 
 **取舍说明**：
 
-1. **口径统一**：分段和整体用同一个口径（优先 segment EBIT > Gross Profit > Net Income）。分段没口径就标 [ND]，整体随分段。期间先 FY 后 Q/H，每分部两行。
-2. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
-3. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
+1. **口径统一（强制）**：
+   - **年度 vs 季度**：FY 和 Q/H 必须用同一个利润科目（FY 用 EBIT → Q/H 也用 EBIT，不能 FY 用 EBIT、Q/H 用 Net Income）。
+   - **分部 vs 整体**：分段和整体用同一个利润口径（分段列 EBIT → 整体也列 EBIT，不能分段列 Gross Profit、整体列 Net Income）。
+   - **期间 label**：period label 从 `actuals-resolved.json` 真实 label/basis 读取，不得把 HK H1 写成 Q2 或 Q4。
+2. **口径选择优先级**：segment EBIT > Gross Profit > Net Income。哪个口径在全部期间和分部/整体都有数据，用哪个。换了口径 → 必须标注原因。
+3. **推导优先**：能算就推导（整体-分部扣减、收入×利润率），标 [推算] 且写逻辑。别急着标 [ND]。
+4. **缺数诚实**：算不出来再 [ND]，别编数字。口径变了/重组了/没披露 → 标出来，不假装连续。
 
-**(b) Takeaway（2-3 句）**
+**(c) 弹性指标详情**（必须用表格，不可写 prose。仅当有 expandable KPI 时出现——没有就跳过整节）
+
+| 指标 | Q/H period | FY period | Ev |
+|---|---|---|---|
+| <e.g. 季度订单> | <值> | <值> | [S#](url) |
+| <e.g. B2B> | <值> | <值> | [S#](url) |
+
+> 每行一个 KPI，每格必须有 source anchor。同一 source 在多行复用 → 每行各自写 `[S#](url)`，不空着。
+
+**(d) Takeaway（2-3 句）**
 
 表格不是终点，必须有解读。要讲清楚：
 - **结构性事实**：收入结构 vs 利润结构是不是错配？哪个分部是真正的"利润引擎"？
@@ -135,32 +294,65 @@ flowchart LR
 > 反例（流水账）："公司分为 A、B、C 三个分部，A 主要做 X，收入占比 45%，B 主要做 Y..."——这是把表格用文字念了一遍
 > 正例："公司表面是 A+B+C 三业务，但 A 贡献 65% 利润且利润率持续扩张，B/C 在量价双杀；从买方视角这其实是个 A 业务的纯标的，B/C 是干扰项"
 
-### 4. 关键比率
-> 数字从 actuals-resolved.json 取值计算
+### 4. Growth Drivers & KPIs
 
-以下 6 个比率全部计算并输出，拿不到的标 [ND]。所有数字从三张表算，不得随手拍。科目对照见 。
+> agent 先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
 
-若 latest period 是 H1，流量指标按 H1 口径展示，不 annualize；只有明确写 `[年化]` 时才可年化。
+**(a) 标准比率 pool**（从 actuals 取数，能算就算，算不出就跳过）：
 
-| # | 比率 | 公式 | 用途 |
-|---|---|---|---|
-| 1 | Gross Margin | (Rev - COGS) ÷ Rev | 定价权——最底层的竞争力指标 |
-| 2 | OpEx / 收入 | (SG&A + R&D) ÷ Rev | 经营杠杆——费用结构决定利润弹性 |
-| 3 | Capex / D&A | CapEx ÷ (折旧+摊销) | 投资强度——>1.5 扩张 / ~1.0 维持 / <0.7 收割 |
-| 4 | FCF | OCF - CapEx（绝对值） | 真金白银——利润可以造假，现金不能 |
-| 5 | 有息负债 / 净资产 | (短期+长期借款) ÷ Equity | 杠杆——会不会被债压死 |
-| 6 | 商誉 / 净资产 | Goodwill ÷ Equity | M&A 风险——商誉暴雷是最快的归零方式 |
+> **Actuals only — 禁止用 estimate 算 ratio**：每个比率的所有 input 字段必须在 `actuals-resolved.json` 中有真实值。**任何 FY2026E / consensus / forward estimate 不能参与 ratio 计算。** 所有 input 齐全 → 输出该比率。任一 input 缺失 → **静默跳过该比率**，不标 [未披露]，不占行。最终输出的是"这个公司实际能算出来的比率"，而不是一排空表。
 
-**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司在行业内领先扩张 / 跟随 / 反向收缩？
+Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的比率（通常 6-10 个）：
 
-| 比率 | 当前值 | 判断 | Ev |
-|---|---|---|---|
-| Gross Margin | 28% | 定价权——越高越有议价力，趋势比绝对值重要 | [S1](./_cache/sources/income-statement.md) |
-| OpEx / 收入 | 18% | 经营杠杆——费用结构决定利润弹性 | [S1](./_cache/sources/income-statement.md) |
-| Capex / D&A | 1.8x | >1.5 重投资 / ~1.0 维持 / <0.7 收割 | [S2](./_cache/sources/cashflow-statement.md) |
-| FCF | ¥2,500M | 真金白银，利润可以造假现金不能 | [S2](./_cache/sources/cashflow-statement.md) |
-| 有息负债 / 净资产 | 35% | >50% 是警戒线 | [S3](./_cache/sources/balance-sheet.md) |
-| 商誉 / 净资产 | 12% | >50% 单独看减值风险 | [S3](./_cache/sources/balance-sheet.md) |
+| # | 比率 | 公式 | 用途 | 所需 actuals 字段 |
+|---|---|---|---|---|
+| **Profitability** |
+| 1 | Gross Margin | GP ÷ Rev | 定价力 | gross_profit, revenue |
+| 2 | EBIT Margin | EBIT ÷ Rev | 运营利润 | ebit, revenue |
+| 3 | Net Margin | NI ÷ Rev | 最终利润 | net_income, revenue |
+| **Expense & Cash Quality** |
+| 4 | R&D / Rev | R&D ÷ Rev | 研发重度 | r_and_d, revenue |
+| 5 | Implied Opex / Rev | (GP − EBIT) ÷ Rev | SG&A+R&D 合计吃掉多少毛利 | gross_profit, ebit, revenue |
+| 6 | FCF Conversion | OpCF ÷ EBIT | 利润变现 | operating_cf, ebit |
+| **Asset Efficiency** |
+| 7 | Asset Turnover | Rev ÷ Total Assets | 资本效率 | revenue, total_assets |
+| 8 | Op ROA | EBIT ÷ Total Assets | 资产回报 | ebit, total_assets |
+| 9 | Capex / Rev | CapEx ÷ Rev | 投资强度 | capex, revenue |
+| 10 | D&A / CapEx | D&A ÷ CapEx | <1=扩产, >1=修旧 | depreciation, capex |
+| **Shareholder** |
+| 11 | FCF Yield | FCF ÷ Market Cap | 现金回报 | operating_cf, capex, market_data.market_cap |
+| 12 | Net Cash | Cash − Total Debt | 安全垫 | cash, total_debt |
+
+> 输出格式：`| # | 比率 | 值 | 判断 | 数据来源 |`，不输出无法计算的比率。
+
+**(b) 弹性比率**（从 kpi-drivers 模板选 2-3 个，同受 actuals-only 约束，每个比率必须有 source）：
+
+| Business Model | 弹性比率 |
+|---|---|
+| order-driven | Backlog / Q Rev、Orders YoY、R&D / Rev |
+| process-industry | Production YoY、Utilization % |
+| long-cycle | Backlog / Annual Rev |
+| utility-infra | Utilization %、Capacity YoY |
+| tech-manufacturing | R&D / Rev、Backlog YoY |
+| saas-software | NRR、Magic Number |
+| ai-emerging | Cash / Monthly Burn |
+
+> 输出格式：`| 比率 | 值 | Ev |`，每个比率必须带 source anchor。
+
+**(c) 弹性 Driver 表**（和 §3 同行同结构——每个分部 × FY + Q/H）：
+
+从 kpi-drivers 模板选**actuals 里已有数据的所有 KPI** 作为列——agent 不重新搜，只读 `actuals-resolved.json` 的 supplementary/segments 字段。有值的全列，没值的标 [未披露]。例（order-driven）：
+
+| 分部 | 期间 | Backlog | Backlog YoY | Orders | B2B | Coverage | Ev |
+|---|---|---|---|---|---|---|---|
+| PG | FY2025 | SEK 2,100m | +5% | 890m | 0.8x | 2.4mo | [S1](./_cache/sources/qh-segment-note.md) |
+| PG | Q1 2026 | SEK 1,200m | -30% | 597m | 0.7x | 1.8mo | [S1](./_cache/sources/qh-segment-note.md) |
+
+拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
+
+> 泛化兜底已在 `financial-data --lite` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
+
+**行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
 ### 5. 什么在驱动股价
 > 数据锚点：actuals-resolved.json market_data + income_statement；股价历史：同文件缓存
@@ -169,15 +361,15 @@ flowchart LR
 
 #### 这门生意怎么转（3-5 句）
 
-用大白话讲商业逻辑——什么东西决定它赚钱还是亏钱。不是重复 §1 的类比，是讲因果。不需要行业知识就能理解。
+用大白话讲商业逻辑——什么东西决定它赚钱还是亏钱。不是重复 §1 的类比，是讲因果。**每个事实 claim（客户名/市占率/定价/产能/竞争格局）句尾 `[S#](url)`。** 不需要行业知识就能理解。
 
-> 例："ASMPT 的生意本质上是个周期游戏——芯片厂 capex 扩张时买他的机器，收缩时停买。一台机器用 5-8 年，收入波峰波谷差 40-50%。但因为全球只有 2-3 家能做高端 die bonder，所以毛利率在好时候能到 40%+，差时候也能守住 30%。"
+> 例：`BESI 的生意本质是 AI capex 的杠杆 bet——TSMC/Intel/Samsung 建先进封装产线 → 买 BESI 的 hybrid bonder [S1](url)。一台设备 EUR 3-5M、交期 6-12 月 [S2](url)、用 5-8 年 [S3](url)。全球只有 BESI 能量产 D2W hybrid bonder [S4](url)，市占 ~70% [I1](url)，所以 GM 在好时候 60%+、差时候也能守 50%+ [actuals]。但 TSMC 可能占 60%+ 订单 [I2](url)，收入节奏极不均匀。`
 
 #### 行业现在在发生什么（2-3 句）
 
-当前行业周期的位置，以及**这对这家公司意味着什么**。不是通用行业科普。
+当前行业周期的位置，以及**这对这家公司意味着什么**。不是通用行业科普。**趋势判断/产能数字/技术路线 claim 句尾 `[S#](url)` 或 `[I#](url)`。**
 
-> 例："2025-2026 半导体后端设备处于 AI 驱动的结构性扩张期——不是传统半导体的周期性复苏。关键差异：先进封装的 capex 跟着英伟达/AMD 的 AI 芯片迭代走，不是手机周期。AI 芯片一代一代更新 → 封装设备需求跟着换代 → 订单周期从 3-4 年缩到 1.5-2 年。"
+> 例：`2026 年是 hybrid bonding 量产化的关键年。TSMC CoWoS 从 2024 年 15K wpm → 2026 年 40K+ wpm [I1](url)，每万片需 ~10-15 台 hybrid bonder [I2](url)。HBM4 将在 2027 年开始用 hybrid bonding——BESI 是唯一通过三大内存厂 eval 的设备商 [S1](url)。但 TCB 市场有韩美半导体/Hanwha 追 [I3](url)，AMAT Kinex 是潜在 second source [I4](url)。`
 
 #### 真正跟着什么动（2-3 个变量）
 
@@ -191,13 +383,15 @@ flowchart LR
 |---|---|---|---|
 | <相关 metric> | <值> | <min — max> | [S#](...) |
 
-**市场在讲什么故事**（1-2 句——多方怎么想，空方怎么想）
+**市场在讲什么故事**（1-2 句——多方/空方各自的观点和依据，每个 claim 标 source）
+
+例：`多方说 hybrid bonding adoption 加速——20 个逻辑客户、三大内存厂 eval [S#](url)。空方说 TSMC 占 60%+ 订单 [I#](url)，且 Q1 有 pull-in 效应 [I#](url)。`
 
 **最近一次怎么动的**（1 句——这个变量变化时股价怎么反应）[S#](...)
 
-**什么时候可能不灵**（1 句——历史上哪个季度这个变量和股价背离了）
+**什么时候可能不灵**（1 句——历史上哪个季度这个变量和股价背离了，标 source）[S#](...)
 
-**情绪在怎么变**（1 句——最近分析师/市场的态度微妙变化）
+**情绪在怎么变**（1 句——最近分析师/市场的态度微妙变化）[S#](...)
 
 **我的看法**（1 句）
 
@@ -236,10 +430,11 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 **(c) 反向工程：当前估值在隐含什么（这是必填、最关键）**
 
-以下四项全部回答：
-- **隐含增长率**：以当前 PE，按合理 ROE / payout，反推市场隐含的长期增长率是多少？这个增长率公司过去做到过吗？
-- **隐含 margin**：以当前 EV/Sales，反推市场对长期 margin 的假设是多少？vs 历史平均 / vs 行业最优秀玩家？
-- **Reverse DCF**：以当前股价、合理 WACC，反推所需的 5 年 FCF CAGR 是多少？
+以下四项全部回答（**每个输入参数必须标注来源**——PE/EV/Sales 来自 market_data，FCF/CapEx 来自 actuals，ROE/WACC 引用计算依据，历史增长引用 actuals 或第三方 source）：
+
+- **隐含增长率**：以当前 PE [I#](url)，按合理 ROE / payout [S#](url)，反推市场隐含的长期增长率是多少？这个增长率公司过去做到过吗 [S#](url)？
+- **隐含 margin**：以当前 EV/Sales [I#](url)，反推市场对长期 margin 的假设是多少？vs 历史平均 / vs 行业最优秀玩家？
+- **Reverse DCF**：以当前股价 [I#](url)、合理 WACC [推算——引用计算依据]，反推所需的 5 年 FCF CAGR 是多少？
 - **Bear-implied**：股价跌到 X（历史低位 / 同业最低）需要发生什么？这个情景的概率？
 
 **示例输出**：
@@ -248,14 +443,18 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 如果第 6 节没有反向工程，研究员只能得出"贵了 / 便宜了"的判断，无法定位**贵在哪个假设上**——而 alpha 通常就藏在某个具体的隐含假设里。
 
 ### 7. 多空在争论什么
-**不是**通用 SWOT。是"现在多空双方实际在 argue 什么"——具体到某个数据点、某个假设、某个事件。如果一时不知道，至少给出"需要查清楚的争论点"。
+**不是**通用 SWOT。是"现在多空双方实际在 argue 什么"——具体到某个数据点、某个假设、某个事件。**每方的每个具体 claim 必须有 source anchor**（卖方报告、IR call、行业数据）。如果一时不知道，至少给出"需要查清楚的争论点"。
+
+例：
+- **多方**：BESI 是全球 hybrid bonding 绝对龙头，市占 ~70% [I1](url)，TSMC/Intel/Samsung 全在客户名单 [S1](url)。Q1 订单 +104.5% YoY [S2](url)。
+- **空方**：EV/Rev 38x——买的是 2028 年收入不是 2025 年 [I2](url)。TSMC 可能占 60%+ 收入 [I3](url)。分析师 target EUR 189-239，当前 EUR 285 已跑赢所有卖方目标 [I4](url)。
 
 ### 8. 对手盘需要相信什么
 
-快速写清楚反方需要相信的核心假设：
-- 如果初步倾向多，空头 / 观望者必须相信什么才会继续压低估值？
-- 如果初步倾向空，当前多头必须相信什么才愿意继续付这个价格？
-- 哪个假设最脆、最容易被下一份数据或同业 commentary 证伪？
+快速写清楚反方需要相信的核心假设。**引用的具体数字/事件标 source：**
+- 如果初步倾向多，空头 / 观望者必须相信什么才会继续压低估值？[I#](url)
+- 如果初步倾向空，当前多头必须相信什么才愿意继续付这个价格？[I#](url)
+- 哪个假设最脆、最容易被下一份数据或同业 commentary 证伪？[S#](url)
 
 这一节不是完整 thesis，只是把后续 `alpha-thesis` 的 variant view 起点暴露出来。
 
@@ -283,7 +482,7 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
 
 ## 反模式自查
 
@@ -295,23 +494,45 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 - ❌ 第 10 节的问题"再多查点资料"就能回答——太浅
 - ❌ 任何 factual claim（数字、事件、引语）无 source anchor
 
+**Source 密度（写完后逐段扫）**
+- ❌ §1 焦点 "为什么重要"：0 个 source → 重写
+- ❌ §5 "这门生意怎么转"：0 个 source → 重写
+- ❌ §5 "行业现在在发生什么"：0 个 source → 重写
+- ❌ §5 "市场在讲什么故事"：0 个 source → 重写
+- ❌ §5 "什么时候可能不灵"：0 个 source → 重写
+- ❌ §7 多空双方 claim 没有 source → 重写
+- ❌ §8 对手盘假设引用的数字/事件没有 source → 重写
+- ❌ 任何段落出现连续 3 句以上事实 claim 而中间没有 source anchor → 密度不够
+
 **§3 分部表**
 - ❌ 数据表但没有 takeaway
 - ❌ Takeaway 用文字把表格念了一遍
 
 **§4 比率**
-- ❌ 6 个比率不全 / 只有绝对值没给判断
+- ❌ pool 遍历不全 / 能算的不算
 
 **§5 驱动因素**
 
 ## 保存
 
-默认保存到当前工作的 topic 下，命名格式：`YYYY-MM-DD-stock-quickread-<company>.md`。
+写入公司 primary 行业目录：
+```
+industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md
+```
 
-- 路径：`topics/<current-topic>/YYYY-MM-DD-stock-quickread-<company>.md`
-- 当前 topic 不明确 → 先 handoff `new-session` 解析路径
-- 公司 qualifier 从 company slug 提取（如 `mycronic`、`robotchnik`）
+- 路径不明 → 先 handoff `agent` 解析行业和公司。
+- `ticker-slug` 从展示 ticker 规范化而来：小写，空格 / 点号 / 斜杠转 `-`，保留市场后缀（如 `6777-jp`、`spcx-us`、`0522-hk`、`xk4-de`）。
+- `company-slug` 从公司名规范化而来（如 `mycronic`、`robotchnik`）。如果公司未上市或 ticker 待定，用 `no-ticker-<company-slug>`，不要只写公司名。
 
 ## 篇幅基准
 
 - 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

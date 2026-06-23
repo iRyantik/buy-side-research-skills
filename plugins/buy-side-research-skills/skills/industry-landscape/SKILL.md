@@ -10,7 +10,7 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `skills/_shared/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for industry-level investment judgment, value chain mapping, and company registration. Do not do single-company deep dives (→ `stock-quickread`) or single-mechanism deep dives (→ `mechanism-insight`).
 - Requires company logo images and product photos. Fallback: company media kit → product page hero → web search → `[缺图]`.
 
@@ -56,6 +56,20 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 | 方向 | Long/Short/Both | Both |
 
 ## 输出结构
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | §1 Verdict | 利润池占比数字、方向判断依据 | 方向判断本身 |
+> | §2 产业链地图 | 每段价值池占比 %、市占率数字、产能数字 | ASCII 图 |
+> | §3 竞争格局 | 每家公司市占率/定位、行业集中度 (CR3/CR5) | — |
+> | §4 利润池 | 每个 pool 的利润率/占比数据 | — |
+> | §6 公司注册表 | 每家公司 ticker+MCap+暴露类型 | — |
+>
+> **完成 Gate**：写完逐段扫 density → `[待查]` ≤10 → Resources 段必须有所有 [S#]/[I#] 展开。
 
 ### 1. Verdict（~200 字）
 
@@ -123,6 +137,8 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 ## 图片要求
 
+**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+
 | 图片类型 | 必须 | 来源 |
 |---|---|---|
 | 公司 logo 图 | **必须**（每个产业链环节的代表公司） | 官网 media kit → favicon → web search → `[缺图]` |
@@ -179,3 +195,5 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 | **覆盖** | 全链科普 | 全行业产业链+价值池 | 1-2 个机制 | 公司池排序 |
 | **图片** | 实物图 | 公司 logo + 产品实物图 | 产品实物图 | 无 |
 | **产物长度** | 6000-8000 字 | 2000-3000 字 | 1000-1800 字 | 500-1500 字 |
+
+> 产品图：每个涉及物理设备/产品的单元必须配 1 张实物图。下载优先级：公司官网 Media Kit → 产品页 hero → web search → [缺图]。下载到 topic 。

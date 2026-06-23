@@ -10,8 +10,10 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: ROIC, margins, and all moat scorecard financial metrics use actuals-resolved.json disclosed data only.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法
@@ -108,6 +110,18 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | Moat Scorecard | 每行 Evidence 列的具体数字/事件+source | 评分本身 |
+> | 竞争格局对比 | 每家 peer 的市占率/利润率/定价数据 | — |
+> | Switching cost/Barrier | 每个 barrier 的量化证据（合同期限/替换成本/认证周期） | — |
+>
+> **完成 Gate**：写完扫 scorecard → 每行 Evidence 有 [S#]/[I#] → `[待查]` 行 ≤3 → Resources 展开。
+
 ~~~markdown
 ## Moat Scorecard
 
@@ -118,7 +132,7 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 | 规模效应 | 5 | Rev doubled in 3Y, gross margin +300bp | Hard | 6 | 4 |
 | 监管/认证 | 3 | — | Soft | 3 | 3 |
 | 品牌 | 4 | 瑞典品牌，中国市场无溢价 | Soft | 6 | 3 |
-| **Total** | **5.6** | — | — | **5.8** | **3.8** |
+| **Total** | **5.6** | — | — | **5.8** | **3.8** | Ev |
 
 ## Moat Trajectory
 
@@ -189,3 +203,11 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
     - 不做管理层评估 → `capital-allocation`
     - 不做完整 thesis → `alpha-thesis`
     
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

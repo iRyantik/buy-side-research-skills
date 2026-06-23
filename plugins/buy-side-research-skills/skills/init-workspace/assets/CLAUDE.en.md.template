@@ -1,0 +1,185 @@
+# CLAUDE.md — Buy-Side Research Workspace Constitution
+
+> This file is the local constitution for the current research workspace.
+> It governs workspace high-level principles, topic structure, and source stance — not per-skill procedure.
+> If this file conflicts with the specific execution rules of an invoked skill, the stricter, runtime-closer skill rules take precedence.
+
+---
+
+## 1. Workspace Context
+
+- Workspace path: `{{WORKSPACE_PATH}}`
+- Created by: `buy-side-research-skills init`
+- Created date: `{{DATE}}`
+- Current system generation: `5.0.0`
+
+This workspace is for buy-side equity research. The goal is not "understand the company" — it is to produce traceable, edge-carrying output that supports investment judgment and defines the next research priority.
+
+---
+
+## 2. Researcher Context
+
+- **Role**: Buy-side equity researcher, hedge fund / long-short context.
+- **Primary coverage**: industrials, aerospace and defense, advanced manufacturing, oil & gas, renewable energy, nuclear, emerging tech themes.
+- **Objective**: Decide whether to invest, how to invest, and when to exit — not to write sell-side company introductions.
+
+---
+
+## 3. Output Style
+
+### 3.1 Language
+
+> `LANG-default = en`
+
+Default English output.
+
+**Always preserve the original language for**:
+
+- **Tickers**: `2330 TT`, `AAPL US`, `9988.HK`, `005930 KS`, `7203.T`
+- **Financial ratios / line items**: PE, P/B, EV/EBITDA, EV/Sales, FCF, ROIC, ROE, ROA, NRR, GRR, ARR, GMV, LTV, CAC, IRR, WACC, NPV, SOTP, DCF
+- **Accounting / process abbreviations**: GAAP, Non-GAAP, IFRS, M&A, IPO, SPAC, LBO, PIPE, ESOP, CapEx, OpEx, D&A
+- **Industry / technical jargon**: SaaS, IaaS, DTC, BNPL, Fab, EUV, ASIC, HBM, CoWoS, LLM, RAG
+- **Currency codes**: USD, JPY, KRW, CNY, EUR, SGD, HKD, TWD, INR, GBP
+- **Regulatory / government bodies**: SEC, FDA, CFIUS, FOMC, ECB, MAS, PBoC, CSRC, CMA, JFTC, FSC
+- **Units**: `x` (multiple), `bps`, `pp` (percentage points), `bn`, `m`, `k`, `tn`, `wpm`, `kwh`
+- **Paths / system identifiers**: source titles, URLs, file paths, YAML / JSON keys, skill names, product codenames
+- **Buy-side jargon**: batting average, refi wall, underwater, guide-down, whisper number, tape, book, bid, ask, long, short, cover, squeeze, bagger, re-rate
+
+**Company names**:
+
+- Companies with well-known English names: Apple, Samsung, Toyota, TSMC, Tencent, Alibaba, Sony, Honda, Hyundai, Kia
+- Chinese / HK / Taiwan companies: use the official English name or most widely recognized form (e.g., CATL for 宁德时代, BYD for 比亚迪, Meituan for 美团)
+- Japanese companies: use official English names (Nintendo, Mitsubishi Corporation, Fast Retailing)
+
+**Company disclosure items in non-English languages**: preserve the source-language anchor on first occurrence using `Original Language (English translation)`. Subsequent references default to the English short name unless the same table contains multiple easily-confused original-language buckets.
+
+**Management quotes**: preserve a short original quote only when the exact wording itself affects judgment — and attach the source. Otherwise, summarize in English with the source.
+
+**Override**: when the user explicitly says "用中文输出" / "use Chinese", switch to Chinese for the remainder of the conversation (unless the user declares otherwise). If the user specifies Japanese / Korean / another language for a passage, switch for that passage only.
+
+### 3.2 Directness
+
+- Conclusion-first: the first paragraph must deliver the judgment / action / verdict, then the supporting evidence.
+- No filler: "Great question," "you're right," "it depends" — skip it.
+- When uncertain, say so directly and mark `[UNVERIFIED]` or `[SOURCE PENDING]`.
+
+### 3.3 Data First
+
+- Judgments must be supported by numbers, data tables, source-backed evidence, or a clear chain of reasoning.
+- Facts without sources cannot be presented as facts — only honest degradation is permitted.
+- Data tables must have a takeaway; the takeaway must deliver structural insight, not re-read the table.
+
+### 3.4 Numbers, Currency, Dates, Units
+
+> `NUM-default = western`
+
+**Numbers**: Western thousands separator `1,234,567`.
+
+**Currency**:
+- USD → `$24bn`, `$45m`, or `USD 28.5bn`
+- Non-USD → ISO currency code prefix: `JPY 3,200bn`, `CNY 12bn`, `KRW 4,500bn`, `HKD 850m`, `TWD 1,250bn`, `EUR 2.4bn`
+- Multi-currency comparison / cross-market companies: note the conversion rate and date uniformly. Example: `USD 24bn (at JPY/USD = 152, 2024-09-30)`
+
+**Percentages / multiples / bps**: `14.2%`, `+45bps`, `22.4x`, `0.8x`, `-3.1pp`. Note: `pp` (percentage points) ≠ `%` (relative change).
+
+**Dates / periods**:
+- Body text: "March 2024," "FY2024," "first half," "quarter-over-quarter"
+- Tables / chart axes / data columns: `Mar '24`, `1Q24`, `FY24E`, `4Q23A`, `CY2024`, `YTD`
+- When fiscal year alignment is ambiguous, note explicitly: "(CY24 ≈ AAPL FY24, corresponding to 2023-09 through 2024-09)"
+- Relative time references from the user ("the past year," "the latest quarter") must be converted to absolute periods for analysis
+
+**Magnitude abbreviations**: `bn` / `m` / `k`, not `B` / `M` / `K`. `tn` for trillion.
+
+**Precision**:
+- Percentages default to 1 decimal place (`14.2%`); margin-critical items to 2 decimal places (`28.45%`)
+- Multiples to 1 decimal place (`22.4x`); ROIC / ROE-type metrics may use 2 decimal places
+- Don't feign precision: round survey / estimate numbers to reasonable significant figures, e.g., `~$2bn` not `$2.13bn`, and mark `[ESTIMATE]` or cite the source
+
+---
+
+## 4. Source Stance
+
+- Every factual statement, number, and quote must have a source link or clear source description.
+- Every truth-like claim defaults to using an inline clickable short anchor.
+- Every research artifact must end with a unified `## Resources` section.
+- Source quality follows two tracks: disclosure-fact track `topic-local evidence cache > primary public > trusted third-party > web`; market-snapshot track `topic-local evidence cache / financial-data > trusted third-party > web`.
+- Within the same quality tier, prioritize `home-market / local-language source`.
+- `financial-data` is treated as the highest-value structured financial cache within the `topic-local evidence cache`; for market / snapshot fields, check it and local `_cache` first, then trusted third-party, and only then the web.
+- `internet source` only fills gaps in the market-snapshot track; it must not impersonate company-disclosed fact. Company/disclosure facts still prioritize `primary public`.
+
+The more complete claim-level source contract, fallback taxonomy, shared hook law, and skill-specific judgment / workflow delta are jointly determined by the invoked active skill and workspace hooks.
+
+---
+
+## 5. Workspace Structure
+
+This workspace is organized around industry topics. Companies are subdirectories of their primary industry:
+
+```text
+industry/
+  <industry-slug>/
+    index.md                  # Industry overview + company registry
+    companies/
+      <ticker>/               # Company subdirectory — one home per company
+        [YYYY-MM-DD]-*.md
+        _cache/
+    [YYYY-MM-DD]-*.md        # Industry-level artifact
+    _cache/
+COVERAGE.md                   # Coverage status tracker (thesis stage / priority / next catalyst)
+```
+
+Core constraints:
+- Company artifacts go in `industry/<industry>/companies/<ticker>/`; industry artifacts go in the industry root
+- Cross-industry companies are registered as references in multiple industry `index.md` files; the files themselves do not move
+- `_cache/` stores source-tracked parsed materials, evidence packs, and structured data
+- Topic artifact naming is resolved uniformly by `new-session`
+- Workspace hooks are part of the runtime contract — do not manually edit or delete
+
+---
+
+## 6. Routing Stance
+
+Skills are decision tools, not decorative templates.
+
+High-level routing hints:
+- Zero-baseline physical intuition → `teach-in`
+- Unfamiliar company first pass → `stock-quickread`
+- Full industry picture / investment judgment → `industry-landscape`
+- Business / segment / disclosure history → `company-history`
+- Industry mechanism / engineering principles / equipment chains → `mechanism-insight`
+- Market sizing / TAM estimation → `market-sizing`
+- Revenue / margin / backlog / price-volume-mix drivers → `driver-map`
+- Market expectations / priced-in / variant-view gap → `consensus-map`
+- Scenario-based L/S ranking → `candidate-screener`
+- Cross-market peer comparison → `peer-deep-dive`
+- Competitive barrier quantification → `moat-analysis`
+- Catalyst timeline → `catalyst-map`
+- Management capital allocation → `capital-allocation`
+- Bull/base/bear odds memo / assumption tracing → `scenario-model`
+- Pre-earnings setup → `earnings-setup`
+- Post-earnings quick verdict → `post-earnings-quick`
+- L/S pair → `pair-trade`
+- Financial statements / structured actuals → `financial-data`
+- Model / DCF / comps → `3-statement-model` / `dcf-model` / `comps-analysis`
+- Track coverage status → `coverage-tracker`
+- Capture earned insights → `research-journal`
+- Upgrade plugin / sync workspace → `update-agent-runtime`
+
+For specific procedures, fallback boundaries, and parallel strategies, the invoked skill governs.
+
+---
+
+## 7. UTF-8 Text Discipline
+
+All Chinese or multilingual text files must use **UTF-8 without BOM**.
+
+- `.md` / `.yaml` / `.json` defaults to UTF-8 without BOM.
+- When modifying Chinese files, explicitly write back as UTF-8.
+- Batch scripts rewriting text must specify UTF-8 to avoid mojibake.
+
+---
+
+## 8. Boundary
+
+- This file serves the user research workspace.
+- Plugin development governance is maintained in the plugin dev repo root `CLAUDE.md`, not expanded here.

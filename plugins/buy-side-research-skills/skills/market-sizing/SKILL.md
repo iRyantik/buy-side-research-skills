@@ -5,13 +5,14 @@ description: Bottom-up TAM SAM SOM estimation — structured breakdown with sour
 
 # Market Sizing
 
-Turn "how big is this market" into a structured estimate where every row has a source, a tier, a confidence level, and an alternative scenario. The output is not one number — it's a breakdown table plus a visual pyramid. Feeds directly into `scenario-model`.
+Turn "how big is this market" into a structured estimate where every row has a source, a tier, a confidence level, and an alternative scenario. The output is not one number — it's a breakdown table plus a visual pyramid. Feeds directly into `scenario-model`, which now acts as the downstream odds memo skill.
 
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 当需要公司-level baseline 时使用。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法
@@ -61,6 +62,18 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | TAM Breakdown 表 | 每行的 Method/Source/Tier 列——Source 列必须可点击 | Segment 名称 |
+> | Bottom-up 推算 | 每个 input 参数的数字来源 | 研究员选用的 method |
+> | 交叉验证 | 每个替代估算的出处 | — |
+>
+> **完成 Gate**：写完扫 TAM 表 → 每行 Source 列有 link → Tier 1-2 行做过 WebFetch 验证 → Resources 展开所有 source。
+
 ~~~markdown
 ## TAM Breakdown
 
@@ -76,13 +89,13 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## SAM (addressable by Company)
 
-| Company | Addressable Segment | SAM | Share Rationale |
+| Company | Addressable Segment | SAM | Share Rationale | Ev |
 |---|---|---|---|
 | AEHR | CPO burn-in test | $720M | 当前唯一晶圆级 Burn-in 供应商 |
 
 ## Key Assumptions
 
-| 假设 | 值 | 替代情景 | 为什么 |
+| 假设 | 值 | 替代情景 | 为什么 | Ev |
 |---|---|---|---|
 | HPC DC count 2028 | 50 | 30–70 | AMD/NVDA roadmaps suggest 50-60; if ASIC-only, could be 30 |
 | CPO penetration | 15% by 2028 | 5–25% | Broadcom Bailly 2027; if delayed, 5% |
@@ -94,9 +107,9 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 ~~~
 
 - Segment Pie: 如果 TAM 按多 segment 拆，可选 pie chart（description only, actual chart via research-viz）
-    
-    ### TAM Pyramid（产出示例）
-    
+
+### TAM Pyramid（产出示例）
+
         ┌──────┐
         │ TAM  │  $1.2B  全世界 CPO burn-in test 设备需求
         │      │
@@ -106,35 +119,43 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
         ┌──────┐
         │ SOM  │  $360M   AEHR 实际能拿到的（假设 50% of SAM，Teradyne 可能进入）
         └──────┘
-    
-    ## 反模式
-    
-    - ❌ 只有一个数字没有拆解表
-    - ❌ 只有一个源没有交叉验证
-    - ❌ 不分 Bottom-up vs Top-down
-    - ❌ 不分 TAM/SAM/SOM
-    - ❌ 拿招股书数字直接用，不调 bias
-    - ❌ 用 smooth CAGR 掩盖 non-linear adoption curve
-    - ❌ 不标 Tier——下游 scenario-model 不知道能不能用
-    - ❌ 关键假设不写替代情景
-    - ❌ TAM 只切一个维度（至少给 segment + 另一个维度）
-    - ❌ 没有 as-of 日期
-    
-    ## 篇幅基准
-    
-    500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
-    
-    ## Workflow 联动
-    
-    | 下游 | 场景 |
-    |---|---|
-    | `scenario-model` | 喂 TAM 给场景测算 |
-    | `candidate-screener` | 给行业排序提供市场规模语境 |
-    | `industry-landscape` | TAM 可写入行业 index |
-    
-    ## 与相邻 skill 的边界
-    
-    - 不做场景测算 → `scenario-model`
-    - 不做行业全景 → `industry-landscape`
-    - 不做公司收入 forecast → `driver-map`
-    
+
+## 反模式
+
+- ❌ 只有一个数字没有拆解表
+- ❌ 只有一个源没有交叉验证
+- ❌ 不分 Bottom-up vs Top-down
+- ❌ 不分 TAM/SAM/SOM
+- ❌ 拿招股书数字直接用，不调 bias
+- ❌ 用 smooth CAGR 掩盖 non-linear adoption curve
+- ❌ 不标 Tier——下游 scenario-model 不知道能不能用
+- ❌ 关键假设不写替代情景
+- ❌ TAM 只切一个维度（至少给 segment + 另一个维度）
+- ❌ 没有 as-of 日期
+
+## 篇幅基准
+
+500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
+
+## Workflow 联动
+
+| 下游 | 场景 |
+|---|---|
+| `scenario-model` | 优先喂 TAM 给 deep-work odds memo / 场景测算 |
+| `candidate-screener` | 给行业排序提供市场规模语境 |
+| `industry-landscape` | TAM 可写入行业 index |
+
+## 与相邻 skill 的边界
+
+- 不做场景测算或赔率判断 → `scenario-model`
+- 不做行业全景 → `industry-landscape`
+- 不做公司收入 forecast → `driver-map`
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

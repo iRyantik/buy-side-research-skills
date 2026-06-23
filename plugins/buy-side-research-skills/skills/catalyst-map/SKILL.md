@@ -10,8 +10,9 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
 - **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline 和 earnings dates。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes.
 
 ## 心法
@@ -52,10 +53,22 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## 输出结构
 
+> **Source contract**：以下所有表格中涉及估值、概率、评分、回报、市场规模数字的列，每行必须带 source anchor（[S#](url) 或 [I#](url)）。
+>
+> **密度表**：
+>
+> | Section | 强制标 source | 豁免 |
+> |---|---|---|
+> | Catalyst Timeline 表 | 每行的概率/幅度/Payoff/Base rate | 催化剂名称本身 |
+> | 股价锚点 | price target、current price、52w range | — |
+> | Event odds memo | 每次事件的 date/source/预期值 | 方向性判断 |
+>
+> **完成 Gate**：写完逐行扫表 → 每行 [S#]/[I#] 或 `[待查]` → `[待查]` ≤5 → Resources 段必须展开所有 source。
+
 ~~~markdown
 ## Catalyst Timeline
 
-| 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact |
+| 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact | Ev |
 |---|---|---|---|---|---|---|---|
 | 2026 Q3 | Q2 GT orders >SEK 350M | 40% | ↑ | +15% | 3.0x | Base rate: 4Q中2Q超 | 验证 1.6T 升级 driver |
 | 2026 Q4 | 英伟达 Rubin 含 CPO | 25% | ↑ | +25% | 5.0x | Proxy: 架构泄露信号 | CPO 路线验证 |
@@ -65,7 +78,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Payoff Matrix
 
-| Rank | Catalyst | Payoff Ratio | Weighted Impact |
+| Rank | Catalyst | Payoff Ratio | Weighted Impact | Ev |
 |---|---|---|---|
 | 1 | Rubin 含 CPO | 5.0x | +6.3% (25% × 25%) |
 | 2 | GT >350M | 3.0x | +6.0% (40% × 15%) |
@@ -123,3 +136,12 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 - 不做财报 setup → `earnings-setup`
 - 不做 thesis → `alpha-thesis`
 - 不做 market expectations → `consensus-map`
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -7,12 +7,22 @@ description: Build a sourced long or short investment thesis with variant view c
 
 Build a sourced long or short investment thesis with variant view catalysts scenarios and kill criteria.
 
+上游如果还没有把 bull/base/bear 的赔率、implied value 和最关键假设压清楚，优先先跑 `scenario-model`。`scenario-model` 负责 odds memo 和 sizing；本 skill 负责把这些输入装配成完整 thesis、variant view、catalyst 和 kill criteria。
+
 ## Research Runtime Capsule
 
 - Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `skills/_shared/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照（trust-based fill，Bridge → yfinance → WebSearch → Google Finance）。信任其结果，直接从 `actuals-resolved.json` 取数。
+- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
+- **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+
+> **Source contract**：本文所有事实 claim（数字、公司名、行业判断、估值锚点）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我的看法""variant view"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
+
+
+
+- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 
 
@@ -197,7 +207,17 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
-路径不明 → new-session 解析行业。
+路径不明 → agent 按 policy baseline §11 自动创建。
+
+## Thesis Driver Mix
+
+| Driver | Weight | Current | Target | Confidence |
+|---|---|---|---|---|
+| Growth (Rev CAGR) | X% | Y% | Z% | — |
+| Margin (EBIT%) | X% | Y% | Z% | — |
+| Multiple (PE re-rate) | X% | Yx | Zx | — |
+
+Growth stalls + Margin holds → flat. Growth hits + Margin expands → bull re-rate.
 
 ## 反模式自查
 
@@ -230,10 +250,19 @@ LS 基金不预设 long-only。第一步必须明确这是哪种单股 trade，�
 industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
 ```
 
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `new-session` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `agent` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。
 
-如果当前日期化保存路径不明确，先 handoff 到 `new-session` 解析路径；不要临时发明目录或未解析路径就写入。
+如果当前日期化保存路径不明确，agent 按 policy baseline §11 自动创建目录和索引。
 
 `research-journal` 只在 thesis 已被研究清楚、形成可复用认知增量后再吸收，不要把未验证 thesis 直接写成 memory。
 
 如果 thesis 中出现披露口径、业务实质、model driver、source 冲突等高价值疑点，直接触发 `Research Runtime Capsule` 的 Senior Analyst Radar 提醒。若问题是 revenue / margin / backlog / price-volume-mix driver 没拆清楚，先用 `driver-map`；若问题是研究方向本身不清，再用 `next-step`。
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -10,13 +10,15 @@ Build comparable company valuation workbooks with peer multiples and operating m
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `skills/_shared/research-policy-baseline.md` §6.
+- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
 
 
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
+- **Actuals-only ratio rule**: multiples (PE, EV/EBITDA, EV/Sales, PEG, etc.) must use actuals-resolved.json disclosed data as input. FY2026E / consensus / forward estimates are banned as ratio inputs. Missing actuals input → ratio cell stays blank.
 
 
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)
@@ -227,7 +229,7 @@ Rule of 40: =[Growth %]+[FCF Margin %]
 
 ## 估值倍数公式
 
-科目多语对照见 `skills/_shared/statement-line-items.md`。
+科目多语对照见 `references/policy/statement-line-items.md`。
 
 | # | 倍数 | 公式 | 输入来源 | 常见陷阱 |
 |---|---|---|---|---|
@@ -676,3 +678,12 @@ After completing a comp analysis, ask:
 5. What would make this more useful next time?
 
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
+
+
+## Appendix: actuals-resolved.json
+
+完整字段清单 -> `references/actuals-data-catalog.md`。
+
+结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
+
+消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。
