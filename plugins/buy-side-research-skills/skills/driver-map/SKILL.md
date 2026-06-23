@@ -65,6 +65,23 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## 工作流
 
+### Step 0: 识别独立增长逻辑线
+
+在拆任何分部之前，先回答：**这家公司到底靠什么增长？** 不靠公司给的 bucket 名称——靠独立的、可验证的增长逻辑。
+
+**画出驱动总图**（ASCII tree），每条逻辑线一句话：
+
+```
+公司 = 逻辑线 A × 逻辑线 B × ... + 无关项
+```
+
+逻辑线分类：
+- **结构性逻辑**（如稀土管制受益、排放升级）——同因多线并发
+- **独立增长逻辑**（如市场份额提升、品类扩张）——各有独立 driver
+- **无关项**（如建筑陶瓷、电子浆料）——不参与估值
+
+每条逻辑线标注类型（`rare-earth` / `organic` / `non-core`）。如果多个逻辑线共享同一个宏观催化剂，在树里标注因果链。
+
 ### Step 1: Reported Bucket → Business Reality
 
 先把公司披露的 bucket 翻译成真实业务，不要直接接受命名。
@@ -81,9 +98,28 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
-### Step 2: Business Reality → Model Driver
+**逻辑线→分部收入归集**：完成 Step 0 逻辑线识别和 Step 1 Bucket 翻译后，必须把分部收入按逻辑线重新分配。每个分部拆成其承载的逻辑线 + 残差（不属于任何逻辑线的剩余收入）：
 
-把每个业务 bucket 映射到可观察 driver。
+| 分部 | FY0A 收入 | 逻辑线分解 | 残差 |
+|---|---|---|---|
+| Electronic | 693 | R1(450) + G4(28) | 215（浆料，不参与估值） |
+
+逻辑线 FY0A 收入 = 分部收入 × Split%（Agent 预设，Analyst 在 Excel 蓝格里调）。残差 = 分部收入 − Σ逻辑线收入（自动算，只存残差 GM）。
+
+### Step 2: Logic Line → Model Driver（逻辑线优先）
+
+**每条逻辑线独立建模**，输入三个参数：
+
+| 参数 | 含义 | 值示例 |
+|---|---|---|
+| **Base Revenue (FY0A)** | 最新完整财年的逻辑线收入 | 450（¥M） |
+| **YoY Growth** (Bull/Base/Bear × 5 年) | 三档情景假设 | Bull: 60%…, Base: 51%…, Bear: 35%… |
+| **GM** (FY0A + 5 年投影) | 毛利率轨迹 | 40% → 42% → 45%… |
+| **利润层级** | NI > EBITDA > EBIT > GP | GP（仅分部披露 GM） |
+
+**Revenue 不是输入**——是 `= Prior × (1 + Active YoY)` 滚动算出来的。FY0A 是锚，YoY 是 driver，Revenue 是输出。
+
+每逻辑线的驱动传导树（ASCII）：
 
 | Business bucket | Primary driver | Secondary driver | Observable KPI | Confidence |
 |---|---|---|---|---|
@@ -129,40 +165,93 @@ Evidence status 只能用：
 
 Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case；只能进入 sensitivity、scenario 或标 `[来源待补]`，直到有更强 source。
 
+### Step 7: 产出 driver-model.json
+
+从 MD 的表格提取结构化数据，写入同目录同前缀的 JSON 文件（`driver-map-<ticker>.json`）。JSON 是 Excel 脚本的输入——只含 Agent 初始预设，Analyst 在 Excel 里调。
+
+自动取数（不需 Agent 填）：
+- `meta` (ticker, market, base_fy)：从 actuals-resolved.json 映射
+- `actuals` (FY-2, FY-1 P&L 行)：从 actuals-resolved.json 取
+- `segments[].fy0`：从年报/WebSearch 取分部披露
+
+Agent 预设（从 MD 研究结论提取）：
+- `segments[].logic_lines[].split`：FY0A 逻辑线收入占比
+- `segments[].residual.gm`：残差毛利率
+- `logic_lines[].yoy`：Bull/Base/Bear 三档 YoY
+- `logic_lines[].gm.proj`：未来 5 年 GM
+- `logic_lines[].sotp_pe`：估值倍数
+- `logic_lines[].type`：`rare-earth` / `organic`
+- `global.opex_rate` / `global.tax_rate`
+
+JSON 文件与 driver-map.md 同目录同日期前缀（只换后缀 `.json`）。
+
+### Step 8: 生成 Excel 模型
+
+```bash
+python .scripts/shared/build-logic-model.py <path/to/driver-map.json>
+```
+
+脚本从 JSON 读取配置，yfinance 拉实时市场数据，生成单 sheet 公式联动 Excel：
+- Section 1: 原始披露分部（FY25A hardcode，FY26E+ = 逻辑线 reaggregate）
+- Section 2: 逻辑线假设（YoY Bull/Base/Bear，Revenue=Prior×(1+YoY)，GM/GP）
+- P&L: 含残差聚合行
+- SOTP: 双轨——逻辑线 PE + 分部 PE（加权自动算）
+- Scenario Summary: Bull/Base/Bear 三套独立公式
+- Market Data: yfinance 实时 mcap/price/shares/PE/52W
+
+Excel 格式规范：无网格线/无边框/全 Calibri/假设格黄底蓝字/冻结 D2/年份只 Row 1/B1 下拉切换场景。Analyst 改蓝格即全表自动联动。
+
 ## 输出结构
 
 ```markdown
 ## Driver Map
 
 **结论先行**
-[一句话说明这家公司 / 业务最应该按什么 driver 理解，最大披露缺口在哪里]
+[一句话说明这家公司最应该按什么 driver 理解，最大披露缺口在哪里]
+
+## 0. 驱动总图
+
+```
+公司 = 逻辑线 A × 逻辑线 B × ... + 无关项
+         │
+    分类标注（rare-earth / organic / non-core）
+```
+[ASCII tree 显示每条逻辑线 + 因果链]
+
+### 原始披露分部
+
+| 分部 | FY0A Rev | GM | 映射到逻辑线 |
+
+### 逻辑线 → 分部收入归集
+
+| 逻辑线 | 类型 | 隶属分部 | FY0A Rev | YoY | GM | PE |
 
 ## 1. Reported Bucket → Business Reality
 
-| Reported bucket | Business reality | End-market / customer | Ev | Gap |
-|---|---|---|---|---|
-> 每个核心 segment 配产品/设备图：下载到当前 topic 的 `_cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `extension`。
->
-> **下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件。图片来源优先级：① 公司 Media Kit → ② 产品页 hero → ③ web search → ④ 行业代表图 → ⑤ `[缺图]`。详见 `stock-quickread` SKILL.md。
+[现有格式保留]
 
-## 2. Business Reality → Model Driver
+## 2. Logic Line Growth Estimates
 
-| Business bucket | Primary driver | Secondary driver | Observable KPI | Confidence |
-|---|---|---|---|---|
+每条逻辑线独立表：
 
-## 3. Driver Quality
+| | FY0A | FY+1E | FY+2E | FY+3E | FY+4E | FY+5E |
+|---|---|---|---|---|---|---|
+| YoY Growth | — | +51% | +54% | +29% | +26% | +21% |
+| Revenue (¥M) | 450 | 680 | 1,050 | ... | ... | ... |
+| GM | 40.0% | 42.0% | 45.0% | ... | ... | ... |
+| GP (¥M) | 180 | 286 | 473 | ... | ... | ... |
 
-| Driver | Rating | Why | Ev | What would improve confidence |
-|---|---|---|---|---|
+**Profit tier**: GP（NI > EBITDA > EBIT > GP，取可得最高层级）
 
-## 4. Disclosure vs Inference / Proxy Strategy
+## 3. 催化剂时间线
 
-| Driver claim | Evidence status | Proxy to use | Risk of proxy | Model treatment |
-|---|---|---|---|---|
+| 时间 | 逻辑线 | 事件 | 可验证性 |
 
-## 5. Weird Buckets / Senior Analyst Radar
+## 4-6. Driver Quality / Disclosure / Weird Buckets
 
-**这里值得深挖**
+[现有格式保留]
+
+## 7. Implications
 - 怪异点：[披露 / bucket / KPI 哪里不自然]
 - 可能说明：[1-2 个解释]
 
@@ -202,6 +291,67 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 - ❌ sub-agent evidence card 未经主 agent 抽查 URL 和口径统一直接当 final driver tree。
 - ❌ 用户只要 driver-map 却输出 DCF / comps；要搭 model 却不 handoff 到 modeling skills。
 - ❌ driver confidence Low 被后续 thesis 当核心事实；清楚认知未进 `research-journal`。
+- ❌ 只做分部不做逻辑线——把会计口径当成经济实质。
+- ❌ Revenue 输入绝对值而非 YoY——改了 FY26E 不影响 FY27E+。
+- ❌ 脚本含公司特定逻辑——应全部在 JSON 里，脚本纯通用。
+
+## Appendix A: driver-model.json Schema
+
+Agent 在 Step 7 产出此文件，与 driver-map.md 同目录同日期前缀。所有"初始预设"值研究员在 Excel 蓝格里调。
+
+```json
+{
+  "meta": {"ticker": "300285.SZ", "company": "Sinocera", "market": "cn",
+           "base_fy": 2025, "proj_years": 5, "sotp_offset": 2},
+  "units": {"rev": "M"},
+  "actuals": {
+    "fy-2": {"rev": 3859, "gp": 1492, "op": 755, "tax": 93, "ni": 605},
+    "fy-1": {"rev": 4047, "gp": 1606, "op": 775, "tax": 93, "ni": 610}
+  },
+  "segments": [{
+    "name": "Electronic Materials",
+    "fy0": {"rev": 693, "cost": 454, "gp": 239, "gm": 0.345},
+    "logic_lines": [{"name": "R1 MLCC Powder", "split": 0.65}],
+    "residual": {"gm": 0.25}
+  }],
+  "logic_lines": [{
+    "name": "R1 MLCC Powder", "type": "rare-earth", "profit_tier": "gp",
+    "yoy": {"bull": [0.60,...], "base": [0.51,...], "bear": [0.35,...]},
+    "gm": {"fy0": 0.40, "proj": [0.42,0.45,0.46,0.47,0.48]},
+    "sotp_pe": 40,
+    "drivers": [
+      {"label": "Volume", "fy0": {"value": 7000, "unit": "tons"}}
+    ]
+  }],
+  "global": {"opex_rate": [0.22,...], "tax_rate": 0.15}
+}
+```
+
+字段说明：
+- `meta.market`: cn/us/jp/kr/tw — 用于自动单位检测（jp/kr/tw 或 mcap>1e6M → B 单位）
+- `segments[].logic_lines[].split`: FY0A 收入占比，残差=1−Σsplit（自动算）
+- `logic_lines[].profit_tier`: gp/ebit/ebitda/ni — SOTP 取最高可得层级
+- `logic_lines[].type`: rare-earth / organic / non-core — 用于 Excel 配色
+- `logic_lines[].drivers`: 可选——每个 driver 一行纯展示，不参与公式
+- `global.opex_rate`: 数组长度 = 实际年数 + 投影年数
+- 单位统一用"百万本币"（M），脚本自动转 B
+
+## Appendix B: Excel 结构
+
+`build-logic-model.py` 从 JSON 生成单 sheet 公式联动 Excel：
+
+| Section | 行 | 内容 | 输入/输出 |
+|---|---|---|---|
+| 1 | 5- | 原始披露分部（Rev/Cost/GP/GM/Split%/残差%） | FY25A hardcode, FY26E+=公式 |
+| 2 | 50- | 逻辑线假设（YoY Bull/Base/Bear→Active→Revenue→GM→GP） | 蓝格输入 |
+| — | — | Global Opex/Tax | 蓝格输入 |
+| 3 | — | P&L + 残差聚合行 | 公式 |
+| 4 | — | SOTP Logic（GP→NI share→PE→Mkt Cap→SUM TOTAL） | PE 蓝格输入 |
+| 5 | — | SOTP Segments（分部 PE 加权自动算） | PE 蓝格输入 |
+| 6 | — | Market Data（yfinance mcap/price/shares/PE/52W）+ Implied ratios | 展示 |
+| 7 | — | Scenario Summary（三套独立公式，不依赖 B1 下拉） | 公式 |
+
+格式规范：无网格线、无边框、全 Calibri、假设格黄底蓝字(#FFFFCC/#0000CC)、年份右对齐/标签左对齐、冻结 D2、B1 下拉切换场景。PE 格式 `0.0x`，比率 `0.0%`，货币 `¥#,##0.00`。
 
 ## 篇幅基准
 
