@@ -116,6 +116,10 @@ Retain original text for appendix Name Corrections. Mark uncertain fixes `[TO CO
 - **Verify end reached**: The last Read's content must not repeat the beginning (no loop hallucination), and semantically be a conclusion.
 - Enter Step 3 only after scratchpad is complete. Never start writing briefing/qa without reaching the end.
 
+**⑤ Verification log — mandatory gate**
+
+Scratchpad must include a  field where every fact is paired with a web search URL. Step 3 entry check: if  is empty or covers <80% of entities, return to Step 2. Format: 
+
 ### Step 3: Output by Template
 
 **Two templates: briefing + qa.** Each in the default language, optionally in the other language. Internal components embedded as appendix.
@@ -299,6 +303,8 @@ Industry-level (industry panel / sell-side call):
 - ❌ Key claims stopped at Tier 1 — must attempt Tier 2
 - ❌ Using WebSearch snippets as source — must open the actual page
 - ❌ Fabricating source URLs
+- ❌ Empty verification_log or coverage <80% → return to Step 2
+- ❌ Fact written to output without web search URL support
 
 ### Output
 - ❌ "Management kicked off by stating / admitted / emphasized" narrative scaffolding — state facts directly

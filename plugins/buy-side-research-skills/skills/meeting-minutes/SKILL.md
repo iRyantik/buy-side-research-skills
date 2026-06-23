@@ -114,6 +114,12 @@ Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 - **验证到底**：最后一个 Read 的内容必须与开头无重复（不是循环 hallucination），且语义上是结尾。
 - scratchpad 凑齐后才进 Step 3。不读到底绝不开写 briefing / qa。
 
+**⑤ 验证日志（verification_log）——强制 gate**
+
+scratchpad 必须包含 `verification_log` 字段，每条 fact 挂一个 web search URL。Step 3 入口检查：`verification_log` 为空或覆盖率 < 实体的 80% → 退回 Step 2 补查。不凑齐不进 Step 3。
+
+格式：`{"claim": "盛合晶微已上市", "source_url": "https://...", "verified": true}`
+
 ### Step 3: 按 template 输出
 
 **模板数量：2 个。** briefing + qa。每个模板出 ZH 和（可选）EN 两个版本。internal 的组件作为 appendix 嵌入。
@@ -302,6 +308,8 @@ appendix 分层规则同 briefing。
 - ❌ 关键 claim 只跑到 Tier 1 就停
 - ❌ 把 WebSearch 摘要当原文——必须打开页面读
 - ❌ 编造 source URL
+- ❌ verification_log 为空或覆盖率不足 → 退回补查
+- ❌ fact 声明无 web search URL 支撑就写入最终文件
 
 ### 输出类
 - ❌ 出现英文引号原文——全部翻译融入中文
