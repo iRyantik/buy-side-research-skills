@@ -164,7 +164,6 @@ def _check_content(path: str, text: str, display: str):
     for img in IMG_RE.findall(text):
         if not re.match(r'(\.cache/|_cache/|\.\./)+(images/)', img):
             continue
-        # Resolve from workspace root for .cache/ paths, or relative for ../ paths
         if img.startswith('.cache/'):
             img_path = os.path.join(ws_root, img)
         elif img.startswith('_cache/'):
