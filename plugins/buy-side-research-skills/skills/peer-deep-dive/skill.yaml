@@ -62,14 +62,14 @@ workflow:
   stage: 'deep-dive'
   prerequisites:
     - '3-8 selected companies'
-  next_steps:
+  s:
     - 'stock-quickread'
     - 'alpha-thesis'
   feeds_into:
     - 'stock-quickread (按排序执行)'
     - 'alpha-thesis (高优先级候选)'
     - 'research-journal'
-    - 'next-step'
+    - ''
   decision_point: '哪家公司优先级最高、资源如何分配'
 required_sections:
   - 'task_definition'
@@ -79,7 +79,7 @@ required_sections:
   - 'cross_cut_contradiction_consensus_mispricing_extremes'
   - 'research_ranking_and_resource_allocation'
   - 'cross_company_key_questions'
-  - 'next_steps'
+  - 's'
 quality_gates:
   anti_patterns:
     - 'N 份独立 quickread 拼贴'

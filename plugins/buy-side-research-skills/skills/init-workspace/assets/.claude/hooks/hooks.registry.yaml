@@ -12,6 +12,12 @@ hooks:
     events: [PostToolUse]
     scope: [research_artifact]
     severity: block
+  - name: mermaid_syntax
+    file: rules/mermaid_syntax.py
+    layer: global
+    events: [PostToolUse]
+    scope: [research_artifact]
+    severity: block
   - name: workspace_guard
     file: rules/workspace_guard.py
     layer: global
@@ -216,6 +222,14 @@ hooks:
     events: [PostToolUse]
     scope: [research_artifact]
     severity: block
+
+  # === Governance (non-blocking infrastructure) ===
+  - name: pdf_auto_cache
+    file: rules/pdf_auto_cache.py
+    layer: governance
+    events: [Stop]
+    scope: [workspace_mutation]
+    severity: warn
 
   # === Viz ===
   - name: viz_delivery_contract

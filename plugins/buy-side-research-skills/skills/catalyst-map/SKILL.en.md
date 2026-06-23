@@ -11,11 +11,10 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to get baseline and earnings dates.
-- **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mental Model
 
@@ -67,7 +66,7 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
 >
 > **Completion Gate**: After writing, scan every row → every row has [S#]/[I#] or `[待查]` → `[待查]` ≤5 → Resources section must expand all sources.
 
-~~~markdown
+```markdown
 ## Catalyst Timeline
 
 | Time | Catalyst | Probability | Direction | Magnitude | Payoff Ratio | Anchor | Thesis Impact | Ev |
@@ -101,7 +100,7 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
             │ +5%      │
 
     Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
-~~~
+```
 
 ## Anti-Patterns
 
@@ -139,11 +138,3 @@ Catalysts are unevenly distributed. High density during earnings season, sparse 
 - Do not do thesis → `alpha-thesis`
 - Do not do market expectations → `consensus-map`
 
-
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → source_map for [S#]/[I#] tags (do not write [actuals]) → ratios use only actuals-real values (not forward estimates).

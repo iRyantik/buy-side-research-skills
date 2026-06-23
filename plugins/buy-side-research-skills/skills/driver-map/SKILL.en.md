@@ -11,15 +11,10 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for business reality translation and model driver mapping; unresolved facts stay as gap, hypothesis, or follow-up.
-- **Actuals-only**: margin breakdowns, price/volume/mix ratios, and all quantitative driver ratios use actuals-resolved.json disclosed data. No forward estimate as ratio input.
-- Sub-agent outputs must be evidence_cards_only; main agent synthesizes, cross-checks URLs, and resolves source conflicts.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-Translate the company's disclosure taxonomy into real business and modelable drivers. **The core value is not writing a revenue breakdown table** — it is preventing the researcher and AI from mistaking accounting segments, management narrative, sell-side classifications, or concept-stock labels for economic substance.
-
-If the output merely repeats company segment names, or fabricates undisclosed drivers as facts, this skill has failed.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mindset
 
@@ -31,7 +26,7 @@ Example: a company discloses a segment called "Industrial Solutions," which in r
 
 ## Financial-Data Integration
 
-For elastic KPIs, first consult `references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
+For elastic KPIs, first consult workspace `.references/kpi-drivers/` routed by business model. Pull data from `actuals-resolved.json` and process by revenue_split status:
 
 1. revenue_split present → classify by source_type: `official-xbrl-dimension` = provider-structured, `filing-table-extracted` = provider-table-review → map to model bucket
 2. revenue_split missing → read `full-filing.md`, LLM extracts disclosed split → label `llm-extracted-review`
@@ -77,7 +72,7 @@ First translate the company's disclosed buckets into real business — do not ac
 
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file. Image source priority: ① Company Media Kit → ② Product page hero → ③ web search → ④ industry representative image → ⑤ `[缺图]` (image missing). See `stock-quickread` SKILL.md for details.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 When encountering breakdowns like `GTE / GTS / Industrial Products / Industrial Solutions / CTS`, immediately trigger the Senior Analyst Radar: these may not be ordinary parallel segments, but rather a mixed breakdown across the gas turbine system value chain — product units, ancillary equipment, services, controls, or end-market dimensions.
 
@@ -143,7 +138,7 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 |---|---|---|---|---|
 > For each core segment, attach a product/equipment image: download to the current topic's `_cache/images/<slug>-<product>.<ext>`, where `<ext>` uses the `extension` returned by the script.
 >
-> **Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file. Image source priority: ① Company Media Kit → ② Product page hero → ③ web search → ④ industry representative image → ⑤ `[缺图]` (image missing). See `stock-quickread` SKILL.md for details.
+> **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 ## 2. Business Reality → Model Driver
 
@@ -171,8 +166,6 @@ Hard rule: `Low` confidence or `unknown` drivers cannot enter a single base case
 - [How this driver map changes model / thesis / peer compare]
 
 ```
-
-
 
 ## Artifact / Save Strategy
 
@@ -208,10 +201,3 @@ Based on the driver decomposition above, answer three growth-quality questions:
 - Standard: 900-1600 characters + 3-4 tables. Below 700 characters often misses proxy strategy; above 1800 characters should narrow to core segments.
 
 
-## Appendix: actuals-resolved.json
-
-Complete field inventory -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → pull [S#]/[I#] labels from source_map (do not write [actuals]) → ratios only use actuals real values (no forward estimates).

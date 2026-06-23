@@ -10,15 +10,15 @@ Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: FCF, WACC inputs, terminal growth assumptions, and all derived metrics (implied growth, reverse DCF output) must be built from actuals-resolved.json. No consensus/forward estimate as ratio input.
-
 
 ## Overview
 
@@ -105,7 +105,7 @@ This applies to every merged section header in the DCF (market data, scenario bl
 
 ## DCF Process Workflow
 
-### Step 1: Data Retrieval and Validation
+### Step 1: Data Retrieval and Validation [→ Bridge: consensus]
 
 Fetch data from MCP servers, user provided data, and the web.
 
@@ -1281,10 +1281,3 @@ Before delivering DCF model:
 - File naming: `[Ticker]_DCF_Model_[Date].xlsx`
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -9,13 +9,13 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
 
-判断一条信息能不能信，以及它是否产生值得继续研究的问题。**核心价值不是写新闻解读**，而是在信息淹没时快速过滤：哪些是事实、哪些只是线索、哪些值得继续问。
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-如果输出把传闻当事实，或者把每条新闻都扩写成分析，本 skill 就失败了。
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -27,7 +27,6 @@ Check whether a news claim rumor note or data point is credible and research-rel
 - 只有 verdict 至少达到 `Plausible but unconfirmed`，才判断是否值得继续研究。
 
 **最重要的纪律**：`product can be used`、`theme association`、`tier-2 supplier` 不能写成 `direct supplier`。
-
 
 ## 触发场景
 
@@ -110,7 +109,7 @@ Check whether a news claim rumor note or data point is credible and research-rel
 ### A.3 输出结构
 
 ```markdown
-## Claim Check
+## Claim Check [→ Bridge: news, price_action]
 
 **Verdict**: Confirmed / Likely / Plausible but unconfirmed / Unsupported / Contradicted
 **Bottom line**: [一句话判断，直接说能不能信]
@@ -149,7 +148,7 @@ Check whether a news claim rumor note or data point is credible and research-rel
 - 研究优先级
 - 一个 `Senior Analyst Radar` 识别出的怪异点
 
-如果有高价值疑点，输出 1-2 个最值得问 AI 的问题，并建议触发 `next-step`。如果只是确认了一个事实但没有研究增量，可以结束，不要强行扩展。
+如果有高价值疑点，输出 1-2 个最值得问 AI 的问题，并建议触发 ``。如果只是确认了一个事实但没有研究增量，可以结束，不要强行扩展。
 
 ## Batch Mode
 
@@ -160,38 +159,21 @@ Check whether a news claim rumor note or data point is credible and research-rel
 
 | Title | Source quality | Verdict | Research relevance | Action |
 |---|---|---|---|---|
-| [标题] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + 一句话] | Drop / Ask 1-2 AI questions / Trigger next-step / Save later via research-journal |
+| [标题] | 1 / 2 / 3 / 4 | [verdict] | [Yes / No + 一句话] | Drop / Ask 1-2 AI questions / Trigger  / Save later via research-journal |
 ```
 
 Action 只能是：
 
 - `Drop`
 - `Ask 1-2 AI questions`
-- `Trigger next-step`
+- `Trigger `
 - `Save later via research-journal`
 
 `Unsupported` / `Contradicted` 默认 `Drop`。除非用户明确要求审计轨迹，否则不保存。
 
-
-
 ## Artifact / 保存策略
 
 对话输出。用户要求保存时写入 industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md。
-
-## Source Contract
-
-信息冲击分析处理的是"刚刚发生的事"，source freshness 比 source depth 更重要。
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| 事件定性 | 事件来源（filing URL/新闻 URL/IR PDF）+时间 | 研究员判断 |
-| 价格反应 | price move % + time window → `[I#](url)` 行情源 | — |
-| Consensus delta | revised consensus vs pre-event → 每个数字有 provider+date | — |
-| Peer spillover | peer 价格变动的 source | — |
-
-**完成 Gate**：写完扫 → 每个事件有 source link → 每个 price move 有行情源 → `[待查]` ≤2 → Resources 展开。
 
 ## 反模式自查
 
@@ -214,16 +196,8 @@ Action 只能是：
 
 ## 篇幅基准
 
-- Unsupported / Contradicted：100-250 字。
-- 单条 Claim Check：300-700 字 + 1 张 evidence 表。
+- Unsupported / Contradicted：6-16 行。
+- 单条 Claim Check：20-45 行 + 1 张 evidence 表。
 - Batch Mode：每条 1 行，最多只展开 top 1-3 条。
-- 超过 900 字通常说明已经不是 filtering，应 handoff 到其他研究 skill。
+- 超过 60 行通常说明已经不是 filtering，应 handoff 到其他研究 skill。
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

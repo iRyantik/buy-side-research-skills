@@ -11,14 +11,10 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its results and pull data directly from `actuals-resolved.json`.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: implied move, short squeeze score, and any ratio derived from financial statements use actuals-resolved.json.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## The Mindset
 
@@ -43,7 +39,7 @@ Before earnings you cannot just list consensus. First confirm whether the key ob
 | KPI mechanism meaning | The industry mechanism, equipment chain, capacity units, or process flow behind the KPI to watch is clearly understood | Handoff to `mechanism-insight` first |
 | KPI / segment definition | Definitions of KPIs, segments, backlog, orders, book-to-bill, and their revenue recognition relationships are clear | Handoff to `driver-map` first |
 | Buy-side bar | The actual buy-side expectation can be mapped to revenue / margin / backlog / price-volume-mix drivers | Handoff to `driver-map` first |
-| Thesis linkage | The 3 observation points for this print can be mapped to assumptions or catalysts in `alpha-thesis` | If the issue is unclear research direction, trigger `next-step` |
+| Thesis linkage | The 3 observation points for this print can be mapped to assumptions or catalysts in `alpha-thesis` | If the issue is unclear research direction, trigger `` |
 
 If not passed, output a minimal handoff block first:
 
@@ -166,7 +162,7 @@ Post-print must explicitly state whether the research judgment has changed, not 
 | `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | Whether research views or related thesis need to be updated or rewritten |
 | `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | Whether `3-statement-model / dcf-model / comps-analysis / model-update` needs to be triggered |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | Whether a judgment increment worth crystallizing or showing the boss has been formed |
-| `next_step_trigger` | `no` / `yes` | Whether a high-value question has been exposed that needs `next-step` to unpack further |
+| `_trigger` | `no` / `yes` | Whether a high-value question has been exposed that needs `` to unpack further |
 | `mechanism_map_trigger` | `no` / `yes` | Whether `mechanism-insight` needs to be triggered due to equipment chains, engineering constraints, capacity units, process flows, or know-how gaps |
 | `driver_map_trigger` | `no` / `yes` | Whether `driver-map` needs to be triggered due to changes in segments, KPI definitions, backlog, orders, margin, price / volume / mix |
 
@@ -180,18 +176,6 @@ Write to industry topic:
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 If path is unclear → agent auto-creates per policy baseline §11.
-
-## Source Contract
-
-**Density table**:
-
-| Section | Source Mandatory | Exemption |
-|---|---|---|
-| Consensus vs buy-side bar | Source for consensus numbers (provider+as-of), basis for buy-side bar | Researcher's bar inference itself |
-| Pre-print decision tree | Source for threshold numbers in each scenario (guidance/history/peer) | — |
-| Historical reaction patterns | Actual vs consensus specific numbers+source for each beat/miss | — |
-
-**Completion Gate**: after writing, scan consensus numbers → every number has provider+as-of → buy-side bar has reasoning chain → `[待查]` ≤3 → Resources expanded.
 
 ## Anti-Pattern Self-Check
 
@@ -216,10 +200,4 @@ If path is unclear → agent auto-creates per policy baseline §11.
 
 If it is much longer, you are not capturing what matters.
 
-## Appendix: actuals-resolved.json
 
-Complete field inventory -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map to pull [S#]/[I#] labels (do not write [actuals]) -> ratios use only actuals real values (never forward estimates).

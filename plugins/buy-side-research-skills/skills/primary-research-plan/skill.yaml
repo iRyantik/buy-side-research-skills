@@ -81,7 +81,7 @@ workflow:
     - 'consensus-map'
     - 'driver-map'
     - 'alpha-thesis'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'

@@ -5,27 +5,27 @@ description: Initialize or repair a buy-side research workspace root scaffold �
 
 # Init Workspace
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, sets up a Python virtual environment with core dependencies, and interactively configures data-provider environment variables.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz/coverage-monitor into `.scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
 
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
 It is an operations skill, not a research skill.
 
-## Mental Model
+## 心法
 
 The invariant is separation of concerns:
 
 - `init-workspace` creates or repairs the root workspace shell + environment.
 - Each skill (ingest, financial-data, etc.) bootstraps heavy dependencies on first use via its own `bootstrap.py`.
 - `update-agent-runtime` keeps the workspace in sync with the latest plugin release.
-- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See `references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
+- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See workspace `.references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
 
 ## Responsibilities
 
 ### Responsible for
 
 **Directories:**
-- Creating root `_inbox/` and `_scripts/`.
+- Creating root `_inbox/` and `.scripts/`.
 
 **A类 — Platform-owned assets** (from `init-workspace/assets/`, copied verbatim to workspace root):
 
@@ -33,16 +33,17 @@ The invariant is separation of concerns:
 |---|---|---|
 | `.claude/hooks/` (full tree) | `.claude/hooks/` | Overwrite |
 | `.claude/settings.json` | `.claude/settings.json` | Overwrite |
-| `.claude/mcp.json` | `.claude/mcp.json` | Copy if missing |
+| `.claude/mcp.json` | `.claude/mcp.json` | Merge（确保 `playwright` key 存在，不动用户其他 MCP 配置；JSON 不合法则备份后覆盖） |
 | `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
-| `references/` | `references/` | Overwrite |
-| `_scripts/download-product-image.js` | `_scripts/download-product-image.js` | Overwrite |
-| `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |
-| `AGENTS.md.template` | `AGENTS.md` | Copy if missing |
-| `edge-radar.md` | `edge-radar.md` | Copy if missing |
-| `coverage.md.template` | `COVERAGE.md` | Copy if missing |
-| `gitignore.template` | `.gitignore` | Overwrite |
+| `.references/` (full tree) | `.references/` | Overwrite |
+| `.scripts/shared/` (full tree) | `.scripts/shared/` | Overwrite |
+| `.scripts/verify-runtime.py` | `.scripts/verify-runtime.py` | Overwrite |
+| `.vscode/settings.json` | `.vscode/settings.json` | Overwrite |
+| `CLAUDE.md.template` or `CLAUDE.en.md.template` | `CLAUDE.md` | 按语言：中文→ZH 模板，English→EN 模板，Copy if missing |
+| `AGENTS.md.template` or `AGENTS.en.md.template` | `AGENTS.md` | 同上 |
+| `coverage.md.template` or `coverage.en.md.template` | `COVERAGE.md` | 同上 |
+| `.env.template` or `.env.en.template` | `.env.template` | 同上 |
 | `.env.template` | `.env.template` | Copy if missing |
 
 **B类 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
@@ -53,7 +54,7 @@ The invariant is separation of concerns:
 for each skill_dir in skills/*/:
     if .platform exists → skip (platform skill, deployed by A类)
 
-    dst = _scripts/<skill-name>/
+    dst = .scripts/<skill-name>/
 
     if scripts/ exists:
         cp -r scripts/* → dst/
@@ -69,22 +70,21 @@ for each skill_dir in skills/*/:
     # Agent reads them directly from the plugin cache when executing the skill.
 ```
 
-> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No per-skill registration.  |
+> **The rule**: `scripts/` + `assets/` → workspace `.scripts/<skill>/`. No per-file mapping. No per-skill registration.  |
 
 **Environment setup:**
 - Check Python 3.10+ availability.
-- Create `.venv/` (Python virtual environment).
-- Install core dependencies into venv: `yfinance openpyxl requests python-dotenv pyyaml lxml`.
-- Run `pip install -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
-- Write `.gitignore`.
-
+- Install core dependencies globally with `--user`（no venv, no sudo）: `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`。
+- Run `pip install --user -r` for each `.scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- **ffmpeg**: Check availability (`ffmpeg -version`). If missing → download portable ffmpeg.exe from https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip and extract to `.scripts/shared/ffmpeg.exe`. On macOS: `brew install ffmpeg`.
 **Interactive provider configuration:**
 - Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
 - User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).
 - Unconfigured providers stay as commented lines in `.env`.
+- Coverage-monitor delivery env placeholders (`SMTP_*`, `COVERAGE_EMAIL_TO`, `WECOM_WEBHOOK_URL`) are shipped in `.env.template` only; they are optional and not part of provider credential setup.
 
 **Cleanup:**
-- Delete `_scripts/init-assets/` if present (legacy ps1-era artifacts).
+- Delete `.scripts/init-assets/` if present (legacy ps1-era artifacts).
 
 ### Not responsible for
 
@@ -119,36 +119,96 @@ Execute full Steps 0-10 (see Execution Flow below). All files are created.
 
 ### Repair Existing Workspace
 
-Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, edge-radar.md, COVERAGE.md). Platform-owned assets (hooks, settings, references, `.gitignore`) are overwritten. Skill scripts (B类) are overwritten. User-created files in `_scripts/` that are not in the B类 list are left untouched.
+Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, .references/edge-radar.md, COVERAGE.md). Platform-owned assets (hooks, settings, references, `.gitignore`) are overwritten. Skill scripts (B类) are overwritten. User-created files in `.scripts/` that are not in the B类 list are left untouched.
 
 ## Execution Flow
 
 ```
 Step 0  Validate workspace path — must not be inside a plugin repo or install directory
-Step 1  Check Python 3.10+ is available
-Step 2  Create .venv/ (python -m venv .venv)
-Step 3  Activate venv + pip install core dependencies:
-          pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+Step 1  Detect language: Chinese conversation → ZH templates, English conversation → EN templates
+Step 2  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
+        ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
+Step 3  Install core Python packages globally (no venv, no sudo):
+          python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
+        ★ pip install failure → BLOCK (core packages required for all skills)
 Step 4  Deploy A类 files (platform assets from init-workspace/assets/)
-Step 5  Deploy B类 files (skill scripts to _scripts/<skill>/)
-Step 6  pip install -r _scripts/*/requirements*.txt (failures warn, do not block)
-Step 7  Write .gitignore
-Step 8  Interactive provider configuration (see Provider Configuration below)
-Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
-Step 10 Print deployment summary table
+        ★ mcp.json: merge strategy (see below)
+        ★ Templates: use language from Step 1 (ZH → .template, EN → .en.template)
+Step 5  Deploy B类 files (skill scripts to .scripts/<skill>/)
+Step 6  pip install --user -r .scripts/*/requirements*.txt (failures warn, do not block)
+Step 7  Interactive provider configuration (see Provider Configuration below)
+Step 8  MCP server setup — Longbridge Bridge (market data, US/HK):
+          Claude Code: claude mcp add --transport http --scope user longbridge https://openapi.longbridge.com/mcp
+          Codex:       codex mcp add longbridge --url https://openapi.longbridge.com/mcp
+          ★ 安装后需 OAuth 认证：CC → /mcp → longbridge → Authenticate, Codex → codex mcp login longbridge
+          ★ 用户可跳过，不影响基础功能（Bridge 层不可用时自动降级到 yfinance + WebSearch）
+Step 9  ★ python .scripts/verify-runtime.py — one-click smoke test
+        ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
+Step 10 Delete .scripts/init-assets/ if present (legacy cleanup)
+Step 11 Print deployment summary table
 ```
+
+### Step 1 Detail: System Dependency Check
+
+Agent checks 4 system tools. **任一缺失 → 直接帮用户装**（winget on Windows, brew on macOS）。安装失败 → 打印手动命令 + **STOP**（不继续后续步骤）。
+
+| 检查项 | 验证命令 | 自动安装 (Windows) | 自动安装 (macOS) | 手动 fallback |
+|---|---|---|---|---|
+| Python ≥3.10 | `python --version` | `winget install Python.Python.3.12 --accept-source-agreements` | `brew install python@3.12` | https://python.org |
+| Node.js ≥18 | `node --version` | `winget install OpenJS.NodeJS.LTS --accept-source-agreements` | `brew install node` | https://nodejs.org |
+| npx | `npx --version` | 随 Node.js（重装 Node 即可） | 同左 | 重装 Node.js LTS |
+| curl | `curl --version` | `winget install curl.curl --accept-source-agreements` | macOS 自带 | 系统包管理器 |
+
+Agent 检测平台：`sys.platform == "win32"` → Windows；`sys.platform == "darwin"` → macOS。
+
+Linux 不自动安装——打印手动命令 + STOP，提示用户用系统包管理器安装后重跑 `/init-workspace`。
+
+### Step 4 Detail: mcp.json Merge
+
+Agent 处理 `.claude/mcp.json` 的流程：
+
+```
+1. if 文件不存在:
+      → 直接写入 assets/.claude/mcp.json
+2. else:
+      → try json.load
+      → if JSONDecodeError:
+            → 备份为 .claude/mcp.json.bak
+            → 覆盖写入 assets/.claude/mcp.json
+            → 提示用户 "旧文件 JSON 不合法，已备份"
+      → if "mcpServers" not in data:
+            → data["mcpServers"] = {}
+      → if "playwright" not in data["mcpServers"]:
+            → data["mcpServers"]["playwright"] = {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}
+            → json.dump(data, indent=2) 写回
+      → else:
+            → 跳过（用户已配）
+```
+
+### Step 9 Detail: Runtime Verification
+
+Agent 运行 `python .scripts/verify-runtime.py`（Step 2 装完的全局环境）。
+
+检查 12 项（3 层）：
+- Layer 1 系统：Python、Node.js、npx、curl
+- Layer 2 Python 包：yfinance、openpyxl、requests、python-dotenv、pyyaml、lxml
+- Layer 3 配置：`.claude/mcp.json` 含 playwright key、`.claude/hooks/` 可 import
+
+**任一项 ❌ → 自动装 → 再查 → 还不行 → 打印手动命令 + STOP。**
+
+全部 ✅ 才报告 "workspace ready"，继续 Step 10-11。
 
 ### Core dependencies
 
 ```bash
-pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+pip install yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
 ```
 
 ### Platform detection
 
 Agent uses `sys.platform`:
-- `win32` → Windows: Python = `python`, venv = `.venv/Scripts/python`
-- `darwin` / other → Unix: Python = `python3`, venv = `.venv/bin/python`
+- `win32` → Windows: Python = `python`
+- `darwin` / other → Unix: Python = `python3`
 
 ## Provider Configuration
 
@@ -174,6 +234,10 @@ After file deployment, display a single table and ask the user to configure data
 ├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
 │ 4    │ FinMind   │ FINMIND_TOKEN                 │ https://finmindtrade.com/      │
 │      │ (台股)    │                               │ 免费注册获取 Token              │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 5    │ Whisper   │ WHISPER_API_KEY               │ 用户自备 OpenAI 兼容端点        │
+│      │ (转录)    │ WHISPER_API_BASE              │ 如有默认 key 直接贴入 .env       │
+│      │           │ WHISPER_MODEL                 │                                │
 └──────┴───────────┴──────────────────────────────┴────────────────────────────────┘
 
 还没有 key 的去对应地址申请，有 key 的直接贴给我。
@@ -195,6 +259,11 @@ EDINET_API_KEY=your_key_here
 
 # FinMind（台股）
 # FINMIND_TOKEN=
+
+# Whisper（转录，OpenAI 兼容 API）
+# WHISPER_API_KEY=sk-xxx
+# WHISPER_API_BASE=https://api.vveai.com/v1
+# WHISPER_MODEL=whisper-large-v3-turbo
 ```
 
 `.gitignore` already includes `.env` — the file stays local and is never committed.
@@ -202,9 +271,9 @@ EDINET_API_KEY=your_key_here
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
-- Do not overwrite `COVERAGE.md` or `edge-radar.md` if already present.
-- Do not overwrite `.claude/mcp.json` if already present (user may have customized).
-- Do not overwrite `_scripts/` files that are not in the B类 source list (user-added scripts are preserved).
+- Do not overwrite `COVERAGE.md` or `.references/edge-radar.md` if already present.
+- `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
+- Do not overwrite `.scripts/` files that are not in the B类 source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.
 
 ## Workflow Links
@@ -214,6 +283,7 @@ EDINET_API_KEY=your_key_here
 | User wants to upgrade plugin + sync workspace | Use `update-agent-runtime` |
 | User wants to create a new topic | Automatic — save artifact to target path, scaffolding auto-creates directories |
 | User wants to fix workspace runtime only | Use `update-agent-runtime` (or re-run init-workspace in repair mode) |
+| User wants daily coverage briefs or intraday alerts | Use `coverage-monitor` after init finishes |
 
 Artifact policy:
 
@@ -228,5 +298,5 @@ Artifact policy:
 - Platform-owned assets deployed.
 - Skill scripts copied from canonical plugin locations.
 - Provider configuration offered interactively.
-- Legacy `_scripts/init-assets/` cleaned up.
+- Legacy `.scripts/init-assets/` cleaned up.
 - Did not create research artifacts.

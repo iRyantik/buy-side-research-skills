@@ -9,19 +9,12 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: DSO, inventory turnover, OCF/NI, Capex/D&A, and all diagnostic ratios use actuals-resolved.json. No estimate-derived ratios.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -61,6 +54,25 @@ Stress test an investment thesis and build the strongest opposing case with sour
 ```
 
 ## 输出结构
+```markdown
+# <Company> — Bear Pre-Mortem
+
+> DATE | TICKER | Thesis: SHORT
+
+## 1. The Smartest Short Seller's Pitch
+## 2. Unit Economics
+## 3. Accounting Red Flags
+## 4. What Bulls Are Missing
+## 5. Catalyst Timeline
+## 6. Position Sizing & Risk
+
+---
+
+## Resources
+```
+
+> **Appendix 执行**：如需要财务数据附录，写 artifact 前先跑 `python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>`。
+
 
 ### 1. The Smartest Short Seller's Pitch（300-500 字）
 
@@ -71,7 +83,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 - 关键证据 2-3 条
 - 对应的目标价 / 下行幅度
 
-### 2. Unit Economics 拷问
+### 2. Unit Economics 拷问 [→ Bridge: institution_rating, shareholder, valuation_snapshot]
 
 不要被 GAAP 报表带跑——质询单位经济：
 - 每一个新增客户 / 每一桶油 / 每一台机器，赚多少钱？这个数字几年来怎么变化？
@@ -82,10 +94,9 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ### 3. 会计 / 财务红旗清单
 
-
 ## 会计红旗公式
 
-科目多语对照见 `references/policy/statement-line-items.md`。
+科目多语对照见 workspace `.references/policy/statement-line-items.md`。
 
 | # | 红旗 | 公式 | 输入来源 | 报表位置 | 警戒阈值 |
 |---|---|---|---|---|---|
@@ -95,7 +106,6 @@ Stress test an investment thesis and build the strongest opposing case with sour
 | 4 | 资产老化 | CapEx ÷ D&A | FS, FS | CF | 持续 < 0.7 |
 | 5 | M&A 减值风险 | Goodwill ÷ Equity | FS, FS | BS | > 50% |
 | 6 | 股权稀释 | SBC ÷ Revenue | FS, FS | 附注 + IS | > 10% |
-
 
 逐项扫，每条要给：当前数 / 警戒阈值 / 状态 / Ev。有问题的那几条单独展开论证。
 
@@ -150,7 +160,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 
 这一节让你提前知道**亏损路径**长什么样，避免到时候被叙事 reframe（"这只是技术性回调""市场情绪过度"）。
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -166,21 +175,6 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - Implied downside: −A%
 
 最可能触发 growth break 的信号：[1-2 个 leading indicator]
-
-## Source Contract
-
-> 空头压测对 source 真实性要求最高——"可能出问题"必须有具体的 filing/page/数字，不能只靠"看起来可疑"。
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| §1 空头 narrative | 每个指控对应的具体数字/事件 | narrative 本身 |
-| §3 红旗 walk | 每行 DSO/库存/OCF/Capex/SBC 的 filing source+页码 | 红旗判断 |
-| §4 Base rate | 每个历史可比案例的 ticker+年份+跌幅+source | — |
-| §5 Kill criteria | 每条触发条件的阈值出处（filing/IR/history） | — |
-
-**完成 Gate**：写完扫 §3 → 每行有 filing source → §4 每个案例有 ticker+source → `[待查]` ≤5 → Resources 展开。
 
 ## 反模式自查
 
@@ -200,23 +194,14 @@ Base rate 是反 narrative 最强的武器——管理层永远讲"这次不一�
 - ❌ 用了管理层减持 / 内部人交易作为论据但无 Form 4 / 披露 source → 补
 - ❌ URL 不确定真实存在 → 写描述加 `[link 待补]`，不要假装
 
-
-
 ## 篇幅基准
 
-- Quick pre-mortem：600-900 字，适合快速检查一个 thesis 是否有明显盲点。
-- Full bear pre-mortem：1000-1800 字，适合 IC 前完整压测，必须包含 unit economics、会计红旗、base rate 和 path of pain。
-- 超过 2000 字通常说明在写完整 short thesis，应转入 `alpha-thesis` 的 short-only 结构或拆成多个风险模块。
+- Quick pre-mortem：35-60 行，适合快速检查一个 thesis 是否有明显盲点。
+- Full bear pre-mortem：60-120 行，适合 IC 前完整压测，必须包含 unit economics、会计红旗、base rate 和 path of pain。
+- 超过 130 行通常说明在写完整 short thesis，应转入 `alpha-thesis` 的 short-only 结构或拆成多个风险模块。
 
 ## 用法说明
 
 本 skill 在 `alpha-thesis` 写完之后、IC memo 提交之前使用。如果压力测试之后原 thesis 还站得住，conviction 是真的；如果发现明显盲点，回去修 thesis、降低 sizing，或者直接放弃这单 trade。
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

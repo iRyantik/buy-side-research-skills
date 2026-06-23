@@ -9,143 +9,82 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。**同时读取 `source_map` 字段——将字段映射到具体 [S#](url) 或 [I#] 标签，而非写 [actuals]。**
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-- 默认用中文输出，结论先行，数据优先。只有在可追溯性更强时，才保留 ticker、source title、URL 以及必要的财务 / 行业术语英文。
-- 主动执行 Senior Analyst Radar：凡是可能改变业务现实、model driver、consensus framing、peer set、valuation framework 或 research priority 的疑点，都要直接点破。
-- 机制 / 工程原理 / 设备链条类 gap 交给 `mechanism-insight`；revenue / margin / backlog / price-volume-mix 或 disclosure bucket 异常交给 `driver-map`；expectations / priced-in gap 交给 `consensus-map`；下一个最值得追的问题交给 `next-step`。
-- 研究启动先检查 topic `_cache/` 和 `financial-data` 输出，优先复用已有的 source-tracked material，而不是重建原始数据上下文。
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 资料收集与 Source 验证
 
-### 纪律
+见 workspace `.references/runtime/research-runtime.md`——数据获取链（§1）、来源验证链（§2）、Source 优先级与纪律（§2.2）、图片获取链（§2.5）、资料收集（§2.1）。
 
-**禁止用 WebSearch 摘要里的数字直接写 claim。** 摘要可能对、可能错。每个外部 fact claim 必须来自原文页面。
+**数据流规则**：任何公司级数据——不论来源（Playwright/PDF/WebSearch/Quartr）——在写入 md 表格之前，必须先落地到 actuals._supplement。actuals 是 fact source，artifact 是 display。不落地则 pre_write_gate CHECK 16 会 block.
 
-### Source 优先级（强制）
+以下仅保留 stock-quickread 特有的执行流程。每一步都是强制步骤——不可跳过、不可替换。
 
-```
-1. actuals-resolved.json    本地缓存，机器采集，零延迟，最高置信
-   → 从 `source_map` 字段读取对应的 [S#](url) 标签。不在 artifact 中写裸 [actuals]。
-
-2. [S#] 公司披露            IR PDF、年报、AGM presentation、earnings transcript
-   → actuals 没有的字段：订单细节、管理层原话、产品路线图、产能计划
-   → WebFetch 验证原文 → 标 [S1-S9]
-
-3. [I#] 第三方              行业报告、新闻媒体(Bits&Chips等)、Yahoo Finance、卖方报告
-   → actuals 和公司披露都覆盖不到：市占率、TAM、竞争格局、卖方 target、consensus
-   → WebFetch/Playwright 验证原文 → 标 [I1-I20]
-
-同一 claim 只引用最高优先级的一个 source。
-例: Revenue → actuals 已有 → 不标 [S1]。Q1 订单 → actuals 没 → [S1]。TSMC占60%+ → 公司不披露 → [I1]。
-```
-
-### 二层数据管线
-
-| 层 | 来源 | 适用 |
-|---|---|---|
-| 0-Actuals | `actuals-resolved.json` — 本地缓存，已校验 | §3 财务表、§4 比率、Market Cap/PE。**不经过网络** |
-| 1-External | 公司 IR、年报 PDF、行业报告、卖方报告、新闻 | §1 业务拆分、§5 产能/定价/行业变化/叙事、§6 consensus、§7 多空、§9 事件 |
-
-### 页面抓取 Fallback 链
-
-WebFetch 经常失败（403/503/JS 渲染空返回）。**必须按优先级降级，不能只试一次就放弃：**
+Windows 用户：如果 python 命令报 UnicodeEncodeError，前面加 PYTHONIOENCODING=utf-8。
 
 ```
-Tier 1  WebFetch(url)                        — 静态页面，最快
-   ↓ 失败
-Tier 2  Playwright MCP browser_navigate + browser_snapshot  — JS 渲染、auth 墙
-   ↓ 失败
-Tier 3  bash: curl -sL url | python 提取正文    — 原始 HTML，最后手段
-   ↓ 失败
-Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradation
+Step 1: python .scripts/financial-data/financial_data.py
+          --market <market> --identifier <TICKER> --company-slug <slug> --industry <industry-slug> --mode lite
+        ★ 产出: _cache/financial-data/actuals-resolved.json
+        ★ 先执行 CLI，等待 actuals-resolved.json 就绪
+        ★ CLI 参数是 --identifier，不是 --ticker
+        ★ market: us/cn/hk/jp/kr/tw/eu
+        ★ Verify: Read 确认文件存在且 "statements" 非空
+        ★ Fail → STOP. 没有 actuals 不得继续.
+        ★ 如果 lite 模式缺 market_data，用 yfinance 补:
+          python -c "import yfinance as yf; t=yf.Ticker('<TICKER>'); print(t.info)"
+
+Step 2: python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>
+        ★ 产出: _cache/evidence/<TICKER>.evidence.json
+        ★ -t TICKER 是必填参数，不能省略
+        ★ Verify: 文件存在
+        ★ Fail → STOP. 不得手动创建 ledger.
+
+Step 3: Discovery — WebSearch 找候选 source URL
+        ★ 目标: ≥ 8 条候选 URL
+        ★ Fail → 有多少用多少，但必须报告缺少多少.
+
+Step 4: python .scripts/shared/verify-claim.py <url> --json（Tier 1→2→3）
+        ★ 每条候选 URL 至少尝试 Tier 1 HTTP
+        ★ Fail per URL → 标 [UNVERIFIED]. 全部 fail → STOP.
+
+Step 5: python .scripts/shared/download-image.py <url> --output <slug>（产品图）
+        Tier 2 fallback: browser_navigate → browser_evaluate 提取 base64 → --base64
+        ★ Product image best-effort. 拿不到标 [缺图] 不 block.
+
+Step 6: Write artifact
+        ★ pre_write_gate CHECK 15 自动校验（actuals/ledger 文件必须存在）
+        ★ 文件在 → 放行. 文件不在 → block + 给你补全命令
+
+Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+        + python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>
+        ★ auto 先跑，lint 再跑。两步 -t TICKER 都必填.
+        ★ Verify: 所有 [S#] 在 ledger 中有 entry，lint 无报错
+        ★ Fail → STOP. 不得手动编辑 ledger.
+
+Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
+        ★ 使用 --tickers 参数（单个 ticker 也用它）
+        ★ Best-effort. Fail → report and continue without appendix.
 ```
 
-**每个外部 claim 至少试到 Tier 2。** Tier 1+2 全失败才能标 [需查证]。
+## ⛔ HARD GATE（不可跳过）
 
-### 平台兼容
+收到 stock-quickread 触发词后，**必须先完成 Step 0-2 才能写任何内容**：
 
-| 工具 | Claude Code | Codex |
-|---|---|---|
-| WebFetch | `WebFetch` tool | 无内置——跳过 Tier 1 |
-| Playwright MCP | `mcp__playwright__browser_*` | 需安装 MCP server |
-| curl fallback | `Bash` tool | `run_shell_command` |
-| 最终降级 | `[需查证]` | `[需查证]` |
+0. 确定行业归属：
+   → 查会话上下文（当前讨论哪个行业/topic）
+   → WebSearch "<公司名> sector industry classification" 确认
+   → 对 workspace `industry/*/` 目录——能匹配就复用，不能则用新 slug
+1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
+2. python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --industry <industry-slug> --mode lite → 等待 `actuals-resolved.json` 就绪
+   （CLI 自动创建 industry/<slug>/companies/<ticker>/ 目录）
+3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
 
-> Codex 路径：WebSearch → Playwright MCP browser_navigate → curl → [需查证]。Claude Code 路径：WebSearch → WebFetch → Playwright MCP → curl → [需查证]。
-
-### 执行流程（Gate 式——每步有中间产物，下步检查上步）
-
-```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
-│  → 拉三表核心科目 + 分部 + 弹性 supplementary + market_data
-│  → 写入 _cache/financial-data/internal/actuals-resolved.json
-│  Gate: ls actuals-resolved.json → 不存在则 STOP。不做后续步骤。
-│
-├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
-│  → _cache/evidence/<TICKER>.evidence.json (must exist)
-│
-├─ Step 3: Discovery — WebSearch 找候选 URL
-│  Gate: 每条必查 claim 有 ≥2 个候选 URL
-│
-├─ Step 4: Verification — 按 Fallback 链逐条验证
-│  Tier 0: actuals-resolved.json → 直接取，ledger method=actuals
-│  Tier 1: WebFetch(url) → success? → ledger method=WebFetch, attempt logged
-│  Tier 2: Playwright browser_navigate → success? → ledger method=Playwright, attempt logged
-│  Tier 3: curl → success? → ledger method=curl, attempt logged
-│  Tier 4: [需查证] → only if ALL tiers failed, attempt logged as failed
-│  Gate: 每条 [I#] 的 attempts[] 数组有 ≥1 条 Tier 1-2 记录
-│
-├─ Step 5: 图片下载（HARD GATE——以下每一步必须执行，不可跳过）
-│  5a. 读 _scripts/download-product-image.js → 替换 {{TARGET_URL}}
-│  5b. Playwright MCP browser_run_code_unsafe → 解码 base64 → 写入 _cache/images/<product>.<ext>
-│  5c. Playwright 失败 → curl 直接取产品页 HTML → 提取 <img> src → curl 下载图片
-│  5d. 以上全失败 → 调用 Playwright browser_navigate 到产品页 → browser_take_screenshot
-│  5e. 以上全失败 → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
-│  5f. 标 [缺图] ——仅在 ledger 有 ≥1 条 image download attempt 记录后才允许
-│  Gate: ls _cache/images/<product>.* 有文件 → 通过。无文件 且 无 attempt 记录 → STOP，不可进入 Step 6。
-│
-├─ Step 6: Write artifact
-│  每句 claim 句尾 [S#](URL) / [I#](URL)
-│  已验证的 source 不额外标注——只标 [需查证]（未验证的 claim）
-│  表格式严格按模板（§3c=表, §4a=池, §5=锚点表+场景表+Ev列）
-│  Pre-write checklist: _cache/images/<product>.* 文件存在 ✅ | [缺图] 有 attempt 记录 ✅ | [需查证] ≤8 ✅
-│
-├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
-│  → 自动创建 ledger pending claims → agent 补 text/quote/section → verify
-│
-└─ Step 8: python _scripts/evidence_ledger.py lint + status
-   → anchors 对齐 ✅ + 0 fabrication_risk + coverage >80%
-```
-
-### Source 编号规则
-
-- `[S1]`–`[S9]`：公司披露（IR PDF、年报、AGM presentation）
-- `[I1]`–`[I20]`：第三方来源（行业报告、新闻、卖方、Yahoo Finance）
-- URL 取到页面级即可——不需要 #anchor fragment
-- 同一 URL 被多处引用 → 复用同一编号
-
-### Source 标记约定
-
-- 已验证的 source：`[S#](url)` 或 `[I#](url)`——不附加任何 badge。默认 `[S#]/[I#]` = 已验证。
-- 未验证的 claim：标 `[需查证]`——仅当所有 fallback 层级都失败后才使用。
-- actuals Tier 0：从 `source_map` 读取对应 [S#] 标签，不写裸 `[actuals]`。
-- 标记位置：正文句尾或表格 Ev 列。验证状态细节在 evidence ledger 中追踪，不在 artifact 中展示。
-
-### 反模式
-
-- ❌ 凭记忆构造 URL（`tsmc.com/SoIC`）——必须 WebFetch 验证过
-- ❌ 一个 WebSearch 摘要对应 3 个 claim 各挂不同 URL——摘要数字不能当 source
-- ❌ URL 返回 404 仍挂在 Resources 里——删掉，换能打开的
-- ❌ actuals-resolved.json 能拿的数字也去 WebSearch——直接读本地，零耗时
+三项全部完成前，禁止 Write/Edit artifact。违反 → 研究无 source、数字无 provenance、结论无依据。
 
 ## 心法
 
@@ -155,14 +94,13 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 
 ## 输出结构（严格按这个走）
 
+
+
+> **Appendix 执行**：写 artifact 正文之前先跑 actuals-to-appendix.py，输出嵌入上方的 ## Appendix。禁止留占位符。
+
 每一节都有篇幅上限。不到位可以更短，**绝不允许超长**。超长本身就是流水账的症状。
 
-**Pipeline 报告**（artifact 开头强制——执行报告，不能省略）：
-
-```
-> 2026-06-03 | <TICKER> | <PRICE> | MCap <VALUE>
-> Pipeline: actuals ✅ | [需查证] X | images ✅ | lint ✅ | coverage XX%
-```
+**Artifact 前置条件**：Write 前自动检查 actuals-resolved.json + evidence ledger 文件存在。缺则 block。
 
 ### 1. 一眼看懂
 
@@ -190,7 +128,7 @@ Tier 4  标 [需查证] + Resources 记录尝试过的 URL  — honest degradati
 
 **长这样**（焦点产品图 1-2 张）
 
-| ![产品](当前 topic 的 _cache/images/<slug>-<product>.png) |
+| ![产品](.cache/images/<slug>-<product>.png) |
 |---|
 | *产品名 — 功能（≤15字）* |
 
@@ -210,18 +148,10 @@ flowchart LR
 
 （同上结构——为什么重要 / 长这样 / 在什么位置 / 怎么收钱。焦点业务必须放图——找不到标 [缺图]，不能跳过。）
 
-> 图片只放焦点业务的。其他业务不配图。下载到 `当前 topic 的 _cache/images/<slug>-<product>.<ext>`，`<ext>` 使用脚本返回的 `images[0].extension`。
+> 图片只放焦点业务的。其他业务不配图。下载到公司 `.cache/images/`。
 >
-> **下载方法**（需要 Playwright MCP 插件）：
-> 1. 读 `_scripts/download-product-image.js`
-> 2. 替换 `{{TARGET_URL}}` 为目标页面 URL（公司 Media Kit → 产品页 → Google Images 搜索）
-> 3. 调用当前 session 暴露的 Playwright MCP `browser_run_code_unsafe` tool（code=替换后的脚本；tool id 以当前 tool list 为准）
-> 4. 解码返回的 `images[0].base64`，写入带实际 extension 的目标路径
->    - Windows PowerShell: `[IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($image.base64))`
->    - macOS: `IMAGE_BASE64="$base64" OUT_PATH="$outPath" python3 -c 'import base64,os,pathlib; pathlib.Path(os.environ["OUT_PATH"]).write_bytes(base64.b64decode(os.environ["IMAGE_BASE64"]))'`
-> 5. 所有途径都失败 → 标 `[缺图]`
->
-> **图片来源优先级**：① 公司官网 Media Kit → ② 产品页 hero image → ③ web search 产品图 → ④ 行业代表性图 → ⑤ `[缺图]`
+> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+> artifact 引用：`![产品](.cache/images/<slug>.png)`
 
 #### 其他业务
 
@@ -241,11 +171,11 @@ flowchart LR
 > 最多 5-8 个。不是词典，是聊天时怎么讲。
 
 ### 3. 钱从哪里来（数据表 + takeaway）
-> 数字来源：`industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json`
+> 数字来源：`industry/<industry>/companies/<ticker>/_cache/financial-data/actuals-resolved.json`
 
 **只有定性描述是片面认知**——读者无法判断哪个分部在 mattering、哪个在萎缩、哪里有异常。所以这一节由两部分组成：
 
-**(a) 生意模式判断**：agent 先判断 business model → 路由到 `references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
+**(a) 生意模式判断**：agent 先判断 business model → 路由到 workspace `.references/kpi-drivers/<template>.md` → 确定弹性指标 checklist + 2-3 个弹性比率。
 
 **(b) 关键财务数据表（标准+弹性）**
 
@@ -296,7 +226,7 @@ flowchart LR
 
 ### 4. Growth Drivers & KPIs
 
-> agent 先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
+> agent 先判断 business model → 路由 workspace `.references/kpi-drivers/<template>.md` → 确定弹性比率 + Driver 表列。
 
 **(a) 标准比率 pool**（从 actuals 取数，能算就算，算不出就跳过）：
 
@@ -350,11 +280,11 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 拿不到的标 [ND] 或 [未披露]。所有数字从 actuals/IR 算。
 
-> 泛化兜底已在 `financial-data --lite` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
+> 泛化兜底已在 `/financial-data` 弹性采集层完成（`supplementary.custom_metrics`）。§4 直接从 actuals 取数，不做二次搜索。
 
 **行业周期阶段**（1 句）：产能扩张 / 竞争激化 / 整合 / 衰退？公司领先扩张 / 跟随 / 反向收缩？
 
-### 5. 什么在驱动股价
+### 5. 什么在驱动股价 [→ Bridge: price_action, market_quote]
 > 数据锚点：actuals-resolved.json market_data + income_statement；股价历史：同文件缓存
 
 第一次看的人，读完这节应该理解这家公司**到底跟什么动**，不是记住三个变量叫 X、Y、Z。
@@ -407,7 +337,7 @@ Agent 遍历以下 pool，逐个检查 input 字段可用性，输出能算的�
 
 如果两个变量同时朝一个方向 → 可能 XX%。如果互相抵消 → 市场可能进入真空期——跟大盘漂。整个故事最大的裂缝在哪（1 句点出最脆的假设）。
 
-### 6. 市场在交易什么（consensus + 反向工程）
+### 6. 市场在交易什么（consensus + 反向工程）[→ Bridge: consensus, valuation_snapshot, valuation_peer]
 > 估值倍数：actuals-resolved.json market_data；Consensus：同文件 consensus 字段（best-effort）
 
 写"PE 25x vs 历史 18x，偏贵"是卖方水平。买方要回答的是**以当前估值，市场在隐含什么假设**——然后判断"我同意 / 不同意这个假设"。这是 alpha 的起点。
@@ -458,10 +388,17 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 
 这一节不是完整 thesis，只是把后续 `alpha-thesis` 的 variant view 起点暴露出来。
 
-### 9. 最近在发生什么
-> 股价：actuals-resolved.json market_data（yfinance 缓存）；事件：web search
+### 9. 最近在发生什么 [→ Bridge: news, price_action]
+> 股价：actuals-resolved.json market_data（yfinance 缓存）；新闻：DDG 脚本搜
 
 **股价**：从 <日期> <价格> → 现在 <价格>，<涨跌幅>。同期大盘/板块 <涨跌幅>。[I#](https://finance.yahoo.com/...)
+
+**新闻采集**：
+```bash
+python .scripts/shared/search.py --query "<Native Name> <ticker>" --news
+python .scripts/shared/search.py --query "<Company EN> <ticker>" --news
+```
+返回 3-8 条结构化新闻（title + URL + snippet），过滤行情页。
 
 **事件**（每条带 source）：
 - <日期> <事件> → 股价 <涨跌 X%> [S#](...)
@@ -475,7 +412,6 @@ NTM 收入、EBITDA、EPS、关键 KPI 的卖方一致预期。最近 3-6 个月
 - 正例："Permian 老井 decline rate 从 2023 年的 X% 是否已加速到 Y%？哪份数据可以验证（公司 Q 表 / Enverus / Rystad）？"
 
 如果 quickread 发现收入结构复杂、segment bucket 怪、model driver 不清楚，下一步不要在 quickread 内完整展开。明确推荐 `driver-map`，让它单独拆 `Reported Bucket → Business Reality → Model Driver`。
-
 
 ## Artifact / 保存策略
 
@@ -524,15 +460,17 @@ industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-s
 - `ticker-slug` 从展示 ticker 规范化而来：小写，空格 / 点号 / 斜杠转 `-`，保留市场后缀（如 `6777-jp`、`spcx-us`、`0522-hk`、`xk4-de`）。
 - `company-slug` 从公司名规范化而来（如 `mycronic`、`robotchnik`）。如果公司未上市或 ticker 待定，用 `no-ticker-<company-slug>`，不要只写公司名。
 
+## Coverage 更新
+
+完成 `stock-quickread` 后，必须检查 workspace 根目录 `COVERAGE.md`：
+
+- 若公司尚未注册，新增一行，默认 `Coverage = Building Coverage`、`Monitor = Daily Watch`。
+- 若公司已是 `Radar`，升级为 `Building Coverage`，保留或补充 `Monitor = Daily Watch`。
+- 不因为一篇 `stock-quickread` 直接升级到 `Core Coverage`；`Core Coverage` 由 `alpha-thesis`、`peer-deep-dive`、`earnings-setup`、`scenario-model`、`driver-map`、`catalyst-map` 等 deep-work artifact 完成后触发 review。
+- 同步更新 `Last Review` 为 artifact 日期，`Next Trigger` 写成下一次真正需要回看的事件或数据点。
+
 ## 篇幅基准
 
-- 标准 quickread：1800-2500 字。低于 1800 说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 2500 说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
+- 标准 quickread：120-165 行。低于 120 行说明 §5 驱动因素展开不足——这是全文最有信息量的节。超过 165 行说明在替 `company-history` 或 `driver-map` 干活，应拆分或去重。
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

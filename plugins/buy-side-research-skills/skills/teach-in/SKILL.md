@@ -9,9 +9,13 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- This skill MUST NOT make any investment judgment. It is a pure engineering-literacy builder. Hand off to `industry-landscape`, `mechanism-insight`, or downstream research skills for investment conclusions.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -53,6 +57,25 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 | **保存** | 是否落盘 | 默认对话输出；用户要求保存时落 topic artifact |
 
 ## 输出结构
+```markdown
+# <Topic> — Teach-In
+
+> DATE | 8 层物理直觉建立
+
+## Layer 1: 这是什么（一句话+类比）
+## Layer 2: 空间拓扑（尺寸/重量/环境）
+## Layer 3: 怎么造的（制造流程+瓶颈）
+## Layer 4: 性能指标（关键spec+检测方法）
+## Layer 5: 成本结构（BOM+良率+成本驱动）
+## Layer 6: 竞争格局（谁在做+差异化）
+## Layer 7: 技术路线（代际迭代+下一代方向）
+## Layer 8: 投资含义
+
+---
+
+## Resources
+```
+
 
 ### 7+1 层认知递进
 
@@ -112,16 +135,17 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 | 3.5 | 必须（材料×功能矩阵） | **必须**（材料实物/晶圆/截面 SEM） | 必须（材料名+特性） | 必须（晶圆尺寸/厚度对比） | 不需要 | 不需要 | MatWeb/CRC/材料数据库/晶圆厂 |
 | 4 | 必须（全链流程图） | **必须**（关键设备实物） | 必须（每道工序） | 不需要 | **必须**（⭐⭐⭐） | **必须**（若设备行业） | 官网设备页/招股书/行业报告 |
 | 5 | 必须（代际对照图） | 不需要 | 必须（新技术名词） | 不需要 | 不需要 | 不需要 | 标准组织/代际 roadmap |
-| 6 | 不需要（纯表格） | **必须**（代表公司产品/logo 图） | 不需要 | 不需要 | 不需要 | **必须**（设备段百分比） | 招股书/公司官网/行业报告 |
+| 6 | 不需要（纯表格） | **必须**（代表公司产品图） | 不需要 | 不需要 | 不需要 | **必须**（设备段百分比） | 招股书/公司官网/行业报告 |
 | 文末 | 不需要 | 不需要 | 不需要 | 不需要 | — | — | — |
 
 ### 图片要求
 
 **实物图下载优先级**：公司官网 Media Kit → 产品页 hero image → web search 产品图 → 行业代表性图 → `[缺图]`
 
-下载到 `_cache/images/`；产物内嵌 `![描述](相对路径)`。
+下载到行业 `.cache/images/teach-in/`。
 
-**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` + 设 `{{MAX_IMAGES}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic teach-in` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+artifact 引用：`![描述](.cache/images/teach-in/<slug>.png)`
 
 **ASCII 架构图**：我来画。每层至少 1 张。
 
@@ -184,9 +208,9 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
+industry/<industry-slug>/panorama/teach-in/YYYY-MM-DD-teach-in-<qualifier>.md
 ```
 
 路径解析由 agent 按 policy baseline §11 自动完成。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
@@ -277,7 +301,7 @@ industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
 | **问题** | 这东西是什么 | 行业值不值得投 | 机制怎么运作 |
 | **投研判断** | **零** | 行业级 | 机制级 |
 | **覆盖** | 全链科普 | 全行业产业链+价值池 | 1-2 个机制深挖 |
-| **图片** | 实物图 ≥10 张（必须） | 公司 logo + 产品实物图（必须） | 产品实物图（必须） |
+| **图片** | 实物图 ≥10 张（必须） | 产品实物图（必须） | 产品实物图（必须） |
 | **产物长度** | 8000-12000 字 | 2000-3000 字 | 1000-1800 字 |
 
 - `teach-in` 是 `industry-landscape` 和 `mechanism-insight` 的**前置条件**，不是替代品。

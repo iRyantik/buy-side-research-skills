@@ -1,0 +1,210 @@
+{
+  "_meta": {
+    "version": "5.42.0",
+    "description": "Unified source capability matrix for buy-side research data routing. Single source of truth for capability→source priority chains. route.py reads this file at runtime to resolve data requests.",
+    "last_updated": "2026-06-09"
+  },
+
+  "sources": {
+    "actuals_cache": {
+      "type": "local",
+      "description": "Structured financial actuals + market data snapshot written by financial-data CLI",
+      "markets": ["US", "HK", "SH", "SZ", "JP", "KR", "TW", "EU"],
+      "capabilities": [
+        "income_statement", "balance_sheet", "cash_flow", "revenue_split",
+        "market_quote", "valuation_snapshot", "valuation_history",
+        "dividend", "market_cap", "pe", "pb", "ps", "ev_ebitda"
+      ],
+      "freshness": "180d",
+      "cost": "instant",
+      "check": "file_exists",
+      "path_pattern": "industry/*/companies/{ticker}/_cache/financial-data/actuals-resolved.json"
+    },
+    "longbridge_mcp": {
+      "type": "mcp",
+      "description": "Longbridge MCP server — 145 tools, OAuth authenticated",
+      "markets": ["US", "HK", "SH", "SZ", "SG"],
+      "capabilities": [
+        "market_quote", "valuation_snapshot", "valuation_peer", "valuation_history",
+        "valuation_rank", "industry_valuation", "industry_valuation_dist",
+        "price_action", "price_intraday", "price_history",
+        "consensus", "forecast_eps",
+        "financial_snapshot", "financial_snapshot_detail",
+        "financial_statement", "financial_report",
+        "business_segments",
+        "news", "filings", "calendar",
+        "dividend", "shareholder", "shareholder_top", "executive",
+        "institution_rating", "institutional_views",
+        "fx_snapshot", "adr_ah_premium",
+        "broker_holding", "market_temperature", "top_movers",
+        "industry_peers", "market_status", "operating",
+        "screener", "market_screen", "short_positions"
+      ],
+      "freshness": "realtime",
+      "cost": "~1s",
+      "check": "mcp_connected",
+      "tool_prefix": "mcp__longbridge__",
+      "endpoint": "https://openapi.longbridge.com/mcp"
+    },
+    "yfinance": {
+      "type": "python_lib",
+      "description": "yfinance — universal market data fallback (15min delayed for US)",
+      "markets": ["US", "HK", "SH", "SZ", "JP", "KR", "TW", "EU", "SG", "GB", "CA", "AU", "IN", "BR", "MX"],
+      "capabilities": [
+        "market_quote", "valuation_snapshot", "financial_snapshot",
+        "dividend", "price_action", "price_history",
+        "market_cap", "pe", "pb", "ps"
+      ],
+      "freshness": "~15min delayed",
+      "cost": "~2s",
+      "role": "universal_fallback",
+      "tool": "python",
+      "python_module": "yfinance"
+    },
+    "financial_data_cli": {
+      "type": "cli",
+      "description": "financial-data CLI — source-tracked structured actuals from primary public providers",
+      "markets": ["US", "HK", "CN", "JP", "KR", "TW", "EU"],
+      "capabilities": [
+        "income_statement", "balance_sheet", "cash_flow", "revenue_split",
+        "market_quote", "valuation_snapshot", "dividend",
+        "filing_index", "identity"
+      ],
+      "freshness": "per-filing",
+      "cost": "~30s",
+      "role": "source_of_record",
+      "tool": "skill:financial-data",
+      "providers": {
+        "US": {"name": "sec_edgartools", "type": "primary_public", "credential": "EDGAR_IDENTITY"},
+        "HK": {"name": "akshare", "type": "third_party", "credential": null},
+        "CN": {"name": "akshare", "type": "third_party", "credential": null},
+        "JP": {"name": "edinet_tools", "type": "primary_public", "credential": "EDINET_API_KEY"},
+        "KR": {"name": "dart_fss", "type": "primary_public", "credential": "DART_API_KEY"},
+        "TW": {"name": "finmind", "type": "third_party", "credential": "FINMIND_TOKEN"},
+        "EU": {"name": "openesef", "type": "primary_public", "credential": null}
+      },
+      "internal_fill_chain": ["yfinance", "longbridge_mcp", "WebSearch", "GoogleFinance"]
+    },
+    "web_search": {
+      "type": "tool",
+      "description": "WebSearch / WebFetch — final fallback for any data type",
+      "markets": ["*"],
+      "capabilities": ["*"],
+      "freshness": "varies",
+      "cost": "~5s",
+      "role": "last_resort",
+      "tool": "WebSearch"
+    }
+  },
+
+  "chains": {
+    "market_quote":           ["actuals_cache", "longbridge_mcp", "yfinance", "web_search"],
+    "price_action":           ["longbridge_mcp", "yfinance", "web_search"],
+    "price_intraday":         ["longbridge_mcp", "web_search"],
+    "price_history":          ["longbridge_mcp", "yfinance", "web_search"],
+
+    "valuation_snapshot":     ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "valuation_peer":         ["longbridge_mcp", "yfinance"],
+    "valuation_history":      ["longbridge_mcp", "actuals_cache", "yfinance"],
+    "valuation_rank":         ["longbridge_mcp"],
+    "industry_valuation":     ["longbridge_mcp"],
+    "industry_valuation_dist":["longbridge_mcp"],
+
+    "consensus":              ["longbridge_mcp"],
+    "forecast_eps":           ["longbridge_mcp"],
+
+    "financial_snapshot":     ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "financial_snapshot_detail":["longbridge_mcp"],
+    "financial_statement":    ["actuals_cache", "financial_data_cli", "longbridge_mcp"],
+    "financial_report":       ["actuals_cache", "financial_data_cli", "longbridge_mcp"],
+    "business_segments":      ["longbridge_mcp", "actuals_cache"],
+
+    "income_statement":       ["actuals_cache", "financial_data_cli"],
+    "balance_sheet":          ["actuals_cache", "financial_data_cli"],
+    "cash_flow":              ["actuals_cache", "financial_data_cli"],
+    "revenue_split":          ["actuals_cache", "financial_data_cli"],
+
+    "news":                   ["longbridge_mcp", "web_search"],
+    "filings":                ["longbridge_mcp", "web_search"],
+    "calendar":               ["longbridge_mcp", "web_search"],
+
+    "dividend":               ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "shareholder":            ["longbridge_mcp"],
+    "shareholder_top":        ["longbridge_mcp"],
+    "executive":              ["longbridge_mcp"],
+
+    "institution_rating":     ["longbridge_mcp"],
+    "institutional_views":    ["longbridge_mcp"],
+
+    "fx_snapshot":            ["longbridge_mcp"],
+    "adr_ah_premium":         ["longbridge_mcp"],
+
+    "broker_holding":         ["longbridge_mcp"],
+    "market_temperature":     ["longbridge_mcp"],
+    "top_movers":             ["longbridge_mcp"],
+    "market_status":          ["longbridge_mcp"],
+    "operating":              ["longbridge_mcp"],
+    "short_positions":        ["longbridge_mcp"],
+
+    "industry_peers":         ["longbridge_mcp"],
+    "screener":               ["longbridge_mcp"],
+    "market_screen":          ["longbridge_mcp"],
+
+    "identity":               ["financial_data_cli"],
+    "filing_index":           ["financial_data_cli", "longbridge_mcp"]
+  },
+
+  "tool_map": {
+    "longbridge_mcp": {
+      "market_quote":             "mcp__longbridge__quote",
+      "valuation_snapshot":       "mcp__longbridge__valuation",
+      "valuation_peer":           "mcp__longbridge__valuation_comparison",
+      "valuation_history":        "mcp__longbridge__valuation_history",
+      "valuation_rank":           "mcp__longbridge__valuation_rank",
+      "industry_valuation":       "mcp__longbridge__industry_valuation",
+      "industry_valuation_dist":  "mcp__longbridge__industry_valuation_dist",
+      "price_action":             "mcp__longbridge__candlesticks",
+      "price_intraday":           "mcp__longbridge__intraday",
+      "price_history":            "mcp__longbridge__history_candlesticks_by_date",
+      "consensus":                "mcp__longbridge__consensus",
+      "forecast_eps":             "mcp__longbridge__forecast_eps",
+      "financial_snapshot":       "mcp__longbridge__financial_report_latest",
+      "financial_snapshot_detail":"mcp__longbridge__financial_report_snapshot",
+      "financial_statement":      "mcp__longbridge__financial_statement",
+      "financial_report":         "mcp__longbridge__financial_report",
+      "business_segments":        "mcp__longbridge__business_segments",
+      "news":                     "mcp__longbridge__news",
+      "filings":                  "mcp__longbridge__filings",
+      "calendar":                 "mcp__longbridge__finance_calendar",
+      "dividend":                 "mcp__longbridge__dividend",
+      "shareholder":              "mcp__longbridge__shareholder",
+      "shareholder_top":          "mcp__longbridge__shareholder_top",
+      "executive":                "mcp__longbridge__executive",
+      "institution_rating":       "mcp__longbridge__institution_rating",
+      "institutional_views":      "mcp__longbridge__institutional_views",
+      "fx_snapshot":              "mcp__longbridge__exchange_rate",
+      "adr_ah_premium":           "mcp__longbridge__ah_premium",
+      "broker_holding":           "mcp__longbridge__broker_holding",
+      "market_temperature":       "mcp__longbridge__market_temperature",
+      "top_movers":               "mcp__longbridge__top_movers",
+      "market_status":            "mcp__longbridge__market_status",
+      "operating":                "mcp__longbridge__operating",
+      "short_positions":          "mcp__longbridge__short_positions",
+      "industry_peers":           "mcp__longbridge__industry_peers",
+      "screener":                 "mcp__longbridge__screener_search",
+      "market_screen":            "mcp__longbridge__top_movers"
+    },
+    "yfinance": {
+      "market_quote":       "yfinance.Ticker.info",
+      "valuation_snapshot": "yfinance.Ticker.info",
+      "price_action":       "yfinance.Ticker.history",
+      "price_history":      "yfinance.Ticker.history",
+      "dividend":           "yfinance.Ticker.dividends",
+      "financial_snapshot": "yfinance.Ticker.info",
+      "market_cap":         "yfinance.Ticker.info[marketCap]",
+      "pe":                 "yfinance.Ticker.info[trailingPE]",
+      "pb":                 "yfinance.Ticker.info[priceToBook]",
+      "ps":                 "yfinance.Ticker.info[priceToSalesTrailing12Months]"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Coverage Map
 
-> 本文件是全局行业+公司覆盖表。new-session 自动注册，研究过程中维护。
+> 本文件是 workspace coverage source of truth。研究过的公司进入表；`coverage-monitor` 消费本表生成日报和盘中提醒。
 
-| 行业 | 公司 | Ticker | 主行业 | 文件位置 | 最新 artifact | 状态 |
-|---|---|---|---|---|---|---|
+| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
+|---|---|---|---|---|---|---|---|---|---|

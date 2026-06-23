@@ -21,6 +21,7 @@ POST_TOOL_USE_RULES = [
     # Global structure & source
     "source_contract",
     "table_render_integrity",
+    "mermaid_syntax",
     "image_exists",
     "data_claim_cross_check",
     "subagent_protocol",
@@ -38,7 +39,11 @@ POST_TOOL_USE_RULES = [
 ]
 STOP_RULES = [
     "source_contract",
+    "table_render_integrity",
+    "mermaid_syntax",
     "evidence_ledger_floor",
+    "research_memory_gate",
+    "pdf_auto_cache",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [

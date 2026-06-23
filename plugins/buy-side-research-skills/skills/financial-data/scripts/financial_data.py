@@ -6,32 +6,37 @@ segment interpretation, and business insights are left for LLM/research skills
 at query time.
 
 Output contract:
-  _raw/.../provider_payload.json
-  _raw/.../identity-source.json
-  _raw/.../filings/<filing-id>/source.*
-  _raw/.../filings/<filing-id>/source-metadata.json
-  _raw/.../filings/<filing-id>/source.sha256
+  .raw/.../provider_payload.json
+  .raw/.../identity-source.json
+  .raw/.../filings/<filing-id>/source.*
+  .raw/.../filings/<filing-id>/source-metadata.json
+  .raw/.../filings/<filing-id>/source.sha256
 
-  _cache/.../manifest.json
-  _cache/.../identity.json
-  _cache/.../filing-index.json
-  _cache/.../financials.normalized.json
-  _cache/.../financials.md
-  _cache/.../full-filing.md
-  _cache/.../full-filing.chunks.jsonl
-  _cache/.../full-filing.index.json
-  _cache/.../completeness.json
-  _cache/.../source-map.json
-  _cache/.../cross-check.json
+  .cache/.../manifest.json
+  .cache/.../identity.json
+  .cache/.../filing-index.json
+  .cache/.../financials.normalized.json
+  .cache/.../financials.md
+  .cache/.../full-filing.md
+  .cache/.../full-filing.chunks.jsonl
+  .cache/.../full-filing.index.json
+  .cache/.../completeness.json
+  .cache/.../source-map.json
+  .cache/.../cross-check.json
 
 Modeling input aliases:
-  industry/<industry>/companies/<ticker>/_cache/financial-data/financial-data-summary.md
-  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/evidence-pack.json
-  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json
-  industry/<industry>/companies/<ticker>/_cache/financial-data/internal/full-filing.md
+  industry/<industry>/companies/<ticker>/.cache/financial-data/financial-data-summary.md
+  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/evidence-pack.json
+  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/actuals-resolved.json
+  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/full-filing.md
 """
 
 from __future__ import annotations
+
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
 
 import argparse
 import datetime as dt
@@ -57,11 +62,420 @@ FINANCIAL_OUTPUT_KEYS = (
     "cash_flow_quarterly_derived",
 )
 
-SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot")
+SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot", "lite", "full")
 
 # Third-party normalized-data providers: their output is never model-ready
 THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
 OFFICIAL_EVIDENCE_PROVIDERS = {"edgartools", "dart-fss", "edinet-tools", "openesef"}
+
+# Lite/full field boundaries
+LITE_FIELDS = {
+    "income_statement": {
+        "revenue", "cogs", "gross_profit", "sg_and_a", "r_and_d",
+        "operating_income", "ebit", "ebitda", "interest_expense",
+        "income_tax", "net_income", "eps",
+    },
+    "balance_sheet": {
+        "cash", "accounts_receivable", "inventory",
+        "total_assets", "total_equity", "total_debt",
+    },
+    "cash_flow": {
+        "operating_cf", "capex", "dividends_paid",
+    },
+    "supplementary": {
+        "order_backlog", "orders", "employees",
+    },
+}
+
+FULL_EXTRA_FIELDS = {
+    "income_statement": {
+        "pre_tax_income", "sbc", "d_and_a", "amortization",
+    },
+    "balance_sheet": {
+        "short_term_debt", "long_term_debt", "goodwill", "intangible_assets",
+        "total_current_assets", "total_current_liabilities", "bonds_payable",
+    },
+    "cash_flow": {
+        "d_and_a", "buybacks", "free_cash_flow",
+    },
+    "supplementary": {
+        "installed_base", "arr", "nrr", "grr", "churn",
+        "customer_count", "production_volume", "utilization_pct",
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Concept mapping: parse statement-line-items.md → {concept_alias: standard_field}
+# ---------------------------------------------------------------------------
+_concept_map_cache = None
+
+# Standard field name aliases: canonical name / variant → LITE_FIELDS-compatible key
+_FIELD_ALIASES = {
+    "revenue": "revenue", "sales": "revenue", "cogs": "cogs",
+    "cost_of_revenue": "cogs", "cost_of_goods_sold": "cogs",
+    "gross_profit": "gross_profit", "sg&a": "sg_and_a", "r&d": "r_and_d",
+    "operating_income": "operating_income", "ebit": "ebit", "ebitda": "ebitda",
+    "interest_expense": "interest_expense", "income_tax": "income_tax",
+    "pre_tax_income": "pre_tax_income", "pre-tax_income": "pre_tax_income",
+    "net_income": "net_income", "eps": "eps", "sbc": "sbc",
+    "d&a": "d_and_a", "d_and_a": "d_and_a", "amortization": "amortization",
+    "cash": "cash", "accounts_receivable": "accounts_receivable",
+    "inventory": "inventory", "total_current_assets": "total_current_assets",
+    "goodwill": "goodwill", "intangible_assets": "intangible_assets",
+    "total_assets": "total_assets", "short_term_debt": "short_term_debt",
+    "short-term_debt": "short_term_debt", "long_term_debt": "long_term_debt",
+    "long-term_debt": "long_term_debt", "total_debt": "total_debt",
+    "total_liabilities": "total_liabilities", "total_equity": "total_equity",
+    "market_cap": "market_cap", "bonds_payable": "bonds_payable",
+    "total_current_liabilities": "total_current_liabilities",
+    "operating_cf": "operating_cf", "capex": "capex",
+    "dividends": "dividends_paid", "dividends_paid": "dividends_paid",
+    "buybacks": "buybacks", "free_cash_flow": "free_cash_flow",
+    "order_backlog": "order_backlog", "orders": "orders",
+    "book_to_bill": "book_to_bill", "installed_base": "installed_base",
+    "employees": "employees", "customer_count": "customer_count",
+    "arr": "arr", "nrr": "nrr", "grr": "grr", "churn": "churn",
+    "production_volume": "production_volume", "utilization_pct": "utilization_pct",
+    # AKShare / Eastmoney provider codes (CN)
+    "total_operate_income": "revenue", "operate_income": "operating_income",
+    "total_operate_cost": "cogs", "operate_cost": "cogs",
+    "sale_expense": "sg_and_a", "admin_expense": "sg_and_a",
+    "research_expense": "r_and_d", "develop_expense": "r_and_d",
+    "finance_expense": "interest_expense",
+    "income_tax_expense": "income_tax",
+    "netprofit_atsopc": "net_income", "net_profit": "net_income",
+    "gross_profit_is": "gross_profit",
+    "accounts_rece": "accounts_receivable", "inventories": "inventory",
+    "monetary_cap": "cash",
+    "goodwill_bs": "goodwill",
+    "shortterm_borrow": "short_term_debt", "longterm_borrow": "long_term_debt",
+    "bond_payable": "bonds_payable",
+    "total_current_liability": "total_current_liabilities",
+    "total_equity_atsopc": "total_equity",
+    "net_cash_flows_oper": "operating_cf", "net_cash_flows_oper_act": "operating_cf",
+    "purchase_assets": "capex",
+    "dividend_paid": "dividends_paid",
+    "eps_basic": "eps", "diluted_eps": "eps",
+    # EDINET JP provider codes
+    "net_sales": "revenue",
+    "ordinary_income": "pre_tax_income", "ordinary_profit": "pre_tax_income",
+    "profit_loss": "net_income",
+    "total_assets_bs": "total_assets", "net_assets": "total_equity",
+    "net_cash_provided_by_used_in_operating_activities": "operating_cf",
+    "purchase_of_property_plant_and_equipment": "capex",
+    # DART KR provider codes
+    "ifrs_revenue": "revenue", "ifrs_operating_profit_loss": "operating_income",
+    "ifrs_profit_loss": "net_income", "ifrs_total_assets": "total_assets",
+    # Chinese CN concept names (AKShare / Eastmoney)
+    "营业总收入": "revenue", "营业收入": "revenue", "营业总成本": "cogs", "营业成本": "cogs",
+    "营业利润": "operating_income", "利润总额": "pre_tax_income", "净利润": "net_income",
+    "归属于母公司股东的净利润": "net_income", "归母净利润": "net_income",
+    "研发费用": "r_and_d", "销售费用": "sg_and_a", "管理费用": "sg_and_a",
+    "财务费用": "interest_expense", "利息费用": "interest_expense",
+    "资产总计": "total_assets", "总资产": "total_assets",
+    "负债合计": "total_liabilities", "总负债": "total_liabilities",
+    "股东权益合计": "total_equity", "总权益": "total_equity",
+    "经营活动产生的现金流量净额": "operating_cf", "经营现金流": "operating_cf",
+    "购建固定资产、无形资产和其他长期资产支付的现金": "capex",
+    "基本每股收益": "eps", "稀释每股收益": "eps",
+    "货币资金": "cash", "应收账款": "accounts_receivable", "存货": "inventory",
+    "商誉": "goodwill", "短期借款": "short_term_debt", "长期借款": "long_term_debt",
+    # Japanese JP concept names (EDINET)
+    "売上高": "revenue", "営業利益": "operating_income", "経常利益": "pre_tax_income",
+    "当期純利益": "net_income", "親会社株主に帰属する当期純利益": "net_income",
+    "総資産": "total_assets", "純資産": "total_equity", "負債": "total_liabilities",
+    "営業活動によるキャッシュ・フロー": "operating_cf",
+    # Korean KR concept names (DART)
+    "매출액": "revenue", "영업이익": "operating_income", "당기순이익": "net_income",
+    "자산총계": "total_assets", "부채총계": "total_liabilities", "자본총계": "total_equity",
+}
+
+# Common SEC US GAAP XBRL concept → standard field mappings
+# Complements statement-line-items.md label-based mappings with CamelCase XBRL concepts
+_SEC_CONCEPT_MAP = {
+    # Income Statement
+    "revenues": "revenue",
+    "revenuefromcontractwithcustomerincludingassessedtax": "revenue",
+    "revenuefromcontractwithcustomerexcludingassessedtax": "revenue",
+    "costofgoodsandservicessold": "cogs",
+    "costofrevenue": "cogs",
+    "costofsales": "cogs",
+    "grossprofit": "gross_profit",
+    "grossprofit_calculated": "gross_profit",
+    "sellinggeneralandadministrativeexpense": "sg_and_a",
+    "researchanddevelopmentexpense": "r_and_d",
+    "operatingincomeloss": "operating_income",
+    "interestexpense": "interest_expense",
+    "interestexpensenonoperating": "interest_expense",
+    "incometaxexpensebenefit": "income_tax",
+    "incomelossfromcontinuingoperationsbeforeincometaxesextraordinaryitemsnoncontrollinginterest": "pre_tax_income",
+    "netincomeloss": "net_income",
+    "profitloss": "net_income",
+    "incomelossfromcontinuingoperations": "net_income",
+    "earningspersharebasic": "eps",
+    "earningspersharediluted": "eps",
+    "incomelossfromcontinuingoperationsperbasicshare": "eps",
+    "incomelossfromcontinuingoperationsperdilutedshare": "eps",
+    "weightedaveragenumberofsharesoutstandingbasic": "shares_outstanding",
+    "weightedaveragenumberofdilutedsharesoutstanding": "shares_outstanding",
+    "sharebasedcompensation": "sbc",
+# EDINET/DART provider concept mappings (snake_case English → standard)
+"net_sales": "revenue",
+"total_revenue": "revenue",
+"operating_income": "ebit",
+"ordinary_income": "ebt",
+"net_income": "net_income",
+"income_before_taxes": "pre_tax_income",
+"non_operating_income": "non_operating_income",
+"non_operating_expenses": "non_operating_expenses",
+"income_taxes": "income_tax",
+"total_assets": "total_assets",
+"current_assets": "current_assets",
+"noncurrent_assets": "noncurrent_assets",
+"cash_and_deposits": "cash",
+"property_plant_equipment": "ppe",
+"deferred_tax_assets": "deferred_tax_assets",
+"total_liabilities": "total_liabilities",
+"current_liabilities": "current_liabilities",
+"net_assets": "equity",
+"retained_earnings": "retained_earnings",
+"short_term_loans_payable": "short_term_debt",
+"long_term_loans_payable": "long_term_debt",
+"bonds_payable": "bonds_payable",
+"commercial_paper": "commercial_paper",
+"operating_cash_flow": "operating_cf",
+"investing_cash_flow": "investing_cf",
+"financing_cash_flow": "financing_cf",
+"depreciation_amortization": "depreciation",
+    "allocatedsharebasedcompensationexpense": "sbc",
+    "depreciation": "d_and_a",
+    "amortizationofintangibleassets": "amortization",
+    "adjustmentforamortization": "d_and_a",
+    # Balance Sheet
+    "cashandcashequivalentsatcarryingvalue": "cash",
+    "accountsreceivablenetcurrent": "accounts_receivable",
+    "inventorynet": "inventory",
+    "assets": "total_assets",
+    "goodwill": "goodwill",
+    "intangibleassetsnetexcludinggoodwill": "intangible_assets",
+    "propertyplantandequipmentnet": "ppe_net",
+    "stockholdersequity": "total_equity",
+    "assetscurrent": "total_current_assets",
+    "liabilitiescurrent": "total_current_liabilities",
+    "liabilities": "total_liabilities",
+    "liabilitiesandstockholdersequity": "total_assets",
+    "longtermdebt": "long_term_debt",
+    "longtermdebtcurrent": "short_term_debt",
+    "longtermdebtnoncurrent": "long_term_debt",
+    "accountspayablecurrent": "accounts_payable",
+    "operatingleaseliabilitycurrent": "short_term_debt",
+    "operatingleaseliabilitynoncurrent": "long_term_debt",
+    "retainedearningsaccumulateddeficit": "retained_earnings",
+    "additionalpaidincapital": "additional_paid_in_capital",
+    "commonstockvalue": "common_stock",
+    "preferredstockvalue": "preferred_stock",
+    # Cash Flow
+    "netcashprovidedbyusedinoperatingactivities": "operating_cf",
+    "paymentstoacquirepropertyplantandequipment": "capex",
+    "paymentsforrepurchaseofcommonstock": "buybacks",
+    "paymentsrelatedtotaxwithholdingforsharebasedcompensation": "buybacks",
+    "netcashprovidedbyusedininvestingactivities": "investing_cf",
+    "netcashprovidedbyusedinfinancingactivities": "financing_cf",
+    "paymentstoacquirebusinessesnetofcashacquired": "acquisitions",
+    "interestpaidnet": "interest_expense",
+    "incometaxespaidnet": "income_tax_paid",
+    "cashcashequivalentsrestrictedcashandrestrictedcashequivalentsperiodincreasedecreaseincludingexchangerateeffect": "change_in_cash",
+    "cashcashequivalentsrestrictedcashandrestrictedcashequivalents": "cash",
+    # Supplementary
+    "increasedecreaseinaccountsreceivable": "accounts_receivable",
+    "increasedecreaseininventories": "inventory",
+    "increasedecreaseinaccountspayable": "accounts_payable",
+}
+
+
+def _load_concept_map(workspace: Path = None) -> dict[str, str]:
+    """Parse statement-line-items.md → {concept_alias: standard_field}.
+
+    Dynamically builds a mapping from XBRL concepts, local-language labels,
+    and variant names to standard LITE_FIELDS-compatible field names.
+    Cached globally after first call.
+    """
+    global _concept_map_cache
+    if _concept_map_cache is not None:
+        return _concept_map_cache
+
+    if workspace is None:
+        try:
+            workspace = discover_workspace()
+        except RuntimeError:
+            _concept_map_cache = {}
+            return {}
+
+    template = workspace / ".references" / "policy" / "statement-line-items.md"
+    if not template.exists():
+        template = workspace / "references" / "policy" / "statement-line-items.md"
+    if not template.exists():
+        _concept_map_cache = {}
+        return {}
+
+    text = template.read_text(encoding="utf-8")
+    mapping = {}
+
+    # Parse each table row. Column indices: 1=标准科目, 3=US, 4=CN, 5=HK, 6=JP, 7=KR
+    for line in text.split("\n"):
+        if not line.startswith("|") or "---" in line:
+            continue
+        cols = [c.strip() for c in line.split("|")]
+        if len(cols) < 5:
+            continue
+
+        # Derive standard field name from column 1
+        col1 = cols[1].strip()
+        raw_name = col1.lower()
+        raw_name = raw_name.replace(" ", "_").replace("/", "_")
+        raw_name = raw_name.replace("(", "").replace(")", "").replace(".", "")
+        if not raw_name or raw_name in ("?", "—", "数据点", "符号", "标记", "科目"):
+            continue
+
+        std_name = _FIELD_ALIASES.get(raw_name)
+        if std_name is None:
+            # Try stripping parenthetical (e.g. "Total Equity (Parent)" → "Total Equity")
+            base = re.sub(r'\([^)]*\)', '', col1).strip().lower()
+            base = base.replace(" ", "_").replace("/", "_").replace(".", "")
+            std_name = _FIELD_ALIASES.get(base, raw_name)
+
+        # Extract all language-specific labels and map them to std_name
+        for col_idx in (3, 4, 5, 6, 7):
+            if col_idx >= len(cols):
+                continue
+            cell = cols[col_idx].strip()
+            if not cell or cell == "—":
+                continue
+            # Split on "/" and "or" for multiple label variants in one cell
+            parts = re.split(r'\s*/\s*|\s+or\s+', cell)
+            for part in parts:
+                key = part.strip().lower()
+                # Normalize: remove spaces, special chars; keep alphanumeric + CJK
+                key = re.sub(r'[^a-z0-9一-鿿぀-ゟ゠-ヿ가-힯]', '', key)
+                if key and len(key) >= 2:
+                    mapping.setdefault(key, std_name)
+
+    # Add FIELD_ALIASES keys as direct mappings (covers fields not in statement-line-items.md)
+    for alias, std_name in _FIELD_ALIASES.items():
+        mapping.setdefault(alias, std_name)
+
+    # Add SEC/EDINET/DART concept mappings (override FIELD_ALIASES identity mappings)
+    for concept, std_name in _SEC_CONCEPT_MAP.items():
+        mapping[concept] = std_name
+
+    _concept_map_cache = mapping
+    return mapping
+
+
+def _map_concept(concept: str, concept_map: dict = None) -> str:
+    """Map a provider concept/label to standard field name.
+
+    Examples:
+        'Revenues' → 'revenue'
+        'SellingGeneralAndAdministrativeExpense' → 'sg_and_a'
+        '売上高' → 'revenue' (JP label)
+        '매출' → 'revenue' (KR label)
+    """
+    if concept_map is None:
+        concept_map = _concept_map_cache or {}
+
+    if not concept or not isinstance(concept, str):
+        return concept.lower().replace(" ", "_") if concept else ""
+
+    # Try raw concept first (provider concepts like net_sales, operating_income)
+    raw_key = concept.lower()
+    if raw_key in concept_map:
+        return concept_map[raw_key]
+
+    # Normalize: lowercase, remove spaces and underscores
+    key = concept.lower().replace(" ", "").replace("_", "")
+
+    # Direct lookup
+    if key in concept_map:
+        return concept_map[key]
+
+    # Try stripping trailing 's' (plural → singular: Revenues → Revenue)
+    if key.endswith('s') and len(key) > 3:
+        key_singular = key[:-1]
+        if key_singular in concept_map:
+            return concept_map[key_singular]
+
+    # Fuzzy lookup: strip common XBRL concept suffixes
+    key_clean = re.sub(
+        r'(calculated|usd|atcarryingvalue|net|current|noncurrent|'
+        r'afterallowance|forcreditloss|parent|attributableto|'
+        r'fromcontractwithcustomer|abstract|member|'
+        r'total|segment)$', '', key
+    )
+    if key_clean and key_clean != key:
+        if key_clean in concept_map:
+            return concept_map[key_clean]
+        # Try again with trailing 's' stripped from cleaned key
+        if key_clean.endswith('s') and len(key_clean) > 3:
+            if key_clean[:-1] in concept_map:
+                return concept_map[key_clean[:-1]]
+
+    # Fallback: check _FIELD_ALIASES for local-language labels / provider codes
+    lower_concept = concept.lower()
+    if lower_concept in _FIELD_ALIASES:
+        return _FIELD_ALIASES[lower_concept]
+    if key in _FIELD_ALIASES:
+        return _FIELD_ALIASES[key]
+    # Last resort: return normalized concept name
+    return concept.lower().replace(" ", "_").replace("/", "_")
+
+
+# ---------------------------------------------------------------------------
+# Consumer helper: filter statements to lite/full field sets
+# ---------------------------------------------------------------------------
+def get_fields(statements: dict, mode: str = "lite") -> dict:
+    """Filter provider statements to lite or full field set.
+
+    Lite mode: keeps only fields in LITE_FIELDS (~46 fields).
+    Full mode: passes through all fields.
+    Consumer skills call this before reading actuals.
+    """
+    if mode == "full":
+        return statements
+
+    # Build flat allowed set from LITE_FIELDS
+    allowed = set()
+    for field_set in LITE_FIELDS.values():
+        allowed.update(field_set)
+
+    concept_map = _load_concept_map()
+
+    filtered = {}
+    for stmt_name, rows in statements.items():
+        kept_rows = []
+        for row in rows:
+            if not isinstance(row, dict):
+                kept_rows.append(row)
+                continue
+            concept = (row.get("concept") or "").lower()
+            label = (row.get("label") or "").lower()
+            if not concept and not label:
+                kept_rows.append(row)
+                continue
+
+            # Try concept first (works for SEC concepts + language labels)
+            std_name = _map_concept(concept, concept_map) if concept else ""
+            if not std_name or std_name not in allowed:
+                # Fallback: try matching via human-readable label field
+                if label:
+                    label_key = re.sub(r'[^a-z0-9]', '', label)
+                    std_name = _map_concept(label_key, concept_map)
+            if std_name in allowed:
+                kept_rows.append(row)
+        if kept_rows:
+            filtered[stmt_name] = kept_rows
+    return filtered
+
 
 PROVIDER_MODULES = {
     "us": "sec_provider",
@@ -89,6 +503,20 @@ def module_available(name: str) -> bool:
 def slugify(value: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.strip().lower())
     return value.strip("-") or "unknown"
+
+
+# Map internal market codes to yfinance ticker suffixes
+_YF_SUFFIX = {
+    "hk": "HK", "sh": "SS", "sz": "SZ",
+    "jp": "T", "kr": "KS", "tw": "TW", "sg": "SI",
+}
+
+
+def _yf_ticker(identifier: str, market: str) -> str:
+    suffix = _YF_SUFFIX.get(market.lower(), "")
+    if suffix and not identifier.upper().endswith(f".{suffix}"):
+        return f"{identifier}.{suffix}"
+    return identifier
 
 
 def sha256_file(path: Path) -> str:
@@ -124,17 +552,31 @@ def discover_workspace(source: Path | None = None) -> Path:
     for candidate in candidates:
         current = candidate if candidate.is_dir() else candidate.parent
         for parent in [current, *current.parents]:
-            if (parent / "topics").is_dir():
+            if (parent / "industry").is_dir():
                 return parent
     raise RuntimeError("Could not discover workspace. Pass --workspace or run init-workspace first.")
 
 
-def ensure_company_topic(workspace: Path, company_slug: str) -> Path:
-    tp = workspace / "topics" / "company" / company_slug
-    idx = tp / "index.md"
-    if not idx.exists():
-        raise RuntimeError(f"Company topic does not exist. Run new-session first. Missing: {idx}")
-    return tp
+def ensure_company_topic(workspace: Path, company_slug: str, industry_slug: str = "") -> Path:
+    # Search industry/*/companies/<slug> for the company directory
+    industry_dir = workspace / "industry"
+    if industry_dir.is_dir():
+        for ind in industry_dir.iterdir():
+            if not ind.is_dir():
+                continue
+            tp = ind / "companies" / company_slug
+            if tp.is_dir():
+                return tp
+    # Not found — auto-create under specified industry
+    if not industry_slug:
+        raise RuntimeError(
+            f"Company directory not found for {company_slug}. "
+            f"Pass --industry <slug> to auto-create under that industry."
+        )
+    target_ind = industry_dir / industry_slug
+    company_dir = target_ind / "companies" / company_slug
+    company_dir.mkdir(parents=True, exist_ok=True)
+    return company_dir
 
 
 def load_provider(market: str):
@@ -151,6 +593,13 @@ def load_provider(market: str):
 # Central normalizer
 # ---------------------------------------------------------------------------
 CONFIDENCE_ORDER = {"model-ready": 0, "evidence-ready": 1, "provider-normalized-review": 2, "partial": 3, "provider-gap": 4, "unavailable": 5, "failed": 5}
+
+
+def _safe_json_dump(data, path: Path):
+    """Write JSON with Unicode minus → ASCII hyphen normalization (#13)."""
+    text = json.dumps(data, indent=2, ensure_ascii=False, default=str)
+    text = text.replace("−", "-")  # Unicode minus sign
+    path.write_text(text + "\n", encoding="utf-8")
 
 # Policy: providers must fail honestly (provider_gap) when dependencies, credentials,
 # or market coverage are missing rather than returning empty partial results.
@@ -230,7 +679,9 @@ def normalize_result(provider_result: dict[str, Any], request: dict[str, Any]) -
 
 
 def filter_financials_by_period(financials: dict[str, Any], periods: str | None) -> dict[str, Any]:
-    if not financials or not periods or periods == "latest":
+    if not financials or not periods or periods in ("latest", "5Y"):
+        # latest: keep all periods (agent picks last FY+Q)
+        # 5Y: keep all periods (agent picks 5FY+4Q for modeling)
         return financials
 
     if is_latest4q_period_filter(str(periods)):
@@ -530,7 +981,7 @@ def period_basis_summary(rows: list[dict[str, Any]]) -> str:
 
 def build_financial_data_summary(evidence_pack: dict[str, Any],
                                  actuals_resolved: dict[str, Any],
-                                 internal_dir: Path) -> str:
+                                 out_dir: Path) -> str:
     """Build the single public Markdown entry for financial-data outputs."""
     manifest = evidence_pack.get("manifest", {})
     identity = evidence_pack.get("identity", {})
@@ -552,14 +1003,14 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
         f"- Provider: `{manifest.get('provider', evidence_pack.get('source_provider', 'unknown'))}`",
         f"- Period filter: `{manifest.get('periods', 'latest')}`",
         f"- Latest run cache: `{evidence_pack.get('latest_run_cache_path', '')}`",
-        f"- Internal machine data: `{internal_dir.name}/`",
+        f"- Machine data: `.cache/financial-data/`",
         "",
         "## Filing",
         "",
         f"- Filing status: `{filing.get('status', 'unavailable')}`",
         f"- Filing date: `{filing.get('filing_date') or ''}`",
         f"- Accession / document id: `{filing.get('accession_number') or filing.get('document_id') or ''}`",
-        f"- Full filing retained internally: `{bool(filing.get('has_full_filing_markdown'))}`",
+        f"- Full filing: `full-filing.md` ({'available' if filing.get('has_full_filing_markdown') else 'unavailable'})",
         "",
         "## Completeness Matrix",
         "",
@@ -613,7 +1064,7 @@ def build_financial_data_summary(evidence_pack: dict[str, Any],
     unmapped = actuals_resolved.get("unmapped_items", [])
     lines.extend(["", "## Model Input Policy", ""])
     lines.append("- Public surface is Markdown-only: this summary is the default file for humans and LLMs.")
-    lines.append("- Machine inputs are under `internal/`; modeling scripts should read JSON there and must not parse this Markdown for numbers.")
+    lines.append("- Machine inputs are under `.cache/financial-data/`; modeling scripts should read JSON there and must not parse this Markdown for numbers.")
     lines.append("- Missing or unmapped actuals must stay blank and be flagged for review; never convert them to zero.")
     if unmapped:
         lines.append("- Unmapped / unavailable items:")
@@ -771,10 +1222,10 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
                          workspace: Path, rid: str) -> dict[str, Any]:
     company_slug = slugify(args.company_slug)
     canonical_id = slugify(args.canonical_id or args.identifier)
-    topic_path = ensure_company_topic(workspace, company_slug)
-    rel_tail = Path("datasets") / "financial-data" / args.market / canonical_id / rid
-    raw_dir = topic_path / "_raw" / rel_tail
-    cache_dir = topic_path / "_cache" / rel_tail
+    topic_path = ensure_company_topic(workspace, company_slug, getattr(args, 'industry', '') or '')
+    rel_tail = Path("financial-data") / args.market / canonical_id / rid
+    raw_dir = topic_path / ".raw" / rel_tail
+    cache_dir = topic_path / ".cache" / rel_tail
     raw_dir.mkdir(parents=True, exist_ok=False)
     cache_dir.mkdir(parents=True, exist_ok=False)
 
@@ -797,7 +1248,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         "periods": args.periods, "mode": getattr(args, "mode", "latest_core"),
         "provider": provider, "provider_status": normalized["provider_status"], "status": status,
     }
-    identity_payload = company if company else {"identifier": args.identifier}
+    identity_payload = company if company else {"identifier": args.identifier, "ticker": args.identifier}
     write_json(cache_dir / "manifest.json", manifest)
     write_json(cache_dir / "identity.json", identity_payload)
 
@@ -806,7 +1257,6 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         write_json(cache_dir / "filing-index.json", filing)
         filing_md = filing.get("markdown", "")
         if filing_md:
-            write_md(cache_dir / "full-filing.md", filing_md)
             chunks = chunk_full_filing(filing_md)
             write_jsonl(cache_dir / "full-filing.chunks.jsonl", chunks)
             write_json(cache_dir / "full-filing.index.json", {
@@ -836,7 +1286,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     source_map = _build_source_map(provider, filing, financials, normalized["completeness"])
     write_json(cache_dir / "source-map.json", source_map)
 
-    write_modeling_input_aliases(
+    write_consumer_outputs(
         topic_path=topic_path,
         raw_dir=raw_dir,
         cache_dir=cache_dir,
@@ -850,29 +1300,41 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         cross_check=cross_check,
     )
 
+    # Cleanup: raw financial-data no longer needed after cache is written
+    raw_fin = topic_path / ".raw" / "financial-data"
+    if raw_fin.is_dir():
+        try:
+            import shutil
+            shutil.rmtree(raw_fin)
+        except OSError:
+            pass
+
     return {
         "raw": str(raw_dir), "cache": str(cache_dir),
         "financial_data_pack_path": str(cache_dir),
-        "financial_data_summary_path": str(topic_path / "_cache" / "financial-data" / "financial-data-summary.md"),
-        "financial_data_internal_path": str(topic_path / "_cache" / "financial-data" / "internal"),
+        "financial_data_summary_path": str(topic_path / ".cache" / "financial-data" / "summary.md"),
+        "financial_data_dir": str(topic_path / ".cache" / "financial-data"),
     }
 
 
-def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: dict[str, Any],
-                                 raw_dir: Path,
-                                 identity: dict[str, Any], filing: dict[str, Any],
-                                 filing_md: str, financials: dict[str, Any],
-                                 completeness: list[dict[str, Any]], source_map: dict[str, Any],
-                                 cross_check: dict[str, Any]) -> None:
-    """Write stable latest-input files for driver-map and modeling skills.
+def write_consumer_outputs(topic_path: Path, cache_dir: Path, manifest: dict[str, Any],
+                           raw_dir: Path,
+                           identity: dict[str, Any], filing: dict[str, Any],
+                           filing_md: str, financials: dict[str, Any],
+                           completeness: list[dict[str, Any]] | None = None,
+                           source_map: dict[str, Any] | None = None,
+                           cross_check: dict[str, Any] | None = None) -> None:
+    """Write consumer-facing files to .cache/financial-data/.
 
-    These aliases do not replace the run-id pack. The public surface is a
-    single Markdown summary; machine-readable inputs live under internal/.
+    Only 4 files: evidence-pack.json (audit pointer), actuals-resolved.json
+    (what all consumer skills read), full-filing.md (latest filing full text),
+    and summary.md (human entry point).
+
+    Versioned run outputs live under .cache/financial-data/<market>/<id>/<run_id>/.
+    Raw evidence lives under .raw/financial-data/<market>/<id>/<run_id>/.
     """
-    modeling_dir = topic_path / "_cache" / "financial-data"
-    internal_dir = modeling_dir / "internal"
-    modeling_dir.mkdir(parents=True, exist_ok=True)
-    internal_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = topic_path / ".cache" / "financial-data"
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     evidence_pack = {
         "schema_version": 1,
@@ -898,7 +1360,7 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
         "provider_timing": cross_check.get("provider_timing", {}),
         "statements": financials or {},
     }
-    write_json(internal_dir / "evidence-pack.json", evidence_pack)
+    write_json(out_dir / "evidence-pack.json", evidence_pack)
 
     actuals_resolved = {
         "schema_version": 1,
@@ -910,6 +1372,7 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
             "never_fill_missing_with_zero": True,
             "model_input_gate": "use completeness/source_map before workbook population",
         },
+        "identity": identity or {},
         "statements": financials or {},
         "completeness": completeness,
         "source_map": source_map,
@@ -918,50 +1381,25 @@ def write_modeling_input_aliases(topic_path: Path, cache_dir: Path, manifest: di
             if item.get("status") in {"provider-gap", "unavailable", "failed"}
         ],
     }
-    write_json(internal_dir / "actuals-resolved.json", actuals_resolved)
-
-    write_json(internal_dir / "manifest.json", manifest)
-    write_json(internal_dir / "identity.json", identity)
-    write_json(internal_dir / "completeness.json", {"items": completeness, "status": cross_check.get("status", "unknown")})
-    write_json(internal_dir / "source-map.json", source_map)
-    write_json(internal_dir / "cross-check.json", cross_check)
-    write_json(internal_dir / "financials.normalized.json", financials or {})
-    write_md(internal_dir / "financials.md", build_financials_markdown(financials) if financials else "# No structured financials extracted.\n")
-    write_json(internal_dir / "raw-evidence.json", {
-        "latest_raw_evidence_path": str(raw_dir),
-        "latest_run_cache_path": str(cache_dir),
-    })
-    alias_raw_dir = internal_dir / "_raw"
-    if alias_raw_dir.exists():
-        if alias_raw_dir.is_dir():
-            shutil.rmtree(alias_raw_dir)
-        else:
-            alias_raw_dir.unlink()
-    shutil.copytree(raw_dir, alias_raw_dir)
-
-    if filing:
-        write_json(internal_dir / "filing-index.json", filing)
+    write_json(out_dir / "actuals-resolved.json", actuals_resolved)
 
     if filing_md:
-        write_md(internal_dir / "full-filing.md", filing_md)
-        chunks = chunk_full_filing(filing_md)
-        write_jsonl(internal_dir / "full-filing.chunks.jsonl", chunks)
-        write_json(internal_dir / "full-filing.index.json", {
-            "source": filing.get("source_url") if filing else None,
-            "total_chars": len(filing_md),
-            "num_chunks": len(chunks),
-            "chunk_size": 12000,
-        })
+        write_md(out_dir / "full-filing.md", filing_md)
     else:
-        write_md(internal_dir / "full-filing.md", "# Full filing unavailable\n\nNo full filing markdown was materialized for the latest financial-data run.\n")
+        write_md(out_dir / "full-filing.md",
+                 "# Full filing unavailable\n\nNo full filing markdown was materialized for the latest financial-data run.\n")
 
     write_md(
-        modeling_dir / "financial-data-summary.md",
-        build_financial_data_summary(evidence_pack, actuals_resolved, internal_dir),
+        out_dir / "summary.md",
+        build_financial_data_summary(evidence_pack, actuals_resolved, out_dir),
     )
 
-    for legacy_name in ("evidence-pack.json", "actuals-resolved.json", "full-filing.md"):
-        legacy_path = modeling_dir / legacy_name
+    # Clean up legacy internal/ directory from older plugin versions
+    legacy_internal = out_dir / "internal"
+    if legacy_internal.exists() and legacy_internal.is_dir():
+        shutil.rmtree(legacy_internal)
+    for legacy_name in ("financial-data-summary.md",):
+        legacy_path = out_dir / legacy_name
         if legacy_path.exists() and legacy_path.is_file():
             legacy_path.unlink()
 
@@ -1057,10 +1495,15 @@ def write_snapshot(args: argparse.Namespace, normalized: dict[str, Any],
                   workspace: Path, rid: str) -> dict[str, Any]:
     if not args.topic:
         raise RuntimeError("--topic required for snapshot")
-    tp = workspace / "topics" / args.topic
-    if not (tp / "index.md").exists():
+    topic = args.topic.replace("\\", "/").strip().strip("/")
+    if topic.startswith("topics/"):
+        topic = topic[len("topics/"):]
+    if "/" not in topic:
+        topic = f"industry/{topic}"
+    tp = workspace / topic
+    if not tp.is_dir():
         raise RuntimeError(f"Topic does not exist: {tp}")
-    sd = tp / "_cache" / "financial-data-snapshot" / rid
+    sd = tp / ".cache" / "financial-data-snapshot" / rid
     sd.mkdir(parents=True, exist_ok=False)
     summary = {
         "run_id": rid, "generated_at_utc": utc_now(),
@@ -1081,6 +1524,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--workspace")
     p.add_argument("--output-scope", choices=("canonical_company", "current_topic_snapshot"), default="canonical_company")
     p.add_argument("--company-slug")
+    p.add_argument("--industry", help="Industry slug (e.g. 'optical-module-equipment') — auto-creates directory if new")
     p.add_argument("--topic")
     p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu"), help="Market route")
     p.add_argument("--identifier", help="Ticker, CIK, filing URL, or market-specific identifier")
@@ -1107,6 +1551,11 @@ def main() -> int:
         print(json.dumps({"status": "failed", "error": "--company-slug required for canonical_company"}, ensure_ascii=True, indent=2))
         return 1
 
+    # Period defaults based on mode: lite=latest, full=5Y
+    mode = getattr(args, 'mode', 'lite')
+    if args.periods == 'latest' and mode == 'full':
+        args.periods = '5Y'
+
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
         provider = load_provider(args.market)
@@ -1120,6 +1569,82 @@ def main() -> int:
             output = write_canonical_pack(args, normalized, workspace, rid)
         else:
             output = write_snapshot(args, normalized, workspace, rid)
+
+        # Lite mode: unified closeout (market_data fill + revenue_split persist + FY supplement)
+        if getattr(args, "mode", "latest_core") == "lite":
+            actuals_path = None
+            try:
+                data_dir = output.get("financial_data_dir", "")
+                if not data_dir:
+                    tp = ensure_company_topic(workspace, args.company_slug, getattr(args, 'industry', '') or '')
+                    data_dir = str(tp / ".cache" / "financial-data")
+                actuals_path = Path(data_dir) / "actuals-resolved.json"
+                if actuals_path.exists():
+                    with open(actuals_path, encoding="utf-8") as f:
+                        actuals = json.load(f)
+                else:
+                    actuals = {}
+            except Exception:
+                actuals = {}
+
+            # 1. market_data fill: yfinance → Bridge fields
+            md = actuals.get("market_data") or {}
+            if not md or not md.get("pe_ttm") or not md.get("market_cap"):
+                try:
+                    import yfinance as yf
+                    yf_id = _yf_ticker(args.identifier, args.market)
+                    t = yf.Ticker(yf_id)
+                    info = t.info
+                    md.update({k: v for k, v in {
+                        "price": info.get("currentPrice"),
+                        "market_cap": info.get("marketCap"),
+                        "pe_ttm": info.get("trailingPE"),
+                        "pe_ntm": info.get("forwardPE"),
+                        "pb": info.get("priceToBook"),
+                        "ps_ttm": info.get("priceToSalesTrailing12Months"),
+                        "ev_ebitda": info.get("enterpriseToEbitda"),
+                        "ev_sales": info.get("enterpriseToRevenue"),
+                        "dividend_yield_pct": info.get("dividendYield"),
+                        "beta": info.get("beta"),
+                        "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
+                        "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
+                    }.items() if v is not None})
+                    actuals["market_data"] = md
+                except Exception:
+                    if not md:
+                        actuals["market_data"] = {}
+
+            # 2. revenue_split persist: if lite result has revenue_split, write it back
+            has_split = "revenue_split" in normalized.get("items_extracted", [])
+            existing_split = actuals.get("statements", {}).get("revenue_split") if "statements" in actuals else None
+            if has_split and not existing_split:
+                actuals.setdefault("statements", {})
+                actuals["statements"]["revenue_split"] = provider_result.get("revenue_split") or []
+
+            # 3. supplement missing FY (e.g. EDINET only returns 2FY)
+            periods_fetched = len(normalized.get("periods_fetched", []))
+            has_is = "income_statement" in normalized.get("items_extracted", [])
+            if has_is and periods_fetched < 3 and args.market in ("jp", "kr", "tw"):
+                try:
+                    import yfinance as yf
+                    yf_id = _yf_ticker(args.identifier, args.market)
+                    t = yf.Ticker(yf_id)
+                    fin = t.financials
+                    if fin is not None and not fin.empty:
+                        supplement = {col.year: {"revenue": fin.loc["Total Revenue", col] if "Total Revenue" in fin.index else None} for col in fin.columns[:4]}
+                        actuals.setdefault("_supplement", {})
+                        actuals["_supplement"]["yfinance_income_annual"] = {
+                            str(yr): val for yr, val in supplement.items() if val
+                        }
+                except Exception:
+                    pass
+
+            # 4. write back
+            try:
+                actuals_path.parent.mkdir(parents=True, exist_ok=True)
+                _safe_json_dump(actuals, actuals_path)
+            except Exception:
+                pass
 
         print(json.dumps({
             "status": normalized["status"],

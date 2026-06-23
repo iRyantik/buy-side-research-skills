@@ -257,7 +257,7 @@ def _ticker_from_market_code(market, code):
 
 
 def _hydrate_identity_from_raw(industry, ticker, data):
-    base = os.path.join(_company_root(industry, ticker), '_cache', 'financial-data', 'internal', '_raw')
+    base = os.path.join(_company_root(industry, ticker), '.cache', 'financial-data', 'internal', '.raw')
     provider_payload_path = os.path.join(base, 'provider_payload.json')
     identity_source_path = os.path.join(base, 'identity-source.json')
     provider_payload = {}
@@ -360,7 +360,7 @@ def _provider_identifier(market, ticker_value, fallback):
 def _official_web_cache_path(industry, ticker):
     return os.path.join(
         _company_root(industry, ticker),
-        '_cache', 'financial-data', 'internal', '_raw', 'official_web_cache.json'
+        '.cache', 'financial-data', 'internal', '.raw', 'official_web_cache.json'
     )
 
 
@@ -904,7 +904,7 @@ def _fill_tw_finmind_aux(data, identifier, annual_result=None, q_result=None):
 
 
 def load_actuals(industry, ticker):
-    path = os.path.join('industry', industry, 'companies', ticker, '_cache', 'financial-data', 'internal', 'actuals-resolved.json')
+    path = os.path.join('industry', industry, 'companies', ticker, '.cache', 'financial-data', 'internal', 'actuals-resolved.json')
     if not os.path.exists(path):
         print('ERROR: no actuals for ' + ticker + ' in ' + industry)
         sys.exit(1)
@@ -912,7 +912,7 @@ def load_actuals(industry, ticker):
         return _prepare_actuals(industry, ticker, json.load(f))
 
 def save_actuals(industry, ticker, data):
-    path = os.path.join('industry', industry, 'companies', ticker, '_cache', 'financial-data', 'internal', 'actuals-resolved.json')
+    path = os.path.join('industry', industry, 'companies', ticker, '.cache', 'financial-data', 'internal', 'actuals-resolved.json')
     os.makedirs(os.path.dirname(path), exist_ok=True)
     _sanitize_nonfinite_values(data)
     _normalize_cash_flow_signs(data)
@@ -1007,7 +1007,7 @@ def _is_openesef_local_gap(market, provider_label, payload):
 def _find_provider_path():
     for p in [
         os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'buy-side-research-skills-1.1.0', 'plugins', 'buy-side-research-skills', 'skills', 'financial-data', 'scripts', 'providers'),
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', '_scripts', 'financial-data', 'providers'),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', '.scripts', 'financial-data', 'providers'),
         os.path.join(os.path.expanduser('~'), 'Desktop', 'buy-side-research-skills-1.1.0', 'plugins', 'buy-side-research-skills', 'skills', 'financial-data', 'scripts', 'providers'),
         os.path.join(os.path.expanduser('~'), '.codex', 'plugins', 'cache', 'buy-side-research-skills', 'buy-side-research-skills', '4.6.0', 'skills', 'financial-data', 'scripts', 'providers'),
         os.path.join(os.path.expanduser('~'), '.claude', 'plugins', 'cache', 'buy-side-research-skills', 'buy-side-research-skills', '4.5.6', 'skills', 'financial-data', 'scripts', 'providers'),
@@ -1291,7 +1291,7 @@ def _fill_cross_statement_fallbacks(data, provider_name, result, target_period_k
 
 
 def _parse_kr_local_filing_value(industry, ticker):
-    filing_path = os.path.join(_company_root(industry, ticker), '_cache', 'financial-data', 'internal', 'full-filing.md')
+    filing_path = os.path.join(_company_root(industry, ticker), '.cache', 'financial-data', 'internal', 'full-filing.md')
     if not os.path.exists(filing_path):
         return None, None
     try:

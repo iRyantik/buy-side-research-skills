@@ -9,10 +9,13 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for industry-level investment judgment, value chain mapping, and company registration. Do not do single-company deep dives (→ `stock-quickread`) or single-mechanism deep dives (→ `mechanism-insight`).
-- Requires company logo images and product photos. Fallback: company media kit → product page hero → web search → `[缺图]`.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -56,6 +59,23 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 | 方向 | Long/Short/Both | Both |
 
 ## 输出结构
+```markdown
+# <Industry> — Industry Landscape
+
+> DATE | Coverage: N companies | Pipeline: actuals ✅ | [需查证] X
+
+## 1. Verdict
+## 2. 产业链地图
+## 3. 竞争格局
+## 4. 价值池
+## 5. 公司注册表
+## 6. 投资主题 & 催化剂
+
+---
+
+## Resources
+```
+
 
 > **Source contract**：本文所有事实 claim（数字、公司名、行业判断、竞争格局描述）句尾必须带 [S#](url) 或 [I#](url) 短链锚。解读性句子（"我觉得""我的判断"）不强制。连续 3 句以上事实 claim 中间无 source → 密度不够。
 >
@@ -84,13 +104,13 @@ Map an industry's value chain, profit pools, competitive dynamics, and company r
 每段标注：
 - 这段在做什么（一句话）
 - 价值池占比（占行业总利润的 X%）
-- 代表公司（3-5 个）+ **公司 logo 图**
+- 代表公司（3-5 个）
 - 集中度趋势（分散→集中？被替代？）
 - 国产替代程度（如适用）
 
 **产业链图之后必须跟一张价值分配总结**：哪段在吃最肥的肉、哪段在卷、利润池在往哪迁移。
 
-### 3. 竞争格局（~600 字 + 表格）
+### 3. 竞争格局（~600 字 + 表格）[→ Bridge: industry_peers, industry_valuation_dist, market_temperature]
 
 | 环节 | 格局 | 进入壁垒 | 替代威胁 | 买家议价力 | 供应商议价力 |
 |---|---|---|---|---|---|
@@ -122,8 +142,6 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 **不排序。** 排序是 `candidate-screener` 的事。这里只列"这个行业有哪些值得知道的公司"。
 
-**公司 logo 图**：每段产业链的代表公司配 logo。
-
 ### 7. Routing（~150 字）
 
 | 下一步 | Skill |
@@ -137,18 +155,18 @@ Takeaway：这个行业的竞争在往什么方向变。
 
 ## 图片要求
 
-**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写文件，文件扩展名用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
+**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic industry-landscape` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+artifact 引用：`![描述](.cache/images/industry-landscape/<slug>.png)`
 
 | 图片类型 | 必须 | 来源 |
 |---|---|---|
-| 公司 logo 图 | **必须**（每个产业链环节的代表公司） | 官网 media kit → favicon → web search → `[缺图]` |
 | 产品实物图 | **必须**（关键设备/产品） | 官网产品页 → web search → `[缺图]` |
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
+industry/<industry-slug>/panorama/industry-landscape/YYYY-MM-DD-industry-landscape.md
 ```
 
 `naming_mode = optional_qualifier`：完整行业全景用默认名；只覆盖某段 value chain slice 时追加 qualifier。
@@ -173,7 +191,6 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 - ❌ 公司注册表变成了推荐排序——那是 candidate-screener 的事
 - ❌ 投资判断写"长期看好"没有具体 regime
 - ❌ 没有产品实物图
-- ❌ 没有公司 logo 图
 - ❌ 把 teach-in 的内容照搬（物理科普），跳过价值池和投资判断
 - ❌ 把 mechanism-insight 的内容照搬（单机制深挖），跳过行业全景
 - ❌ 公司注册表超过 30 家——太多了，这不是数据库
@@ -181,9 +198,9 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 
 ## 篇幅基准
 
-- 标准 industry-landscape：2000-3000 字
-- 低于 1800 字：产业链地图或竞争格局展开不足
-- 超过 3500 字：在替 teach-in 或 mechanism-insight 干活
+- 标准 industry-landscape：130-200 行
+- 低于 120 行：产业链地图或竞争格局展开不足
+- 超过 230 行：在替 teach-in 或 mechanism-insight 干活
 
 ## 与相邻 skill 的边界
 
@@ -193,7 +210,7 @@ industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
 | **问题** | 这东西是什么 | 行业值不值得投 | 机制怎么运作 | 先看哪家 |
 | **投研判断** | 零 | 行业级 | 机制级 | 公司级 |
 | **覆盖** | 全链科普 | 全行业产业链+价值池 | 1-2 个机制 | 公司池排序 |
-| **图片** | 实物图 | 公司 logo + 产品实物图 | 产品实物图 | 无 |
+| **图片** | 实物图 | 产品实物图 | 产品实物图 | 无 |
 | **产物长度** | 6000-8000 字 | 2000-3000 字 | 1000-1800 字 | 500-1500 字 |
 
 > 产品图：每个涉及物理设备/产品的单元必须配 1 张实物图。下载优先级：公司官网 Media Kit → 产品页 hero → web search → [缺图]。下载到 topic 。

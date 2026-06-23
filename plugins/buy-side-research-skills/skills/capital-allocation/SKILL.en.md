@@ -11,12 +11,10 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data Pipeline**: Call `/financial-data --lite <ticker> --periods 10Y` to fetch 10Y CF data (buyback/dividend/capex/M&A).
-- **Data Verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: ROIC, FCF conversion, buyback yield, and all capital allocation ratios use actuals-resolved.json historical data only.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -100,7 +98,7 @@ This is the key bridge the agent must answer: **Is this management strengthening
 >
 > **Completion Gate**: After writing, scan the scorecard → every row's Anchor column has [S#]/[I#] or `[待查]` → `[待查]` ≤3.
 
-~~~markdown
+```markdown
 ## Capital Allocation Scorecard
 
 | Dimension | Score | 10Y Evidence | Anchor |
@@ -120,7 +118,7 @@ M&A:       $500M  (incl. MRSI $125M)
 Capex:     $1.2B
 ─────────────────
 Total deployed: $3.1B
-~~~
+```
 
 Market cap created: $4.5B (10Y ago $1.5B → today $6B)
 ROI on deployed capital: ~145%
@@ -164,11 +162,3 @@ ROI on deployed capital: ~145%
 - Valuation → `dcf-model` / `comps-analysis`
 
 
-
-## Appendix: actuals-resolved.json
-
-Complete field listing -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: Read actuals first → use source_map to pull [S#]/[I#] labels (do not write [actuals]) → ratios use actuals true values only (no forward estimates).

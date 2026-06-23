@@ -1,0 +1,21 @@
+# AI / Emerging — KPI Driver
+
+> This is the English translation of [ai-emerging.md](./ai-emerging.md). The Chinese version is the source of truth.
+
+AI Applications / Quantum / Humanoid Robotics / Pre-Commercial
+
+## Raw Fields (→ `/financial-data`)
+
+| KPI | actuals | CN | EN | JP |
+|---|---|---|---|---|
+| Cash Burn | derive from CF | 现金消耗 | cash burn | キャッシュバーン |
+| Customer Count | `supplementary.customer_count` | 客户/用户数 | logo count | 顧客数 |
+
+## Derived Ratios (→ stock-quickread §4(c) Driver table)
+
+Runway (months) = Cash ÷ Monthly Burn
+Revenue Quality = recurring % ÷ total revenue
+
+## Elastic Ratios (→ stock-quickread §4(b))
+
+Cash / Monthly Burn | Revenue YoY

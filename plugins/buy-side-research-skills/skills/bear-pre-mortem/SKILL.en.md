@@ -11,20 +11,10 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its output; pull numbers directly from `actuals-resolved.json`.
-- **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: DSO, inventory turnover, OCF/NI, Capex/D&A, and all diagnostic ratios use actuals-resolved.json. No estimate-derived ratios.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mental Approach
 
@@ -65,6 +55,8 @@ If the mechanism assumption is unclear, do not pretend the stress test is comple
 
 ## Output Structure
 
+> **Appendix**: Run actuals-to-appendix.py before writing if financial appendix needed.
+
 ### 1. The Smartest Short Seller's Pitch (300–500 words)
 
 Write the short logic with the sharpest pen. This section must contain **zero hedging, zero "on the other hand", zero "however"**. The short mindset is the short mindset — let it run at full force.
@@ -85,10 +77,9 @@ Don't let GAAP financials lead you around — interrogate the unit economics:
 
 ### 3. Accounting / Financial Red Flag Checklist
 
-
 ## Accounting Red Flag Formulas
 
-For multilingual account-line-item cross-reference, see `references/policy/statement-line-items.md`.
+For multilingual account-line-item cross-reference, see workspace `.references/policy/statement-line-items.md`.
 
 | # | Red Flag | Formula | Input Source | Statement Location | Warning Threshold |
 |---|---|---|---|---|---|
@@ -98,7 +89,6 @@ For multilingual account-line-item cross-reference, see `references/policy/state
 | 4 | Asset aging | CapEx ÷ D&A | FS, FS | CF | Sustained < 0.7 |
 | 5 | M&A impairment risk | Goodwill ÷ Equity | FS, FS | BS | > 50% |
 | 6 | Equity dilution | SBC ÷ Revenue | FS, FS | Notes + IS | > 10% |
-
 
 Sweep every item; each must provide: current number / warning threshold / status / Ev. Items flagged as problematic must be individually expanded with supporting argument.
 
@@ -153,7 +143,6 @@ If the short logic is correct, what does the share-price decline path look like?
 
 This section lets you know in advance what the **loss path** looks like, so you don't get reframed by narrative in the moment ("this is just a technical correction," "market sentiment is overreacting").
 
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:
@@ -169,21 +158,6 @@ If revenue growth falls from X% to Y%:
 - Implied downside: −A%
 
 Most likely signal that triggers the growth break: [1–2 leading indicators]
-
-## Source Contract
-
-> Short-side stress testing demands the highest standard of source authenticity — "could go wrong" must be backed by a specific filing / page / number, not just "looks suspicious."
-
-**Density table**:
-
-| Section | Mandatory Source Annotation | Exemption |
-|---|---|---|
-| §1 Short narrative | Specific number / event backing each allegation | The narrative itself |
-| §3 Red flag walk | Filing source + page for every row: DSO / inventory / OCF / Capex / SBC | The red-flag judgment |
-| §4 Base rate | Ticker + year + drawdown + source for every historical comparable case | — |
-| §5 Kill criteria | Source of threshold (filing / IR / history) for every trigger condition | — |
-
-**Completion Gate**: After writing, sweep §3 → every row has a filing source → §4 every case has ticker + source → `[待查]` ≤ 5 → Resources expanded.
 
 ## Anti-Patterns Checklist
 
@@ -203,8 +177,6 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 - ❌ Uses management selling / insider transactions as evidence with no Form 4 / disclosure source → add it
 - ❌ URL uncertain whether it actually exists → write a description plus `[link 待补]`, do not pretend
 
-
-
 ## Length Benchmarks
 
 - Quick pre-mortem: 600–900 words, suitable for rapidly checking whether a thesis has obvious blind spots.
@@ -216,10 +188,3 @@ Most likely signal that triggers the growth break: [1–2 leading indicators]
 This skill is used after `alpha-thesis` is written and before the IC memo is submitted. If the original thesis still holds up after the stress test, the conviction is real; if obvious blind spots are discovered, go back and fix the thesis, reduce sizing, or simply walk away from the trade.
 
 
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rule: read actuals first → pull [S#]/[I#] labels from source_map (do not write [actuals]) → ratios use only actuals real values (no forward estimates).

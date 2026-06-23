@@ -11,11 +11,10 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch latest actuals + market snapshot.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -35,7 +34,7 @@ Hard cap of 500 words. This is not deep analysis — it is a rapid thesis direct
 
 ```
 1. Most recent earnings-setup artifact for the same ticker (pre-print bar is most accurate)
-2. Consensus range (from financial-data --lite market_data or WebSearch)
+2. Consensus range (from /financial-data market_data or WebSearch)
 3. Prior year same-quarter growth trend (weakest proxy — unreliable if prior year had COVID or M&A)
 4. None available → "No benchmark; no directional judgment; list numbers and guidance changes only"
 ```
@@ -52,7 +51,7 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 
 ## Output Structure
 
-~~~markdown
+```markdown
 ## Verdict
 
 **Beat — thesis unchanged** (or other combination)
@@ -78,22 +77,10 @@ Synthesis: If revenue beat but guidance cut → thesis needs re-examination. If 
 
 **Thesis: unchanged.** 1.6T upgrade driver intact. GT orders beat supports thesis. Guidance raise consistent with our base case.
 
-**Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
+**Next**: update coverage-tracker fields so coverage-monitor picks up the new stage / trigger. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
-~~~
-
-## Source Contract
-
-This is a 300–500 word compact artifact, but source discipline is not exempted.
-
-- All financial numbers (actual vs consensus vs guidance) must be tagged `[S#](url)` or `[I#](url)`.
-- The beat/miss judgment itself does not require an anchor, but the numbers on which the judgment is based must be anchored.
-- Price movement → `[I#](url)` pointing to market data source.
-- Guidance / management commentary → `[S#](url)` pointing to earnings call transcript or IR PDF.
-- Numbers without a source → tag `[待查]`.
-
-**Completion Gate**: Scan full text after writing → every number has an anchor or `[待查]` → `[待查]` ≤3.
+```
 
 ## Anti-Patterns
 
@@ -102,7 +89,7 @@ This is a 300–500 word compact artifact, but source discipline is not exempted
 - ❌ Not distinguishing one-time vs recurring
 - ❌ Exceeding 500 words — turning into a full review
 - ❌ Not stating thesis status — "needs further observation" is not a judgment
-- ❌ Not updating coverage-tracker
+- ❌ Not updating coverage-tracker fields after a material post-print change
 
 ## Length Benchmark
 
@@ -119,7 +106,7 @@ Hard cap of 300–500 words. If it exceeds that, you are doing it wrong.
 | Downstream | Scenario |
 |---|---|
 | `stock-quickread` | thesis needs full review |
-| `coverage-tracker` | update stage/priority |
+| `coverage-tracker` | update stage / review date / next trigger / alert tier |
 | `driver-map` | guidance changes driver assumptions |
 
 ## Boundaries with Adjacent Skills
@@ -127,11 +114,3 @@ Hard cap of 300–500 words. If it exceeds that, you are doing it wrong.
 - Do not do pre-earnings prep → `earnings-setup`
 - Do not do deep earnings analysis → `stock-quickread`
 - Do not rewrite the thesis → `alpha-thesis`
-
-## Appendix: actuals-resolved.json
-
-Full field listing → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → pull `[S#]`/`[I#]` tags from source_map (do not write `[actuals]`) → use only actuals real values for ratios (not forward estimates).

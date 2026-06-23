@@ -9,7 +9,7 @@ namespace: 'research.equity'
 category: 'research'
 research_layer: 'foundation'
 summary: 'Map industry value chain profit pools competitive dynamics and company roster with investment judgment.'
-description: 'Map an industry value chain, profit pools, competitive dynamics, and company roster. Make an industry-level investment judgment. Requires company logo images and product photos. Hands off to candidate-screener for company prioritization and mechanism-insight for single-mechanism deep dives.'
+description: 'Map an industry value chain, profit pools, competitive dynamics, and company roster. Make an industry-level investment judgment. Requires product photos. Hands off to candidate-screener for company prioritization and mechanism-insight for single-mechanism deep dives.'
 tags:
   - 'industry-landscape'
   - 'industry-map'
@@ -47,7 +47,7 @@ capabilities:
   requirements:
     - 'follow CLAUDE.md source policy'
     - 'must include industry value chain ASCII diagram with profit pool annotations'
-    - 'must include company logo images for representative companies in each chain segment'
+    - 'must include representative companies for each chain segment'
     - 'must include product/equipment photos for key products'
     - 'must include company roster table (unsorted, no recommendation)'
     - 'must include industry-level investment judgment with regime and variant view'
@@ -68,7 +68,7 @@ workflow:
     - 'teach-in'
     - 'ingest'
     - 'information-impact'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'mechanism-insight'
     - 'candidate-screener'
@@ -79,7 +79,7 @@ workflow:
     - 'alpha-thesis'
     - 'research-journal'
   can_trigger:
-    - 'next-step'
+    - ''
   decision_point: '行业是否值得继续研究、利润集中在产业链哪一段、下一步该看机制深挖还是公司筛选'
 quality_gates:
   anti_patterns:

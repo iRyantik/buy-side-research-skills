@@ -98,6 +98,7 @@ class ConversionResult:
     ocr_required: bool = False
     figure_manifest: FigureManifest | None = None
     dependency_status: dict[str, Any] | None = None
+    quality_failed: bool = False
 
 
 def utc_now() -> str:
@@ -435,6 +436,10 @@ def convert_docling(
         except Exception:
             pass
 
+    # Quality gate: Docling returned too little text → likely garbled/scanned
+    text_len = len(re.sub(r'\s+', '', markdown))
+    quality_ok = text_len > 200
+
     return ConversionResult(
         markdown=markdown,
         converter="docling",
@@ -447,6 +452,7 @@ def convert_docling(
         ocr_required=profile.ocr_required,
         figure_manifest=figure_manifest,
         dependency_status=dependency_snapshot(["docling", "pypdf", "pdfplumber", "edgartools"]),
+        quality_failed=not quality_ok,
     )
 
 
@@ -611,6 +617,10 @@ def convert_pdf(
     if profile.ocr_required:
         if module_available("docling"):
             result = convert_docling(path, profile, route="pdf-docling-scanned", cache_parent=cache_parent, extract_figures=extract_figures)
+            if result.quality_failed and module_available("pymupdf4llm"):
+                result = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-scanned-fallback", cache_parent=cache_parent, extract_figures=extract_figures)
+                result.precision = "Scanned PDF via PyMuPDF4LLM fallback (Docling quality gate failed); text may contain OCR errors, verify key numbers against original."
+                return result
             result.precision = "Scanned PDF via Docling; text may contain OCR errors, verify key numbers and tables against original scan. For critical scanned documents, prefer Claude Vision review."
             return result
         if module_available("pymupdf4llm"):
@@ -642,7 +652,10 @@ def convert_pdf(
 
     if table_heavy and module_available("docling"):
         try:
-            return convert_docling(path, profile, route="pdf-docling-table-heavy", cache_parent=cache_parent, extract_figures=extract_figures)
+            result = convert_docling(path, profile, route="pdf-docling-table-heavy", cache_parent=cache_parent, extract_figures=extract_figures)
+            if result.quality_failed:
+                raise IngestError("Docling quality gate: text < 200 chars, downgrading")
+            return result
         except Exception as exc:
             if module_available("pymupdf4llm"):
                 fallback = convert_pymupdf4llm(path, profile, route="pdf-pymupdf4llm-fallback-after-docling-error", cache_parent=cache_parent, extract_figures=extract_figures)

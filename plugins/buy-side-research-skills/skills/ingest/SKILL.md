@@ -11,7 +11,7 @@ description: Convert raw research files into source-tracked topic cache markdown
 
 The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-Agent (per policy baseline §11) auto-creates the topic root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
+Agent (per policy baseline §11) auto-creates the industry root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research directories stay light.
 
 ## 职责边界
 
@@ -66,7 +66,7 @@ Topic inference:
 ### Dependency Check
 
 ```powershell
-python _scripts/ingest.py --check-deps
+python .scripts/ingest.py --check-deps
 _scripts/bootstrap-ingest-deps.ps1 -CheckOnly
 ```
 
@@ -92,7 +92,7 @@ If cache exists and source hash matches, skip unless `--force` is set. If cache 
 ## 工具资源
 
 Runtime scripts:
-- 如果你只是在找“整体有哪些环境要先知道”，先看 `init-workspace` 的统一环境入口与 `_scripts/init-assets/env-setup.ps1.template`。本节只保留 `ingest` 自己的 converter、bootstrap 和 SEC filing / optional VLM 边界。
+- 如果你只是在找“整体有哪些环境要先知道”，先看 `init-workspace` 的统一环境入口与 `.scripts/init-assets/env-setup.ps1.template`。本节只保留 `ingest` 自己的 converter、bootstrap 和 SEC filing / optional VLM 边界。
 - `skills/ingest/scripts/ingest.py`
 - `skills/ingest/scripts/ingest_xlsx.py`
 - `skills/ingest/scripts/ingest_table_crosscheck.py`

@@ -64,7 +64,7 @@ capabilities:
   - stock-quickread
   - peer-deep-dive
   - research-journal
-  - next-step
+  - 
   requirements:
   - follow CLAUDE.md source policy
   - market-snapshot fields default to topic-local evidence cache / financial-data

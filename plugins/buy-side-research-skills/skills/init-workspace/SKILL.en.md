@@ -7,27 +7,27 @@ description: Initialize or repair a buy-side research workspace root scaffold �
 
 > This is the English translation of [SKILL.md](./SKILL.md). The Chinese version is the source of truth.
 
-`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz into `_scripts/`, sets up a Python virtual environment with core dependencies, and interactively configures data-provider environment variables.
+`init-workspace` turns a normal folder into a usable buy-side research workspace. It creates the root scaffold, deploys platform-owned runtime assets (hooks, configs, references, shared utility scripts), copies skill scripts from ingest/financial-data/reddit-sentiment/research-viz/coverage-monitor into `.scripts/`, installs core Python packages globally (no venv, no sudo), and interactively configures data-provider environment variables.
 
 It does not update the installed Claude Code or Codex plugin runtime itself; host/plugin upgrades and latest-release workspace sync belong to `update-agent-runtime`.
 
 It is an operations skill, not a research skill.
 
-## Mental Model
+## 心法
 
 The invariant is separation of concerns:
 
 - `init-workspace` creates or repairs the root workspace shell + environment.
 - Each skill (ingest, financial-data, etc.) bootstraps heavy dependencies on first use via its own `bootstrap.py`.
 - `update-agent-runtime` keeps the workspace in sync with the latest plugin release.
-- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See `references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
+- Topic scaffolding (industry directories, company directories, index.md, coverage registration) happens automatically when research skills save artifacts. See workspace `.references/policy/research-policy-baseline.md` §9 Topic Scaffolding Convention.
 
 ## Responsibilities
 
 ### Responsible for
 
 **Directories:**
-- Creating root `_inbox/` and `_scripts/`.
+- Creating root `_inbox/` and `.scripts/`.
 
 **Class A — Platform-owned assets** (from `init-workspace/assets/`, copied verbatim to workspace root):
 
@@ -35,16 +35,18 @@ The invariant is separation of concerns:
 |---|---|---|
 | `.claude/hooks/` (full tree) | `.claude/hooks/` | Overwrite |
 | `.claude/settings.json` | `.claude/settings.json` | Overwrite |
-| `.claude/mcp.json` | `.claude/mcp.json` | Copy if missing |
+| `.claude/mcp.json` | `.claude/mcp.json` | Merge (ensure `playwright` key exists; preserve user's other MCP config; if invalid JSON, backup then overwrite) |
 | `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
 | `references/` | `references/` | Overwrite |
-| `_scripts/download-product-image.js` | `_scripts/download-product-image.js` | Overwrite |
+| `references/` (full tree) | `references/` | Overwrite |
+| `.scripts/shared/` (full tree) | `.scripts/shared/` | Overwrite |
+| `.scripts/verify-runtime.py` | `.scripts/verify-runtime.py` | Overwrite |
 | `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |
 | `AGENTS.md.template` | `AGENTS.md` | Copy if missing |
-| `edge-radar.md` | `edge-radar.md` | Copy if missing |
+| `
 | `coverage.md.template` | `COVERAGE.md` | Copy if missing |
-| `gitignore.template` | `.gitignore` | Overwrite |
+| `
 | `.env.template` | `.env.template` | Copy if missing |
 
 **Class B — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
@@ -55,7 +57,7 @@ The invariant is separation of concerns:
 for each skill_dir in skills/*/:
     if .platform exists → skip (platform skill, deployed by Class A)
 
-    dst = _scripts/<skill-name>/
+    dst = .scripts/<skill-name>/
 
     if scripts/ exists:
         cp -r scripts/* → dst/
@@ -71,22 +73,22 @@ for each skill_dir in skills/*/:
     # Agent reads them directly from the plugin cache when executing the skill.
 ```
 
-> **The rule**: `scripts/` + `assets/` → workspace `_scripts/<skill>/`. No per-file mapping. No per-skill registration.
+> **The rule**: `scripts/` + `assets/` → workspace `.scripts/<skill>/`. No per-file mapping. No per-skill registration.
 
 **Environment setup:**
 - Check Python 3.10+ availability.
-- Create `.venv/` (Python virtual environment).
-- Install core dependencies into venv: `yfinance openpyxl requests python-dotenv pyyaml lxml`.
-- Run `pip install -r` for each `_scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
+- Install core Python packages globally with `--user` (no venv, no sudo): `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`.
+- Run `pip install --user -r` for each `.scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
 - Write `.gitignore`.
 
 **Interactive provider configuration:**
 - Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
 - User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).
 - Unconfigured providers stay as commented lines in `.env`.
+- Coverage-monitor delivery placeholders (`SMTP_*`, `COVERAGE_EMAIL_TO`, `WECOM_WEBHOOK_URL`) ship in `.env.template` only; they are optional and not part of provider credential setup.
 
 **Cleanup:**
-- Delete `_scripts/init-assets/` if present (legacy ps1-era artifacts).
+- Delete `.scripts/init-assets/` if present (legacy ps1-era artifacts).
 
 ### Not responsible for
 
@@ -119,36 +121,95 @@ Execute full Steps 0-10 (see Execution Flow below). All files are created.
 
 ### Repair Existing Workspace
 
-Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, edge-radar.md, COVERAGE.md). Platform-owned assets (hooks, settings, references, `.gitignore`) are overwritten. Skill scripts (Class B) are overwritten. User-created files in `_scripts/` that are not in the Class B list are left untouched.
+Execute the same steps. Skip root template files that already exist (CLAUDE.md, AGENTS.md, 
 
 ## Execution Flow
 
 ```
 Step 0  Validate workspace path — must not be inside a plugin repo or install directory
-Step 1  Check Python 3.10+ is available
-Step 2  Create .venv/ (python -m venv .venv)
-Step 3  Activate venv + pip install core dependencies:
-          pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+Step 2  Check system dependencies: Python 3.10+, Node.js ≥18, npx, curl
+        ★ ALL BLOCK — missing any → auto-install (winget/brew), fail → print manual command + STOP
+Step 3  Install core Python packages globally (no venv, no sudo):
+          python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
+        ★ pip install failure → BLOCK (core packages required for all skills)
 Step 4  Deploy Class A files (platform assets from init-workspace/assets/)
-Step 5  Deploy Class B files (skill scripts to _scripts/<skill>/)
-Step 6  pip install -r _scripts/*/requirements*.txt (failures warn, do not block)
-Step 7  Write .gitignore
-Step 8  Interactive provider configuration (see Provider Configuration below)
-Step 9  Delete _scripts/init-assets/ if present (legacy cleanup)
-Step 10 Print deployment summary table
+        ★ mcp.json: merge strategy (see below)
+Step 5  Deploy Class B files (skill scripts to .scripts/<skill>/)
+Step 6  pip install --user -r .scripts/*/requirements*.txt (failures warn, do not block)
+Step 1  Detect language: Chinese conversation → ZH templates, English conversation → EN templates
+Step 7  Interactive provider configuration (see Provider Configuration below)
+Step 8  MCP server setup — Longbridge Bridge (market data, US/HK):
+          Claude Code: claude mcp add --transport http --scope user longbridge https://openapi.longbridge.com/mcp
+          Codex:       codex mcp add longbridge --url https://openapi.longbridge.com/mcp
+          ★ OAuth required: CC → /mcp → longbridge → Authenticate, Codex → codex mcp login longbridge
+          ★ Skippable — Bridge layer falls back to yfinance + WebSearch if unavailable
+Step 9  ★ python .scripts/verify-runtime.py — one-click smoke test
+        ★ 12 checks across 3 layers, ALL BLOCK, auto-install missing, fail → STOP
+Step 10  Delete .scripts/init-assets/ if present (legacy cleanup)
+Step 11 Print deployment summary table
 ```
+
+### Step 1 Detail: System Dependency Check
+
+Agent checks 4 system tools. **Any missing → auto-install** (winget on Windows, brew on macOS). If install fails → print manual command + **STOP** (do not continue).
+
+| Check | Verify | Auto-install (Windows) | Auto-install (macOS) | Manual fallback |
+|---|---|---|---|---|
+| Python ≥3.10 | `python --version` | `winget install Python.Python.3.12 --accept-source-agreements` | `brew install python@3.12` | https://python.org |
+| Node.js ≥18 | `node --version` | `winget install OpenJS.NodeJS.LTS --accept-source-agreements` | `brew install node` | https://nodejs.org |
+| npx | `npx --version` | Comes with Node.js (reinstall Node) | Same | Reinstall Node.js LTS |
+| curl | `curl --version` | `winget install curl.curl --accept-source-agreements` | Built-in on macOS | System package manager |
+
+Agent detects platform: `sys.platform == "win32"` → Windows; `sys.platform == "darwin"` → macOS.
+
+Linux: print manual command + STOP (auto-install not supported). User installs via package manager then re-runs `/init-workspace`.
+
+### Step 4 Detail: mcp.json Merge
+
+Agent handles `.claude/mcp.json` as follows:
+
+```
+1. if file does not exist:
+      → write assets/.claude/mcp.json directly
+2. else:
+      → try json.load
+      → if JSONDecodeError:
+            → backup as .claude/mcp.json.bak
+            → overwrite with assets/.claude/mcp.json
+            → tell user "Old file was invalid JSON; backed up"
+      → if "mcpServers" not in data:
+            → data["mcpServers"] = {}
+      → if "playwright" not in data["mcpServers"]:
+            → data["mcpServers"]["playwright"] = {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}
+            → json.dump(data, indent=2) write back
+      → else:
+            → skip (user already configured)
+```
+
+### Step 9 Detail: Runtime Verification
+
+Agent runs `python .scripts/verify-runtime.py` (uses globally-installed packages from Step 2).
+
+12 checks across 3 layers:
+- Layer 1 System: Python, Node.js, npx, curl
+- Layer 2 Python packages: yfinance, openpyxl, requests, python-dotenv, pyyaml, lxml
+- Layer 3 Config: `.claude/mcp.json` has playwright key, `.claude/hooks/` is importable
+
+**Any ❌ → auto-install → re-check → still fails → print manual command + STOP.**
+
+All ✅ → report "workspace ready", continue to Step 10-11.
 
 ### Core dependencies
 
 ```bash
-pip install yfinance openpyxl requests python-dotenv pyyaml lxml
+python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx
 ```
 
 ### Platform detection
 
 Agent uses `sys.platform`:
-- `win32` → Windows: Python = `python`, venv = `.venv/Scripts/python`
-- `darwin` / other → Unix: Python = `python3`, venv = `.venv/bin/python`
+- `win32` → Windows: Python = `python`, 
+- `darwin` / other → Unix: Python = `python3`, 
 
 ## Provider Configuration
 
@@ -202,9 +263,9 @@ EDINET_API_KEY=your_key_here
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
-- Do not overwrite `COVERAGE.md` or `edge-radar.md` if already present.
-- Do not overwrite `.claude/mcp.json` if already present (user may have customized).
-- Do not overwrite `_scripts/` files that are not in the Class B source list (user-added scripts are preserved).
+- Do not overwrite `COVERAGE.md` or `
+- `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
+- Do not overwrite `.scripts/` files that are not in the Class B source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.
 
 ## Workflow Links
@@ -214,6 +275,7 @@ EDINET_API_KEY=your_key_here
 | User wants to upgrade plugin + sync workspace | Use `update-agent-runtime` |
 | User wants to create a new topic | Automatic — save artifact to target path, scaffolding auto-creates directories |
 | User wants to fix workspace runtime only | Use `update-agent-runtime` (or re-run init-workspace in repair mode) |
+| User wants daily coverage briefs or intraday alerts | Use `coverage-monitor` after init completes |
 
 Artifact policy:
 
@@ -228,5 +290,5 @@ Artifact policy:
 - Platform-owned assets deployed.
 - Skill scripts copied from canonical plugin locations.
 - Provider configuration offered interactively.
-- Legacy `_scripts/init-assets/` cleaned up.
+- Legacy `.scripts/init-assets/` cleaned up.
 - Did not create research artifacts.

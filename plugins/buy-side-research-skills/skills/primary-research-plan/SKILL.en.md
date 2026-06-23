@@ -11,13 +11,10 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-Turn an investment hypothesis into an executable primary research plan. **The core is not writing a question list** — it is picking the right hypothesis, finding the right persona, and setting the right decision gate. The question list is just an execution tool.
-
-If the output reads like a generic interview outline, hints at soliciting MNPI, generates fake expert feedback, or lacks decision gates, this skill has failed.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -113,22 +110,12 @@ Used for a single expert call. Output compressed to 600–1000 words — §1 one
 
 Used for bulk verification via customers / suppliers / distributors. Builds on Mode A with an added sample plan (target n≥10, persona split, geographic split) and bias controls (don't only look at happy customers / recent buyers). Length 800–1400 words.
 
-
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 If path is unclear → agent auto-creates per policy baseline §11.
-
-## Source Contract
-
-- Every row in the hypothesis register's "existing evidence" column must be tagged `[S#](url)` or `[I#](url)` or `[待查]` (to be checked).
-- Every source idea in the triangulation plan must note the source type (persona / public / filing / expert).
-- Numbers referenced in expert interview questions → cite the source (which report / filing contains this number).
-
-**Completion Gate**: after writing, scan the hypothesis register → every row's Source column must be non-empty → if `[待查]` exceeds 50% of rows, flag coverage <50%.
 
 ## Anti-Pattern Checklist
 

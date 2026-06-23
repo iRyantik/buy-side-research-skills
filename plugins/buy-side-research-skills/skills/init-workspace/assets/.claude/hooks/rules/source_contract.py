@@ -9,6 +9,7 @@
 | double_urls | fix_source_format | Remove concatenated second URL |
 | nonstandard_inline | fix_source_format | Replace `[Label](url)` with `[S#](url)` or `[I#](url)` |
 | nonstandard_resources | fix_source_format | Replace `[Label]` in Resources with `[S#]` or `[I#]` |
+"""
 
 import re, sys, os
 
@@ -37,7 +38,8 @@ SOURCE_WORDS = {
 
 # Labels that are NOT sources — research annotations in Chinese/English
 NON_SOURCE_LABELS = {
-    '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认',
+    '推算', '未披露', '缺图', '估算', '需查证', '来源待补', '来源待确认', 'UNVERIFIED',
+    'actuals', 'actuals-source',
     'ND', 'NA', 'N/A', 'TBD', 'TODO',
     '待确认', '待补', '待查', '注', '注意', '重要',
     # Financial notation — not sources
@@ -132,6 +134,7 @@ def check(ctx: dict):
     """Check file targets for source contract violations.
     Only enforces on actual files (kind='file'), not inline/assistant messages —
     meta-discussion about source labels should not trigger the hook."""
+    workspace_root = ctx.get("cwd", "")
     for target in ctx.get("targets", []):
         # Only enforce on actual files written to disk
         if target.get("kind") != "file":
@@ -139,7 +142,12 @@ def check(ctx: dict):
         text = target.get("text", "")
         if not text:
             continue
+        filepath = target.get("path", "")
         display = target.get("display", "unknown")
+        # Skip files outside the current workspace (e.g., plugin repo, temp dirs)
+        if workspace_root and filepath:
+            if not os.path.abspath(filepath).startswith(os.path.abspath(workspace_root)):
+                continue
         is_file = target.get("kind") == "file"
         is_artifact = is_file and _is_research_artifact(display)
 
@@ -203,7 +211,7 @@ def check(ctx: dict):
         # --- Rule 2d: non-standard inline anchor labels (have URL but wrong label format) ---
         # Catches [Yahoo Finance](url), [yfinance](url), [BESI AGM 2026](url) —
         # these must use [S#](url) or [I#](url) instead.
-        STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')
+        STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$|^actuals$|^actuals-source$')
         all_inline_anchors = re.findall(r'(!?)\[([^\]]+)\]\(([^)]+)\)', body_no_code)
         non_std_anchors = []
         for is_image, label, target in all_inline_anchors:

@@ -9,11 +9,12 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取最新 actuals + 市场快照。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -33,7 +34,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ```
 1. 同 ticker 最近的 earnings-setup artifact（pre-print bar 最准）
-2. Consensus range（从 financial-data --lite market_data 或 WebSearch）
+2. Consensus range（从 /financial-data market_data 或 WebSearch）
 3. Prior year same-quarter growth trend（最弱的 proxy——去年有 COVID/M&A 就不准）
 4. 都没有 → "没有基准，不判断方向，只列数字和 guidance 变化"
 ```
@@ -50,8 +51,8 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 ## 输出结构
 
-~~~markdown
-## Verdict
+```markdown
+## Verdict [→ Bridge: financial_snapshot_detail]
 
 **Beat — thesis unchanged** （或其他组合）
 
@@ -76,22 +77,10 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
 
 **Thesis: unchanged.** 1.6T upgrade driver intact. GT orders beat supports thesis. Guidance raise consistent with our base case.
 
-**Next**: update coverage-tracker. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
+**Next**: update coverage-tracker fields so coverage-monitor picks up the new stage / trigger. No need to re-do stock-quickread. Monitor next catalyst: Q3 GT orders (Oct 2026).
 
 > Hard cap: 500 words. Do not write a full earnings review. If you need more space, handoff to `stock-quickread` or `driver-map`.
-~~~
-
-## Source Contract
-
-本文是 300-500 字精简 artifact，但 source 纪律不豁免。
-
-- 所有财务数字（actual vs consensus vs guidance）必须标 `[S#](url)` 或 `[I#](url)`。
-- beat/miss 的判断本身不强制 anchor，但作为判断依据的数字必须 anchor。
-- 价格变动 → `[I#](url)` 指向行情源。
-- guidance / management commentary → `[S#](url)` 指向 earnings call transcript 或 IR PDF。
-- 缺 source 的数字 → 标 `[待查]`。
-
-**完成 Gate**：写完扫全文 → 每个数字有 anchor 或 `[待查]` → `[待查]` ≤3。
+```
 
 ## 反模式
     
@@ -104,7 +93,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     
     ## 篇幅基准
     
-    300-500 字硬上限。超了就是做错了。
+    20-33 行硬上限。超了就是做错了。
     
     ## Workflow 联动
     
@@ -117,7 +106,7 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     | 下游 | 场景 |
     |---|---|
     | `stock-quickread` | thesis needs full review |
-    | `coverage-tracker` | 更新 stage/priority |
+    | `coverage-tracker` | 更新 stage / review date / next trigger / alert tier |
     | `driver-map` | guidance 改变 driver 假设 |
     
     ## 与相邻 skill 的边界
@@ -126,11 +115,3 @@ Five-minute post-print verdict. Not a full review — a rapid three-dimension ch
     - 不做深度财报分析 → `stock-quickread`
     - 不做 thesis 改写 → `alpha-thesis`
     
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

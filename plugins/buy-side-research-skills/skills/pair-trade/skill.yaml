@@ -38,7 +38,7 @@ capabilities:
     - 'Builder'
     - 'Monitor'
   can_trigger:
-    - 'next-step'
+    - ''
     - 'bear-pre-mortem'
     - 'earnings-setup'
   feeds_into:

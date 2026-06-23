@@ -71,21 +71,34 @@ def get_candidate_paths(payload: dict) -> list[str]:
             if r:
                 paths.append(r)
 
+    # browser_download: Playwright MCP download path
+    for key in ("download_path", "suggestedFilename", "downloadPath"):
+        val = ti.get(key, "")
+        if val and val.lower().endswith(".pdf"):
+            r = resolve_path(str(val), root)
+            if r:
+                paths.append(r)
+
     # Bash command: parse redirections and paths
     cmd = ti.get("command", "") or ti.get("text", "")
     if cmd:
         # Redirections: > file.md, >> file.md
-        for m in re.finditer(r'(?:>|>>)\s*["\']?([^"\'\s]+\.(?:md|html|xlsx))', cmd):
+        for m in re.finditer(r'(?:>|>>)\s*["\']?([^"\'\s]+\.(?:md|html|xlsx|pdf))', cmd):
+            r = resolve_path(m.group(1), root)
+            if r:
+                paths.append(r)
+        # Output flags: -o file, --output file
+        for m in re.finditer(r'(?:^|\s)(?:-o|--output)\s+["\']?([^"\'\s]+\.(?:md|html|xlsx|pdf))', cmd):
             r = resolve_path(m.group(1), root)
             if r:
                 paths.append(r)
         # Absolute Windows paths
-        for m in re.finditer(r'["\']?([A-Z]:\\[^"\'\s]+\.(?:md|html|xlsx))', cmd):
+        for m in re.finditer(r'["\']?([A-Z]:\\[^"\'\s]+\.(?:md|html|xlsx|pdf))', cmd):
             r = resolve_path(m.group(1), root)
             if r:
                 paths.append(r)
         # Python/script write paths: r'path/file.md', 'path/file.md', open("file.md")
-        for m in re.finditer(r'''(?:r)?["']([^"'\n]+?\.(?:md|html|xlsx))["']''', cmd):
+        for m in re.finditer(r'''(?:r)?["']([^"'\n]+?\.(?:md|html|xlsx|pdf))["']''', cmd):
             r = resolve_path(m.group(1), root)
             if r and os.path.isfile(r):
                 paths.append(r)
@@ -227,6 +240,9 @@ def _is_separator(line: str) -> bool:
 
 def count_pipe_columns(line: str) -> int:
     clean = line.strip()
+    # Normalize double-pipe || → | (fixes fix-bare-anchors table corruption residue)
+    while "||" in clean:
+        clean = clean.replace("||", "|")
     if clean.startswith("|"):
         clean = clean[1:]
     if clean.endswith("|"):

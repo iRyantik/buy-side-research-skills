@@ -9,20 +9,12 @@ Evaluate a long short pair trade hedge candidate spread logic and key risks.
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: spread ratios, Z-score inputs, and valuation multiples use actuals-resolved.json.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -106,7 +98,6 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 | | Long | Short |
 |---|---|---|
-| Logo | ![logo](当前 topic 的 _cache/images/asml-logo.png) | ![logo](当前 topic 的 _cache/images/amat-logo.png) |
 | Ticker | ASML.NA | AMAT |
 | 业务定位 | EUV/DUV monopoly | Diversified WFE |
 | 当前估值（NTM EV/EBITDA） | 22x | 18x |
@@ -115,8 +106,6 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
 | Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
-
-> Logo 下载：读 `_scripts/download-product-image.js`，设 `{{SELECTOR}}` 为 `.logo img` 或公司首页 logo 选择器，调用当前 session 的 Playwright MCP `browser_run_code_unsafe`，下载到 `_cache/images/<ticker>-logo.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1。
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 
@@ -139,8 +128,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 #### 3. 估值 Spread 历史
 
-
-### 价差与相关性公式
+### 价差与相关性公式 [→ Bridge: price_action, valuation_snapshot, valuation_peer]
 
 | # | 计算 | 公式 | 输入来源 |
 |---|---|---|---|
@@ -148,7 +136,6 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | 2 | 价差百分位 | rank(当前价差) ÷ N | MKT |
 | 3 | Beta | Cov(stock, index) ÷ Var(index) | MKT — 须标参照指数+回溯窗口 |
 | 4 | 比率价差 | ln(Price_Long ÷ Price_Short) | MKT |
-
 
 必须有具体 percentile / sigma，不允许 "spread 偏离历史"这种含糊判断。
 
@@ -271,7 +258,6 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 
 **Pair 总 sizing 原则**：单 pair 不超过 portfolio 5% gross，新建 pair 默认从 2-3% 开始 averaging in。
 
-> 两腿 logo 下载到当前 topic 的 ——找不到标 [缺 logo]。
 
 ### A.6 Tracking Table（默认研究记录）
 
@@ -295,8 +281,6 @@ Pair sizing 不只是"两边数字相同"。三种 sizing method：
 | research_action | monitor / re-underwrite / close study / convert to single-name |
 
 > Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
-
-
 
 > Mermaid spread 逻辑图示例（放在这里做参考，agent 输出时替换 §1 的 placeholder）：
 
@@ -414,18 +398,16 @@ flowchart TD
 |---|---|---|
 | Spread 已到 target + 两边 thesis played out | **close study / trim study** | 建议沉淀到 `research-journal` |
 | Spread 接近 target 但有一边 thesis 仍 valid | **trim study**，保留部分 exposure 的研究建议 | 用户决定是否行动 |
-| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / re-underwrite add case** | 触发 `next-step` |
+| Spread 反向但未触 kill + 两边 thesis 仍 valid | **monitor / re-underwrite add case** | 触发 `` |
 | Spread 反向到 kill / 一边 thesis invalidated | **close study / re-underwrite** | 触发 `bear-pre-mortem` |
 | Spread 不动但 carry cost > 30% 预期收益 | **review expected return after carry** | 更新 `pair-note.md` |
 | 单边 single-name 事件触发 | **close immediately as research recommendation** | 触发 `bear-pre-mortem` 或 `earnings-setup` |
 
 ### B.4 Monitor 输出篇幅
 
-400-700 字。Monitor 是定期检查工具，不是 deep analysis。需要深挖时触发 `next-step` 或 `bear-pre-mortem`。
+400-700 字。Monitor 是定期检查工具，不是 deep analysis。需要深挖时触发 `` 或 `bear-pre-mortem`。
 
 ---
-
-
 
 ## Artifact / 保存策略
 
@@ -457,14 +439,7 @@ flowchart TD
 
 ## 篇幅基准
 
-- **Builder 完整 thesis**：1200-2000 字 + 5 张表。
-- **Monitor 输出**：400-700 字。
+- **Builder 完整 thesis**：80-130 行 + 5 张表。
+- **Monitor 输出**：25-45 行。
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

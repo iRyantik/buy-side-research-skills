@@ -5,7 +5,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 # Financial Data
 
-`financial-data` 把各市场可机器读取的财务数据变成 source-tracked evidence pack。它是 operations skill，不是研究 skill：只负责拉取、解析、标准化、标注完整性和写入 `_cache/datasets/financial-data/`，不解释投资含义、不做 forecast、不替代 `driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`。
+`financial-data` 把各市场可机器读取的财务数据变成 source-tracked evidence pack。它是 operations skill，不是研究 skill：只负责拉取、解析、标准化、标注完整性和写入 `_cache/financial-data/`，不解释投资含义、不做 forecast、不替代 `driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`。
 
 核心产物不是“看起来完整的三表”，而是“哪些字段真的可用、来自哪里、能不能进模型”。V1 默认抓三表；如果 provider 能结构化抓到收入拆分，就把它写进 `actuals-resolved.json` 的 `statements.revenue_split`；如果不能，就只标 `revenue_split = provider-gap` 并保留 filing / annual report 原文供 `driver-map` 用 LLM 抽。不能用推断补齐。
 
@@ -13,7 +13,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 财务数据拉取最容易出错的地方，不是 API 报错，而是数据看起来太整齐：provider-normalized label 被误当作公司原始披露，segment bucket 被自动合并，ticker-only 路由找错实体，或三表可得但模型真正需要的 revenue split 缺失。
 
-本 skill 的工作逻辑是 **provenance first + completeness before model use**。先保存 raw provider payload，再保存 normalized evidence pack；日常外显只给 `financial-data-summary.md`，机器输入和审计文件进入 `internal/`；先告诉研究员缺什么，再让 `driver-map` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 判断能否建模。
+本 skill 的工作逻辑是 **provenance first + completeness before model use**。先保存 raw provider payload，再保存 normalized evidence pack；日常外显只给 `summary.md`，机器输入文件平铺在 `_cache/financial-data/`；先告诉研究员缺什么，再让 `driver-map` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 判断能否建模。
 
 `financial-data` 服务 topic-centric 架构：单公司数据默认落在 `industry/<industry>/companies/<ticker>/`；theme / industry topic 只保存 snapshot 或 links，不变成第二套公司主档。
 
@@ -22,12 +22,12 @@ description: Fetch or parse source-tracked company financial data by market and 
 负责：
 
 - 按 `market`、`identifier`、`identifier_type`、`company_slug` 拉取或解析结构化财务数据。
-- 默认写入 canonical company topic：`industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/`。
-- 保存 raw provider payload 到 `_raw/datasets/financial-data/`，保存 normalized evidence pack 到 `_cache/datasets/financial-data/`。
+- 默认写入 canonical company topic：`industry/<industry>/companies/<ticker>/_cache/financial-data/<market>/<canonical-id>/<run-id>/`。
+- 保存 raw provider payload 到 `_raw/financial-data/`，保存 normalized evidence pack 到 `_cache/financial-data/`。
 - raw evidence 层至少包含 `provider_payload.json`、`identity-source.json`；存在真实 filing source 时还要写 `filings/<filing-id>/source.*`、`source-metadata.json`、`source.sha256`。
-- 生成 public `financial-data-summary.md`；机器文件进入 `internal/`，包括 `evidence-pack.json`、`actuals-resolved.json`、`full-filing.md`、`manifest.json`、`financials.md`、`financials.normalized.json`、`completeness.json`、`source-map.json` 和 `cross-check.json`。
+- 生成 public `summary.md`；版本化 run 输出在 `_cache/financial-data/<market>/<id>/<run_id>/`；消费端入口文件（`actuals-resolved.json`、`evidence-pack.json`、`full-filing.md`）平铺在 `_cache/financial-data/`。
 - 输出字段级 completeness matrix：三表和 `revenue_split` 分开标状态。
-- 支持 current topic snapshot：`industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/`。
+- 支持 current topic snapshot：`industry/<industry>/companies/<ticker>/_cache/financial-data-snapshot/<run-id>/`。
 - 对 dependency gap、credential gap、provider gap fail honestly。
 
 不负责：
@@ -80,14 +80,14 @@ description: Fetch or parse source-tracked company financial data by market and 
 运行：
 
 ```powershell
-python _scripts/financial-data/financial_data.py --check-deps
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+python .scripts/financial-data/financial_data.py --check-deps
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
 用户显式确认后才运行：
 
 ```powershell
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
 ### Canonical Company Fetch
@@ -96,51 +96,61 @@ _scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 
 ```text
 industry/<industry>/companies/<ticker>/
-  _raw/datasets/financial-data/<market>/<canonical-id>/<run-id>/
+  _raw/financial-data/<market>/<canonical-id>/<run-id>/
     provider_payload.json
     identity-source.json
     filings/<filing-id>/
       source.*
       source-metadata.json
       source.sha256
-  _cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/
+  _cache/financial-data/<market>/<canonical-id>/<run-id>/
     manifest.json
     identity.json
     filing-index.json
     financials.md
     financials.normalized.json
-    full-filing.md
     full-filing.chunks.jsonl
     full-filing.index.json
     completeness.json
     source-map.json
     cross-check.json
   _cache/financial-data/
-    financial-data-summary.md
-    internal/
-      evidence-pack.json
-      actuals-resolved.json
-      full-filing.md
-      manifest.json
-      identity.json
-      financials.normalized.json
-      completeness.json
-      source-map.json
-      cross-check.json
+    summary.md
+    actuals-resolved.json
+    evidence-pack.json
+    full-filing.md
 ```
 
-`_cache/financial-data/financial-data-summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/internal/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`internal/evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
+`_cache/financial-data/summary.md` 是人和 LLM 的默认入口。`_cache/financial-data/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
 如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，由 agent 按 policy baseline §11 自动创建目录和索引后继续。
 
-
 ### Lite Mode Fetch（研究前置快速抓取）
 
-触发语：`/financial-data --lite <ticker>` 或 "快速拉 <ticker> 数据"
+触发语：`/financial-data <ticker>`（默认 lite）或 "拉 <ticker> 数据"  
+触发语（full 模式）：`/financial-data <ticker> --mode full`  
+触发语（灵活期间）：`/financial-data <ticker> --periods FY2020-FY2025`
 
-Lite 模式不做 full filing 解析，不建 evidence pack。只抓 22 个三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
+Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心科目 + 分部收入/利润 + 市场快照数据，写入 `actuals-resolved.json`。目标是 **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade** 启动前的最少必要数据。
 
-**Consumer contract**：消费 skill 只需调用 `--lite` 然后直接从 `actuals-resolved.json` 取数。所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
+**期间模式：**
+
+| 模式 | CLI | 期间 | 字段 | yfinance |
+|---|---|---|---|---|
+| **Lite**（默认） | `/financial-data <ticker>` | latest FY + latest Q/H | ~46 字段（LITE_FIELDS） | 市场快照自动填充 |
+| **Full** | `--mode full` | 5 FY + 4 Q/H | ~72 字段（全部） | yfinance 补 provider 缺口 |
+| **灵活** | `--periods FY2020-FY2025` | 指定范围 | full 字段 | — |
+
+- 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`、`"Q1 FY2026"`、`"H1 FY2025"`），不硬编码 `fy_y2/y1/y0`。
+- Provider API 返回多期 values 后，agent 从 `statements.<statement>[].values` 的 keys 中按需选取 period。
+- 全量写入 actuals-resolved.json，消费端按 `get_fields(statements, mode)` 过滤。
+
+**Consumer contract**：
+- Lite（默认）：`/financial-data <ticker>` → latest FY + latest Q/H（~46 字段）。stock-quickread / candidate / peer / consensus / earnings-setup 等研究前置 skill 使用。
+- Full：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（~72 字段）。3-statement-model / dcf-model / comps-analysis 等需要多期全字段的 modeling skill 使用。
+- 灵活：`--periods FY2020-FY2025` 或 `--periods Q1-FY2026`。
+- Agent 读取 actuals-resolved.json 后，调用 `get_fields(statements, mode)` 获取所需字段集。
+- 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
 
 **三表获取逻辑**：按市场路由 provider，缺则 official_web → yfinance → trusted_web → broad_web 逐层降级。规则与 Full mode 相同的 provider_api + official_web 优先原则。
 
@@ -212,7 +222,7 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 
 > **Derived fields constraint**: 所有 derived 字段（包括 growth_rates、弹性比率、任何 arithmetic ratio）的输入必须来自 `actuals-resolved.json` 中真实已披露数据。**禁止用 FY2026E / consensus estimate / forward-looking number 作为输入计算 ratio 并写入 actuals。** 某个输入字段没有 actuals → 该 derived 字段标 `[未披露]`，不计算、不推断。
 
-**弹性采集**（先判断 business model → 路由 `references/kpi-drivers/<template>.md` → 只抓该模板字段）：
+**弹性采集**（先判断 business model → 路由 workspace `.references/kpi-drivers/<template>.md` → 只抓该模板字段）：
 
 | KPI | actuals 字段 | 条件 |
 |---|---|---|
@@ -266,10 +276,9 @@ RAG:       10/11, 剩 PEG (WebFetch全失败)
 **输出**（精简版）：
 
 - `actuals-resolved.json`：三表 + 分部 + `market_data` 审计快照
-- 不输出 `financial-data-summary.md`
+- 不输出 `summary.md`
 
 Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`source-map.json`。
-
 
 ### Fill-Gaps Mode（补 Layer 3 缺口）
 
@@ -300,7 +309,7 @@ Lite 不写 `evidence-pack.json`、`full-filing.md`、`completeness.json`、`sou
 用于 theme / industry / peer 工作流：
 
 ```text
-industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/
+industry/<industry>/companies/<ticker>/_cache/financial-data-snapshot/<run-id>/
   snapshot-index.md
   peer-completeness.json
 ```
@@ -311,7 +320,7 @@ Snapshot 可以链接 canonical company pack，但不把单公司 canonical data
 
 本 skill 使用：
 
-- 如果你只是想先知道 workspace 里哪些共享环境变量需要配置，先看 `init-workspace` 提供的统一环境入口与 `_scripts/init-assets/env-setup.ps1.template`。本节仍然保留 `financial-data` 自己的完整 provider / dependency / bootstrap 细节，不被那份总入口替代。
+- 如果你只是想先知道 workspace 里哪些共享环境变量需要配置，先看 `init-workspace` 提供的统一环境入口与 `.scripts/init-assets/env-setup.ps1.template`。本节仍然保留 `financial-data` 自己的完整 provider / dependency / bootstrap 细节，不被那份总入口替代。
 
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
@@ -360,7 +369,7 @@ KR / JP source policy:
 - EU `openesef` currently requires a local ESEF package or explicit filing URL for deterministic parsing. If no local ESEF package is available, Lite should skip the `openesef` Layer 2 route and move directly to `official_web` fallback instead of treating the missing local package as a normal statement-provider failure.
 - Source-trust ranking is formal: `provider_api + official_web > yfinance > trusted_web + broad_web`. Lower-trust sources must not overwrite higher-trust sources. Provider-fetched official filing caches remain `provider_api`; official company IR/results pages and official filing portals discovered via search remain `official_web`.
 - Non-finite numeric placeholders such as `NaN` / `inf` are invalid in `actuals-resolved.json` and must be normalized back to missing before coverage, overwrite, or consumer use. They must not count as filled fields.
-- `official_web` may also be materialized as a curated machine-readable cache at `industry/<industry>/companies/<ticker>/_cache/financial-data/internal/_raw/official_web_cache.json` when a company IR/results page or attached official PDF has already been source-read and normalized. Those cache entries stay `official_web`, not `provider_api`, and may carry scalar fields plus structured `segments.status` / `segments.segments`.
+- `official_web` may also be materialized as a curated machine-readable cache at `industry/<industry>/companies/<ticker>/_cache/financial-data/official_web_cache.json` when a company IR/results page or attached official PDF has already been source-read and normalized. Those cache entries stay `official_web`, not `provider_api`, and may carry scalar fields plus structured `segments.status` / `segments.segments`.
 - `yfinance` may bootstrap statement fields when provider routes are absent, but only as a lower-trust fill layer. It should not displace existing `provider_api` or `official_web` values.
 - Lite consumer-success coverage should optimize `provider_api + official_web` first. Do not rely on `trusted_web` / `broad_web` to make surface-level coverage look complete.
 - `provider-gap` must be reasoned rather than generic. Use `provider_unavailable`, `official_source_available_not_extracted`, or `not_disclosed` instead of a single ambiguous gap label.
@@ -398,8 +407,8 @@ Segment rule:
 ## Output
 - raw: [...]
 - cache: [...]
-- summary: `_cache/financial-data/financial-data-summary.md`
-- internal_machine_inputs: `_cache/financial-data/internal/`
+- summary: `_cache/financial-data/summary.md`
+- consumer_inputs: `_cache/financial-data/actuals-resolved.json`
 - financial_data_pack_path: [...]
 
 ## Provider / Credential
@@ -433,13 +442,13 @@ Segment rule:
 | 用户要解释 revenue bucket 或 driver | `financial-data` 后交给 `driver-map` |
 | 用户要建模、DCF、comps、更新 workbook | `financial-data` 可作为 optional input 给 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | theme / industry 需要一篮子公司数据 | 用 `current_topic_snapshot`，并链接 canonical company pack |
-| 数据缺口影响模型或研究优先级 | `next-step` / `driver-map` / `company-history` |
+| 数据缺口影响模型或研究优先级 | `` / `driver-map` / `company-history` |
 
 Artifact policy：
 
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `financials.md`
-- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/financial-data/[market]/[canonical-id]/[run-id]/`
 
 ## 安全自查
 

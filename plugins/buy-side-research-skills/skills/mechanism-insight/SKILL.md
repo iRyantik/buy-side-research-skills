@@ -9,10 +9,13 @@ Deep-dive a single industry mechanism, engineering principle, or equipment chain
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill to deepen understanding of a specific mechanism, equipment chain, or process. Do not use it for full-industry overview (→ `industry-landscape`) or zero-to-one physics education (→ `teach-in`).
-- Requires product/equipment photos. Fallback: company product page → web search → `[缺图]`.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -172,13 +175,14 @@ Rating hard standards：
 
 **产品/设备实物图必须**。来源优先级：公司产品页 hero image → web search → `[缺图]`。
 
-**下载方法**：读 `_scripts/download-product-image.js` → 替换 `{{TARGET_URL}}` → 调用当前 session 的 Playwright MCP `browser_run_code_unsafe` → Windows 用 PowerShell 解码、macOS 用 `python3` 解码写 `_cache/images/<slug>-<product>.<ext>`。`<ext>` 使用脚本返回的 `extension`。详见 `stock-quickread` SKILL.md §1 焦点业务图片段。
+**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic mechanism-insight` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+artifact 引用：`![描述](.cache/images/mechanism-insight/<slug>.png)`
 
 ## Artifact / 保存策略
 
-写入行业 topic 根：
+写入行业 topic：
 ```
-industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
+industry/<industry-slug>/panorama/mechanism-insight/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 ```
 
 `naming_mode = required_qualifier`，qualifier 按具体机制/设备/工艺命名。
@@ -189,7 +193,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 |---|---|
 | 机制已讲清，需拆 revenue / margin / backlog driver | `driver-map` |
 | 机制影响 model | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| 机制暴露高价值疑点但不知道怎么问 | `next-step` |
+| 机制暴露高价值疑点但不知道怎么问 | `` |
 | 机制解释了 peer 差异或 KPI 不可比 | `peer-deep-dive` |
 | 机制形成 long / short variant view | `alpha-thesis` |
 | 零基础需要先建立物理直觉 | `teach-in` |
@@ -217,9 +221,9 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 
 ## 篇幅基准
 
-- Quick check：500-900 字 + 1 张流程图/表
-- Full insight：1000-1800 字 + 2-4 张表
-- 超过 2000 字：范围过大，应拆成多个机制或转入 `peer-deep-dive`
+- Quick check：30-60 行 + 1 张流程图/表
+- Full insight：65-120 行 + 2-4 张表
+- 超过 130 行：范围过大，应拆成多个机制或转入 `peer-deep-dive`
 
 ## 与相邻 skill 的边界
 
@@ -228,16 +232,8 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | **入口** | 零基础 | 知道基础概念 | 知道行业术语 | 知道机制 |
 | **问题** | 这东西是什么 | 行业值不值得投 | 机制怎么运作 | 收入/利润怎么拆 |
 | **覆盖** | 全链科普 | 全行业 | 1-2 个机制 | 单家公司/segment |
-| **图片** | 实物图 | 公司 logo+产品图 | 产品实物图 | 无 |
+| **图片** | 实物图 | 产品实物图 | 产品实物图 | 无 |
 | **产物长度** | 6000-8000 | 2000-3000 | 1000-1800 | 800-1500 |
 
 > 产品图：每个涉及物理设备/产品的单元必须配 1 张实物图。下载优先级：公司官网 Media Kit → 产品页 hero → web search → [缺图]。下载到 topic 。
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

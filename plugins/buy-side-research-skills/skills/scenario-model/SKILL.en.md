@@ -11,14 +11,10 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch baseline three-statement data + market snapshot.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-This skill is now a **deep-work odds memo skill**, not a background supporting calculator. It can be triggered directly to answer "how much is this scenario worth, are the odds good enough, and which assumption is most worth verifying." It remains an upstream deep-work primitive — it does not replace `alpha-thesis`, `market-sizing`, or `dcf-model`.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -45,7 +41,7 @@ Every input must have a derivation path. The agent follows the path to find it; 
 | **Target Share** | 1. `mechanism-insight` competitive landscape (current unit/value share) → 2. Customer filings' supplier concentration → 3. Industry conferences / product launches → 4. Benchmark leader share in analogous industry nascent markets | At minimum give high/low range, never a single-point guess |
 | **Target Margin** | 1. `financial-data` actuals current margin → 2. Same-industry scale effect benchmark (how much margin typically improves when revenue doubles) → 3. Peer comparable product-line margin | Default = current margin |
 | **Target PE** | 1. `comps-analysis` peer-group forward PE → 2. `peer-deep-dive` valuation table → 3. Company's own 3-year PE range → 4. Companies in same industry with equal growth rate PE | Must be filled |
-| **Current Valuation** | `financial-data --lite` market_data | — |
+| **Current Valuation** | `/financial-data` market_data | — |
 
 > Tier 0 (machine-verified) = actuals / Bridge. Tier 1 (trusted third-party) = Frost/Gartner cited in official documents. Tier 2 (agent-derived) = has derivation but not verified by a third party. All Tier 2 assumptions must include the derivation process; they enter the model only after researcher confirmation.
 
@@ -157,7 +153,7 @@ Use footnotes in the sensitivity table to annotate correlations, e.g.: "If TAM �
 >
 > **Completion Gate**: After writing, scan the assumptions table → each row has a source tier → references to actuals marked `[S1]`→Resources, references to external sources marked `[I#]`→Resources → `[待查]` assumptions ≤3.
 
-~~~markdown
+```markdown
 ## Scenario Verdict
 
 - One-line judgment: worth continuing / odds are so-so / not worth continuing
@@ -221,7 +217,7 @@ Use footnotes in the sensitivity table to annotate correlations, e.g.: "If TAM �
 Output only when the user asks for reverse calculation:
 - To reach the target market cap, how much revenue / share / margin / multiple is needed
 - Which condition is the least realistic
-~~~
+```
 
 Default positioning:
 - Short, hard, judgment-oriented
@@ -264,10 +260,3 @@ After calculating, ask yourself:
 | Downstream | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
 
-## Appendix: actuals-resolved.json
-
-Full field catalog → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first → source_map to get [S#]/[I#] labels (do not write [actuals]) → ratios use only actuals real values (do not use forward estimates).
