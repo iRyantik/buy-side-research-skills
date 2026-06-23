@@ -160,12 +160,18 @@ def _check_content(path: str, text: str, display: str):
 
     # --- CHECK 6: Image file existence ---
     IMG_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
-    artifact_dir = os.path.dirname(path) if path else "."
     missing_images = []
     for img in IMG_RE.findall(text):
-        if not img.startswith("_cache/images/") and not img.startswith("./_cache/"):
+        if not re.match(r'(\.cache/|_cache/|\.\./)+(images/)', img):
             continue
-        img_path = os.path.join(artifact_dir, img)
+        # Resolve from workspace root for .cache/ paths, or relative for ../ paths
+        if img.startswith('.cache/'):
+            img_path = os.path.join(ws_root, img)
+        elif img.startswith('_cache/'):
+            img_path = os.path.join(ws_root, img)
+        else:
+            artifact_dir = os.path.dirname(path) if path else "."
+            img_path = os.path.join(artifact_dir, img)
         if not os.path.exists(img_path):
             missing_images.append(img)
     if missing_images:

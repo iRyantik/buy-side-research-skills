@@ -6,7 +6,7 @@ Usage:
   python download-image.py <url> --output <slug> --base64   # from base64 (Tier 2)
   python download-image.py --check <slug>                    # check cache only
 
-Cache: workspace _cache/images/ + .cache.json index. Cross-skill shared.
+Cache: workspace .cache/images/ + .cache.json index. Cross-skill shared.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
-CACHE_DIR = "_cache/images"
+CACHE_DIR = ".cache/images"
 CACHE_INDEX = f"{CACHE_DIR}/.cache.json"
 
 
@@ -74,11 +74,12 @@ def _guess_ext(url_or_data: str | bytes) -> str:
 
 
 def download(url: str, output: str, workspace: Path) -> dict:
-    """Download image from URL → _cache/images/<output>.<ext>. Returns result dict."""
+    """Download image from URL → .cache/images/<output>.<ext>. Returns result dict."""
     # Check cache
     cached = _cache_hit(workspace, output)
     if cached:
-        return {"status": "cached", "key": output, "filename": cached.name, "path": str(cached)}
+        ref_path = f"{CACHE_DIR}/{cached.name}"
+        return {"status": "cached", "key": output, "filename": cached.name, "path": str(cached), "ref": ref_path}
 
     try:
         req = Request(url, headers={"User-Agent": "download-image/1.0"})
@@ -87,13 +88,6 @@ def download(url: str, output: str, workspace: Path) -> dict:
     except URLError as e:
         return {"status": "error", "key": output, "error": f"HTTP: {e}", "next": "Try Playwright browser_navigate"}
 
-    # Detect CDN anti-hotlink: content is HTML/JSON, not an actual image
-    preview = data[:200].lstrip()
-    if preview and (preview[:1] == b"<" or preview[:1] == b"{"):
-        return {"status": "error", "key": output,
-                "error": "CDN returned HTML/JSON (anti-hotlink), not an image",
-                "next": "Try Playwright Tier 2: browser_navigate → browser_evaluate → fetch image → --base64"}
-
     ext = _guess_ext(data)
     filename = f"{output}.{ext}"
     fpath = workspace / CACHE_DIR / filename
@@ -101,7 +95,8 @@ def download(url: str, output: str, workspace: Path) -> dict:
     fpath.write_bytes(data)
 
     _cache_save(workspace, output, filename, url, len(data))
-    return {"status": "downloaded", "key": output, "filename": filename, "path": str(fpath), "size": len(data)}
+    ref_path = f"{CACHE_DIR}/{filename}"
+    return {"status": "downloaded", "key": output, "filename": filename, "path": str(fpath), "size": len(data), "ref": ref_path}
 
 
 def download_base64(b64: str, output: str, workspace: Path) -> dict:
@@ -125,67 +120,41 @@ def download_base64(b64: str, output: str, workspace: Path) -> dict:
 def check(output: str, workspace: Path) -> dict:
     cached = _cache_hit(workspace, output)
     if cached:
-        return {"status": "cached", "key": output, "filename": cached.name, "path": str(cached)}
+        ref_path = f"{CACHE_DIR}/{cached.name}"
+        return {"status": "cached", "key": output, "filename": cached.name, "path": str(cached), "ref": ref_path}
     return {"status": "not_cached", "key": output}
-
-
-def _find_industry_root(start: Path) -> Path | None:
-    """Walk up from start to find nearest industry/<slug>/ directory."""
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if parent.parent and parent.parent.name == "industry" and parent.name not in ("companies", "_cache", "_inbox"):
-            return parent
-    return None
-
-
-def _image_cache_dir(industry_root: Path, topic: str = "", company: str = "") -> Path:
-    """Resolve image cache directory for topic-level or company-level images."""
-    if company:
-        d = industry_root / "companies" / company / "_cache" / "images"
-    elif topic:
-        d = industry_root / "_cache" / "images" / topic
-    else:
-        d = industry_root / "_cache" / "images"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
 
 
 def main():
     p = argparse.ArgumentParser(description="Download product/equipment images with cache")
     p.add_argument("url", nargs="?", help="Image URL")
     p.add_argument("--output", required=True, help="Output slug (e.g. 'my-product')")
-    p.add_argument("--topic", help="Industry topic subdirectory (e.g. 'teach-in')")
-    p.add_argument("--company", help="Company ticker slug (e.g. 'santec')")
     p.add_argument("--base64", help="Base64 image data (Tier 2 fallback)")
     p.add_argument("--check", action="store_true", help="Check cache only")
+    p.add_argument("--workspace", help="Workspace path (default: auto-detect)")
     args = p.parse_args()
 
-    start = Path.cwd()
-    industry_root = _find_industry_root(start)
-    if not industry_root:
-        # Fallback: use workspace root _cache
-        ws = start.resolve()
-        for parent in [ws, *ws.parents]:
-            if (parent / "industry").is_dir() and (parent / "CLAUDE.md").is_file():
-                ws = parent
-                break
-        cache_dir = ws / "_cache" / "images"
-        cache_dir.mkdir(parents=True, exist_ok=True)
-    else:
-        cache_dir = _image_cache_dir(industry_root,
-                                      topic=args.topic or "",
-                                      company=args.company or "")
+    workspace = Path(args.workspace).resolve() if args.workspace else Path.cwd()
+    # Walk up to find workspace root
+    for parent in [workspace, *workspace.parents]:
+        if (parent / "industry").is_dir() and (parent / "CLAUDE.md").is_file():
+            workspace = parent
+            break
 
     if args.check:
-        result = check(args.output, cache_dir)
+        result = check(args.output, workspace)
     elif args.base64:
-        result = download_base64(args.base64, args.output, cache_dir)
+        result = download_base64(args.base64, args.output, workspace)
     elif args.url:
-        result = download(args.url, args.output, cache_dir)
+        result = download(args.url, args.output, workspace)
     else:
         print("ERROR: url or --base64 required", file=sys.stderr)
         return 1
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
+    ref = result.get("ref", "")
+    if ref and result["status"] in ("downloaded", "cached"):
+        print(f"\nArtifact 引用: ![描述]({ref})")
     return 0 if result["status"] != "error" else 1
 
 

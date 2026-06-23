@@ -176,7 +176,7 @@ Rating hard standards：
 **产品/设备实物图必须**。来源优先级：公司产品页 hero image → web search → `[缺图]`。
 
 **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic mechanism-insight` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-artifact 引用：`![描述](../../../../_cache/images/mechanism-insight/<slug>.png)`
+artifact 引用：`![描述](.cache/images/mechanism-insight/<slug>.png)`
 
 ## Artifact / 保存策略
 

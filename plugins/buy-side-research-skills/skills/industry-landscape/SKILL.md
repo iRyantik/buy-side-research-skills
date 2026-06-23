@@ -156,7 +156,7 @@ Takeaway：这个行业的竞争在往什么方向变。
 ## 图片要求
 
 **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic industry-landscape` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-artifact 引用：`![描述](../../../../_cache/images/industry-landscape/<slug>.png)`
+artifact 引用：`![描述](.cache/images/industry-landscape/<slug>.png)`
 
 | 图片类型 | 必须 | 来源 |
 |---|---|---|
