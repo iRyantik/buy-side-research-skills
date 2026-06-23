@@ -89,7 +89,7 @@ Step 1 boundary: no text modification, no speaker diarization, no annotations. R
 
 Output: `_scratchpad.json`, saved to `.cache/meeting-minutes/`. Language-neutral (keys in English, values in source language).
 
-**① Term correction**: Cross-reference teach-in/quickread for matching terms. Fix obvious ASR errors. **Company names and tickers must be verified via WebSearch** (especially incomplete or misrecognized names in transcripts). Retain original text for appendix Name Corrections. Mark uncertain fixes `[TO CONFIRM]`.
+**① Term correction**: Cross-reference teach-in/quickread for matching terms. Fix obvious ASR errors. **Any entity information must be verified via WebSearch before writing to final output** — not limited to company names and tickers; also includes: listing status (pre-IPO vs listed), product names, market positions, monopoly relationships, customer-supplier relationships, and ambiguous abbreviations (CPU/CPO/GPU etc.). Retain original text for appendix Name Corrections. Mark uncertain fixes `[TO CONFIRM]`.
 
 **② Entity extraction**: Companies / products / customers / projects / numbers.
 
