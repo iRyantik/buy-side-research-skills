@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 EVIDENCE_SUBDIR = "evidence"
-LEDGER_DIRNAME = "_cache"
+LEDGER_DIRNAME = ".cache"
 
 CLAIM_TYPES = {"factual", "statistical", "citation", "entity", "causal", "temporal"}
 STATUSES = {"verified", "plausible", "unverified", "disputed", "fabrication_risk"}

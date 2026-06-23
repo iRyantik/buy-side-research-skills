@@ -998,7 +998,7 @@ def route_converter(
 
 RAW_CATEGORIES = ("filings", "transcripts", "sellside", "industry", "irdecks", "datasets")
 TOPIC_NAMESPACES = ("company", "industry", "theme", "pair")
-TOPIC_OPERATION_DIRS = ("_raw", "_inbox", "_cache")
+TOPIC_OPERATION_DIRS = (".raw", ".inbox", ".cache")
 
 CATEGORY_FILENAME_HINTS = {
     "filings": (r"\b(10[-_]?K|10[-_]?Q|8[-_]?K|20[-_]?F|40[-_]?F|annual.report|proxy|prospectus)\b",),
@@ -1065,12 +1065,12 @@ def resolve_topic(source: Path, workspace: Path, explicit_topic: str | None) -> 
     # Legacy topics/ structure (still supported for backward compat)
     if len(parts) >= 5 and parts[0] == "topics" and parts[1] in TOPIC_NAMESPACES and parts[3] in TOPIC_OPERATION_DIRS:
         return f"{parts[1]}/{parts[2]}"
-    if len(parts) >= 4 and parts[0] == "topics" and parts[2] in ("_raw", "_inbox", "_cache"):
+    if len(parts) >= 4 and parts[0] == "topics" and parts[2] in (".raw", ".inbox", ".cache"):
         return parts[1]
-    if len(parts) >= 3 and parts[0] == "_inbox" and parts[1] not in ("", "."):
+    if len(parts) >= 3 and parts[0] == ".inbox" and parts[1] not in ("", "."):
         root_topic = "/".join(part for part in parts[1:-1] if part not in ("", "."))
         return root_topic or "unclassified"
-    if len(parts) >= 2 and parts[0] == "_inbox":
+    if len(parts) >= 2 and parts[0] == ".inbox":
         return "unclassified"
     return "unclassified"
 
@@ -1079,7 +1079,7 @@ def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topi
     resolved = resolve_topic(source, workspace, topic)
     if cache_root:
         return cache_root / resolved / f"{source.stem}.md"
-    return workspace / resolved / "_cache" / f"{source.stem}.md"
+    return workspace / resolved / ".cache" / f"{source.stem}.md"
 
 
 def read_cache_metadata(path: Path) -> dict[str, str]:
@@ -1113,15 +1113,15 @@ def candidate_files(source: Path, recursive: bool) -> list[Path]:
 
 def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
     try:
-        source.resolve().relative_to((workspace / "_inbox").resolve())
+        source.resolve().relative_to((workspace / ".inbox").resolve())
         return True
     except ValueError:
         pass
     try:
         rel = source.resolve().relative_to(workspace.resolve())
-        if len(rel.parts) >= 5 and rel.parts[0] == "topics" and rel.parts[1] in TOPIC_NAMESPACES and rel.parts[3] == "_inbox":
+        if len(rel.parts) >= 5 and rel.parts[0] == "topics" and rel.parts[1] in TOPIC_NAMESPACES and rel.parts[3] == ".inbox":
             return True
-        if len(rel.parts) >= 3 and rel.parts[0] == "topics" and rel.parts[2] == "_inbox":
+        if len(rel.parts) >= 3 and rel.parts[0] == "topics" and rel.parts[2] == ".inbox":
             return True
     except ValueError:
         pass
@@ -1140,7 +1140,7 @@ def _check_topic_exists(workspace: Path, topic: str) -> None:
 
 
 def _move_to_raw(source: Path, workspace: Path, topic: str, category: str) -> Path:
-    raw_dir = workspace / topic / "_raw" / category
+    raw_dir = workspace / topic / ".raw" / category
     raw_dir.mkdir(parents=True, exist_ok=True)
     dest = raw_dir / source.name
     shutil.move(str(source), str(dest))

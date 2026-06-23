@@ -168,21 +168,21 @@ def _resolve_cache_path(workspace: str, ticker: str | None, source_type: tuple,
             ind = _find_industry(workspace, ticker)
             if ind:
                 base = os.path.join(workspace, "industry", ind, "companies", ticker,
-                                    "_cache", "disclosure", sub)
+                                    ".cache", "disclosure", sub)
                 os.makedirs(base, exist_ok=True)
                 return os.path.join(base, filename)
         # Fallback: workspace-level _cache
-        base = os.path.join(workspace, "_cache", "disclosure", sub)
+        base = os.path.join(workspace, ".cache", "disclosure", sub)
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
     elif top in ("sell-side", "institution"):
-        base = os.path.join(workspace, "_cache", top, sub)
+        base = os.path.join(workspace, ".cache", top, sub)
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
     elif top == "primary":
-        base = os.path.join(workspace, "_cache", "primary", sub)
+        base = os.path.join(workspace, ".cache", "primary", sub)
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
@@ -191,15 +191,15 @@ def _resolve_cache_path(workspace: str, ticker: str | None, source_type: tuple,
             ind = _find_industry(workspace, ticker)
             if ind:
                 base = os.path.join(workspace, "industry", ind, "companies", ticker,
-                                    "_cache", "web")
+                                    ".cache", "web")
                 os.makedirs(base, exist_ok=True)
                 return os.path.join(base, filename)
-        base = os.path.join(workspace, "_cache", "web")
+        base = os.path.join(workspace, ".cache", "web")
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
     else:  # inbox
-        base = os.path.join(workspace, "_cache", "inbox")
+        base = os.path.join(workspace, ".cache", "inbox")
         os.makedirs(base, exist_ok=True)
         return os.path.join(base, filename)
 
@@ -256,7 +256,7 @@ def check(ctx):
             continue
 
         # Convert + cache + delete
-        to_md = os.path.join(root, "_scripts", "shared", "to-markdown.py")
+        to_md = os.path.join(root, ".scripts", "shared", "to-markdown.py")
         if not os.path.exists(to_md):
             warn(f"pdf_auto_cache: to-markdown.py not found, skipping {filename}")
             continue

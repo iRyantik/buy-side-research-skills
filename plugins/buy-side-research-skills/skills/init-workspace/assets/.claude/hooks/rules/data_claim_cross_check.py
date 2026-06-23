@@ -135,7 +135,7 @@ def check(ctx: dict):
             for industry_name in os.listdir(industry_root):
                 candidate = os.path.join(
                     industry_root, industry_name, "companies", company_slug,
-                    "_cache", "financial-data", "internal", "actuals-resolved.json"
+                    ".cache", "financial-data", "internal", "actuals-resolved.json"
                 )
                 if os.path.isfile(candidate):
                     financial_data_path = candidate

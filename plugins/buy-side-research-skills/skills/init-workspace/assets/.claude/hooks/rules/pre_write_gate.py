@@ -70,8 +70,8 @@ def _extract_write_content(payload: dict) -> tuple:
 def _find_ledger_for_artifact(artifact_path: str) -> str | None:
     artifact_dir = os.path.dirname(artifact_path) if artifact_path else "."
     candidates = [
-        os.path.join(artifact_dir, "_cache", "evidence"),
-        os.path.join(artifact_dir, "..", "_cache", "evidence"),
+        os.path.join(artifact_dir, ".cache", "evidence"),
+        os.path.join(artifact_dir, "..", ".cache", "evidence"),
     ]
     for base in candidates:
         if os.path.isdir(base):
@@ -260,7 +260,7 @@ def _check_content(path: str, text: str, display: str):
     if m:
         actuals_path = os.path.join(
             os.path.dirname(path).split('industry')[0] if 'industry' in path else ".",
-            m.group(1), "_cache", "financial-data", "internal", "actuals-resolved.json")
+            m.group(1), ".cache", "financial-data", "internal", "actuals-resolved.json")
         if os.path.exists(actuals_path):
             try:
                 with open(actuals_path, "r", encoding="utf-8") as f:
@@ -475,7 +475,7 @@ def _check_content(path: str, text: str, display: str):
 
         if company_dir:
             # Check evidence ledger (all company research artifacts need sources)
-            evidence_dir = os.path.join(company_dir, "_cache", "evidence")
+            evidence_dir = os.path.join(company_dir, ".cache", "evidence")
             if not os.path.isdir(evidence_dir) or not any(
                 f.endswith(".evidence.json") for f in os.listdir(evidence_dir)
             ):
@@ -497,7 +497,7 @@ def _check_content(path: str, text: str, display: str):
                 skill in artifact_name for skill in SKILLS_NEEDING_ACTUALS
             )
             if needs_actuals:
-                actuals_path = os.path.join(company_dir, "_cache", "financial-data", "actuals-resolved.json")
+                actuals_path = os.path.join(company_dir, ".cache", "financial-data", "actuals-resolved.json")
                 if not os.path.isfile(actuals_path):
                     block(
                         f"Blocked by pre_write_gate: {display} — "
@@ -557,7 +557,7 @@ def _find_company_actuals(artifact_path: str, slug: str) -> str | None:
     d = os.path.dirname(artifact_path)
     for _ in range(10):
         if os.path.basename(d) == slug and os.path.basename(os.path.dirname(d)) == "companies":
-            return os.path.join(d, "_cache", "financial-data", "actuals-resolved.json")
+            return os.path.join(d, ".cache", "financial-data", "actuals-resolved.json")
         parent = os.path.dirname(d)
         if parent == d:
             break
