@@ -59,9 +59,11 @@ Agent 对 Core Watch / Mover 做 WebSearch 时，按市场使用本地语言：
 
 优先搜索本地财经媒体和交易所公告，而非通用新闻聚合。
 
-## 每日标准流程（强制）
+## 默认行为
 
-Agent 每次调 `daily` 必须走完整 5 步，不允许跳过 agent 搜索直接发报：
+触发本 skill 直接执行每日标准流程——不需要先 `doctor`。`doctor` 是内部检查，不对外暴露。
+
+## 每日标准流程（强制）
 
 ```
 1. python run_coverage_monitor.py daily --dry-run
