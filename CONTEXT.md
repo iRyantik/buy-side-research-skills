@@ -22,7 +22,7 @@
 - **[缺图]** — Missing product image. Only allowed after image download was attempted and logged in evidence ledger.
 - **[actuals]** — Deprecated. Do not use in artifacts. Use `source_map` to map actuals fields to [S#] tags.
 - **bare anchor** — An `[S#]` or `[I#]` without a URL. Always blocked by hooks.
-- **verification badge** — Previous convention: `[S1](url) (Playwright ✅)`. Removed in v5.7.0. Verified sources carry no badge; only unverified claims are marked.
+- **verification badge** — Previous convention: `[S1](url) (Playwright ✅)`. Removed in v6.5.8. Verified sources carry no badge; only unverified claims are marked.
 
 ### Evidence system
 
