@@ -136,6 +136,28 @@ _FIELD_ALIASES = {
     "employees": "employees", "customer_count": "customer_count",
     "arr": "arr", "nrr": "nrr", "grr": "grr", "churn": "churn",
     "production_volume": "production_volume", "utilization_pct": "utilization_pct",
+    # Chinese CN concept names (AKShare / Eastmoney)
+    "营业总收入": "revenue", "营业收入": "revenue", "营业总成本": "cogs", "营业成本": "cogs",
+    "营业利润": "operating_income", "利润总额": "pre_tax_income", "净利润": "net_income",
+    "归属于母公司股东的净利润": "net_income", "归母净利润": "net_income",
+    "研发费用": "r_and_d", "销售费用": "sg_and_a", "管理费用": "sg_and_a",
+    "财务费用": "interest_expense", "利息费用": "interest_expense",
+    "资产总计": "total_assets", "总资产": "total_assets",
+    "负债合计": "total_liabilities", "总负债": "total_liabilities",
+    "股东权益合计": "total_equity", "总权益": "total_equity",
+    "经营活动产生的现金流量净额": "operating_cf", "经营现金流": "operating_cf",
+    "购建固定资产、无形资产和其他长期资产支付的现金": "capex",
+    "基本每股收益": "eps", "稀释每股收益": "eps",
+    "货币资金": "cash", "应收账款": "accounts_receivable", "存货": "inventory",
+    "商誉": "goodwill", "短期借款": "short_term_debt", "长期借款": "long_term_debt",
+    # Japanese JP concept names (EDINET)
+    "売上高": "revenue", "営業利益": "operating_income", "経常利益": "pre_tax_income",
+    "当期純利益": "net_income", "親会社株主に帰属する当期純利益": "net_income",
+    "総資産": "total_assets", "純資産": "total_equity", "負債": "total_liabilities",
+    "営業活動によるキャッシュ・フロー": "operating_cf",
+    # Korean KR concept names (DART)
+    "매출액": "revenue", "영업이익": "operating_income", "당기순이익": "net_income",
+    "자산총계": "total_assets", "부채총계": "total_liabilities", "자본총계": "total_equity",
 }
 
 # Common SEC US GAAP XBRL concept → standard field mappings
@@ -368,7 +390,12 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
             if key_clean[:-1] in concept_map:
                 return concept_map[key_clean[:-1]]
 
-    # Fallback: return normalized concept name
+    # Fallback: check _FIELD_ALIASES for local-language labels
+    if concept in _FIELD_ALIASES:
+        return _FIELD_ALIASES[concept]
+    if key in _FIELD_ALIASES:
+        return _FIELD_ALIASES[key]
+    # Last resort: return normalized concept name
     return concept.lower().replace(" ", "_").replace("/", "_")
 
 
