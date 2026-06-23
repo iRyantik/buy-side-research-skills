@@ -136,6 +136,36 @@ _FIELD_ALIASES = {
     "employees": "employees", "customer_count": "customer_count",
     "arr": "arr", "nrr": "nrr", "grr": "grr", "churn": "churn",
     "production_volume": "production_volume", "utilization_pct": "utilization_pct",
+    # AKShare / Eastmoney provider codes (CN)
+    "total_operate_income": "revenue", "operate_income": "operating_income",
+    "total_operate_cost": "cogs", "operate_cost": "cogs",
+    "sale_expense": "sg_and_a", "admin_expense": "sg_and_a",
+    "research_expense": "r_and_d", "develop_expense": "r_and_d",
+    "finance_expense": "interest_expense",
+    "income_tax_expense": "income_tax",
+    "netprofit_atsopc": "net_income", "net_profit": "net_income",
+    "gross_profit_is": "gross_profit",
+    "accounts_rece": "accounts_receivable", "inventories": "inventory",
+    "monetary_cap": "cash",
+    "goodwill_bs": "goodwill",
+    "shortterm_borrow": "short_term_debt", "longterm_borrow": "long_term_debt",
+    "bond_payable": "bonds_payable",
+    "total_current_liability": "total_current_liabilities",
+    "total_equity_atsopc": "total_equity",
+    "net_cash_flows_oper": "operating_cf", "net_cash_flows_oper_act": "operating_cf",
+    "purchase_assets": "capex",
+    "dividend_paid": "dividends_paid",
+    "eps_basic": "eps", "diluted_eps": "eps",
+    # EDINET JP provider codes
+    "net_sales": "revenue",
+    "ordinary_income": "pre_tax_income", "ordinary_profit": "pre_tax_income",
+    "profit_loss": "net_income",
+    "total_assets_bs": "total_assets", "net_assets": "total_equity",
+    "net_cash_provided_by_used_in_operating_activities": "operating_cf",
+    "purchase_of_property_plant_and_equipment": "capex",
+    # DART KR provider codes
+    "ifrs_revenue": "revenue", "ifrs_operating_profit_loss": "operating_income",
+    "ifrs_profit_loss": "net_income", "ifrs_total_assets": "total_assets",
     # Chinese CN concept names (AKShare / Eastmoney)
     "营业总收入": "revenue", "营业收入": "revenue", "营业总成本": "cogs", "营业成本": "cogs",
     "营业利润": "operating_income", "利润总额": "pre_tax_income", "净利润": "net_income",
@@ -390,9 +420,10 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
             if key_clean[:-1] in concept_map:
                 return concept_map[key_clean[:-1]]
 
-    # Fallback: check _FIELD_ALIASES for local-language labels
-    if concept in _FIELD_ALIASES:
-        return _FIELD_ALIASES[concept]
+    # Fallback: check _FIELD_ALIASES for local-language labels / provider codes
+    lower_concept = concept.lower()
+    if lower_concept in _FIELD_ALIASES:
+        return _FIELD_ALIASES[lower_concept]
     if key in _FIELD_ALIASES:
         return _FIELD_ALIASES[key]
     # Last resort: return normalized concept name
