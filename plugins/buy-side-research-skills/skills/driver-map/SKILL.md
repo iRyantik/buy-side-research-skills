@@ -252,10 +252,6 @@ Excel 格式规范：无网格线/无边框/全 Calibri/假设格黄底蓝字/�
 [现有格式保留]
 
 ## 7. Implications
-- 怪异点：[披露 / bucket / KPI 哪里不自然]
-- 可能说明：[1-2 个解释]
-
-## 6. Implications
 
 - [这个 driver map 会如何改变 model / thesis / peer compare]
 
