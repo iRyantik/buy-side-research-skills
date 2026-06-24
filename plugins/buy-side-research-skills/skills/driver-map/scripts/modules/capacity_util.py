@@ -16,7 +16,7 @@ from openpyxl.utils import get_column_letter
 def render(ws, R, ll, anchor_info, ctx):
     C = ctx['C']; I = ctx['I']
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    CNY = ctx['CNY']; CN1 = ctx['CN1']; PCT = ctx['PCT']
+    NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
     proj_n = ctx['proj_n']
 
@@ -25,10 +25,10 @@ def render(ws, R, ll, anchor_info, ctx):
 
     # ── Capacity ──
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
-    I(ws, R, FY0, cap['fy0'], fmt=CN1)
+        C(ws, R, ci, '', fmt=NUM)
+    I(ws, R, FY0, cap['fy0'], fmt=DEC)
     for i, v in enumerate(cap['proj']):
-        I(ws, R, FY0 + 1 + i, v, fmt=CN1)
+        I(ws, R, FY0 + 1 + i, v, fmt=DEC)
     C(ws, R, 2, ln, font=bf)
     C(ws, R, 3, f'Capacity ({cap["unit"]})')
     cap_r = R; R += 1
@@ -44,10 +44,10 @@ def render(ws, R, ll, anchor_info, ctx):
 
     # ── ASP ──
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
-    I(ws, R, FY0, asp['fy0'], fmt=CN1)
+        C(ws, R, ci, '', fmt=NUM)
+    I(ws, R, FY0, asp['fy0'], fmt=DEC)
     for i, v in enumerate(asp['proj']):
-        I(ws, R, FY0 + 1 + i, v, fmt=CN1)
+        I(ws, R, FY0 + 1 + i, v, fmt=DEC)
     C(ws, R, 3, f'ASP ({asp["unit"]})')
     asp_r = R; R += 1
 
@@ -56,20 +56,20 @@ def render(ws, R, ll, anchor_info, ctx):
     for col_idx in [FY0] + [FY0 + 1 + i for i in range(proj_n)]:
         cl = get_column_letter(col_idx)
         C(ws, R, col_idx,
-          f'={cl}{cap_r}*{cl}{util_r}*{cl}{asp_r}', fmt=CNY)
+          f'={cl}{cap_r}*{cl}{util_r}*{cl}{asp_r}', fmt=NUM)
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
     R += 1
 
     # ── Check row (collapsible) ──
     s1r, s1v = anchor_info.get(ln, (0, 0))
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     if s1r:
-        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=CNY)
+        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, f'  Check (anchor {s1v}M)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1

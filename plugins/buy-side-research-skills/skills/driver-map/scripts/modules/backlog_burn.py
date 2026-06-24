@@ -20,7 +20,7 @@ from openpyxl.utils import get_column_letter
 def render(ws, R, ll, anchor_info, ctx):
     C = ctx['C']; I = ctx['I']
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    CNY = ctx['CNY']; CN1 = ctx['CN1']; PCT = ctx['PCT']
+    NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
     proj_n = ctx['proj_n']
 
@@ -31,8 +31,8 @@ def render(ws, R, ll, anchor_info, ctx):
 
     # ── Beginning Backlog ──
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
-    I(ws, R, FY0, beg['fy0'], fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
+    I(ws, R, FY0, beg['fy0'], fmt=NUM)
     C(ws, R, 2, ln, font=bf)
     C(ws, R, 3, f'Beg Backlog ({beg["unit"]})')
     beg_r = R; R += 1
@@ -59,20 +59,20 @@ def render(ws, R, ll, anchor_info, ctx):
     rev_r = R
     for col_idx in [FY0] + [FY0 + 1 + i for i in range(proj_n)]:
         cl = get_column_letter(col_idx)
-        C(ws, R, col_idx, f'={cl}{beg_r}*{cl}{burn_r}', fmt=CNY)
+        C(ws, R, col_idx, f'={cl}{beg_r}*{cl}{burn_r}', fmt=NUM)
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
     R += 1
 
     # ── Check row (collapsible) ──
     s1r, s1v = anchor_info.get(ln, (0, 0))
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     if s1r:
-        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=CNY)
+        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, f'  Check (anchor {s1v}M)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
@@ -82,9 +82,9 @@ def render(ws, R, ll, anchor_info, ctx):
     for col_idx in [FY0] + [FY0 + 1 + i for i in range(proj_n)]:
         cl = get_column_letter(col_idx)
         C(ws, R, col_idx,
-          f'={cl}{beg_r}*(1+{cl}{order_r}-{cl}{burn_r})', fmt=CNY)
+          f'={cl}{beg_r}*(1+{cl}{order_r}-{cl}{burn_r})', fmt=NUM)
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'End Backlog')
     R += 1
 
@@ -95,7 +95,7 @@ def render(ws, R, ll, anchor_info, ctx):
         pl = get_column_letter(ci - 1)
         ws.cell(row=beg_r, column=ci).value = f'={pl}{end_r}'
         ws.cell(row=beg_r, column=ci).font = nf
-        ws.cell(row=beg_r, column=ci).number_format = CNY
+        ws.cell(row=beg_r, column=ci).number_format = NUM
 
     # ── Implied YoY ──
     for ci in range(DS, DS + 2):
