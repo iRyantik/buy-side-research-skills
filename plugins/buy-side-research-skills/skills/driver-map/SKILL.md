@@ -342,6 +342,26 @@ FY+1 增速路径：
 
 - 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
+## Valuation Method Auto-Selection
+
+Agent 写 `logic_lines[].sotp` 时，按业务特征自动选最佳方法。研究员可 override。
+
+**决策树**：
+
+```
+NI > 0 且最近 2 年 margin 稳定?
+  ├─ Yes → PE（默认，市场标准）
+  └─ No → 为什么亏 / 不稳定？
+            ├─ 高 D&A（制造业/重资产）→ EV/EBITDA
+            ├─ 早期/高增长/pre-profit → PS
+            ├─ 订单驱动/项目制 → EV/Sales
+            └─ 特殊情况 → 标 [需查证]，agent 推荐 + 研究员确认
+```
+
+**per line 覆写**：同一家公司可以混合——成熟业务 PE，新业务 PS，重资产 EV/EBITDA。
+
+**multiple 预设**：Agent 从 actuals TTM PE 或行业估值表推测初始值（蓝格，研究员调）。不确定标 `[估算]`。
+
 ## Appendix A: driver-model.json Schema (v4)
 
 Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`build-logic-model.py` (v4) 从 JSON 生成公式联动 Excel。
