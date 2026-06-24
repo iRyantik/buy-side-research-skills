@@ -15,7 +15,7 @@ def render(ws, R, ll, anchor_info, ctx):
     """Render one vol_asp logic line. Returns row references dict."""
     C = ctx['C']; I = ctx['I']
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    CNY = ctx['CNY']; CN1 = ctx['CN1']; PCT = ctx['PCT']
+    NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
     proj_n = ctx['proj_n']
 
@@ -25,10 +25,10 @@ def render(ws, R, ll, anchor_info, ctx):
 
     # ── Volume row ──
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
-    I(ws, R, FY0, v0, fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
+    I(ws, R, FY0, v0, fmt=NUM)
     for i, v in enumerate(vp):
-        I(ws, R, FY0 + 1 + i, v, fmt=CNY)
+        I(ws, R, FY0 + 1 + i, v, fmt=NUM)
     C(ws, R, 2, ln, font=bf)
     C(ws, R, 3, f'Volume ({vol["unit"]})')
     vol_r = R; R += 1
@@ -62,20 +62,20 @@ def render(ws, R, ll, anchor_info, ctx):
             bear = t.get('asp_bear', [])
 
             for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=CNY)
+                C(ws, R, ci, '', fmt=NUM)
             for ci in range(FY0, LC + 1):
-                C(ws, R, ci, 0, fmt=CNY)
+                C(ws, R, ci, 0, fmt=NUM)
             C(ws, R, 3, f'  {tn} ASP Active', font=itf)
             asp_a_r = R; R += 1
 
             asp_b_r = asp_bs_r = asp_be_r = 0
             for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
                 for ci in range(DS, DS + 2):
-                    C(ws, R, ci, '', fmt=CNY)
-                I(ws, R, FY0, arr[0] if arr else 0, fmt=CN1)
+                    C(ws, R, ci, '', fmt=NUM)
+                I(ws, R, FY0, arr[0] if arr else 0, fmt=DEC)
                 for i, v in enumerate(arr[1:] if len(arr) > 1 else []):
                     if i < proj_n:
-                        I(ws, R, FY0 + 1 + i, v, fmt=CN1)
+                        I(ws, R, FY0 + 1 + i, v, fmt=DEC)
                 C(ws, R, 3, f'    {label}', font=itf)
                 ws.row_dimensions[R].hidden = True
                 if label == 'Bull':    asp_b_r = R
@@ -90,7 +90,7 @@ def render(ws, R, ll, anchor_info, ctx):
             cll = FY0
             ws.cell(row=asp_a_r, column=cll).value = f0_val
             ws.cell(row=asp_a_r, column=cll).font = nf
-            ws.cell(row=asp_a_r, column=cll).number_format = CN1
+            ws.cell(row=asp_a_r, column=cll).number_format = DEC
             for i in range(proj_n):
                 ci = FY0 + 1 + i
                 cl = get_column_letter(ci)
@@ -110,11 +110,11 @@ def render(ws, R, ll, anchor_info, ctx):
                 afy0 = 0
 
             for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=CNY)
-            I(ws, R, FY0, afy0, fmt=CN1)
+                C(ws, R, ci, '', fmt=NUM)
+            I(ws, R, FY0, afy0, fmt=DEC)
             for i, v in enumerate(ap):
                 if i < proj_n:
-                    I(ws, R, FY0 + 1 + i, v, fmt=CN1)
+                    I(ws, R, FY0 + 1 + i, v, fmt=DEC)
             C(ws, R, 3, f'  {tn} ASP', font=itf)
             asp_rows.append(R)
             R += 1
@@ -134,20 +134,20 @@ def render(ws, R, ll, anchor_info, ctx):
                     else f'({cl}{vol_r}*{ac})')
             else:
                 parts.append(f'({cl}{vol_r}*{cl}{share_rows[ti]}*{ac})')
-        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/100', fmt=CNY)
+        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/100', fmt=NUM)
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
     R += 1
 
     # ── Check row (collapsible) ──
     s1r, s1v = anchor_info.get(ln, (0, 0))
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     if s1r:
-        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=CNY)
+        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, f'  Check (anchor {s1v}M)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
@@ -171,9 +171,9 @@ def render(ws, R, ll, anchor_info, ctx):
                 else:
                     parts.append(f'({sc_cl}{vol_r}*{sc_cl}{share_rows[ti]}*{ac})')
             for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=CNY)
+                C(ws, R, ci, '', fmt=NUM)
             C(ws, R, 3, f'    {label} Rev @ SOTP', font=itf)
-            C(ws, R, SC, '=(' + '+'.join(parts) + ')/100', fmt=CNY)
+            C(ws, R, SC, '=(' + '+'.join(parts) + ')/100', fmt=NUM)
             ws.row_dimensions[R].hidden = True
             if label == 'Bull':    yb = R
             elif label == 'Base':  ys = R

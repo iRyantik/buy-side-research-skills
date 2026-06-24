@@ -42,7 +42,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 # ── Format constants ──
-PCT = '0.0%'; CNY = '#,##0'; CN1 = '#,##0.0'; YEN = '¥#,##0.00'
+PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'; YEN = '¥#,##0.00'
 DS = 4; COLS = 8
 
 # ── Fonts / fills ──
@@ -71,7 +71,7 @@ def make_ctx():
     return {
         'C': C, 'I': I,
         'nf': nf, 'bf': bf, 'itf': itf,
-        'CNY': CNY, 'CN1': CN1, 'PCT': PCT,
+        'NUM': NUM, 'DEC': DEC, 'PCT': PCT,
         'DS': DS, 'FY0': DS + 2, 'LC': DS + COLS - 1,
         'proj_n': 0,
     }
@@ -84,7 +84,7 @@ def render_yoy(ws, R, ll, anchor_info, ctx):
     """Base yoy: Revenue = Section 1 ref, YoY Active (BBE group)."""
     C = ctx['C']; I = ctx['I']
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    CNY = ctx['CNY']; PCT = ctx['PCT']
+    NUM = ctx['NUM']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
     proj_n = ctx['proj_n']
 
@@ -95,8 +95,8 @@ def render_yoy(ws, R, ll, anchor_info, ctx):
 
     # ── Revenue (FY25A = Section 1 ref) ──
     for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=CNY)
-    C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
+    C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
     rev_r = R
     C(ws, R, 2, ln, font=bf)
     C(ws, R, 3, 'Revenue')
@@ -296,8 +296,8 @@ def build(json_path, output_path=None):
         srev = fy0['rev']; scost = fy0['cost']; sgp = fy0['gp']; sgm = fy0['gm']
 
         for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=CNY)
-        C(ws, R, FY0, sc(srev), fmt=CNY)
+            C(ws, R, ci, '', fmt=NUM)
+        C(ws, R, FY0, sc(srev), fmt=NUM)
         rev_r = R
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'Revenue')
@@ -315,15 +315,15 @@ def build(json_path, output_path=None):
         R += 1
 
         for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=CNY)
-        C(ws, R, FY0, sc(scost), fmt=CNY)
+            C(ws, R, ci, '', fmt=NUM)
+        C(ws, R, FY0, sc(scost), fmt=NUM)
         cost_r = R
         C(ws, R, 3, 'Cost')
         R += 1
 
         for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=CNY)
-        C(ws, R, FY0, sc(sgp), fmt=CNY)
+            C(ws, R, ci, '', fmt=NUM)
+        C(ws, R, FY0, sc(sgp), fmt=NUM)
         gp_r = R
         C(ws, R, 3, 'GP')
         R += 1
@@ -346,7 +346,7 @@ def build(json_path, output_path=None):
             lr = round(srev * sp)
             anchor_info[ln] = (R, sc(lr))
             C(ws, R, 3, f'  {ln} FY25A Rev', font=itf)
-            C(ws, R, FY0, sc(lr), fmt=CNY)
+            C(ws, R, FY0, sc(lr), fmt=NUM)
             lrevs[ln] = R; R += 1
 
         if srows:
@@ -394,7 +394,7 @@ def build(json_path, output_path=None):
 
         for ci in range(DS, LC + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=CNY)
+            C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
         C(ws, R, 3, 'GP')
         gp_r = R; R += 1
 
@@ -424,15 +424,15 @@ def build(json_path, output_path=None):
             ws.cell(row=s1r, column=ci).value = '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
                 ([str(sc(res_val))] if res_val else []))
-            ws.cell(row=s1r, column=ci).number_format = CNY
+            ws.cell(row=s1r, column=ci).number_format = NUM
             ws.cell(row=s1c, column=ci).value = '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}*(1-{cl}{L[ln["name"]]["gm_r"]})' for ln in lls] +
                 ([f'{sc(res_val)}*(1-{res_gm})'] if res_val else []))
-            ws.cell(row=s1c, column=ci).number_format = CNY
+            ws.cell(row=s1c, column=ci).number_format = NUM
             ws.cell(row=s1g, column=ci).value = '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
                 ([f'{sc(res_val)}*{res_gm}'] if res_val else []))
-            ws.cell(row=s1g, column=ci).number_format = CNY
+            ws.cell(row=s1g, column=ci).number_format = NUM
             ws.cell(row=s1gm, column=ci).value = f'=IFERROR({cl}{s1g}/{cl}{s1r},"")'
             ws.cell(row=s1gm, column=ci).number_format = PCT
 
@@ -451,7 +451,7 @@ def build(json_path, output_path=None):
                     cl = get_column_letter(ci)
                     ws.cell(row=lr_row, column=ci).value = \
                         f'={cl}{L[ln_name]["rev_r"]}'
-                    ws.cell(row=lr_row, column=ci).number_format = CNY
+                    ws.cell(row=lr_row, column=ci).number_format = NUM
         if res_row and srows:
             for ci in range(FY0 + 1, LC + 1):
                 cl = get_column_letter(ci)
@@ -481,22 +481,22 @@ def build(json_path, output_path=None):
     LN = [ln['name'] for ln in logic_lines]
 
     # Total Revenue
-    C(ws, R, DS, sc(a['fy-2']['rev']), fmt=CNY)
-    C(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=CNY)
+    C(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
+    C(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=NUM)
     for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]),
-          font=bf, fmt=CNY)
+          font=bf, fmt=NUM)
     C(ws, R, 3, 'Total Revenue')
     trev = R; R += 1
 
     # Check Rev
     fy0rev = a['fy0']['rev']
     for ci in range(DS, FY0):
-        C(ws, R, ci, '', fmt=CNY)
-    C(ws, R, FY0, sc(fy0rev), fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
+    C(ws, R, FY0, sc(fy0rev), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, '  Check (actual)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
@@ -512,21 +512,21 @@ def build(json_path, output_path=None):
     R += 1
 
     # Total GP
-    C(ws, R, DS, sc(a['fy-2']['gp']), fmt=CNY)
-    C(ws, R, DS + 1, sc(a['fy-1']['gp']), fmt=CNY)
+    C(ws, R, DS, sc(a['fy-2']['gp']), fmt=NUM)
+    C(ws, R, DS + 1, sc(a['fy-1']['gp']), fmt=NUM)
     for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]),
-          font=bf, fmt=CNY)
+          font=bf, fmt=NUM)
     C(ws, R, 3, 'Total GP')
     tgp = R; R += 1
 
     fy0gp = a['fy0']['gp']
     for ci in range(DS, FY0):
-        C(ws, R, ci, '', fmt=CNY)
-    C(ws, R, FY0, sc(fy0gp), fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
+    C(ws, R, FY0, sc(fy0gp), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=CNY)
+        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, '  Check (actual)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
@@ -547,21 +547,21 @@ def build(json_path, output_path=None):
     opex_fy2 = a['fy-2'].get('opex', a['fy-2']['gp'] - a['fy-2']['op'])
     opex_fy1 = a['fy-1'].get('opex', a['fy-1']['gp'] - a['fy-1']['op'])
     _opex_start = R
-    C(ws, R, DS, sc(opex_fy2), fmt=CNY)
-    C(ws, R, DS + 1, sc(opex_fy1), fmt=CNY)
-    C(ws, R, FY0, sc(a['fy0']['opex']), fmt=CNY)
+    C(ws, R, DS, sc(opex_fy2), fmt=NUM)
+    C(ws, R, DS + 1, sc(opex_fy1), fmt=NUM)
+    C(ws, R, FY0, sc(a['fy0']['opex']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{trev}*{cl}{opex_r}', fmt=CNY)
+        C(ws, R, ci, f'={cl}{trev}*{cl}{opex_r}', fmt=NUM)
     C(ws, R, 3, 'Opex')
     ov = R; R += 1
 
-    C(ws, R, DS, sc(a['fy-2']['op']), fmt=CNY)
-    C(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=CNY)
-    C(ws, R, FY0, sc(a['fy0']['op']), fmt=CNY)
+    C(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
+    C(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
+    C(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', font=bf, fmt=CNY)
+        C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', font=bf, fmt=NUM)
     C(ws, R, 3, 'Operating Profit')
     op = R; R += 1
 
@@ -575,18 +575,18 @@ def build(json_path, output_path=None):
     da_fy2 = a['fy-2'].get('da', 0); da_fy1 = a['fy-1'].get('da', 0)
     da_fy0 = a['fy0'].get('da', 0)
     _ebitda_start = R
-    C(ws, R, DS, sc(da_fy2), fmt=CNY)
-    C(ws, R, DS + 1, sc(da_fy1), fmt=CNY)
-    C(ws, R, FY0, sc(da_fy0), fmt=CNY)
+    C(ws, R, DS, sc(da_fy2), fmt=NUM)
+    C(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
+    C(ws, R, FY0, sc(da_fy0), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_fy0}/{get_column_letter(FY0)}{trev}', fmt=CNY)
+        C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_fy0}/{get_column_letter(FY0)}{trev}', fmt=NUM)
     C(ws, R, 3, 'D&A')
     da_r = R; R += 1
 
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', font=bf, fmt=CNY)
+        C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', font=bf, fmt=NUM)
     C(ws, R, 3, 'EBITDA')
     ebitda_r = R; R += 1
 
@@ -600,28 +600,28 @@ def build(json_path, output_path=None):
     _ebit_start = R
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebitda_r}-{cl}{da_r}', font=bf, fmt=CNY)
+        C(ws, R, ci, f'={cl}{ebitda_r}-{cl}{da_r}', font=bf, fmt=NUM)
     C(ws, R, 3, 'EBIT')
     ebit_r = R; R += 1
     _ebit_end = ebit_r
 
     # Tax + NI (always computed)
     _ni_start = R
-    C(ws, R, DS, sc(a['fy-2']['tax']), fmt=CNY)
-    C(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=CNY)
-    C(ws, R, FY0, sc(a['fy0']['tax']), fmt=CNY)
+    C(ws, R, DS, sc(a['fy-2']['tax']), fmt=NUM)
+    C(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=NUM)
+    C(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=CNY)
+        C(ws, R, ci, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
     C(ws, R, 3, 'Tax')
     tv = R; R += 1
 
-    C(ws, R, DS, sc(a['fy-2']['ni']), fmt=CNY)
-    C(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=CNY)
-    C(ws, R, FY0, sc(a['fy0']['ni']), fmt=CNY)
+    C(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
+    C(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
+    C(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=CNY)
+        C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
@@ -634,7 +634,7 @@ def build(json_path, output_path=None):
     if nci_rate > 0:
         for ci in range(DS, LC + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{ni_r}*(1-{nci_rate})', font=bf, fmt=CNY)
+            C(ws, R, ci, f'={cl}{ni_r}*(1-{nci_rate})', font=bf, fmt=NUM)
         C(ws, R, 3, 'NI attributable')
         ni_r = R; R += 1
 
@@ -694,7 +694,7 @@ def build(json_path, output_path=None):
         # GP (allocation base)
         C(ws, R, 2, ln, font=bf)
         C(ws, R, 3, 'GP')
-        C(ws, R, SC, f'={gc}', fmt=CNY)
+        C(ws, R, SC, f'={gc}', fmt=NUM)
         R += 1
 
         # Allocated metric
@@ -705,7 +705,7 @@ def build(json_path, output_path=None):
             alloc_formula = f'=IFERROR({mc}*{gc}/{tc_gp},"")'
             alloc_ref = f'({mc}*{gc}/{tc_gp})'
         C(ws, R, 3, metric_label)
-        C(ws, R, SC, alloc_formula, fmt=CNY)
+        C(ws, R, SC, alloc_formula, fmt=NUM)
         R += 1
 
         # Multiple input
@@ -723,12 +723,12 @@ def build(json_path, output_path=None):
         else:
             mcap_f = f'=IFERROR({alloc_ref}*{sc_l}{mult_row},"")'
         C(ws, R, 3, 'Mkt Cap')
-        C(ws, R, SC, mcap_f, font=bf, fmt=CN1)
+        C(ws, R, SC, mcap_f, font=bf, fmt=DEC)
         mc_rows.append(R); R += 1
 
     C(ws, R, 2, 'TOTAL', font=bf)
     C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows]),
-      font=bf, fmt=CN1)
+      font=bf, fmt=DEC)
     sotp_r = R; R += 1
 
     # ═══════════════ §5 SOTP - Segments ═══════════════
@@ -755,7 +755,7 @@ def build(json_path, output_path=None):
 
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'GP')
-        C(ws, R, SC, f'={gc}', fmt=CNY)
+        C(ws, R, SC, f'={gc}', fmt=NUM)
         R += 1
 
         if method_s in ('ev_sales', 'ps'):
@@ -765,7 +765,7 @@ def build(json_path, output_path=None):
             alloc_f_s = f'=IFERROR({mc}*{gc}/{sc_l}{tgp},"")'
             alloc_ref_s = f'({mc}*{gc}/{sc_l}{tgp})'
         C(ws, R, 3, metric_label_s)
-        C(ws, R, SC, alloc_f_s, fmt=CNY)
+        C(ws, R, SC, alloc_f_s, fmt=NUM)
         R += 1
 
         if method_s == 'pe':      label_ms = 'PE'
@@ -781,22 +781,22 @@ def build(json_path, output_path=None):
         else:
             mcap_f_s = f'=IFERROR({alloc_ref_s}*{sc_l}{pe_row},"")'
         C(ws, R, 3, 'Mkt Cap')
-        C(ws, R, SC, mcap_f_s, font=bf, fmt=CN1)
+        C(ws, R, SC, mcap_f_s, font=bf, fmt=DEC)
         smc_rows.append(R); R += 1
 
     C(ws, R, 2, 'TOTAL', font=bf)
     C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows]),
-      font=bf, fmt=CN1)
+      font=bf, fmt=DEC)
     sotp_seg_r = R; R += 1
 
     # ═══════════════ §6 Market Data ═══════════════
     R += 1
     C(ws, R, 3, 'MCap', font=bf)
-    C(ws, R, SC, mcap_d, fmt=CNY)
+    C(ws, R, SC, mcap_d, fmt=NUM)
     mcap_data_r = R; R += 1
     if shares:
         C(ws, R, 3, 'Shares (M)', font=bf)
-        C(ws, R, SC, sc(shares), fmt=CNY)
+        C(ws, R, SC, sc(shares), fmt=NUM)
         shares_data_r = R; R += 1
     if price:
         C(ws, R, 3, 'Price', font=bf)
@@ -878,9 +878,9 @@ def build(json_path, output_path=None):
         nf_s = f'=({gp_total_sc}-{rev_total_sc}*{syc}{opex_r})*(1-{syc}{tax_r})'
         pf = f'=IFERROR({mref}/({nf_s[1:]}),"")'
         C(ws, R, 2, label, font=bf)
-        C(ws, R, DS, rf, fmt=CNY)
-        C(ws, R, DS + 1, gf, fmt=CNY)
-        C(ws, R, DS + 2, nf_s, fmt=CNY)
+        C(ws, R, DS, rf, fmt=NUM)
+        C(ws, R, DS + 1, gf, fmt=NUM)
+        C(ws, R, DS + 2, nf_s, fmt=NUM)
         C(ws, R, DS + 3, pf, font=bf, fmt='0.0x')
         R += 1
 
@@ -903,7 +903,7 @@ def build(json_path, output_path=None):
                 cl.font = nf
             # Ensure bare numeric cells have comma format
             if isinstance(cl.value, (int, float)) and cl.number_format == 'General':
-                cl.number_format = CN1 if cl.value != int(cl.value) else CNY
+                cl.number_format = CN1 if cl.value != int(cl.value) else NUM
         cv = ws.cell(row=row, column=3).value
         if cv and isinstance(cv, str) and cv in BOLD_C:
             ws.cell(row=row, column=3).font = bf
