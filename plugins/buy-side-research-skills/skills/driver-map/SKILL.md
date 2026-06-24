@@ -177,11 +177,14 @@ Hard rule：`Low` confidence 或 `unknown` driver 不能进入单一 base case�
 Agent 预设（从 MD 研究结论提取）：
 - `segments[].logic_lines[].split`：FY0A 逻辑线收入占比
 - `segments[].residual.gm`：残差毛利率
-- `logic_lines[].yoy`：Bull/Base/Bear 三档 YoY
+- `logic_lines[].module`：`yoy`（默认）/ `vol_asp` / `capacity_util` / `backlog_burn`（见 Appendix C）
+- `logic_lines[].yoy`：Bull/Base/Bear 三档 YoY（yoy module）
 - `logic_lines[].gm.proj`：未来 5 年 GM
-- `logic_lines[].sotp_pe`：估值倍数
-- `logic_lines[].type`：`rare-earth` / `organic`
+- `logic_lines[].sotp`：估值方法+倍数，`{"method": "pe", "multiple": 40}`；旧 `sotp_pe` 兼容
 - `global.opex_rate` / `global.tax_rate`
+- `meta.p&l_depth`：`gp` / `ebitda` / `ebit` / `ni`（默认 ni）
+- `meta.net_debt`：EV 估值用（默认 0）
+- `meta.nci_rate`：少数股东占比（默认 0）
 
 JSON 文件与 driver-map.md 同目录同日期前缀（只换后缀 `.json`）。
 
@@ -190,6 +193,8 @@ JSON 文件与 driver-map.md 同目录同日期前缀（只换后缀 `.json`）�
 ```bash
 python .scripts/shared/build-logic-model.py <path/to/driver-map.json>
 ```
+
+脚本自动校验 JSON（字段完整性、数组长度、module 合法性）后生成单 sheet 公式联动 Excel。每个 revenue module 独立渲染自己的输入行+Revenue 公式+Check 行+Scenario 缓存行；主脚本负责 Section 1（分部）、P&L（按 p&l_depth 自适应深度）、SOTP（按 method 切换估值路径）、Market Data（yfinance）、Scenario Summary（yoy 链式投影 + 非 yoy 读缓存行）。
 
 脚本从 JSON 读取配置，yfinance 拉实时市场数据，生成单 sheet 公式联动 Excel：
 - Section 1: 原始披露分部（FY25A hardcode，FY26E+ = 逻辑线 reaggregate）
@@ -291,18 +296,19 @@ Excel 格式规范：无网格线/无边框/全 Calibri/假设格黄底蓝字/�
 - ❌ Revenue 输入绝对值而非 YoY——改了 FY26E 不影响 FY27E+。
 - ❌ 脚本含公司特定逻辑——应全部在 JSON 里，脚本纯通用。
 
-## Appendix A: driver-model.json Schema
+## Appendix A: driver-model.json Schema (v4)
 
 Agent 在 Step 7 产出此文件，与 driver-map.md 同目录同日期前缀。所有"初始预设"值研究员在 Excel 蓝格里调。
 
 ```json
 {
   "meta": {"ticker": "300285.SZ", "company": "Sinocera", "market": "cn",
-           "base_fy": 2025, "proj_years": 5, "sotp_offset": 2},
-  "units": {"rev": "M"},
+           "base_fy": 2025, "proj_years": 5, "sotp_offset": 2,
+           "p&l_depth": "ni", "net_debt": 0, "nci_rate": 0},
   "actuals": {
-    "fy-2": {"rev": 3859, "gp": 1492, "op": 755, "tax": 93, "ni": 605},
-    "fy-1": {"rev": 4047, "gp": 1606, "op": 775, "tax": 93, "ni": 610}
+    "fy-2": {"rev": 3859, "gp": 1492, "opex": 737, "da": 120, "op": 755, "tax": 93, "ni": 605},
+    "fy-1": {"rev": 4047, "gp": 1606, "opex": 831, "da": 130, "op": 775, "tax": 93, "ni": 610},
+    "fy0":   {"rev": 4583, "gp": 1722, "opex": 951, "da": 150, "op": 771, "tax": 90, "ni": 610}
   },
   "segments": [{
     "name": "Electronic Materials",
@@ -311,12 +317,18 @@ Agent 在 Step 7 产出此文件，与 driver-map.md 同目录同日期前缀。
     "residual": {"gm": 0.25}
   }],
   "logic_lines": [{
-    "name": "R1 MLCC Powder", "type": "rare-earth", "profit_tier": "gp",
+    "name": "R1 MLCC Powder",
+    "module": "vol_asp",
     "yoy": {"bull": [0.60,...], "base": [0.51,...], "bear": [0.35,...]},
     "gm": {"fy0": 0.40, "proj": [0.42,0.45,0.46,0.47,0.48]},
-    "sotp_pe": 40,
-    "drivers": [
-      {"label": "Volume", "fy0": {"value": 7000, "unit": "tons"}}
+    "sotp": {"method": "pe", "multiple": 40},
+    "volume": {"fy0": 5900, "proj": [8400,12600,...], "unit": "t"},
+    "tiers": [
+      {"name": "AI", "share_fy0": 0.15, "share_proj": [0.25,0.40,...],
+       "asp_bull": [9.5,35,50,...], "asp_base": [9.5,30,45,...], "asp_bear": [9.5,22,35,...]},
+      {"name": "Auto", "share_fy0": 0.22, "share_proj": [0.26,0.27,...],
+       "asp": [7.0,9.0,9.5,...]},
+      {"name": "Consumer", "asp_fy0": 5.5, "asp": [5.5,7.0,7.0,...]}
     ]
   }],
   "global": {"opex_rate": [0.22,...], "tax_rate": 0.15}
@@ -324,30 +336,88 @@ Agent 在 Step 7 产出此文件，与 driver-map.md 同目录同日期前缀。
 ```
 
 字段说明：
-- `meta.market`: cn/us/jp/kr/tw — 用于自动单位检测（jp/kr/tw 或 mcap>1e6M → B 单位）
-- `segments[].logic_lines[].split`: FY0A 收入占比，残差=1−Σsplit（自动算）
-- `logic_lines[].profit_tier`: gp/ebit/ebitda/ni — SOTP 取最高可得层级
-- `logic_lines[].type`: rare-earth / organic / non-core — 用于 Excel 配色
-- `logic_lines[].drivers`: 可选——每个 driver 一行纯展示，不参与公式
-- `global.opex_rate`: 数组长度 = 实际年数 + 投影年数
-- 单位统一用"百万本币"（M），脚本自动转 B
+- `meta.market`: cn/us/jp/kr/tw — 自动单位检测（jp/kr/tw 或 mcap>1e6M → B 单位）
+- `meta.p&l_depth`: gp/ebitda/ebit/ni — P&L 深度
+- `actuals`: fy-2/fy-1 需填 `opex`（不填则自动 gp−op 推导）；`da` 用于 ebitda/ebit 深度（默认 0）
+- `logic_lines[].module`: `yoy`（默认）/ `vol_asp` / `capacity_util` / `backlog_burn`
+- `logic_lines[].sotp`: 估值方法，`method`=`pe`/`ev_ebitda`/`ev_ebit`/`ev_sales`，旧 `sotp_pe:40` 兼容
+- $schema 详细字段见 Appendix C module 参考
+- 单位统一用"百万本币"（M），脚本自动转 B；C1 显示 `(CNY millions)`
 
-## Appendix B: Excel 结构
+## Appendix B: Excel 结构 (v4)
 
-`build-logic-model.py` 从 JSON 生成单 sheet 公式联动 Excel：
+`build-logic-model.py` (v4) 从 JSON 生成单 sheet 公式联动 Excel：
 
-| Section | 行 | 内容 | 输入/输出 |
-|---|---|---|---|
-| 1 | 5- | 原始披露分部（Rev/Cost/GP/GM/Split%/残差%） | FY25A hardcode, FY26E+=公式 |
-| 2 | 50- | 逻辑线假设（YoY Bull/Base/Bear→Active→Revenue→GM→GP） | 蓝格输入 |
-| — | — | Global Opex/Tax | 蓝格输入 |
-| 3 | — | P&L + 残差聚合行 | 公式 |
-| 4 | — | SOTP Logic（GP→NI share→PE→Mkt Cap→SUM TOTAL） | PE 蓝格输入 |
-| 5 | — | SOTP Segments（分部 PE 加权自动算） | PE 蓝格输入 |
-| 6 | — | Market Data（yfinance mcap/price/shares/PE/52W）+ Implied ratios | 展示 |
-| 7 | — | Scenario Summary（三套独立公式，不依赖 B1 下拉） | 公式 |
+| Section | 内容 | 输入/输出 |
+|---|---|---|
+| 1 | 原始披露分部（Rev/Cost/GP/GM/Split%/残差%） | FY25A hardcode, FY26E+=公式 |
+| 2 | 逻辑线（module dispatch → render 输入行+Revenue 公式+Check+缓存+GS/GP） | 蓝格输入 |
+| — | Global Opex rate / Tax rate | 蓝格输入 |
+| 3 | P&L（按 p&l_depth 自适应：gp / ebitda / ebit / ni） | 公式 + actuals hardcode FY23-25 |
+| 4 | SOTP Logic（per line：GP → metric 分配 → 估值 multiple → MCap → SUM） | multiple 蓝格输入 |
+| 5 | SOTP Segments（分部 weighted multiple 自动算） | multiple 蓝格输入 |
+| 6 | Market Data（yfinance）+ Implied ratios | 展示 |
+| 7 | Scenario Summary（yoy 链式投影 + vol_asp 读缓存行 + 无 BBE 线读单值） | 公式 |
 
-格式规范：无网格线、无边框、全 Calibri、假设格黄底蓝字(#FFFFCC/#0000CC)、年份右对齐/标签左对齐、冻结 D2、B1 下拉切换场景。PE 格式 `0.0x`，比率 `0.0%`，货币 `¥#,##0.00`。
+Check 行折叠（group outline_level=1），ASP 用 `#,##0.0`，Revenue 用 `#,##0`。Non-yoy module 的 BBE 情景行隐藏在 Revenue block 内。格式规范同前。
+
+## Appendix C: Revenue Modules
+
+### C.1 yoy (base, 默认)
+
+最简模板。Revenue FY25A = Section 1 anchor ref，FY26E+ = Prior×(1+YoY Active)。YoY Active 行通过 IF(B1) 读取隐藏 Bull/Base/Bear YoY 行。
+
+```json
+{"name": "G1", "yoy": {"bull": [0.25,...], "base": [0.18,...], "bear": [0.10,...]}, "gm": {...}, "sotp": {...}}
+```
+
+### C.2 vol_asp — Volume × Share% × ASP
+
+多产品量价拆分。Revenue = Σ(Vol × Share% × ASP) / 100（万元→M）。Tiers 分 BBE ASP（三情景）和 simple ASP 两种。
+
+```json
+{"name": "R1", "module": "vol_asp",
+ "volume": {"fy0": 5900, "proj": [...], "unit": "t"},
+ "tiers": [{
+   "name": "AI", "share_fy0": 0.15, "share_proj": [...],
+   "asp_bull": [9.5,35,...], "asp_base": [9.5,30,...], "asp_bear": [9.5,22,...]
+ },{
+   "name": "Consumer", "asp_fy0": 5.5, "asp": [5.5,7.0,...]
+ }]
+}
+```
+
+- `asp_bull/base/bear`：三情景 ASP，FY25A 值相同（基年固定）。ASP Active 行用 IF(B1) 切换。3 个隐藏"Rev @ SOTP"缓存行供 Scenario Summary。
+- `asp`（无 BBE）：单值 ASP，无情景依赖。省略 `asp_fy0` 时自动取 `asp[0]` 为 FY0。
+- ASP 数组至少需要 `1 + proj_years` 个值。
+
+### C.3 capacity_util — Capacity × Utilization% × ASP
+
+产能利用率模型。Rev = Capa × Util% × ASP。3 行输入。
+
+```json
+{"name": "钻针", "module": "capacity_util",
+ "capacity": {"fy0": 8, "proj": [...], "unit": "亿只/年"},
+ "util_rate": {"fy0": 0.75, "proj": [...]},
+ "asp": {"fy0": 5.0, "proj": [...], "unit": "元/支"}
+}
+```
+
+### C.4 backlog_burn — Beginning Backlog × Burn Rate
+
+订单-积压链式。Rev = Beg_Backlog × Burn_Rate。End_Backlog = Beg × (1 + Order_Rate − Burn_Rate)。Beg Backlog FY26E+ = prior End Backlog（Excel 公式跨列链式引用）。
+
+```json
+{"name": "设备", "module": "backlog_burn",
+ "beg_backlog": {"fy0": 2500, "unit": "M"},
+ "order_rate": {"fy0": 0.45, "proj": [...]},
+ "burn_rate": {"fy0": 0.35, "proj": [...]}
+}
+```
+
+### C.5 Module Contract
+
+新 module 只需实现 `render(ws, R, ll, anchor_info, ctx) -> dict`，返回 `{next_R, rev_r, gm_r:None, gp_r:None, module, [opt: yb, ybs, ybe]}`。有 BBE 情景依赖时提供 yb/ybs/ype 缓存行（Scenario Summary 用）。注册到 `MODULES` dict + `_load_module()`。
 
 ## 篇幅基准
 
