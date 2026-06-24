@@ -68,14 +68,14 @@ Agent 对 Core Watch / Mover 做 WebSearch 时，按市场使用本地语言：
 以下 5 步必须**连续执行**，不允许在任何步骤停下提问"要继续吗"：
 
 ```
-1. python run_coverage_monitor.py daily --dry-run     ← 采集数据，输出 agent_work
+1. python run_coverage_monitor.py daily     ← 脚本采集（行情+DDG新闻+RSS）+ 写 daily-state.json
 2. Agent 读 agent_work → 获取 pending_* 数字
 3. Agent 并行搜 + 审 + 写（不可跳过任何一只）:
    a. 审每只 Mover 的 DDG 结果 → 去伪新闻 → 写中文 explainer（≥2 evidence）
    b. 审每只 Core Watch 的 DDG 结果 → 去伪新闻 → 写中文 stock summary
    c. 搜每个行业 WebSearch → 写中文 industry summary
 4. 全部写入 enrichment-YYYY-MM-DD.json
-5. python run_coverage_monitor.py daily --enrichment <.json>   ← 渲染 + 发邮件
+5. python run_coverage_monitor.py daily --enrichment <.json>     ← 注入 enrichment + 渲染 + 发邮件
 ```
 
 **硬门**：
