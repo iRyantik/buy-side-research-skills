@@ -11,19 +11,10 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to obtain three-statement financials + market snapshot. Trust the results; pull data directly from `actuals-resolved.json`.
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: screening ratios (PE, PEG, EV/EBITDA, FCF Yield, ROIC, etc.) use actuals-resolved.json. Consensus data may appear as a separate column but never feeds into ratio computation.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-
-- Use this skill for hypothesis engineering, candidate mining, priced-in triage, and idea funneling; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mental Model
 
@@ -138,7 +129,7 @@ Default to six-dimension scoring. Do not rank by theme heat alone:
 
 **Step 5: Next Verification**
 
-Top Ideas must include next-step verification paths:
+Top Ideas must include  verification paths:
 
 - Company first-pass: `stock-quickread`
 - Business / segment / KPI to model driver: `driver-map`
@@ -165,11 +156,11 @@ Top Ideas must include next-step verification paths:
 
 ## §3 Scenario Stock-Push Matrix (Main Table)
 
-Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight | Current Valuation | Scenario Re-rating Direction | One-liner | Key KPI (taken from `references/kpi-drivers/`, the single most important number for this industry)**
+Rows = companies, Columns = 3 regimes. Cell format: **Direction Weight · Current Valuation · Scenario Re-rating Direction · One-liner · Key KPI** (taken from workspace `.references/kpi-drivers/`, the single most important number for this industry). Note: use `·` inside cells, NEVER `|` (breaks table rendering)
 
-| Company | Ticker | R1: [Current] | R2: [Transition] | R3: [New Paradigm] | Valuation Flip Magnitude Ev |
+| Company | Ticker | R1: [Current] | R2: [Transition] | R3: [New Paradigm] | Valuation Flip Magnitude | Ev |
 |---|---|---|---|---|---|---|
-| AAA | TICKER | Long High | PE 18x | ↑ | logic | Long High | → ↑ | logic | Long High | → ↑↑ | logic | +60% |
+| AAA | TICKER | Long High · PE 18x · ↑ · logic · KPI | Long High · → ↑ · logic · KPI | Long High · → ↑↑ · logic · KPI | +60% | [S#](url) |
 
 Valuation Flip = re-rating magnitude from R1→R3, must be quantified. Negative value = short-side gain when regime switches.
 
@@ -365,10 +356,3 @@ Do not confuse:
 - "This news is true, and I want to find beneficiary stocks following the news logic" -> first `information-impact`, then `candidate-screener`
 
 
-## Appendix: actuals-resolved.json
-
-Complete field listing -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map for [S#]/[I#] labels (do not write [actuals]) -> ratios use only actuals real values (do not use forward estimates).

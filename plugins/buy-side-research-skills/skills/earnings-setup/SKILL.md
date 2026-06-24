@@ -9,18 +9,12 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: implied move, short squeeze score, and any ratio derived from financial statements use actuals-resolved.json.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -45,7 +39,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 | KPI 机制含义 | 要看的 KPI 背后的行业机制、设备链条、产能单位或工艺流程已清楚 | 先 handoff 到 `mechanism-insight` |
 | KPI / segment 口径 | KPI、segment、backlog、orders、book-to-bill 的定义和收入确认关系清楚 | 先 handoff 到 `driver-map` |
 | Buy-side bar | buy-side 实际期待能映射到 revenue / margin / backlog / price-volume-mix driver | 先 handoff 到 `driver-map` |
-| Thesis linkage | 这次 print 的 3 个观察点能对应 `alpha-thesis` 的假设或 catalyst | 若问题是研究方向不清，触发 `next-step` |
+| Thesis linkage | 这次 print 的 3 个观察点能对应 `alpha-thesis` 的假设或 catalyst | 若问题是研究方向不清，触发 `` |
 
 若不通过，先输出最小 handoff block：
 
@@ -58,8 +52,6 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 - Inputs needed: [需要补的 filing / call / KPI definition / segment data]
 ```
 
-
-
 ## 隐含波动与压力
 
 | # | 计算 | 公式 | 输入来源 |
@@ -69,8 +61,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 | 3 | Short Interest | 融券余额 ÷ 流通市值 | MKT — 港股/美股可用，A 股不透明 |
 | 4 | Short Squeeze Score | Short Interest ÷ Avg Daily Volume | MKT — 高 = 业绩 beat 时空头被迫平仓 |
 
-
-### 1. 当前 Setup（市场怎么定价这次 print）
+### 1. 当前 Setup（市场怎么定价这次 print）[→ Bridge: valuation_snapshot, price_action, news]
 
 结构化展示，所有数字必须附 source 和**获取时点**：
 
@@ -84,7 +75,7 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 | Borrow rate | 35bps | 是否便宜（无空头压力） | [I3](https://example.com/borrow-rate) |
 | 卖方修订频率（近 30 天） | 7 上修 / 1 下修 | 上修势头 → 已 priced | [I4](https://example.com/revision-breadth) |
 
-### 2. Sell-Side 数字 vs Buy-Side Bar
+### 2. Sell-Side 数字 vs Buy-Side Bar [→ Bridge: consensus, forecast_eps, institution_rating]
 - Sell-side consensus（收入、毛利、EBITDA、EPS、关键 KPI）
 - 但 buy-side bar 通常和 sell-side 不一样——可以从这些里推断：
   - 财报前的 price action（强势跑赢 → buy-side bar 已经高于 consensus）
@@ -171,7 +162,7 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 | `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | 是否需要更新研究观点或重写相关 thesis |
 | `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | 是否需要触发 `3-statement-model / dcf-model / comps-analysis / model-update` |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | 是否已经形成值得沉淀或给老板看的判断增量 |
-| `next_step_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `next-step` 继续拆 |
+| `_trigger` | `no` / `yes` | 是否暴露了高价值疑点，需要 `` 继续拆 |
 | `mechanism_map_trigger` | `no` / `yes` | 是否因为设备链条、工程约束、产能单位、工艺流程或 know-how gap 需要触发 `mechanism-insight` |
 | `driver_map_trigger` | `no` / `yes` | 是否因为 segment、KPI 口径、backlog、orders、margin、price / volume / mix 变化需要触发 `driver-map` |
 
@@ -179,25 +170,12 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ---
 
-
 ## Artifact / 保存策略
 
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 路径不明 → agent 按 policy baseline §11 自动创建。
-
-## Source Contract
-
-**密度表**：
-
-| Section | 强制标 source | 豁免 |
-|---|---|---|
-| Consensus vs buy-side bar | consensus 数字的 source（provider+as-of）、buy-side bar 依据 | 研究员 bar 推断本身 |
-| Pre-print 决策树 | 每个 scenario 的阈值数字出处（guidance/history/peer） | — |
-| 历史反应模式 | 每次 beat/miss 的 actual vs consensus 具体数字+source | — |
-
-**完成 Gate**：写完扫 consensus 数字 → 每个数字有 provider+as-of → buy-side bar 有推理链 → `[待查]` ≤3 → Resources 展开。
 
 ## 反模式自查
 
@@ -217,16 +195,9 @@ Post-print 必须明确是否改变研究判断，而不是只写"继续观察"�
 
 ## 篇幅基准
 
-- Pre-print setup：500-900 字
-- Post-print read：400-700 字
+- Pre-print setup：30-60 行
+- Post-print read：25-45 行
 
 超长就是抓不住重点。
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

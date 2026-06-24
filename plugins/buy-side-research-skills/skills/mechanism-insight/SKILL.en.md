@@ -11,10 +11,10 @@ Deep-dive a single industry mechanism, engineering principle, or equipment chain
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill to deepen understanding of a specific mechanism, equipment chain, or process. Do not use it for full-industry overview (→ `industry-landscape`) or zero-to-one physics education (→ `teach-in`).
-- Requires product/equipment photos. Fallback: company product page → web search → `[缺图]`.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## The Philosophy
 
@@ -174,7 +174,7 @@ Rating hard standards:
 
 **Product/equipment photographs are mandatory**. Source priority: company product page hero image → web search → `[缺图]`.
 
-**Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS, writing to `_cache/images/<slug>-<product>.<ext>`. `<ext>` uses the `extension` returned by the script. See `stock-quickread` SKILL.md §1 Focus Business Image section for details.
+**Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 ## Artifact / Save Strategy
 
@@ -191,7 +191,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 |---|---|
 | Mechanism is explained; need to decompose revenue / margin / backlog drivers | `driver-map` |
 | Mechanism affects model | `3-statement-model / dcf-model / comps-analysis / model-update` |
-| Mechanism exposes high-value unknowns but unclear how to ask | `next-step` |
+| Mechanism exposes high-value unknowns but unclear how to ask | `` |
 | Mechanism explains peer divergence or KPI incomparability | `peer-deep-dive` |
 | Mechanism forms a long / short variant view | `alpha-thesis` |
 | Zero base; need to build physical intuition first | `teach-in` |
@@ -230,15 +230,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | **Entry point** | Zero base | Know basic concepts | Know industry terms | Know mechanism |
 | **Question** | What is this thing | Is the industry worth investing in | How does the mechanism work | How to decompose revenue / margin |
 | **Coverage** | Full chain education | Full industry | 1-2 mechanisms | Single company / segment |
-| **Images** | Physical photos | Company logo + product photos | Product physical photos | None |
+| **Images** | Physical photos | Product physical photos | Product physical photos | None |
 | **Artifact length** | 6000-8000 | 2000-3000 | 1000-1800 | 800-1500 |
 
 > Product photos: Every unit involving physical equipment/products must include 1 physical photo. Download priority: Company website Media Kit → product page hero → web search → [缺图]. Download to topic.
-
-## Appendix: actuals-resolved.json
-
-Complete field listing → `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rule: Read actuals first → pull [S#]/[I#] tags from source_map (do not write [actuals]) → ratios use only actuals actual values (not forward estimates).

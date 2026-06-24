@@ -11,13 +11,10 @@ Audit business evolution and disclosure comparability through M&A timelines, seg
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for business evolution tracing and disclosure comparability audits; unresolved facts stay as gap, hypothesis, or follow-up.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-Clearly explain a company's business foundation and disclosure evolution, so that downstream `driver-map`, `stock-quickread`, `alpha-thesis`, `peer-deep-dive`, and `3-statement-model / dcf-model / comps-analysis / model-update` are not built on a wrong understanding of the company. The core value is not writing a "company introduction" — it is identifying what the company actually sells, who pays, how business boundaries have shifted, where disclosure definitions break, and which historical changes would contaminate downstream driver or thesis judgments.
-
-If the output turns into founding year, headquarters, management biographies, a chronological list of acquisition news, IR talking points, or generic business encyclopedia entries, this skill has failed. History is only written when it changes business substance, segment comparability, KPI continuity, customer/product boundaries, or downstream research priorities.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -152,27 +149,12 @@ timeline
 - `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
 ```
 
-
-
 ## Artifact / Save Strategy
 
 Write to industry topic:
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 If path is unclear → agent auto-creates per policy baseline §11.
-
-## Source Contract
-
-**Density Table**:
-
-| Section | Mandatory Source Tag | Exemption |
-|---|---|---|
-| Revenue mix evolution timeline | Source (filing/IR) for each year's revenue mix % | Trend judgment |
-| M&A / Pivot events | Amount + date + source for each transaction | — |
-| Disclosure definition changes | Filing source + effective date for each change | — |
-| Customer / product milestones | Date + customer name + source for each milestone | — |
-
-**Completion Gate**: After writing the timeline → each year's figures have [S#] (filing) or [I#] (IR deck) → `[待查]` events ≤ 5 → Resources expanded.
 
 ## Anti-Pattern Checklist
 
@@ -202,11 +184,3 @@ If path is unclear → agent auto-creates per policy baseline §11.
 - Mode A (Business Evolution): 600–1,200 characters + 1 event table; exceeding 1,400 characters indicates non-material history has been included.
 - Mode B (Disclosure Evolution): 700–1,400 characters + 1 definition table; exceeding 1,600 characters usually warrants splitting off to `driver-map`.
 
-
-## Appendix: actuals-resolved.json
-
-Full field list -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 fields) / `statements.income_statement` (13 fields) / `statements.balance_sheet` (10 fields) / `statements.cash_flow` (4 fields) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map for [S#]/[I#] tags (do not write [actuals]) -> ratios use actuals real values only (do not use forward estimates).

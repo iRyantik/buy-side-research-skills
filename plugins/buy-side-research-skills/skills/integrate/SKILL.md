@@ -17,7 +17,7 @@ description: Merge a whole child topic into a parent topic and update topic inde
 
 负责：
 - 将 child topic 整个目录移入 parent topic 下
-- 更新 parent `index.md` 的 Sub-topics / Related topics 段落
+- 更新 parent `index.md` 的 Sub-industries / Related industries 段落
 - 更新 child `index.md` 记录 parent 引用
 - 报告 merge summary
 
@@ -32,8 +32,8 @@ description: Merge a whole child topic into a parent topic and update topic inde
 触发短语：
 - "merge ge-aerospace into aerospace"
 - "把 GE 的研究合并到 aerospace 下面"
-- "integrate these two topics"
-- "合并这两个 topic"
+- "integrate these two industries"
+- "合并这两个行业"
 
 输入要求：
 
@@ -51,8 +51,8 @@ description: Merge a whole child topic into a parent topic and update topic inde
 2. 验证 child 存在：`industry/<child>/index.md`
 3. 检查冲突：`industry/<parent>/companies/<child>/` 是否已存在
 4. 执行移动：`industry/<child>/` → `industry/<parent>/companies/<child>/`
-5. 更新 parent `index.md`：追加 `## Sub-topics` 段落，链接到 child
-6. 更新 child `index.md`：追加 `**Parent topic**: [parent]` 引用
+5. 更新 parent `index.md`：追加 `## Sub-industries` 段落，链接到 child
+6. 更新 child `index.md`：追加 `**Parent industry**: [parent]` 引用
 7. 输出 merge summary
 
 ## 运行输出契约
@@ -100,8 +100,8 @@ description: Merge a whole child topic into a parent topic and update topic inde
 | 场景 | 处理 |
 |---|---|
 | 先研究行业，再研究公司，想把公司归入行业 | `integrate` |
-| 两个独立 topic 有交叉但不想合并 | 在 `index.md` 互相加 Related topics 链接即可，不用 integrate |
-| 三个以上 topic 合并 | 逐个 integrate（先合两个，再合第三个） |
+| 两个独立行业有交叉但不想合并 | 在 `index.md` 互相加 Related industries 链接即可，不用 integrate |
+| 三个以上行业合并 | 逐个 integrate（先合两个，再合第三个） |
 
 Artifact policy：
 - `save_policy`: `none`

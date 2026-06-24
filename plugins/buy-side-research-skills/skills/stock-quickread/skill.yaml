@@ -34,6 +34,8 @@ capabilities:
   requirements:
     - 'source links required'
     - 'follow CLAUDE.md source policy'
+    - 'must update COVERAGE.md so new names default to Building Coverage plus Daily Watch'
+    - 'must not auto-upgrade a single quickread to Core Coverage'
     - 'market-snapshot fields default to topic-local evidence cache / financial-data then trusted-market-bridge then web fallback'
     - 'may use trusted-market-bridge for market_quote valuation_snapshot price_action consensus and financial_snapshot'
     - 'financial_snapshot from trusted-market-bridge is quick context only, not company-truth or financial-data replacement'

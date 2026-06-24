@@ -9,12 +9,12 @@ Quantify competitive moat — not with adjectives, but with anchored scores, gra
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: ROIC, margins, and all moat scorecard financial metrics use actuals-resolved.json disclosed data only.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -24,12 +24,25 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 
 第三个死穴：moat 是动态的。CPO 时代，引线键合这个工艺本身可能消失——K&S 的 moat 不是变窄，是直接没了。每个 moat 分析必须回答：下一代技术/产品/范式下，这个壁垒是加强、不变、削弱还是消失？
 
+## 分析模式判定
+
+根据用户问题判定走哪个模板：
+
+| 模式 | 适用场景 | 模板 |
+|---|---|---|
+| **A: 单一标的** | 分析一个公司/业务的护城河深度、宽度、趋势 | 见 §单标的护城河分析 |
+| **B: 范式冲击** | 某个技术/监管/竞争范式变化 → 行业各 segment 护城河如何重新分配 | 见 §范式冲击护城河分析 |
+
+判定：如果用户问题涉及"XX 技术/范式/政策变化后，行业护城河怎么重新分配"、"哪些环节的壁垒会加深/消失"，走模式 B。
+
 ## 触发场景
 
 - "分析 xxx 的护城河"
 - "xxx 和 yyy 谁壁垒深"
 - "xxx 能守住现有份额吗"
 - "xxx 的竞争地位在变好还是变差"
+- "CPO/新技术范式下 xxx 行业的护城河会怎么变"
+- "xxx 变化对行业竞争格局的冲击——谁会受益、谁会受损"
 
 ## 五维度评分
 
@@ -122,8 +135,8 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 >
 > **完成 Gate**：写完扫 scorecard → 每行 Evidence 有 [S#]/[I#] → `[待查]` 行 ≤3 → Resources 展开。
 
-~~~markdown
-## Moat Scorecard
+```markdown
+## Moat Scorecard [→ Bridge: industry_valuation_dist, valuation_peer]
 
 | 维度 | Score | Evidence | Strength | Peer A | Peer B |
 |---|---|---|---|---|---|
@@ -133,6 +146,30 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 | 监管/认证 | 3 | — | Soft | 3 | 3 |
 | 品牌 | 4 | 瑞典品牌，中国市场无溢价 | Soft | 6 | 3 |
 | **Total** | **5.6** | — | — | **5.8** | **3.8** | Ev |
+
+## 因果链与可证伪条件
+
+> 逐维展开因果传导——从能力/事实推导到分数，并给出该维度的可证伪条件（什么变量一反转，分数就变）。不是重复 Evidence 列，是回答 *why this score* 和 *what breaks it*。
+
+### 技术壁垒 [分数]
+[核心能力/技术事实] → [为什么竞争对手追不上：$ / 时间 / IP / 工艺秘密] → [领先多久] → 分数 [X]
+**会破如果**：[具体变量]，因为 [物理/结构原因——必须是可观测的单一事件]
+
+### 客户锁入 [分数]
+[锁入机制：成套捆绑/认证周期/重新设计成本] → [量化替换成本：$ / 时间 / 风险] → [有无大客户真换过的案例] → 分数 [X]
+**会破如果**：[具体变量]
+
+### 规模效应 [分数]
+[规模如何传导到成本：采购 leverage / 固定成本摊薄 / 学习曲线] → [毛利率 trend 证据：过去 3-5 年 rev 与 GM 的关系] → 分数 [X]
+**会破如果**：[具体变量]
+
+### 监管/认证 [分数]
+[认证类型与周期] → [这是准入条件还是加分项] → 分数 [X]
+**会破如果**：[具体变量]
+
+### 品牌 [分数]
+[溢价证据或缺乏溢价的证据：ASP vs peer / 二手机残值 / 客户主动指定率] → 分数 [X]
+**会破如果**：[具体变量]
 
 ## Moat Trajectory
 
@@ -164,7 +201,82 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
 - 需要多少人和时间？（= 规模效应+技术壁垒的量化）
 - 你第一年会从哪里挖人？（= 人才壁垒）
 - 客户为什么不换？即使你便宜 20%？（= 客户锁入的真实强度）
-~~~
+```
+
+### 范式冲击护城河分析（行业级）
+
+> 适用：技术/监管/竞争范式变化 → 行业各 segment 护城河如何重新分配。核心工作是**因果链传导**：从范式变化的物理/工程事实出发，推导到每个 segment 的壁垒变化方向，并给出每个推导的可证伪条件。
+
+```markdown
+## 结论先行
+
+一句话：[范式变化] → 护城河[不是削弱/而是重新分配——哪些段加深/哪些段消失/哪些段从无到有] → 核心矛盾：[一句话点出最关键的张力]
+
+## 一张图
+
+```
+[旧范式]              →        [新范式]
+
+Segment A      ████████████ 高       ████████████████████ 极高 ↑↑
+Segment B      ██████████ 高         ██████████████ 很高 ↑
+Segment C             不存在           ████████████████ 🆕 全新
+Segment D      ████████ 中高          ██ → ╳ 消失 ⬇⬇
+Segment E      ██████ 中              ██████ 中 →
+```
+
+> 每段标注变化方向：↑↑暴涨 / ↑加深 / →不变 / ↓削弱 / ↓↓消失 / 🆕从零到一
+
+## 逐段深挖
+
+### [Segment Name] — [变化方向]
+
+**[旧范式]时代护城河从哪来**
+1-2 段讲清楚旧范式下这个 segment 的壁垒本质——不只是"技术好"，而是为什么难进入、难替换。如果旧范式下本来就没护城河（commodity），直说，不硬凑。
+
+**[新范式]变了什么**
+物理/工程层面的变化，不是商务层面。必须有量化（"光纤数从 1-2 根到 16-64 根"而不是"需求变多"）。解释物理机制——底板从什么变成什么，工艺从什么变成什么，精度从什么量级变到什么量级。
+
+**为什么护城河加深/削弱（根因）**
+从物理变化推导到壁垒变化，一句话讲到底。不能停在"难度增加"、"竞争加剧"——必须说明：物理变量 X 变化 → 壁垒维度 Y 变化 → 分数从 A 变为 B。
+
+**什么情况下这个逻辑会破**
+反事实条件——哪个变量一旦反转，这个段的分析就失效。必须是可观测的单一事件（"猎奇突破 ±1μm 精度"），不能是模糊趋势（"竞争加剧"）。
+
+**评分**
+
+| 维度 | 旧范式 | 新范式 | 变化 | 理由 | Break |
+|---|---|---|---|---|---|
+| 技术壁垒 | X | Y | ↑/↓/→ | 一句话 | 什么条件会破 |
+| 客户锁入 | | | | | |
+| 规模效应 | | | | | |
+| 监管/认证 | | | | | |
+| 品牌 | | | | | |
+
+## 交叉因素扫描
+
+跨 segment 的共性因素——比如"通用半导体巨头会跨界进来吗"、"客户从 A 类变成 B 类是好事还是坏事"。每个因素 1-2 段 + 必要时的 ASCII 对比图。
+
+## 一张表总结
+
+| 环节 | 旧→新 变化 | 一句话根因 | 谁受益 | 谁受损 |
+|---|---|---|---|---|
+| Segment A | ↑↑ | [物理根因] | [公司名] | [公司名] |
+| Segment B | ↑ | ... | | |
+| Segment C | 🆕 | ... | | |
+| Segment D | ↓↓ | ... | | |
+| Segment E | → | ... | | |
+
+## Routing
+
+| 下一步 | Skill |
+|---|---|
+| [行动] | `/skill-name` |
+
+## Resources
+
+- [S1](url) — description
+- [I1](url) — description
+```
 
 ## 反模式
     
@@ -178,10 +290,17 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
     - ❌ 把 market share 当 moat（份额高可能是价格战抢来的）
     - ❌ 把一代产品的优势当结构壁垒
     - ❌ 不在下一代范式下重新评估
+
+**因果链特有反模式**：
+
+    - ❌ 因果推导停在"需求增加/竞争加剧"——必须挖到物理/工程/结构层面的根因
+    - ❌ "会破如果"写的是模糊趋势而非可观测单一事件——"竞争格局恶化"不可证伪，"猎奇突破 ±1μm"才可证伪
+    - ❌ 范式冲击不区分 segment 混在一起说——同一范式变化对不同环节方向可能完全相反
     
     ## 篇幅基准
     
-    600-1000 字 + 1 scorecard + 1 trajectory 表 + radar chart + killer question。
+    **模式 A（单一标的）**：50-80 行 + scorecard + 因果链 + trajectory 表 + radar chart + killer question。
+    **模式 B（范式冲击）**：100-165 行 + 一张图 + 逐段深挖（每段含评分表）+ 交叉因素扫描 + 总结表。segment 越多越长，但每个 segment 的因果链必须写透。
     
     ## Workflow 联动
     
@@ -202,12 +321,5 @@ Moat analysis 最容易写成赞美诗——"技术领先"、"品牌强"、"客�
     - 不做技术原理 → `mechanism-insight`
     - 不做管理层评估 → `capital-allocation`
     - 不做完整 thesis → `alpha-thesis`
-    
 
-## Appendix: actuals-resolved.json
 
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

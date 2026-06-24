@@ -2,7 +2,7 @@
 
 > This is the English translation of [coverage.md.template](./coverage.md.template). The Chinese version is the source of truth.
 >
-> This file is the global industry + company coverage table. `new-session` auto-registers entries; maintain it during research.
+> This file is the workspace coverage source of truth. Researched companies belong here; `coverage-monitor` consumes it for daily briefs and intraday alerts.
 
-| Industry | Company | Ticker | Primary Industry | File Location | Latest Artifact | Status |
-|---|---|---|---|---|---|---|
+| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
+|---|---|---|---|---|---|---|---|---|---|

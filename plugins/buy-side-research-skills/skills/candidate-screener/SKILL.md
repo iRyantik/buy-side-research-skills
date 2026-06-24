@@ -9,19 +9,12 @@ Turn a theme, event, or screen into a sourced candidate-mining funnel for mispri
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: screening ratios (PE, PEG, EV/EBITDA, FCF Yield, ROIC, etc.) use actuals-resolved.json. Consensus data may appear as a separate column but never feeds into ratio computation.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-- Use this skill for hypothesis engineering, candidate mining, priced-in triage, and idea funneling; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -72,7 +65,7 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 | **Discovery edge** | 为什么可能没被 market price | 用 proxy，不写成事实 |
 | **流动性 / size** | 最小 ADV / market cap | 大中华 >= 100M USD ADV；美股 >= 50M USD ADV；小票另列风险 |
 
-## Candidate Mining / 挖票
+## Candidate Mining / 挖票 [→ Bridge: market_screen, market_temperature]
 
 统一处理主题、事件、screen 和混合条件。内部把输入拆成三种信号，而不是让用户选择 mode：
 
@@ -163,11 +156,11 @@ Top Ideas 必须给下一步验证路线：
 
 ## §3 场景推票矩阵（主表）
 
-行 = 公司，列 = 3 regime。格子格式：**方向 权重 | 当前估值 | 场景重估方向 | 一句话 | Key KPI（从 `references/kpi-drivers/` 取该行业最重要的 1 个数字）**
+行 = 公司，列 = 3 regime。格子格式：**方向 权重 · 当前估值 · 场景重估方向 · 一句话 · Key KPI**（从 workspace `.references/kpi-drivers/` 取该行业最重要的 1 个数字）。注意：格内用 `·` 分隔，不用 `|`（会破坏表格渲染）
 
-| 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度  Ev |
+| 公司 | 代码 | R1: [当前] | R2: [过渡] | R3: [新范式] | 估值 Flip 幅度 | Ev |
 |---|---|---|---|---|---|---|
-| AAA | TICKER | Long 高 | PE 18x | ↑ | 逻辑 | Long 高 | → ↑ | 逻辑 | Long 高 | → ↑↑ | 逻辑 | +60% |
+| AAA | TICKER | Long 高 · PE 18x · ↑ · 逻辑 · KPI | Long 高 · → ↑ · 逻辑 · KPI | Long 高 · → ↑↑ · 逻辑 · KPI | +60% | [S#](url) |
 
 估值 Flip = R1→R3 的重估幅度，必须量化。负值 = regime 切换时空仓收益。
 
@@ -180,7 +173,7 @@ Top Ideas 必须给下一步验证路线：
 
 ### §4.2 场景推票表（反向索引：场景→动作→票）
 
-| 场景触发 | 动作 | 票 | 仓位 | 策略原型 | 当前估值 | 目标估值 | 逻辑  Ev |
+| 场景触发 | 动作 | 票 | 仓位 | 策略原型 | 当前估值 | 目标估值 | 逻辑 | Ev |
 |---|---|---|---|---|---|---|---|---|
 | 当前 base | Long | AAA | 核心 | 代际升级 | PE 18x | PE 25x | ... |
 | CPO>15% | Long | BBB | 小赌注 | 小赌注 | PS 8x | PS 20x | 0→1 |
@@ -288,7 +281,7 @@ Top Ideas 必须给下一步验证路线：
 写入行业 topic：
 
 ```text
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+industry/<industry>/panorama/candidate-screener/YYYY-MM-DD-candidate-screener.md
 ```
 
 路径不明 -> `agent` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
@@ -341,9 +334,9 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 ## 篇幅基准
 
-- 标准 Candidate Mining（含场景）：2000-3500 字 + 4-6 张表。
-- 快速挖票：800-1500 字，Top Ideas 最多 2 个，场景定义可简化。
-- 深度 universe pass（含完整 L/S 分场景）：3500-5000 字，按 regime 分组。
+- 标准 Candidate Mining（含场景）：130-230 行 + 4-6 张表。
+- 快速挖票：50-100 行，Top Ideas 最多 2 个，场景定义可简化。
+- 深度 universe pass（含完整 L/S 分场景）：230-330 行，按 regime 分组。
 
 ## 与 information-impact 的边界
 
@@ -363,10 +356,3 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 - "这个新闻是真的，而且想按新闻逻辑找受益股" -> 先 `information-impact`，再 `candidate-screener`
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -13,25 +13,10 @@ If upstream work has not yet clearly nailed down bull/base/bear odds, implied va
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust its results, pull numbers directly from `actuals-resolved.json`.
-- **Data validation**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证]). See §3.2.
-- **Actuals-only**: target price multiples and scenario returns use actuals-resolved.json for ratio inputs.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-> **Source contract**: Every factual claim in this document (numbers, company names, industry judgments, valuation anchors) must carry an [S#](url) or [I#](url) short-link anchor at the end of the sentence. Interpretive sentences ("my view," "variant view") are not mandatory. Three or more consecutive factual claims without an intervening source → insufficient density.
-
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Mental Model
 
@@ -55,7 +40,6 @@ Before writing the Variant View,
 | 2 | Target Price (P/E method) | EPS × Target P/E | FS, CON |
 | 3 | Target Price (EV/EBITDA method) | (EBITDA × Target Multiple - Net Debt) ÷ Shares | FS, FS |
 | 4 | Weighted expected return | Σ (Probability × Scenario Return) | DER |
-
 
 Bull / Base / Bear, and Kill Criteria, first determine whether the key drivers the thesis depends on have been clearly decomposed. Do not skip this check just because the user asked you to "write a thesis."
 
@@ -203,7 +187,6 @@ Mandatory:
 - Disconfirming signal for each assumption.
 - Which assumptions should be rechecked at the next earnings release or industry data update.
 
-
 ## Artifact / Save Strategy
 
 Write into the industry topic:
@@ -258,13 +241,6 @@ If the current date-stamped save path is unclear, the agent auto-creates the dir
 
 `research-journal` only absorbs a thesis after it has been researched clearly and forms a reusable cognitive increment; do not write unverified theses directly as memory.
 
-If high-value questions arise during thesis writing — disclosure口径, business substance, model drivers, source conflicts — directly trigger the Senior Analyst Radar alert from `Research Runtime Capsule`. If the issue is that revenue / margin / backlog / price-volume-mix drivers are not clearly decomposed, use `driver-map` first; if the issue is that the research direction itself is unclear, use `next-step`.
+If high-value questions arise during thesis writing — disclosure buckets, business substance, model drivers, source conflicts — directly trigger the Senior Analyst Radar alert from `Research Runtime Capsule`. If the issue is that revenue / margin / backlog / price-volume-mix drivers are not clearly decomposed, use `driver-map` first; if the issue is that the research direction itself is unclear, use ``.
 
 
-## Appendix: actuals-resolved.json
-
-Full field catalog -> `references/actuals-data-catalog.md`.
-
-Structure: `meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`.
-
-Consumption rules: read actuals first -> source_map for [S#]/[I#] labels (do not write [actuals]) -> ratios use only actuals real values (not forward estimates).

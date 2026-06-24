@@ -99,7 +99,7 @@ Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-upda
    - workspace 高层宪法模板
 3. invoked `SKILL.md`
    - runtime executable contract
-4. `references/policy/research-policy-baseline.md`
+4. workspace `.references/policy/research-policy-baseline.md`
    - authoring baseline only，not runtime authority
 
 runtime 行为上，如果 template 的高层摘要与某个 research skill 的具体执行细则看起来不一致：
@@ -110,14 +110,17 @@ runtime 行为上，如果 template 的高层摘要与某个 research skill 的�
 
 ### Research skills
 
-active research skill 现在只允许极短 capsule，不再本地复制长版公共 runtime / source prose。
+Capsule 只做一件事：**强制 agent 在执行前读取共享文件**。所有运行时规则在 workspace `.references/runtime/research-runtime.md` 和 hooks 中，不在 capsule 中重复。
 
-研究 capsule 只保留：
-- 一句 hooks-first 提醒
-- 一句 shared runtime/source baseline 指向
-- 2-4 条非机检的 skill-specific judgment / workflow / routing delta
+Capsule 格式（不可变）：
+- MUST-read 指令 + workspace `.references/runtime/research-runtime.md` § anchor
+- Hook 防御清单（一行）
 
-已经 hook 化的 source legality、anchor / `## Resources` contract、subagent binary boundary、section floor、table render 完整性，不得继续写回单个 research `SKILL.md`。
+禁止在 capsule 中写：
+- Tier 回退链、provider 名、trust chain
+- `financial-data` 调用方法
+- subagent evidence card 协议
+- 任何已在 `references/runtime/` 或 hooks 中的规则
 
 ### Modeling skills
 
@@ -126,6 +129,16 @@ active research skill 现在只允许极短 capsule，不再本地复制长版�
 ### Supporting visualization skills
 
 `research-viz` 这类 supporting visualization skill 仍属于 research 轨，但不进入主研究 ladder。它们可以生成 topic-side HTML artifact，必须绑定一个基准 markdown 研究产物，默认复用基准 stem，只替换扩展名为 `.html`；如需多图，可在 stem 后追加最小 qualifier。
+
+### EN-CN Sync Policy
+
+每个 skill 的 `SKILL.md`（中文）是 source of truth。`SKILL.en.md` 必须保持同步：
+
+- **Capsule**：必须完全一致（除了语言）。
+- **输出结构**：围栏 ` ```markdown ` 骨架必须完全一致。
+- **必填 section**：`心法`、`反模式自查`、`篇幅基准`、`Artifact/保存策略` 必须在 EN 中存在。
+- **允许差异**：反模式自查的具体条目数可不同（CN ≥10 条，EN 可按需调整）。
+- **检查方式**：写/改 CN 后立即改 EN，不同步不合并。
 
 ### Operations skills
 
@@ -157,7 +170,7 @@ modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`�
 
 任何公共 research 规则变更，必须在同一个 change 里同步：
 
-1. `references/policy/research-policy-baseline.md`
+1. workspace `.references/policy/research-policy-baseline.md`
 2. 所有受影响的 active research `SKILL.md`
 3. 如影响 workspace 高层摘要，再改 `CLAUDE.md.template`
 4. 如影响 public behavior / package language，再改 `README.md`、`docs/release.md`、payload manifests / marketplace manifests
@@ -175,7 +188,7 @@ hooks-first 补充 hard gate：
 
 命名规则补充 hard gate：
 
-9. 如变更 research topic artifact 命名规则，必须同步 `references/policy/research-policy-baseline.md` §11。
+9. 如变更 research topic artifact 命名规则，必须同步 workspace `.references/policy/research-policy-baseline.md` §11。
 10. 每个会落 topic markdown 的 research skill 必须在 `skill.yaml` 的 `artifact_policy` 下声明 `naming_mode`。
 11. 不允许只改某个 skill 的 prose / examples，而不改 `skill.yaml`。
 12. supporting visualization skill 若生成 topic-side HTML artifact，必须把 stem-binding save contract 写进 `skill.yaml` 与 `SKILL.md`，不要另造一套平行 dated naming 体系。
@@ -232,9 +245,9 @@ hooks-first 补充 hard gate：
 
 | 目录 | 职责 | 部署行为 | 策略 |
 |---|---|---|---|
-| `scripts/` | 可执行代码（.py, .js） | `_scripts/<skill>/` | 覆盖 |
-| `assets/` | 数据文件、配置、requirements、模板 | `_scripts/<skill>/` | 覆盖 |
-| `assets/templates/` | 用户可改的模板文件 | `_scripts/<skill>/` | 缺时补 |
+| `scripts/` | 可执行代码（.py, .js） | `.scripts/<skill>/` | 覆盖 |
+| `assets/` | 数据文件、配置、requirements、模板 | `.scripts/<skill>/` | 覆盖 |
+| `assets/templates/` | 用户可改的模板文件 | `.scripts/<skill>/` | 缺时补 |
 | `references/` | 该 skill 自己的参考文档 | **不部署** — agent 直接从 plugin cache 读取 | — |
 | `examples/` | 示例产物、示例 HTML | **不部署** — agent 直接从 plugin cache 读取 | — |
 | `.platform` | 空标记文件。有此文件 → skill 是平台级（init-workspace, update-agent-runtime），资产走 A类部署到 workspace root，不参与 B类 auto-discovery | — | — |
@@ -355,7 +368,7 @@ Research layers：
 
 | Layer | Skills | 用途 |
 |---|---|---|
-| `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `next-step` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
+| `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | 打地基：零基础物理直觉、行业全景、结构化财务+市场数据、TAM 估算、公司业务/披露历史、市场预期、行业机制、model driver |
 | `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、赔率 memo、建模 |
 | `supporting` | `research-viz` | 可视化后处理 |
@@ -365,9 +378,12 @@ Operations skills：
 
 | Skill | 用途 |
 |---|---|
+| `coverage-monitor` | 把 `COVERAGE.md` 变成覆盖日报和盘中提醒 |
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
+| `integrate` | 合并子 topic 到父 topic 并更新索引 |
 | `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
+| `update-agent-runtime` | 升级已安装 runtime 并同步 workspace 资产 |
 
 Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-research-skills/skills/[skill-name]/SKILL.md`。不要物理移动到 `skills/research/` 或 `skills/operations/`。
 
@@ -387,24 +403,27 @@ Active skills 必须在 payload root 下保持一层平铺：`plugins/buy-side-r
 
 ### 5. Research SKILL.md 必填结构
 
-复杂 research skill 推荐骨架：
+所有 research skill 统一使用以下 section 顺序。标 `[必填]` 的不可省略，标 `[可选]` 的按需加。
 
-1. Frontmatter（短 trigger-only description）
-2. 开头定义本 skill 的失败标准
-3. `心法`
-4. `Global Rules Capsule`
-5. `Research Runtime Capsule`
-6. `触发场景`
-7. `输入澄清要求`
-8. `Mode A / Mode B / Mixed Mode`（可选——仅当 skill 确有不同执行路径时加。单一执行的 skill 跳过此节）
-9. `输出结构`
-10. `Artifact / 保存策略`
-11. `Workflow 联动`
-12. `反模式自查`
-13. `篇幅基准`
-14. `与相邻 skill 的边界`
+```
+1. Frontmatter（短 trigger-only description，≤140 字符）[必填]
+2. # 标题 [必填]
+3. Research Runtime Capsule [必填] — 强制读 references/runtime/ 格式（见 §5.1）
+4. 心法 [必填] — 1-3 段，解决什么、最容易失败在哪
+5. 触发场景 [必填]
+6. 输入澄清要求 [可选] — 有复杂输入时加
+7. 执行模式（Mode A/B/C）[可选] — 多模式 skill 加
+8. 输出结构 [必填] — 含围栏 ```markdown artifact 骨架 + Source contract
+9. Artifact / 保存策略 [必填]
+10. 与相邻 skill 的边界 [必填] — 本 skill 和相似 skill 的区别
+11. 反模式自查 [必填] — ≥10 条，每条可机械自检
+12. 篇幅基准 [必填] — 下限/上限，超出意味着什么
+```
 
-短 coach 型 research skill 的用户可见输出可以短，但 runtime 结构不能省：`心法`、`Workflow 联动`、`反模式自查`、`篇幅基准` 仍然必填。`Source 政策` 不再作为 skill-local 必填段。
+已删除的段：
+- `Global Rules Capsule` — 不再需要。全局纪律在 workspace `.references/runtime/research-runtime.md` §2.2 和 hooks。
+- `Source 政策` / `Source Contract` 独立 section — 并入输出结构 blockquote（一句话）。
+- `资料收集与 Source 验证` 独立 section — 并入 workspace `.references/runtime/research-runtime.md` §2。skill 只保留特有执行流程。
 
 Research frontmatter：
 
@@ -421,26 +440,23 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 
 #### §5.1 Research Runtime Capsule 标准模板
 
-所有 consumer research skill 必须使用以下标准模板。核心 4 行不可变，skill-specific 定制最多 3 行、只能写"如何使用数据"、禁止复读 provider 名和 trust chain。
+所有 research skill 必须使用以下强制读格式。核心 3 行不可变：
 
 ```markdown
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
-[如有 skill-specific 数据使用规则，≤3 行，不写 provider 名/trust chain]
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 ```
 
-**自检清单**（写/改 skill 时必须过）：
-- [ ] Capsule 是否 ≤ 7 行？
-- [ ] 是否有重复 hook 或 shared baseline 的内容？
-- [ ] 是否有 `provider_api > official_web > yfinance` 之类 trust chain？
-- [ ] 是否有 "三表数据前置 subagent" 的详细步骤？
-- [ ] 是否有 "market-snapshot fields default to..." ？
-- [ ] Skill-specific 定制是否 ≤ 3 行、不含 provider 名？
+**规则**：
+- 核心 3 行不可变。§ anchor 根据 skill 需要调整（如不用图片的 skill 可去掉 §2.5）。
+- 禁止在此段复述 Tier 链、provider 名、trust chain、subagent 流程。
+- 禁止写 `数据管道：调用 /financial-data`——已在 `references/runtime/` §1。
+- 禁止写 `Sub-agent outputs: evidence_cards_only`——已在 `references/runtime/` §3。
+- skill-specific 定制放在 `心法` 或 `执行模式` 段，不放在 Capsule。
 
 #### §5.2 Modeling Runtime Capsule 标准模板
 
@@ -450,7 +466,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
@@ -537,6 +553,7 @@ Artifact policy：
 - 只有会落 topic markdown 的 research skill 才声明 `artifact_policy.naming_mode`；可选值只允许 `plain`、`optional_qualifier`、`required_qualifier`。
 - `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
+- `coverage-tracker` 作为 memory skill，可用 `earned_memory` 写 workspace 根目录 `COVERAGE.md`；它不是 topic result。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
 - `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
 
@@ -550,7 +567,7 @@ Artifact policy：
 Research skill 的通用 source / anti-hallucination 规则现在由 shared baseline + workspace hooks 承接，不再要求每个 skill 本地复制 `Source 政策`。
 
 authoring hard rules：
-- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `financial-data --lite` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
+- research skill 必须默认依赖 shared source hierarchy：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨统一由 `/financial-data` 的 trust-based fill 链（Bridge → yfinance → WebSearch → Google Finance）获取，不再各自调 `trusted-market-bridge`。
 - 示例必须展示正文短锚点与文末 `## Resources` 双写同 target；不允许再写 `S1` / `I1` 等短锚点代码后接 `(link)` 或 `(url)` 占位符——此类写法会被 source_contract hook 拦截。
 - 一旦某条 binary source / structure / boundary 规则进入 hook，对应 `SKILL.md` 中同类规则 prose 必须删除，而不是继续双份保留。
 - `Source 政策` 若保留，只能写 skill-specific non-binary edge；不能复述 shared legality。
@@ -661,7 +678,7 @@ Research skill：
 - Frontmatter name + trigger-only description。
 - `skill.yaml` 有 `category: research` 和合法 `research_layer`。
 - 心法 1-3 段。
-- 包含当前版本 `Global Rules Capsule`。
+- 包含当前版本 `Research Runtime Capsule`。
 - 若保留 `Source 政策`，只能写 skill-specific non-binary 增量；shared legality 不得回流。
 - 触发场景具体。
 - 输出结构章节级 + 字段级。

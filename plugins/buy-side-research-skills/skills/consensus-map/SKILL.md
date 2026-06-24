@@ -9,19 +9,13 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取三表 + 市场快照。信任其结果，直接从 `actuals-resolved.json` 取数。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: reverse-engineered implied growth, implied margin, and reverse DCF use actuals-resolved.json historical data as anchor. Consensus/forward estimates are the object of analysis, not inputs to ratio computation.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
 
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-
-
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -92,9 +86,9 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 ## 2. 预期堆叠
 
-[插入 Mermaid waterfall — 三层预期怎么叠成当前价格。示例见下方。]
+[插入 Mermaid flowchart（用 flowchart TD 模拟预期堆叠结构——Mermaid 无 waterfall 类型）。示例见下方。]
 
-### Sell-Side Consensus Numbers
+### Sell-Side Consensus Numbers [→ Bridge: consensus, forecast_eps, institution_rating]
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|
@@ -104,7 +98,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Takeaway**: [市场数字共识到底集中在哪个 operating assumption]
 
-## 3. Buy-Side / Market-Implied Bar
+## 3. Buy-Side / Market-Implied Bar [→ Bridge: valuation_snapshot, valuation_peer]
 
 | Bar layer | Inference | Evidence | Confidence |
 |---|---|---|---|
@@ -115,7 +109,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 **Discipline**: buy-side bar 是推断，不要写成事实。
 
-## 4. Narrative And Debate Map
+## 4. Narrative And Debate Map [→ Bridge: news, institution_rating]
 
 | Debate | Consensus side | Skeptic / variant side | Evidence needed | Who has burden of proof |
 |---|---|---|---|---|
@@ -135,9 +129,9 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Variant slot | Direction | Why it may be mispriced | Needed proof | Next source |
 |---|---|---|---|---|
-| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `next-step` |
+| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `` |
 
-## 7. What Would Change Consensus
+## 7. What Would Change Consensus [→ Bridge: calendar]
 
 - [Catalyst / data point / competitor print / company disclosure that would force revisions]
 - [What would change sell-side numbers]
@@ -154,7 +148,6 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Revenue / margin / KPI mapping unclear | `driver-map` |
 | Mechanism / value-capture premise unclear | `mechanism-insight` |
 | Need field checks / channel work | `primary-research-plan` |
-
 
 ```
 
@@ -212,8 +205,6 @@ flowchart TD
 
 600-900 字；低于 600 字通常不能同时覆盖 source、bar 和 routing。
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -252,17 +243,10 @@ flowchart TD
 
 | Mode | 字数 |
 |---|---|
-| Tight Check | 600-900 |
-| Single-Name | 1200-1800 |
+| Tight Check | 35-60 |
+| Single-Name | 80-120 |
 | Industry/Theme | 1300-2000 |
 
 低于下限通常 source / bar / debate 不足；超过上限通常已越界到 `alpha-thesis` 或 modeling skills。
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

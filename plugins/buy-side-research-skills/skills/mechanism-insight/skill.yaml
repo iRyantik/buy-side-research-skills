@@ -74,7 +74,7 @@ workflow:
     - 'industry-landscape'
     - 'information-impact'
     - 'stock-quickread'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'driver-map'
     - '3-statement-model'
@@ -86,7 +86,7 @@ workflow:
     - 'pair-trade'
     - 'research-journal'
   can_trigger:
-    - 'next-step'
+    - ''
   decision_point: '这个机制最重要的投研含义是什么，下一步应该拆 driver 还是形成 thesis'
 quality_gates:
   anti_patterns:

@@ -9,12 +9,12 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker> --periods 10Y` 获取 10 年 CF 数据（buyback/dividend/capex/M&A）。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: ROIC, FCF conversion, buyback yield, and all capital allocation ratios use actuals-resolved.json historical data only.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -31,7 +31,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 
 ## 四维度评分
 
-### 1. Buyback（回购）
+### 1. Buyback（回购）[→ Bridge: financial_snapshot, dividend]
 
 | 分数 | 标准 | 怎么看 |
 |---|---|---|
@@ -98,7 +98,7 @@ Score management's capital allocation quality over a 10-year window. The biggest
 >
 > **完成 Gate**：写完扫 scorecard → 每行 anchor 列有 [S#]/[I#] 或 `[待查]` → `[待查]` ≤3。
 
-~~~markdown
+```markdown
 ## Capital Allocation Scorecard
 
 | 维度 | Score | 10Y Evidence | Anchor |
@@ -118,7 +118,7 @@ M&A:       $500M  (incl. MRSI $125M)
 Capex:     $1.2B
 ─────────────────
 Total deployed: $3.1B
-~~~
+```
 
 Market cap created: $4.5B (10Y ago $1.5B → today $6B)
 ROI on deployed capital: ~145%
@@ -141,13 +141,13 @@ ROI on deployed capital: ~145%
 
 ## 篇幅基准
 
-500-800 字 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
+30-50 行 + 1 scorecard + 1 capital flow 图 + 1 moat bridge。
 
 ## Workflow 联动
 
 | 上游 | 取什么 |
 |---|---|
-| `financial-data --periods 10Y` | 10 年 CF：buyback/dividend/capex/M&A |
+| `python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --periods FY2010-FY2025` | 10 年 CF：buyback/dividend/capex/M&A |
 | `company-history` | 并购整合记录 |
 | `moat-analysis` | Moat scorecard → bridge |
 
@@ -162,11 +162,3 @@ ROI on deployed capital: ~145%
 - 不做估值 → `dcf-model` / `comps-analysis`
 
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

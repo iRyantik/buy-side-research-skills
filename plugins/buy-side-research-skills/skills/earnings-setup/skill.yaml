@@ -47,7 +47,7 @@ capabilities:
     - 'research_update'
     - 'model_update'
     - 'journal_handoff'
-    - 'next_step_trigger'
+    - '_trigger'
 artifact_policy:
   save_policy: 'default_topic_result'
   default_artifact: 'earnings-setup.md'
@@ -64,7 +64,7 @@ workflow:
     - 'bear-pre-mortem (if thesis severely undermined)'
     - 'model-update (if model drivers change)'
     - 'research-journal (if insight is earned)'
-    - 'next-step (if weirdness appears)'
+    - ' (if weirdness appears)'
   two_modes:
     pre_print: 'Setup - assemble before earnings'
     post_print: 'Quick read - fast decision after earnings'

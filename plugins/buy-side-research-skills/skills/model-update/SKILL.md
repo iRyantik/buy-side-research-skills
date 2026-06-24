@@ -10,14 +10,14 @@ Update a financial model for earnings guidance new data or revised assumptions.
 ## Modeling Runtime Capsule
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
-- Shared modeling protocol: `references/policy/research-policy-baseline.md` §6.
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
+- Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
 - **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
-
 - Missing or unmapped actuals stay blank or flagged; never coerce them to zero.
 - **Actuals-only ratio rule**: any ratio or derived metric in the updated model must trace back to actuals-resolved.json disclosed data. No estimate input for computed ratios.
-
 
 ## Workflow
 
@@ -108,11 +108,3 @@ Recalculate valuation with updated estimates:
 - Check consensus after updating — how do your revised estimates compare to the Street?
 - Share count matters — dilution from stock comp, converts, or buybacks can materially affect EPS
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

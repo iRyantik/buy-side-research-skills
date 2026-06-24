@@ -82,7 +82,7 @@ workflow:
     - 'stock-quickread'
     - 'industry-landscape'
     - 'peer-deep-dive'
-    - 'next-step'
+    - ''
   feeds_into:
     - 'alpha-thesis'
     - '3-statement-model'

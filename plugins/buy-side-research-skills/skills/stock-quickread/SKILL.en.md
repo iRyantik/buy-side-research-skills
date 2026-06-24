@@ -11,18 +11,10 @@ Run a fast sourced first pass on an unfamiliar company and decide whether to dig
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **Data pipeline**: Call `/financial-data --lite <ticker>` to fetch three statements + market snapshot. Trust the results; pull numbers directly from `actuals-resolved.json`. **Also read the `source_map` field — map fields to specific [S#](url) or [I#] labels, not writing bare [actuals].**
-- **Data verification**: Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([UNVERIFIED]). See §3.2.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
 
-- Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
-
-- Default output in English, conclusion-first, data-first. Retain tickers, source titles, URLs, and necessary financial / industry terminology in the original language when it improves traceability.
-- Actively exercise Senior Analyst Radar: flag anything that could change the business reality, model driver, consensus framing, peer set, valuation framework, or research priority.
-- Mechanism / engineering principle / equipment chain gaps → `mechanism-insight`; revenue / margin / backlog / price-volume-mix or disclosure bucket anomalies → `driver-map`; expectations / priced-in gap → `consensus-map`; the next most worthwhile question → `next-step`.
-- On research startup, check topic `_cache/` and `financial-data` output first; preferentially reuse existing source-tracked material rather than rebuilding raw data context.
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Material Collection & Source Verification
 
@@ -85,12 +77,12 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 ### Execution Flow (Gate-style — each step has intermediate output, next step checks previous)
 
 ```
-┌─ Step 1: python _scripts/financial-data/financial_data.py --lite <ticker>
+┌─ Step 1: /financial-data <ticker>
 │  → Pull 3-statement core items + segments + elastic supplementary + market_data
-│  → Write to _cache/financial-data/internal/actuals-resolved.json
+│  → Write to _cache/financial-data/actuals-resolved.json
 │  Gate: ls actuals-resolved.json → STOP if missing. Do not proceed.
 │
-├─ Step 2: python _scripts/evidence_ledger.py init <artifact> -t <TICKER>
+├─ Step 2: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>
 │  → _cache/evidence/<TICKER>.evidence.json (must exist)
 │
 ├─ Step 3: Discovery — WebSearch for candidate URLs
@@ -105,12 +97,8 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
-│  5a. Read _scripts/download-product-image.js → replace {{TARGET_URL}}
-│  5b. Playwright MCP browser_run_code_unsafe → decode base64 → write _cache/images/<product>.<ext>
-│  5c. Playwright fails → curl product page HTML directly → extract <img> src → curl download image
-│  5d. All above fail → Playwright browser_navigate to product page → browser_take_screenshot
-│  5e. All above fail → python _scripts/evidence_ledger.py attempt <artifact> -c <claim_id> --tier 2 --method Playwright --result failed
-│  5f. Mark [IMAGE MISSING] — only allowed after ledger has ≥1 image download attempt record
+│  5a. python browser tools <url> --output <product>  (auto Tier 1→2, cache check)
+│  5b. All tiers fail → mark [IMAGE MISSING] — only after ledger records download attempt
 │  Gate: ls _cache/images/<product>.* has file → pass. No file AND no attempt record → STOP, cannot enter Step 6.
 │
 ├─ Step 6: Write artifact
@@ -119,11 +107,14 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Tables strictly follow template (§3c=table, §4a=pool, §5=anchor table+scenario table+Ev column)
 │  Pre-write checklist: _cache/images/<product>.* file exists ✅ | [IMAGE MISSING] has attempt record ✅ | [UNVERIFIED] ≤8 ✅
 │
-├─ Step 7: python _scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+├─ Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
 │  → Auto-create ledger pending claims → agent fills text/quote/section → verify
 │
-└─ Step 8: python _scripts/evidence_ledger.py lint + status
-   → anchors aligned ✅ + 0 fabrication_risk + coverage >80%
+├─ Step 8: python .scripts/evidence_ledger.py lint + status
+│  → anchors aligned ✅ + 0 fabrication_risk + coverage >80%
+│
+└─ Step 9: python .scripts/financial-data/actuals-to-appendix.py <TICKER>
+   → Generate appendix: financial data statement in artifact
 ```
 
 ### Source Numbering Rules
@@ -154,6 +145,10 @@ The buy-side reads companies not to "understand the company," but to: (1) judge 
 If your output reads like a sell-side initiation report, it has failed. Sell-side report markers: business segments expanded by chapter, management bios, 5-year historical financial table, chronological listing of all recent events. **Delete all of these.**
 
 ## Output Structure (follow strictly)
+
+
+
+> **Appendix execution**: Run actuals-to-appendix.py BEFORE writing the artifact body. Embed output in ## Appendix above. Never leave a placeholder.
 
 Every section has a length ceiling. It can be shorter. **Must never exceed.** Excessive length is itself a symptom of boilerplate.
 
@@ -190,7 +185,7 @@ Example: `TSMC SoIC uses hybrid bonding for 3D stacking [S1](url). BESI D2W bond
 
 **What It Looks Like** (1–2 focus product images)
 
-| ![Product](_cache/images/<slug>-<product>.png) |
+| ![Product](../../../../_cache/images/<slug>-<product>.png) |
 |---|
 | *Product Name — Function (≤15 words)* |
 
@@ -229,11 +224,11 @@ flowchart LR
 
 ### 3. Where the Money Comes From (data table + takeaway)
 
-> Numbers sourced from: `industry/<industry>/companies/<ticker>/_cache/financial-data/internal/actuals-resolved.json`
+> Numbers sourced from: `industry/<industry>/companies/<ticker>/_cache/financial-data/actuals-resolved.json`
 
 **Qualitative descriptions alone are partial understanding** — readers can't tell which segment matters, which is shrinking, where anomalies are. So this section has two parts:
 
-**(a) Business Model Assessment**: agent judges business model → routes to `references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
+**(a) Business Model Assessment**: agent judges business model → routes to workspace `.references/kpi-drivers/<template>.md` → determines elastic KPI checklist + 2–3 elastic ratios.
 
 **(b) Key Financial Tables (standard + elastic)**
 
@@ -273,7 +268,7 @@ Tables are not the endpoint — they must have interpretation. Cover:
 
 ### 4. Growth Drivers & KPIs
 
-> Agent judges business model → routes to `references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
+> Agent judges business model → routes to workspace `.references/kpi-drivers/<template>.md` → determines elastic ratios + Driver table columns.
 
 **(a) Standard Ratios** (4 items, all companies required, data from actuals):
 
@@ -307,7 +302,7 @@ From the kpi-drivers template, select **all KPIs that have data in actuals** as 
 
 Unavailable fields: mark [ND] or [NOT DISCLOSED]. All numbers computed from actuals/IR.
 
-> Generalized fallback is handled at the `financial-data --lite` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
+> Generalized fallback is handled at the `/financial-data` elastic collection layer (`supplementary.custom_metrics`). §4 reads from actuals directly — no secondary search.
 
 **Industry Cycle Position** (1 sentence): Capacity expansion / competition intensification / consolidation / decline? Is the company leading expansion, following, or contracting counter-cyclically?
 
@@ -441,6 +436,15 @@ industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-
 - Path unclear → agent auto-creates per policy baseline §11.
 - `ticker-slug` is normalized from the display ticker: lowercase; spaces, dots, and slashes become `-`; keep the market suffix (for example `6777-jp`, `spcx-us`, `0522-hk`, `xk4-de`).
 - `company-slug` is normalized from the company name (for example `mycronic`, `robotchnik`). For unlisted or ticker-pending companies, use `no-ticker-<company-slug>` instead of company-only naming.
+
+## Coverage Update
+
+After completing `stock-quickread`, the agent must check workspace-root `COVERAGE.md`:
+
+- If the company is not registered yet, add a row with default `Coverage = Building Coverage` and `Monitor = Daily Watch`.
+- If the company is already `Radar`, promote it to `Building Coverage` and keep or add `Monitor = Daily Watch`.
+- A single `stock-quickread` must not auto-upgrade a name to `Core Coverage`; `Core Coverage` is reviewed only after deep-work artifacts such as `alpha-thesis`, `peer-deep-dive`, `earnings-setup`, `scenario-model`, `driver-map`, or `catalyst-map`.
+- Update `Last Review` to the artifact date and write `Next Trigger` as the next real event or datapoint that should bring the company back on screen.
 
 ## Word Count Baseline
 

@@ -9,11 +9,13 @@ Turn "how big is this market" into a structured estimate where every row has a s
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 当需要公司-level baseline 时使用。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -74,7 +76,7 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 >
 > **完成 Gate**：写完扫 TAM 表 → 每行 Source 列有 link → Tier 1-2 行做过 WebFetch 验证 → Resources 展开所有 source。
 
-~~~markdown
+```markdown
 ## TAM Breakdown
 
 | Segment | Method | 2026 | 2028E | Growth | Source | Tier | Confidence |
@@ -104,7 +106,7 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 ## Visual
 
 - TAM Pyramid (ASCII): TAM → SAM → SOM 三层
-~~~
+```
 
 - Segment Pie: 如果 TAM 按多 segment 拆，可选 pie chart（description only, actual chart via research-viz）
 
@@ -135,7 +137,7 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 
 ## 篇幅基准
 
-500-1200 字 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
+30-80 行 + 1 TAM 拆解表 + 1 SAM 表 + 1 TAM pyramid (ASCII)。
 
 ## Workflow 联动
 
@@ -151,11 +153,3 @@ Agent 最容易犯的错：搜到一个数就引用。应该做的是：找至�
 - 不做行业全景 → `industry-landscape`
 - 不做公司收入 forecast → `driver-map`
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

@@ -11,9 +11,10 @@ Build physical intuition for an unfamiliar industry from absolute zero. No inves
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- This skill MUST NOT make any investment judgment. It is a pure engineering-literacy builder. Hand off to `industry-landscape`, `mechanism-insight`, or downstream research skills for investment conclusions.
+**MUST read the following files before executing this skill:**
+- workspace `.references/runtime/research-runtime.en.md` §1 (Data Pipeline) §2 (Source Verification) §2.1 (Material Collection) §2.2 (Source Discipline) §2.5 (Image Download) §4 (Output Contract) §5 (Save Contract)
+
+**Auto Hook Defense:** `pre_write_gate` (source/tables/mermaid/image) `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 ## Core Philosophy
 
@@ -123,7 +124,7 @@ Closing trio (after Layer 6, required):
 
 Download to `_cache/images/`; embed in artifact as `![Description](relative path)`.
 
-**Download method**: Read `_scripts/download-product-image.js` → replace `{{TARGET_URL}}` + set `{{MAX_IMAGES}}` → invoke the current session's Playwright MCP `browser_run_code_unsafe` → decode with PowerShell on Windows, `python3` on macOS to write the file, using the `extension` returned by the script. See `stock-quickread` SKILL.md §1 for details.
+**Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
 **ASCII architecture diagrams**: I will draw them. At least 1 per layer.
 
@@ -279,7 +280,7 @@ Equipment specs / company names → WebFetch / Playwright must attempt at least 
 | **Question** | What is this thing | Is the industry worth investing in | How does the mechanism work |
 | **Investment judgment** | **Zero** | Industry-level | Mechanism-level |
 | **Coverage** | Full-chain primer | Full industry value chain + profit pools | 1–2 mechanisms deep-dive |
-| **Images** | Product photos ≥ 10 (required) | Company logos + product photos (required) | Product photos (required) |
+| **Images** | Product photos ≥ 10 (required) | Product photos (required) | Product photos (required) |
 | **Output length** | 8,000–12,000 words | 2,000–3,000 words | 1,000–1,800 words |
 
 - `teach-in` is a **prerequisite** for `industry-landscape` and `mechanism-insight`, not a substitute.

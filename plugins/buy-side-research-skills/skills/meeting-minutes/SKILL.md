@@ -1,29 +1,37 @@
 ---
 name: meeting-minutes
-description: Turn raw voice-transcribed meeting notes into structured research minutes with corrected names, background context, and RAG-verified claims.
+description: 把音频/转录稿转化为结构化研究输出——briefing（对外邮件）和 qa（对外问答实录），双语可选，附录分层便于按需剪裁。
 ---
 
 # Meeting Minutes
 
-把语音转录的会议纪要转化为结构化、可追溯、可验证的研究笔记。
+把音频或转录稿转化为结构化研究输出。两个模板：`briefing`（对外邮件）+ `qa`（对外问答实录）。内部使用组件（claim 验证、正名对照、后续跟进）作为 appendix 放在文件后半，发邮件时不粘贴即可。
+
+中文版默认输出中文，可选 `--en` 出英文版，可选 `--qa` 单独出 Q&A。
+
+## 原则
+
+- **内容深度完整优先，不设篇幅上限。**
+- **事实直接陈述，不铺叙事层**——不写"管理层开场即给出""这是整场 call 中最坦率的问题"这类句式。
+- **英文原文全部翻译**——不保留英文引号句，融入中文正文。
+- **正文不挂验证标签**——`[需查证]`、`[讲者观点]` 等仅出现在 appendix 的 Claim 验证区。
 
 ## 心法
 
-卖方/买方电话会议、产业调研、专家访谈的语音转文字稿有三个致命问题：
+语音转文字稿有三个致命问题：
 1. **名字全错**——公司名、人名、产品名、术语被语音识别乱写
 2. **听不懂**——讲者默认听众有背景知识，读者没有
 3. **真假难辨**——数字、客户关系、订单数据散落其中，没人验证
 
-本 skill 做三件事：**纠正 → 补背景 → 挂 source**。输出不是"会议记录"，是"会议里有什么值得信、什么需要查、什么可以扔"。
-
-失败标准：输出读完后读者仍然不知道哪些 claim 有 source、哪些是讲者一家之言、哪些公司被提到。
+本 skill 做三件事：**纠正 → 补背景 → 挂 source**。
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：不调用 financial-data。优先复用 workspace 现有 `_cache/` 和 teach-in/quickread 的背景知识。
-- **RAG 链**：复用现有 Fallback——WebSearch→WebFetch→Playwright→curl→[需查证]。关键 claim 强制 Tier 2，一般 claim Tier 1 即可。
+- Hook-enforced rules live in workspace hooks.
+- Shared runtime baseline: `.references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
+- **数据管道**：不调用 financial-data。优先复用 workspace 现有 `.cache/` 和 teach-in/quickread 的背景知识。
+- **RAG 链**：WebSearch→WebFetch→Playwright→curl→[需查证]。关键 claim 强制 Tier 2，一般 claim Tier 1 即可。
+- **转录环境**：whisper API key + endpoint + 默认 model 在 `init-workspace` 中配置，本 skill 直接调用 `.scripts/shared/transcribe.py`。
 - Sub-agent outputs: evidence_cards_only; main agent synthesizes, deduplicates, scores, tiers, and ranks.
 
 ## 触发场景
@@ -32,181 +40,299 @@ description: Turn raw voice-transcribed meeting notes into structured research m
 - "这段录音转文字帮我纠错"
 - "这个 call 里有什么值得查的"
 - "把这段纪要结构化"
-- 粘贴一段语音转文字稿 + 要求结构化
+- 粘贴语音转文字稿 + 要求结构化
+- 直接给音频文件路径
 
 ## 输入澄清
 
 | 维度 | 含义 | 默认处理 |
 |---|---|---|
-| **原始文本** | 语音转文字稿 | 原样粘贴 |
-| **会议类型** | 卖方/买方/产业调研/专家访谈/公司IR | 未知则标"未注明会议类型" |
-| **行业/公司** | 主要讨论的行业和公司 | 从文本推断，未知则标 [需确认] |
-| **日期** | 会议日期 | 未知则用当前日期 + [需确认] |
+| **原始文本 / 音频** | 语音转文字稿 或 mp3/m4a/wav | 音频 → 先转写（Step 1） |
+| **会议类型** | 卖方/买方/产业调研/专家访谈/公司IR | 未知标"未注明会议类型" |
+| **行业/公司** | 主要讨论的行业和公司 | 从文本推断，未知标 [需确认] |
+| **日期** | 会议日期 | 未知用当前日期 + [需确认] |
+| **输出语言** | 默认中文，可选 `--en` 出英文版 | 中文 |
+| **输出模式** | 默认 --briefing，可选 --qa 出 Q&A、--all 两个都出 | briefing |
+
+---
 
 ## 执行流程
 
-### Phase 1: 清洗与纠正
+### Step 0: 环境检查
 
-**Step 1: 术语纠正**
-- 找出现有的 teach-in/quickread 中匹配的行业术语和公司名
-- 检查 `references/company-name-alias.yaml` 常见语音识别错误对照表
-- 纠正明显的语音识别错误（中英文混合时尤其注意）
-- 纠正后必须保留原始文本作为对照
+转录依赖 `.scripts/shared/transcribe.py` + `.scripts/shared/ffmpeg.exe`。
+若不存在 → 提示运行 `/init-workspace` 补全。
 
-**Step 2: 提取结构化信息**
-- 列出所有被提及的公司/产品/客户/项目
-- 产出 **正名对照表**——语音转录 → 正名 + 代码
+### Step 1: 音频转写（仅当输入为音频）
 
-### Phase 2: Claim 提取与分类
+```
+audio .mp3/.wav/.m4a
+  ↓
+① Language detection + confirmation：先根据文件名/来源路径/用户消息语言推断，然后向用户确认 "检测到音频语言为 X，用 X 转录？" 确认后再跑。不给默认、不过自己猜
+  ↓
+② Bitrate check：<32kbps → block，提示提供 ≥64kbps 版本
+  ↓
+③ Split（>10min 触发）：ffmpeg 切 ≤540s chunks
+  ↓
+④ Transcribe：whisper-large-v3-turbo（默认），verbose_json + timestamp_granularities[]=segment
+  ↓
+⑤ Merge：sort segments by start，shift chunk timestamps，去相邻重叠
+  ↓
+⑥ 输出 _verbatim.txt + _verbatim.json → 存入 .cache/meeting-minutes/transcripts/
+```
 
-**Step 3: 提取所有可验证 claim**
+Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 
-| 分类 | 示例 | 验证优先级 |
+### Step 2: 共享预处理 → scratchpad
+
+产物：`_scratchpad.json`，存入 `.cache/meeting-minutes/`。语言中立（key 用英文，values 保留原语言）。
+
+**① 术语纠正**：找出现有 teach-in/quickread 匹配术语，纠正明显错误。**所有 fact 声明写入最终文件前，至少走一次 WebSearch 核实**——不留死角。核实范围：
+- 公司：名/代码/上市状态/行业归类/地域分布/股权关系
+- 产品：名/技术路线/迭代节奏/市场定位/竞争格局
+- 技术：术语解释/标准/路线图/物理极限
+- 财务：数字/增长率/margin 区间/与实际披露的一致性
+- 行业：趋势/格局/市场份额/上下游关系
+- 宏观：政策/地缘/贸易限制
+- 易混淆：首字母缩写（CPU/CPO/GPU）、同音/近音词
+
+保留原始文本供 appendix 正名对照使用。不确定标 `[待确认]`。
+
+**② 实体提取**：公司/产品/客户/项目/数字。
+
+**③ 背景注入**：从现有 cache/teach-in/mechanism-insight 引用背景（≤3 句），融入正文叙事。无缓存 → WebSearch 补核心信息（≤3 句）。
+
+**④ 逐段读取、累积 scratchpad，确认到底**
+- Transcript 可能很长（50min+、600+ segments）。**不允许扫几段就开写最终文件。**
+- 读取协议：
+  ```
+  Read chunk 1 (L1–200)   → 提取实体、数字、claim、topic → 写入 scratchpad
+  Read chunk 2 (L201–400) → 同上，追加
+  Read chunk 3 (L401–600) → 同上，追加
+  Read chunk N (L601–end) → 同上，确认末尾是 Q&A 收尾 / 道谢 / 结束语
+  ```
+- **验证到底**：最后一个 Read 的内容必须与开头无重复（不是循环 hallucination），且语义上是结尾。
+- scratchpad 凑齐后才进 Step 3。不读到底绝不开写 briefing / qa。
+
+**⑤ 验证日志（verification_log）——强制 gate**
+
+scratchpad 必须包含 `verification_log` 字段，每条 fact 挂一个 web search URL。Step 3 入口检查：`verification_log` 为空或覆盖率 < 实体的 80% → 退回 Step 2 补查。不凑齐不进 Step 3。
+
+格式：`{"claim": "盛合晶微已上市", "source_url": "https://...", "verified": true}`
+
+### Step 3: 按 template 输出
+
+**模板数量：2 个。** briefing + qa。每个模板出 ZH 和（可选）EN 两个版本。internal 的组件作为 appendix 嵌入。
+
+**语言风格**——以下一律禁止，违者重写：
+
+| # | 禁止 | 例 |
 |---|---|---|
-| **关键 claim**（市场份额、客户关系、订单/收入数据、价格/ASP、产能/产量、并购/合作） | "联讯份额从 15%→40%" "跟华为有深入合作" "Keysight 交期 6 个月" | **强制 Tier 2**（必须跑 Playwright） |
-| **一般 claim**（行业趋势、技术路线、竞争格局定性、时间线） | "1.6T 是 Pluggable 极限" "单通道速率提升驱动升级" | Tier 1 即可（WebFetch/WebSearch） |
-| **观点/判断**（讲者的投资建议、估值判断、预测） | "罗博特科市值可能超越联讯" "明年收入 100 亿" | 不验证——保留为"讲者观点"，原样标注 |
+| ① | 叙事句开头 | "管理层开场即给出""分析师花了几分钟做行业普及" |
+| ② | 英文引号原文 | "the company is actually older than the United States" |
+| ③ | 独立"关键点"段落 | pros 末尾单独一段"关键点：..." |
+| ④ | 孤立的跨公司判断 | "比 DPC Holdings 温和得多" |
+| ⑤ | 替读者下判断 | "这是投资中最关键的变量之一""值得高度关注" |
+| ⑥ | 修辞比喻 | "皇冠上的明珠""真正的护城河""掌控自己的命运""像做蛋糕杯一样" |
+| ⑦ | 口语化/评价性措辞 | "deal 很热""签了就是好事""小玩家""至今仍很差" |
+| ⑧ | 对会议本身行为的元描述 | "分析师追问了一个关键问题""分析师用了一个珠宝比喻""分析师举例" |
+| ⑨ | 情绪化/画面化措辞 | "比美国还老""侮辱性报价""最极端证明""艰难持有赶上好时机变现" |
+| ⑩ | 程度副词和编辑定性 | "远超""近乎垄断""必然很低""极高的杠杆率压缩了所有" |
 
-**Step 4: Claim 验证（RAG Fallback 链）**
+可保留：分析师/讲者观点的中性归因（"分析师的判断是""管理层认为"）、买方提问的上下文。
 
-复用的优先顺序与降级逻辑：
-
-```
-Tier 0: workspace 现有 _cache/ —— teach-in/quickread/actuals → 直接引用
-Tier 1: WebSearch → WebFetch(url) → 提取原文
-Tier 2: Playwright MCP browser_navigate + browser_snapshot → 提取原文
-Tier 3: curl -sL url → 提取正文
-Tier 4: [需查证] —— honest degradation
-```
-
-**关键 claim**：Tier 2 必须尝试。Tier 1+2 全失败才能标 [需查证]。
-**一般 claim**：Tier 1 即可。失败标 [需查证]。
-**观点**：不验证，标注"讲者观点"。
-
-### Phase 3: 背景补充
-
-**Step 5: 补充公司和行业背景**
-
-对每个被提及的公司，从以下来源自动拉取背景（不新建，只引用已有缓存和 artifact）：
-- `industry/<industry>/companies/<ticker>/_cache/` → actuals, quickread
-- `industry/<industry>/` → teach-in, industry-landscape
-- 无现有缓存 → WebSearch 补核心信息（≤ 3 句）
-
-**Step 6: 补充技术/行业背景**
-
-如果会议涉及技术概念（如 CPO、PAM4、interposer），从现有 teach-in/mechanism-insight 中引用解释。没有则写 1-2 句补充。
-
-### Phase 4: 输出
-
-按固定结构输出。
+---
 
 ## 输出结构
 
-```markdown
-# <会议主题> — 会议纪要
+### briefing
 
-> <日期> | 来源：<会议类型> | 主要覆盖：<行业/公司>
+```
+# <会议主题>
 
-## 一、核心结论
+> <日期> | <会议类型> | <行业/公司>
 
-4-8 条。每条一句——这场会到底讲了什么新信息。
-结论必须区分：**有 source 支撑的** vs **讲者观点，未经独立验证的**。
+## 1. <Topic 1>
 
-## 二、正名对照
+<prose 叙事，融入背景>
 
-| 语音转录 | 正名 | 代码 | 备注 |
+## 2. <Topic 2>
+
+<prose 叙事>
+
+...
+## N. <Topic N>
+
+---
+
+## Company Profile                                         ← appendix 起点
+
+仅在公司级 meeting 出现（earnings call / IR / expert call on a single company）。行业级跳过，直接进 Listed Companies。
+
+核心维度（必填）：
+
+| Dimension | Detail |
+|---|---|
+| Company | |
+| Ticker | |
+| Business | <一句话> |
+| Key Platforms / Products | |
+| End Markets | |
+
+可选维度（有则填，无则省略）：
+
+| Dimension | Detail |
+|---|---|
+| Revenue & Growth | |
+| Margin Profile | |
+| Key Customers | |
+| Key Suppliers | |
+| Competitive Position | |
+
+有 stock-quickread → 直接引用，不重新查。
+
+## Industry Context
+
+有 teach-in / industry-landscape → 直接引用，不重新查。
+
+## Listed Companies Mentioned
+
+纪要中提到的所有上市公司（不含主体公司 Profile）。业务描述详细，1-2 句，含关键产品或市场地位。最后一列按会议上下文命名。
+
+| Company | Ticker | Business | <Context Column> |
+|---|---|---|---|
+| 联讯仪器 | 688808 CH | 光通信测试仪器国产 #1：采样示波器、误码仪、光功率计 | 全球唯二量产 1.6T 采样示波器 |
+
+第四列命名按会议主题：如"光测试/CPO 布局""航空供应链定位""AI 服务器相关业务"等。
+
+## Technical / Industry Background
+
+对会议涉及的关键技术概念或行业背景做解释。有机制洞察类 artifact → 引用。
+
+## Claim Verification
+
+### Key Claims (Tier 2)
+
+| # | Claim | Category | Source | Status |
+|---|---|---|---|---|
+| C1 | | | | |
+
+### General Claims
+
+| # | Claim | Category | Source | Status |
+|---|---|---|---|---|
+
+### Speaker Opinions (Unverified)
+
+- <opinion>
+
+## Name Corrections
+
+| Transcript | Corrected | Ticker | Notes |
 |---|---|---|---|
 
-## 三、Claim 验证
+## Follow-Up
 
-### 关键 Claim（Tier 2 验证）
-
-| # | Claim | 分类 | Source | 验证方法 | 状态 |
-|---|---|---|---|---|---|
-| C1 | <原始 claim> | 市场份额/客户/订单/价格 | [S1](url) | Playwright ✅ | 已验证 |
-| C2 | <原始 claim> | 客户关系 | — | WebFetch ❌ Playwright ❌ | [需查证] |
-
-### 一般 Claim
-
-| # | Claim | 分类 | Source | 状态 |
-|---|---|---|---|---|
-| I1 | <原始 claim> | 行业趋势 | [I1](url) | 已验证 |
-
-### 讲者观点（未验证）
-
-- <观点 1>
-- <观点 2>
-
-## 四、公司背景补充
-
-| 公司 | 代码 | 主营业务 | 光测试布局 / 会议相关业务 |
-
-## 五、技术/行业背景
-
-对会议涉及的关键技术概念做 1-3 句解释。引用现有 teach-in/mechanism-insight。
-
-## 六、后续跟进建议
-
-- <具体可验证的下一步问题 1>
-- <具体可验证的下一步问题 2>
+- <actionable item>
 
 ## Resources
 
-- [S1](url) — source 描述
-- [I1](url) — source 描述
+- `.cache/meeting-minutes/...`
 ```
+
+appendix 从上到下越来越内部：
+- `Company Profile` + `Listed Companies` + `Industry Context` + `Technical Background`：外发可保留
+- `Claim Verification`：内用，含 `[需查证]` 标签
+- `Name Corrections`：内用
+- `Follow-Up`：内用
+- `Resources`：内用，含本地路径
+
+发邮件时从 `Claim Verification` 起不粘贴。
+
+### qa
+
+```
+# <会议主题> — Q&A
+
+> <日期> | <会议类型>
+
+**Q1: <精简问题>**
+A: <精简回答，去 filler，保留全部数据>
+
+**Q2: ...**
+
+---
+
+## Company Profile
+...
+
+## Claim Verification
+...
+```
+
+appendix 分层规则同 briefing。
+
+---
 
 ## Artifact / 保存策略
 
-写入行业 topic 目录：
 ```
-industry/<industry>/YYYY-MM-DD-call-summary-<qualifier>.md
+.cache/meeting-minutes/                        ← 全部隐藏
+├── raw/YYYYY-MM-DD-<call>.mp3                 ← Step 0: 原始音频
+├── transcripts/YYYY-MM-DD-<call>_verbatim.txt  ← Step 1: 纯转录
+├── transcripts/YYYY-MM-DD-<call>_verbatim.json
+└── YYYY-MM-DD-<call>_scratchpad.json          ← Step 2: 预处理中间件
+
+公司级 artifact（露出）：
+  companies/<ticker>/
+  ├── YYYY-MM-DD-<call>_briefing_zh.md          ← 中文 briefing
+  ├── YYYY-MM-DD-<call>_briefing_en.md          ← 英文 briefing（可选）
+  ├── YYYY-MM-DD-<call>_qa_zh.md                ← 中文 qa
+  └── YYYY-MM-DD-<call>_qa_en.md                ← 英文 qa（可选）
+
+行业级（行业 panel / sell-side call）：
+  industry/<slug>/panorama/meeting-minutes/
+  ├── YYYY-MM-DD-<topic>_briefing_zh.md
+  └── YYYY-MM-DD-<topic>_qa_zh.md
 ```
 
-- 路径不明 → agent 按 policy baseline §11 自动创建。
-- qualifier 用会议主题或主讲机构（如 `optical-test-equipment`、`citi-2026-outlook`）。
+- `_briefing_en.md` 和 `_qa_en.md` 仅在用户要求时输出。
+- 路径不明 → agent 按 workspace structure 自动创建。
 
 ## Workflow 联动
 
 | 场景 | 下一步 |
 |---|---|
-| 会议中某条 claim 需要深度验真伪 | `/information-impact` |
-| 会议提到的新公司需要 first pass | `/stock-quickread <ticker>` |
-| 会议的产业观点需要验证 | `/mechanism-insight` 或 `/industry-landscape` |
-| 会议的判断沉淀为认知 | `/research-journal` |
+| 某条 claim 需要深度验真伪 | `/information-impact` |
+| 新公司需要 first pass | `/stock-quickread <ticker>` |
+| 产业观点需要验证 | `/mechanism-insight` 或 `/industry-landscape` |
+| 判断沉淀为认知 | `/research-journal` |
 
 ## 反模式自查
 
-### 纠错类
-- ❌ 纠正术语时不留原始文本对照——读者无法判断纠正是否合理
-- ❌ 凭猜测纠正公司名——不确定时标 `[待确认]`
-- ❌ 把讲者的简称当作独立公司（如"K"→需注明指 Keysight）
+### 认读类
+- ❌ 没读完完整 transcript 就开始输出——必须读到末尾再写
+- ❌ 凭猜测纠正公司名——不确定标 `[待确认]`
+- ❌ 把讲者简称当作独立公司
 
 ### 验证类
-- ❌ 关键 claim（市场份额/客户/订单）只跑到 Tier 1 就停
+- ❌ 关键 claim 只跑到 Tier 1 就停
 - ❌ 把 WebSearch 摘要当原文——必须打开页面读
 - ❌ 编造 source URL
-- ❌ 多 source 冲突时不标注——必须标注"source A 说 X，source B 说 Y"
+- ❌ verification_log 为空或覆盖率不足 → 退回补查
+- ❌ fact 声明无 web search URL 支撑就写入最终文件
 
-### 输出类
-- ❌ 把讲者观点写成事实（"收入 100 亿" vs "讲者认为收入可达 100 亿"）
-- ❌ 输出纯流水账——没有优先级、没有可操作建议
-- ❌ 没有正名对照表
-- ❌ 背景补充凭空编公司介绍——必须引用现有 cache 或 web source
-- ❌ 敏感内容（"不要录音"、"未公开"）未标注或公开发布
-
-## 篇幅基准
-
-- 标准纪要：2000-4000 字（含表格和 source link）
-- <1500 字：Claim 提取不全或验证不足
-- >6000 字：在替 `information-impact` 或 `industry-landscape` 干活
-
-## 与相邻 skill 的边界
-
-| | meeting-minutes | information-impact | research-journal |
-|---|---|---|---|
-| **入口** | 整场会议转录 | 单条信息/传闻 | 已想清楚的认知 |
-| **问题** | 这场会讲了什么、哪些能信 | 这条信息靠谱吗 | 我学到了什么 |
-| **深度** | 全量浅度——提 claim + 挂 source | 单条深挖——给 verdict | 沉淀 insight |
-| **验证** | 关键 claim Tier 2，一般 Tier 1 | 每条跑满 fallback 链 | 不验证 |
-| **产物长度** | 2000-4000 字 | 300-700 字 | 100-500 字 |
+### 输出类（语言风格）
+- ❌ 叙事句开头——"管理层/分析师 + 动词"作为段落起手式
+- ❌ 英文引号原文——即使贴原话也不保留
+- ❌ 独立"关键点"段落
+- ❌ 孤立的跨公司比较判断
+- ❌ 替读者下判断（"这是最关键的""值得高度关注"）
+- ❌ 修辞比喻（"皇冠明珠""护城河""掌控命运"等）
+- ❌ 口语化/评价性措辞
+- ❌ 对会议行为的元描述（"分析师花了几分钟""做了一个比喻""举例"）
+- ❌ 情绪化/画面化措辞（"比美国还老""侮辱性""最极端证明"）
+- ❌ 程度副词和编辑定性（"远超""近乎垄断""必然很低"）
+- ❌ 背景补充凭空编公司介绍
+- ❌ 正文字段挂 `[需查证]` / `[讲者观点]` 标签
+- ❌ 敏感内容未经标注发布

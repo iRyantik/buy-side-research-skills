@@ -9,7 +9,7 @@ description: Update the current host plugin runtime to the latest GitHub release
 
 `update-agent-runtime` detects all installed hosts (Claude Code / Codex), updates each that is found, refreshes plugin caches and marketplace for every host, and syncs the current workspace to the latest runtime scaffold. One command, no manual host selection. It is an operations skill.
 
-## Mental Model
+## 心法
 
 Three things to keep in sync:
 
@@ -61,20 +61,30 @@ Auto-detect all installed hosts:
 
 ## Update Path
 
-For each detected host:
+Agent runs a single command — the script handles everything:
 
-1. Update marketplace plugin to latest release
-2. Create/populate plugin cache with latest version directory (copy marketplace skills)
-3. **Update host runtime pointer to latest cache version**:
-   - **Claude Code**: update `~/.claude/plugins/installed_plugins.json` → set `version` and `installPath` to latest cache dir
-   - **Codex**: sync latest skills to `~/.codex/plugins/cache/buy-side-research-skills/skills/`
-   - **`.agents` marketplace**: update `~/.agents/plugins/marketplace.json` → set `path` to latest Codex cache dir
-4. If current host: update via official CLI (`claude plugin update` / `codex plugin marketplace upgrade`)
-5. Sync workspace runtime assets (see Workspace Sync below)
+```bash
+python .scripts/update-agent-runtime/update_agent_runtime.py
+```
 
-## Workspace Sync
+Optional flags:
+- `--workspace <path>` — explicit workspace (auto-detect if omitted)
+- `--dry-run` — fetch and report latest version only, no writes
 
-After updating hosts, sync the current workspace — no release zip download needed; pull directly from the latest cache's `init-workspace/assets/`:
+The script does:
+1. **Fetch** latest release from GitHub API (`api.github.com/repos/iRyantik/buy-side-research-skills/releases/latest`)
+2. **Download** zipball → extract `plugins/buy-side-research-skills/` payload
+3. **Update host caches**: copy payload to `~/.claude/plugins/cache/.../<version>/` and `~/.codex/plugins/cache/.../<version>/`
+4. **Refresh marketplace pointers**: `installed_plugins.json` + `.agents/plugins/marketplace.json` → latest version
+5. **Sync workspace**: hooks, configs, `.scripts/`, references, root docs — from the latest `init-workspace/assets/`
+6. **Run verify-runtime.py**: 12 checks, report pass/fail
+7. **Cleanup** temp files, print change summary
+
+Dependencies: Python stdlib only (`urllib`, `zipfile`, `json`, `shutil`). No `gh` CLI, no `git`, no `pip install` needed.
+
+## Workspace Sync Detail
+
+These steps are handled automatically by the script. Documented here for transparency.
 
 ### A. Hook infrastructure (`.claude/hooks/` — full tree)
 
@@ -98,10 +108,10 @@ Copy the **entire** `.claude/hooks/` directory from init-workspace assets to wor
 - **`.codex/hooks.json`** — Codex hook config. Overwrite — plugin-owned.
 - **`.codex/mcp.example.json`** — Codex MCP example. Always sync (never customized directly).
 
-### C. Utility scripts (`_scripts/`)
+### C. Utility scripts (`.scripts/`)
 
 **C1 — Platform-owned** (from `init-workspace/assets/_scripts/`):
-- `download-product-image.js` — Playwright image-download helper
+- `download-image.py` — unified image download (product, Tier 1→2, cache)
 
 **C2 — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
 
@@ -126,12 +136,12 @@ for each skill_dir in skills/*/:
 
 > Adding a file to a skill's `scripts/` or `assets/` → automatically deployed. Zero changes to this skill.
 
-**Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `_scripts/` that are not in the source lists are left untouched.
+**Safety**: Overwrite all C1 and C2 files (canonical plugin versions). User-added scripts in `.scripts/` that are not in the source lists are left untouched.
 
 ### D. References
 
 - `references/policy/` — research-policy-baseline.md, statement-line-items.md
-- `references/kpi-drivers/` — 7 business-model templates
+- `.references/kpi-drivers/` — 7 business-model templates
 
 Overwrite all reference files. These are the canonical versions from the plugin.
 
@@ -139,7 +149,7 @@ Overwrite all reference files. These are the canonical versions from the plugin.
 
 - **`CLAUDE.md`**: patch managed sections only. Do not overwrite the entire file — the user's workspace constitution lives here. Managed sections are the RTK block and the plugin-loaded marker.
 - **`AGENTS.md`**: same conservative patch approach.
-- **`edge-radar.md`**: overwrite (plugin-owned reference doc).
+- **`.references/edge-radar.md`**: overwrite (plugin-owned reference doc).
 - **`COVERAGE.md`**: if missing, copy from `coverage.md.template`. If present, skip — user has customized.
 
 ### F. Codex cache
@@ -149,7 +159,7 @@ Refresh `~/.codex/plugins/cache/buy-side-research-skills/skills/` from the lates
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — patch managed sections only.
-- Do not overwrite `_scripts/` files that don't exist in the source assets.
+- Do not overwrite `.scripts/` files that don't exist in the source assets.
 - Do not overwrite `.claude/mcp.json` if already present (user customization).
 - Do not overwrite `.codex/config.toml` (user customization).
 - Do not overwrite `COVERAGE.md` if already present.
@@ -184,6 +194,11 @@ Updated X host(s) + workspace runtime assets.
 - references/: synced (policy + kpi-drivers)
 - .codex/: synced (hooks.json + mcp.example.json)
 - claude_md: updated / skipped
+- mcp.json: playwright key ensured (merge)
+
+## Verification
+- verify-runtime.py: 12/12 ✅ / ❌ (N failures)
+- new dependencies: none / installed: X, Y, Z
 ```
 
 ## Failure Handling

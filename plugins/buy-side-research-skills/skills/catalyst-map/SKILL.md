@@ -9,11 +9,13 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline 和 earnings dates。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
+- **DDG 新闻搜索**: `python .scripts/shared/search.py --query "<Native> <ticker>" --news`（双语搜 + 行情页过滤，无需 API key）
+
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -65,8 +67,8 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 >
 > **完成 Gate**：写完逐行扫表 → 每行 [S#]/[I#] 或 `[待查]` → `[待查]` ≤5 → Resources 段必须展开所有 source。
 
-~~~markdown
-## Catalyst Timeline
+```markdown
+## Catalyst Timeline [→ Bridge: calendar, news]
 
 | 时间 | 催化剂 | 概率 | 方向 | 幅度 | Payoff Ratio | 锚 | Thesis Impact | Ev |
 |---|---|---|---|---|---|---|---|
@@ -99,7 +101,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
             │ +5%     │
 
     Density: Q3-Q4 = HIGH (3 catalysts in 6M) — allocate research time.
-~~~
+```
 
 ## 反模式
 
@@ -115,7 +117,7 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 
 ## 篇幅基准
 
-500-800 字 + 1 timeline 表 + 1 payoff matrix + ASCII timeline。
+30-50 行 + 1 timeline 表 + 1 payoff matrix + ASCII timeline。
 
 ## Workflow 联动
 
@@ -137,11 +139,3 @@ Map every catalyst on a timeline with probability, magnitude, direction, and pay
 - 不做 thesis → `alpha-thesis`
 - 不做 market expectations → `consensus-map`
 
-
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

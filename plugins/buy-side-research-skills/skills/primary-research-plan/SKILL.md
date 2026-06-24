@@ -9,13 +9,12 @@ Design an expert call, channel check, survey, or fieldwork plan to verify a key 
 
 ## Research Runtime Capsule
 
-- Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
-- Use this skill for research design and respondent mapping; unresolved facts stay as gap, hypothesis, or follow-up.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
-把一个投资假设转成可执行的 primary research plan。**核心不是写问题清单**——是选对 hypothesis、找对 persona、设对 decision gate。问题清单只是执行工具。
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
-如果输出像泛泛的访谈提纲、暗示去问 MNPI、生成虚假的专家反馈，或者没有 decision gates，本 skill 就失败了。
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -111,22 +110,12 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 用于客户/供应商/分销商批量验证。在 Mode A 基础上加 sample plan（目标 n≥10、persona split、地域 split）和 bias controls（不只看 happy customers / recent buyers）。篇幅 800-1400 字。
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
     industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
 
 路径不明 → agent 按 policy baseline §11 自动创建。
-
-## Source Contract
-
-- Hypothesis register 每行的"现有 source"列必须标 `[S#](url)` 或 `[I#](url)` 或 `[待查]`。
-- Triangulation 方案每条 source idea 必须注明 source type（persona/public/filing/expert）。
-- 专家访谈问题里引用的数字 → 标出处（哪份 report/filing 里有这个数字）。
-
-**完成 Gate**：写完扫 hypothesis register → 每行 Source 列非空 → `[待查]` >50% 行则标 coverage <50%。
 
 ## 反模式自查
 
@@ -143,8 +132,8 @@ Primary research 的价值不是"多问几个人"，而是把 desk research 里�
 
 | Mode | 字数 |
 |---|---|
-| Standard | 1000-1600 |
-| Expert Call | 600-1000 |
+| Standard | 65-105 |
+| Expert Call | 40-65 |
 | Channel Check | 800-1400 |
 
 低于下限通常漏了 hypothesis 或 decision gate；超过上限在写 execution handbook。

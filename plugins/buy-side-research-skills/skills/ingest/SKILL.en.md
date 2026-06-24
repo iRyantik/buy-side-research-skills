@@ -13,7 +13,7 @@ description: Convert raw research files into source-tracked topic cache markdown
 
 The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-Agent (per policy baseline §11) auto-creates the topic root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research topics stay light.
+Agent (per policy baseline §11) auto-creates the industry root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research directories stay light.
 
 ## Responsibilities
 
@@ -67,7 +67,7 @@ Topic inference:
 ### Dependency Check
 
 ```bash
-python _scripts/ingest.py --check-deps
+python .scripts/ingest.py --check-deps
 ```
 
 Only install dependencies after explicit user confirmation.

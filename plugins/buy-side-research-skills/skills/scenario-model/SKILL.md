@@ -9,14 +9,12 @@ Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model r
 
 ## Research Runtime Capsule
 
-- Hook-enforced rules (source boundary, structure floor, table render) live in workspace hooks.
-- Shared runtime baseline: `references/policy/research-policy-baseline.md` + workspace `CLAUDE.md`.
-- **数据管道**：调用 `/financial-data --lite <ticker>` 获取 baseline 三表 + 市场快照。
-- **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
-- **Actuals-only**: scenario margins, multiples, and derived valuations use actuals-resolved.json. Forward estimates only enter as explicit scenario assumptions, never as ratio inputs.
-- Sub-agent outputs: evidence_cards_only; main agent synthesizes and calculates.
+**执行本 skill 前必须先读取以下文件：**
+- workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
-这个 skill 现在是 **deep-work odds memo skill**，不是后台 supporting calculator。它可以被直接触发，用来回答“这个情景值多少钱、赔率够不够、最值得验证的假设是什么”。它仍然是上游 deep-work 原语，不替代 `alpha-thesis`、`market-sizing` 或 `dcf-model`。
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
 ## 心法
 
@@ -43,7 +41,7 @@ Scenario model 的真正价值不是那个 upside 数字，而是 **暴露哪个
 | **目标份额** | 1. `mechanism-insight` 竞争格局（当前台数/金额份额）→ 2. 客户财报里的 supplier concentration → 3. 行业峰会/产品发布 → 4. 对标相似行业新生市场的 leader 份额 | 至少给 high/low range，不拍单点 |
 | **目标 Margin** | 1. `financial-data` actuals 当前 margin → 2. 同行业 scale effect benchmark（revenue doubling 时 margin 通常 improve 多少）→ 3. peer 可比产品线 margin | 默认 = 当前 margin |
 | **目标 PE** | 1. `comps-analysis` 同组 forward PE → 2. `peer-deep-dive` valuation table → 3. 公司自身 3 年 PE range → 4. 同行业同等 growth rate 公司的 PE | 必填 |
-| **当前估值** | `financial-data --lite` market_data | — |
+| **当前估值** | `/financial-data` market_data | — |
 
 > Tier 0（机器验证）= actuals / Bridge。Tier 1（trusted 第三方）= Frost/Gartner cited in 官方文件。Tier 2（agent 推算）= 有 derivation 但未经第三方验证。所有 Tier 2 假设必须写推导过程，由研究员确认后进测算。
 
@@ -151,8 +149,8 @@ Agent 根据用户 query 自动判定方向。
 >
 > **完成 Gate**：写完扫 assumptions 表 → 每行有 source tier → 引用 actuals 的标 `[S1]`→Resources、引用外部的标 `[I#]`→Resources → `[待查]` assumption ≤3。
 
-~~~markdown
-## Scenario Verdict
+```markdown
+## Scenario Verdict [→ Bridge: consensus, valuation_snapshot]
 
 - 一句话判断：值得继续 / 赔率一般 / 不值得继续
 - 当前价格相对 Base / Bull / Bear 的位置
@@ -189,7 +187,7 @@ Agent 根据用户 query 自动判定方向。
 | 当前市值 | $2.9B |
 | **Upside** | **+148%** |
 
-## Sensitivity
+## Sensitivity [→ Bridge: valuation_history, consensus]
 
 | 变量 | Bear | Base | Bull | 相关性 | Ev |
 |---|---|---|---|---|
@@ -215,7 +213,7 @@ Agent 根据用户 query 自动判定方向。
 仅当用户问倒推时输出：
 - 要值到目标市值，需要多少收入 / 份额 / margin / multiple
 - 哪个条件最不现实
-~~~
+```
 
 默认定位：
 - 短、硬、判断导向
@@ -244,7 +242,7 @@ Agent 根据用户 query 自动判定方向。
 
 ## 篇幅基准
 
-300-700 字 + 1 bull/base/bear 表 + 1 假设表 + 1 sensitivity 表。
+20-45 行 + 1 bull/base/bear 表 + 1 假设表 + 1 sensitivity 表。
 
 ## Workflow 联动
 
@@ -258,10 +256,3 @@ Agent 根据用户 query 自动判定方向。
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
 
 
-## Appendix: actuals-resolved.json
-
-完整字段清单 -> `references/actuals-data-catalog.md`。
-
-结构：`meta` / `market_data` (15 field) / `statements.income_statement` (13 field) / `statements.balance_sheet` (10 field) / `statements.cash_flow` (4 field) / `segments` / `supplementary` / `source_map`。
-
-消费规则：先读 actuals -> source_map 取 [S#]/[I#] 标签（不写 [actuals]）-> ratio 只用 actuals 真实值（不用 forward estimate）。

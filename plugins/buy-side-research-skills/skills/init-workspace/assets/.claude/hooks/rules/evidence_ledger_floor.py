@@ -26,18 +26,34 @@ IMAGE_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
 
 LEDGER_DIR = "_cache/evidence"
 
-# Methods that count as "actually opened a page" (not AI summary)
-DIRECT_ACCESS_METHODS = {"WebFetch", "Playwright", "curl", "actuals"}
+# Methods that count as "actually verified" (shared tooling or direct page access)
+DIRECT_ACCESS_METHODS = {"verify-claim.py", "download-image.py", "actuals-to-appendix.py",
+                         "WebFetch", "Playwright", "curl", "actuals", "web-extract.py", "pdf-extract.py"}
 SUMMARY_METHODS = {"WebSearch", "unknown"}
 
 
 def _find_ledger(artifact_path: str) -> str | None:
-    """Find the evidence ledger for a given artifact."""
+    """Find the evidence ledger for a given artifact.
+
+    Checks both artifact-stem naming (<artifact>.md.evidence.json) and
+    ticker-based naming (<TICKER>.evidence.json) as a fallback.
+    """
     artifact_dir = os.path.dirname(artifact_path)
     artifact_name = os.path.basename(artifact_path)
     candidates = [
         os.path.join(artifact_dir, LEDGER_DIR, artifact_name + ".evidence.json"),
     ]
+    # Also check for ticker-named ledgers in the same directory
+    try:
+        ledger_dir = os.path.join(artifact_dir, LEDGER_DIR)
+        if os.path.isdir(ledger_dir):
+            for f in os.listdir(ledger_dir):
+                if f.endswith(".evidence.json"):
+                    fp = os.path.join(ledger_dir, f)
+                    if fp not in candidates:
+                        candidates.append(fp)
+    except OSError:
+        pass
     for c in candidates:
         if os.path.exists(c):
             return c
@@ -142,14 +158,18 @@ def check(ctx):
                   f"Must try WebFetch + Playwright before accepting any [I#] source. "
                   f"Run: evidence_ledger.py auto + attempt + verify")
 
-        # Rule 5: Low coverage → warn
+        # Rule 5: Coverage floor — block if < 80% verified
         stats = ledger.get("stats", {})
         total = stats.get("total_claims", 0)
         verified = stats.get("verified", 0)
         plausible = stats.get("plausible", 0)
-        if total > 5 and (verified + plausible) < total * 0.5:
-            warn(f"evidence_ledger_floor: {display} has low coverage: "
-                 f"{verified + plausible}/{total} verified+plausible ({int((verified+plausible)/total*100)}%). "
-                 f"Consider upgrading more claims from unverified.")
+        if total > 5:
+            coverage = (verified + plausible) / total if total > 0 else 0
+            MIN_COVERAGE = 0.80
+            if coverage < MIN_COVERAGE:
+                block(f"Blocked by evidence_ledger_floor: {display} has {verified + plausible}/{total} "
+                      f"verified+plausible ({int(coverage*100)}%, minimum {int(MIN_COVERAGE*100)}%). "
+                      f"Verify more claims using verify-claim.py / download-image.py / actuals-to-appendix.py "
+                      f"before writing.")
 
     sys.exit(0)

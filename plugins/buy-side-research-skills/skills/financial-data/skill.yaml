@@ -85,7 +85,7 @@ workflow:
     - 'dcf-model'
     - 'comps-analysis'
     - 'model-update'
-    - 'next-step'
+    - ''
 quality_gates:
   anti_patterns:
     - 'treating_provider_normalized_fields_as_company_disclosed'

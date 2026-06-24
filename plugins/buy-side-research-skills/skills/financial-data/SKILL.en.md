@@ -7,7 +7,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 # Financial Data
 
-`financial-data` turns machine-readable financial data from each market into a source-tracked evidence pack. It is an operations skill, not a research skill: it is only responsible for fetching, parsing, normalizing, annotating completeness, and writing to `_cache/datasets/financial-data/`. It does not interpret investment meaning, does not produce forecasts, and does not substitute for `driver-map` or `3-statement-model / dcf-model / comps-analysis / model-update`.
+`financial-data` turns machine-readable financial data from each market into a source-tracked evidence pack. It is an operations skill, not a research skill: it is only responsible for fetching, parsing, normalizing, annotating completeness, and writing to `_cache/financial-data/`. It does not interpret investment meaning, does not produce forecasts, and does not substitute for `driver-map` or `3-statement-model / dcf-model / comps-analysis / model-update`.
 
 The core deliverable is not "three statements that look complete," but rather "which fields are actually available, where they come from, and whether they can be fed into a model." V1 fetches three statements by default; when the provider can structurally capture a revenue split, it writes it into `statements.revenue_split` in `actuals-resolved.json`; when it cannot, it marks `revenue_split = provider-gap` and preserves the original filing / annual report text for `driver-map` to extract via LLM. Inference-based gap-filling is not allowed.
 
@@ -15,21 +15,21 @@ The core deliverable is not "three statements that look complete," but rather "w
 
 The most common pitfall in financial data fetching is not an API error; it is data that looks too clean: a provider-normalized label mistaken for original company disclosure, a segment bucket auto-merged, a ticker-only route resolving to the wrong entity, or the three statements being available while the revenue split the model actually needs is missing.
 
-This skill's operating logic is **provenance first + completeness before model use**. Save the raw provider payload first, then save the normalized evidence pack. Day-to-day external consumption only sees `financial-data-summary.md`; machine inputs and audit files go into `internal/`. Tell the researcher what is missing first, then let `driver-map` and `3-statement-model / dcf-model / comps-analysis / model-update` decide whether modeling can proceed.
+This skill's operating logic is **provenance first + completeness before model use**. Save the raw provider payload first, then save the normalized evidence pack. Day-to-day external consumption only sees `summary.md`; machine input files are flat under `_cache/financial-data/`. Tell the researcher what is missing first, then let `driver-map` and `3-statement-model / dcf-model / comps-analysis / model-update` decide whether modeling can proceed.
 
-`financial-data` serves the topic-centric architecture: single-company data defaults to `industry/<industry>/companies/<ticker>/`; theme / industry topics only save snapshots or links, and do not become a second set of company master files.
+`financial-data` serves the industry-centric architecture: single-company data defaults to `industry/<industry>/companies/<ticker>/`; theme / industry directories only save snapshots or links, and do not become a second set of company master files.
 
 ## Responsibility Boundary
 
 Responsible for:
 
 - Fetching or parsing structured financial data by `market`, `identifier`, `identifier_type`, and `company_slug`.
-- Writing by default to the canonical company topic: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/`.
-- Saving the raw provider payload to `_raw/datasets/financial-data/`, and saving the normalized evidence pack to `_cache/datasets/financial-data/`.
+- Writing by default to the canonical company topic: `industry/<industry>/companies/<ticker>/_cache/financial-data/<market>/<canonical-id>/<run-id>/`.
+- Saving the raw provider payload to `_raw/financial-data/`, and saving the normalized evidence pack to `_cache/financial-data/`.
 - The raw evidence layer must at minimum include `provider_payload.json` and `identity-source.json`; when a real filing source exists, it must also write `filings/<filing-id>/source.*`, `source-metadata.json`, and `source.sha256`.
-- Generating the public `financial-data-summary.md`; machine files go into `internal/`, including `evidence-pack.json`, `actuals-resolved.json`, `full-filing.md`, `manifest.json`, `financials.md`, `financials.normalized.json`, `completeness.json`, `source-map.json`, and `cross-check.json`.
+- Generating the public `summary.md`; versioned run outputs under `_cache/financial-data/<market>/<id>/<run_id>/`; consumer-facing files (`actuals-resolved.json`, `evidence-pack.json`, `full-filing.md`) are flat under `_cache/financial-data/`.
 - Outputting a field-level completeness matrix: three statements and `revenue_split` are labeled with separate statuses.
-- Supporting current topic snapshots: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/`.
+- Supporting current topic snapshots: `industry/<industry>/companies/<ticker>/_cache/financial-data-snapshot/<run-id>/`.
 - Failing honestly for dependency gaps, credential gaps, and provider gaps.
 
 Not responsible for:
@@ -82,14 +82,14 @@ Europe special rules:
 Run:
 
 ```powershell
-python _scripts/financial-data/financial_data.py --check-deps
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+python .scripts/financial-data/financial_data.py --check-deps
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
 ```
 
 Run only after explicit user confirmation:
 
 ```powershell
-_scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+.scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
 ```
 
 ### Canonical Company Fetch
@@ -98,50 +98,61 @@ Default write target:
 
 ```text
 industry/<industry>/companies/<ticker>/
-  _raw/datasets/financial-data/<market>/<canonical-id>/<run-id>/
+  _raw/financial-data/<market>/<canonical-id>/<run-id>/
     provider_payload.json
     identity-source.json
     filings/<filing-id>/
       source.*
       source-metadata.json
       source.sha256
-  _cache/datasets/financial-data/<market>/<canonical-id>/<run-id>/
+  _cache/financial-data/<market>/<canonical-id>/<run-id>/
     manifest.json
     identity.json
     filing-index.json
     financials.md
     financials.normalized.json
-    full-filing.md
     full-filing.chunks.jsonl
     full-filing.index.json
     completeness.json
     source-map.json
     cross-check.json
   _cache/financial-data/
-    financial-data-summary.md
-    internal/
-      evidence-pack.json
-      actuals-resolved.json
-      full-filing.md
-      manifest.json
-      identity.json
-      financials.normalized.json
-      completeness.json
-      source-map.json
-      cross-check.json
+    summary.md
+    actuals-resolved.json
+    evidence-pack.json
+    full-filing.md
 ```
 
-`_cache/financial-data/financial-data-summary.md` is the default entry point for humans and LLMs. `_cache/financial-data/internal/actuals-resolved.json` is the recommended machine entry point for `driver-map`, `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` to read historical actuals; `statements` within it may contain `income_statement`, `balance_sheet`, `cash_flow`, and optional `revenue_split`. Missing / unmapped fields must not be written as 0. `internal/evidence-pack.json` aggregates completeness, source map, and cross-check; the run-id pack is only opened directly during audit or debugging.
+`_cache/financial-data/summary.md` is the default entry point for humans and LLMs. `_cache/financial-data/actuals-resolved.json` is the recommended machine entry point for `driver-map`, `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` to read historical actuals; `statements` within it may contain `income_statement`, `balance_sheet`, `cash_flow`, and optional `revenue_split`. Missing / unmapped fields must not be written as 0. `evidence-pack.json` aggregates completeness, source map, and cross-check; the run-id pack is only opened directly during audit or debugging.
 
 If `industry/<industry>/companies/<ticker>/index.md` does not exist, the agent must auto-create the directory and index per policy baseline §11 before continuing.
 
 ### Lite Mode Fetch (fast pre-research fetch)
 
-Trigger phrases: `/financial-data --lite <ticker>` or "快速拉 <ticker> 数据"
+Trigger phrases: `/financial-data <ticker>` (default lite) or "pull financials for <ticker>"  
+Trigger (full mode): `/financial-data <ticker> --mode full`  
+Trigger (flexible periods): `/financial-data <ticker> --periods FY2020-FY2025`
 
-Lite mode does not parse the full filing and does not build an evidence pack. It only fetches 22 core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
+Lite mode does not parse the full filing and does not build an evidence pack. It fetches core three-statement line items + segment revenue/profit + market snapshot data, and writes them into `actuals-resolved.json`. The objective is the minimum necessary data before launching **stock-quickread / candidate-screener / peer-deep-dive / consensus-map / earnings-setup / alpha-thesis / bear-pre-mortem / pair-trade**.
 
-**Consumer contract**: Consuming skills only need to call `--lite` and then read data directly from `actuals-resolved.json`. All provider routing, trust ordering, and market data degradation chains are executed internally within financial-data. The consuming skill's Runtime Capsule must not repeat provider names, trust chains, or subagent data-fetching procedures.
+**Period modes:**
+
+| Mode | CLI | Periods | Fields | yfinance |
+|---|---|---|---|---|
+| **Lite** (default) | `/financial-data <ticker>` | latest FY + latest Q/H | ~46 fields (LITE_FIELDS) | market snapshot auto-fill |
+| **Full** | `--mode full` | 5 FY + 4 Q/H | ~72 fields (all) | yfinance fills provider gaps |
+| **Flexible** | `--periods FY2020-FY2025` | specified range | full field set | — |
+
+- Period keys are read dynamically from the provider values dict (e.g. `"FY 2025"`, `"Q1 FY2026"`, `"H1 FY2025"`); do not hardcode `fy_y2/y1/y0`.
+- After the provider API returns multi-period values, the agent selects periods from the keys of `statements.<statement>[].values`.
+- All fields are written to actuals-resolved.json; consumers filter with `get_fields(statements, mode)`.
+
+**Consumer contract**:
+- Lite (default): `/financial-data <ticker>` → latest FY + latest Q/H (~46 fields). Used by stock-quickread / candidate / peer / consensus / earnings-setup and other pre-research skills.
+- Full: `/financial-data <ticker> --mode full` → 5 FY + 4 Q/H (~72 fields). Used by 3-statement-model / dcf-model / comps-analysis and other modeling skills needing multi-period full fields.
+- Flexible: `--periods FY2020-FY2025` or `--periods Q1-FY2026`.
+- Agent reads actuals-resolved.json and calls `get_fields(statements, mode)` to obtain the required field set.
+- All provider routing, trust ranking, and market-data fallback chains execute inside financial-data. Consuming skill Runtime Capsules must not repeat provider names, trust chains, or subagent data-fetch flows.
 
 **Three-statement fetch logic**: Route to provider by market; if unavailable, degrade layer by layer: official_web → yfinance → trusted_web → broad_web. The rules follow the same provider_api + official_web priority principle as Full mode.
 
@@ -212,7 +223,7 @@ After fetching, write into `actuals-resolved.json` under `market_data` (audit an
 
 > **Derived fields constraint**: All derived field inputs (including growth_rates, elasticity ratios, and any arithmetic ratio) must come from actual disclosed data in `actuals-resolved.json`. **Using FY2026E / consensus estimates / forward-looking numbers as inputs to compute ratios and write them into actuals is prohibited.** If a given input field has no actuals → that derived field is labeled `[未披露]`; do not compute, do not infer.
 
-**Elasticity collection** (first determine business model → route to `references/kpi-drivers/<template>.md` → only fetch fields from that template):
+**Elasticity collection** (first determine business model → route to workspace `.references/kpi-drivers/<template>.md` → only fetch fields from that template):
 
 | KPI | actuals field | Condition |
 |---|---|---|
@@ -266,7 +277,7 @@ If not found, label `[未披露]`; do not block the main flow.
 **Output** (slimmed down):
 
 - `actuals-resolved.json`: three statements + segments + `market_data` audit snapshot
-- Does not output `financial-data-summary.md`
+- Does not output `summary.md`
 
 Lite does not write `evidence-pack.json`, `full-filing.md`, `completeness.json`, `source-map.json`.
 
@@ -299,7 +310,7 @@ Cross-market general: Consensus prefers MarketScreener, valuation prefers stocka
 Used for theme / industry / peer workflows:
 
 ```text
-industry/<industry>/companies/<ticker>/_cache/datasets/financial-data-snapshot/<run-id>/
+industry/<industry>/companies/<ticker>/_cache/financial-data-snapshot/<run-id>/
   snapshot-index.md
   peer-completeness.json
 ```
@@ -310,7 +321,7 @@ Snapshots may link to the canonical company pack but must not duplicate single-c
 
 This skill uses:
 
-- If you just want to first check which shared environment variables the workspace needs, consult the unified environment entry provided by `init-workspace` and `_scripts/init-assets/env-setup.ps1.template`. This section still retains `financial-data`'s own complete provider / dependency / bootstrap detail and is not replaced by that shared entry.
+- If you just want to first check which shared environment variables the workspace needs, consult the unified environment entry provided by `init-workspace` and `.scripts/init-assets/env-setup.ps1.template`. This section still retains `financial-data`'s own complete provider / dependency / bootstrap detail and is not replaced by that shared entry.
 
 - `skills/financial-data/scripts/financial_data.py`
 - `skills/financial-data/scripts/bootstrap-financial-data-deps.ps1`
@@ -359,7 +370,7 @@ KR / JP source policy:
 - EU `openesef` currently requires a local ESEF package or explicit filing URL for deterministic parsing. If no local ESEF package is available, Lite should skip the `openesef` Layer 2 route and move directly to `official_web` fallback instead of treating the missing local package as a normal statement-provider failure.
 - Source-trust ranking is formal: `provider_api + official_web > yfinance > trusted_web + broad_web`. Lower-trust sources must not overwrite higher-trust sources. Provider-fetched official filing caches remain `provider_api`; official company IR/results pages and official filing portals discovered via search remain `official_web`.
 - Non-finite numeric placeholders such as `NaN` / `inf` are invalid in `actuals-resolved.json` and must be normalized back to missing before coverage, overwrite, or consumer use. They must not count as filled fields.
-- `official_web` may also be materialized as a curated machine-readable cache at `industry/<industry>/companies/<ticker>/_cache/financial-data/internal/_raw/official_web_cache.json` when a company IR/results page or attached official PDF has already been source-read and normalized. Those cache entries stay `official_web`, not `provider_api`, and may carry scalar fields plus structured `segments.status` / `segments.segments`.
+- `official_web` may also be materialized as a curated machine-readable cache at `industry/<industry>/companies/<ticker>/_cache/financial-data/official_web_cache.json` when a company IR/results page or attached official PDF has already been source-read and normalized. Those cache entries stay `official_web`, not `provider_api`, and may carry scalar fields plus structured `segments.status` / `segments.segments`.
 - `yfinance` may bootstrap statement fields when provider routes are absent, but only as a lower-trust fill layer. It should not displace existing `provider_api` or `official_web` values.
 - Lite consumer-success coverage should optimize `provider_api + official_web` first. Do not rely on `trusted_web` / `broad_web` to make surface-level coverage look complete.
 - `provider-gap` must be reasoned rather than generic. Use `provider_unavailable`, `official_source_available_not_extracted`, or `not_disclosed` instead of a single ambiguous gap label.
@@ -397,8 +408,8 @@ Segment rule:
 ## Output
 - raw: [...]
 - cache: [...]
-- summary: `_cache/financial-data/financial-data-summary.md`
-- internal_machine_inputs: `_cache/financial-data/internal/`
+- summary: `_cache/financial-data/summary.md`
+- consumer_inputs: `_cache/financial-data/actuals-resolved.json`
 - financial_data_pack_path: [...]
 
 ## Provider / Credential
@@ -432,13 +443,13 @@ Segment rule:
 | User wants to explain revenue buckets or drivers | After `financial-data`, hand to `driver-map` |
 | User wants to model, DCF, comps, update workbook | `financial-data` can serve as optional input to `3-statement-model / dcf-model / comps-analysis / model-update` |
 | Theme / industry needs a basket of company data | Use `current_topic_snapshot`, and link to the canonical company pack |
-| Data gaps affect model or research priority | `next-step` / `driver-map` / `company-history` |
+| Data gaps affect model or research priority | `` / `driver-map` / `company-history` |
 
 Artifact policy:
 
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `financials.md`
-- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/financial-data/[market]/[canonical-id]/[run-id]/`
 
 ## Safety Self-Check
 

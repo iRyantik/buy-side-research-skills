@@ -1,0 +1,170 @@
+{
+  "_schema_version": "1.0.0",
+  "_description": "Actuals field template and multi-period schema. Read by fill_gaps.py at runtime. Source of truth for lite mode actuals-resolved.json structure.",
+
+  "_periods": {
+    "_default_mode": "latest",
+    "_3Y_mode": "3Y",
+    "fy_keys": ["fy_y2", "fy_y1", "fy_y0"],
+    "sub_keys": ["sub_0", "sub_1", "sub_2", "sub_3"],
+    "_note": "fy_y0 = latest_fy_period. sub_0 = latest_quarter_period. In 3Y mode agent fetches 3 FY + up to 4 sub-periods. In latest mode only latest_fy + latest_quarter."
+  },
+
+  "income_statement": {
+    "_fields": ["period", "revenue", "cost_of_revenue", "gross_profit", "sg_and_a", "r_and_d", "operating_income", "ebit", "interest_expense", "income_tax", "net_income"],
+    "_field_labels": {
+      "revenue": "Revenue",
+      "cost_of_revenue": "Cost of Revenue",
+      "gross_profit": "Gross Profit",
+      "sg_and_a": "SG&A",
+      "r_and_d": "R&D",
+      "operating_income": "Operating Income",
+      "ebit": "EBIT",
+      "interest_expense": "Interest Expense",
+      "income_tax": "Income Tax",
+      "net_income": "Net Income"
+    },
+    "_required": ["revenue", "gross_profit", "ebit", "net_income"],
+    "_growth_first": ["revenue", "gross_profit", "operating_income", "ebit", "net_income"]
+  },
+
+  "balance_sheet": {
+    "_fields": ["period", "cash", "accounts_receivable", "inventory", "total_assets", "total_equity_parent", "goodwill", "long_term_debt", "current_liabilities", "short_term_debt"],
+    "_field_labels": {
+      "cash": "Cash & Equivalents",
+      "accounts_receivable": "Accounts Receivable",
+      "inventory": "Inventory",
+      "total_assets": "Total Assets",
+      "total_equity_parent": "Total Equity (Parent)",
+      "goodwill": "Goodwill",
+      "long_term_debt": "Long-Term Debt",
+      "current_liabilities": "Current Liabilities",
+      "short_term_debt": "Short-Term Debt"
+    },
+    "_required": ["cash", "total_assets", "total_equity_parent"],
+    "_growth_first": ["cash", "total_assets", "total_equity_parent"]
+  },
+
+  "cash_flow": {
+    "_fields": ["period", "operating_cf", "capex", "d_and_a", "dividends_paid", "share_buybacks"],
+    "_field_labels": {
+      "operating_cf": "Operating Cash Flow",
+      "capex": "CapEx",
+      "d_and_a": "D&A",
+      "dividends_paid": "Dividends Paid",
+      "share_buybacks": "Share Buybacks"
+    },
+    "_required": ["operating_cf", "capex"],
+    "_growth_first": ["operating_cf", "capex", "d_and_a"]
+  },
+
+  "market_data": {
+    "_fields": ["price", "market_cap", "pe_ttm", "pe_ntm", "pb", "ps_ttm", "ev_ebitda", "ev_sales", "dividend_yield_pct", "beta", "eps_ttm", "total_shares", "exchange", "industry"],
+    "_field_labels": {
+      "price": "Share Price",
+      "market_cap": "Market Cap",
+      "pe_ttm": "P/E (TTM)",
+      "pe_ntm": "P/E (NTM)",
+      "pb": "P/B",
+      "ps_ttm": "P/S (TTM)",
+      "ev_ebitda": "EV/EBITDA",
+      "ev_sales": "EV/Sales",
+      "dividend_yield_pct": "Dividend Yield %",
+      "beta": "Beta",
+      "eps_ttm": "EPS (TTM)",
+      "total_shares": "Shares Outstanding",
+      "exchange": "Exchange",
+      "industry": "Industry"
+    }
+  },
+
+  "consensus": {
+    "_fields": ["current_year_eps", "next_year_eps", "current_year_revenue"],
+    "_field_labels": {
+      "current_year_eps": "EPS (FY0E)",
+      "next_year_eps": "EPS (FY1E)",
+      "current_year_revenue": "Revenue (FY0E)"
+    }
+  },
+
+  "supplementary": {
+    "_near_required_fields": ["revenue_by_geography", "shares_outstanding"],
+    "_sector_conditional_fields": ["order_backlog"],
+    "_best_effort_fields": ["sbc"],
+    "order_backlog": {
+      "_fields": ["value", "yoy_pct", "breakdown", "period"],
+      "_field_labels": {
+        "value": "Order Backlog",
+        "yoy_pct": "Backlog YoY %",
+        "breakdown": "Breakdown (if any)"
+      }
+    },
+    "orders": {
+      "_fields": ["value", "yoy_pct", "period"],
+      "_field_labels": {
+        "value": "New Orders",
+        "yoy_pct": "Orders YoY %"
+      }
+    },
+    "installed_base": {
+      "_fields": ["value", "period"],
+      "_field_labels": {
+        "value": "Installed Base"
+      }
+    },
+    "revenue_by_geography": {
+      "_fields": ["regions", "period"],
+      "_field_labels": {
+        "regions": "Revenue by Geography"
+      }
+    },
+    "production_volume": {
+      "_fields": ["value", "yoy_pct", "period"]
+    },
+    "utilization": {
+      "_fields": ["value", "period"]
+    },
+    "capacity_mw": {
+      "_fields": ["value", "yoy_pct", "period"]
+    },
+    "arr": {
+      "_fields": ["value", "yoy_pct", "period"]
+    },
+    "nrr": {
+      "_fields": ["value", "period"]
+    },
+    "grr": {
+      "_fields": ["value", "period"]
+    },
+    "churn_pct": {
+      "_fields": ["value", "period"]
+    },
+    "customer_count": {
+      "_fields": ["value", "yoy_pct", "period"]
+    },
+    "regulated_asset_base": {
+      "_fields": ["value", "yoy_pct", "period"]
+    },
+    "sbc": {
+      "_fields": ["value", "period"]
+    },
+    "shares_outstanding": {
+      "_fields": ["value", "period"]
+    }
+  },
+
+  "segments": {
+    "_types": ["business_line", "geography", "end_market"],
+    "_fields_per_segment": ["type", "name", "periods", "revenue", "pct_of_total", "yoy_pct", "margin_pct", "description", "source"]
+  },
+
+  "_growth_first_taxonomy": {
+    "best_effort_skippable": [
+      "cash_flow.latest_fy.dividends_paid",
+      "cash_flow.latest_fy.share_buybacks",
+      "cash_flow.latest_quarter.dividends_paid",
+      "cash_flow.latest_quarter.share_buybacks",
+      "supplementary.sbc"
+    ]
+  }
+}

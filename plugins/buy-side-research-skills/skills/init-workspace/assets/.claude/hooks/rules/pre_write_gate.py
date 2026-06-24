@@ -22,10 +22,16 @@ from common import (
 _ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
 ANCHOR_CODE_RE = re.compile(r'\[(?:S|P|I|LBG|R|SRC)\d+\](?!\()')
 SOURCE_ANCHOR_RE = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|SRC\d+)\]')
-FACTUAL_MARKERS_RE = re.compile(
-    r'(?:(?<!\w)[\d,.]+%|(?<!\w)[\d,.]+x(?![/\w])|(?<!\w)\$[\d,.]+[bmk]|'
-    r'(?:EUR|USD|CNY)\s*[\d,.]+[bmk]?)'
+# Currency-agnostic number detector — catches SEK/JPY/HKD etc.
+# Matches: 1,623, 58.2, 350M, 22%, +12%, -38%, 14x, 250bps, 14pp, 14 台
+# Excludes years (2024-2026) and pure dates
+_NUM_RE = re.compile(
+    r'(?<!\w)[+-]?[\d,]+\.?\d*\s*'
+    r'(?:[%x]|bps|pp|[bmkBMK]|'
+    r'(?:\s*(?:台|台/年|亿|万|wpm|kwh|bn|m|k|tn|台/月|片/月)))?'
+    r'(?=[,;\s)\]。]|$)'
 )
+_YEAR_RE = re.compile(r'(?<!\d)(?:19|20)\d{2}(?!\d)')
 
 STANDARD_CODE_RE = re.compile(r'^(?:S|P|I|LBG|R|SRC)\d+$')
 SOURCE_WORDS = {
@@ -64,8 +70,8 @@ def _extract_write_content(payload: dict) -> tuple:
 def _find_ledger_for_artifact(artifact_path: str) -> str | None:
     artifact_dir = os.path.dirname(artifact_path) if artifact_path else "."
     candidates = [
-        os.path.join(artifact_dir, "_cache", "evidence"),
-        os.path.join(artifact_dir, "..", "_cache", "evidence"),
+        os.path.join(artifact_dir, ".cache", "evidence"),
+        os.path.join(artifact_dir, "..", ".cache", "evidence"),
     ]
     for base in candidates:
         if os.path.isdir(base):
@@ -136,9 +142,13 @@ def _check_content(path: str, text: str, display: str):
                   f"Use [S#] or [I#] format. Fix before writing.")
 
     # --- CHECK 5: Paragraph source density ---
+    # Currency-agnostic: counts standalone numbers (excl. years/dates),
+    # blocks if ≥3 numbers in a paragraph have zero source anchors
     body_paras = [p for p in body.split('\n\n') if len(p) > 150]
     for para in body_paras[:10]:
-        facts = len(FACTUAL_MARKERS_RE.findall(para))
+        nums = len(_NUM_RE.findall(para))
+        years = len(_YEAR_RE.findall(para))
+        facts = max(0, nums - years)  # exclude year-like numbers
         if facts < 3:
             continue
         sources = len(SOURCE_ANCHOR_RE.findall(para))
@@ -150,12 +160,17 @@ def _check_content(path: str, text: str, display: str):
 
     # --- CHECK 6: Image file existence ---
     IMG_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
-    artifact_dir = os.path.dirname(path) if path else "."
     missing_images = []
     for img in IMG_RE.findall(text):
-        if not img.startswith("_cache/images/") and not img.startswith("./_cache/"):
+        if not re.match(r'(\.cache/|_cache/|\.\./)+(images/)', img):
             continue
-        img_path = os.path.join(artifact_dir, img)
+        if img.startswith('.cache/'):
+            img_path = os.path.join(ws_root, img)
+        elif img.startswith('_cache/'):
+            img_path = os.path.join(ws_root, img)
+        else:
+            artifact_dir = os.path.dirname(path) if path else "."
+            img_path = os.path.join(artifact_dir, img)
         if not os.path.exists(img_path):
             missing_images.append(img)
     if missing_images:
@@ -163,6 +178,14 @@ def _check_content(path: str, text: str, display: str):
               f"{len(missing_images)} image(s) not on disk: "
               f"{', '.join(missing_images[:3])}. "
               f"Go back to Step 5 and download them before writing.")
+
+    # --- CHECK 6a: No browser_take_screenshot in image workflow ---
+    SCREENSHOT_RE = re.compile(r'browser_take_screenshot', re.IGNORECASE)
+    if SCREENSHOT_RE.search(text):
+        block(f"Blocked by pre_write_gate: {display} uses browser_take_screenshot "
+              f"for image capture. Use python .scripts/shared/download-image.py instead. "
+              f"browser_take_screenshot produces low-quality images. "
+              f"download-image.py provides proper image download with cache and Tier 1-2 fallback.")
 
     # --- CHECK 7: [缺图] must have download attempt ---
     QUE_TU_RE = re.compile(r'\[缺图\]')
@@ -237,7 +260,7 @@ def _check_content(path: str, text: str, display: str):
     if m:
         actuals_path = os.path.join(
             os.path.dirname(path).split('industry')[0] if 'industry' in path else ".",
-            m.group(1), "_cache", "financial-data", "internal", "actuals-resolved.json")
+            m.group(1), ".cache", "financial-data", "internal", "actuals-resolved.json")
         if os.path.exists(actuals_path):
             try:
                 with open(actuals_path, "r", encoding="utf-8") as f:
@@ -292,6 +315,254 @@ def _check_content(path: str, text: str, display: str):
                               f"Go back to Step 4 and verify them.")
             except Exception:
                 pass
+
+    # --- CHECK 12: Mermaid diagram type validation ---
+    MERMAID_FENCE_RE = re.compile(r'^```mermaid\s*$')
+    VALID_MERMAID_TYPES = {
+        "graph", "flowchart", "sequenceDiagram", "classDiagram", "stateDiagram",
+        "stateDiagram-v2", "erDiagram", "gantt", "pie", "quadrantChart", "xy-chart",
+        "block", "block-beta", "mindmap", "timeline", "sankey", "gitGraph", "gitgraph",
+        "c4", "c4context", "c4container", "c4component", "c4dynamic", "c4deployment",
+        "requirementDiagram", "journey", "zenuml",
+    }
+    TYPE_ALIASES = {
+        "scatter": "quadrantChart", "scatterchart": "quadrantChart",
+        "scatter chart": "quadrantChart", "waterfall": "flowchart TD",
+        "radar": None, "bar": "xy-chart", "bar chart": "xy-chart",
+        "line": "xy-chart", "line chart": "xy-chart",
+    }
+
+    in_mermaid = False
+    mermaid_start = 0
+    for lineno, line in enumerate(text.split('\n'), 1):
+        stripped = line.strip()
+        if stripped == "```mermaid":
+            in_mermaid = True
+            mermaid_start = lineno
+            continue
+        if in_mermaid and stripped == "```":
+            in_mermaid = False
+            continue
+        if in_mermaid and mermaid_start == lineno - 1:
+            # First line after fence — must be the diagram type
+            diag_type = stripped.split()[0] if stripped else ""
+            diag_lower = diag_type.lower()
+            if not diag_type:
+                block(
+                    f"Blocked by pre_write_gate: {display} mermaid block near "
+                    f"line {mermaid_start} has no diagram type. Add one of: "
+                    f"flowchart, quadrantChart, timeline, gantt, pie, etc."
+                )
+            if diag_lower in TYPE_ALIASES:
+                suggestion = TYPE_ALIASES[diag_lower]
+                if suggestion:
+                    block(
+                        f"Blocked by pre_write_gate: {display} mermaid block near "
+                        f"line {mermaid_start} uses '{diag_type}' which is NOT valid. "
+                        f"Use '{suggestion}' instead. Mermaid has no '{diag_type}' type."
+                    )
+                else:
+                    block(
+                        f"Blocked by pre_write_gate: {display} mermaid block near "
+                        f"line {mermaid_start} uses '{diag_type}' which has NO Mermaid "
+                        f"equivalent. Use research-viz for this chart type."
+                    )
+            if diag_type not in VALID_MERMAID_TYPES and diag_lower not in {t.lower() for t in VALID_MERMAID_TYPES}:
+                block(
+                    f"Blocked by pre_write_gate: {display} mermaid block near "
+                    f"line {mermaid_start} uses '{diag_type}' — not a recognized "
+                    f"Mermaid diagram type. Valid: flowchart, quadrantChart, timeline, "
+                    f"gantt, pie, sequenceDiagram, classDiagram, erDiagram, mindmap, sankey, "
+                    f"gitGraph, journey, requirementDiagram."
+                )
+
+    # --- CHECK 13: Table structure integrity ---
+    TABLE_HEADER_RE = re.compile(r'^\s*\|.+\|\s*$')
+    TABLE_SEP_RE = re.compile(r'^\s*\|?(?:\s*:?-{2,}:?\s*\|)+(?:\s*:?-{2,}:?\s*)\|?\s*$')
+
+    def _count_cols(line: str) -> int:
+        clean = line.strip()
+        if clean.startswith("|"):
+            clean = clean[1:]
+        if clean.endswith("|"):
+            clean = clean[:-1]
+        if not clean.strip():
+            return 0
+        return len(re.split(r'(?<!\\)\|', clean))
+
+    lines = text.split('\n')
+    i = 0
+    MAX_COLS = 12
+    while i < len(lines) - 1:
+        header = lines[i]
+        if not TABLE_HEADER_RE.match(header):
+            i += 1
+            continue
+        # Check next line exists and is a separator
+        if i + 1 >= len(lines):
+            block(
+                f"Blocked by pre_write_gate: {display} has a pipe-table header "
+                f"near line {i+1} with no separator row. Add a separator row "
+                f"(e.g., |---|---|)."
+            )
+        sep = lines[i + 1]
+        if not TABLE_SEP_RE.match(sep):
+            block(
+                f"Blocked by pre_write_gate: {display} has a pipe-table header "
+                f"near line {i+1} but the next line is not a valid separator. "
+                f"Add a separator row like |---|---|."
+            )
+
+        header_cols = _count_cols(header)
+        sep_cols = _count_cols(sep)
+
+        if header_cols != sep_cols:
+            block(
+                f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                f"has {header_cols} header columns but {sep_cols} separator columns. "
+                f"Make them match."
+            )
+
+        # Check data rows
+        j = i + 2
+        while j < len(lines):
+            data_line = lines[j]
+            if not data_line.strip():
+                break
+            if not data_line.strip().startswith("|"):
+                break
+            data_cols = _count_cols(data_line)
+            if data_cols != header_cols:
+                # Check for unescaped pipes in cell content
+                block(
+                    f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                    f"has a data row near line {j+1} with {data_cols} columns "
+                    f"(expected {header_cols}). Check for unescaped pipe characters "
+                    f"`|` inside cell content — use `·` or escape as `\\|` instead."
+                )
+            j += 1
+
+        # Wide table warning (>MAX_COLS columns — not a block, just warn)
+        if header_cols > MAX_COLS:
+            block(
+                f"Blocked by pre_write_gate: {display} table near line {i+1} "
+                f"has {header_cols} columns (max {MAX_COLS} recommended). "
+                f"Split into two tables: Table A (core financials) + Table B (quality/returns)."
+            )
+
+        i = j + 1
+
+
+    # --- CHECK 15: Pipeline preconditions — files must exist ---
+    # For research artifacts under industry/*/companies/<slug>/:
+    # actuals-resolved.json, evidence ledger, and logo must exist before write.
+    # No Pipeline report parsing — check the filesystem directly.
+    companies_match = re.search(r'industry[/\\][^/\\]+[/\\]companies[/\\]([^/\\]+)', path)
+    if companies_match:
+        slug = companies_match.group(1)
+        artifact_dir = os.path.dirname(path)
+        # Walk up to find the company directory
+        company_dir = None
+        d = os.path.dirname(path)
+        for _ in range(10):
+            if os.path.basename(d) == slug and os.path.basename(os.path.dirname(d)) == "companies":
+                company_dir = d
+                break
+            parent = os.path.dirname(d)
+            if parent == d:
+                break
+            d = parent
+
+        if company_dir:
+            # Check evidence ledger (all company research artifacts need sources)
+            evidence_dir = os.path.join(company_dir, ".cache", "evidence")
+            if not os.path.isdir(evidence_dir) or not any(
+                f.endswith(".evidence.json") for f in os.listdir(evidence_dir)
+            ):
+                block(
+                    f"Blocked by pre_write_gate: {display} — "
+                    f"no evidence ledger found under {evidence_dir}. "
+                    f"Run: python .scripts/evidence_ledger.py init <artifact> -t <TICKER>"
+                )
+
+            # Check actuals-resolved.json (only for skills that need financial data)
+            SKILLS_NEEDING_ACTUALS = {
+                "stock-quickread", "driver-map", "peer-deep-dive",
+                "bear-pre-mortem", "post-earnings-quick", "earnings-setup",
+                "consensus-map", "scenario-model", "alpha-thesis",
+                "pair-trade", "moat-analysis", "capital-allocation",
+            }
+            artifact_name = os.path.basename(path)
+            needs_actuals = any(
+                skill in artifact_name for skill in SKILLS_NEEDING_ACTUALS
+            )
+            if needs_actuals:
+                actuals_path = os.path.join(company_dir, ".cache", "financial-data", "actuals-resolved.json")
+                if not os.path.isfile(actuals_path):
+                    block(
+                        f"Blocked by pre_write_gate: {display} — "
+                        f"actuals-resolved.json not found at {actuals_path}. "
+                        f"Run: Skill(\"buy-side-research-skills:financial-data\", \"<TICKER> <market> --mode lite\") "
+                        f"or CLI fallback before writing this artifact."
+                    )
+                else:
+                    try:
+                        with open(actuals_path, "rb") as f:
+                            if f.read(100).strip() == b"":
+                                block(
+                                    f"Blocked by pre_write_gate: {display} — "
+                                    f"actuals-resolved.json is empty. Re-run financial-data."
+                                )
+                    except Exception:
+                        pass
+
+    # --- CHECK 16: _supplement coverage — company-level artifacts must land segment data ---
+    # Only for company-level artifacts: industry/*/companies/<ticker>/*.md
+    if companies_match and content:
+        # Check if artifact has segment/split TABLE ROWS (not just prose keywords)
+        SEGMENT_HEADER_RE = re.compile(
+            r'(?i)\|\s*(?:分部|segment|业务线|产品线|地域|geography|收入|营收|revenue|利润|profit|占比|YoY|地区|国家|客户)\s*\|'
+        )
+        has_segment_table = any(
+            line.count('|') >= 4 and SEGMENT_HEADER_RE.search(line)
+            for line in content.split('\n')
+        )
+        if has_segment_table:
+            actuals_path2 = _find_company_actuals(path, slug)
+            if actuals_path2 and os.path.isfile(actuals_path2):
+                try:
+                    import json as _json
+                    with open(actuals_path2, encoding="utf-8") as f2:
+                        a = _json.load(f2)
+                except Exception:
+                    a = {}
+                has_segment_in_actuals = bool(
+                    a.get("statements", {}).get("revenue_split") or
+                    a.get("_supplement", {}).get("revenue_split")
+                )
+                if not has_segment_in_actuals:
+                    msg = (
+                        f"⛔ pre_write_gate CHECK 16: {display} — "
+                        f"artifact has segment/revenue split table but actuals has no revenue_split.\n"
+                        f"  Land the data first:\n"
+                        f"  1. Read actuals-resolved.json\n"
+                        f"  2. Edit _supplement.revenue_split with the segment data\n"
+                        f"  3. Re-run this Write"
+                    )
+                    block(msg)
+
+
+def _find_company_actuals(artifact_path: str, slug: str) -> str | None:
+    """Walk up from artifact to find company _cache/financial-data/actuals-resolved.json."""
+    d = os.path.dirname(artifact_path)
+    for _ in range(10):
+        if os.path.basename(d) == slug and os.path.basename(os.path.dirname(d)) == "companies":
+            return os.path.join(d, ".cache", "financial-data", "actuals-resolved.json")
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    return None
 
 
 def main():

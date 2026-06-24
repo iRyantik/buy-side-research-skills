@@ -10,7 +10,9 @@ Summarize completed research into durable topic notes and boss brief outputs.
 ## Research Runtime Capsule
 
 - Hook-enforced legality, source boundary, structure floor, and table rendering rules live in workspace hooks and are not restated here.
-- Shared runtime/source baseline lives in `references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
+
+**GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
+- Shared runtime/source baseline lives in workspace `.references/policy/research-policy-baseline.md` and the installed workspace `CLAUDE.md`.
 - Use this skill for analysis method, sequencing, and routing judgment; unresolved facts stay as gap, hypothesis, or follow-up.
 
 把已经研究过、想清楚、能改变后续判断的认知增量沉淀成 topic memory。**核心价值不是记录过程**，而是把研究员已经赚到的判断、机制、driver、source map、open question 和 Boss-ready conclusion 留下来，方便未来继续研究或向 PM transfer。
@@ -22,7 +24,6 @@ Summarize completed research into durable topic notes and boss brief outputs.
 `research-journal` 是 v3 journal-first 系统的 memory layer。它只接收已经完成一轮研究后的增量认知，不负责帮用户“想下一步”，也不把每个怪异点都存成状态。
 
 Journal 的写法要像一个认真研究员给未来自己的笔记：结论先行、source 清楚、保留争议和未解决问题，但不复述聊天过程。Boss Brief 则是给 PM / boss 的高密度 transfer，不是 journal 的简略版，而是把最重要的判断压缩成可讨论的 memo。
-
 
 ## 触发场景
 
@@ -51,7 +52,7 @@ Journal 的写法要像一个认真研究员给未来自己的笔记：结论先
 | **写入目的** | journal / Boss Brief / index update | 默认 journal；用户提 PM / boss 时用 Boss Brief |
 | **source 状态** | sourced / mixed / unsourced | mixed 时只写 sourced 结论，unsourced 留 open question |
 | **研究成熟度** | noticed / researched / settled / disputed | 只有 researched 以上才能沉淀 |
-| **上游产物** | mechanism-insight / driver-map / next-step / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
+| **上游产物** | mechanism-insight / driver-map /  / peer / thesis / model | 先判断是否已消化，不机械粘贴 |
 
 如果路径缺失但用户明确要求写文件，先给出建议路径并说明需要确认；如果用户只要对话总结，则不落盘。
 
@@ -254,8 +255,6 @@ industry/<industry>/companies/<ticker>/index.md
 - [...]
 ```
 
-
-
 ## Artifact / 保存策略
 
 写入行业 topic：
@@ -268,8 +267,8 @@ industry/<industry>/companies/<ticker>/index.md
 #
 ## 篇幅基准
 
-- 写入判断表：100-250 字 + 1 张表。
-- Private Research Journal：800-1800 字；低于 500 字通常没有沉淀足够 source / implication，超过 2200 字通常变成 transcript。
-- Boss Brief：500-1200 字；低于 400 字通常只是摘要，超过 1500 字通常失去 PM transfer 密度。
-- Topic Index Update：100-500 字；超过 700 字通常说明把 journal 内容塞进 index。
+- 写入判断表：6-16 行 + 1 张表。
+- Private Research Journal：50-120 行；低于 30 行通常没有沉淀足够 source / implication，超过 145 行通常变成 transcript。
+- Boss Brief：30-80 行；低于 25 行通常只是摘要，超过 100 行通常失去 PM transfer 密度。
+- Topic Index Update：100-500 字；超过 45 行通常说明把 journal 内容塞进 index。
 - Handoff block：150-350 字；只说明为什么现在不能沉淀，以及该交给哪个 skill。
