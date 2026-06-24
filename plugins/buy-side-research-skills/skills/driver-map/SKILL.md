@@ -342,66 +342,69 @@ FY+1 增速路径：
 
 - 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
-## Step 7: 产出 driver-model.json
+## Model Pipeline（3 GATEs）
 
-### ⛔ GATE — 生成 JSON 前必须读取以下 Reference
+在研究 Step 1-7（业务翻译→driver 映射→增速拆解）完成后，进入建模阶段。
+
+### ⛔ GATE 0: Actuals 强制补全
+
+**Read 本 skill 的 references 前：先确保 actuals 完整。**
+
+1. 读 existing `actuals-resolved.json`
+2. 缺口检测：
+   - `opex` (fy-2/fy-1/fy0) 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
+   - `da` 缺失？→ 同上
+   - segment rev/cost/gp/gm 缺失？→ 爬年报/WebSearch
+   - actuals 超过 180 天未更新？→ 强制刷新
+3. 分部数据必须全——找不到标 `not-disclosed`
+4. 补全后 Write actuals-resolved.json
+
+**⛔ STOP — 等用户确认 actuals 数字，再继续。**
+
+### ⛔ GATE 1: JSON 行列视图 + 估值方法
 
 **逐个 Read，不准凭记忆：**
+`references/json-schema.md` `references/modules.md` `references/calibration.md` `references/pitfalls.md` `references/valuation.md`
 
-| 文件 | 内容 |
-|---|---|
-| `references/json-schema.md` | 字段完整性 + ASP 数组规则 |
-| `references/modules.md` | Module 契约 + render() 签名 |
-| `references/calibration.md` | Gap<1% 验算 |
-| `references/pitfalls.md` | 生成前自查清单 |
-| `references/valuation.md` | 估值方法自选决策树 |
-| `references/visual-hierarchy.md` | 颜色约定 |
-| `references/cli.md` | 命令 + 参数 |
-
-**违反任何一个 → JSON 不合格，重做。**
-
-### Agent 填充
-
-自动取数（不需 Agent 填）：
-- `meta` (ticker, market, base_fy)：从 actuals-resolved.json 映射
-- `actuals` (FY-2, FY-1, FY0 P&L 行)：从 actuals-resolved.json 取
-- `segments[].fy0`：从年报/WebSearch 取分部披露
-
-Agent 预设（从 MD 研究结论提取）：
-- `segments[].logic_lines[].split`：FY0A 逻辑线收入占比
-- `segments[].residual.gm`：残差毛利率
-- `logic_lines[].module`：按 module 契约选择
-- `logic_lines[].*.proj`：未来 proj_years 年假设
-- `logic_lines[].gm, yoy, volume, capacity`：按 module 类型填
-- `logic_lines[].sotp`：估值方法+倍数（`references/valuation.md`）
-- `global.opex_rate, tax_rate`
-
-### Calibration（vol_asp/capacity_util 线）
-
-生成 JSON 后 **必须手动验算** FY25A Revenue：
+**输出**（不是 JSON blob——按逻辑线逐条展开的行列表）：
 
 ```
-Rev = Σ(Vol × Share% × ASP) / 100  或  Rev = Capa × Util% × ASP
+§1 Segments FY25A
+| Segment | Rev | Cost | GP | GM | Logic Lines |
+
+§2 Logic Lines — 每条单独一个表
+| R1 MLCC Powder | FY25 | FY26 | FY27 | FY28 | FY29 | FY30 |
+|---|---|---|---|---|---|---|
+| Volume | 7,000 | 8,000 | ... |
+| Nameplate Capacity | 10,000 | 10,000 | ... |
+| AI Share% | 5% | 15.6% | ... |
+| AI ASP Base | 26 | 30 | ... |
+| ... (所有 tier 的 Share + ASP BBE) |
+| Revenue (验算) | 450M | ... |
+| GM | 40% | 45% | ... |
+
+估值方法
+| Logic Line | Method | Multiple | 理由 |
 ```
 
-Gap vs Section 1 anchor **必须 < 1%**。超了 → 调 ASP 优先（`references/calibration.md`）。
+- vol_asp 线：手动验算 FY25A Revenue，gap<1%
+- 估值方法按决策树自选（`references/valuation.md`）
+- JSON 自查：跑 `references/pitfalls.md` checklist
 
-### JSON 自查
+**⛔ STOP — 等用户调数 + 确认估值方法，再继续。**
 
-生成 JSON 后跑一遍 `references/pitfalls.md` 的 checklist。
-
-### 生成 Excel
+### ⛔ GATE 2: 生成 Excel
 
 ```bash
 python .scripts/driver-map/build-logic-model.py <json> [-o output.xlsx]
 ```
 
-详细参数见 `references/cli.md`。
+参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
-## JSON Schema + Module 参考
+## Schema + Reference
 
 完整 schema → `references/json-schema.md`
 Module 契约 → `references/modules.md`
-视觉层级（蓝黄输入/灰底 actual/黑白公式）→ `references/visual-hierarchy.md`
+视觉层级 → `references/visual-hierarchy.md`
 
 
