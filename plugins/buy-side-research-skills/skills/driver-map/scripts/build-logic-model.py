@@ -52,6 +52,7 @@ bf12 = Font(name='Calibri', bold=True, size=12)
 itf  = Font(name='Calibri', size=10, italic=True, color='808080')
 inpf = Font(name='Calibri', size=11, color='0000CC')
 inpfill = PatternFill('solid', fgColor='FFFFCC')
+actfill = PatternFill('solid', fgColor='F0F0F0')
 
 # ── Shared cell helpers ──
 def C(ws, r, c, v=None, font=None, fill=None, fmt=None):
@@ -65,6 +66,9 @@ def C(ws, r, c, v=None, font=None, fill=None, fmt=None):
 
 def I(ws, r, c, v, fmt=None):
     C(ws, r, c, v, font=inpf, fill=inpfill, fmt=fmt)
+
+def A(ws, r, c, v, fmt=None):
+    C(ws, r, c, v, fill=actfill, fmt=fmt)
 
 # ── Context dict passed to modules ──
 def make_ctx():
@@ -296,7 +300,7 @@ def build(json_path, output_path=None):
 
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=NUM)
-        C(ws, R, FY0, sc(srev), fmt=NUM)
+        A(ws, R, FY0, sc(srev), fmt=NUM)
         rev_r = R
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'Revenue')
@@ -315,21 +319,21 @@ def build(json_path, output_path=None):
 
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=NUM)
-        C(ws, R, FY0, sc(scost), fmt=NUM)
+        A(ws, R, FY0, sc(scost), fmt=NUM)
         cost_r = R
         C(ws, R, 3, 'Cost')
         R += 1
 
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=NUM)
-        C(ws, R, FY0, sc(sgp), fmt=NUM)
+        A(ws, R, FY0, sc(sgp), fmt=NUM)
         gp_r = R
         C(ws, R, 3, 'GP')
         R += 1
 
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
-        C(ws, R, FY0, sgm, fmt=PCT)
+        A(ws, R, FY0, sgm, fmt=PCT)
         gm_r = R
         C(ws, R, 3, 'GM')
         R += 1
@@ -460,15 +464,13 @@ def build(json_path, output_path=None):
 
     # ═══════════════ Global Opex / Tax rate ═══════════════
     R += 1
-    for i, ov in enumerate(gl['opex_rate']):
-        ci = DS + i
-        C(ws, R, ci, ov, fmt=PCT)
-        if ci > FY0:
-            I(ws, R, ci, ov, fmt=PCT)
+    # Placeholder — formulas filled after P&L builds trev/ov rows
+    for ci in range(DS, LC + 1):
+        C(ws, R, ci, 0, fmt=PCT)
     C(ws, R, 3, 'Opex / Rev', font=bf)
     opex_r = R; R += 1
     for ci in range(DS, LC + 1):
-        C(ws, R, ci, gl['tax_rate'], fmt=PCT)
+        C(ws, R, ci, 0, fmt=PCT)
     C(ws, R, 3, 'Tax rate')
     tax_r = R; R += 1
 
@@ -479,24 +481,24 @@ def build(json_path, output_path=None):
     a = actuals
     LN = [ln['name'] for ln in logic_lines]
 
-    # Total Revenue
-    C(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
-    C(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=NUM)
-    for ci in range(FY0, LC + 1):
+    # Total Revenue (FY23-25 actuals, FY26+ formula)
+    A(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['rev']), fmt=NUM)
+    for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]),
           font=bf, fmt=NUM)
     C(ws, R, 3, 'Total Revenue')
     trev = R; R += 1
 
-    # Check Rev
-    fy0rev = a['fy0']['rev']
+    # Check Rev (model formula for validation)
     for ci in range(DS, FY0):
         C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, FY0, sc(fy0rev), fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, 3, '  Check (actual)', font=itf)
+    for ci in range(FY0, LC + 1):
+        cl = get_column_letter(ci)
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]), fmt=NUM)
+    C(ws, R, 3, '  Check (model)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
 
@@ -510,23 +512,24 @@ def build(json_path, output_path=None):
     C(ws, R, 3, 'Rev YoY')
     R += 1
 
-    # Total GP
-    C(ws, R, DS, sc(a['fy-2']['gp']), fmt=NUM)
-    C(ws, R, DS + 1, sc(a['fy-1']['gp']), fmt=NUM)
-    for ci in range(FY0, LC + 1):
+    # Total GP (FY23-25 actuals, FY26+ formula)
+    A(ws, R, DS, sc(a['fy-2']['gp']), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1']['gp']), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['gp']), fmt=NUM)
+    for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]),
           font=bf, fmt=NUM)
     C(ws, R, 3, 'Total GP')
     tgp = R; R += 1
 
-    fy0gp = a['fy0']['gp']
+    # Check GP (model formula for validation)
     for ci in range(DS, FY0):
         C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, FY0, sc(fy0gp), fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, 3, '  Check (actual)', font=itf)
+    for ci in range(FY0, LC + 1):
+        cl = get_column_letter(ci)
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]), fmt=NUM)
+    C(ws, R, 3, '  Check (model)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
 
@@ -546,18 +549,18 @@ def build(json_path, output_path=None):
     opex_fy2 = a['fy-2'].get('opex', a['fy-2']['gp'] - a['fy-2']['op'])
     opex_fy1 = a['fy-1'].get('opex', a['fy-1']['gp'] - a['fy-1']['op'])
     _opex_start = R
-    C(ws, R, DS, sc(opex_fy2), fmt=NUM)
-    C(ws, R, DS + 1, sc(opex_fy1), fmt=NUM)
-    C(ws, R, FY0, sc(a['fy0']['opex']), fmt=NUM)
+    A(ws, R, DS, sc(opex_fy2), fmt=NUM)
+    A(ws, R, DS + 1, sc(opex_fy1), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['opex']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{trev}*{cl}{opex_r}', fmt=NUM)
     C(ws, R, 3, 'Opex')
     ov = R; R += 1
 
-    C(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
-    C(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
-    C(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
+    A(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', font=bf, fmt=NUM)
@@ -574,9 +577,9 @@ def build(json_path, output_path=None):
     da_fy2 = a['fy-2'].get('da', 0); da_fy1 = a['fy-1'].get('da', 0)
     da_fy0 = a['fy0'].get('da', 0)
     _ebitda_start = R
-    C(ws, R, DS, sc(da_fy2), fmt=NUM)
-    C(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
-    C(ws, R, FY0, sc(da_fy0), fmt=NUM)
+    A(ws, R, DS, sc(da_fy2), fmt=NUM)
+    A(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
+    A(ws, R, FY0, sc(da_fy0), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_fy0}/{get_column_letter(FY0)}{trev}', fmt=NUM)
@@ -606,18 +609,18 @@ def build(json_path, output_path=None):
 
     # Tax + NI (always computed)
     _ni_start = R
-    C(ws, R, DS, sc(a['fy-2']['tax']), fmt=NUM)
-    C(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=NUM)
-    C(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
+    A(ws, R, DS, sc(a['fy-2']['tax']), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
     C(ws, R, 3, 'Tax')
     tv = R; R += 1
 
-    C(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
-    C(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
-    C(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
+    A(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
@@ -653,6 +656,30 @@ def build(json_path, output_path=None):
         ws.row_dimensions.group(_ebit_start, _ni_end, outline_level=1, hidden=True)
     elif depth == 'ebit':
         ws.row_dimensions.group(_ni_start, _ni_end, outline_level=1, hidden=True)
+
+    # ── Fix Global Opex rate / Tax rate formulas ──
+    # FY23-24: =Opex/Rev, =Tax/OP (referencing P&L rows, now exist)
+    for ci, fy_key in [(DS, 'fy-2'), (DS + 1, 'fy-1')]:
+        cl = get_column_letter(ci)
+        ws.cell(row=opex_r, column=ci).value = f'=IFERROR({cl}{ov}/{cl}{trev},"")'
+        ws.cell(row=opex_r, column=ci).number_format = PCT
+        ws.cell(row=opex_r, column=ci).fill = actfill
+    # FY25: JSON input
+    ws.cell(row=opex_r, column=FY0).value = gl['opex_rate'][2]
+    ws.cell(row=opex_r, column=FY0).number_format = PCT
+    for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
+        I(ws, opex_r, i, ov_val, fmt=PCT)
+    # Tax rate
+    for ci, fy_key in [(DS, 'fy-2'), (DS + 1, 'fy-1')]:
+        cl = get_column_letter(ci)
+        ws.cell(row=tax_r, column=ci).value = f'=IFERROR({cl}{tv}/{cl}{op},"")'
+        ws.cell(row=tax_r, column=ci).number_format = PCT
+        ws.cell(row=tax_r, column=ci).fill = actfill
+    ws.cell(row=tax_r, column=FY0).value = gl['tax_rate']
+    ws.cell(row=tax_r, column=FY0).number_format = PCT
+    for ci in range(FY0 + 1, LC + 1):
+        ws.cell(row=tax_r, column=ci).value = gl['tax_rate']
+        ws.cell(row=tax_r, column=ci).number_format = PCT
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
     R += 1
