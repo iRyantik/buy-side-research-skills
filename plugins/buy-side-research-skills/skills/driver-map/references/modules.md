@@ -29,18 +29,6 @@ Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/100。Tiers 分 BBE ASP 和 si
 
 **BBE 缓存**: 3 个隐藏行 `Bull/Base/Bear Rev @ SOTP`，Scenario Summary 读取。无 BBE tier 的 line 返回单值。
 
-## capacity_util
-
-Capacity × Util% × ASP。Rev = Capa × Util% × ASP。Capacity 是输入，Util% 是模型假设。
-
-```json
-{"name": "钻针", "module": "capacity_util",
- "capacity": {"fy0":8, "proj":[...], "unit":"亿只/年"},
- "util_rate": {"fy0":0.75, "proj":[...]},
- "asp": {"fy0":5.0, "proj":[...], "unit":"元/支"},
- "gm": {...}, "sotp": {...}}
-```
-
 ## backlog_burn
 
 Beg Backlog × Burn Rate，跨列链式。Rev = Beg × Burn。End = Beg × (1 + OrderRate − Burn)。Beg_{t+1} = End_t（Excel 公式跨列链式引用）。

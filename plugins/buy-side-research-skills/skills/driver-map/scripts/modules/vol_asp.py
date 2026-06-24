@@ -9,6 +9,7 @@ Contract:
 """
 
 from openpyxl.utils import get_column_letter
+from openpyxl.comments import Comment
 
 
 def render(ws, R, ll, anchor_info, ctx):
@@ -17,13 +18,14 @@ def render(ws, R, ll, anchor_info, ctx):
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
-    proj_n = ctx['proj_n']
+    proj_n = ctx['proj_n']; bfyr = ctx['bfyr']
 
     ln = ll['name']
     vol = ll['volume']; tiers = ll['tiers']
     v0 = vol['fy0']; vp = vol['proj']
+    cap = ll.get('capacity')
 
-    # ── Volume row ──
+    # ── Volume row (first row, carries line name) ──
     for ci in range(DS, DS + 2):
         C(ws, R, ci, '', fmt=NUM)
     I(ws, R, FY0, v0, fmt=NUM)
@@ -32,6 +34,34 @@ def render(ws, R, ll, anchor_info, ctx):
     C(ws, R, 2, ln, font=bf)
     C(ws, R, 3, f'Volume ({vol["unit"]})')
     vol_r = R; R += 1
+
+    # ── Nameplate Capacity + Utilization (if capacity field exists) ──
+    cap_r = 0
+    if cap:
+        for ci in range(DS, DS + 2):
+            C(ws, R, ci, '', fmt=NUM)
+        I(ws, R, FY0, cap['fy0'], fmt=NUM)
+        for i, v in enumerate(cap['proj']):
+            I(ws, R, FY0 + 1 + i, v, fmt=NUM)
+        C(ws, R, 3, f'  Nameplate Capacity ({cap["unit"]})', font=itf)
+        cap_r = R; R += 1
+
+        # Ramp-up notes as cell comments
+        for key, note in cap.get('ramp_notes', {}).items():
+            try:
+                yr = int(key.replace('fy', ''))
+                offset = yr - (bfyr % 100)
+                col = FY0 + offset
+                if DS <= col <= LC:
+                    ws.cell(row=cap_r, column=col).comment = Comment(note, 'Analyst')
+            except (ValueError, KeyError):
+                pass
+
+        for ci in range(DS, LC + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'=IFERROR({cl}{vol_r}/{cl}{cap_r},"")', fmt=PCT)
+        C(ws, R, 3, '  Utilization %', font=itf)
+        util_r = R; R += 1
 
     share_rows = []; asp_rows = []
     tier_bbe = []  # per-tier: (t_idx, active_row, bull_row, base_row, bear_row) or None for non-BBE
@@ -200,6 +230,7 @@ def render(ws, R, ll, anchor_info, ctx):
         'gm_r': None,
         'gp_r': None,
         'vol_r': vol_r,
+        'cap_r': cap_r,
         'share_rows': share_rows,
         'asp_rows': asp_rows,
         'module': 'vol_asp',

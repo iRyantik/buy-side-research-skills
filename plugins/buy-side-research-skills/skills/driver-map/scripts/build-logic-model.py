@@ -161,8 +161,6 @@ def _load_module(name):
     if name not in MODULES:
         if name == 'vol_asp':
             from modules.vol_asp import render as fn
-        elif name == 'capacity_util':
-            from modules.capacity_util import render as fn
         elif name == 'backlog_burn':
             from modules.backlog_burn import render as fn
         else:
@@ -283,6 +281,7 @@ def build(json_path, output_path=None):
     # module context
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC; ctx['SC'] = SC; ctx['proj_n'] = proj_n
+    ctx['bfyr'] = bfyr
 
     # ═══════════════ §1 Reported Segments ═══════════════
     R = 3
