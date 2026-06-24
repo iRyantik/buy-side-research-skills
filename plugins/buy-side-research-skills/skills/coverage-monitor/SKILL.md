@@ -63,30 +63,25 @@ Agent 对 Core Watch / Mover 做 WebSearch 时，按市场使用本地语言：
 
 触发本 skill 直接执行每日标准流程——不需要先 `doctor`。`doctor` 是内部检查，不对外暴露。
 
-## 每日标准流程（强制）
+## 每日标准流程（强制，不可中断）
+
+以下 5 步必须**连续执行**，不允许在任何步骤停下提问"要继续吗"：
 
 ```
-1. python run_coverage_monitor.py daily --dry-run
-2. 读 agent_work gap → 获取 pending_movers / pending_core / pending_industries
-3. Agent 审 DDG 结果 + 写中文总结:
-
-   **脚本已做**: DDG 双语搜索 → URL 级粗筛（去掉 /quote/ /equities/ 等行情页）
-   **Agent 做**:
-     ① 审 DDG 结果——去伪新闻（Stock Price Quote、Chart & IPO Details 等）
-     ② 每只 Core Watch/Mover 保留 ≥3 条真新闻
-     ③ 写:
-       - Core Watch: stock summary (一句话中文)
-       - Mover explainer: summary + ≥2 条 evidence 引用
-       - Industry summary: 基于 RSS + WebSearch 结果的中文段落
-
-4. 写入 enrichment-YYYY-MM-DD.json
-5. python run_coverage_monitor.py daily --enrichment <.json>
+1. python run_coverage_monitor.py daily --dry-run     ← 采集数据，输出 agent_work
+2. Agent 读 agent_work → 获取 pending_* 数字
+3. Agent 并行搜 + 审 + 写（不可跳过任何一只）:
+   a. 审每只 Mover 的 DDG 结果 → 去伪新闻 → 写中文 explainer（≥2 evidence）
+   b. 审每只 Core Watch 的 DDG 结果 → 去伪新闻 → 写中文 stock summary
+   c. 搜每个行业 WebSearch → 写中文 industry summary
+4. 全部写入 enrichment-YYYY-MM-DD.json
+5. python run_coverage_monitor.py daily --enrichment <.json>   ← 渲染 + 发邮件
 ```
 
 **硬门**：
-- `agent_work` 的 `pending_*` 数字必须归零才算完成
+- **不可中断**——5 步一口气跑完。dry-run 只是第 1 步，不是终点
+- `pending_*` 全部归零才算完成
 - enrichment 文件名按日期——每天新文件，不重用
-- Dry-run 不算完成——必须有 enrichment + 正式输出
 
 **DDG 搜索**：脚本通过 `.scripts/shared/search.py` 自动搜，双语（Company Native + Company EN），其他 research skill 可复用。
 
