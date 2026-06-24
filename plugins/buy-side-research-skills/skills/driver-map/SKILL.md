@@ -342,123 +342,66 @@ FY+1 增速路径：
 
 - 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
-## Valuation Method Auto-Selection
+## Step 7: 产出 driver-model.json
 
-Agent 写 `logic_lines[].sotp` 时，按业务特征自动选最佳方法。研究员可 override。
+### ⛔ GATE — 生成 JSON 前必须读取以下 Reference
 
-**决策树**：
+**逐个 Read，不准凭记忆：**
+
+| 文件 | 内容 |
+|---|---|
+| `references/json-schema.md` | 字段完整性 + ASP 数组规则 |
+| `references/modules.md` | Module 契约 + render() 签名 |
+| `references/calibration.md` | Gap<1% 验算 |
+| `references/pitfalls.md` | 生成前自查清单 |
+| `references/valuation.md` | 估值方法自选决策树 |
+| `references/visual-hierarchy.md` | 颜色约定 |
+| `references/cli.md` | 命令 + 参数 |
+
+**违反任何一个 → JSON 不合格，重做。**
+
+### Agent 填充
+
+自动取数（不需 Agent 填）：
+- `meta` (ticker, market, base_fy)：从 actuals-resolved.json 映射
+- `actuals` (FY-2, FY-1, FY0 P&L 行)：从 actuals-resolved.json 取
+- `segments[].fy0`：从年报/WebSearch 取分部披露
+
+Agent 预设（从 MD 研究结论提取）：
+- `segments[].logic_lines[].split`：FY0A 逻辑线收入占比
+- `segments[].residual.gm`：残差毛利率
+- `logic_lines[].module`：按 module 契约选择
+- `logic_lines[].*.proj`：未来 proj_years 年假设
+- `logic_lines[].gm, yoy, volume, capacity`：按 module 类型填
+- `logic_lines[].sotp`：估值方法+倍数（`references/valuation.md`）
+- `global.opex_rate, tax_rate`
+
+### Calibration（vol_asp/capacity_util 线）
+
+生成 JSON 后 **必须手动验算** FY25A Revenue：
 
 ```
-NI > 0 且最近 2 年 margin 稳定?
-  ├─ Yes → PE（默认，市场标准）
-  └─ No → 为什么亏 / 不稳定？
-            ├─ 高 D&A（制造业/重资产）→ EV/EBITDA
-            ├─ 早期/高增长/pre-profit → PS
-            ├─ 订单驱动/项目制 → EV/Sales
-            └─ 特殊情况 → 标 [需查证]，agent 推荐 + 研究员确认
+Rev = Σ(Vol × Share% × ASP) / 100  或  Rev = Capa × Util% × ASP
 ```
 
-**per line 覆写**：同一家公司可以混合——成熟业务 PE，新业务 PS，重资产 EV/EBITDA。
+Gap vs Section 1 anchor **必须 < 1%**。超了 → 调 ASP 优先（`references/calibration.md`）。
 
-**multiple 预设**：Agent 从 actuals TTM PE 或行业估值表推测初始值（蓝格，研究员调）。不确定标 `[估算]`。
+### JSON 自查
 
-## Appendix A: driver-model.json Schema (v4)
+生成 JSON 后跑一遍 `references/pitfalls.md` 的 checklist。
 
-Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`build-logic-model.py` (v4) 从 JSON 生成公式联动 Excel。
+### 生成 Excel
 
-```json
-{
-  "meta": {"ticker": "300285.SZ", "company": "Sinocera", "market": "cn",
-           "base_fy": 2025, "proj_years": 5, "sotp_offset": 2,
-           "p&l_depth": "ni", "net_debt": 0, "nci_rate": 0},
-  "actuals": {
-    "fy-2": {"rev": 3859, "gp": 1492, "opex": 737, "da": 120, "op": 755, "tax": 93, "ni": 605},
-    "fy-1": {"rev": 4047, "gp": 1606, "opex": 831, "da": 130, "op": 775, "tax": 93, "ni": 610},
-    "fy0":   {"rev": 4583, "gp": 1722, "opex": 951, "da": 150, "op": 771, "tax": 90, "ni": 610}
-  },
-  "segments": [{
-    "name": "Electronic Materials",
-    "fy0": {"rev": 693, "cost": 454, "gp": 239, "gm": 0.345},
-    "logic_lines": [{"name": "R1 MLCC Powder", "split": 0.65}],
-    "residual": {"gm": 0.25}
-  }],
-  "logic_lines": [{
-    "name": "R1 MLCC Powder", "module": "vol_asp",
-    "yoy": {"bull": [0.60,...], "base": [0.51,...], "bear": [0.35,...]},
-    "gm": {"fy0": 0.40, "proj": [0.42,0.45,...]},
-    "sotp": {"method": "pe", "multiple": 40},
-    "volume": {"fy0": 5900, "proj": [...], "unit": "t"},
-    "tiers": [
-      {"name": "AI", "share_fy0": 0.15, "share_proj": [...],
-       "asp_bull": [9.5,35,...], "asp_base": [9.5,30,...], "asp_bear": [9.5,22,...]},
-      {"name": "Consumer", "asp_fy0": 5.5, "asp": [5.5,7.0,...]}
-    ]
-  }],
-  "global": {"opex_rate": [0.22,...], "tax_rate": 0.15}
-}
+```bash
+python .scripts/driver-map/build-logic-model.py <json> [-o output.xlsx]
 ```
 
-**关键字段**：
-- `logic_lines[].module`: `yoy`（默认）/ `vol_asp` / `capacity_util` / `backlog_burn`
-- `logic_lines[].sotp`: `method`=`pe`/`ev_ebitda`/`ev_ebit`/`ev_sales`，旧 `sotp_pe:40` 兼容
-- `meta.p&l_depth`: `gp`/`ebitda`/`ebit`/`ni`，控制 P&L 行深度
-- `actuals`: `opex` 需显式填（fy-2/fy-1 不填则自动 gp−op 推导），`da` 用于 ebitda/ebit 深度
-- ASP 数组 ≥ `1 + proj_years`，无 `asp_fy0` 时自动取 `asp[0]` 为 FY0
+详细参数见 `references/cli.md`。
 
-## Appendix B: Excel 结构 (v4)
+## JSON Schema + Module 参考
 
-| Section | 内容 | FY25A | FY26E+ |
-|---|---|---|---|
-| 1 | 分部（Rev/Cost/GP/GM/Split%/残差%） | hardcode | = Σ logic lines |
-| 2 | 逻辑线（module dispatch → 输入行+Revenue 公式+Check+缓存+GM/GP） | 蓝格/公式 | 蓝格/公式 |
-| — | Global Opex rate / Tax rate | 蓝格 | 蓝格 |
-| 3 | P&L（按 p&l_depth 自适应） | actuals hardcode | 公式 |
-| 4 | SOTP Logic（per line: GP → metric 分配 → multiple → MCap → SUM） | — | 公式 + 蓝格 |
-| 5 | SOTP Segments（分部 weighted multiple） | — | 公式 + 蓝格 |
-| 6 | Market Data（yfinance）+ ratios | — | 展示 |
-| 7 | Scenario Summary（yoy 链式 / vol_asp 读缓存 / 无 BBE 读单值） | — | 三情景公式 |
-
-格式：无网格线、全 Calibri、黄底蓝字假设格、C1 `(CNY millions)`、冻结 D2、B1 切换场景。
-
-## Appendix C: Revenue Modules
-
-### yoy (default)
-最简。Rev FY25A=S1 ref, FY26+=Prior×(1+YoY Active)。YoY Active 通过 IF(B1) 读隐藏 Bull/Base/Bear 行。
-```json
-{"name": "G1", "yoy": {"bull":[...], "base":[...], "bear":[...]}, "gm":{...}, "sotp":{...}}
-```
-
-### vol_asp
-Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/100。Tiers 分 BBE ASP（三情景）和 simple ASP。3 个隐藏缓存行供 Scenario Summary。
-```json
-{"name": "R1", "module": "vol_asp",
- "volume": {"fy0": 5900, "proj": [...], "unit": "t"},
- "tiers": [{"name": "AI", "share_fy0": 0.15, "asp_bull": [...], "asp_base": [...], "asp_bear": [...]},
-           {"name": "Consumer", "asp_fy0": 5.5, "asp": [...]}]
-}
-```
-
-### capacity_util
-Capacity × Util% × ASP。Rev = Capa × Util% × ASP。
-```json
-{"name": "钻针", "module": "capacity_util",
- "capacity": {"fy0":8, "proj":[...], "unit":"亿只/年"},
- "util_rate": {"fy0":0.75, "proj":[...]},
- "asp": {"fy0":5.0, "proj":[...], "unit":"元/支"}
-}
-```
-
-### backlog_burn
-Beg Backlog × Burn Rate，跨列链式。Rev = Beg × Burn。End = Beg × (1 + OrderRate − Burn)。Beg_{t+1} = End_t。
-```json
-{"name": "设备", "module": "backlog_burn",
- "beg_backlog": {"fy0":2500, "unit":"M"},
- "order_rate": {"fy0":0.45, "proj":[...]},
- "burn_rate": {"fy0":0.35, "proj":[...]}
-}
-```
-
-### Module Contract
-新 module: `render(ws, R, ll, anchor_info, ctx) -> {next_R, rev_r, gm_r:None, gp_r:None, module, [opt: yb,ybs,ybe]}`。有 BBE 情景时提供 yb/ybs/ybe 指向 SC 列缓存行。注册到 `MODULES` + `_load_module()`。
+完整 schema → `references/json-schema.md`
+Module 契约 → `references/modules.md`
+视觉层级（蓝黄输入/灰底 actual/黑白公式）→ `references/visual-hierarchy.md`
 
 
