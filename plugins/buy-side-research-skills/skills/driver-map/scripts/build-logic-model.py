@@ -42,7 +42,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 # ── Format constants ──
-PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'; YEN = '¥#,##0.00'
+PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'
+PRICE_FMT = {'cn': '¥#,##0.00', 'jp': '¥#,##0', 'kr': '₩#,##0', 'tw': 'NT$#,##0.00',
+             'us': '$#,##0.00', 'hk': 'HK$#,##0.00', 'sg': 'S$#,##0.00'}
 DS = 4
 
 # ── Fonts / fills ──
@@ -249,7 +251,8 @@ def build(json_path, output_path=None):
 
     # ── yfinance market data ──
     try:
-        info = yf.Ticker(meta['ticker']).info
+        yf_ticker = meta.get('yf_ticker', meta['ticker'])
+        info = yf.Ticker(yf_ticker).info
     except Exception:
         info = {}
     mcap_raw = info.get('marketCap', 0) or 0
@@ -260,9 +263,16 @@ def build(json_path, output_path=None):
     hi52 = info.get('fiftyTwoWeekHigh', 0) or 0
     lo52 = info.get('fiftyTwoWeekLow', 0) or 0
     mcap_M = int(mcap_raw / 1e6) if mcap_raw else 0
-    use_B = meta.get('market', '') in ('jp', 'kr', 'tw') or mcap_M > 1_000_000
+    if not mcap_M and meta.get('mcap_m'):
+        mcap_M = meta['mcap_m']
+    # Unit: explicit override > market heuristic > auto
+    if 'unit' in meta:
+        use_B = meta['unit'] == 'B'
+    else:
+        use_B = meta.get('market', '') in ('jp', 'kr', 'tw') or mcap_M > 1_000_000
     div = 1000 if use_B else 1
     mcap_d = round(mcap_M / div, 1)
+    price_fmt = PRICE_FMT.get(meta.get('market', 'cn'), '¥#,##0.00')
 
     def sc(v):
         return round(v / div, 2)
@@ -339,7 +349,7 @@ def build(json_path, output_path=None):
 
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
-        A(ws, R, FY0, sgm, fmt=PCT)
+        C(ws, R, FY0, f'=IFERROR({get_column_letter(FY0)}{gp_r}/{get_column_letter(FY0)}{rev_r},"")', fmt=PCT)
         gm_r = R
         C(ws, R, 3, 'GM')
         R += 1
@@ -355,7 +365,8 @@ def build(json_path, output_path=None):
             lr = round(srev * sp)
             anchor_info[ln] = (R, sc(lr))
             C(ws, R, 3, f'  {ln} FY25A Rev', font=itf)
-            C(ws, R, FY0, sc(lr), fmt=NUM)
+            rev_cell = f'={get_column_letter(FY0)}{rev_r}*{get_column_letter(FY0)}{srows[-1]}'
+            C(ws, R, FY0, rev_cell, fmt=NUM)
             lrevs[ln] = R; R += 1
 
         if srows:
@@ -824,7 +835,7 @@ def build(json_path, output_path=None):
         shares_data_r = R; R += 1
     if price:
         C(ws, R, 3, 'Price', font=bf)
-        C(ws, R, SC, price, fmt=YEN)
+        C(ws, R, SC, price, fmt=price_fmt)
         price_data_r = R; R += 1
     R += 1
     mref = f'{sc_l}{mcap_data_r}'
@@ -836,14 +847,14 @@ def build(json_path, output_path=None):
     R += 1
     if shares:
         C(ws, R, 3, 'SOTP Logic / Share')
-        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_r}*1000/{sc_l}{shares_data_r},"")', fmt=YEN)
+        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_r}*1000/{sc_l}{shares_data_r},"")', fmt=price_fmt)
         R += 1
         C(ws, R, 3, 'SOTP Seg / Share')
-        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_seg_r}*1000/{sc_l}{shares_data_r},"")', fmt=YEN)
+        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_seg_r}*1000/{sc_l}{shares_data_r},"")', fmt=price_fmt)
         R += 1
     if price:
         C(ws, R, 3, 'Current Price')
-        C(ws, R, SC, f'={sc_l}{price_data_r}', fmt=YEN)
+        C(ws, R, SC, f'={sc_l}{price_data_r}', fmt=price_fmt)
         R += 1
     if ttm_pe:
         C(ws, R, 3, 'TTM PE')
@@ -865,8 +876,19 @@ def build(json_path, output_path=None):
     syl = YR[2 + s_off].replace('A', 'E')
     C(ws, R, DS, f'{syl} Rev', font=bf)
     C(ws, R, DS + 1, f'{syl} GP', font=bf)
-    C(ws, R, DS + 2, f'{syl} NI', font=bf)
-    C(ws, R, DS + 3, 'Implied PE', font=bf)
+    # Determine dominant metric/multiple labels from SOTP methods in use
+    methods = set()
+    for ll in logic_lines:
+        if ll.get('sotp'):
+            methods.add(ll['sotp'].get('method', 'pe'))
+        elif 'sotp_pe' in ll:
+            methods.add('pe')
+    if not methods: methods = {'pe'}
+    ev_only = all(m.startswith('ev_') for m in methods)
+    metric_label = 'EBITDA' if ev_only else ('Revenue' if methods == {'ps'} else 'NI')
+    mult_label = 'Implied EV/EBITDA' if ev_only else ('Implied P/S' if methods == {'ps'} else 'Implied PE')
+    C(ws, R, DS + 2, f'{syl} {metric_label}', font=bf)
+    C(ws, R, DS + 3, mult_label, font=bf)
     R += 1
     syc = get_column_letter(FY0 + s_off)
 
