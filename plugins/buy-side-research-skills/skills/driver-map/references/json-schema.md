@@ -53,7 +53,11 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `ticker` | str | yfinance 格式。A股: `300285.SZ`/`600183.SS` |
-| `market` | str | cn/us/jp/kr/tw — 自动单位检测 (M/B) |
+| `yf_ticker` | str | 可选。yfinance 实际 ticker（与 `ticker` 不同时用） |
+| `market` | str | cn/us/jp/kr/tw — 决定 Price 格式和单位 |
+| `unit` | str | 可选 `M`/`B`。不填则按 market 自动推断 |
+| `currency` | str | CNY/USD/JPY/KRW 等，C1 标签用 |
+| `mcap_m` | int | 可选。yfinance 失败时的 fallback MCap (M) |
 | `base_fy` | int | FY0（最新完整财年）|
 | `proj_years` | int | 投影年数，默认 5 |
 | `sotp_offset` | int | SOTP 年距 FY0 的 offset，默认 2 |

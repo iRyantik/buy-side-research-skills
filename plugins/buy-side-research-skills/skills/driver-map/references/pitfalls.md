@@ -17,6 +17,12 @@
 - [ ] vol_asp 线: `asp_unit` 已设——cn 默认 `万/t`，匹配实际 ASP 单位
 - [ ] Volume 和 ASP 的单位乘除后能正确锚到 Rev(M)——生成前手动验算
 
+## 跨市场
+
+- [ ] 非 cn 市场: `meta.yf_ticker` 是否有效？默认 ticker 可能失败
+- [ ] 非 cn 市场: `meta.unit` 设为 `B` 还是 `M`？不填则按 market 推断
+- [ ] 非 cn 市场: `logic_lines[].unit_scale` 是否匹配？cn=100, jp/kr=1
+
 ## ASP
 
 - [ ] BBE tier: `bull[0] = base[0] = bear[0]`（FY25 固定值，不随情景变）
