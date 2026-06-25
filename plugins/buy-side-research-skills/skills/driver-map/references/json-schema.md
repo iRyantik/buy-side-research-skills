@@ -78,6 +78,9 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | `module` | yoy（默认）/ vol_asp / capacity_util / backlog_burn |
 | `volume` | vol_asp: `{fy0, proj, unit}` |
 | `capacity` | vol_asp 可选: `{fy0, proj, unit, ramp_notes}` |
+| `unit_scale` | vol_asp: ASP×Vol 到 Rev 的除数。cn 默认 100（万→M），jp/kr 设为 1 |
+| `asp_unit` | vol_asp: ASP 行标签后缀。cn 默认 `万/t`，jp 用 `千円/t` |
+| `COLS` | 自动计算 = 3 + proj_years，无需手动填 |
 | `tiers` | vol_asp: 数组，最后一项为 residual (无 share%) |
 | `beg_backlog` + `order_rate` + `burn_rate` | backlog_burn |
 | `yoy` | yoy 默认: `{bull, base, bear}` 各 5 值 |

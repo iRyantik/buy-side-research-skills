@@ -9,6 +9,13 @@
 - [ ] `gm.proj` 长度 = `proj_years`
 - [ ] `yoy.bull/base/bear` 各数组长度 = `proj_years`
 - [ ] `opex_rate` 长度 = `3 + proj_years`
+- [ ] `capacity.proj` 长度 = `proj_years`（如有）
+
+## 单位
+
+- [ ] vol_asp 线: `unit_scale` 已设——cn 默认 100（万→M），jp/kr 设为 1
+- [ ] vol_asp 线: `asp_unit` 已设——cn 默认 `万/t`，匹配实际 ASP 单位
+- [ ] Volume 和 ASP 的单位乘除后能正确锚到 Rev(M)——生成前手动验算
 
 ## ASP
 

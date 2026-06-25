@@ -12,10 +12,14 @@
 
 ## vol_asp
 
-Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/100。Tiers 分 BBE ASP 和 simple ASP。有 `capacity` 字段时渲染 Nameplate Capacity + Utilization 行。
+Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/unit_scale。Tiers 分 BBE ASP 和 simple ASP。有 `capacity` 字段时渲染 Nameplate Capacity + Utilization 行。
+
+- `unit_scale`: ASP×Vol → Rev 的除数。默认 100（ASP 万/t × Vol t / 100 → Rev M）。日韩等市场设为 1。
+- `asp_unit`: ASP 行 C 列标签后缀。默认 `万/t`。按市场设定。
 
 ```json
 {"name": "R1", "module": "vol_asp",
+ "unit_scale": 100, "asp_unit": "万/t",
  "volume": {"fy0":7000, "proj":[8000,...], "unit":"t"},
  "capacity": {"fy0":10000, "proj":[10000,...], "unit":"t",
               "ramp_notes": {"fy26": "P1 爬坡50%", ...}},
