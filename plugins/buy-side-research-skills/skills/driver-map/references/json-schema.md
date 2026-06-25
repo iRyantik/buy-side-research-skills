@@ -86,6 +86,9 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | `asp_unit` | vol_asp: ASP 行标签后缀。cn 默认 `万/t`，jp 用 `千円/t` |
 | `COLS` | 自动计算 = 3 + proj_years，无需手动填 |
 | `tiers` | vol_asp: 数组，最后一项为 residual (无 share%) |
+| `tiers[].new_cap_share` | 可选。增量产能分配比例（0-1），设置后 Share% 变为公式推导 |
+| `tiers[].fy0_volume` | new_cap_share 模式下的 FY25 基年出货量（吨） |
+| `tiers[].asp_mode` | 可选 `"multiplier"`。ASP 投影用乘数（上年×乘数）替代绝对值 |
 | `beg_backlog` + `order_rate` + `burn_rate` | backlog_burn |
 | `yoy` | yoy 默认: `{bull, base, bear}` 各 5 值 |
 | `gm` | `{fy0, proj: [5值]}` |

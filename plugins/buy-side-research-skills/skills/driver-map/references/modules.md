@@ -16,6 +16,8 @@ Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/unit_scale。Tiers 分 BBE ASP
 
 - `unit_scale`: ASP×Vol → Rev 的除数。默认 100（ASP 万/t × Vol t / 100 → Rev M）。日韩等市场设为 1。
 - `asp_unit`: ASP 行 C 列标签后缀。默认 `万/t`。按市场设定。
+- `tiers[].new_cap_share`: 可选。增量产能分配给该 tier 的比例（0-1）。设置后该 tier 的 Share% 变为公式 `=tier_vol/total_vol`，不再用 `share_proj` 硬编码。需配合 `tiers[].fy0_volume`（FY25 基年该 tier 出货量，吨）。适用于产量可拆、增量方向可判断的 tier（如 AI 服务器粉体）。
+- `tiers[].asp_mode`: 可选 `"multiplier"`。ASP 投影值变为乘数——FY25 绝对值，FY26+ = 上年 × 乘数。脚本自动判断：arr[1] < 5 视为乘数模式。
 
 ```json
 {"name": "R1", "module": "vol_asp",
