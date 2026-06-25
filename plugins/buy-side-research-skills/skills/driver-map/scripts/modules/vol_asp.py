@@ -24,6 +24,8 @@ def render(ws, R, ll, anchor_info, ctx):
     vol = ll['volume']; tiers = ll['tiers']
     v0 = vol['fy0']; vp = vol['proj']
     cap = ll.get('capacity')
+    scale = ll.get('unit_scale', 100)  # default 100: ASP(万/t)×Vol(t)/100→Rev(M). JP/KR set 1
+    asp_unit = ll.get('asp_unit', '万/t')
 
     # ── Volume row (first row, carries line name) ──
     for ci in range(DS, DS + 2):
@@ -95,7 +97,7 @@ def render(ws, R, ll, anchor_info, ctx):
                 C(ws, R, ci, '', fmt=NUM)
             for ci in range(FY0, LC + 1):
                 C(ws, R, ci, 0, fmt=NUM)
-            C(ws, R, 3, f'  {tn} ASP Active', font=itf)
+            C(ws, R, 3, f'  {tn} ASP Active ({asp_unit})', font=itf)
             asp_a_r = R; R += 1
 
             asp_b_r = asp_bs_r = asp_be_r = 0
@@ -106,7 +108,7 @@ def render(ws, R, ll, anchor_info, ctx):
                 for i, v in enumerate(arr[1:] if len(arr) > 1 else []):
                     if i < proj_n:
                         I(ws, R, FY0 + 1 + i, v, fmt=DEC)
-                C(ws, R, 3, f'    {label}', font=itf)
+                C(ws, R, 3, f'    {label} ({asp_unit})', font=itf)
                 ws.row_dimensions[R].hidden = True
                 if label == 'Bull':    asp_b_r = R
                 elif label == 'Base':  asp_bs_r = R
@@ -145,7 +147,7 @@ def render(ws, R, ll, anchor_info, ctx):
             for i, v in enumerate(ap):
                 if i < proj_n:
                     I(ws, R, FY0 + 1 + i, v, fmt=DEC)
-            C(ws, R, 3, f'  {tn} ASP', font=itf)
+            C(ws, R, 3, f'  {tn} ASP ({asp_unit})', font=itf)
             asp_rows.append(R)
             R += 1
             tier_bbe.append(None)
@@ -164,7 +166,7 @@ def render(ws, R, ll, anchor_info, ctx):
                     else f'({cl}{vol_r}*{ac})')
             else:
                 parts.append(f'({cl}{vol_r}*{cl}{share_rows[ti]}*{ac})')
-        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/100', fmt=NUM)
+        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/' + str(scale), fmt=NUM)
     for ci in range(DS, DS + 2):
         C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
@@ -203,7 +205,7 @@ def render(ws, R, ll, anchor_info, ctx):
             for ci in range(DS, DS + 2):
                 C(ws, R, ci, '', fmt=NUM)
             C(ws, R, 3, f'    {label} Rev @ SOTP', font=itf)
-            C(ws, R, SC, '=(' + '+'.join(parts) + ')/100', fmt=NUM)
+            C(ws, R, SC, '=(' + '+'.join(parts) + ')/' + str(scale), fmt=NUM)
             ws.row_dimensions[R].hidden = True
             if label == 'Bull':    yb = R
             elif label == 'Base':  ys = R

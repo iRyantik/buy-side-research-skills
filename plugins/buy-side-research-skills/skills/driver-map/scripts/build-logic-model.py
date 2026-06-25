@@ -43,7 +43,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 # ── Format constants ──
 PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'; YEN = '¥#,##0.00'
-DS = 4; COLS = 8
+DS = 4
 
 # ── Fonts / fills ──
 nf   = Font(name='Calibri', size=11)
@@ -76,7 +76,7 @@ def make_ctx():
         'C': C, 'I': I,
         'nf': nf, 'bf': bf, 'itf': itf,
         'NUM': NUM, 'DEC': DEC, 'PCT': PCT,
-        'DS': DS, 'FY0': DS + 2, 'LC': DS + COLS - 1,
+        'DS': DS, 'FY0': 0, 'LC': 0,
         'proj_n': 0,
     }
 
@@ -203,6 +203,11 @@ def validate_json(cfg):
             if 'da' not in a.get(fy_key, {}):
                 print(f'  [warn] actuals.{fy_key}.da missing, assuming 0')
 
+    # global opex_rate length
+    opex_arr = cfg.get('global', {}).get('opex_rate', [])
+    if len(opex_arr) != 3 + proj_n:
+        raise ValueError(f'global.opex_rate length {len(opex_arr)} != {3 + proj_n} (3 actual + {proj_n} proj)')
+
     # logic_lines
     for ll in cfg.get('logic_lines', []):
         ln = ll.get('name', '?')
@@ -263,6 +268,7 @@ def build(json_path, output_path=None):
         return round(v / div, 2)
 
     bfyr = meta['base_fy']; proj_n = meta['proj_years']; s_off = meta['sotp_offset']
+    COLS = 3 + proj_n
     FY0 = DS + 2; SC = FY0 + s_off; LC = DS + COLS - 1
     YR = [f'FY{bfyr - 2}A', f'FY{bfyr - 1}A', f'FY{bfyr}A'] + \
          [f'FY{bfyr + i}E' for i in range(1, proj_n + 1)]
@@ -285,7 +291,7 @@ def build(json_path, output_path=None):
     # module context
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC; ctx['SC'] = SC; ctx['proj_n'] = proj_n
-    ctx['bfyr'] = bfyr
+    ctx['COLS'] = COLS; ctx['bfyr'] = bfyr
 
     # ═══════════════ §1 Reported Segments ═══════════════
     R = 3
@@ -658,25 +664,17 @@ def build(json_path, output_path=None):
         ws.row_dimensions.group(_ni_start, _ni_end, outline_level=1, hidden=True)
 
     # ── Fix Global Opex rate / Tax rate formulas ──
-    # FY23-24: =Opex/Rev, =Tax/OP (referencing P&L rows, now exist)
-    for ci, fy_key in [(DS, 'fy-2'), (DS + 1, 'fy-1')]:
+    # FY23-25: =Opex/Rev, =Tax/OP (formulas, no fill — computed not raw actuals)
+    for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         ws.cell(row=opex_r, column=ci).value = f'=IFERROR({cl}{ov}/{cl}{trev},"")'
         ws.cell(row=opex_r, column=ci).number_format = PCT
-        ws.cell(row=opex_r, column=ci).fill = actfill
-    # FY25: JSON input
-    ws.cell(row=opex_r, column=FY0).value = gl['opex_rate'][2]
-    ws.cell(row=opex_r, column=FY0).number_format = PCT
     for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
         I(ws, opex_r, i, ov_val, fmt=PCT)
-    # Tax rate
-    for ci, fy_key in [(DS, 'fy-2'), (DS + 1, 'fy-1')]:
+    for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         ws.cell(row=tax_r, column=ci).value = f'=IFERROR({cl}{tv}/{cl}{op},"")'
         ws.cell(row=tax_r, column=ci).number_format = PCT
-        ws.cell(row=tax_r, column=ci).fill = actfill
-    ws.cell(row=tax_r, column=FY0).value = gl['tax_rate']
-    ws.cell(row=tax_r, column=FY0).number_format = PCT
     for ci in range(FY0 + 1, LC + 1):
         ws.cell(row=tax_r, column=ci).value = gl['tax_rate']
         ws.cell(row=tax_r, column=ci).number_format = PCT
