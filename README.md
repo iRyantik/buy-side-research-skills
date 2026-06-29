@@ -165,11 +165,11 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v6.6.0 | 2026-06 | driver-map v1.4.0：CF/HL/BOLD helpers + yoy 模块 + audit_style.py + 多深度利润链(gp→op→ni) + 渲染时 style 系统 + NUM=#,##0.0 全局一位小数 + pre_write_gate CHECK 17 |
 | v6.5.14 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |
 | v5.4.0 | 2026-06 | Source contract 全量注入：27 skill 输出表加 Ev 列、paragraph-level source density hook、table-row financial number check |
 | v5.3.0 | 2026-06 | Actuals-only ratio constraint：17 skill 禁止用 FY2026E/consensus/forward estimate 算 ratio |
 | v5.2.1 | 2026-06 | 目录级 auto-discovery：新 skill 脚本零改动自动部署。Meta-skill 目录 spec 收口 |
 | v5.1.0 | 2026-06 | Python 统一 bootstrap、init-workspace 重写（A类+B类部署清单）、交互式 provider 配置 |
 | v5.0.0 | 2026-06 | 7 个新 skill、candidate-screener 分场景 L/S、全链路 hook 治理、跨市场合并、事实治理层、Codex 双宿主 |
-| v6.5.14 | 2026-05 | Runtime Capsule 标准化、market data trust-based fill、C-level modeling hooks |
 | v4.5.6 | 2026-05 | mechanism-insight/industry-landscape/teach-in 改名、peer-deep-dive 重构 |
