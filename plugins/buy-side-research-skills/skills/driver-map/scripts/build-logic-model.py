@@ -245,8 +245,32 @@ def build(json_path, output_path=None):
         return round(v / div, 2)
 
     bfyr = meta['base_fy']; proj_n = meta['proj_years']; s_off = meta['sotp_offset']
+    q_actual_n = meta.get('q_actual_count', 0)
+    q_proj_n = meta.get('q_proj_count', 0)
+    has_q = q_actual_n + q_proj_n > 0
     COLS = 3 + proj_n
-    FY0 = DS + 2; SC = FY0 + s_off; LC = DS + COLS - 1
+    FY0 = DS + 2; SC = FY0 + s_off; LC_ANNUAL = DS + COLS - 1
+    if has_q:
+        Q_START = LC_ANNUAL + 3  # 2 blank columns between Y and Q
+        Q_END = Q_START + q_actual_n + q_proj_n - 1
+        LC = Q_END
+        # Q labels: 4Q25A, 1Q26A, 2Q26E, 3Q26E, ...
+        q_start_yr = meta.get('q_start_yr', bfyr)
+        q_start_q = meta.get('q_start_q', 1)
+        yr, q = q_start_yr, q_start_q
+        QL = []
+        for i in range(q_actual_n):
+            QL.append(f'{q}Q{str(yr)[-2:]}A')
+            q += 1
+            if q > 4: q = 1; yr += 1
+        for i in range(q_proj_n):
+            QL.append(f'{q}Q{str(yr)[-2:]}E')
+            q += 1
+            if q > 4: q = 1; yr += 1
+    else:
+        Q_START = Q_END = 0
+        LC = LC_ANNUAL
+        QL = []
     YR = [f'FY{bfyr - 2}A', f'FY{bfyr - 1}A', f'FY{bfyr}A'] + \
          [f'FY{bfyr + i}E' for i in range(1, proj_n + 1)]
 
@@ -262,17 +286,22 @@ def build(json_path, output_path=None):
     dv.add('B1')
     for ci, y in enumerate(YR, DS):
         C(ws, 1, ci, y, font=bf)
+    for ci, ql in enumerate(QL, Q_START):
+        C(ws, 1, ci, ql, font=bf)
     unit_label = 'bn' if use_B else 'millions'
     C(ws, 1, 3, f'({meta.get("currency","CNY")} {unit_label})', font=itf)
 
-    # module context
+    # module context (modules see annual range only)
     ctx = make_ctx()
-    ctx['FY0'] = FY0; ctx['LC'] = LC; ctx['SC'] = SC; ctx['proj_n'] = proj_n
+    ctx['FY0'] = FY0; ctx['LC'] = LC_ANNUAL; ctx['SC'] = SC; ctx['proj_n'] = proj_n
     ctx['COLS'] = COLS; ctx['bfyr'] = bfyr
+    ctx['Q_START'] = Q_START; ctx['Q_END'] = Q_END
+    ctx['q_actual_n'] = q_actual_n; ctx['q_proj_n'] = q_proj_n
 
     print(f'  Cols: D=DS({DS}) FY0={get_column_letter(FY0)}({FY0}) '
-          f'LC={get_column_letter(LC)}({LC}) SC={get_column_letter(SC)}({SC}) '
-          f'proj_n={proj_n} B_mode={use_B} div={div}')
+          f'LC={get_column_letter(LC_ANNUAL)}({LC_ANNUAL}) SC={get_column_letter(SC)}({SC}) '
+          f'proj_n={proj_n} B_mode={use_B} div={div}'
+          + (f' Q={get_column_letter(Q_START)}({Q_START})-{get_column_letter(Q_END)}({Q_END})' if has_q else ''))
 
     # ═══════════════ §1 Reported Segments ═══════════════
     R = 3
@@ -297,6 +326,13 @@ def build(json_path, output_path=None):
             if yr: A(ws, R, col, sc(yr['rev']), fmt=NUM)
             else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(srev), fmt=NUM)
+        # Q columns: segment Q actuals
+        seg_quarters = seg.get('quarters', {})
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
+            if qd.get('rev'): A(ws, R, Q_START + qi, sc(qd['rev']), fmt=NUM)
+        for qi in range(q_proj_n):
+            C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         rev_r = R
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'Revenue')
@@ -310,17 +346,22 @@ def build(json_path, output_path=None):
                 C(ws, R, ci, '', fmt=NUM)
             R += 1
 
-        # Implied YoY
+        # Implied YoY (annual) + QoQ (quarterly)
         for yr_key, col in hist_years:
             C(ws, R, col, '', fmt=PCT)
-        # E column: FY2025 vs FY2024
         cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
         C(ws, R, DS + 1, f'=IFERROR({cl_e}{rev_r}/{cl_d}{rev_r}-1,"")', fmt=PCT)
         f0 = get_column_letter(FY0); f_1 = get_column_letter(FY0 - 1)
         C(ws, R, FY0, f'=IFERROR({f0}{rev_r}/{f_1}{rev_r}-1,"")', fmt=PCT)
-        for ci in range(FY0 + 1, LC + 1):
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
             C(ws, R, ci, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
+        # Q columns: QoQ vs prior quarter
+        if has_q:
+            for qi in range(Q_START, Q_START + q_actual_n + q_proj_n):
+                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)  # Q1A: no prior Q
+                else: C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
         C(ws, R, 3, 'Implied YoY')
         R += 1
 
@@ -330,6 +371,11 @@ def build(json_path, output_path=None):
             if yr: A(ws, R, col, sc(yr['cost']), fmt=NUM)
             else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(scost), fmt=NUM)
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
+            if qd.get('cost'): A(ws, R, Q_START + qi, sc(qd['cost']), fmt=NUM)
+        for qi in range(q_proj_n):
+            C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         cost_r = R
         C(ws, R, 3, 'Cost')
         R += 1
@@ -348,6 +394,11 @@ def build(json_path, output_path=None):
             if yr: A(ws, R, col, sc(yr['gp']), fmt=NUM)
             else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(sgp), fmt=NUM)
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
+            if qd.get('gp'): A(ws, R, Q_START + qi, sc(qd['gp']), fmt=NUM)
+        for qi in range(q_proj_n):
+            C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         gp_r = R
         C(ws, R, 3, 'GP')
         R += 1
@@ -361,6 +412,11 @@ def build(json_path, output_path=None):
                 if yr and yr.get('op') is not None: A(ws, R, col, sc(yr['op']), fmt=NUM)
                 else: C(ws, R, col, '', fmt=NUM)
             A(ws, R, FY0, sc(fy0_op), fmt=NUM)
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
+                if qd.get('op'): A(ws, R, Q_START + qi, sc(qd['op']), fmt=NUM)
+            for qi in range(q_proj_n):
+                C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
             op_r = R
             C(ws, R, 3, 'OP')
             R += 1
@@ -641,6 +697,41 @@ def build(json_path, output_path=None):
             if any(kw in cv for kw in ('Check', 'YoY', 'Opex', 'OP', 'Tax', 'NI')):
                 protected_rows.add(scan_r)
 
+        # ── Q Columns: seasonality + Revenue/GP/OP extension ──
+        if has_q:
+            q_seas = ll.get('q_seasonality', [0.25, 0.25, 0.25, 0.25])
+            qseas_r = R
+            for qi in range(q_actual_n + q_proj_n):
+                si = ((q_start_q - 1) + qi) % 4
+                I(ws, R, Q_START + qi, q_seas[si], fmt=PCT)
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            C(ws, R, 3, '  Q Seasonality', font=itf)
+            R += 1
+            # Q Revenue: Q actuals from q_history (I()) or blank, projection = FY×seasonality
+            q_hist = ll.get('q_history', {})
+            for qi in range(q_actual_n + q_proj_n):
+                col = Q_START + qi; cl = get_column_letter(col)
+                if qi < q_actual_n:
+                    qk = f'q{qi+1}'; qv = q_hist.get(qk, {}).get('rev')
+                    if qv is not None:
+                        I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
+                    else:
+                        C(ws, result['rev_r'], col, '', fmt=NUM)
+                else:
+                    CF(ws, result['rev_r'], col,
+                       f'={get_column_letter(FY0)}{result["rev_r"]}*{cl}{qseas_r}', fmt=NUM)
+            # Q GP: = Q_Rev × GM (same GM as FY)
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                CF(ws, gp_r, qi, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
+            # Q Opex/OP if per-line profit chain rendered
+            if line_op_r:
+                q_opex_r = line_op_r - 1  # Opex row is just before OP
+                for qi in range(Q_START, Q_END + 1):
+                    cl = get_column_letter(qi)
+                    CF(ws, line_op_r, qi, f'={cl}{gp_r}-{cl}{q_opex_r}', fmt=NUM)
+
     # ═══════════════ §2→§1 Fill ─ Section 1 FY26E+ ═══════════════
     for seg in segments:
         sn = seg['name']; lls = seg['logic_lines']
@@ -657,7 +748,7 @@ def build(json_path, output_path=None):
         lrevs = si.get('lrev_rows', {})
         res_row = si.get('res_row', 0)
 
-        for ci in range(FY0 + 1, LC + 1):
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
             CF(ws, s1r, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
@@ -680,16 +771,16 @@ def build(json_path, output_path=None):
             for sr_row in srows:
                 cell_val = ws.cell(row=sr_row, column=3).value
                 if cell_val and ln_name in str(cell_val):
-                    for ci in range(FY0 + 1, LC + 1):
+                    for ci in range(FY0 + 1, LC_ANNUAL + 1):
                         cl = get_column_letter(ci)
                         CF(ws, sr_row, ci, f'=IFERROR({cl}{L[ln_name]["rev_r"]}/{cl}{s1r},"")', fmt=PCT)
             lr_row = lrevs.get(ln_name, 0)
             if lr_row:
-                for ci in range(FY0 + 1, LC + 1):
+                for ci in range(FY0 + 1, LC_ANNUAL + 1):
                     cl = get_column_letter(ci)
                     CF(ws, lr_row, ci, f'={cl}{L[ln_name]["rev_r"]}', fmt=NUM)
         if res_row and srows:
-            for ci in range(FY0 + 1, LC + 1):
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
                 cl = get_column_letter(ci)
                 refs = '+'.join([f'{cl}{r}' for r in srows])
                 CF(ws, res_row, ci, f'=1-({refs})', fmt=PCT)
@@ -907,6 +998,31 @@ def build(json_path, output_path=None):
         C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{get_column_letter(ci - 1)}{ni_r}-1,"")', fmt=PCT)
     C(ws, R, 3, 'NI YoY')
     _ni_end = R; R += 1
+
+    # ── Q→FY Bridge (collapsed) ──
+    if has_q:
+        C(ws, R, 1, 'Q→FY Bridge', font=itf)
+        R += 1
+        qb_start = R
+        for label, yr_row in [('Rev', trev), ('GP', tgp)]:
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            C(ws, R, FY0, f'={get_column_letter(FY0)}{yr_row}', fmt=NUM)
+            C(ws, R, 3, f'  FY {label}', font=itf)
+            R += 1
+            q_cols = [get_column_letter(c) for c in range(Q_START, Q_END + 1)]
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            if q_cols:
+                C(ws, R, FY0, '=' + '+'.join(f'{c}{yr_row}' for c in q_cols), fmt=NUM)
+            C(ws, R, 3, f'  Q Sum', font=itf)
+            R += 1
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            C(ws, R, FY0, f'={get_column_letter(FY0)}{R - 2}-{get_column_letter(FY0)}{R - 1}', fmt=NUM)
+            C(ws, R, 3, f'  Delta', font=itf)
+            R += 1
+        ws.row_dimensions.group(qb_start, R - 1, outline_level=1, hidden=True)
 
     # ── Fix Global Opex rate / Tax rate formulas ──
     # FY23-25: =Opex/Rev, =Tax/OP (formulas, no fill — computed not raw actuals)
@@ -1221,11 +1337,18 @@ def build(json_path, output_path=None):
             cell = ws.cell(row=row, column=3)
             if not (cell.fill and cell.fill.start_color and cell.fill.start_color.rgb == '00963634'):
                 cell.font = bf
+    # Clear gap columns between annual and Q (value + fill)
+    if has_q:
+        for row in range(1, R):
+            for gc in (LC_ANNUAL + 1, LC_ANNUAL + 2):
+                c = ws.cell(row=row, column=gc)
+                c.value = None; c.fill = PatternFill()
     ws.column_dimensions['A'].width = 18
     ws.column_dimensions['B'].width = 24
     ws.column_dimensions['C'].width = 36
     for ci in range(DS, LC + 1):
-        ws.column_dimensions[get_column_letter(ci)].width = 13
+        cl = get_column_letter(ci)
+        ws.column_dimensions[cl].width = 5 if has_q and ci in (LC_ANNUAL + 1, LC_ANNUAL + 2) else 13
 
     ws.freeze_panes = 'D2'
 
