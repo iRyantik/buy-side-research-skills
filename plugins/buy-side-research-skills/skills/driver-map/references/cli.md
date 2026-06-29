@@ -33,3 +33,15 @@ python .scripts/driver-map/audit_style.py <output.xlsx>
 ## Output Naming
 
 Agent 生成文件命名：`YYYY-MM-DD-driver-model-<ticker>.xlsx`，与 driver-map.json 同目录。
+
+## Q Column Build
+
+设置了 `q_actual_count > 0` 时自动生成 Q 列（1-4 actual + 4 proj）。Column mapping print 会显示 Q range。
+
+## Quarterly Data Fetch
+
+```bash
+python .scripts/financial-data/financial_data.py --mode lite --market us --identifier LITE --quarters latest
+```
+
+yfinance 自动拉取最近 6Q IS 数据写入 `actuals-resolved.json`。

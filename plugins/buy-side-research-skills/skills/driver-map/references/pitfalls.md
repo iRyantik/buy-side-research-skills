@@ -81,3 +81,19 @@
 | 6 | residual D/E 列空白 | 脚本已修 |
 | 7 | Section 1 OP 投影列空白 | 脚本已加 OP fill |
 | 8 | 裸 `ws.cell().value` → 无 number_format | 用 `CF()` 替代；CHECK 17 拦截 |
+
+## Q 列
+
+- [ ] Q columns Q actual data 从 yfinance/financial-data 拉取，不手填
+- [ ] Q actual 值 A() 来自 quarters.segments，agent 不要编
+- [ ] vol_asp: unit_scale 已设——ASP 和 Volume 单位乘除后 = Revenue 单位
+- [ ] **unit scale gate**: gap >10% → 报警，检查 ASP 单位
+- [ ] **4Q complete FY**: Quarterly Check column Δ = Annual − QSum。Δ≠0 → 进入 calibration 调整
+
+## Q 已知坑
+
+| # | 坑 | 避法 |
+|---|---|---|
+| Q1 | unit_scale 导致 Rev 偏差 10x | 验算: Vol×ASP/scale ≈ anchor，gap>10% 检查 ASP 单位 |
+| Q2 | ASP 用 万 导致 scale 错 | ASP 和 Rev 同单位，避免 K/M 混淆 |
+| Q3 | Q actual 和 Q proj 混合 FY | Check column 显示 Δ，进入 calibration |

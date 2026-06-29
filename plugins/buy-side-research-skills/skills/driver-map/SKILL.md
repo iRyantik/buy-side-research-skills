@@ -402,6 +402,14 @@ python .scripts/driver-map/audit_style.py <output.xlsx>
 
 生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
+### ⛔ GATE 2.5: Q→FY Check
+
+如果 JSON 配置了 Q 列：
+1. 检查 X 列 (Q→FY Check) 的 Δ 值
+2. Δ > 1% → 进入 calibration: `references/calibration.md` §Quarterly Calibration
+3. 调 JSON `q_history` driver (vol_asp→Volume, yoy→YoY) → rebuild
+4. 循环直到 Δ < 1%
+
 ## Schema + Reference
 
 完整 schema → `references/json-schema.md`

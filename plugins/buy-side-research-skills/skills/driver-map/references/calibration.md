@@ -36,3 +36,15 @@ rev = (ai * 26 + auto * 10 + cons * 4.9) / 100  # 万元 → M
 print(f"Rev={rev:.0f}M, Anchor=450M, Gap={abs(rev-450)/450*100:.2f}%")
 # → Rev=450M, Anchor=450M, Gap=0.02% ✓
 ```
+
+## Quarterly Calibration
+
+Q→FY Check column 显示 Δ = Annual − QSum。Δ ≠ 0 时按 module 调整：
+
+| Module | 调整目标 | 不调 |
+|---|---|---|
+| vol_asp | Q Volume | ASP |
+| yoy | Q YoY Active | Revenue chain |
+| 其他 | 比例缩放 Q values | margin 结构 |
+
+流程：build → audit → check Q column Δ → Δ > 阈值 → 调 JSON q_history driver → rebuild → loop until Δ < 阈值。

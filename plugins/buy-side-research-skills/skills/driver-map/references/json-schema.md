@@ -153,3 +153,49 @@ Section 3 始终渲染全 P&L 链（GP→OP→EBITDA→EBIT→NI）。
 | Check GP | line 非 1:1（GM 为 I()） | `=seg_gp × split%` |
 | Check OP | seg 有 op | `=seg_op × split%` |
 | Check NI | seg 有 ni | `=seg_ni × split%` |
+
+## Quarterly Columns (v4.1+)
+
+### meta Q fields
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `q_actual_count` | int | 实际 Q 数。yfinance 数据量决定：≥4→4, 2-3→2, 1→1, 0→无Q列 |
+| `q_proj_count` | int | 投影 Q 数，默认 4（一个前瞻财年） |
+| `q_start_yr` | int | 最早 Q 列所属财年 |
+| `q_start_q` | int | 最早 Q 列所属季度号 (1-4) |
+
+### quarters (company-level)
+
+```json
+"quarters": {
+  "q1": {"rev": 480, "gp": 160, "op": -3, "ni": 213, "opex": 163, "da": 61, "tax": -225}
+}
+```
+
+### seg.quarters
+
+与 company quarters 同结构。缺失时从 segment annual 按比例估算。
+
+### ll.q_history
+
+Per-line Q actuals。vol_asp: volume + asp。yoy: rev。
+
+```json
+"q_history": {
+  "q1": {"volume": 0.55, "asp": 145},
+  "q2": {"volume": 0.60, "asp": 150}
+}
+```
+
+### Q 列生成
+
+Q 标签从 `q_start_yr/q_start_q` 自动生成。4Q25A, 1Q26A, 2Q26E... Q 和 Y 之间空 2 列。
+
+### Q→FY Check
+
+完整 4Q FY 自动在 X 列写入 `=Annual − QSum`。跳过 margins/YoY/rates/split%。
+
+### unit scale gate
+
+`validate_json()` 验算 vol_asp: `Vol_FY0 × ASP_FY0 / unit_scale` vs `seg_rev × split%`。gap >10% 报警。

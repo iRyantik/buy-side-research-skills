@@ -43,3 +43,15 @@
 - C1: `(CUR millions)` 或 `(CUR bn)`，italic
 - 冻结 D2，B1 下拉切换场景
 - build 后跑 `audit_style.py` 检查 General format / font / fill violation
+
+## Check Column (X col)
+
+完整 4Q FY 自动生成。每行 `=Annual − QSum`。跳过 margins/YoY/rates/BBE/empty。格式 `#,##0.0`，column group 折叠。
+
+## Q 列
+
+Q 和 Y 之间空 2 列（width=5），QoQ 行折叠隐藏。
+
+## Chinese sub-rows
+
+Section header 和 segment names 下一行 italic gray 中文翻译。
