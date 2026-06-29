@@ -18,9 +18,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import openpyxl
 from openpyxl.utils import get_column_letter
 
-NUM = '#,##0'
+NUM_FMTS = {'#,##0', '#,##0.0', '#,##0.00', '0.0x', '#,##0.0x'}
+PCT_FMTS = {'0.0%', '0%', '0.00%'}
 PCT = '0.0%'
-DEC = '#,##0.0'
+DEC = '#,##0.00'
 
 YELLOW_FILL = 'FFFFCC00'  # openpyxl stores ARGB
 GRAY_FILL = '00F0F0F0'
@@ -65,13 +66,13 @@ def audit(filepath):
             if (is_formula or is_numeric) and not skip:
                 is_pct_label = any(kw in c3 for kw in PCT_KEYWORDS) if c3 else False
                 is_pct_col2 = any(kw in c2 for kw in PCT_KEYWORDS) if c2 else False
-                if (is_pct_label or is_pct_col2) and nf not in (PCT, '0%', '0.00%', '0.0%'):
+                if (is_pct_label or is_pct_col2) and nf not in PCT_FMTS:
                     warnings.append(f'{loc}: likely PCT cell (label "{c3}") has fmt {nf}')
 
             # ── NUM label but not NUM format (only if not already PCT format) ──
-            if is_formula and not skip and nf not in (PCT, '0%', '0.00%', '0.0%'):
+            if is_formula and not skip and nf not in PCT_FMTS:
                 is_num_label = any(kw in c3 for kw in NUM_KEYWORDS) if c3 else False
-                if is_num_label and '#' not in nf and nf not in (NUM, DEC, '#,##0.0', '#,##0', '0.0x') and nf != 'General':
+                if is_num_label and nf not in NUM_FMTS and '#' not in nf:
                     warnings.append(f'{loc}: likely NUM cell (label "{c3}") has fmt {nf}')
 
             # ── Font check (skip headers) ──

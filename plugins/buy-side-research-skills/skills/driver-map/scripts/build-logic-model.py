@@ -52,7 +52,7 @@ class Ref:
     def __repr__(self): return f'Ref({self._r}, {self._label!r})'
 
 # ── Format constants ──
-PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'
+PCT = '0.0%'; NUM = '#,##0.0'; DEC = '#,##0.00'; INT = '#,##0'
 PRICE_FMT = {'cn': '¥#,##0.00', 'jp': '¥#,##0', 'kr': '₩#,##0', 'tw': 'NT$#,##0.00',
              'us': '$#,##0.00', 'hk': 'HK$#,##0.00', 'sg': 'S$#,##0.00'}
 DS = 4
@@ -114,7 +114,7 @@ def make_ctx():
     return {
         'C': C, 'I': I, 'A': A, 'CF': CF, 'HL': HL,
         'nf': nf, 'bf': bf, 'itf': itf,
-        'NUM': NUM, 'DEC': DEC, 'PCT': PCT,
+        'NUM': NUM, 'DEC': DEC, 'PCT': PCT, 'INT': INT,
         'DS': DS, 'FY0': 0, 'LC': 0,
         'proj_n': 0,
     }
@@ -266,8 +266,6 @@ def build(json_path, output_path=None):
     C(ws, 1, 3, f'({meta.get("currency","CNY")} {unit_label})', font=itf)
 
     # module context
-    if use_B:
-        globals()['NUM'] = '#,##0.0'; globals()['DEC'] = '#,##0.00'
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC; ctx['SC'] = SC; ctx['proj_n'] = proj_n
     ctx['COLS'] = COLS; ctx['bfyr'] = bfyr

@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v6.5.14 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.6.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 

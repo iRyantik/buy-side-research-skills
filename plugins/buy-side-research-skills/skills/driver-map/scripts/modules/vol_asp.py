@@ -16,7 +16,7 @@ def render(ws, R, ll, anchor_info, ctx):
     """Render one vol_asp logic line. Returns row references dict."""
     C = ctx['C']; I = ctx['I']; A = ctx.get('A', C); CF = ctx.get('CF', C); HL = ctx.get('HL', C)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
+    NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']; INT = ctx['INT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
     proj_n = ctx['proj_n']; bfyr = ctx['bfyr']
 
@@ -32,11 +32,11 @@ def render(ws, R, ll, anchor_info, ctx):
 
     # ── Volume row ──
     for yr_h, col in [(H2, DS), (H1, DS + 1)]:
-        if yr_h.get('volume'): I(ws, R, col, yr_h['volume'], fmt=NUM)
-        else: C(ws, R, col, '', fmt=NUM)
-    I(ws, R, FY0, v0, fmt=NUM)
+        if yr_h.get('volume'): I(ws, R, col, yr_h['volume'], fmt=INT)
+        else: C(ws, R, col, '', fmt=INT)
+    I(ws, R, FY0, v0, fmt=INT)
     for i, v in enumerate(vp):
-        I(ws, R, FY0 + 1 + i, v, fmt=NUM)
+        I(ws, R, FY0 + 1 + i, v, fmt=INT)
     C(ws, R, 2, ln, font=bf)
     HL(ws, R, 3, f'Volume ({vol["unit"]})')
     vol_r = R; R += 1
@@ -45,10 +45,10 @@ def render(ws, R, ll, anchor_info, ctx):
     cap_r = 0
     if cap:
         for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=NUM)
-        I(ws, R, FY0, cap['fy0'], fmt=NUM)
+            C(ws, R, ci, '', fmt=INT)
+        I(ws, R, FY0, cap['fy0'], fmt=INT)
         for i, v in enumerate(cap['proj']):
-            I(ws, R, FY0 + 1 + i, v, fmt=NUM)
+            I(ws, R, FY0 + 1 + i, v, fmt=INT)
         C(ws, R, 3, f'  Nameplate Capacity ({cap["unit"]})', font=itf)
         cap_r = R; R += 1
 
