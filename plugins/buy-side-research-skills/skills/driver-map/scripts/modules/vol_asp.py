@@ -14,7 +14,7 @@ from openpyxl.comments import Comment
 
 def render(ws, R, ll, anchor_info, ctx):
     """Render one vol_asp logic line. Returns row references dict."""
-    C = ctx['C']; I = ctx['I']
+    C = ctx['C']; I = ctx['I']; A = ctx.get('A', C); CF = ctx.get('CF', C); HL = ctx.get('HL', C)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
@@ -24,17 +24,21 @@ def render(ws, R, ll, anchor_info, ctx):
     vol = ll['volume']; tiers = ll['tiers']
     v0 = vol['fy0']; vp = vol['proj']
     cap = ll.get('capacity')
-    scale = ll.get('unit_scale', 100)  # default 100: ASP(万/t)×Vol(t)/100→Rev(M). JP/KR set 1
+    scale = ll.get('unit_scale', 100)
     asp_unit = ll.get('asp_unit', '万/t')
+    # History layer: fy-2 (col DS) and fy-1 (col DS+1)
+    hist_all = ll.get('history', {})
+    H2 = hist_all.get('fy-2', {}); H1 = hist_all.get('fy-1', {})
 
-    # ── Volume row (first row, carries line name) ──
-    for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=NUM)
+    # ── Volume row ──
+    for yr_h, col in [(H2, DS), (H1, DS + 1)]:
+        if yr_h.get('volume'): I(ws, R, col, yr_h['volume'], fmt=NUM)
+        else: C(ws, R, col, '', fmt=NUM)
     I(ws, R, FY0, v0, fmt=NUM)
     for i, v in enumerate(vp):
         I(ws, R, FY0 + 1 + i, v, fmt=NUM)
     C(ws, R, 2, ln, font=bf)
-    C(ws, R, 3, f'Volume ({vol["unit"]})')
+    HL(ws, R, 3, f'Volume ({vol["unit"]})')
     vol_r = R; R += 1
 
     # ── Nameplate Capacity + Utilization (if capacity field exists) ──
@@ -93,17 +97,21 @@ def render(ws, R, ll, anchor_info, ctx):
             base = t.get('asp_base', [])
             bear = t.get('asp_bear', [])
 
-            for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=NUM)
+            # ASP history + Active
+            asp_h_2 = H2.get(f'{tn}_asp'); asp_h_1 = H1.get(f'{tn}_asp')
+            for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
+                if h_val: I(ws, R, col, h_val, fmt=DEC)
+                else: C(ws, R, col, '', fmt=NUM)
             for ci in range(FY0, LC + 1):
                 C(ws, R, ci, 0, fmt=NUM)
-            C(ws, R, 3, f'  {tn} ASP Active ({asp_unit})', font=itf)
+            HL(ws, R, 3, f'  {tn} ASP Active ({asp_unit})')
             asp_a_r = R; R += 1
 
             asp_b_r = asp_bs_r = asp_be_r = 0
             for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
-                for ci in range(DS, DS + 2):
-                    C(ws, R, ci, '', fmt=NUM)
+                for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
+                    if h_val: I(ws, R, col, h_val, fmt=DEC)
+                    else: C(ws, R, col, '', fmt=NUM)
                 I(ws, R, FY0, arr[0] if arr else 0, fmt=DEC)
                 for i, v in enumerate(arr[1:] if len(arr) > 1 else []):
                     if i < proj_n:
@@ -120,14 +128,12 @@ def render(ws, R, ll, anchor_info, ctx):
             # ASP Active formula
             f0_val = base[0] if base else 0
             cll = FY0
-            ws.cell(row=asp_a_r, column=cll).value = f0_val
-            ws.cell(row=asp_a_r, column=cll).font = nf
-            ws.cell(row=asp_a_r, column=cll).number_format = DEC
+            C(ws, asp_a_r, cll, f0_val, fmt=DEC)
             for i in range(proj_n):
                 ci = FY0 + 1 + i
                 cl = get_column_letter(ci)
-                ws.cell(row=asp_a_r, column=ci).value = \
-                    f'=IF(B1="Bull",{cl}{asp_b_r},IF(B1="Bear",{cl}{asp_be_r},{cl}{asp_bs_r}))'
+                CF(ws, asp_a_r, ci,
+                   f'=IF(B1="Bull",{cl}{asp_b_r},IF(B1="Bear",{cl}{asp_be_r},{cl}{asp_bs_r}))', fmt=DEC)
 
             asp_rows.append(asp_a_r)
             tier_bbe.append((t_idx, asp_a_r, asp_b_r, asp_bs_r, asp_be_r))
@@ -141,19 +147,28 @@ def render(ws, R, ll, anchor_info, ctx):
             elif afy0 is None:
                 afy0 = 0
 
-            for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=NUM)
+            asp_h_2 = H2.get(f'{tn}_asp'); asp_h_1 = H1.get(f'{tn}_asp')
+            for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
+                if h_val: I(ws, R, col, h_val, fmt=DEC)
+                else: C(ws, R, col, '', fmt=NUM)
             I(ws, R, FY0, afy0, fmt=DEC)
             for i, v in enumerate(ap):
                 if i < proj_n:
                     I(ws, R, FY0 + 1 + i, v, fmt=DEC)
-            C(ws, R, 3, f'  {tn} ASP ({asp_unit})', font=itf)
+            HL(ws, R, 3, f'  {tn} ASP ({asp_unit})')
             asp_rows.append(R)
             R += 1
             tier_bbe.append(None)
 
     # ── Revenue formula row ──
     rev_r = R
+    # History columns: =Vol × ASP / scale if data exists
+    for col, h_key in [(DS, H2), (DS + 1, H1)]:
+        cl = get_column_letter(col)
+        if h_key.get('volume') and asp_rows:
+            C(ws, R, col, f'=({cl}{vol_r}*{cl}{asp_rows[0]})/{scale}', fmt=NUM)
+        else:
+            C(ws, R, col, '', fmt=NUM)
     for col_idx in [FY0] + [FY0 + 1 + i for i in range(proj_n)]:
         cl = get_column_letter(col_idx)
         parts = []
@@ -167,21 +182,7 @@ def render(ws, R, ll, anchor_info, ctx):
             else:
                 parts.append(f'({cl}{vol_r}*{cl}{share_rows[ti]}*{ac})')
         C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/' + str(scale), fmt=NUM)
-    for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
-    R += 1
-
-    # ── Check row (collapsible) ──
-    s1r, s1v = anchor_info.get(ln, (0, 0))
-    for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=NUM)
-    if s1r:
-        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, 3, f'  Check (anchor {s1v}M)', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
 
     # ── Scenario Revenue (cached, for Scenario Summary) ──
@@ -219,9 +220,10 @@ def render(ws, R, ll, anchor_info, ctx):
     f0 = get_column_letter(FY0)
     f_1 = get_column_letter(FY0 - 1)
     C(ws, R, FY0, f'=IFERROR({f0}{rev_r}/{f_1}{rev_r}-1,"")', fmt=PCT)
+    cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({cl_e}{rev_r}/{cl_d}{rev_r}-1,"")', fmt=PCT)
     for ci in range(FY0 + 1, LC + 1):
-        cl = get_column_letter(ci)
-        pl = get_column_letter(ci - 1)
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
     C(ws, R, 3, 'Implied YoY')
     R += 1
@@ -236,6 +238,8 @@ def render(ws, R, ll, anchor_info, ctx):
         'share_rows': share_rows,
         'asp_rows': asp_rows,
         'module': 'vol_asp',
+        # For history Revenue formula: first tier's ASP row (simple or Active)
+        'asp_h_r': asp_rows[0] if asp_rows else 0,
     }
     if yb:
         result['yb'] = yb

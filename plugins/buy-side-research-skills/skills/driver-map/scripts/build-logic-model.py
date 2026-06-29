@@ -12,7 +12,7 @@ Sections:
   §2→§1 Fill                  Back-link Section 1 from logic line results
   §3 P&L                      Total Rev/GP = Σ formulas + Check rows (collapsible)
                                 Opex/Tax/NI hardcode FY23-25, formula FY26+
-                                Depth switch (gp/ebitda/ebit/ni) controls row count
+                                Full P&L always shown (SOTP needs all metrics)
                                 D&A/EBITDA/EBIT per actuals.da + Rev YoY row
   §4 SOTP Logic               Per line: GP → metric alloc → multiple → MCap → SUM
   §5 SOTP Segments            Segment weighted multiple
@@ -34,12 +34,22 @@ Format: no gridlines, Calibri 11, yellow+blue inputs, selective C-column bold,
 validate_json() runs before build — checks depth, method, array lengths, required fields.
 """
 
-import json, argparse, codecs
+import json, argparse, codecs, functools
 import yfinance as yf
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Color
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+
+# ── Row reference: wraps int row number for safety + traceability ──
+class Ref:
+    __slots__ = ('_r', '_label')
+    def __init__(self, row, label=''):
+        self._r = row; self._label = label
+    def __int__(self): return self._r
+    def __index__(self): return self._r
+    def __str__(self): return str(self._r)
+    def __repr__(self): return f'Ref({self._r}, {self._label!r})'
 
 # ── Format constants ──
 PCT = '0.0%'; NUM = '#,##0'; DEC = '#,##0.0'
@@ -55,6 +65,8 @@ itf  = Font(name='Calibri', size=10, italic=True, color='808080')
 inpf = Font(name='Calibri', size=11, color='0000CC')
 inpfill = PatternFill('solid', fgColor='FFFFCC')
 actfill = PatternFill('solid', fgColor='F0F0F0')
+hlfill = PatternFill('solid', fgColor='963634')
+hlfont = Font(name='Calibri', bold=True, size=11, color=Color(rgb='FFFFFF'))
 
 # ── Shared cell helpers ──
 def C(ws, r, c, v=None, font=None, fill=None, fmt=None):
@@ -72,10 +84,35 @@ def I(ws, r, c, v, fmt=None):
 def A(ws, r, c, v, fmt=None):
     C(ws, r, c, v, fill=actfill, fmt=fmt)
 
+def CF(ws, r, c, formula, fmt=None):
+    """Write a formula cell — black font, no fill, guaranteed number_format."""
+    C(ws, r, c, formula, fmt=fmt)
+
+def HL(ws, r, c, v=None, fmt=None):
+    """Highlight cell — deep red bg + white bold font."""
+    C(ws, r, c, v, font=hlfont, fill=hlfill, fmt=fmt)
+
+def BOLD(ws, r, c, v=None, fmt=None):
+    """Bold key metric — black bold font."""
+    C(ws, r, c, v, font=bf, fmt=fmt)
+
+# ── Module contract decorator ──
+RENDER_CONTRACT = {'next_R', 'rev_r', 'gm_r', 'gp_r', 'module'}
+
+def validate_contract(fn):
+    @functools.wraps(fn)
+    def wrapper(ws, R, ll, anchor_info, ctx):
+        result = fn(ws, R, ll, anchor_info, ctx)
+        missing = RENDER_CONTRACT - set(result.keys())
+        if missing:
+            raise ValueError(f'{fn.__name__}: missing contract keys {missing}')
+        return result
+    return wrapper
+
 # ── Context dict passed to modules ──
 def make_ctx():
     return {
-        'C': C, 'I': I,
+        'C': C, 'I': I, 'A': A, 'CF': CF, 'HL': HL,
         'nf': nf, 'bf': bf, 'itf': itf,
         'NUM': NUM, 'DEC': DEC, 'PCT': PCT,
         'DS': DS, 'FY0': 0, 'LC': 0,
@@ -83,89 +120,17 @@ def make_ctx():
     }
 
 # ═══════════════════════════════════════════════════════════════
-# Built-in: base yoy template
-# ═══════════════════════════════════════════════════════════════
-
-def render_yoy(ws, R, ll, anchor_info, ctx):
-    """Base yoy: Revenue = Section 1 ref, YoY Active (BBE group)."""
-    C = ctx['C']; I = ctx['I']
-    nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
-    NUM = ctx['NUM']; PCT = ctx['PCT']
-    DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
-    proj_n = ctx['proj_n']
-
-    ln = ll['name']
-    yoy = ll['yoy']
-    bull = yoy['bull']; base = yoy['base']; bear = yoy['bear']
-    s1r, _ = anchor_info.get(ln, (0, 0))
-
-    # ── Revenue (FY25A = Section 1 ref) ──
-    for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
-    rev_r = R
-    C(ws, R, 2, ln, font=bf)
-    C(ws, R, 3, 'Revenue')
-    R += 1
-
-    # ── YoY Active (FY25A blank, FY26E+ formula) ──
-    ya = R
-    for ci in range(DS, FY0):
-        C(ws, R, ci, '', fmt=PCT)
-    C(ws, R, FY0, '', fmt=PCT)
-    for i in range(proj_n):
-        C(ws, R, FY0 + 1 + i, 0, fmt=PCT)
-    C(ws, R, 3, 'YoY')
-    R += 1
-
-    # ── BBE YoY hidden rows ──
-    yb = ys = ye = 0
-    for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=PCT)
-        C(ws, R, FY0, '', fmt=PCT)
-        for i, v in enumerate(arr):
-            I(ws, R, FY0 + 1 + i, v, fmt=PCT)
-        C(ws, R, 3, f'  {label}', font=itf)
-        ws.row_dimensions[R].hidden = True
-        if label == 'Bull':   yb = R
-        elif label == 'Base': ys = R
-        elif label == 'Bear': ye = R
-        R += 1
-
-    ws.row_dimensions.group(yb, ye, outline_level=1, hidden=True)
-
-    # ── YoY Active formulas + Revenue FY26+ formulas ──
-    for i in range(proj_n):
-        ci = FY0 + 1 + i
-        cl = get_column_letter(ci)
-        ws.cell(row=ya, column=ci).value = \
-            f'=IF(B1="Bull",{cl}{yb},IF(B1="Bear",{cl}{ye},{cl}{ys}))'
-        ws.cell(row=rev_r, column=FY0 + 1 + i).value = \
-            f'={get_column_letter(FY0 + i)}{rev_r}*(1+{cl}{ya})'
-
-    return {
-        'next_R': R,
-        'rev_r': rev_r,
-        'gm_r': None,
-        'gp_r': None,
-        'yb': yb, 'ybs': ys, 'ybe': ye, 'ya': ya,
-        'module': 'yoy',
-    }
-
-
-# ═══════════════════════════════════════════════════════════════
 # Module registry
 # ═══════════════════════════════════════════════════════════════
 
-MODULES = {
-    'yoy': render_yoy,
-}
+MODULES = {}
 
 # Lazy imports for external modules
 def _load_module(name):
     if name not in MODULES:
-        if name == 'vol_asp':
+        if name == 'yoy':
+            from modules.yoy import render as fn
+        elif name == 'vol_asp':
             from modules.vol_asp import render as fn
         elif name == 'backlog_burn':
             from modules.backlog_burn import render as fn
@@ -262,9 +227,11 @@ def build(json_path, output_path=None):
     fwd_pe = info.get('forwardPE', 0) or 0
     hi52 = info.get('fiftyTwoWeekHigh', 0) or 0
     lo52 = info.get('fiftyTwoWeekLow', 0) or 0
-    mcap_M = int(mcap_raw / 1e6) if mcap_raw else 0
-    if not mcap_M and meta.get('mcap_m'):
-        mcap_M = meta['mcap_m']
+    # Manual overrides from meta take priority over yfinance
+    if meta.get('mcap_m'): mcap_M = meta['mcap_m']
+    else: mcap_M = int(mcap_raw / 1e6) if mcap_raw else 0
+    if meta.get('price'): price = meta['price']
+    if meta.get('shares_m'): shares = meta['shares_m']
     # Unit: explicit override > market heuristic > auto
     if 'unit' in meta:
         use_B = meta['unit'] == 'B'
@@ -299,81 +266,155 @@ def build(json_path, output_path=None):
     C(ws, 1, 3, f'({meta.get("currency","CNY")} {unit_label})', font=itf)
 
     # module context
+    if use_B:
+        globals()['NUM'] = '#,##0.0'; globals()['DEC'] = '#,##0.00'
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC; ctx['SC'] = SC; ctx['proj_n'] = proj_n
     ctx['COLS'] = COLS; ctx['bfyr'] = bfyr
 
+    print(f'  Cols: D=DS({DS}) FY0={get_column_letter(FY0)}({FY0}) '
+          f'LC={get_column_letter(LC)}({LC}) SC={get_column_letter(SC)}({SC}) '
+          f'proj_n={proj_n} B_mode={use_B} div={div}')
+
     # ═══════════════ §1 Reported Segments ═══════════════
     R = 3
     C(ws, R, 1, 'Reported Segments', font=bf12)
+    s1_start = R  # include header row
     R = 5
     seg_info = {}
-    anchor_info = {}  # logic_fy25 renamed: {ln: (Section1_Rev_row, value_in_M)}
+    anchor_info = {}  # {ln: (Section1_Rev_row, value_in_M)}
+    one_to_one = set()  # logic lines where segment=line (split=1.0, no residual)
+    line_to_seg = {}    # {ln: seg_name}
+    line_to_split = {}  # {ln: split_row}
 
     for seg in segments:
         sn = seg['name']; fy0 = seg['fy0']; lls = seg['logic_lines']
         srev = fy0['rev']; scost = fy0['cost']; sgp = fy0['gp']; sgm = fy0['gm']
+        # History layer: fy-2 (FY23) and fy-1 (FY24). Optional — leave empty if segment didn't exist.
+        hist_years = [('fy-2', DS), ('fy-1', DS + 1)]
 
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=NUM)
+        # Revenue
+        for yr_key, col in hist_years:
+            yr = seg.get(yr_key)
+            if yr: A(ws, R, col, sc(yr['rev']), fmt=NUM)
+            else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(srev), fmt=NUM)
         rev_r = R
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'Revenue')
         R += 1
 
+        # Chinese translation sub-row (if provided)
+        sn_cn = seg.get('name_cn', '')
+        if sn_cn:
+            C(ws, R, 2, sn_cn, font=itf)
+            for ci in range(DS, LC + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            R += 1
+
         # Implied YoY
+        for yr_key, col in hist_years:
+            C(ws, R, col, '', fmt=PCT)
+        # E column: FY2025 vs FY2024
+        cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
+        C(ws, R, DS + 1, f'=IFERROR({cl_e}{rev_r}/{cl_d}{rev_r}-1,"")', fmt=PCT)
         f0 = get_column_letter(FY0); f_1 = get_column_letter(FY0 - 1)
         C(ws, R, FY0, f'=IFERROR({f0}{rev_r}/{f_1}{rev_r}-1,"")', fmt=PCT)
         for ci in range(FY0 + 1, LC + 1):
             cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
             C(ws, R, ci, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=PCT)
         C(ws, R, 3, 'Implied YoY')
         R += 1
 
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=NUM)
+        # Cost
+        for yr_key, col in hist_years:
+            yr = seg.get(yr_key)
+            if yr: A(ws, R, col, sc(yr['cost']), fmt=NUM)
+            else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(scost), fmt=NUM)
         cost_r = R
         C(ws, R, 3, 'Cost')
         R += 1
 
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=NUM)
+        # GM (before GP — placeholder, fixed below)
+        for yr_key, col in hist_years:
+            C(ws, R, col, '', fmt=PCT)  # placeholder
+        C(ws, R, FY0, 0, fmt=PCT)
+        gm_r = R
+        C(ws, R, 3, 'GM')
+        R += 1
+
+        # GP
+        for yr_key, col in hist_years:
+            yr = seg.get(yr_key)
+            if yr: A(ws, R, col, sc(yr['gp']), fmt=NUM)
+            else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(sgp), fmt=NUM)
         gp_r = R
         C(ws, R, 3, 'GP')
         R += 1
 
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=PCT)
-        C(ws, R, FY0, f'=IFERROR({get_column_letter(FY0)}{gp_r}/{get_column_letter(FY0)}{rev_r},"")', fmt=PCT)
-        gm_r = R
-        C(ws, R, 3, 'GM')
-        R += 1
+        # OP row (if segment discloses operating profit)
+        fy0_op = fy0.get('op')
+        op_r = 0
+        if fy0_op is not None:
+            for yr_key, col in hist_years:
+                yr = seg.get(yr_key)
+                if yr and yr.get('op') is not None: A(ws, R, col, sc(yr['op']), fmt=NUM)
+                else: C(ws, R, col, '', fmt=NUM)
+            A(ws, R, FY0, sc(fy0_op), fmt=NUM)
+            op_r = R
+            C(ws, R, 3, 'OP')
+            R += 1
+            # OP YoY
+            for yr_key, col in hist_years:
+                C(ws, R, col, '', fmt=PCT)
+            CF(ws, R, DS + 1, f'=IFERROR({get_column_letter(DS+1)}{op_r}/{get_column_letter(DS)}{op_r}-1,"")', fmt=PCT)
+            CF(ws, R, FY0, f'=IFERROR({get_column_letter(FY0)}{op_r}/{get_column_letter(FY0-1)}{op_r}-1,"")', fmt=PCT)
+            for ci in range(FY0 + 1, LC + 1):
+                cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+                C(ws, R, ci, f'=IFERROR({cl}{op_r}/{pl}{op_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, 'OP YoY')
+            R += 1
+            # OPM
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{op_r}/{cl}{rev_r},"")', fmt=PCT)
+            C(ws, R, 3, 'OPM')
+            R += 1
+
+        # Fix GM formulas for all years: =GP/Rev
+        cl_f0 = get_column_letter(FY0)
+        CF(ws, gm_r, FY0, f'=IFERROR({cl_f0}{gp_r}/{cl_f0}{rev_r},"")', fmt=PCT)
+        for yr_key, col in hist_years:
+            cl = get_column_letter(col)
+            if seg.get(yr_key):
+                CF(ws, gm_r, col, f'=IFERROR({cl}{gp_r}/{cl}{rev_r},"")', fmt=PCT)
 
         srows = []; lrevs = {}
         for l in lls:
             ln = l['name']; sp = l['split']
-            for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=PCT)
-            I(ws, R, FY0, sp, fmt=PCT)
+            # Split% — same value across all historical years + FY0
+            for col in (DS, DS + 1, FY0):
+                I(ws, R, col, sp, fmt=PCT)
             C(ws, R, 3, f'  {ln} %', font=itf)
             srows.append(R); R += 1
             lr = round(srev * sp)
             anchor_info[ln] = (R, sc(lr))
-            C(ws, R, 3, f'  {ln} FY25A Rev', font=itf)
-            rev_cell = f'={get_column_letter(FY0)}{rev_r}*{get_column_letter(FY0)}{srows[-1]}'
-            C(ws, R, FY0, rev_cell, fmt=NUM)
+            C(ws, R, 3, f'  {ln} FY{bfyr}A Rev', font=itf)
+            split_row = srows[-1]
+            line_to_seg[ln] = sn
+            line_to_split[ln] = split_row
+            for col in (DS, DS + 1, FY0):
+                cl = get_column_letter(col)
+                CF(ws, R, col, f'={cl}{rev_r}*{cl}{split_row}', fmt=NUM)
             lrevs[ln] = R; R += 1
 
         if srows:
-            for ci in range(DS, DS + 2):
-                C(ws, R, ci, '', fmt=PCT)
-            refs = '+'.join([f'{get_column_letter(FY0)}{sr}' for sr in srows])
-            C(ws, R, FY0, f'=1-({refs})', fmt=PCT)
+            for col in (DS, DS + 1, FY0):
+                cl = get_column_letter(col)
+                refs = '+'.join([f'{cl}{sr}' for sr in srows])
+                CF(ws, R, col, f'=1-({refs})', fmt=PCT)
             C(ws, R, 3, '  residual %', font=itf)
             res_row = R; R += 1
         else:
@@ -383,13 +424,26 @@ def build(json_path, output_path=None):
             'rev': rev_r, 'cost': cost_r, 'gp': gp_r, 'gm': gm_r,
             'split_rows': srows, 'lrev_rows': lrevs, 'res_row': res_row,
         }
+        if op_r: seg_info[sn]['op'] = op_r
+        # Mark yoy 1:1 lines (segment=line, no residual, no vol_asp fit)
+        if len(lls) == 1 and lls[0]['split'] == 1.0:
+            one_to_one.add(lls[0]['name'])
+
+    # Detect deepest profit level disclosed across all segments (numeric ordering)
+    DEPTH_RANK = {'gp': 0, 'op': 1, 'ni': 2}
+    max_seg_depth = 0
+    for seg in segments:
+        fy0 = seg.get('fy0', {})
+        if fy0.get('op') is not None and DEPTH_RANK['op'] > max_seg_depth: max_seg_depth = DEPTH_RANK['op']
+        if fy0.get('ni') is not None and DEPTH_RANK['ni'] > max_seg_depth: max_seg_depth = DEPTH_RANK['ni']
 
     # ═══════════════ §2 Logic Lines ═══════════════
+    s1_end = R  # Section 1 rows end here
     R += 1
     C(ws, R, 1, 'Logic Lines', font=bf12)
     R += 1
     L = {}
-
+    protected_rows = set()
     for ll in logic_lines:
         ln = ll['name']
         module_name = ll.get('module', 'yoy')
@@ -400,15 +454,37 @@ def build(json_path, output_path=None):
 
         result = render_fn(ws, R, ll, anchor_info, ctx)
         R = result['next_R']
+        line_op_r = 0  # may be set by per-line profit chain below
+
+        # ── Resolve line→segment (O(1) via dict) ──
+        seg_name = line_to_seg.get(ln, '')
+        si = seg_info.get(seg_name, {})
+        s1_gp_row = si.get('gp', 0)
+        s1_rev_row = si.get('rev', 0)
+        split_r = line_to_split.get(ln, 0)
+        lrev_row = si.get('lrev_rows', {}).get(ln, 0)
+        seg_obj = None
+        for s in segments:
+            if s['name'] == seg_name:
+                seg_obj = s
+                break
 
         # ── Common: GM + GP (all modules) ──
         gm = ll['gm']
-        if gm.get('fy0'):
-            C(ws, R, FY0, gm['fy0'], fmt=PCT)
+        if ln in one_to_one:
+            # 1:1 → S1 formula for history + FY0
+            for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]:
+                if col == FY0 or (seg_obj and seg_obj.get(yr_key)):
+                    cl = get_column_letter(col)
+                    C(ws, R, col, f'=IFERROR({cl}{si["gp"]}/{cl}{si["rev"]},"")', fmt=PCT)
+        else:
+            # Non-1:1 → I() assumption: all years from gm
+            for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1)]:
+                if gm.get(yr_key): I(ws, R, col, gm[yr_key], fmt=PCT)
+                else: C(ws, R, col, '', fmt=PCT)
+            if gm.get('fy0'): I(ws, R, FY0, gm['fy0'], fmt=PCT)
         for i, v in enumerate(gm['proj']):
             I(ws, R, FY0 + 1 + i, v, fmt=PCT)
-        for ci in range(DS, DS + 2):
-            C(ws, R, ci, '', fmt=PCT)
         C(ws, R, 3, 'GM')
         gm_r = R; R += 1
 
@@ -418,10 +494,146 @@ def build(json_path, output_path=None):
         C(ws, R, 3, 'GP')
         gp_r = R; R += 1
 
+        # ── Check rows: anchor reference for reconciliation ──
+        rev_module = ll.get('module', 'yoy')
+        needs_rev_check = rev_module in ('vol_asp', 'backlog_burn', 'capacity_util')
+        needs_gp_check = ln not in one_to_one
+        hist_rev_ok = lrev_row and s1_rev_row and split_r
+        hist_gp_ok = lrev_row and s1_gp_row and split_r
+
+        if needs_rev_check:
+            for col in (DS, DS + 1):
+                cl = get_column_letter(col)
+                if hist_rev_ok:
+                    C(ws, R, col, f'={cl}{lrev_row}', fmt=NUM)
+                else:
+                    C(ws, R, col, '', fmt=NUM)
+            if hist_rev_ok:
+                C(ws, R, FY0, f'={get_column_letter(FY0)}{lrev_row}', fmt=NUM)
+            for ci in range(FY0 + 1, LC + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            gm_fy0 = gm.get('fy0', 0)
+            gm_label = f' ({gm_fy0:.0%} GM)' if gm_fy0 else ''
+            C(ws, R, 3, f'  Check Rev{gm_label}', font=itf)
+            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+            R += 1
+
+        if needs_gp_check:
+            for col in (DS, DS + 1):
+                cl = get_column_letter(col)
+                if hist_gp_ok:
+                    C(ws, R, col, f'={cl}{s1_gp_row}*{cl}{split_r}', fmt=NUM)
+                else:
+                    C(ws, R, col, '', fmt=NUM)
+            if hist_gp_ok:
+                C(ws, R, FY0, f'={get_column_letter(FY0)}{s1_gp_row}*{get_column_letter(FY0)}{split_r}', fmt=NUM)
+            for ci in range(FY0 + 1, LC + 1):
+                C(ws, R, ci, '', fmt=NUM)
+            seg_gm = seg_obj['fy0']['gm'] if seg_obj and seg_obj.get('fy0', {}).get('gm') else 0
+            seg_gm_label = f' ({seg_gm:.0%} seg GM)' if seg_gm else ''
+            C(ws, R, 3, f'  Check GP{seg_gm_label}', font=itf)
+            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+            R += 1
+
+        # ── Per-line profit chain (gated by segment disclosure depth) ──
+        if max_seg_depth >= DEPTH_RANK['op']:
+            # Opex rate (per-line fallback to global)
+            line_opex = ll.get('opex_rate')
+            opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
+            _ope_r = R
+            for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
+                if yr_i < len(opex_rates):
+                    I(ws, R, col, opex_rates[yr_i], fmt=PCT)
+                else:
+                    C(ws, R, col, '', fmt=PCT)
+            for i in range(proj_n):
+                ri = 3 + i
+                if ri < len(opex_rates):
+                    I(ws, R, FY0 + 1 + i, opex_rates[ri], fmt=PCT)
+            C(ws, R, 3, '  Opex / Rev', font=itf)
+            R += 1
+            # Opex
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'={cl}{result["rev_r"]}*{cl}{_ope_r}', fmt=NUM)
+            C(ws, R, 3, '  Opex', font=itf)
+            R += 1
+            # OP
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'={cl}{gp_r}-{cl}{R - 1}', fmt=NUM)
+            C(ws, R, 3, '  OP', font=bf)
+            line_op_r = R; R += 1
+            # OPM
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{cl}{result["rev_r"]},"")', fmt=PCT)
+            C(ws, R, 3, '  OPM', font=itf)
+            R += 1
+
+            # Check OP (if segment discloses OP)
+            seg_op_row = si.get('op', 0)
+            if seg_op_row and split_r:
+                for col in (DS, DS + 1):
+                    cl = get_column_letter(col)
+                    if hist_gp_ok:
+                        C(ws, R, col, f'={cl}{seg_op_row}*{cl}{split_r}', fmt=NUM)
+                    else:
+                        C(ws, R, col, '', fmt=NUM)
+                if hist_gp_ok:
+                    C(ws, R, FY0, f'={get_column_letter(FY0)}{seg_op_row}*{get_column_letter(FY0)}{split_r}', fmt=NUM)
+                for ci in range(FY0 + 1, LC + 1):
+                    C(ws, R, ci, '', fmt=NUM)
+                C(ws, R, 3, '  Check OP', font=itf)
+                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+                R += 1
+
+        if max_seg_depth >= DEPTH_RANK['ni']:
+            # Tax rate (per-line optional override, fallback to global scalar)
+            line_tax = ll.get('tax_rate')
+            if line_tax and isinstance(line_tax, list):
+                _tax_r = R
+                for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
+                    if yr_i < len(line_tax):
+                        C(ws, R, col, line_tax[yr_i], fmt=PCT)
+                    else:
+                        C(ws, R, col, '', fmt=PCT)
+                for i in range(proj_n):
+                    ri = 3 + i
+                    if ri < len(line_tax):
+                        I(ws, R, FY0 + 1 + i, line_tax[ri], fmt=PCT)
+                C(ws, R, 3, '  Tax rate', font=itf)
+                R += 1
+            else:
+                _tax_r = 0
+            tax_val = _tax_r if _tax_r else gl.get('tax_rate', 0)
+            # Tax
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                if _tax_r:
+                    C(ws, R, ci, f'={cl}{line_op_r}*{cl}{_tax_r}', fmt=NUM)
+                else:
+                    C(ws, R, ci, f'={cl}{line_op_r}*{tax_val}', fmt=NUM)
+            C(ws, R, 3, '  Tax', font=itf)
+            R += 1
+            # NI
+            for ci in range(DS, LC + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'={cl}{line_op_r}-{cl}{R - 1}', fmt=NUM)
+            C(ws, R, 3, '  NI', font=bf)
+            R += 1
+
         result['gm_r'] = gm_r
         result['gp_r'] = gp_r
+        result['op_r'] = line_op_r
         result['next_R'] = R
         L[ln] = result
+        # Protect Rev, GM, GP, Check and per-line profit from D/E clear
+        protected_rows.update([result['rev_r'], gm_r, gp_r])
+        for scan_r in range(result['rev_r'], R):
+            cv = str(ws.cell(row=scan_r, column=3).value or '')
+            if any(kw in cv for kw in ('Check', 'YoY', 'Opex', 'OP', 'Tax', 'NI')):
+                protected_rows.add(scan_r)
 
     # ═══════════════ §2→§1 Fill ─ Section 1 FY26E+ ═══════════════
     for seg in segments:
@@ -441,20 +653,22 @@ def build(json_path, output_path=None):
 
         for ci in range(FY0 + 1, LC + 1):
             cl = get_column_letter(ci)
-            ws.cell(row=s1r, column=ci).value = '=' + '+'.join(
+            CF(ws, s1r, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
-                ([str(sc(res_val))] if res_val else []))
-            ws.cell(row=s1r, column=ci).number_format = NUM
-            ws.cell(row=s1c, column=ci).value = '=' + '+'.join(
+                ([str(sc(res_val))] if res_val else [])), fmt=NUM)
+            CF(ws, s1c, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}*(1-{cl}{L[ln["name"]]["gm_r"]})' for ln in lls] +
-                ([f'{sc(res_val)}*(1-{res_gm})'] if res_val else []))
-            ws.cell(row=s1c, column=ci).number_format = NUM
-            ws.cell(row=s1g, column=ci).value = '=' + '+'.join(
+                ([f'{sc(res_val)}*(1-{res_gm})'] if res_val else [])), fmt=NUM)
+            CF(ws, s1g, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
-                ([f'{sc(res_val)}*{res_gm}'] if res_val else []))
-            ws.cell(row=s1g, column=ci).number_format = NUM
-            ws.cell(row=s1gm, column=ci).value = f'=IFERROR({cl}{s1g}/{cl}{s1r},"")'
-            ws.cell(row=s1gm, column=ci).number_format = PCT
+                ([f'{sc(res_val)}*{res_gm}'] if res_val else [])), fmt=NUM)
+            CF(ws, s1gm, ci, f'=IFERROR({cl}{s1g}/{cl}{s1r},"")', fmt=PCT)
+            # OP fill (if segment discloses OP)
+            s1_op = si.get('op', 0)
+            if s1_op and max_seg_depth >= DEPTH_RANK['op']:
+                op_terms = [f'{cl}{L[ln["name"]]["op_r"]}' for ln in lls if L[ln["name"]].get('op_r')]
+                if op_terms:
+                    CF(ws, s1_op, ci, '=' + '+'.join(op_terms), fmt=NUM)
 
         for ln_name in [l['name'] for l in lls]:
             for sr_row in srows:
@@ -462,24 +676,44 @@ def build(json_path, output_path=None):
                 if cell_val and ln_name in str(cell_val):
                     for ci in range(FY0 + 1, LC + 1):
                         cl = get_column_letter(ci)
-                        ws.cell(row=sr_row, column=ci).value = \
-                            f'=IFERROR({cl}{L[ln_name]["rev_r"]}/{cl}{s1r},"")'
-                        ws.cell(row=sr_row, column=ci).number_format = PCT
+                        CF(ws, sr_row, ci, f'=IFERROR({cl}{L[ln_name]["rev_r"]}/{cl}{s1r},"")', fmt=PCT)
             lr_row = lrevs.get(ln_name, 0)
             if lr_row:
                 for ci in range(FY0 + 1, LC + 1):
                     cl = get_column_letter(ci)
-                    ws.cell(row=lr_row, column=ci).value = \
-                        f'={cl}{L[ln_name]["rev_r"]}'
-                    ws.cell(row=lr_row, column=ci).number_format = NUM
+                    CF(ws, lr_row, ci, f'={cl}{L[ln_name]["rev_r"]}', fmt=NUM)
         if res_row and srows:
             for ci in range(FY0 + 1, LC + 1):
                 cl = get_column_letter(ci)
                 refs = '+'.join([f'{cl}{r}' for r in srows])
-                ws.cell(row=res_row, column=ci).value = f'=1-({refs})'
-                ws.cell(row=res_row, column=ci).number_format = PCT
+                CF(ws, res_row, ci, f'=1-({refs})', fmt=PCT)
+
+    # ── Non-core absorbs all segment residuals ──
+    total_residual = 0; gp_residual = 0
+    for seg in segments:
+        r = round(seg['fy0']['rev'] - sum(seg['fy0']['rev'] * l['split'] for l in seg.get('logic_lines', [])))
+        if r > 0:
+            total_residual += r
+            gp_residual += round(r * seg.get('residual', {}).get('gm', 0))
+    # Patch Non-core Revenue + GP to include residuals
+    if 'Non-core' in L:
+        nc = L['Non-core']
+        nc_rev_r = nc['rev_r']
+        nc_gp_r = nc['gp_r']
+        for ci in range(FY0, LC + 1):
+            cl = get_column_letter(ci)
+            old_rev = ws.cell(row=nc_rev_r, column=ci).value or ''
+            old_gp = ws.cell(row=nc_gp_r, column=ci).value or ''
+            if isinstance(old_rev, str) and old_rev.startswith('='):
+                CF(ws, nc_rev_r, ci, old_rev + f'+{sc(total_residual)}', fmt=NUM)
+            if isinstance(old_gp, str) and old_gp.startswith('='):
+                CF(ws, nc_gp_r, ci, old_gp + f'+{sc(gp_residual)}', fmt=NUM)
+
+    # Collapse Section 1 (segment rows only)
+    ws.row_dimensions.group(s1_start, s1_end, outline_level=1, hidden=True)
 
     # ═══════════════ Global Opex / Tax rate ═══════════════
+    s2_end = R  # Section 2 ends before Global; D/E clear stops here
     R += 1
     # Placeholder — formulas filled after P&L builds trev/ov rows
     for ci in range(DS, LC + 1):
@@ -498,13 +732,16 @@ def build(json_path, output_path=None):
     a = actuals
     LN = [ln['name'] for ln in logic_lines]
 
+    residual_term = f'+{sc(total_residual)}' if total_residual else ''
+    gp_residual_term = f'+{sc(gp_residual)}' if gp_residual else ''
+
     # Total Revenue (FY23-25 actuals, FY26+ formula)
     A(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
     A(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=NUM)
     A(ws, R, FY0, sc(a['fy0']['rev']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]),
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
           font=bf, fmt=NUM)
     C(ws, R, 3, 'Total Revenue')
     trev = R; R += 1
@@ -514,18 +751,18 @@ def build(json_path, output_path=None):
         C(ws, R, ci, '', fmt=NUM)
     for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]), fmt=NUM)
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term, fmt=NUM)
     C(ws, R, 3, '  Check (model)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
 
     # Revenue YoY
-    for ci in range(DS, LC + 1):
+    C(ws, R, DS, '', fmt=PCT)
+    cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({cl_e}{trev}/{cl_d}{trev}-1,"")', fmt=PCT)
+    for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
-        if ci <= DS + 1:
-            C(ws, R, ci, '', fmt=PCT)
-        else:
-            C(ws, R, ci, f'=IFERROR({cl}{trev}/{get_column_letter(ci-1)}{trev}-1,"")', fmt=PCT)
+        C(ws, R, ci, f'=IFERROR({cl}{trev}/{get_column_letter(ci-1)}{trev}-1,"")', fmt=PCT)
     C(ws, R, 3, 'Rev YoY')
     R += 1
 
@@ -535,7 +772,7 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['gp']), fmt=NUM)
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]),
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term,
           font=bf, fmt=NUM)
     C(ws, R, 3, 'Total GP')
     tgp = R; R += 1
@@ -545,7 +782,7 @@ def build(json_path, output_path=None):
         C(ws, R, ci, '', fmt=NUM)
     for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]), fmt=NUM)
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term, fmt=NUM)
     C(ws, R, 3, '  Check (model)', font=itf)
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
@@ -558,7 +795,6 @@ def build(json_path, output_path=None):
     R += 1
 
     # ── P&L depth (controls display, SOTP always has full chain) ──
-    depth = meta.get('p&l_depth', 'ni')
     nci_rate = meta.get('nci_rate', 0)
     net_debt = meta.get('net_debt', 0)
 
@@ -657,38 +893,27 @@ def build(json_path, output_path=None):
         C(ws, R, 3, 'NI attributable')
         ni_r = R; R += 1
 
-    for ci in range(DS, LC + 1):
+    C(ws, R, DS, '', fmt=PCT)
+    cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({cl_e}{ni_r}/{cl_d}{ni_r}-1,"")', fmt=PCT)
+    for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
-        if ci <= DS + 1:
-            C(ws, R, ci, '', fmt=PCT)
-        else:
-            C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{get_column_letter(ci - 1)}{ni_r}-1,"")', fmt=PCT)
+        C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{get_column_letter(ci - 1)}{ni_r}-1,"")', fmt=PCT)
     C(ws, R, 3, 'NI YoY')
     _ni_end = R; R += 1
-
-    # Hide rows above display depth (SOTP always has full chain)
-    if depth == 'gp':
-        ws.row_dimensions.group(_opex_start, _ni_end, outline_level=1, hidden=True)
-    elif depth == 'ebitda':
-        ws.row_dimensions.group(_ebit_start, _ni_end, outline_level=1, hidden=True)
-    elif depth == 'ebit':
-        ws.row_dimensions.group(_ni_start, _ni_end, outline_level=1, hidden=True)
 
     # ── Fix Global Opex rate / Tax rate formulas ──
     # FY23-25: =Opex/Rev, =Tax/OP (formulas, no fill — computed not raw actuals)
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
-        ws.cell(row=opex_r, column=ci).value = f'=IFERROR({cl}{ov}/{cl}{trev},"")'
-        ws.cell(row=opex_r, column=ci).number_format = PCT
+        CF(ws, opex_r, ci, f'=IFERROR({cl}{ov}/{cl}{trev},"")', fmt=PCT)
     for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
         I(ws, opex_r, i, ov_val, fmt=PCT)
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
-        ws.cell(row=tax_r, column=ci).value = f'=IFERROR({cl}{tv}/{cl}{op},"")'
-        ws.cell(row=tax_r, column=ci).number_format = PCT
+        CF(ws, tax_r, ci, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
     for ci in range(FY0 + 1, LC + 1):
-        ws.cell(row=tax_r, column=ci).value = gl['tax_rate']
-        ws.cell(row=tax_r, column=ci).number_format = PCT
+        I(ws, tax_r, ci, gl['tax_rate'], fmt=PCT)
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
     R += 1
@@ -706,7 +931,7 @@ def build(json_path, output_path=None):
 
     def _sotp_metric_ref(method):
         """Return (metric_row, metric_label) for a given valuation method.
-        All metrics always exist (hidden rows if above P&L display depth)."""
+        All metrics always exist. P&L depth set by segment disclosure (max_seg_depth)."""
         if method == 'pe':
             return ni_r, 'NI'
         if method == 'ev_ebitda':
@@ -747,7 +972,7 @@ def build(json_path, output_path=None):
         if method == 'pe':      label_m = 'PE'
         elif method == 'ps':    label_m = 'P/S'
         else:                   label_m = method.replace('_', '/').upper()
-        I(ws, R, SC, mult)
+        I(ws, R, SC, mult, fmt='0.0x')
         C(ws, R, 3, label_m)
         mult_row = R; R += 1
 
@@ -806,7 +1031,7 @@ def build(json_path, output_path=None):
         if method_s == 'pe':      label_ms = 'PE'
         elif method_s == 'ps':    label_ms = 'P/S'
         else:                     label_ms = method_s.replace('_', '/').upper()
-        I(ws, R, SC, mult_s)
+        I(ws, R, SC, mult_s, fmt='0.0x')
         C(ws, R, 3, label_ms)
         pe_row = R; R += 1
 
@@ -826,35 +1051,33 @@ def build(json_path, output_path=None):
 
     # ═══════════════ §6 Market Data ═══════════════
     R += 1
-    C(ws, R, 3, 'MCap', font=bf)
+    # Key metrics — highlighted
+    C(ws, R, 3, 'MCap', font=hlfont, fill=hlfill)
     C(ws, R, SC, mcap_d, fmt=NUM)
     mcap_data_r = R; R += 1
     if shares:
-        C(ws, R, 3, 'Shares (M)', font=bf)
-        C(ws, R, SC, sc(shares), fmt=NUM)
+        C(ws, R, 3, 'Shares (M)', font=hlfont, fill=hlfill)
+        C(ws, R, SC, shares, fmt='#,##0.0')
         shares_data_r = R; R += 1
     if price:
-        C(ws, R, 3, 'Price', font=bf)
+        C(ws, R, 3, 'Price', font=hlfont, fill=hlfill)
         C(ws, R, SC, price, fmt=price_fmt)
         price_data_r = R; R += 1
     R += 1
     mref = f'{sc_l}{mcap_data_r}'
-    C(ws, R, 3, 'SOTP Logic / MCap')
-    C(ws, R, SC, f'=IFERROR({sc_l}{sotp_r}/{mref},"")', fmt='0.0%')
-    R += 1
-    C(ws, R, 3, 'SOTP Seg / MCap')
-    C(ws, R, SC, f'=IFERROR({sc_l}{sotp_seg_r}/{mref},"")', fmt='0.0%')
-    R += 1
+
+    # Implied valuation
     if shares:
-        C(ws, R, 3, 'SOTP Logic / Share')
-        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_r}*1000/{sc_l}{shares_data_r},"")', fmt=price_fmt)
+        implied_logic = f'=IFERROR({sc_l}{sotp_r}*{div}/{sc_l}{shares_data_r},"")'
+        implied_seg = f'=IFERROR({sc_l}{sotp_seg_r}*{div}/{sc_l}{shares_data_r},"")'
+        C(ws, R, 3, 'Implied Price')
+        C(ws, R, SC, implied_logic, fmt=price_fmt)
+        imp_row = R; R += 1
+        C(ws, R, 3, 'Implied Price (Seg)')
+        C(ws, R, SC, implied_seg, fmt=price_fmt)
         R += 1
-        C(ws, R, 3, 'SOTP Seg / Share')
-        C(ws, R, SC, f'=IFERROR({sc_l}{sotp_seg_r}*1000/{sc_l}{shares_data_r},"")', fmt=price_fmt)
-        R += 1
-    if price:
-        C(ws, R, 3, 'Current Price')
-        C(ws, R, SC, f'={sc_l}{price_data_r}', fmt=price_fmt)
+        C(ws, R, 3, 'Upside / Downside')
+        C(ws, R, SC, f'=IFERROR({sc_l}{imp_row}/{sc_l}{price_data_r}-1,"")', fmt='0.0%')
         R += 1
     if ttm_pe:
         C(ws, R, 3, 'TTM PE')
@@ -865,8 +1088,9 @@ def build(json_path, output_path=None):
         C(ws, R, SC, round(fwd_pe, 1), fmt='0.0x')
         R += 1
     if hi52:
+        currency_prefix = PRICE_FMT.get(meta.get('market', 'cn'), '¥#,##0.00').replace('#,##0.00','').replace('#,##0','').rstrip()
         C(ws, R, 3, '52W Range')
-        C(ws, R, SC, f'{lo52:.0f} - {hi52:.0f}')
+        C(ws, R, SC, f'{currency_prefix}{lo52:.0f} - {currency_prefix}{hi52:.0f}')
         R += 1
 
     # ═══════════════ §7 Scenario Summary ═══════════════
@@ -931,33 +1155,40 @@ def build(json_path, output_path=None):
         R += 1
 
     # ═══════════════ Post-format ═══════════════
-    # C-column labels that should be bold (key financial line items)
-    BOLD_C = {
-        'Revenue', 'Cost', 'GP', 'GM',
-        'Total Revenue', 'Rev YoY', 'Total GP', 'Blended GM',
-        'Opex', 'Operating Profit', 'OPM',
-        'Tax', 'Net Income', 'NPM', 'NI YoY',
-        'MCap', 'Shares (M)', 'Price',
-        'SOTP Logic / MCap', 'SOTP Seg / MCap',
-        'SOTP Logic / Share', 'SOTP Seg / Share',
-        'Current Price', 'TTM PE', 'Fwd PE', '52W Range',
-    }
     for row in range(1, R):
+        # Clear placeholder zeros
         for c in range(DS, LC + 1):
             cl = ws.cell(row=row, column=c)
-            if cl.value and isinstance(cl.value, str) and cl.value.startswith('='):
-                cl.font = nf
-            # Ensure bare numeric cells have comma format
-            if isinstance(cl.value, (int, float)) and cl.number_format == 'General':
-                cl.number_format = CN1 if cl.value != int(cl.value) else NUM
+            if cl.value == 0:
+                cl.value = None
+        # Clear D/E formula-only cells (Section 2 only, skip protected rows)
+        if s1_end < row <= s2_end and row not in protected_rows:
+            for c in (DS, DS + 1):
+                cl = ws.cell(row=row, column=c)
+                if cl.value and isinstance(cl.value, str) and cl.value.startswith('='):
+                    cl.value = None
+        # Bold actuals in data columns (gray fill → bold font)
+        for c in range(DS, LC + 1):
+            cl = ws.cell(row=row, column=c)
+            if cl.fill and cl.fill.start_color and cl.fill.start_color.rgb == '00F0F0F0':
+                cl.font = bf
+        # Bold key C-column labels
         cv = ws.cell(row=row, column=3).value
-        if cv and isinstance(cv, str) and cv in BOLD_C:
-            ws.cell(row=row, column=3).font = bf
+        if cv and isinstance(cv, str) and cv.strip() in {
+            'Revenue', 'Cost', 'GP', 'GM', 'OP', 'OPM', 'OP YoY',
+            'Total Revenue', 'Rev YoY', 'Total GP', 'Blended GM',
+            'Opex', 'Operating Profit', 'EBITDA', 'EBIT',
+            'Tax', 'Net Income', 'NPM', 'NI YoY',
+        }:
+            cell = ws.cell(row=row, column=3)
+            if not (cell.fill and cell.fill.start_color and cell.fill.start_color.rgb == '00963634'):
+                cell.font = bf
     ws.column_dimensions['A'].width = 18
     ws.column_dimensions['B'].width = 24
     ws.column_dimensions['C'].width = 36
     for ci in range(DS, LC + 1):
         ws.column_dimensions[get_column_letter(ci)].width = 13
+
     ws.freeze_panes = 'D2'
 
     out_path = output_path or json_path.replace('.json', '.xlsx')

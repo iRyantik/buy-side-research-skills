@@ -19,7 +19,7 @@ from openpyxl.utils import get_column_letter
 
 def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
     """Write Order Rate or Burn Rate rows. Returns (active_row, next_R, yb, ys, ye)."""
-    C = ctx['C']; I = ctx['I']
+    C = ctx['C']; I = ctx['I']; CF = ctx.get('CF', C)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     PCT = ctx['PCT']; NUM = ctx['NUM']; DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
     proj_n = ctx['proj_n']
@@ -59,8 +59,8 @@ def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
         for i in range(proj_n):
             ci = FY0 + 1 + i
             cl = get_column_letter(ci)
-            ws.cell(row=active_r, column=ci).value = \
-                f'=IF(B1="Bull",{cl}{yb},IF(B1="Bear",{cl}{ye},{cl}{ys}))'
+            CF(ws, active_r, ci,
+               f'=IF(B1="Bull",{cl}{yb},IF(B1="Bear",{cl}{ye},{cl}{ys}))', fmt=PCT)
     else:
         # Simple rate — no BBE
         for ci in range(DS, DS + 2):
@@ -75,7 +75,7 @@ def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
 
 
 def render(ws, R, ll, anchor_info, ctx):
-    C = ctx['C']; I = ctx['I']
+    C = ctx['C']; I = ctx['I']; CF = ctx.get('CF', C)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
@@ -113,18 +113,6 @@ def render(ws, R, ll, anchor_info, ctx):
     for ci in range(DS, DS + 2):
         C(ws, R, ci, '', fmt=NUM)
     C(ws, R, 3, 'Revenue')
-    R += 1
-
-    # ── Check row (collapsible) ──
-    s1r, s1v = anchor_info.get(ln, (0, 0))
-    for ci in range(DS, DS + 2):
-        C(ws, R, ci, '', fmt=NUM)
-    if s1r:
-        C(ws, R, FY0, f'={get_column_letter(FY0)}{s1r}', fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
-        C(ws, R, ci, '', fmt=NUM)
-    C(ws, R, 3, f'  Check (anchor {s1v}M)', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     R += 1
 
     # ── Scenario Revenue cache (if BBE) ──
@@ -173,9 +161,7 @@ def render(ws, R, ll, anchor_info, ctx):
         ci = FY0 + 1 + i
         cl = get_column_letter(ci)
         pl = get_column_letter(ci - 1)
-        ws.cell(row=beg_r, column=ci).value = f'={pl}{end_r}'
-        ws.cell(row=beg_r, column=ci).font = nf
-        ws.cell(row=beg_r, column=ci).number_format = NUM
+        CF(ws, beg_r, ci, f'={pl}{end_r}', fmt=NUM)
 
     # ── Implied YoY ──
     for ci in range(DS, DS + 2):
