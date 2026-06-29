@@ -197,6 +197,22 @@ def validate_json(cfg):
                     arr = t.get(k, [])
                     if arr and len(arr) < 1 + proj_n:
                         print(f'  [warn] {ln} {t.get("name","?")} {k}: {len(arr)} values, need >={1+proj_n}')
+            # ── Unit scale check: Vol×ASP/scale must ≈ anchor revenue ──
+            vol_fy0 = ll['volume']['fy0']
+            scale = ll.get('unit_scale', 100)
+            asp_fy0 = ll['tiers'][0].get('asp_fy0', ll['tiers'][0].get('asp', [0])[0] if ll['tiers'][0].get('asp') else 0)
+            computed = vol_fy0 * asp_fy0 / scale
+            # Find anchor revenue (seg rev × split)
+            anchor = 0
+            for seg in cfg.get('segments', []):
+                for l in seg.get('logic_lines', []):
+                    if l['name'] == ln:
+                        anchor = seg['fy0']['rev'] * l['split']
+                        break
+            if anchor > 0:
+                gap = abs(computed - anchor) / anchor
+                if gap > 0.10:
+                    print(f'  ⛔ UNIT SCALE: {ln} Vol({vol_fy0})×ASP({asp_fy0})/scale({scale})={computed:.0f} vs anchor={anchor:.0f} gap={gap:.1%} — fix unit_scale or Vol/ASP!')
 
     # ── Provenance: warn on fields without source tracking ──
     _PROVENANCE_OK = {'edgartools:', 'edinet:', 'yfinance:', 'calculated:', 'disclosed:',
@@ -233,6 +249,44 @@ def build(json_path, output_path=None):
         cfg = json.load(f)
 
     validate_json(cfg)
+
+    # ── Pre-process: auto-scale Q actuals to match FY annual (complete 4Q FYs) ──
+    meta_tmp = cfg['meta']
+    q_actual_n = meta_tmp.get('q_actual_count', 0)
+    if q_actual_n > 0:
+        a = cfg['actuals']; bfyr = meta_tmp['base_fy']; proj_n = meta_tmp['proj_years']
+        q_start_yr = meta_tmp.get('q_start_yr', bfyr)
+        q_start_q = meta_tmp.get('q_start_q', 1)
+        cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
+        while qi < q_actual_n:
+            rem = 4 - cur_q + 1; fyc = min(rem, q_actual_n - qi)
+            if fyc == 4:  # complete 4Q FY with annual actuals
+                fy_idx = cur_yr - bfyr + 2
+                if fy_idx < 3:  # historical only
+                    fy_rev = a[['fy-2','fy-1','fy0'][fy_idx]]['rev']
+                qdata = cfg.get('quarters', {})
+                q_rev_sum = sum(qdata.get(f'q{qi+j+1}', {}).get('rev', 0) for j in range(4))
+                if q_rev_sum > 0 and fy_rev > 0 and abs(q_rev_sum/fy_rev - 1) > 0.005:
+                    s = fy_rev / q_rev_sum
+                    print(f'  [reconcile] FY{cur_yr}: Q rev sum={q_rev_sum:.0f} → FY={fy_rev:.0f} (scale={s:.3f})')
+                    for field in ['rev','gp','op','ni','opex','tax','da']:
+                        for j in range(4):
+                            qk = f'q{qi+j+1}'; qd = qdata.get(qk, {})
+                            if field in qd: qdata[qk][field] = round(qd[field] * s)
+                    for seg in cfg.get('segments', []):
+                        sq = seg.get('quarters', {})
+                        for field in ['rev','gp','op','ni','opex','tax','da']:
+                            for j in range(4):
+                                qk = f'q{qi+j+1}'; qd = sq.get(qk, {})
+                                if field in qd: sq[qk][field] = round(qd[field] * s)
+                    for ll in cfg.get('logic_lines', []):
+                        qh = ll.get('q_history', {})
+                        for j in range(4):
+                            qk = f'q{qi+j+1}'; qd = qh.get(qk, {})
+                            if 'rev' in qd: qh[qk]['rev'] = round(qd['rev'] * s)
+                            if 'volume' in qd and 'asp' in qd and qd.get('asp', 0) > 0:
+                                qh[qk]['volume'] = round(qh[qk]['rev'] * ll.get('unit_scale', 100) / qd['asp'])
+            qi += fyc; cur_yr += 1; cur_q = 1
 
     meta = cfg['meta']; actuals = cfg['actuals']; segments = cfg['segments']
     logic_lines = cfg['logic_lines']; gl = cfg['global']
@@ -332,8 +386,14 @@ def build(json_path, output_path=None):
     s1_start = R
     R += 1
     C(ws, R, 1, '(Segments)', font=itf)
-    R += 1
-    R = 5
+    # Basis label (below Reported Segments, same as Logic Lines)
+    basis = meta.get('basis', 'gaap')
+    basis_note = meta.get('basis_note', '')
+    basis_label = f'Basis: {basis.upper()}'
+    if basis_note:
+        basis_label += f' — {basis_note[:120]}'
+    C(ws, R, 1, basis_label, font=itf)
+    R = 6
     seg_info = {}
     anchor_info = {}  # {ln: (Section1_Rev_row, value_in_M)}
     one_to_one = set()  # logic lines where segment=line (split=1.0, no residual)
@@ -1160,7 +1220,7 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', font=bf, fmt=NUM)
+        C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1168,7 +1228,7 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{tgp}-{cl}{ov}', font=bf, fmt=NUM)
+            C(ws, R, qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
     C(ws, R, 3, 'Operating Profit')
     op = R; R += 1
 
@@ -1202,7 +1262,7 @@ def build(json_path, output_path=None):
 
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', font=bf, fmt=NUM)
+        C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', fmt=NUM)
     C(ws, R, 3, 'EBITDA')
     ebitda_r = R; R += 1
 
@@ -1216,7 +1276,7 @@ def build(json_path, output_path=None):
     _ebit_start = R
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebitda_r}-{cl}{da_r}', font=bf, fmt=NUM)
+        C(ws, R, ci, f'={cl}{ebitda_r}-{cl}{da_r}', fmt=NUM)
     C(ws, R, 3, 'EBIT')
     ebit_r = R; R += 1
     _ebit_end = ebit_r
@@ -1253,7 +1313,7 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
+        C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1261,7 +1321,7 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
+            C(ws, R, qi, f'={cl}{ebit_r}-{cl}{tv}', fmt=NUM)
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
@@ -1274,7 +1334,7 @@ def build(json_path, output_path=None):
     if nci_rate > 0:
         for ci in range(DS, LC + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{ni_r}*(1-{nci_rate})', font=bf, fmt=NUM)
+            C(ws, R, ci, f'={cl}{ni_r}*(1-{nci_rate})', fmt=NUM)
         C(ws, R, 3, 'NI attributable')
         ni_r = R; R += 1
 
@@ -1293,36 +1353,32 @@ def build(json_path, output_path=None):
     C(ws, R, 3, 'NI YoY')
     _ni_end = R; R += 1
 
-    # ── Q→FY Bridge (collapsed, by FY) ──
+
+    # ── Inline Check columns: per-row Annual−QSum at existing rows (S1-S3) ──
     if has_q:
-        C(ws, R, 1, 'Q→FY Bridge', font=itf)
-        R += 1
-        qb_start = R
-        for label, yr_row in [('Rev', trev), ('GP', tgp)]:
-            for ci in range(DS, LC_ANNUAL + 1):
-                C(ws, R, ci, '', fmt=NUM)
-            for ci in range(Q_START, Q_END + 1):
-                C(ws, R, ci, '', fmt=NUM)
-            C(ws, R, 3, f'  FY {label} (annual)', font=itf)
-            R += 1
-            # Q Sum: group by FY (remaining Qs in current FY = 4 - q_start_q + 1)
-            cur_yr = q_start_yr; cur_q = q_start_q
-            qi = 0; total_q = q_actual_n + q_proj_n
-            while qi < total_q:
-                rem_in_fy = 4 - cur_q + 1  # Qs left in this FY
-                fy_q_count = min(rem_in_fy, total_q - qi)
-                for ci in range(DS, LC_ANNUAL + 1):
-                    C(ws, R, ci, '', fmt=NUM)
-                for ci in range(Q_START + qi, Q_START + qi + fy_q_count):
-                    C(ws, R, ci, f'={get_column_letter(ci)}{yr_row}', fmt=NUM)
-                for ci in range(Q_START + qi + fy_q_count, Q_END + 1):
-                    C(ws, R, ci, '', fmt=NUM)
-                C(ws, R, 3, f'  Q Sum FY{cur_yr}', font=itf)
-                R += 1
-                qi += fy_q_count
-                cur_yr += 1; cur_q = 1
-            R += 1
-        ws.row_dimensions.group(qb_start, R - 1, outline_level=1, hidden=True)
+        cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
+        total_q = q_actual_n + q_proj_n
+        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'Tax rate')
+        while qi < total_q:
+            rem_in_fy = 4 - cur_q + 1; fyc = min(rem_in_fy, total_q - qi)
+            if fyc == 4:
+                ann_col = DS + (cur_yr - bfyr + 2)
+                chk_col = Q_END + 3  # after Q + 2 gap
+                if ann_col <= LC_ANNUAL:
+                    ac = get_column_letter(ann_col); cc = get_column_letter(chk_col)
+                    q_letters = [get_column_letter(Q_START + qi + j) for j in range(4)]
+                    q_sum_f = '+'.join(f'{ql}{{r}}' for ql in q_letters)
+                    ws.cell(row=1, column=chk_col).value = f'FY{cur_yr} Check'
+                    ws.cell(row=1, column=chk_col).font = bf
+                    for row in range(s1_start, _ni_end + 1):
+                        cv = str(ws.cell(row=row, column=3).value or '').strip()
+                        if not cv or any(kw in cv for kw in SKIP_KW): continue
+                        ws.cell(row=row, column=chk_col).value = f'={ac}{row}-({q_sum_f.format(r=row)})'
+                        ws.cell(row=row, column=chk_col).number_format = NUM
+                        ws.cell(row=row, column=chk_col).font = nf
+                    ws.column_dimensions[cc].width = 12
+                    ws.column_dimensions.group(cc, cc, outline_level=1, hidden=True)
+            qi += fyc; cur_yr += 1; cur_q = 1
 
     # ── Fix Global Opex rate / Tax rate formulas ──
     # FY23-25: =Opex/Rev, =Tax/OP
@@ -1633,11 +1689,6 @@ def build(json_path, output_path=None):
                 cl = ws.cell(row=row, column=c)
                 if cl.value and isinstance(cl.value, str) and cl.value.startswith('='):
                     cl.value = None
-        # Bold actuals in data columns (gray fill → bold font)
-        for c in range(DS, LC + 1):
-            cl = ws.cell(row=row, column=c)
-            if cl.fill and cl.fill.start_color and cl.fill.start_color.rgb == '00F0F0F0':
-                cl.font = bf
         # Bold key C-column labels
         cv = ws.cell(row=row, column=3).value
         if cv and isinstance(cv, str) and cv.strip() in {
