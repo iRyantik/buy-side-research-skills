@@ -329,7 +329,10 @@ def build(json_path, output_path=None):
     # ═══════════════ §1 Reported Segments ═══════════════
     R = 3
     C(ws, R, 1, 'Reported Segments', font=bf12)
-    s1_start = R  # include header row
+    s1_start = R
+    R += 1
+    C(ws, R, 1, '(Segments)', font=itf)
+    R += 1
     R = 5
     seg_info = {}
     anchor_info = {}  # {ln: (Section1_Rev_row, value_in_M)}
@@ -1034,7 +1037,7 @@ def build(json_path, output_path=None):
     opex_r = R; R += 1
     for ci in range(DS, LC + 1):
         C(ws, R, ci, 0, fmt=PCT)
-    C(ws, R, 3, 'Tax rate')
+    C(ws, R, 3, 'Tax rate', font=bf)
     tax_r = R; R += 1
 
     # ═══════════════ §3 P&L ═══════════════
@@ -1187,7 +1190,11 @@ def build(json_path, output_path=None):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_actuals_r}/{get_column_letter(FY0)}{trev}', fmt=NUM)
     if has_q:
-        for qi in range(Q_START, Q_END + 1):
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'
+            qv = sum(seg.get('quarters', {}).get(qk, {}).get('da', 0) for seg in segments)
+            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+        for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, f'={get_column_letter(FY0)}{da_actuals_r}/4', fmt=NUM)
     C(ws, R, 3, 'D&A')
@@ -1227,18 +1234,34 @@ def build(json_path, output_path=None):
     A(ws, R, DS, sc(a['fy-2']['tax']), fmt=NUM)
     A(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=NUM)
     A(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
+    if has_q:
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'
+            qv = sum(seg.get('quarters', {}).get(qk, {}).get('tax', 0) for seg in segments)
+            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+        for qi in range(Q_START + q_actual_n, Q_END + 1):
+            cl = get_column_letter(qi)
+            C(ws, R, qi, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
     C(ws, R, 3, 'Tax')
     tv = R; R += 1
 
     A(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
     A(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
     A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
-    for ci in range(FY0 + 1, LC + 1):
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
+    if has_q:
+        for qi in range(q_actual_n):
+            qk = f'q{qi+1}'
+            qv = sum(seg.get('quarters', {}).get(qk, {}).get('ni', 0) for seg in segments)
+            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+        for qi in range(Q_START + q_actual_n, Q_END + 1):
+            cl = get_column_letter(qi)
+            C(ws, R, qi, f'={cl}{ebit_r}-{cl}{tv}', font=bf, fmt=NUM)
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
@@ -1302,17 +1325,29 @@ def build(json_path, output_path=None):
         ws.row_dimensions.group(qb_start, R - 1, outline_level=1, hidden=True)
 
     # ── Fix Global Opex rate / Tax rate formulas ──
-    # FY23-25: =Opex/Rev, =Tax/OP (formulas, no fill — computed not raw actuals)
+    # FY23-25: =Opex/Rev, =Tax/OP
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         CF(ws, opex_r, ci, f'=IFERROR({cl}{ov}/{cl}{trev},"")', fmt=PCT)
     for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
         I(ws, opex_r, i, ov_val, fmt=PCT)
+    if has_q:
+        for qi in range(q_actual_n):
+            cl = get_column_letter(Q_START + qi)
+            CF(ws, opex_r, Q_START + qi, f'=IFERROR({cl}{ov}/{cl}{trev},"")', fmt=PCT)
+        for qi in range(q_actual_n, q_actual_n + q_proj_n):
+            I(ws, opex_r, Q_START + qi, gl['opex_rate'][3], fmt=PCT)
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         CF(ws, tax_r, ci, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
-    for ci in range(FY0 + 1, LC + 1):
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
         I(ws, tax_r, ci, gl['tax_rate'], fmt=PCT)
+    if has_q:
+        for qi in range(q_actual_n):
+            cl = get_column_letter(Q_START + qi)
+            CF(ws, tax_r, Q_START + qi, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
+        for qi in range(q_actual_n, q_actual_n + q_proj_n):
+            I(ws, tax_r, Q_START + qi, gl['tax_rate'], fmt=PCT)
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
     R += 1
