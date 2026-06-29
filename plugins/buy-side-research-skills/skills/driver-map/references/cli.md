@@ -17,9 +17,18 @@ python .scripts/driver-map/build-logic-model.py <path/to/driver-map.json> [-o ou
 
 1. `validate_json(cfg)` — 检查 depth/method/数组长度/必填字段
 2. yfinance 拉 Market Data（mcap/price/shares/PE/52W），失败则用 `meta.mcap_m` fallback
-3. §1 Reported Segments → §2 Logic Lines (module dispatch) → §2→§1 Fill → §3 P&L → §4-5 SOTP → §6 Market Data → §7 Scenario Summary
-4. Post-format（字体/加粗/列宽/冻结）
-5. 保存 Excel
+3. **列映射 print**: `Cols: D=DS(4) FY0=F(6) LC=K(11) SC=H(8) proj_n=5 B_mode=False div=1`
+4. §1 Reported Segments → §2 Logic Lines (module dispatch) → §2→§1 Fill → §3 P&L → §4-5 SOTP → §6 Market Data → §7 Scenario Summary
+5. Post-format: zero cleanup + D/E clear + bold actuals + bold C-column labels
+6. 保存 Excel
+
+## 质量 Gate
+
+```bash
+python .scripts/driver-map/audit_style.py <output.xlsx>
+```
+
+检查: General format 单元格 / PCT 格式不匹配 / NUM 格式不匹配 / font 非 Calibri。Exit 0 = 通过。
 
 ## Output Naming
 

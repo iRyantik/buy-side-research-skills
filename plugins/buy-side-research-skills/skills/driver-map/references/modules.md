@@ -1,23 +1,23 @@
 # Revenue Modules — Contract & Reference
 
-## yoy (default, built-in)
+## yoy (modules/yoy.py)
 
-最简。Rev FY25A=S1 ref, FY26+=Prior×(1+YoY Active)。YoY Active 通过 IF(B1) 读隐藏 Bull/Base/Bear 行。
+独立模块。Rev FY0 = S1 ref, FY+1 = Prior×(1+YoY Active)。YoY Active 通过 IF(B1) 读隐藏 Bull/Base/Bear 行。
 
 ```json
 {"name": "G1", "module": "yoy",
  "yoy": {"bull":[0.20,...], "base":[0.15,...], "bear":[0.10,...]},
- "gm": {...}, "sotp": {...}}
+ "gm": {"fy-2":0.28, "fy-1":0.30, "fy0":0.32, "proj":[0.34,...]},
+ "sotp": {...}}
 ```
 
 ## vol_asp
 
 Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/unit_scale。Tiers 分 BBE ASP 和 simple ASP。有 `capacity` 字段时渲染 Nameplate Capacity + Utilization 行。
 
-- `unit_scale`: ASP×Vol → Rev 的除数。默认 100（ASP 万/t × Vol t / 100 → Rev M）。日韩等市场设为 1。
-- `asp_unit`: ASP 行 C 列标签后缀。默认 `万/t`。按市场设定。
-- `tiers[].new_cap_share`: 可选。增量产能分配给该 tier 的比例（0-1）。设置后该 tier 的 Share% 变为公式 `=tier_vol/total_vol`，不再用 `share_proj` 硬编码。需配合 `tiers[].fy0_volume`（FY25 基年该 tier 出货量，吨）。适用于产量可拆、增量方向可判断的 tier（如 AI 服务器粉体）。
-- `tiers[].asp_mode`: 可选 `"multiplier"`。ASP 投影值变为乘数——FY25 绝对值，FY26+ = 上年 × 乘数。脚本自动判断：arr[1] < 5 视为乘数模式。
+- `unit_scale`: ASP×Vol → Rev 的除数。cn 默认 100（万→M）。日韩等市场自动 B mode 时设为 1000。
+- `asp_unit`: ASP 行 C 列标签后缀。默认 `万/t`。
+- History: `history.fy-2`/`history.fy-1` 存 `{volume, rev, <tier>_asp}`。所有 history 值用 I() 黄底。
 
 ```json
 {"name": "R1", "module": "vol_asp",
@@ -27,10 +27,16 @@ Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/unit_scale。Tiers 分 BBE ASP
               "ramp_notes": {"fy26": "P1 爬坡50%", ...}},
  "tiers": [
    {"name": "AI", "share_fy0":0.05, "share_proj":[...],
-    "asp_bull":[26,...], "asp_base":[26,...], "asp_bear":[26,...]},
-   {"name": "Consumer", "asp":[4.9, 5.5, 6.5, 7.5, 8.5, 9]}
+    "asp_bull":[26,...], "asp_base":[26,...], "asp_bear":[26,...],
+    "asp_fy0": 26},
+   {"name": "Consumer", "asp":[5.5, 6.5, 7.5, 8.5, 9], "asp_fy0":4.9}
  ],
- "gm": {...}, "sotp": {...}}
+ "gm": {"fy-2":0.35, "fy-1":0.37, "fy0":0.40, "proj":[0.45,0.50,...]},
+ "sotp": {...},
+ "history": {
+   "fy-2": {"volume":6000, "rev":2500, "AI_asp":24},
+   "fy-1": {"volume":6500, "rev":2800, "AI_asp":25}
+ }}
 ```
 
 **BBE 缓存**: 3 个隐藏行 `Bull/Base/Bear Rev @ SOTP`，Scenario Summary 读取。无 BBE tier 的 line 返回单值。
@@ -52,23 +58,46 @@ Beg Backlog × Burn Rate，跨列链式。Rev = Beg × Burn。End = Beg × (1 + 
 ```python
 def render(ws, R, ll, anchor_info, ctx) -> dict:
     """
-    ctx keys: C, I, nf, bf, itf, NUM, DEC, PCT, actfill, DS, FY0, LC, SC, proj_n, bfyr
+    ctx keys: C, I, A, CF, HL, nf, bf, itf, NUM, DEC, PCT, INT, DS, FY0, LC, SC, proj_n, bfyr
     
     Returns: {
         'next_R': int,
         'rev_r': int, 'gm_r': None, 'gp_r': None,  # gm_r/gp_r filled by caller
+        'op_r': int,    # filled by caller if per-line profit chain renders
         'module': str,
         # Module-specific:
         'vol_r': int,     # vol_asp: Volume row
         'cap_r': int,     # vol_asp: Nameplate Capacity row (0 if none)
-        'yb': int,        # vol_asp BBE: Bull Rev @ SOTP cache row
+        'asp_rows': list, # vol_asp: ASP row numbers
+        'asp_h_r': int,   # vol_asp: first ASP row (for Revenue history formula)
+        'share_rows': list,
+        'yb': int,        # BBE: Bull cache row
         'ybs': int, 'ybe': int,
-        'yb': int,        # yoy: Bull YoY hidden row
-        'ybs': int, 'ybe': int, 'ya': int,
+        'ya': int,        # yoy: YoY Active row
         'beg_r': int,     # backlog_burn: Beg Backlog row
         'end_r': int, 'order_r': int, 'burn_r': int,
     }
     """
 ```
+
+### Cell Helpers（通过 ctx 传入）
+
+| Helper | 样式 | 用途 |
+|---|---|---|
+| `C()` | black Calibri 11, no fill | 通用值/公式 |
+| `I()` | blue font, yellow fill | 假设（分析师可调） |
+| `A()` | gray fill | Actuals（财报披露） |
+| `CF()` | black font, no fill, guaranteed number_format | **公式专用**——强制 fmt |
+| `HL()` | white bold font, deep red fill | 重点 driver 标签 |
+| `BOLD()` | black bold font | 关键指标加粗 |
+
+### 格式常量
+
+| 常量 | 值 | 用途 |
+|---|---|---|
+| `NUM` | #,##0.0 | Rev/GP/OP/NI/Cost/Opex 等 |
+| `DEC` | #,##0.00 | ASP/价格 |
+| `INT` | #,##0 | Volume/Capacity/Shares |
+| `PCT` | 0.0% | GM/YoY/Margins/Rates |
 
 注册: `MODULES` dict + `_load_module()`。新 module 放 `modules/<name>.py`。

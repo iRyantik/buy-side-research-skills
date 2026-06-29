@@ -12,7 +12,7 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 **执行本 skill 前必须先读取以下文件：**
 - workspace `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§2.1（资料收集）§2.2（Source 纪律）§2.5（图片下载链）§4（产出合约）§5（保存合约）
 
-**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+**自动 Hook 防御：** `pre_write_gate`（source/tables/mermaid/image/cell-style CHECK 17）`source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
 
 **GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 
@@ -369,8 +369,8 @@ FY+1 增速路径：
 **输出**（不是 JSON blob——按逻辑线逐条展开的行列表）：
 
 ```
-§1 Segments FY25A
-| Segment | Rev | Cost | GP | GM | Logic Lines |
+§1 Segments FY{bfyr}A
+| Segment | Rev | Cost | GP | GM | OP? | NI? | Logic Lines |
 
 §2 Logic Lines — 每条单独一个表
 | R1 MLCC Powder | FY25 | FY26 | FY27 | FY28 | FY29 | FY30 |
@@ -397,9 +397,10 @@ FY+1 增速路径：
 
 ```bash
 python .scripts/driver-map/build-logic-model.py <json> [-o output.xlsx]
+python .scripts/driver-map/audit_style.py <output.xlsx>
 ```
 
-参数见 `references/cli.md`。生成后用户打开 Excel 审。
+生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
 ## Schema + Reference
 
