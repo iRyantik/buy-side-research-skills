@@ -440,6 +440,14 @@ def build(json_path, output_path=None):
     R += 1
     C(ws, R, 1, 'Logic Lines', font=bf12)
     R += 1
+    # Basis label (below Logic Lines header)
+    basis = meta.get('basis', 'gaap')
+    basis_note = meta.get('basis_note', '')
+    basis_label = f'Basis: {basis.upper()}'
+    if basis_note:
+        basis_label += f' — {basis_note[:120]}'
+    C(ws, R, 1, basis_label, font=itf)
+    R += 1
     L = {}
     protected_rows = set()
     for ll in logic_lines:
@@ -974,10 +982,19 @@ def build(json_path, output_path=None):
         C(ws, R, 3, label_m)
         mult_row = R; R += 1
 
-        # MCap
+        # MCap (with EV bridge for EV methods)
         if method.startswith('ev_'):
             nd_share = f'({gc}/{tc_gp}*{net_debt})' if net_debt else '0'
-            mcap_f = f'=IFERROR({alloc_ref}*{sc_l}{mult_row}-{nd_share},"")'
+            # Enterprise Value
+            C(ws, R, 3, '  EV', font=itf)
+            C(ws, R, SC, f'={alloc_ref}*{sc_l}{mult_row}', fmt=DEC)
+            ev_line_r = R; R += 1
+            # Net Debt (allocated)
+            C(ws, R, 3, '  Net Debt', font=itf)
+            C(ws, R, SC, f'={nd_share}' if net_debt else '0', fmt=DEC)
+            R += 1
+            # Mkt Cap
+            mcap_f = f'=IFERROR({sc_l}{ev_line_r}-{sc_l}{R - 1},"")'
         else:
             mcap_f = f'=IFERROR({alloc_ref}*{sc_l}{mult_row},"")'
         C(ws, R, 3, 'Mkt Cap')
@@ -992,6 +1009,7 @@ def build(json_path, output_path=None):
     # ═══════════════ §5 SOTP - Segments ═══════════════
     R += 1
     C(ws, R, 1, 'SOTP - Segments', font=bf12)
+    sotp_seg_start = R
     R += 1
     smc_rows = []
     LL_SOTP = {}
@@ -1035,7 +1053,15 @@ def build(json_path, output_path=None):
 
         if method_s.startswith('ev_'):
             nd_s = f'({gc}/{sc_l}{tgp}*{net_debt})' if net_debt else '0'
-            mcap_f_s = f'=IFERROR({alloc_ref_s}*{sc_l}{pe_row}-{nd_s},"")'
+            # Enterprise Value
+            C(ws, R, 3, '  EV', font=itf)
+            C(ws, R, SC, f'={alloc_ref_s}*{sc_l}{pe_row}', fmt=DEC)
+            ev_line_s = R; R += 1
+            # Net Debt (allocated)
+            C(ws, R, 3, '  Net Debt', font=itf)
+            C(ws, R, SC, f'={nd_s}' if net_debt else '0', fmt=DEC)
+            R += 1
+            mcap_f_s = f'=IFERROR({sc_l}{ev_line_s}-{sc_l}{R - 1},"")'
         else:
             mcap_f_s = f'=IFERROR({alloc_ref_s}*{sc_l}{pe_row},"")'
         C(ws, R, 3, 'Mkt Cap')
@@ -1046,8 +1072,11 @@ def build(json_path, output_path=None):
     C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows]),
       font=bf, fmt=DEC)
     sotp_seg_r = R; R += 1
+    ws.row_dimensions.group(sotp_seg_start, sotp_seg_r, outline_level=1, hidden=True)
 
     # ═══════════════ §6 Market Data ═══════════════
+    R += 1
+    C(ws, R, 1, 'Market Cap', font=bf12)
     R += 1
     # Key metrics — highlighted
     C(ws, R, 3, 'MCap', font=hlfont, fill=hlfill)
@@ -1063,6 +1092,17 @@ def build(json_path, output_path=None):
         price_data_r = R; R += 1
     R += 1
     mref = f'{sc_l}{mcap_data_r}'
+
+    # Bridge: Net Debt + Enterprise Value (collapsed)
+    if net_debt:
+        nd_start = R
+        C(ws, R, 3, '  Net Debt', font=itf)
+        C(ws, R, SC, sc(net_debt), fmt=NUM)
+        nd_r = R; R += 1
+        C(ws, R, 3, '  Enterprise Value', font=itf)
+        C(ws, R, SC, f'={sc_l}{sotp_r}+{sc_l}{nd_r}', fmt=NUM)
+        ev_r = R; R += 1
+        ws.row_dimensions.group(nd_start, ev_r, outline_level=1, hidden=True)
 
     # Implied valuation
     if shares:
@@ -1154,10 +1194,10 @@ def build(json_path, output_path=None):
 
     # ═══════════════ Post-format ═══════════════
     for row in range(1, R):
-        # Clear placeholder zeros
+        # Clear placeholder zeros (only cells without explicit format)
         for c in range(DS, LC + 1):
             cl = ws.cell(row=row, column=c)
-            if cl.value == 0:
+            if cl.value == 0 and cl.number_format == 'General':
                 cl.value = None
         # Clear D/E formula-only cells (Section 2 only, skip protected rows)
         if s1_end < row <= s2_end and row not in protected_rows:
