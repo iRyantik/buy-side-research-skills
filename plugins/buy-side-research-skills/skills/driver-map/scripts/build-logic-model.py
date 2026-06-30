@@ -212,7 +212,7 @@ def validate_json(cfg):
             if anchor > 0:
                 gap = abs(computed - anchor) / anchor
                 if gap > 0.10:
-                    print(f'  ⛔ UNIT SCALE: {ln} Vol({vol_fy0})×ASP({asp_fy0})/scale({scale})={computed:.0f} vs anchor={anchor:.0f} gap={gap:.1%} — fix unit_scale or Vol/ASP!')
+                    print(f'  [!!] UNIT SCALE: {ln} Vol({vol_fy0})xASP({asp_fy0})/scale({scale})={computed:.0f} vs anchor={anchor:.0f} gap={gap:.1%} -- fix unit_scale or Vol/ASP!')
 
     # ── Provenance: warn on fields without source tracking ──
     _PROVENANCE_OK = {'edgartools:', 'edinet:', 'yfinance:', 'calculated:', 'disclosed:',
@@ -708,7 +708,7 @@ def build(json_path, output_path=None):
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC_ANNUAL; ctx['SC'] = SC; ctx['proj_n'] = proj_n
     ctx['COLS'] = COLS; ctx['bfyr'] = bfyr
-    ctx['Q_START'] = Q_START; ctx['Q_END'] = Q_END
+    ctx['Q_START'] = Q_START; ctx['Q_END'] = Q_END; ctx['div'] = div
     ctx['q_actual_n'] = q_actual_n; ctx['q_proj_n'] = q_proj_n
 
     print(f'  Cols: D=DS({DS}) FY0={get_column_letter(FY0)}({FY0}) '
@@ -1227,7 +1227,7 @@ def build(json_path, output_path=None):
                     col = Q_START + qi; cl = get_column_letter(col)
                     scale = ll.get('unit_scale', 100)
                     if asp_r:
-                        CF(ws, result['rev_r'], col, f'=({cl}{result["vol_r"]}*{cl}{asp_r})/{scale}', fmt=NUM)
+                        CF(ws, result['rev_r'], col, f'=({cl}{result["vol_r"]}*{cl}{asp_r})/{scale * div}', fmt=NUM)
                     else:
                         CF(ws, result['rev_r'], col, '', fmt=NUM)
             else:

@@ -15,6 +15,7 @@ from openpyxl.comments import Comment
 def render(ws, R, ll, anchor_info, ctx):
     """Render one vol_asp logic line. Returns row references dict."""
     C = ctx['C']; I = ctx['I']; A = ctx.get('A', C); CF = ctx.get('CF', C); HL = ctx.get('HL', C)
+    div = ctx.get('div', 1)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']; INT = ctx['INT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
@@ -166,7 +167,7 @@ def render(ws, R, ll, anchor_info, ctx):
     for col, h_key in [(DS, H2), (DS + 1, H1)]:
         cl = get_column_letter(col)
         if h_key.get('volume') and asp_rows:
-            C(ws, R, col, f'=({cl}{vol_r}*{cl}{asp_rows[0]})/{scale}', fmt=NUM)
+            C(ws, R, col, f'=({cl}{vol_r}*{cl}{asp_rows[0]})/{scale * div}', fmt=NUM)
         else:
             C(ws, R, col, '', fmt=NUM)
     for col_idx in [FY0] + [FY0 + 1 + i for i in range(proj_n)]:
@@ -181,7 +182,7 @@ def render(ws, R, ll, anchor_info, ctx):
                     else f'({cl}{vol_r}*{ac})')
             else:
                 parts.append(f'({cl}{vol_r}*{cl}{share_rows[ti]}*{ac})')
-        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/' + str(scale), fmt=NUM)
+        C(ws, R, col_idx, '=(' + '+'.join(parts) + ')/' + str(scale * div), fmt=NUM)
     C(ws, R, 3, 'Revenue')
     R += 1
 
@@ -206,7 +207,7 @@ def render(ws, R, ll, anchor_info, ctx):
             for ci in range(DS, DS + 2):
                 C(ws, R, ci, '', fmt=NUM)
             C(ws, R, 3, f'    {label} Rev @ SOTP', font=itf)
-            C(ws, R, SC, '=(' + '+'.join(parts) + ')/' + str(scale), fmt=NUM)
+            C(ws, R, SC, '=(' + '+'.join(parts) + ')/' + str(scale * div), fmt=NUM)
             ws.row_dimensions[R].hidden = True
             if label == 'Bull':    yb = R
             elif label == 'Base':  ys = R
