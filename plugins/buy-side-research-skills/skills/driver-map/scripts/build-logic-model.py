@@ -844,6 +844,27 @@ def build(json_path, output_path=None):
         gp_r = R
         C(ws, R, 3, 'GP')
         R += 1
+        # GP YoY
+        C(ws, R, DS, '', fmt=PCT)
+        _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
+        C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
+        _cf0 = get_column_letter(FY0); _cf1 = get_column_letter(FY0 - 1)
+        C(ws, R, FY0, f'=IFERROR({_cf0}{gp_r}/{_cf1}{gp_r}-1,"")', fmt=PCT)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+            C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, 'GP YoY')
+        R += 1
+        # GP QoQ
+        if has_q:
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, '  GP QoQ', font=itf)
+            R += 1
 
         # OP row (if segment discloses operating profit)
         fy0_op = fy0.get('op')
@@ -1049,6 +1070,27 @@ def build(json_path, output_path=None):
             C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
         C(ws, R, 3, 'GP')
         gp_r = R; R += 1
+        # GP YoY
+        C(ws, R, DS, '', fmt=PCT)
+        _cl2e = get_column_letter(DS + 1); _cl2d = get_column_letter(DS)
+        C(ws, R, DS + 1, f'=IFERROR({_cl2e}{gp_r}/{_cl2d}{gp_r}-1,"")', fmt=PCT)
+        _cf2_0 = get_column_letter(FY0); _cf2_1 = get_column_letter(FY0 - 1)
+        C(ws, R, FY0, f'=IFERROR({_cf2_0}{gp_r}/{_cf2_1}{gp_r}-1,"")', fmt=PCT)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+            C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, 'GP YoY')
+        R += 1
+        # GP QoQ
+        if has_q:
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, '  GP QoQ', font=itf)
+            R += 1
 
         # ── Check rows: anchor reference for reconciliation ──
         rev_module = ll.get('module', 'yoy')
@@ -1124,6 +1166,27 @@ def build(json_path, output_path=None):
                 C(ws, R, ci, f'={cl}{gp_r}-{cl}{R - 1}', fmt=NUM)
             C(ws, R, 3, '  OP', font=bf)
             line_op_r = R; R += 1
+            # OP YoY
+            C(ws, R, DS, '', fmt=PCT)
+            _cl3e = get_column_letter(DS + 1); _cl3d = get_column_letter(DS)
+            C(ws, R, DS + 1, f'=IFERROR({_cl3e}{line_op_r}/{_cl3d}{line_op_r}-1,"")', fmt=PCT)
+            _cf3_0 = get_column_letter(FY0); _cf3_1 = get_column_letter(FY0 - 1)
+            C(ws, R, FY0, f'=IFERROR({_cf3_0}{line_op_r}/{_cf3_1}{line_op_r}-1,"")', fmt=PCT)
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
+                cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+                C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{pl}{line_op_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, '  OP YoY')
+            R += 1
+            # OP QoQ
+            if has_q:
+                for ci in range(DS, LC_ANNUAL + 1):
+                    C(ws, R, ci, '', fmt=PCT)
+                for qi in range(Q_START, Q_END + 1):
+                    cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                    if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                    else: C(ws, R, qi, f'=IFERROR({cl}{line_op_r}/{pl}{line_op_r}-1,"")', fmt=PCT)
+                C(ws, R, 3, '    OP QoQ', font=itf)
+                R += 1
             # OPM (1:1 actual years & actual Qs use S1 OP/Rev)
             for ci in range(DS, LC + 1):
                 cl = get_column_letter(ci)
