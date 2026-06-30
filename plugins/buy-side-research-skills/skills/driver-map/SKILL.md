@@ -342,9 +342,11 @@ FY+1 增速路径：
 
 - 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
-## Model Pipeline（3 GATEs）
+## Model Pipeline（4 GATEs）
 
 在研究 Step 1-7（业务翻译→driver 映射→增速拆解）完成后，进入建模阶段。
+
+`build()` 内部自动完成：Reconcile（全 A 财年）→ Blend（实际 Q 利润率混入年度假设）→ Q Driver Distribution（季节权重分配）→ Render。Agent 无需干预 Q 配平——Revenue 数学保证收敛。
 
 ### ⛔ GATE 0: Actuals 强制补全
 
@@ -400,7 +402,7 @@ python .scripts/driver-map/build-logic-model.py <json> [-o output.xlsx]
 python .scripts/driver-map/audit_style.py <output.xlsx>
 ```
 
-生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
+build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
 ### ⛔ GATE 2.5: Q→FY Check
 
