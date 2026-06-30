@@ -1635,6 +1635,27 @@ def build(json_path, output_path=None):
               font=bf, fmt=NUM)
     C(ws, R, 3, 'Total GP')
     tgp = R; R += 1
+    # GP YoY
+    C(ws, R, DS, '', fmt=PCT)
+    _gpe = get_column_letter(DS + 1); _gpd = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({_gpe}{tgp}/{_gpd}{tgp}-1,"")', fmt=PCT)
+    _gf0 = get_column_letter(FY0); _gf1 = get_column_letter(FY0 - 1)
+    C(ws, R, FY0, f'=IFERROR({_gf0}{tgp}/{_gf1}{tgp}-1,"")', fmt=PCT)
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+        C(ws, R, ci, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'GP YoY')
+    R += 1
+    # GP QoQ
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  GP QoQ', font=itf)
+        R += 1
 
     # Check GP (model formula for all columns)
     for ci in range(DS, LC + 1):
@@ -1750,6 +1771,27 @@ def build(json_path, output_path=None):
         C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', fmt=NUM)
     C(ws, R, 3, 'EBITDA')
     ebitda_r = R; R += 1
+    # EBITDA YoY
+    C(ws, R, DS, '', fmt=PCT)
+    _ebe = get_column_letter(DS + 1); _ebd = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({_ebe}{ebitda_r}/{_ebd}{ebitda_r}-1,"")', fmt=PCT)
+    _ebf0 = get_column_letter(FY0); _ebf1 = get_column_letter(FY0 - 1)
+    C(ws, R, FY0, f'=IFERROR({_ebf0}{ebitda_r}/{_ebf1}{ebitda_r}-1,"")', fmt=PCT)
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+        C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'EBITDA YoY')
+    R += 1
+    # EBITDA QoQ
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  EBITDA QoQ', font=itf)
+        R += 1
 
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
