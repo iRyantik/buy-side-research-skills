@@ -316,6 +316,45 @@ def build(json_path, output_path=None):
                                 qh[qk]['volume']=round(qh[qk]['rev']*ll.get('unit_scale',100)/qd['asp'])
             qi += fyc; cur_yr += 1; cur_q = 1
 
+        # ── Company Q → Segment Q split (when company has Q data but seg doesn't) ──
+        cq = cfg.get('quarters', {})
+        segs = cfg.get('segments', [])
+        for qk, qd in cq.items():
+            if not qd.get('rev'): continue
+            q_rev = qd['rev']; q_gp = qd.get('gp', 0); q_op = qd.get('op')
+            # Check if ANY segment has Q data for this qk
+            any_seg_has = any(s.get('quarters', {}).get(qk, {}).get('rev', 0) > 0 for s in segs)
+            if any_seg_has: continue
+            # Split by FY0 proportions
+            fy0_tot_rev = sum(s['fy0']['rev'] for s in segs)
+            fy0_tot_gp = sum(s['fy0']['gp'] for s in segs)
+            if fy0_tot_rev <= 0: continue
+            for s in segs:
+                sq = s.get('quarters', {})
+                w_rev = s['fy0']['rev'] / fy0_tot_rev
+                w_gp = s['fy0']['gp'] / fy0_tot_gp if fy0_tot_gp else w_rev
+                sq[qk] = sq.get(qk, {})
+                sq[qk]['rev'] = round(q_rev * w_rev)
+                if q_gp: sq[qk]['gp'] = round(q_gp * w_gp)
+                if q_op is not None and s['fy0'].get('op'):
+                    op_w = s['fy0']['op'] / sum(s2['fy0'].get('op', 0) or 1 for s2 in segs)
+                    sq[qk]['op'] = round(q_op * op_w)
+                s['quarters'] = sq
+            # Also write to per-line q_history for 1:1 lines
+            for ll in cfg.get('logic_lines', []):
+                qh = ll.get('q_history', {})
+                if qh.get(qk, {}).get('rev'): continue  # already has data
+                for s in segs:
+                    for l in s.get('logic_lines', []):
+                        if l['name'] == ll['name']:
+                            sq = s['quarters']
+                            if qk in sq:
+                                qh[qk] = qh.get(qk, {})
+                                qh[qk]['rev'] = round(sq[qk]['rev'] * l['split'])
+                                if sq[qk].get('gp'):
+                                    qh[qk]['gp'] = round(sq[qk]['gp'] * l['split'])
+                            break
+
         # ── Blend: actual Q profit rates → update annual model assumptions ──
         # For projection FYs with M∈{1,2,3}, blend actual Q margins with model
         gl = cfg.get('global', {})
