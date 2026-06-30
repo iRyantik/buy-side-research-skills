@@ -344,7 +344,7 @@ FY+1 增速路径：
 
 - 标准：80-140 行 + 3-4 张表 + 每业务线 1 棵驱动树。低于 60 行常漏 proxy strategy 或驱动树；超过 160 行应收窄到核心 segment 或把细节移入附录。
 
-## Model Pipeline（4 GATEs）
+## Model Pipeline（5 GATEs）
 
 在研究 Step 1-7（业务翻译→driver 映射→增速拆解）完成后，进入建模阶段。
 
@@ -397,11 +397,30 @@ FY+1 增速路径：
 
 **⛔ STOP — 等用户调数 + 确认估值方法，再继续。**
 
+### ⛔ GATE 1.5: 公司脚本副本（Company-Specific Script Copy）
+
+**每个公司必须有自己的 build 脚本副本**，放在 `<ticker>/.cache/scripts/`。不改 workspace 通用脚本。
+
+```bash
+# 首次生成前，一次性 copy：
+TICKER_DIR="industry/<industry>/companies/<ticker>"
+mkdir -p "$TICKER_DIR/.cache/scripts/modules"
+cp .scripts/driver-map/build-logic-model.py "$TICKER_DIR/.cache/scripts/"
+cp .scripts/driver-map/audit_style.py "$TICKER_DIR/.cache/scripts/"
+cp .scripts/driver-map/modules/*.py "$TICKER_DIR/.cache/scripts/modules/"
+```
+
+**强制规则**：
+- 每个公司独立副本，改自己的不影响其他公司
+- 通用脚本（`.scripts/driver-map/`）只在新公司首次 copy 时使用
+- 已生成模型的公司后续 rebuild 用公司自己的脚本副本
+- **禁止**多个公司共用同一份脚本——改了量纲/参数会互相污染
+
 ### ⛔ GATE 2: 生成 Excel
 
 ```bash
-python .scripts/driver-map/build-logic-model.py <json> [-o output.xlsx]
-python .scripts/driver-map/audit_style.py <output.xlsx>
+python <ticker>/.cache/scripts/build-logic-model.py <json> [-o output.xlsx]
+python <ticker>/.cache/scripts/audit_style.py <output.xlsx>
 ```
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
