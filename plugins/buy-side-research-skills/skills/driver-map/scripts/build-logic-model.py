@@ -468,12 +468,12 @@ def build(json_path, output_path=None):
                             if proj_i < len(vp):
                                 ann_asp = ap[min(proj_i, len(ap) - 1)]
                                 ann_vol = vp[proj_i]
-                                ann = ann_vol * ann_asp  # raw product, unit_scale applied at formula level
+                                ann = ann_vol * ann_asp / us  # display units, matches actual Q rev
                         elif module == 'backlog_burn':
                             bp = ll['backlog']['burn']['proj']; ap_arr = ll.get('asp', [])
                             ann_asp = ap_arr[min(proj_i, len(ap_arr) - 1)] if ap_arr else 0
                             ann_vol = bp[proj_i]  # burn = "volume" in this context
-                            ann = ann_vol * ann_asp if ann_asp else 0  # raw product
+                            ann = ann_vol * ann_asp / us if ann_asp else 0  # display units
                         else:  # yoy
                             base = ll['yoy']['base']
                             for seg in cfg.get('segments', []):
@@ -500,7 +500,7 @@ def build(json_path, output_path=None):
                                         if sq_r:
                                             rv = sq_r * l['split']
                         if rv and rv > 0:
-                            vv = qd.get('volume', 0) or (rv / ann_asp if ann_asp else 0)
+                            vv = qd.get('volume', 0) or (rv * us / ann_asp if ann_asp else 0)
                             av = qd.get('asp', 0) or ann_asp
                             actual_q.append((j, rv, vv, av))
                     M = len(actual_q)
@@ -587,7 +587,7 @@ def build(json_path, output_path=None):
                         locked_rev = sum(a[1] for a in actual_q)
                         remaining_vol = max(0.01, ann_vol - locked_vol)
                         remaining_rev = max(0.01, ann - locked_rev)
-                        remaining_asp = remaining_rev / remaining_vol  # target ASP for proj Qs
+                        remaining_asp = remaining_rev * us / remaining_vol  # natural ASP for formula Vol*ASP/us
 
                         # Compute Vol/Burn weights from actual Q data
                         if M >= 2 and len([a for a in actual_q if a[2] > 0]) >= 2:
