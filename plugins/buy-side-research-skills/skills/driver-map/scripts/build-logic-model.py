@@ -1843,12 +1843,6 @@ def build(json_path, output_path=None):
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{cl}{trev},"")', fmt=PCT)
-    C(ws, R, 3, 'NPM')
-    R += 1
-
     if nci_rate > 0:
         for ci in range(DS, LC + 1):
             cl = get_column_letter(ci)
@@ -1880,6 +1874,12 @@ def build(json_path, output_path=None):
             else: C(ws, R, qi, f'=IFERROR({cl}{ni_r}/{pl}{ni_r}-1,"")', fmt=PCT)
         C(ws, R, 3, '  NI QoQ', font=itf)
         R += 1
+    # NPM (after NI YoY+QoQ, consistent with OPM placement)
+    for ci in range(DS, LC + 1):
+        cl = get_column_letter(ci)
+        C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{cl}{trev},"")', fmt=PCT)
+    C(ws, R, 3, 'NPM')
+    R += 1
     _ni_end = R; R += 1
 
 
