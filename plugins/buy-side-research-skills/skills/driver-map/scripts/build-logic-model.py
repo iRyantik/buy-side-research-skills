@@ -1534,6 +1534,17 @@ def build(json_path, output_path=None):
         C(ws, R, ci, f'=IFERROR({cl}{trev}/{pl}{trev}-1,"")', fmt=PCT)
     C(ws, R, 3, 'Rev YoY')
     R += 1
+    # QoQ (collapsed, Q columns only)
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{trev}/{pl}{trev}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  Rev QoQ', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        R += 1
 
     # Total GP (FY23-25 actuals, FY26+ formula)
     A(ws, R, DS, sc(a['fy-2']['gp']), fmt=NUM)
@@ -1733,6 +1744,18 @@ def build(json_path, output_path=None):
             pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{pl}{ni_r}-1,"")', fmt=PCT)
     C(ws, R, 3, 'NI YoY')
+    R += 1
+    # QoQ (collapsed, Q columns only)
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{ni_r}/{pl}{ni_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  NI QoQ', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        R += 1
     _ni_end = R; R += 1
 
 
