@@ -201,13 +201,17 @@ def validate_json(cfg):
             vol_fy0 = ll['volume']['fy0']
             scale = ll.get('unit_scale', 100)
             asp_fy0 = ll['tiers'][0].get('asp_fy0', ll['tiers'][0].get('asp', [0])[0] if ll['tiers'][0].get('asp') else 0)
-            computed = vol_fy0 * asp_fy0 / scale
-            # Find anchor revenue (seg rev × split)
+            computed = vol_fy0 * asp_fy0 / scale  # in display units
+            # Compute div for anchor conversion (same logic as main build)
+            _meta = cfg.get('meta', {})
+            _use_B = _meta.get('unit') == 'B' or _meta.get('market', '') in ('jp', 'kr', 'tw')
+            _div = 1000 if _use_B else 1
+            # Find anchor revenue (seg rev × split), also in display units
             anchor = 0
             for seg in cfg.get('segments', []):
                 for l in seg.get('logic_lines', []):
                     if l['name'] == ln:
-                        anchor = seg['fy0']['rev'] * l['split']
+                        anchor = seg['fy0']['rev'] * l['split'] / _div
                         break
             if anchor > 0:
                 gap = abs(computed - anchor) / anchor
@@ -418,12 +422,12 @@ def build(json_path, output_path=None):
                             if proj_i < len(vp):
                                 ann_asp = ap[min(proj_i, len(ap) - 1)]
                                 ann_vol = vp[proj_i]
-                                ann = ann_vol * ann_asp / us
+                                ann = ann_vol * ann_asp  # raw product, unit_scale applied at formula level
                         elif module == 'backlog_burn':
                             bp = ll['backlog']['burn']['proj']; ap_arr = ll.get('asp', [])
                             ann_asp = ap_arr[min(proj_i, len(ap_arr) - 1)] if ap_arr else 0
                             ann_vol = bp[proj_i]  # burn = "volume" in this context
-                            ann = ann_vol * ann_asp / us if ann_asp else 0
+                            ann = ann_vol * ann_asp if ann_asp else 0  # raw product
                         else:  # yoy
                             base = ll['yoy']['base']
                             for seg in cfg.get('segments', []):
@@ -450,7 +454,7 @@ def build(json_path, output_path=None):
                                         if sq_r:
                                             rv = sq_r * l['split']
                         if rv and rv > 0:
-                            vv = qd.get('volume', 0) or (rv * us / ann_asp if ann_asp else 0)
+                            vv = qd.get('volume', 0) or (rv / ann_asp if ann_asp else 0)
                             av = qd.get('asp', 0) or ann_asp
                             actual_q.append((j, rv, vv, av))
                     M = len(actual_q)
@@ -598,7 +602,7 @@ def build(json_path, output_path=None):
                                         qh[qk]['rev'] = a[1]
                                         if a[2] > 0 and a[1] > 0 and module == 'vol_asp':
                                             qh[qk]['volume'] = a[2]
-                                            qh[qk]['asp'] = a[1] * us / a[2]
+                                            qh[qk]['asp'] = a[1] / a[2]  # raw ASP, formula divides by unit_scale
                                 continue
                             if module == 'vol_asp':
                                 qh[qk]['volume'] = remaining_vol * w[j]
@@ -708,7 +712,7 @@ def build(json_path, output_path=None):
     ctx = make_ctx()
     ctx['FY0'] = FY0; ctx['LC'] = LC_ANNUAL; ctx['SC'] = SC; ctx['proj_n'] = proj_n
     ctx['COLS'] = COLS; ctx['bfyr'] = bfyr
-    ctx['Q_START'] = Q_START; ctx['Q_END'] = Q_END; ctx['div'] = div
+    ctx['Q_START'] = Q_START; ctx['Q_END'] = Q_END
     ctx['q_actual_n'] = q_actual_n; ctx['q_proj_n'] = q_proj_n
 
     print(f'  Cols: D=DS({DS}) FY0={get_column_letter(FY0)}({FY0}) '
@@ -1227,7 +1231,7 @@ def build(json_path, output_path=None):
                     col = Q_START + qi; cl = get_column_letter(col)
                     scale = ll.get('unit_scale', 100)
                     if asp_r:
-                        CF(ws, result['rev_r'], col, f'=({cl}{result["vol_r"]}*{cl}{asp_r})/{scale * div}', fmt=NUM)
+                        CF(ws, result['rev_r'], col, f'=({cl}{result["vol_r"]}*{cl}{asp_r})/{scale}', fmt=NUM)
                     else:
                         CF(ws, result['rev_r'], col, '', fmt=NUM)
             else:
@@ -1248,17 +1252,18 @@ def build(json_path, output_path=None):
                     # 1:1 actual Q: use S1 reference like GM/OpexRev (real data)
                     if ln in one_to_one and anchor_row and is_q_actual:
                         C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
-                    else:
+                    elif is_q_actual:
+                        # non-1:1 actual Q: q_history rev or S1 anchor
                         qv = q_hist.get(f'q{qi+1}', {}).get('rev')
                         if qv is not None:
                             I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
-                        elif is_q_actual and anchor_row:
+                        elif anchor_row:
                             C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
-                        elif not is_q_actual:
-                            # proj Q fallback: chain formula
-                            pl = get_column_letter(col - 1)
-                            CF(ws, result['rev_r'], col,
-                               f'={pl}{result["rev_r"]}*(1+{cl}{ya})', fmt=NUM)
+                    else:
+                        # proj Q: chain formula (never use stale q_history rev)
+                        pl = get_column_letter(col - 1)
+                        CF(ws, result['rev_r'], col,
+                           f'={pl}{result["rev_r"]}*(1+{cl}{ya})', fmt=NUM)
                 # Extend BBE rows to Q columns (q_history yoy_q if available, else annual rate → QoQ)
                 if result.get('yb'):
                     yoy_keys = [('bull', 'yb'), ('base', 'ybs'), ('bear', 'ybe')]
