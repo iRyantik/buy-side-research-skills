@@ -336,9 +336,16 @@ def build(json_path, output_path=None):
                 sq[qk] = sq.get(qk, {})
                 sq[qk]['rev'] = round(q_rev * w_rev)
                 if q_gp: sq[qk]['gp'] = round(q_gp * w_gp)
-                if q_op is not None and s['fy0'].get('op'):
-                    op_w = s['fy0']['op'] / sum(s2['fy0'].get('op', 0) or 1 for s2 in segs)
-                    sq[qk]['op'] = round(q_op * op_w)
+                if q_op is not None:
+                    tot_op = sum(s2['fy0'].get('op', 0) for s2 in segs)
+                    if tot_op: sq[qk]['op'] = round(q_op * s['fy0'].get('op', 0) / tot_op)
+                q_opex = qd.get('opex', 0)
+                if q_opex:
+                    # Derive seg FY0 opex = gp - op
+                    fy0_seg_opex = {s2['name']: s2['fy0'].get('gp',0) - s2['fy0'].get('op',0) for s2 in segs}
+                    tot_seg_opex = sum(v for v in fy0_seg_opex.values())
+                    if tot_seg_opex > 0:
+                        sq[qk]['opex'] = round(q_opex * fy0_seg_opex.get(s['name'], 0) / tot_seg_opex)
                 s['quarters'] = sq
             # Also write to per-line q_history for 1:1 lines
             for ll in cfg.get('logic_lines', []):
@@ -1754,7 +1761,10 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('op', 0) for seg in segments)
+            # For actual Q columns, always use formula as backup if seg_quarters has no op
+            cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+            else: C(ws, R, Q_START + qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
@@ -1801,14 +1811,15 @@ def build(json_path, output_path=None):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_actuals_r}/{get_column_letter(FY0)}{trev}', fmt=NUM)
     if has_q:
+        da_fy0_col = get_column_letter(FY0)
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('da', 0) for seg in segments)
+            cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+            else: C(ws, R, Q_START + qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            # Q D&A = Annual D&A / 4 (mirrors annual formula = OP × DA_fy0 / Rev_fy0)
-            da_fy0_col = get_column_letter(FY0)
             C(ws, R, qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
     C(ws, R, 3, 'D&A')
     da_r = R; R += 1
@@ -1866,7 +1877,9 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('tax', 0) for seg in segments)
+            cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+            else: C(ws, R, Q_START + qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
@@ -1883,7 +1896,9 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('ni', 0) for seg in segments)
+            cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+            else: C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
@@ -1964,21 +1979,22 @@ def build(json_path, output_path=None):
     for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
         I(ws, opex_r, i, ov_val, fmt=PCT)
     if has_q:
-        for qi in range(q_actual_n):
-            cl = get_column_letter(Q_START + qi)
-            CF(ws, opex_r, Q_START + qi, f'=IFERROR({cl}{ov}/{cl}{trev},"")', fmt=PCT)
-        for qi in range(q_actual_n, q_actual_n + q_proj_n):
-            I(ws, opex_r, Q_START + qi, gl['opex_rate'][3], fmt=PCT)
+        _opex_rates = gl.get('opex_rate', [0.25]*8)
+        cur_yr, cur_q = q_start_yr, q_start_q
+        for qi in range(q_actual_n + q_proj_n):
+            _py = cur_yr - bfyr - 1
+            if _py < 0: _py = 0  # actual Q in base year → use FY0 rate
+            _idx = min(3 + _py, len(_opex_rates) - 1)
+            I(ws, opex_r, Q_START + qi, _opex_rates[_idx], fmt=PCT)
+            cur_q += 1
+            if cur_q > 4: cur_q = 1; cur_yr += 1
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         CF(ws, tax_r, ci, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         I(ws, tax_r, ci, gl['tax_rate'], fmt=PCT)
     if has_q:
-        for qi in range(q_actual_n):
-            cl = get_column_letter(Q_START + qi)
-            CF(ws, tax_r, Q_START + qi, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
-        for qi in range(q_actual_n, q_actual_n + q_proj_n):
+        for qi in range(q_actual_n + q_proj_n):
             I(ws, tax_r, Q_START + qi, gl['tax_rate'], fmt=PCT)
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
