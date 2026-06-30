@@ -802,7 +802,6 @@ def build(json_path, output_path=None):
                 if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                 else: C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
             C(ws, R, 3, '  QoQ', font=itf)
-            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
             R += 1
 
         # Cost
@@ -895,7 +894,6 @@ def build(json_path, output_path=None):
                     if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                     else: C(ws, R, qi, f'=IFERROR({cl}{op_r}/{pl}{op_r}-1,"")', fmt=PCT)
                 C(ws, R, 3, '  OP QoQ', font=itf)
-                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
                 R += 1
             # OPM
             for ci in range(DS, LC + 1):
@@ -1015,6 +1013,17 @@ def build(json_path, output_path=None):
             if s['name'] == seg_name:
                 seg_obj = s
                 break
+
+        # ── yoy module: QoQ below YoY row ──
+        if has_q and module_name == 'yoy' and result.get('ya'):
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                else: C(ws, R, qi, f'=IFERROR({cl}{result["rev_r"]}/{pl}{result["rev_r"]}-1,"")', fmt=PCT)
+            C(ws, R, 3, '  QoQ', font=itf)
+            R += 1
 
         # ── Common: GM + GP (all modules) ──
         gm = ll['gm']
@@ -1301,7 +1310,6 @@ def build(json_path, output_path=None):
                 if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                 else: C(ws, R, qi, f'=IFERROR({cl}{result["rev_r"]}/{pl}{result["rev_r"]}-1,"")', fmt=PCT)
             C(ws, R, 3, '  QoQ', font=itf)
-            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
             R += 1
 
         # ── Check rows: extend to Q actual columns (scan C column for positions) ──
@@ -1543,7 +1551,6 @@ def build(json_path, output_path=None):
             if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
             else: C(ws, R, qi, f'=IFERROR({cl}{trev}/{pl}{trev}-1,"")', fmt=PCT)
         C(ws, R, 3, '  Rev QoQ', font=itf)
-        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         R += 1
 
     # Total GP (FY23-25 actuals, FY26+ formula)
@@ -1674,6 +1681,28 @@ def build(json_path, output_path=None):
     ebit_r = R; R += 1
     _ebit_end = ebit_r
 
+    # EBIT/OI YoY
+    C(ws, R, DS, '', fmt=PCT)
+    cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({cl_e}{ebit_r}/{cl_d}{ebit_r}-1,"")', fmt=PCT)
+    f0 = get_column_letter(FY0); f_1 = get_column_letter(FY0 - 1)
+    C(ws, R, FY0, f'=IFERROR({f0}{ebit_r}/{f_1}{ebit_r}-1,"")', fmt=PCT)
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+        C(ws, R, ci, f'=IFERROR({cl}{ebit_r}/{pl}{ebit_r}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'EBIT/OI YoY')
+    R += 1
+    # EBIT/OI QoQ
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{ebit_r}/{pl}{ebit_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  EBIT/OI QoQ', font=itf)
+        R += 1
+
     # Check EBIT (model formula for all columns)
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
@@ -1754,7 +1783,6 @@ def build(json_path, output_path=None):
             if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
             else: C(ws, R, qi, f'=IFERROR({cl}{ni_r}/{pl}{ni_r}-1,"")', fmt=PCT)
         C(ws, R, 3, '  NI QoQ', font=itf)
-        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         R += 1
     _ni_end = R; R += 1
 
