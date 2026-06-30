@@ -425,6 +425,19 @@ python <ticker>/.cache/scripts/audit_style.py <output.xlsx>
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
+**量纲规则**：
+
+- **div**：存储单位 → 显示单位 的换算。`sc(v) = v / div`，只用于 A() 和 I() 格
+- **unit_scale**：Vol×ASP 原始乘积 → 显示财务单位，**已含 div**。公式 = `Vol×ASP/unit_scale`
+- CF() 公式不走 sc()，unit_scale 保证公式产出 = 显示单位
+
+| 市场 | 存储 | 显示 | div | unit_scale 示例 |
+|---|---|---|---|---|
+| US/CN/EU/HK | M | M | 1 | 1 |
+| JP/KR/TW | M | bn | 1000 | 1000 |
+
+驱动分配内部（ann、remaining_vol、remaining_asp）全部用原始单位，不碰 div 和 unit_scale。
+
 ### ⛔ GATE 2.5: Q→FY Check
 
 Q 列生成后，X 列 Check = `(Annual−ΣQ)/Annual` %。
