@@ -416,6 +416,22 @@ cp .scripts/driver-map/modules/*.py "$TICKER_DIR/.cache/scripts/modules/"
 - 已生成模型的公司后续 rebuild 用公司自己的脚本副本
 - **禁止**多个公司共用同一份脚本——改了量纲/参数会互相污染
 
+### Blend 步骤（build 内部自动执行）
+
+对每个有 M∈{1,2,3} 的投影年，实际 Q 的利润率（GM、OM）混入年度模型假设：
+
+```
+GM_blended   = M/4 × GM_actual_Q   + (1−M/4) × GM_model
+OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
+```
+
+- M/4 = 实际 Q 的权重（M=1→25%，M=3→75%）
+- GM_actual_Q = Σ(S1实际Q_GP) / Σ(S1实际Q_Rev)（从 seg_quarters 取）
+- OM_actual_Q = Σ(S1实际Q_GP − S1实际Q_OP) / Σ(S1实际Q_Rev)
+- 写回 `gm['proj'][idx]` 和 `opex_rates[idx]`
+- Revenue 不动——只 blend 利润率
+- 效果：GP/OP Δ 收窄 65-80%，但不强制为 0（残余差 = 季节性信息）
+
 ### ⛔ GATE 2: 生成 Excel
 
 ```bash
