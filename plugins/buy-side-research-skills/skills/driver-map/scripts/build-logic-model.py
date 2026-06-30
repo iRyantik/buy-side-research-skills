@@ -258,34 +258,370 @@ def build(json_path, output_path=None):
         q_start_yr = meta_tmp.get('q_start_yr', bfyr)
         q_start_q = meta_tmp.get('q_start_q', 1)
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
-        while qi < q_actual_n:
-            rem = 4 - cur_q + 1; fyc = min(rem, q_actual_n - qi)
-            if fyc == 4:  # complete 4Q FY with annual actuals
+        total_q = q_actual_n + meta_tmp.get('q_proj_count', 0)
+        while qi < total_q:
+            rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi)
+            if fyc == 4:  # complete 4Q FY
                 fy_idx = cur_yr - bfyr + 2
-                if fy_idx < 3:  # historical only
+                fy_rev = 0
+                if fy_idx < 3:
                     fy_rev = a[['fy-2','fy-1','fy0'][fy_idx]]['rev']
-                qdata = cfg.get('quarters', {})
-                q_rev_sum = sum(qdata.get(f'q{qi+j+1}', {}).get('rev', 0) for j in range(4))
-                if q_rev_sum > 0 and fy_rev > 0 and abs(q_rev_sum/fy_rev - 1) > 0.005:
+                elif fy_idx < 3 + proj_n:
+                    proj_i = fy_idx - 3
+                    for ll in cfg.get('logic_lines', []):
+                        if ll.get('module') == 'vol_asp':
+                            vp = ll['volume']['proj']; ap = ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base',[0]))
+                            if proj_i < len(vp):
+                                asp = ap[min(proj_i,len(ap)-1)]
+                                fy_rev += vp[proj_i] * asp / ll.get('unit_scale',100)
+                        else:
+                            base = ll['yoy']['base']
+                            for seg in cfg.get('segments',[]):
+                                for l in seg.get('logic_lines',[]):
+                                    if l['name'] == ll['name']:
+                                        f0 = seg['fy0']['rev'] * l['split']
+                                        cum = 1.0
+                                        for bi in range(proj_i+1):
+                                            if bi < len(base): cum *= (1+base[bi])
+                                        fy_rev += round(f0*cum)
+                if fy_rev == 0: qi += fyc; cur_yr += 1; cur_q = 1; continue
+                qdata = cfg.get('quarters',{})
+                # Guard: only reconcile if ALL 4 Qs have actual data (skip mixed actual+proj FYs)
+                all_q_present = all(qdata.get(f'q{qi+j+1}',{}).get('rev',0) > 0 for j in range(4))
+                if not all_q_present: qi += fyc; cur_yr += 1; cur_q = 1; continue
+                q_rev_sum = sum(qdata.get(f'q{qi+j+1}',{}).get('rev',0) for j in range(4))
+                if q_rev_sum > 0 and abs(q_rev_sum/fy_rev-1) > 0.005:
                     s = fy_rev / q_rev_sum
-                    print(f'  [reconcile] FY{cur_yr}: Q rev sum={q_rev_sum:.0f} → FY={fy_rev:.0f} (scale={s:.3f})')
+                    print(f'  [reconcile] FY{cur_yr}: Q sum={q_rev_sum:.0f} FY={fy_rev:.0f} scale={s:.3f}')
                     for field in ['rev','gp','op','ni','opex','tax','da']:
                         for j in range(4):
-                            qk = f'q{qi+j+1}'; qd = qdata.get(qk, {})
-                            if field in qd: qdata[qk][field] = round(qd[field] * s)
-                    for seg in cfg.get('segments', []):
-                        sq = seg.get('quarters', {})
+                            qk=f'q{qi+j+1}'; qd=qdata.get(qk,{})
+                            if field in qd: qdata[qk][field]=round(qd[field]*s)
+                    for seg in cfg.get('segments',[]):
+                        sq=seg.get('quarters',{})
                         for field in ['rev','gp','op','ni','opex','tax','da']:
                             for j in range(4):
-                                qk = f'q{qi+j+1}'; qd = sq.get(qk, {})
-                                if field in qd: sq[qk][field] = round(qd[field] * s)
-                    for ll in cfg.get('logic_lines', []):
-                        qh = ll.get('q_history', {})
+                                qk=f'q{qi+j+1}'; qd=sq.get(qk,{})
+                                if field in qd: sq[qk][field]=round(qd[field]*s)
+                    for ll in cfg.get('logic_lines',[]):
+                        qh=ll.get('q_history',{})
                         for j in range(4):
-                            qk = f'q{qi+j+1}'; qd = qh.get(qk, {})
-                            if 'rev' in qd: qh[qk]['rev'] = round(qd['rev'] * s)
-                            if 'volume' in qd and 'asp' in qd and qd.get('asp', 0) > 0:
-                                qh[qk]['volume'] = round(qh[qk]['rev'] * ll.get('unit_scale', 100) / qd['asp'])
+                            qk=f'q{qi+j+1}'; qd=qh.get(qk,{})
+                            if 'rev' in qd: qh[qk]['rev']=round(qd['rev']*s)
+                            if 'volume' in qd and 'asp' in qd and qd.get('asp',0)>0:
+                                qh[qk]['volume']=round(qh[qk]['rev']*ll.get('unit_scale',100)/qd['asp'])
+            qi += fyc; cur_yr += 1; cur_q = 1
+
+        # ── Blend: actual Q profit rates → update annual model assumptions ──
+        # For projection FYs with M∈{1,2,3}, blend actual Q margins with model
+        gl = cfg.get('global', {})
+        cur_yr, cur_q, qi_b = q_start_yr, q_start_q, 0
+        while qi_b < total_q:
+            rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi_b)
+            if fyc == 4:
+                fy_idx = cur_yr - bfyr + 2; proj_i = fy_idx - 3
+                if 0 <= proj_i < proj_n:
+                    for seg in cfg.get('segments', []):
+                        sq = seg.get('quarters', {})
+                        # Count actual Qs for this segment in this FY
+                        seg_q_revs = []; seg_q_gps = []; seg_q_ops = []
+                        for j in range(4):
+                            qk = f'q{qi_b+j+1}'; qd = sq.get(qk, {})
+                            rv = qd.get('rev', 0); gv = qd.get('gp', 0)
+                            if rv and rv > 0:
+                                seg_q_revs.append(rv)
+                                if gv: seg_q_gps.append(gv)
+                                ov = qd.get('op')
+                                if ov is not None: seg_q_ops.append(ov)
+                        M_seg = len(seg_q_revs)
+                        if M_seg not in (1, 2, 3): continue
+                        w_act = M_seg / 4; w_mod = 1 - w_act
+
+                        # Blend per-line gm + opex_rate for each logic line in this segment
+                        for ll_cfg in seg.get('logic_lines', []):
+                            ln_name = ll_cfg['name']
+                            ll_obj = None
+                            for ll in cfg.get('logic_lines', []):
+                                if ll['name'] == ln_name: ll_obj = ll; break
+                            if not ll_obj: continue
+
+                            # GM blend
+                            if seg_q_gps and sum(seg_q_revs) > 0:
+                                gm_actual = sum(seg_q_gps) / sum(seg_q_revs)
+                                gm_model = ll_obj['gm']['proj'][proj_i] if proj_i < len(ll_obj['gm']['proj']) else 0
+                                gm_blend = w_act * gm_actual + w_mod * gm_model
+                                ll_obj['gm']['proj'][proj_i] = round(gm_blend, 4)
+
+                            # Opex/Rev blend (requires OP data)
+                            if seg_q_ops and seg_q_gps and sum(seg_q_revs) > 0:
+                                opex_actual = sum(seg_q_gps) - sum(seg_q_ops)
+                                om_actual = opex_actual / sum(seg_q_revs) if sum(seg_q_revs) > 0 else 0
+                                line_opex = ll_obj.get('opex_rate')
+                                opex_arr = line_opex if line_opex else gl.get('opex_rate', [])
+                                idx_o = 3 + proj_i
+                                om_model = opex_arr[idx_o] if idx_o < len(opex_arr) else 0.25
+                                om_blend = w_act * om_actual + w_mod * om_model
+                                if idx_o < len(opex_arr):
+                                    if line_opex: ll_obj['opex_rate'][idx_o] = round(om_blend, 4)
+                                    else: gl['opex_rate'][idx_o] = round(om_blend, 4)
+                    # Blend global opex_rate (company-level, from all segments' actual Qs)
+                    if M_seg > 0:
+                        all_act_rev = 0; all_act_gp = 0; all_act_op = 0
+                        for seg in cfg.get('segments', []):
+                            sq = seg.get('quarters', {})
+                            for j in range(4):
+                                qk = f'q{qi_b+j+1}'; qd = sq.get(qk, {})
+                                rv = qd.get('rev', 0)
+                                if rv and rv > 0:
+                                    all_act_rev += rv
+                                    gv = qd.get('gp', 0)
+                                    if gv: all_act_gp += gv
+                                    ov = qd.get('op')
+                                    if ov is not None: all_act_op += ov
+                        if all_act_rev > 0 and all_act_gp > 0 and all_act_op > 0:
+                            co_om_act = (all_act_gp - all_act_op) / all_act_rev
+                            co_om_mod = gl['opex_rate'][3 + proj_i] if 3 + proj_i < len(gl['opex_rate']) else 0.25
+                            co_blend = (M_seg / 4) * co_om_act + (1 - M_seg / 4) * co_om_mod
+                            idx_g = 3 + proj_i
+                            if idx_g < len(gl['opex_rate']):
+                                gl['opex_rate'][idx_g] = round(co_blend, 4)
+            qi_b += fyc; cur_yr += 1; cur_q = 1
+
+        # ── Q Driver Distribution ──
+        # For each complete 4Q FY, distribute annual drivers to Qs using seasonal weights.
+        # vol_asp: Q_Vol = Vol_Y × w_i, Q_ASP = ASP_Y × s_i (Σ(w×s)=1)
+        # yoy: Newton solve r s.t. Σ Q_1×(1+r)^k = Annual
+        # backlog_burn: Q_Burn = Burn_Y × w_i, Q_ASP = ASP_Y × s_i
+        cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
+        while qi < total_q:
+            rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi)
+            if fyc == 4:
+                fy_idx = cur_yr - bfyr + 2; proj_i = fy_idx - 3
+                for ll in cfg.get('logic_lines', []):
+                    ln = ll['name']; qh = ll.get('q_history', {})
+                    module = ll.get('module', 'yoy')
+                    us = ll.get('unit_scale', 100)
+
+                    # ── Compute annual revenue & drivers ──
+                    ann = 0; ann_vol = 0; ann_asp = 0
+                    if fy_idx < 3:
+                        for seg in cfg.get('segments', []):
+                            for l in seg.get('logic_lines', []):
+                                if l['name'] == ln:
+                                    seg_fy_key = ['fy-2', 'fy-1', 'fy0'][fy_idx]
+                                    yr_data = seg.get(seg_fy_key, {})
+                                    if yr_data and yr_data.get('rev'):
+                                        ann += yr_data['rev'] * l['split']
+                    elif 0 <= proj_i < proj_n:
+                        if module == 'vol_asp':
+                            vp = ll['volume']['proj']; ap = ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))
+                            if proj_i < len(vp):
+                                ann_asp = ap[min(proj_i, len(ap) - 1)]
+                                ann_vol = vp[proj_i]
+                                ann = ann_vol * ann_asp / us
+                        elif module == 'backlog_burn':
+                            bp = ll['backlog']['burn']['proj']; ap_arr = ll.get('asp', [])
+                            ann_asp = ap_arr[min(proj_i, len(ap_arr) - 1)] if ap_arr else 0
+                            ann_vol = bp[proj_i]  # burn = "volume" in this context
+                            ann = ann_vol * ann_asp / us if ann_asp else 0
+                        else:  # yoy
+                            base = ll['yoy']['base']
+                            for seg in cfg.get('segments', []):
+                                for l in seg.get('logic_lines', []):
+                                    if l['name'] == ln:
+                                        f0 = seg['fy0']['rev'] * l['split']
+                                        cum = 1.0
+                                        for bi in range(proj_i + 1):
+                                            if bi < len(base): cum *= (1 + base[bi])
+                                        ann += round(f0 * cum)
+                    if ann <= 0: continue
+
+                    # ── Count M and read actual Q driver data ──
+                    actual_q = []  # list of (offset, rev, vol, asp) for Qs with data
+                    for j in range(4):
+                        qk = f'q{qi+j+1}'; qd = qh.get(qk, {})
+                        rv = qd.get('rev', 0)
+                        # Fallback: segment quarters
+                        if not rv:
+                            for seg in cfg.get('segments', []):
+                                for l in seg.get('logic_lines', []):
+                                    if l['name'] == ln:
+                                        sq_r = seg.get('quarters', {}).get(qk, {}).get('rev', 0)
+                                        if sq_r:
+                                            rv = sq_r * l['split']
+                        if rv and rv > 0:
+                            vv = qd.get('volume', 0) or (rv * us / ann_asp if ann_asp else 0)
+                            av = qd.get('asp', 0) or ann_asp
+                            actual_q.append((j, rv, vv, av))
+                    M = len(actual_q)
+                    if M == 4: continue  # all-actual FY, reconcile handled
+
+                    # ── Compute QoQ rate r ──
+                    if M >= 2:
+                        qoq_rates = []
+                        for mi in range(1, len(actual_q)):
+                            r_prev = actual_q[mi - 1][1]; r_curr = actual_q[mi][1]
+                            if r_prev > 0: qoq_rates.append(r_curr / r_prev - 1)
+                        _r = sum(qoq_rates) / len(qoq_rates) if qoq_rates else 0.02
+                    else:
+                        _yoy = 0
+                        if fy_idx < 3:
+                            fy_a = ['fy-2', 'fy-1', 'fy0']
+                            if fy_idx > 0:
+                                _yoy = a[fy_a[fy_idx]]['rev'] / a[fy_a[fy_idx - 1]]['rev'] - 1
+                        elif module == 'yoy':
+                            _yoy = ll['yoy']['base'][proj_i] if proj_i < len(ll['yoy']['base']) else 0
+                        elif module in ('vol_asp', 'backlog_burn'):
+                            _src = ll.get('volume', ll.get('backlog', {}).get('burn', {}))
+                            vp = _src.get('proj', [])
+                            if proj_i > 0 and proj_i - 1 < len(vp) and vp[proj_i - 1] > 0:
+                                _yoy = vp[proj_i] / vp[proj_i - 1] - 1
+                        _r = (1 + _yoy) ** (1 / 4) - 1 if _yoy > -0.99 else 0.02
+                    _r = max(-0.2, min(0.2, _r))  # cap for vol_asp/backlog weights only
+
+                    # ── Compute seasonal weights ──
+                    actual_set = set(a[0] for a in actual_q)
+                    first_actual = actual_q[0][0] if actual_q else 0
+                    last_actual = actual_q[-1][0] if actual_q else -1
+
+                    if module == 'yoy':
+                        # ── yoy: binary search for r such that Σ Q_i = ann ──
+                        a_first = actual_q[0][1] if actual_q else ann / 4
+                        a_last = actual_q[-1][1] if actual_q else ann / 4
+                        def yoy_sum(_r):
+                            s = 0
+                            for j in range(4):
+                                if j in actual_set:
+                                    for a in actual_q:
+                                        if a[0] == j: s += a[1]
+                                elif j < first_actual:
+                                    s += a_first / ((1 + _r) ** (first_actual - j))
+                                else:  # j > last_actual
+                                    s += a_last * ((1 + _r) ** (j - last_actual))
+                            return s
+                        lo, hi = -0.5, 1.0
+                        for _ in range(30):
+                            mid = (lo + hi) / 2
+                            s = yoy_sum(mid)
+                            if abs(s - ann) < 0.5:
+                                r_q = mid; break
+                            if s > ann: hi = mid
+                            else: lo = mid
+                        else:
+                            r_q = mid
+                        r_q = max(-0.5, min(1.0, r_q))
+
+                        # Write YoY_Q rates to q_history
+                        for j in range(4):
+                            qk = f'q{qi+j+1}'
+                            if j in actual_set: continue
+                            qh[qk] = qh.get(qk, {})
+                            qh[qk]['yoy_q'] = round(r_q, 6)
+
+                        # Compute Q Rev targets for debug
+                        q_revs = []
+                        for j in range(4):
+                            if j in actual_set:
+                                for a in actual_q:
+                                    if a[0] == j: q_revs.append(a[1])
+                            elif j < first_actual:
+                                q_revs.append(a_first / ((1 + r_q) ** (first_actual - j)))
+                            else:
+                                q_revs.append(a_last * ((1 + r_q) ** (j - last_actual)))
+                        print(f'  [Q driver] {ln} FY{cur_yr} M={M} (yoy): r={r_q:.4f} Q revs={[round(x) for x in q_revs]} sum={round(sum(q_revs))} ann={round(ann)}')
+
+                    elif module in ('vol_asp', 'backlog_burn'):
+                        # ── vol_asp / backlog_burn: Vol/Burn + ASP weights ──
+                        # Locked actual Qs consume part of annual Vol and Rev budget
+                        locked_vol = sum(a[2] for a in actual_q)
+                        locked_rev = sum(a[1] for a in actual_q)
+                        remaining_vol = max(0.01, ann_vol - locked_vol)
+                        remaining_rev = max(0.01, ann - locked_rev)
+                        remaining_asp = remaining_rev / remaining_vol  # target ASP for proj Qs
+
+                        # Compute Vol/Burn weights from actual Q data
+                        if M >= 2 and len([a for a in actual_q if a[2] > 0]) >= 2:
+                            vol_actuals = [a for a in actual_q if a[2] > 0]
+                            vol_sum = sum(a[2] for a in vol_actuals)
+                            w_actual = {a[0]: a[2] / vol_sum for a in vol_actuals}
+                        else:
+                            w_actual = {}
+
+                        # Compute ASP seasonal s_i_raw from actual Q data
+                        if M >= 2 and len([a for a in actual_q if a[3] > 0]) >= 2:
+                            asp_actuals = [a for a in actual_q if a[3] > 0]
+                            s_raw_vals = {a[0]: a[3] / ann_asp for a in asp_actuals} if ann_asp else {}
+                        else:
+                            s_raw_vals = {}
+
+                        # Build w and s for projection Qs only
+                        n_proj = 4 - M
+                        w = [0.0] * 4; s = [1.0] * 4
+                        proj_indices = [j for j in range(4) if j not in actual_set]
+                        for j in proj_indices:
+                            if j in w_actual:
+                                w[j] = w_actual[j]
+                                s[j] = s_raw_vals.get(j, 1.0)
+                            elif j < first_actual:
+                                steps = first_actual - j
+                                w[j] = w_actual.get(first_actual, 1.0/n_proj) / ((1 + _r) ** steps)
+                                s[j] = s_raw_vals.get(first_actual, 1.0)
+                            elif j > last_actual:
+                                steps = j - last_actual
+                                w[j] = w_actual.get(last_actual, 1.0/n_proj) * ((1 + _r) ** steps)
+                                s[j] = s_raw_vals.get(last_actual, 1.0)
+                            else:
+                                # M=0: uniform with r growth
+                                w[j] = (1.0 / n_proj) * ((1 + _r) ** (j + 1))
+                                s[j] = 1.0
+
+                        # Normalize w for projection Qs to sum to 1
+                        w_proj_sum = sum(w[j] for j in proj_indices)
+                        if w_proj_sum > 0:
+                            for j in proj_indices:
+                                w[j] /= w_proj_sum
+
+                        # Normalize s for projection Qs so Σ(w × s) = 1
+                        inner = sum(w[j] * s[j] for j in proj_indices)
+                        if inner > 0:
+                            for j in proj_indices:
+                                s[j] /= inner
+
+                        # Write q_history
+                        for j in range(4):
+                            qk = f'q{qi+j+1}'
+                            qh[qk] = qh.get(qk, {})
+                            if j in actual_set:
+                                # Lock actual Qs: preserve Vol, set ASP so Vol×ASP=actual Rev
+                                for a in actual_q:
+                                    if a[0] == j:
+                                        qh[qk]['rev'] = a[1]
+                                        if a[2] > 0 and a[1] > 0 and module == 'vol_asp':
+                                            qh[qk]['volume'] = a[2]
+                                            qh[qk]['asp'] = a[1] * us / a[2]
+                                continue
+                            if module == 'vol_asp':
+                                qh[qk]['volume'] = remaining_vol * w[j]
+                                qh[qk]['asp'] = remaining_asp * s[j]
+                            else:  # backlog_burn
+                                qh[qk]['burn'] = remaining_vol * w[j]  # remaining_vol = Burn_budget
+                                qh[qk]['asp'] = remaining_asp * s[j]
+                                order_yr = ll['backlog']['order']['proj'][proj_i] if proj_i < len(ll['backlog']['order']['proj']) else 0
+                                qh[qk]['order'] = order_yr * w[j]
+
+                        # Debug output
+                        _revs = []
+                        for j in range(4):
+                            if j in actual_set:
+                                for a in actual_q:
+                                    if a[0] == j: _revs.append(a[1])
+                            else:
+                                _revs.append(remaining_vol * w[j] * remaining_asp * s[j] / us)
+                        print(f'  [Q driver] {ln} FY{cur_yr} M={M} ({module}): '
+                              f'w={[round(w[j],3) if j in proj_indices else 0 for j in range(4)]} '
+                              f's={[round(s[j],3) if j in proj_indices else 0 for j in range(4)]} '
+                              f'revs={[round(x) for x in _revs]} sum={round(sum(_revs))} ann={round(ann)}')
+
             qi += fyc; cur_yr += 1; cur_q = 1
 
     meta = cfg['meta']; actuals = cfg['actuals']; segments = cfg['segments']
@@ -473,7 +809,10 @@ def build(json_path, output_path=None):
         A(ws, R, FY0, sc(scost), fmt=NUM)
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
-            if qd.get('cost'): A(ws, R, Q_START + qi, sc(qd['cost']), fmt=NUM)
+            _cost = qd.get('cost')
+            if not _cost and qd.get('rev') and qd.get('gp'):
+                _cost = qd['rev'] - qd['gp']
+            if _cost: A(ws, R, Q_START + qi, sc(_cost), fmt=NUM)
         for qi in range(q_proj_n):
             C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         cost_r = R
@@ -514,7 +853,11 @@ def build(json_path, output_path=None):
             A(ws, R, FY0, sc(fy0_op), fmt=NUM)
             for qi in range(q_actual_n):
                 qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
-                if qd.get('op'): A(ws, R, Q_START + qi, sc(qd['op']), fmt=NUM)
+                _op = qd.get('op')
+                if not _op and qd.get('gp') and qd.get('rev'):
+                    _op_rate = gl.get('opex_rate', [0.25]*8)[2]  # FY0 rate
+                    _op = round(qd['gp'] - qd['rev'] * _op_rate)
+                if _op is not None: A(ws, R, Q_START + qi, sc(_op), fmt=NUM)
             for qi in range(q_proj_n):
                 C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
             op_r = R
@@ -660,6 +1003,7 @@ def build(json_path, output_path=None):
         si = seg_info.get(seg_name, {})
         s1_gp_row = si.get('gp', 0)
         s1_rev_row = si.get('rev', 0)
+        s1_op_row = si.get('op', 0)
         split_r = line_to_split.get(ln, 0)
         lrev_row = si.get('lrev_rows', {}).get(ln, 0)
         seg_obj = None
@@ -736,12 +1080,16 @@ def build(json_path, output_path=None):
 
         # ── Per-line profit chain (gated by segment disclosure depth) ──
         if max_seg_depth >= DEPTH_RANK['op']:
-            # Opex rate (per-line fallback to global)
+            # Opex rate (per-line fallback to global; 1:1 historical uses S1 formula)
             line_opex = ll.get('opex_rate')
             opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
             _ope_r = R
             for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
-                if yr_i < len(opex_rates):
+                cl = get_column_letter(col)
+                # 1:1 actual years: use S1 (GP−OP)/Rev like GM
+                if (ln in one_to_one) and s1_gp_row and s1_op_row and s1_rev_row:
+                    CF(ws, R, col, f'=IFERROR(({cl}{s1_gp_row}-{cl}{s1_op_row})/{cl}{s1_rev_row},"")', fmt=PCT)
+                elif yr_i < len(opex_rates):
                     I(ws, R, col, opex_rates[yr_i], fmt=PCT)
                 else:
                     C(ws, R, col, '', fmt=PCT)
@@ -763,10 +1111,14 @@ def build(json_path, output_path=None):
                 C(ws, R, ci, f'={cl}{gp_r}-{cl}{R - 1}', fmt=NUM)
             C(ws, R, 3, '  OP', font=bf)
             line_op_r = R; R += 1
-            # OPM
+            # OPM (1:1 actual years & actual Qs use S1 OP/Rev)
             for ci in range(DS, LC + 1):
                 cl = get_column_letter(ci)
-                C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{cl}{result["rev_r"]},"")', fmt=PCT)
+                is_actual_q = has_q and Q_START <= ci < Q_START + q_actual_n
+                if (ln in one_to_one) and s1_op_row and s1_rev_row and (ci <= FY0 or is_actual_q):
+                    C(ws, R, ci, f'=IFERROR({cl}{s1_op_row}/{cl}{s1_rev_row},"")', fmt=PCT)
+                else:
+                    C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{cl}{result["rev_r"]},"")', fmt=PCT)
             C(ws, R, 3, '  OPM', font=itf)
             R += 1
 
@@ -845,7 +1197,7 @@ def build(json_path, output_path=None):
                 vol_fy0 = ll['volume']['fy0']
                 for qi in range(q_actual_n + q_proj_n):
                     col = Q_START + qi
-                    qv = q_hist.get(f'q{qi+1}', {}).get('volume') if qi < q_actual_n else None
+                    qv = q_hist.get(f'q{qi+1}', {}).get('volume')  # check all Qs
                     if qv is not None:
                         I(ws, result['vol_r'], col, qv, fmt=INT)
                     elif qi < q_actual_n:
@@ -860,7 +1212,7 @@ def build(json_path, output_path=None):
                     asp_fy0 = ll['tiers'][0].get('asp_fy0') or ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))[0]
                     for qi in range(q_actual_n + q_proj_n):
                         col = Q_START + qi
-                        q_asp = q_hist.get(f'q{qi+1}', {}).get('asp') if qi < q_actual_n else None
+                        q_asp = q_hist.get(f'q{qi+1}', {}).get('asp')  # check all Qs
                         if q_asp is not None:
                             I(ws, asp_r, col, q_asp, fmt=DEC)
                         elif qi < q_actual_n:
@@ -890,30 +1242,41 @@ def build(json_path, output_path=None):
                            fmt=PCT)
                 for qi in range(q_actual_n + q_proj_n):
                     col = Q_START + qi; cl = get_column_letter(col)
-                    if qi < q_actual_n:
-                        # Q actual: =S1 anchor formula (mirrors Y actual)
-                        s1r = anchor_info.get(ln, (0, 0))[0]
-                        anchor_row = s1r if ln in one_to_one else lrev_row
-                        if anchor_row:
-                            C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
-                        else:
-                            qv = q_hist.get(f'q{qi+1}', {}).get('rev')
-                            if qv is not None:
-                                I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
+                    is_q_actual = qi < q_actual_n
+                    s1r = anchor_info.get(ln, (0, 0))[0]
+                    anchor_row = s1r if ln in one_to_one else lrev_row
+                    # 1:1 actual Q: use S1 reference like GM/OpexRev (real data)
+                    if ln in one_to_one and anchor_row and is_q_actual:
+                        C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
                     else:
-                        pl = get_column_letter(col - 1)
-                        CF(ws, result['rev_r'], col,
-                           f'={pl}{result["rev_r"]}*(1+{cl}{ya})', fmt=NUM)
-                # Extend BBE rows to Q columns (same annual rate for all Qs in a FY)
+                        qv = q_hist.get(f'q{qi+1}', {}).get('rev')
+                        if qv is not None:
+                            I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
+                        elif is_q_actual and anchor_row:
+                            C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
+                        elif not is_q_actual:
+                            # proj Q fallback: chain formula
+                            pl = get_column_letter(col - 1)
+                            CF(ws, result['rev_r'], col,
+                               f'={pl}{result["rev_r"]}*(1+{cl}{ya})', fmt=NUM)
+                # Extend BBE rows to Q columns (q_history yoy_q if available, else annual rate → QoQ)
                 if result.get('yb'):
                     yoy_keys = [('bull', 'yb'), ('base', 'ybs'), ('bear', 'ybe')]
                     cur_yr, cur_q = q_start_yr, q_start_q
                     for qi in range(q_actual_n + q_proj_n):
                         proj_idx = cur_yr - bfyr - 1
-                        if 0 <= proj_idx < proj_n:
+                        qk = f'q{qi+1}'
+                        # q_history yoy_q takes priority (per-Q rate from driver distribution)
+                        q_yoy = q_hist.get(qk, {}).get('yoy_q')
+                        if q_yoy is not None:
                             for arr_key, rk in yoy_keys:
-                                I(ws, result[rk], Q_START + qi,
-                                  ll['yoy'][arr_key][proj_idx], fmt=PCT)
+                                I(ws, result[rk], Q_START + qi, q_yoy, fmt=PCT)
+                        elif 0 <= proj_idx < proj_n:
+                            # Fallback: convert annual rate to QoQ
+                            _ann_rate = ll['yoy']['base'][proj_idx] if proj_idx < len(ll['yoy']['base']) else 0
+                            _q_rate = (1 + _ann_rate) ** (1 / 4) - 1 if _ann_rate > -0.99 else 0.02
+                            for arr_key, rk in yoy_keys:
+                                I(ws, result[rk], Q_START + qi, _q_rate, fmt=PCT)
                         cur_q += 1
                         if cur_q > 4: cur_q = 1; cur_yr += 1
             # Q GP/OP cascade (same as annual)
@@ -1061,7 +1424,7 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi)
                 proj_idx = cur_yr - bfyr - 1
                 is_q_actual = qi < Q_START + q_actual_n
-                # GM: 1:1 actuals=S1 formula, proj=I() like annual
+                # GM: 1:1 actual Qs use S1 GP/Rev (real quarterly margin)
                 if is_1to1 and s1_gp_row and s1_rev_row and is_q_actual:
                     CF(ws, gm_r, qi, f'=IFERROR({cl}{s1_gp_row}/{cl}{s1_rev_row},"")', fmt=PCT)
                 elif is_1to1 and not is_q_actual and 0 <= proj_idx < len(gm.get('proj', [])):
@@ -1070,18 +1433,27 @@ def build(json_path, output_path=None):
                     I(ws, gm_r, qi, gm.get('fy0', 0), fmt=PCT)
                 cur_q += 1
                 if cur_q > 4: cur_q = 1; cur_yr += 1
-            # Opex/Rev rate → Q columns (same rate as annual)
+            # Opex/Rev rate → Q columns (1:1 actual Qs use S1 (GP−OP)/Rev)
+            line_opex = ll.get('opex_rate')
+            opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
+            s1_op_row = si.get('op', 0)
+            cur_yr, cur_q = q_start_yr, q_start_q
             for scan_r in range(rev_r, rows.get('op_r', rev_r + 6)):
                 cv = str(ws.cell(row=scan_r, column=3).value or '')
                 if 'Opex / Rev' in cv:
-                    # Copy annual FY0 rate to all Q columns
                     for qi in range(Q_START, Q_END + 1):
-                        I(ws, scan_r, qi, gm.get('fy0', 0.25) * 0 + 0.25, fmt=PCT)  # placeholder
-                    # Actually: extend from the per-line opex_rate
-                    line_opex = ll.get('opex_rate')
-                    opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
-                    for qi in range(Q_START, Q_END + 1):
-                        I(ws, scan_r, qi, opex_rates[3] if len(opex_rates) > 3 else 0.25, fmt=PCT)
+                        cl = get_column_letter(qi)
+                        is_q_actual = qi < Q_START + q_actual_n
+                        # 1:1 actual Q: use segment (GP−OP)/Rev like GM
+                        if (ln in one_to_one) and s1_gp_row and s1_op_row and s1_rev_row and is_q_actual:
+                            CF(ws, scan_r, qi, f'=IFERROR(({cl}{s1_gp_row}-{cl}{s1_op_row})/{cl}{s1_rev_row},"")', fmt=PCT)
+                        else:
+                            _py = cur_yr - bfyr - 1
+                            _idx = 2 + _py + 1
+                            _idx = max(0, min(_idx, len(opex_rates) - 1))
+                            I(ws, scan_r, qi, opex_rates[_idx], fmt=PCT)
+                        cur_q += 1
+                        if cur_q > 4: cur_q = 1; cur_yr += 1
                     break
 
     # Collapse Section 1 (segment rows only)
@@ -1145,12 +1517,15 @@ def build(json_path, output_path=None):
     C(ws, R, DS + 1, f'=IFERROR({cl_e}{trev}/{cl_d}{trev}-1,"")', fmt=PCT)
     for ci in range(FY0, LC + 1):
         cl = get_column_letter(ci)
-        # Q columns: YoY (4Q back) if year-ago exists, else blank
         if ci >= Q_START:
+            # Q columns: YoY (4Q back) if year-ago exists, else blank
             if ci - 4 >= Q_START:
                 pl = get_column_letter(ci - 4)
             else:
-                continue  # no year-ago Q data → blank
+                continue
+        else:
+            # Annual columns: YoY = current/prior year - 1
+            pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{trev}/{pl}{trev}-1,"")', fmt=PCT)
     C(ws, R, 3, 'Rev YoY')
     R += 1
@@ -1256,7 +1631,9 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={get_column_letter(FY0)}{da_actuals_r}/4', fmt=NUM)
+            # Q D&A = Annual D&A / 4 (mirrors annual formula = OP × DA_fy0 / Rev_fy0)
+            da_fy0_col = get_column_letter(FY0)
+            C(ws, R, qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
     C(ws, R, 3, 'D&A')
     da_r = R; R += 1
 
@@ -1358,7 +1735,7 @@ def build(json_path, output_path=None):
     if has_q:
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
         total_q = q_actual_n + q_proj_n
-        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'Tax rate')
+        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'Tax rate', 'ASP', 'Shares')
         while qi < total_q:
             rem_in_fy = 4 - cur_q + 1; fyc = min(rem_in_fy, total_q - qi)
             if fyc == 4:
@@ -1373,8 +1750,8 @@ def build(json_path, output_path=None):
                     for row in range(s1_start, _ni_end + 1):
                         cv = str(ws.cell(row=row, column=3).value or '').strip()
                         if not cv or any(kw in cv for kw in SKIP_KW): continue
-                        ws.cell(row=row, column=chk_col).value = f'={ac}{row}-({q_sum_f.format(r=row)})'
-                        ws.cell(row=row, column=chk_col).number_format = NUM
+                        ws.cell(row=row, column=chk_col).value = f'=({ac}{row}-({q_sum_f.format(r=row)}))/{ac}{row}'
+                        ws.cell(row=row, column=chk_col).number_format = PCT
                         ws.cell(row=row, column=chk_col).font = nf
                     ws.column_dimensions[cc].width = 12
                     ws.column_dimensions.group(cc, cc, outline_level=1, hidden=True)

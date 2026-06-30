@@ -77,6 +77,11 @@
 | 2 | B mode 忘了改 unit_scale → Revenue 量级错 1000x | 验算: unit_scale = div（B mode=1000, M mode=1） |
 | 3 | D/E 列 OP 公式被清 | 脚本已加 protected_rows |
 | 4 | P&L actuals 没加粗 | 脚本 post-format 自动处理 |
+| 5 | vol_asp 投影 Q ASP 用年度值未除 4 | 脚本 driver 分配自动处理（remaining_ASP） |
+| 6 | 1:1 线 GM/OM 实际 Q 没用 S1 公式 | 脚本渲染自动处理（is_1to1 → S1 reference） |
+| 7 | Q D&A 公式与 Annual 不一致 | 脚本: Q D&A = Annual_D&A/4 |
+| 8 | 实际 Q 利润率拉偏年度假设 | Blend 步骤自动收窄（M/4 权重） |
+| 9 | yoy 投影 Q YoY 率用年度值（非 QoQ） | 脚本 driver 分配自动二分搜索 QoQ rate r |
 | 5 | yoy line FY0 Implied YoY 空白 | 脚本已修 |
 | 6 | residual D/E 列空白 | 脚本已修 |
 | 7 | Section 1 OP 投影列空白 | 脚本已加 OP fill |

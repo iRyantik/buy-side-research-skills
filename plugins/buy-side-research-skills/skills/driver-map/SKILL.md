@@ -404,11 +404,15 @@ python .scripts/driver-map/audit_style.py <output.xlsx>
 
 ### ⛔ GATE 2.5: Q→FY Check
 
-如果 JSON 配置了 Q 列：
-1. 检查 X 列 (Q→FY Check) 的 Δ 值
-2. Δ > 1% → 进入 calibration: `references/calibration.md` §Quarterly Calibration
-3. 调 JSON `q_history` driver (vol_asp→Volume, yoy→YoY) → rebuild
-4. 循环直到 Δ < 1%
+Q 列生成后，X 列 Check = `(Annual−ΣQ)/Annual` %。
+
+**收敛保证**：
+- **Revenue Δ→0%**：build 内 driver 分配（季节权重或二分搜索 r）数学保证 ΣQ_Rev = Annual_Rev
+- **Volume Δ→0%**：权重 Σw=1 保证 ΣQ_Vol = Vol_year
+- **GP/OP Δ** 是结构性残余：实际 Q1 的 S1 利润率 ≠ 年度模型假设（Blend 步骤已收窄但不强制为 0）
+- **D&A Δ**：实际 Q1 D&A 来自披露 ≠ 模型季度均分
+
+**不再需要** agent 手动调 q_history 循环 rebuild。Revenue 自动收敛。GP/OP/D&A 残余差是信息，供分析师判断季度异常。详见 `references/calibration.md` §Quarterly Calibration。
 
 ## Schema + Reference
 

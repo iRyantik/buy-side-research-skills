@@ -46,7 +46,7 @@
 
 ## Check Column (X col)
 
-完整 4Q FY 自动生成。每行 `=Annual − QSum`。跳过 margins/YoY/rates/BBE/empty。格式 `#,##0.0`，column group 折叠。
+完整 4Q FY 自动生成。每行 `=(Annual − ΣQ) / Annual`。PCT 格式 `0.0%`。跳过 margins/YoY/rates/BBE/ASP/Shares/empty。column group 折叠。Revenue Δ→0% 由 driver 分配保证；GP/OP/D&A 残余差反映实际季度数据 vs 年度模型假设。
 
 ## Q 列
 

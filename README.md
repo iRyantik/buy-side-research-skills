@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v6.7.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v6.8.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 
@@ -165,6 +165,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v6.8.0 | 2026-06 | driver-map v2.0：Q driver 分配重构（Revenue 自动收敛）+ Blend 步骤（实际 Q 利润率更新年度假设）+ 1:1 GM/OM/OpexRev S1 引用 + D&A Q 公式 + Rev YoY F70 fix |
 | v6.7.0 | 2026-06 | driver-map v1.4.0：CF/HL/BOLD helpers + yoy 模块 + audit_style.py + 多深度利润链(gp→op→ni) + 渲染时 style 系统 + NUM=#,##0.0 全局一位小数 + pre_write_gate CHECK 17 |
 | v6.5.14 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |
 | v5.4.0 | 2026-06 | Source contract 全量注入：27 skill 输出表加 Ev 列、paragraph-level source density hook、table-row financial number check |

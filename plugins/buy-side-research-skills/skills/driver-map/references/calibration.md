@@ -39,12 +39,35 @@ print(f"Rev={rev:.0f}M, Anchor=450M, Gap={abs(rev-450)/450*100:.2f}%")
 
 ## Quarterly Calibration
 
-Q→FY Check column 显示 Δ = Annual − QSum。Δ ≠ 0 时按 module 调整：
+Q 列生成由 `build()` 内 **Driver Distribution** 自动完成，无需 agent 手动调参。
 
-| Module | 调整目标 | 不调 |
+### Workflow
+
+```
+1. Reconcile: 全 A 财年 → 等比缩放 seg_quarters 使 ΣQ = Annual
+2. Blend:     M∈{1,2,3} → 实际 Q 利润率混入年度 GM/OpexRev 假设
+              blended = M/4 × actual + (1−M/4) × model
+3. Q Driver Distribution:
+   vol_asp:   Q_Vol = remaining_Vol × w_i, Q_ASP = remaining_ASP × s_i
+              w 从实际 Q 数据或 r 外推，Σw=1; s 归一化到 Σ(w×s)=1
+   yoy:       二分搜索 r s.t. ΣQ = Annual，链式公式锚
+   backlog:   同上 pattern
+4. Render:    Revenue = Driver 公式; GM/OM 实际Q→S1公式
+5. Check 列:  (Annual−ΣQ)/Annual %
+```
+
+### 收敛保证
+
+| 项 | 收敛方式 | 预期 Δ |
 |---|---|---|
-| vol_asp | Q Volume | ASP |
-| yoy | Q YoY Active | Revenue chain |
-| 其他 | 比例缩放 Q values | margin 结构 |
+| Revenue | Driver 分配数学保证 ΣQ_Rev = Annual | **0%** |
+| Volume | Σw=1 保证 ΣQ_Vol = Vol_year | **0%** |
+| GM/GP/OP | Blend 收窄实际vs模型差异 | 残余 ~5-10%（结构性的） |
+| D&A | Q = Annual/4 公式 | 残余来自实际Q D&A ≠ 模型 |
 
-流程：build → audit → check Q column Δ → Δ > 阈值 → 调 JSON q_history driver → rebuild → loop until Δ < 阈值。
+### Agent 行为
+
+- **不再需要**：调 q_history → rebuild → check Δ → 循环
+- Revenue 自动收敛，无需干预
+- GP/OP/D&A 残余差 → 说明实际 Q 的利润率/费用率与年度假设不同 → 供分析师判断
+- 残余差 > 20% → 建议检查 JSON 数据（Q 实际值是否异常大/小）
