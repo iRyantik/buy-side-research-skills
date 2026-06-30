@@ -1627,8 +1627,30 @@ def build(json_path, output_path=None):
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
-    C(ws, R, 3, 'Operating Profit')
+    C(ws, R, 3, 'OI')
     op = R; R += 1
+
+    # OI YoY
+    C(ws, R, DS, '', fmt=PCT)
+    _cl_e = get_column_letter(DS + 1); _cl_d = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({_cl_e}{op}/{_cl_d}{op}-1,"")', fmt=PCT)
+    _f0 = get_column_letter(FY0); _f_1 = get_column_letter(FY0 - 1)
+    C(ws, R, FY0, f'=IFERROR({_f0}{op}/{_f_1}{op}-1,"")', fmt=PCT)
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+        C(ws, R, ci, f'=IFERROR({cl}{op}/{pl}{op}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'OI YoY')
+    R += 1
+    # OI QoQ
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{op}/{pl}{op}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  OI QoQ', font=itf)
+        R += 1
 
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
@@ -1672,37 +1694,6 @@ def build(json_path, output_path=None):
     C(ws, R, 3, 'EBITDA margin')
     _ebitda_end = R; R += 1
 
-    # EBIT (always computed)
-    _ebit_start = R
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebitda_r}-{cl}{da_r}', fmt=NUM)
-    C(ws, R, 3, 'EBIT')
-    ebit_r = R; R += 1
-    _ebit_end = ebit_r
-
-    # EBIT/OI YoY
-    C(ws, R, DS, '', fmt=PCT)
-    cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
-    C(ws, R, DS + 1, f'=IFERROR({cl_e}{ebit_r}/{cl_d}{ebit_r}-1,"")', fmt=PCT)
-    f0 = get_column_letter(FY0); f_1 = get_column_letter(FY0 - 1)
-    C(ws, R, FY0, f'=IFERROR({f0}{ebit_r}/{f_1}{ebit_r}-1,"")', fmt=PCT)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-        C(ws, R, ci, f'=IFERROR({cl}{ebit_r}/{pl}{ebit_r}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'EBIT/OI YoY')
-    R += 1
-    # EBIT/OI QoQ
-    if has_q:
-        for ci in range(DS, LC_ANNUAL + 1):
-            C(ws, R, ci, '', fmt=PCT)
-        for qi in range(Q_START, Q_END + 1):
-            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-            else: C(ws, R, qi, f'=IFERROR({cl}{ebit_r}/{pl}{ebit_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, '  EBIT/OI QoQ', font=itf)
-        R += 1
-
     # Check EBIT (model formula for all columns)
     for ci in range(DS, LC + 1):
         cl = get_column_letter(ci)
@@ -1718,7 +1709,7 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
+        C(ws, R, ci, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1726,7 +1717,7 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{ebit_r}*{cl}{tax_r}', fmt=NUM)
+            C(ws, R, qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
     C(ws, R, 3, 'Tax')
     tv = R; R += 1
 
@@ -1735,7 +1726,7 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{ebit_r}-{cl}{tv}', fmt=NUM)
+        C(ws, R, ci, f'={cl}{op}-{cl}{tv}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1743,7 +1734,7 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{ebit_r}-{cl}{tv}', fmt=NUM)
+            C(ws, R, qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
@@ -1860,7 +1851,7 @@ def build(json_path, output_path=None):
         if method == 'ev_ebitda':
             return ebitda_r, 'EBITDA'
         if method == 'ev_ebit':
-            return ebit_r, 'EBIT'
+            return op, 'EBIT'
         if method in ('ev_sales', 'ps'):
             return trev, 'Revenue'
         return tgp, 'GP'
