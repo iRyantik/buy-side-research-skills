@@ -1761,7 +1761,8 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('op', 0) for seg in segments)
-            # For actual Q columns, always use formula as backup if seg_quarters has no op
+            # Fallback to company quarters
+            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('op', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
             else: C(ws, R, Q_START + qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
@@ -1815,6 +1816,7 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('da', 0) for seg in segments)
+            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('da', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
             else: C(ws, R, Q_START + qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
@@ -1877,6 +1879,7 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('tax', 0) for seg in segments)
+            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('tax', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
             else: C(ws, R, Q_START + qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
@@ -1896,6 +1899,7 @@ def build(json_path, output_path=None):
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('ni', 0) for seg in segments)
+            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('ni', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
             else: C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
