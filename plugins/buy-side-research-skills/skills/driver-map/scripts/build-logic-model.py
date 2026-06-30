@@ -1552,6 +1552,14 @@ def build(json_path, output_path=None):
     R += 1
     C(ws, R, 1, 'P&L', font=bf12)
     R += 1
+    # Basis label (below P&L, same as Sections 1+2)
+    _basis = meta.get('basis', 'gaap')
+    _bnote = meta.get('basis_note', '')
+    _blabel = f'Basis: {_basis.upper()}'
+    if _bnote:
+        _blabel += f' — {_bnote[:120]}'
+    C(ws, R, 1, _blabel, font=itf)
+    R += 1
     a = actuals
     LN = [ln['name'] for ln in logic_lines]
 
