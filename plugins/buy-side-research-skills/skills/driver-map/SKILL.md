@@ -487,29 +487,44 @@ build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。
 
 驱动分配内部（ann、remaining_vol、remaining_asp）全部用原始单位，不碰 div 和 unit_scale。
 
-### ⛔ GATE 2.5: Check Matrix — Agent 验证
+### ⛔ GATE 2.5: Check System — Agent 验证
 
-Build 完成后，Agent 读 Check 行，按 ±2% 阈值验证模型质量。规则：**只 check 段级有披露的项目**。
+Build 完成后自动生成 `checks.json`（与 driver-map JSON 同目录），包含三个 section：
 
-| Check | gp depth | op depth | ebitda depth |
-|---|---|---|---|
-| Check Rev (line vs anchor) | ✓ | ✓ | ✓ |
-| Check Seg GP / EBITDA | ✓(GP) | ✓(GP) | ✓(EBITDA) |
-| Check Seg OP | — | ✓ | — |
-| Check Total Rev | ✓ | ✓ | ✓ |
-| Check Total GP | ✓ | ✓ | — |
-| Check Total EBITDA | — | — | ✓ |
-| Check OI | — | ✓ | — |
+```json
+{
+  "checks": { "Check Rev": {"FY2023": "0.00%", ...}, ... },
+  "q_checks": { "FY2027": {"Revenue": "0.00%", "GP": "0.00%", ...} },
+  "flags": { "P&L": [], "Q": [] }
+}
+```
 
-Agent 看到 gap：(1) 识别 pattern (2) 归因 (3) 调 JSON (4) rebuild (5) 重验。最多 3 轮。
+- **checks**: P&L formula vs actuals from Hidden Bridge。`=(P&L − actuals) / ABS(actuals)`
+- **q_checks**: Annual vs ΣQ（U 列 Check）。仅扫 P&L F/F 行，按 FY 分组。目标 0%
+- **flags**: 超过阈值的自动标注。Agent 优先看 flags
 
-**收敛保证**：
-- **Revenue Δ→0%**：build 内 driver 分配（季节权重或二分搜索 r）数学保证 ΣQ_Rev = Annual_Rev
-- **Volume Δ→0%**：权重 Σw=1 保证 ΣQ_Vol = Vol_year
-- **GP/OP Δ** 是结构性残余：实际 Q1 的 S1 利润率 ≠ 年度模型假设（Blend 步骤已收窄但不强制为 0）
-- **D&A Δ**：实际 Q1 D&A 来自披露 ≠ 模型季度均分
+**水平 Check 阈值**：
 
-**不再需要** agent 手动调 q_history 循环 rebuild。Revenue 自动收敛。GP/OP/D&A 残余差是信息，供分析师判断季度异常。详见 `references/calibration.md` §Quarterly Calibration。
+| Check | GP depth | OP depth | EBITDA depth |
+|-------|:--------:|:--------:|:------------:|
+| Rev | 2% | 2% | 2% |
+| GP | 5% | 5% | 15% |
+| OI | — | 5% | 15% |
+| EBITDA | — | — | 5% |
+| D&A | — | — | 20% |
+| Tax | — | — | 10% |
+| NI | — | — | 15% |
+
+**垂直 Check（Q）**：
+- 阈值：0%（ΣQ = Annual 数学保证）
+- 仅扫 per-depth 的 PNL_LABELS 集合
+- 非 0% → 代码问题，Agent 报，不调 JSON
+
+**Agent 流程**：
+1. Build → Read `checks.json`
+2. flags 为空 → 通过 ✓
+3. flags.P&L 非空 → Agent 调 JSON 假设 → rebuild → 重读。最多 3 轮
+4. flags.Q 非空 → Agent 报代码 bug，不调 JSON
 
 ## Schema + Reference
 

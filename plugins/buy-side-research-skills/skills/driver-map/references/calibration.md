@@ -53,7 +53,8 @@ Q 列生成由 `build()` 内 **Driver Distribution** 自动完成，无需 agent
    yoy:       二分搜索 r s.t. ΣQ = Annual，链式公式锚
    backlog:   同上 pattern
 4. Render:    Revenue = Driver 公式; GM/OM 实际Q→S1公式
-5. Check 列:  (Annual−ΣQ)/Annual %
+5. U 列 Check: (Annual−ΣQ)/Annual → 目标 0%
+6. Build 完成后 COM dump checks.json 含 q_checks + flags
 ```
 
 ### 收敛保证
@@ -71,3 +72,10 @@ Q 列生成由 `build()` 内 **Driver Distribution** 自动完成，无需 agent
 - Revenue 自动收敛，无需干预
 - GP/OP/D&A 残余差 → 说明实际 Q 的利润率/费用率与年度假设不同 → 供分析师判断
 - 残余差 > 20% → 建议检查 JSON 数据（Q 实际值是否异常大/小）
+
+### Checks.json Flag System
+
+| Flag 类型 | 含义 | Agent 行动 |
+|----------|------|-----------|
+| Q 任何非 0% | 代码 bug（Annual≠ΣQ） | 报 dev，不调 JSON |
+| P&L Check > 阈值 | 模型假设偏离 actuals | 调 JSON 假设，最多 3 轮 |
