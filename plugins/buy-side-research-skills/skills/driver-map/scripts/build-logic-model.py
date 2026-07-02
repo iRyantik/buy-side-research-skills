@@ -34,12 +34,13 @@ Format: no gridlines, Calibri 11, yellow+blue inputs, selective C-column bold,
 validate_json() runs before build — checks depth, method, array lengths, required fields.
 """
 
-import json, argparse, codecs, functools
+import json, argparse, codecs, functools, os, time, datetime
 import yfinance as yf
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Color
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
+import win32com.client
 
 # ── Row reference: wraps int row number for safety + traceability ──
 class Ref:
@@ -175,6 +176,15 @@ def validate_json(cfg):
         opm_arr = cfg.get('global', {}).get('opm', [])
         if len(opm_arr) != 3 + proj_n:
             raise ValueError(f'global.opm length {len(opm_arr)} != {3 + proj_n} (3 actual + {proj_n} proj)')
+
+    # segments: split sum sanity
+    for seg in cfg.get('segments', []):
+        sn = seg.get('name', '?')
+        lls = seg.get('logic_lines', [])
+        if lls:
+            total_split = sum(l.get('split', 0) for l in lls)
+            if abs(total_split - 1.0) > 0.05:
+                print(f'  [warn] seg "{sn}" logic_lines split sum={total_split:.3f} (≠1.0 by {abs(total_split-1.0):.1%})')
 
     # logic_lines
     for ll in cfg.get('logic_lines', []):
@@ -355,7 +365,9 @@ def build(json_path, output_path=None):
             # Also write to per-line q_history for 1:1 lines
             for ll in cfg.get('logic_lines', []):
                 qh = ll.setdefault('q_history', {})
-                if qh.get(qk, {}).get('rev'): continue  # already has data
+                qd = qh.get(qk, {})
+                if qd.get('rev'): continue  # already has data
+                if qd.get('volume') and qd.get('asp'): continue  # vol_asp: use own Q data
                 for s in segs:
                     for l in s.get('logic_lines', []):
                         if l['name'] == ll['name']:
@@ -520,8 +532,10 @@ def build(json_path, output_path=None):
                     for j in range(4):
                         qk = f'q{qi+j+1}'; qd = qh.get(qk, {})
                         rv = qd.get('rev', 0)
-                        # Fallback: segment quarters
-                        if not rv:
+                        # Fallback: segment quarters (skip for vol_asp/backlog with volume+asp)
+                        if not rv and qd.get('volume') and qd.get('asp') and module in ('vol_asp', 'backlog_burn'):
+                            rv = round(qd['volume'] * qd['asp'] / us, 2)  # compute from vol×asp
+                        elif not rv:
                             for seg in cfg.get('segments', []):
                                 for l in seg.get('logic_lines', []):
                                     if l['name'] == ln:
@@ -787,6 +801,21 @@ def build(json_path, output_path=None):
         Q_START = Q_END = 0
         ALL_END = LC_ANNUAL
         QL = []
+
+    # ── Map: which annual columns should = ΣQ (complete 4Q years) ──
+    ann_to_qs = {}  # {ann_col: [q_col1, q_col2, q_col3, q_col4]}
+    if has_q:
+        _yr, _q, _qi = q_start_yr, q_start_q, 0
+        _total_q = q_actual_n + q_proj_n
+        while _qi < _total_q:
+            _rem = 4 - _q + 1
+            _fyc = min(_rem, _total_q - _qi)
+            if _fyc == 4:
+                _ann = DS + (_yr - bfyr + 2)
+                if _ann <= LC_ANNUAL:
+                    ann_to_qs[_ann] = [Q_START + _qi + j for j in range(4)]
+            _qi += _fyc; _yr += 1; _q = 1
+
     YR = [f'FY{bfyr - 2}A', f'FY{bfyr - 1}A', f'FY{bfyr}A'] + \
          [f'FY{bfyr + i}E' for i in range(1, proj_n + 1)]
 
@@ -1797,7 +1826,7 @@ def build(json_path, output_path=None):
         da_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-        # Gap formulas (Excel, referencing FY0 actuals above)
+        # Gap formulas (Excel, FY0 single-year anchor — stable for modeling)
         C(ws, R, DS, f'=({ebitda_act_cells["fy0"]}-{gp_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
         C(ws, R, 3, '  gap_gp (EBITDA→GP)', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1839,11 +1868,15 @@ def build(json_path, output_path=None):
     q_residual_term = ''
     q_gp_residual_term = ''
 
-    # Total Revenue (Σ line rev, all years formula)
+    # Total Revenue (Σ line rev or =ΣQ for complete 4Q years)
     for ci in range(DS, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
-          fmt=NUM)
+        if ci in ann_to_qs:
+            qsum = '+'.join(f'{get_column_letter(qc)}{R}' for qc in ann_to_qs[ci])
+            C(ws, R, ci, f'={qsum}', fmt=NUM)
+        else:
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
+              fmt=NUM)
     if has_q:
         for qi in range(Q_START, Q_END + 1):
             cl = get_column_letter(qi)
@@ -1892,6 +1925,13 @@ def build(json_path, output_path=None):
     # GP will be at R+2 (after Cost, GM)
     _gp_future = R + 2
 
+    # Helper: if annual column has complete 4Q, return =ΣQ formula
+    def _ann_fmt(col, r):
+        if col in ann_to_qs:
+            qs = '+'.join(f'{get_column_letter(qc)}{r}' for qc in ann_to_qs[col])
+            return f'={qs}'
+        return None
+
     # Cost = Rev - GP
     for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
@@ -1907,23 +1947,23 @@ def build(json_path, output_path=None):
     R += 1
 
     # GP (all depths, all years formula)
-    if is_ebitda_depth:
-        for ci in range(DS, LC_ANNUAL + 1):
-            cl = get_column_letter(ci)
+    for ci in range(DS, LC_ANNUAL + 1):
+        cl = get_column_letter(ci)
+        qf = _ann_fmt(ci, R)
+        if qf:
+            C(ws, R, ci, qf, fmt=NUM)
+        elif is_ebitda_depth:
             line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
             C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_gp_ref}', fmt=NUM)
-        if has_q:
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi)
+        else:
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term, fmt=NUM)
+    if has_q:
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi)
+            if is_ebitda_depth:
                 line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term
                 C(ws, R, qi, f'={line_sum}-{cl}{trev}*{gap_gp_ref}', fmt=NUM)
-    else:
-        for ci in range(DS, LC_ANNUAL + 1):
-            cl = get_column_letter(ci)
-            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term, fmt=NUM)
-        if has_q:
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi)
+            else:
                 C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term, fmt=NUM)
     C(ws, R, 3, 'GP', font=bf)
     tgp = R; gp_row = R if is_ebitda_depth else 0
@@ -1982,20 +2022,25 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi)
                 C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
     elif is_op_depth:
-        # OP depth: OI = Σ line OI (all years formula)
+        # OP depth: OI = Σ line OI (all years formula, =ΣQ for complete 4Q years)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+            qf = _ann_fmt(ci, R)
+            if qf: C(ws, R, ci, qf, fmt=NUM)
+            else: C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
                 C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
     else:
-        # EBITDA depth: OI = Σ line EBITDA − Rev × gap_oi (all years formula)
+        # EBITDA depth: OI = Σ line EBITDA − Rev × gap_oi (=ΣQ for complete 4Q years)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
-            C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
+            qf = _ann_fmt(ci, R)
+            if qf: C(ws, R, ci, qf, fmt=NUM)
+            else:
+                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+                C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2037,7 +2082,9 @@ def build(json_path, output_path=None):
     if is_ebitda_depth:
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
+            qf = _ann_fmt(ci, R)
+            if qf: C(ws, R, ci, qf, fmt=NUM)
+            else: C(ws, R, ci, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2070,11 +2117,14 @@ def build(json_path, output_path=None):
 
     ebitda_r = R
     if is_ebitda_depth:
-        # EBITDA depth: = Σ line EBITDA (all years formula)
+        # EBITDA depth: = Σ line EBITDA (all years formula, =ΣQ for complete 4Q)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
-            C(ws, R, ci, f'={line_sum}', fmt=NUM)
+            qf = _ann_fmt(ci, R)
+            if qf: C(ws, R, ci, qf, fmt=NUM)
+            else:
+                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+                C(ws, R, ci, f'={line_sum}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2644,6 +2694,98 @@ def build(json_path, output_path=None):
     out_path = output_path or json_path.replace('.json', '.xlsx')
     wb.save(out_path)
     print(f'OK: {out_path}')
+
+    # ── COM: compute + read Checks, write checks.json with flags ──
+    THRESHOLDS = {
+        'Check Rev': 0.02, 'Check GP': 0.05, 'Check OI': 0.05,
+        'Check EBITDA': 0.05, 'Check D&A': 0.20, 'Check Tax': 0.10, 'Check NI': 0.15,
+    }
+    if is_ebitda_depth:
+        THRESHOLDS['Check GP'] = 0.15; THRESHOLDS['Check OI'] = 0.15
+    try:
+        xl = win32com.client.Dispatch('Excel.Application')
+        time.sleep(0.5)
+        wb2 = xl.Workbooks.Open(os.path.abspath(out_path))
+        ws2 = wb2.Sheets(1)
+        check_data = {}
+        q_check_data = {}
+        flags_pnl = []; flags_q = []
+        year_labels = [cfg['meta'].get('base_fy', 2025) - i for i in [2, 1, 0]]
+
+        # Scan P&L checks (C column labels starting with '  Check ')
+        for r in range(1, 3000):
+            lab = str(ws2.Cells(r, 3).Value or '')
+            if lab.startswith('  Check '):
+                clean = lab.strip()
+                vals = {}
+                for ci, yr in zip([4, 5, 6], year_labels):
+                    v = ws2.Cells(r, ci).Value
+                    if isinstance(v, float):
+                        pct = abs(v)
+                        vals[str(yr)] = f'{v:.2%}' if pct < 100 else str(round(v, 1))
+                        th = THRESHOLDS.get(clean, 0.10)
+                        if pct > th:
+                            flags_pnl.append(f'{clean} {yr}={v:.2%} (> {th:.0%})')
+                    elif v is None:
+                        vals[str(yr)] = '—'
+                    else:
+                        vals[str(yr)] = str(v)[:20]
+                check_data[clean] = vals
+
+        # Scan Q checks (U columns — FY{yr} Check headers, P&L F/F rows only)
+        if has_q:
+            if is_ebitda_depth:
+                PNL_LABELS = {'Revenue', 'Cost', 'GP', 'Opex', 'OI', 'OPM', 'D&A', 'EBITDA', 'Tax', 'Net Income', 'NPM'}
+            elif is_op_depth:
+                PNL_LABELS = {'Revenue', 'Cost', 'GP', 'Opex', 'OI', 'OPM'}
+            else:
+                PNL_LABELS = {'Revenue', 'Cost', 'GP'}
+            for chk_col in range(Q_END + 3, Q_END + 10):
+                hdr = str(ws2.Cells(1, chk_col).Value or '')
+                if not hdr.startswith('FY'): break
+                fy_label = hdr.replace(' Check', '')
+                q_check_data[fy_label] = {}
+                for row in range(trev, _ni_end + 1):
+                    cv = str(ws2.Cells(row, 3).Value or '').strip()
+                    if cv not in PNL_LABELS: continue
+                    v = ws2.Cells(row, chk_col).Value
+                    if isinstance(v, float):
+                        q_check_data[fy_label][cv] = f'{v:.2%}'
+                        if abs(v) > 0.0001:
+                            flags_q.append(f'{fy_label} {cv}={v:.2%} (ΣQ≠Annual)')
+                    elif v is not None:
+                        q_check_data[fy_label][cv] = str(v)[:20]
+
+        wb2.Close(False)
+        xl.Quit()
+
+        cj_path = json_path.replace('.json', '_checks.json')
+        result = {
+            'generated_at': datetime.datetime.now().isoformat(),
+            'model': os.path.basename(out_path),
+            'depth': cfg['meta'].get('p&l_depth', '?'),
+            'checks': check_data,
+            'flags': {'P&L': flags_pnl, 'Q': flags_q},
+        }
+        if has_q:
+            result['q_checks'] = q_check_data
+        with open(cj_path, 'w', encoding='utf-8') as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+        print(f'  Checks: {cj_path}')
+        pl_checks = {k: v for k, v in check_data.items() if '%' not in k}
+        for lab, vals in pl_checks.items():
+            items = list(vals.items())[:3]
+            print(f'    {lab:25s} {" | ".join(f"{k}={v}" for k,v in items)}')
+        if flags_pnl:
+            print(f'  [!] P&L flags ({len(flags_pnl)}):')
+            for f in flags_pnl[:5]: print(f'    {f}')
+        if flags_q:
+            print(f'  [!] Q flags ({len(flags_q)}):')
+            for f in flags_q[:3]: print(f'    {f}')
+        if not flags_pnl and not flags_q:
+            print(f'  [OK] All checks within threshold')
+    except Exception as e:
+        print(f'  [COM skip] {e}')
 
 
 # ═══════════════════════════════════════════════════════════════
