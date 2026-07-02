@@ -225,8 +225,22 @@ def render(ws, R, ll, anchor_info, ctx):
     for ci in range(FY0 + 1, LC + 1):
         cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'Implied YoY')
+    C(ws, R, 3, 'Rev YoY')
     R += 1
+
+    # ── Rev QoQ (right below Rev YoY) ──
+    Q_START = ctx.get('Q_START', 0)
+    Q_END = ctx.get('Q_END', 0)
+    has_q = ctx.get('q_actual_n', 0) + ctx.get('q_proj_n', 0) > 0
+    if has_q:
+        for ci in range(DS, ctx.get('LC', DS + 5)):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  Rev QoQ', font=itf)
+        R += 1
 
     result = {
         'next_R': R,
@@ -235,6 +249,7 @@ def render(ws, R, ll, anchor_info, ctx):
         'gp_r': None,
         'vol_r': vol_r,
         'cap_r': cap_r,
+        'util_r': util_r if cap else 0,
         'share_rows': share_rows,
         'asp_rows': asp_rows,
         'module': 'vol_asp',

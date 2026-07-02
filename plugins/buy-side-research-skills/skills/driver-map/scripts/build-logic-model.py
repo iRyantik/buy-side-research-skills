@@ -143,7 +143,7 @@ def _load_module(name):
 # JSON validation
 # ═══════════════════════════════════════════════════════════════
 
-VALID_DEPTH = {'gp', 'ebitda', 'ebit', 'ni'}
+VALID_DEPTH = {'gp', 'op', 'ebitda'}
 VALID_METHOD = {'pe', 'ps', 'ev_ebitda', 'ev_ebit', 'ev_sales'}
 
 def validate_json(cfg):
@@ -157,23 +157,24 @@ def validate_json(cfg):
     if depth not in VALID_DEPTH:
         raise ValueError(f'p&l_depth must be one of {VALID_DEPTH}, got {depth}')
 
-    # actuals required fields
+    # actuals required fields (varies by depth)
+    if depth == 'ebitda':
+        req_fields = ['rev', 'ebitda', 'op', 'ni']
+    elif depth == 'op':
+        req_fields = ['rev', 'gp', 'op']
+    else:
+        req_fields = ['rev', 'gp']
     for fy_key in ['fy-2', 'fy-1', 'fy0']:
         fy = a.get(fy_key, {})
-        for field in ['rev', 'gp', 'op', 'tax', 'ni']:
+        for field in req_fields:
             if field not in fy:
                 raise ValueError(f'actuals.{fy_key}.{field} is required')
 
-    # da required for ebitda/ebit depth
-    if depth in ('ebitda', 'ebit', 'ni'):
-        for fy_key in ['fy-2', 'fy-1', 'fy0']:
-            if 'da' not in a.get(fy_key, {}):
-                print(f'  [warn] actuals.{fy_key}.da missing, assuming 0')
-
-    # global opex_rate length
-    opex_arr = cfg.get('global', {}).get('opex_rate', [])
-    if len(opex_arr) != 3 + proj_n:
-        raise ValueError(f'global.opex_rate length {len(opex_arr)} != {3 + proj_n} (3 actual + {proj_n} proj)')
+    # global opm only required for GP/OP depth
+    if depth != 'ebitda':
+        opm_arr = cfg.get('global', {}).get('opm', [])
+        if len(opm_arr) != 3 + proj_n:
+            raise ValueError(f'global.opm length {len(opm_arr)} != {3 + proj_n} (3 actual + {proj_n} proj)')
 
     # logic_lines
     for ll in cfg.get('logic_lines', []):
@@ -254,7 +255,26 @@ def build(json_path, output_path=None):
 
     validate_json(cfg)
 
-    # ── Pre-process: auto-scale Q actuals to match FY annual (complete 4Q FYs) ──
+    is_ebitda_depth = cfg['meta'].get('p&l_depth') == 'ebitda'
+
+    # Compute Non-GAAP gaps for EBITDA→GP/OI/NI bridge
+    def compute_gaps():
+        gaps = {'gp': 0, 'oi': 0, 'ni': 0}
+        if not is_ebitda_depth: return gaps
+        for gap_key, upper, lower in [('gp', 'ebitda', 'gp'), ('oi', 'ebitda', 'op'), ('ni', 'op', 'ni')]:
+            diffs = []
+            for fy in ['fy-2', 'fy-1', 'fy0']:
+                hi = cfg['actuals'][fy].get(upper, 0)
+                lo = cfg['actuals'][fy].get(lower, 0)
+                rv = cfg['actuals'][fy].get('rev', 1)
+                if hi and lo and rv: diffs.append((hi - lo) / rv)
+            if diffs: gaps[gap_key] = sum(diffs) / len(diffs)
+        return gaps
+    ebitda_gaps = compute_gaps()
+    gap_gp = ebitda_gaps['gp']; gap_oi = ebitda_gaps['oi']; gap_ni = ebitda_gaps['ni']
+    print('  [EBITDA gaps] gp=%.4f oi=%.4f ni=%.4f' % (gap_gp, gap_oi, gap_ni))
+
+    # ═══ Phase 1.1: Reconcile — scale Q→FY for M=4 complete actual FYs ═══
     meta_tmp = cfg['meta']
     q_actual_n = meta_tmp.get('q_actual_count', 0)
     if q_actual_n > 0:
@@ -308,7 +328,7 @@ def build(json_path, output_path=None):
                                 qk=f'q{qi+j+1}'; qd=sq.get(qk,{})
                                 if field in qd: sq[qk][field]=round(qd[field]*s)
                     for ll in cfg.get('logic_lines',[]):
-                        qh=ll.get('q_history',{})
+                        qh=ll.setdefault('q_history',{})
                         for j in range(4):
                             qk=f'q{qi+j+1}'; qd=qh.get(qk,{})
                             if 'rev' in qd: qh[qk]['rev']=round(qd['rev']*s)
@@ -316,7 +336,7 @@ def build(json_path, output_path=None):
                                 qh[qk]['volume']=round(qh[qk]['rev']*ll.get('unit_scale',100)/qd['asp'])
             qi += fyc; cur_yr += 1; cur_q = 1
 
-        # ── Company Q → Segment Q split (when company has Q data but seg doesn't) ──
+        # ═══ Phase 1.2: Company Q → Segment Q split (A-share: seg Q from company Q) ═══
         cq = cfg.get('quarters', {})
         segs = cfg.get('segments', [])
         for qk, qd in cq.items():
@@ -349,7 +369,7 @@ def build(json_path, output_path=None):
                 s['quarters'] = sq
             # Also write to per-line q_history for 1:1 lines
             for ll in cfg.get('logic_lines', []):
-                qh = ll.get('q_history', {})
+                qh = ll.setdefault('q_history', {})
                 if qh.get(qk, {}).get('rev'): continue  # already has data
                 for s in segs:
                     for l in s.get('logic_lines', []):
@@ -362,7 +382,7 @@ def build(json_path, output_path=None):
                                     qh[qk]['gp'] = round(sq[qk]['gp'] * l['split'])
                             break
 
-        # ── Blend: actual Q profit rates → update annual model assumptions ──
+        # ═══ Phase 1.3: Blend — actual Q profit rates → annual model assumptions ═══
         # For projection FYs with M∈{1,2,3}, blend actual Q margins with model
         gl = cfg.get('global', {})
         cur_yr, cur_q, qi_b = q_start_yr, q_start_q, 0
@@ -387,7 +407,7 @@ def build(json_path, output_path=None):
                         if M_seg not in (1, 2, 3): continue
                         w_act = M_seg / 4; w_mod = 1 - w_act
 
-                        # Blend per-line gm + opex_rate for each logic line in this segment
+                        # Blend per-line gm + opm for each logic line in this segment
                         for ll_cfg in seg.get('logic_lines', []):
                             ln_name = ll_cfg['name']
                             ll_obj = None
@@ -406,15 +426,15 @@ def build(json_path, output_path=None):
                             if seg_q_ops and seg_q_gps and sum(seg_q_revs) > 0:
                                 opex_actual = sum(seg_q_gps) - sum(seg_q_ops)
                                 om_actual = opex_actual / sum(seg_q_revs) if sum(seg_q_revs) > 0 else 0
-                                line_opex = ll_obj.get('opex_rate')
-                                opex_arr = line_opex if line_opex else gl.get('opex_rate', [])
+                                line_opex = ll_obj.get('opm')
+                                opm_arr = line_opex if line_opex else gl.get('opm', [])
                                 idx_o = 3 + proj_i
-                                om_model = opex_arr[idx_o] if idx_o < len(opex_arr) else 0.25
+                                om_model = opm_arr[idx_o] if idx_o < len(opm_arr) else 0.25
                                 om_blend = w_act * om_actual + w_mod * om_model
-                                if idx_o < len(opex_arr):
-                                    if line_opex: ll_obj['opex_rate'][idx_o] = round(om_blend, 4)
-                                    else: gl['opex_rate'][idx_o] = round(om_blend, 4)
-                    # Blend global opex_rate (company-level, from all segments' actual Qs)
+                                if idx_o < len(opm_arr):
+                                    if line_opex: ll_obj['opm'][idx_o] = round(om_blend, 4)
+                                    else: gl.get('opm', [])[idx_o] = round(om_blend, 4)
+                    # Blend global opm (company-level, from all segments' actual Qs)
                     if M_seg > 0:
                         all_act_rev = 0; all_act_gp = 0; all_act_op = 0
                         for seg in cfg.get('segments', []):
@@ -430,25 +450,33 @@ def build(json_path, output_path=None):
                                     if ov is not None: all_act_op += ov
                         if all_act_rev > 0 and all_act_gp > 0 and all_act_op > 0:
                             co_om_act = (all_act_gp - all_act_op) / all_act_rev
-                            co_om_mod = gl['opex_rate'][3 + proj_i] if 3 + proj_i < len(gl['opex_rate']) else 0.25
+                            co_om_mod = gl.get('opm', [])[3 + proj_i] if 3 + proj_i < len(gl.get('opm', [])) else 0.25
                             co_blend = (M_seg / 4) * co_om_act + (1 - M_seg / 4) * co_om_mod
                             idx_g = 3 + proj_i
-                            if idx_g < len(gl['opex_rate']):
-                                gl['opex_rate'][idx_g] = round(co_blend, 4)
+                            if idx_g < len(gl.get('opm', [])):
+                                gl.get('opm', [])[idx_g] = round(co_blend, 4)
             qi_b += fyc; cur_yr += 1; cur_q = 1
 
-        # ── Q Driver Distribution ──
+        # ═══ Phase 1.4: Q Driver Distribution — annual drivers → Q projections ═══
         # For each complete 4Q FY, distribute annual drivers to Qs using seasonal weights.
         # vol_asp: Q_Vol = Vol_Y × w_i, Q_ASP = ASP_Y × s_i (Σ(w×s)=1)
         # yoy: Newton solve r s.t. Σ Q_1×(1+r)^k = Annual
         # backlog_burn: Q_Burn = Burn_Y × w_i, Q_ASP = ASP_Y × s_i
+
+        # Pre-compute total_residual (Non-core absorbs all segment residuals)
+        total_residual = 0; gp_residual = 0
+        for seg in cfg.get('segments', []):
+            r = round(seg['fy0']['rev'] - sum(seg['fy0']['rev'] * l['split'] for l in seg.get('logic_lines', [])))
+            if r > 0:
+                total_residual += r
+                gp_residual += round(r * seg.get('residual', {}).get('gm', 0))
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
         while qi < total_q:
             rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi)
             if fyc == 4:
                 fy_idx = cur_yr - bfyr + 2; proj_i = fy_idx - 3
                 for ll in cfg.get('logic_lines', []):
-                    ln = ll['name']; qh = ll.get('q_history', {})
+                    ln = ll['name']; qh = ll.setdefault('q_history', {})
                     module = ll.get('module', 'yoy')
                     us = ll.get('unit_scale', 100)
 
@@ -464,14 +492,27 @@ def build(json_path, output_path=None):
                                         ann += yr_data['rev'] * l['split']
                     elif 0 <= proj_i < proj_n:
                         if module == 'vol_asp':
-                            vp = ll['volume']['proj']; ap = ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))
+                            vp = ll['volume']['proj']
+                            t0 = ll['tiers'][0]
+                            # BBE tiers: use asp_base (Base scenario) for Q distribution
+                            if any(k in t0 for k in ('asp_bull', 'asp_base', 'asp_bear')):
+                                ap = t0.get('asp_base', t0.get('asp', [0]))
+                            else:
+                                ap = t0.get('asp', t0.get('asp_base', [0]))
                             if proj_i < len(vp):
-                                ann_asp = ap[min(proj_i, len(ap) - 1)]
+                                # ASP array: if tier has no explicit asp_fy0, ap[0]=FY0,
+                                # proj values start at ap[1]. BBE arrays always FY0-first.
+                                asp_offset = 0 if 'asp_fy0' in t0 else 1
+                                ap_idx = min(proj_i + asp_offset, len(ap) - 1)
+                                ann_asp = ap[ap_idx]
                                 ann_vol = vp[proj_i]
                                 ann = ann_vol * ann_asp / us  # display units, matches actual Q rev
                         elif module == 'backlog_burn':
                             bp = ll['backlog']['burn']['proj']; ap_arr = ll.get('asp', [])
-                            ann_asp = ap_arr[min(proj_i, len(ap_arr) - 1)] if ap_arr else 0
+                            # backlog_burn asp array: check if first element is FY0
+                            bb_asp_offset = 0 if ll.get('asp_fy0') is not None else 1
+                            bb_ap_idx = min(proj_i + bb_asp_offset, len(ap_arr) - 1)
+                            ann_asp = ap_arr[bb_ap_idx] if ap_arr else 0
                             ann_vol = bp[proj_i]  # burn = "volume" in this context
                             ann = ann_vol * ann_asp / us if ann_asp else 0  # display units
                         else:  # yoy
@@ -484,6 +525,9 @@ def build(json_path, output_path=None):
                                         for bi in range(proj_i + 1):
                                             if bi < len(base): cum *= (1 + base[bi])
                                         ann += round(f0 * cum)
+                            # Non-core absorbs all segment residuals
+                            if ln == 'Non-core':
+                                ann += total_residual
                     if ann <= 0: continue
 
                     # ── Count M and read actual Q driver data ──
@@ -568,6 +612,29 @@ def build(json_path, output_path=None):
                             qh[qk] = qh.get(qk, {})
                             qh[qk]['yoy_q'] = round(r_q, 6)
 
+                        # Non-core: write full Q revs + GP (base + residual) to q_history
+                        if ln == 'Non-core' and total_residual > 0:
+                            residual_per_q = round(total_residual / 4)
+                            gp_residual_per_q = round(gp_residual / 4)
+                            nc_gm = ll.get('gm', {}).get('proj', [ll.get('gm', {}).get('fy0', 0.22)])[0] if proj_i < len(ll.get('gm', {}).get('proj', [0.22])) else 0.22
+                            if not isinstance(nc_gm, (int, float)): nc_gm = 0.22
+                            for j in range(4):
+                                qk = f'q{qi+j+1}'
+                                qh[qk] = qh.get(qk, {})
+                                if j in actual_set:
+                                    for a in actual_q:
+                                        if a[0] == j:
+                                            qh[qk]['rev'] = a[1] + residual_per_q
+                                            qh[qk]['gp'] = round(a[1] * nc_gm) + gp_residual_per_q
+                                elif j < first_actual:
+                                    base_rev = round(a_first / ((1 + r_q) ** (first_actual - j)))
+                                    qh[qk]['rev'] = base_rev + residual_per_q
+                                    qh[qk]['gp'] = round(base_rev * nc_gm) + gp_residual_per_q
+                                else:
+                                    base_rev = round(a_last * ((1 + r_q) ** (j - last_actual)))
+                                    qh[qk]['rev'] = base_rev + residual_per_q
+                                    qh[qk]['gp'] = round(base_rev * nc_gm) + gp_residual_per_q
+
                         # Compute Q Rev targets for debug
                         q_revs = []
                         for j in range(4):
@@ -648,7 +715,7 @@ def build(json_path, output_path=None):
                                         qh[qk]['rev'] = a[1]
                                         if a[2] > 0 and a[1] > 0 and module == 'vol_asp':
                                             qh[qk]['volume'] = a[2]
-                                            qh[qk]['asp'] = a[1] / a[2]  # raw ASP, formula divides by unit_scale
+                                            qh[qk]['asp'] = a[1] * us / a[2]  # natural ASP for Vol×ASP/us formula
                                 continue
                             if module == 'vol_asp':
                                 qh[qk]['volume'] = remaining_vol * w[j]
@@ -677,7 +744,7 @@ def build(json_path, output_path=None):
     meta = cfg['meta']; actuals = cfg['actuals']; segments = cfg['segments']
     logic_lines = cfg['logic_lines']; gl = cfg['global']
 
-    # ── yfinance market data ──
+    # ═══ Phase 1.5: Market Data — yfinance snapshot ═══
     try:
         yf_ticker = meta.get('yf_ticker', meta['ticker'])
         info = yf.Ticker(yf_ticker).info
@@ -713,10 +780,11 @@ def build(json_path, output_path=None):
     has_q = q_actual_n + q_proj_n > 0
     COLS = 3 + proj_n
     FY0 = DS + 2; SC = FY0 + s_off; LC_ANNUAL = DS + COLS - 1
+    LC = LC_ANNUAL  # always the last annual column (never polluted by Q)
     if has_q:
         Q_START = LC_ANNUAL + 3  # 2 blank columns between Y and Q
         Q_END = Q_START + q_actual_n + q_proj_n - 1
-        LC = Q_END
+        ALL_END = Q_END  # last column including Q, for loops that span both
         # Q labels: 4Q25A, 1Q26A, 2Q26E, 3Q26E, ...
         q_start_yr = meta.get('q_start_yr', bfyr)
         q_start_q = meta.get('q_start_q', 1)
@@ -732,11 +800,12 @@ def build(json_path, output_path=None):
             if q > 4: q = 1; yr += 1
     else:
         Q_START = Q_END = 0
-        LC = LC_ANNUAL
+        ALL_END = LC_ANNUAL
         QL = []
     YR = [f'FY{bfyr - 2}A', f'FY{bfyr - 1}A', f'FY{bfyr}A'] + \
          [f'FY{bfyr + i}E' for i in range(1, proj_n + 1)]
 
+    # ═══════════════ Phase 2: Render Excel ═══════════════
     # ── Workbook setup ──
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -766,7 +835,7 @@ def build(json_path, output_path=None):
           f'proj_n={proj_n} B_mode={use_B} div={div}'
           + (f' Q={get_column_letter(Q_START)}({Q_START})-{get_column_letter(Q_END)}({Q_END})' if has_q else ''))
 
-    # ═══════════════ §1 Reported Segments ═══════════════
+    # ═══ Phase 2.1: §1 Reported Segments ═══
     R = 3
     C(ws, R, 1, 'Reported Segments', font=bf12)
     s1_start = R
@@ -788,7 +857,12 @@ def build(json_path, output_path=None):
 
     for seg in segments:
         sn = seg['name']; fy0 = seg['fy0']; lls = seg['logic_lines']
-        srev = fy0['rev']; scost = fy0['cost']; sgp = fy0['gp']; sgm = fy0['gm']
+        srev = fy0['rev']
+        if is_ebitda_depth:
+            sebitda = fy0.get('ebitda', 0)
+            sgp = sebitda; sgm = sebitda / srev if srev else 0; scost = srev - sebitda
+        else:
+            sgp = fy0['gp']; sgm = sgp / srev if srev else 0; scost = srev - sgp
         # History layer: fy-2 (FY23) and fy-1 (FY24). Optional — leave empty if segment didn't exist.
         hist_years = [('fy-2', DS), ('fy-1', DS + 1)]
 
@@ -810,14 +884,6 @@ def build(json_path, output_path=None):
         C(ws, R, 3, 'Revenue')
         R += 1
 
-        # Chinese translation sub-row (if provided)
-        sn_cn = seg.get('name_cn', '')
-        if sn_cn:
-            C(ws, R, 2, sn_cn, font=itf)
-            for ci in range(DS, LC + 1):
-                C(ws, R, ci, '', fmt=NUM)
-            R += 1
-
         # Implied YoY (annual) + QoQ (quarterly)
         for yr_key, col in hist_years:
             C(ws, R, col, '', fmt=PCT)
@@ -837,7 +903,7 @@ def build(json_path, output_path=None):
                     C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
                 else:
                     C(ws, R, qi, '', fmt=PCT)
-        C(ws, R, 3, 'Implied YoY')
+        C(ws, R, 3, 'Rev YoY')
         R += 1
         # QoQ row (collapsed, Q columns only)
         if has_q:
@@ -847,33 +913,24 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                 if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                 else: C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  QoQ', font=itf)
+            C(ws, R, 3, '  Rev QoQ', font=itf)
             R += 1
 
-        # Cost
-        for yr_key, col in hist_years:
-            yr = seg.get(yr_key)
-            if yr: A(ws, R, col, sc(yr['cost']), fmt=NUM)
-            else: C(ws, R, col, '', fmt=NUM)
-        A(ws, R, FY0, sc(scost), fmt=NUM)
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
-            _cost = qd.get('cost')
-            if not _cost and qd.get('rev') and qd.get('gp'):
-                _cost = qd['rev'] - qd['gp']
-            if _cost: A(ws, R, Q_START + qi, sc(_cost), fmt=NUM)
-        for qi in range(q_proj_n):
-            C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
+        # Cost = Rev - GP (gp_r = R + 2 because Cost→GM→GP)
+        _gp_r = R + 2
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'=IFERROR({cl}{rev_r}-{cl}{_gp_r},"")', fmt=NUM)
         cost_r = R
         C(ws, R, 3, 'Cost')
         R += 1
 
-        # GM (before GP — placeholder, fixed below)
-        for yr_key, col in hist_years:
-            C(ws, R, col, '', fmt=PCT)  # placeholder
-        C(ws, R, FY0, 0, fmt=PCT)
+        # GM = GP/Rev (gp_r = R + 1)
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            CF(ws, R, ci, f'=IFERROR({cl}{R + 1}/{cl}{rev_r},"")', fmt=PCT)
         gm_r = R
-        C(ws, R, 3, 'GM')
+        C(ws, R, 3, 'EBITDA margin' if is_ebitda_depth else 'GM')
         R += 1
 
         # GP
@@ -888,9 +945,9 @@ def build(json_path, output_path=None):
         for qi in range(q_proj_n):
             C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         gp_r = R
-        C(ws, R, 3, 'GP')
+        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
         R += 1
-        # GP YoY
+        # GP/EBITDA YoY
         C(ws, R, DS, '', fmt=PCT)
         _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
         C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
@@ -899,7 +956,7 @@ def build(json_path, output_path=None):
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
             C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, 'GP YoY')
+        C(ws, R, 3, ('EBITDA' if is_ebitda_depth else 'GP') + ' YoY')
         R += 1
         # GP QoQ
         if has_q:
@@ -909,7 +966,16 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                 if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                 else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  GP QoQ', font=itf)
+            C(ws, R, 3, '  ' + ('EBITDA' if is_ebitda_depth else 'GP') + ' QoQ', font=itf)
+            R += 1
+
+        # Opex = GP - OI (OP depth only, OI = R + 1)
+        op_r_est = R + 1
+        if not is_ebitda_depth and fy0.get('op') is not None:
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{gp_r}-{cl}{op_r_est},"")', fmt=NUM)
+            C(ws, R, 3, 'Opex')
             R += 1
 
         # OP row (if segment discloses operating profit)
@@ -925,15 +991,15 @@ def build(json_path, output_path=None):
                 qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
                 _op = qd.get('op')
                 if not _op and qd.get('gp') and qd.get('rev'):
-                    _op_rate = gl.get('opex_rate', [0.25]*8)[2]  # FY0 rate
+                    _op_rate = gl.get('opm', [0.25]*8)[2]  # FY0 rate
                     _op = round(qd['gp'] - qd['rev'] * _op_rate)
                 if _op is not None: A(ws, R, Q_START + qi, sc(_op), fmt=NUM)
             for qi in range(q_proj_n):
                 C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
             op_r = R
-            C(ws, R, 3, 'OP')
+            C(ws, R, 3, 'OI')
             R += 1
-            # OP YoY
+            # OI YoY
             for yr_key, col in hist_years:
                 C(ws, R, col, '', fmt=PCT)
             CF(ws, R, DS + 1, f'=IFERROR({get_column_letter(DS+1)}{op_r}/{get_column_letter(DS)}{op_r}-1,"")', fmt=PCT)
@@ -950,9 +1016,9 @@ def build(json_path, output_path=None):
                         C(ws, R, qi, f'=IFERROR({cl}{op_r}/{pl}{op_r}-1,"")', fmt=PCT)
                     else:
                         C(ws, R, qi, '', fmt=PCT)
-            C(ws, R, 3, 'OP YoY')
+            C(ws, R, 3, 'OI YoY')
             R += 1
-            # OP QoQ (collapsed, Q columns only)
+            # OI QoQ (collapsed, Q columns only)
             if has_q:
                 for ci in range(DS, LC_ANNUAL + 1):
                     C(ws, R, ci, '', fmt=PCT)
@@ -960,27 +1026,20 @@ def build(json_path, output_path=None):
                     cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                     if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                     else: C(ws, R, qi, f'=IFERROR({cl}{op_r}/{pl}{op_r}-1,"")', fmt=PCT)
-                C(ws, R, 3, '  OP QoQ', font=itf)
+                C(ws, R, 3, '  OI QoQ', font=itf)
                 R += 1
             # OPM
-            for ci in range(DS, LC + 1):
+            for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{op_r}/{cl}{rev_r},"")', fmt=PCT)
             C(ws, R, 3, 'OPM')
             R += 1
 
-        # Fix GM formulas for all years: =GP/Rev
-        cl_f0 = get_column_letter(FY0)
-        CF(ws, gm_r, FY0, f'=IFERROR({cl_f0}{gp_r}/{cl_f0}{rev_r},"")', fmt=PCT)
-        for yr_key, col in hist_years:
-            cl = get_column_letter(col)
-            if seg.get(yr_key):
-                CF(ws, gm_r, col, f'=IFERROR({cl}{gp_r}/{cl}{rev_r},"")', fmt=PCT)
-        # Q GM formula
-        if has_q:
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi)
-                CF(ws, gm_r, qi, f'=IFERROR({cl}{gp_r}/{cl}{rev_r},"")', fmt=PCT)
+
+        # Line Revenue Split
+        R += 1
+        C(ws, R, 3, 'Line Revenue Split', font=bf)
+        R += 1
 
         srows = []; lrevs = {}
         for l in lls:
@@ -1023,11 +1082,29 @@ def build(json_path, output_path=None):
         else:
             res_row = 0
 
+        # ── Segment Check rows (multi-line segments only, below residual) ──
+        seg_check_gp_r = 0; seg_check_op_r = 0
+        if len(lls) >= 2:
+            for ci in range(DS, ALL_END + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            C(ws, R, 3, '  Check Seg GP', font=itf)
+            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+            seg_check_gp_r = R; R += 1
+            if op_r:
+                for ci in range(DS, ALL_END + 1):
+                    C(ws, R, ci, '', fmt=PCT)
+                C(ws, R, 3, '  Check Seg OP', font=itf)
+                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+                seg_check_op_r = R; R += 1
+
         seg_info[sn] = {
             'rev': rev_r, 'cost': cost_r, 'gp': gp_r, 'gm': gm_r,
             'split_rows': srows, 'lrev_rows': lrevs, 'res_row': res_row,
+            'seg_check_gp_r': seg_check_gp_r, 'seg_check_op_r': seg_check_op_r,
         }
         if op_r: seg_info[sn]['op'] = op_r
+        # Blank row between segments
+        R += 1
         # Mark yoy 1:1 lines (segment=line, no residual, no vol_asp fit)
         if len(lls) == 1 and lls[0]['split'] == 1.0:
             one_to_one.add(lls[0]['name'])
@@ -1081,42 +1158,41 @@ def build(json_path, output_path=None):
                 seg_obj = s
                 break
 
-        # ── yoy module: QoQ below YoY row ──
-        if has_q and module_name == 'yoy' and result.get('ya'):
-            for ci in range(DS, LC_ANNUAL + 1):
-                C(ws, R, ci, '', fmt=PCT)
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-                else: C(ws, R, qi, f'=IFERROR({cl}{result["rev_r"]}/{pl}{result["rev_r"]}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  QoQ', font=itf)
-            R += 1
-
         # ── Common: GM + GP (all modules) ──
         gm = ll['gm']
-        if ln in one_to_one:
+        # Cost = Rev - GP (GP/OP depth only, GP = R + 2: Cost→GM→GP)
+        if not is_ebitda_depth:
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}-{cl}{R + 2},"")', fmt=NUM)
+            C(ws, R, 3, 'Cost', font=itf)
+            cost_s2_r = R; R += 1
+        else:
+            cost_s2_r = 0
+
+        if ln in one_to_one and not is_ebitda_depth:
             # 1:1 → S1 formula for history + FY0
             for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]:
                 if col == FY0 or (seg_obj and seg_obj.get(yr_key)):
                     cl = get_column_letter(col)
                     C(ws, R, col, f'=IFERROR({cl}{si["gp"]}/{cl}{si["rev"]},"")', fmt=PCT)
         else:
-            # Non-1:1 → I() assumption: all years from gm
+            # Non-1:1 or EBITDA depth → I() assumption
             for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1)]:
                 if gm.get(yr_key): I(ws, R, col, gm[yr_key], fmt=PCT)
                 else: C(ws, R, col, '', fmt=PCT)
             if gm.get('fy0'): I(ws, R, FY0, gm['fy0'], fmt=PCT)
         for i, v in enumerate(gm['proj']):
             I(ws, R, FY0 + 1 + i, v, fmt=PCT)
-        C(ws, R, 3, 'GM')
+        C(ws, R, 3, 'EBITDA margin' if is_ebitda_depth else 'GM')
         gm_r = R; R += 1
 
-        for ci in range(DS, LC + 1):
+        for ci in range(DS, ALL_END + 1):
             cl = get_column_letter(ci)
             C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
-        C(ws, R, 3, 'GP')
+        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
         gp_r = R; R += 1
-        # GP YoY
+        # GP/EBITDA YoY
         C(ws, R, DS, '', fmt=PCT)
         _cl2e = get_column_letter(DS + 1); _cl2d = get_column_letter(DS)
         C(ws, R, DS + 1, f'=IFERROR({_cl2e}{gp_r}/{_cl2d}{gp_r}-1,"")', fmt=PCT)
@@ -1125,7 +1201,7 @@ def build(json_path, output_path=None):
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
             C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, 'GP YoY')
+        C(ws, R, 3, ('EBITDA' if is_ebitda_depth else 'GP') + ' YoY')
         R += 1
         # GP QoQ
         if has_q:
@@ -1135,84 +1211,87 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                 if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                 else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  GP QoQ', font=itf)
+            C(ws, R, 3, '  ' + ('EBITDA' if is_ebitda_depth else 'GP') + ' QoQ', font=itf)
             R += 1
 
-        # ── Check rows: anchor reference for reconciliation ──
+        # ── Check rows: anchor reference for agent-driven diagnosis ──
+        # Each check cell = gap% between model and anchor, agent scans pattern.
+        # Format: Check Rev = (ModelRev - AnchorRev) / ABS(AnchorRev) → PCT
         rev_module = ll.get('module', 'yoy')
-        needs_rev_check = rev_module in ('vol_asp', 'backlog_burn', 'capacity_util')
+        needs_rev_check = True  # all lines get Rev check
         needs_gp_check = ln not in one_to_one
         hist_rev_ok = lrev_row and s1_rev_row and split_r
         hist_gp_ok = lrev_row and s1_gp_row and split_r
 
-        if needs_rev_check:
-            for col in (DS, DS + 1):
-                cl = get_column_letter(col)
-                if hist_rev_ok:
-                    C(ws, R, col, f'={cl}{lrev_row}', fmt=NUM)
-                else:
-                    C(ws, R, col, '', fmt=NUM)
-            if hist_rev_ok:
-                C(ws, R, FY0, f'={get_column_letter(FY0)}{lrev_row}', fmt=NUM)
-            for ci in range(FY0 + 1, LC + 1):
-                C(ws, R, ci, '', fmt=NUM)
-            gm_fy0 = gm.get('fy0', 0)
-            gm_label = f' ({gm_fy0:.0%} GM)' if gm_fy0 else ''
-            C(ws, R, 3, f'  Check Rev{gm_label}', font=itf)
-            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-            R += 1
+        def _chk_gap(ws, r, col, model_r, anchor_r, fmt=PCT):
+            """Write gap% formula: (Model - Anchor) / ABS(Anchor)"""
+            cl = get_column_letter(col)
+            CF(ws, r, col,
+               f'=IFERROR(({cl}{model_r}-{cl}{anchor_r})/ABS({cl}{anchor_r}),"")', fmt=fmt)
 
-        if needs_gp_check:
-            for col in (DS, DS + 1):
-                cl = get_column_letter(col)
-                if hist_gp_ok:
-                    C(ws, R, col, f'={cl}{s1_gp_row}*{cl}{split_r}', fmt=NUM)
-                else:
-                    C(ws, R, col, '', fmt=NUM)
-            if hist_gp_ok:
-                C(ws, R, FY0, f'={get_column_letter(FY0)}{s1_gp_row}*{get_column_letter(FY0)}{split_r}', fmt=NUM)
-            for ci in range(FY0 + 1, LC + 1):
-                C(ws, R, ci, '', fmt=NUM)
-            seg_gm = seg_obj['fy0']['gm'] if seg_obj and seg_obj.get('fy0', {}).get('gm') else 0
-            seg_gm_label = f' ({seg_gm:.0%} seg GM)' if seg_gm else ''
-            C(ws, R, 3, f'  Check GP{seg_gm_label}', font=itf)
-            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-            R += 1
+        # Check GP/GM removed from Section 2 — validated in Section 1 via Segment Aggregation
+
+        # ── Check Util: for vol_asp lines with capacity ──
+        cap_r = result.get('cap_r', 0)
+        if cap_r and result.get('util_r', 0):
+            # Util % is already Vol/Cap at result['util_r']
+            # Check: is Util > 100%? Flag pattern for agent.
+            # Re-use util_r as the check — agent reads it directly.
+            check_util_r = result['util_r']
+        else:
+            check_util_r = 0
+
+        # ── Check Util: for vol_asp lines with capacity ──
+        cap_r = result.get('cap_r', 0)
+        if cap_r and result.get('util_r', 0):
+            check_util_r = result['util_r']
+        else:
+            check_util_r = 0
 
         # ── Per-line profit chain (gated by segment disclosure depth) ──
+        line_ni_r = 0
         if max_seg_depth >= DEPTH_RANK['op']:
-            # Opex rate (per-line fallback to global; 1:1 historical uses S1 formula)
-            line_opex = ll.get('opex_rate')
-            opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
-            _ope_r = R
+            # Opex = GP - OI (formula, hidden), OI = R+2 (Opex→OPM→OI)
+            _oi_r_expected = R + 2
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{gp_r}-{cl}{_oi_r_expected},"")', fmt=NUM)
+            C(ws, R, 3, 'Opex', font=itf)
+            R += 1
+
+            # OPM = OI/Rev (operating margin assumption)
+            line_om_arr = ll.get('opm')
+            om_rates = line_om_arr if line_om_arr else gl.get('opm', [])
+            _om_r = R
             for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
                 cl = get_column_letter(col)
-                # 1:1 actual years: use S1 (GP−OP)/Rev like GM
                 if (ln in one_to_one) and s1_gp_row and s1_op_row and s1_rev_row:
                     CF(ws, R, col, f'=IFERROR(({cl}{s1_gp_row}-{cl}{s1_op_row})/{cl}{s1_rev_row},"")', fmt=PCT)
-                elif yr_i < len(opex_rates):
-                    I(ws, R, col, opex_rates[yr_i], fmt=PCT)
+                elif yr_i < len(om_rates):
+                    I(ws, R, col, om_rates[yr_i], fmt=PCT)
                 else:
                     C(ws, R, col, '', fmt=PCT)
             for i in range(proj_n):
                 ri = 3 + i
-                if ri < len(opex_rates):
-                    I(ws, R, FY0 + 1 + i, opex_rates[ri], fmt=PCT)
-            C(ws, R, 3, '  Opex / Rev', font=itf)
+                if ri < len(om_rates):
+                    I(ws, R, FY0 + 1 + i, om_rates[ri], fmt=PCT)
+            C(ws, R, 3, 'OPM', font=itf)
             R += 1
-            # Opex
-            for ci in range(DS, LC + 1):
+            # OI = Rev × OPM (historical: S1 OP×split for actual years)
+            for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
-                C(ws, R, ci, f'={cl}{result["rev_r"]}*{cl}{_ope_r}', fmt=NUM)
-            C(ws, R, 3, '  Opex', font=itf)
-            R += 1
-            # OP
-            for ci in range(DS, LC + 1):
-                cl = get_column_letter(ci)
-                C(ws, R, ci, f'={cl}{gp_r}-{cl}{R - 1}', fmt=NUM)
-            C(ws, R, 3, '  OP', font=bf)
+                is_hist = ci <= FY0 or (has_q and Q_START <= ci < Q_START + q_actual_n)
+                if is_hist and s1_op_row and split_r:
+                    if ln in one_to_one:
+                        CF(ws, R, ci, '=IFERROR(%s%d,"")' % (cl, s1_op_row), fmt=NUM)
+                    else:
+                        CF(ws, R, ci, '=IFERROR(%s%d*%s%d,"")' % (cl, s1_op_row, cl, split_r), fmt=NUM)
+                else:
+                    CF(ws, R, ci, '=IFERROR(%s%d*%s%d,"")' % (cl, result['rev_r'], cl, _om_r), fmt=NUM)
+            C(ws, R, 3, 'OI', font=bf)
             line_op_r = R; R += 1
-            # OP YoY
+            if _om_r: protected_rows.add(_om_r)
+            # OI YoY
             C(ws, R, DS, '', fmt=PCT)
             _cl3e = get_column_letter(DS + 1); _cl3d = get_column_letter(DS)
             C(ws, R, DS + 1, f'=IFERROR({_cl3e}{line_op_r}/{_cl3d}{line_op_r}-1,"")', fmt=PCT)
@@ -1221,9 +1300,9 @@ def build(json_path, output_path=None):
             for ci in range(FY0 + 1, LC_ANNUAL + 1):
                 cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
                 C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{pl}{line_op_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  OP YoY')
+            C(ws, R, 3, 'OI YoY')
             R += 1
-            # OP QoQ
+            # OI QoQ
             if has_q:
                 for ci in range(DS, LC_ANNUAL + 1):
                     C(ws, R, ci, '', fmt=PCT)
@@ -1231,78 +1310,59 @@ def build(json_path, output_path=None):
                     cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                     if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
                     else: C(ws, R, qi, f'=IFERROR({cl}{line_op_r}/{pl}{line_op_r}-1,"")', fmt=PCT)
-                C(ws, R, 3, '    OP QoQ', font=itf)
+                C(ws, R, 3, '  OI QoQ', font=itf)
                 R += 1
-            # OPM (1:1 actual years & actual Qs use S1 OP/Rev)
-            for ci in range(DS, LC + 1):
-                cl = get_column_letter(ci)
-                is_actual_q = has_q and Q_START <= ci < Q_START + q_actual_n
-                if (ln in one_to_one) and s1_op_row and s1_rev_row and (ci <= FY0 or is_actual_q):
-                    C(ws, R, ci, f'=IFERROR({cl}{s1_op_row}/{cl}{s1_rev_row},"")', fmt=PCT)
-                else:
-                    C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{cl}{result["rev_r"]},"")', fmt=PCT)
-            C(ws, R, 3, '  OPM', font=itf)
-            R += 1
-
-            # Check OP (if segment discloses OP)
-            seg_op_row = si.get('op', 0)
-            if seg_op_row and split_r:
-                for col in (DS, DS + 1):
-                    cl = get_column_letter(col)
-                    if hist_gp_ok:
-                        C(ws, R, col, f'={cl}{seg_op_row}*{cl}{split_r}', fmt=NUM)
-                    else:
-                        C(ws, R, col, '', fmt=NUM)
-                if hist_gp_ok:
-                    C(ws, R, FY0, f'={get_column_letter(FY0)}{seg_op_row}*{get_column_letter(FY0)}{split_r}', fmt=NUM)
-                for ci in range(FY0 + 1, LC + 1):
-                    C(ws, R, ci, '', fmt=NUM)
-                C(ws, R, 3, '  Check OP', font=itf)
-                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-                R += 1
-
         if max_seg_depth >= DEPTH_RANK['ni']:
-            # Tax rate (per-line optional override, fallback to global scalar)
-            line_tax = ll.get('tax_rate')
-            if line_tax and isinstance(line_tax, list):
-                _tax_r = R
-                for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
-                    if yr_i < len(line_tax):
-                        C(ws, R, col, line_tax[yr_i], fmt=PCT)
-                    else:
-                        C(ws, R, col, '', fmt=PCT)
-                for i in range(proj_n):
-                    ri = 3 + i
-                    if ri < len(line_tax):
-                        I(ws, R, FY0 + 1 + i, line_tax[ri], fmt=PCT)
-                C(ws, R, 3, '  Tax rate', font=itf)
-                R += 1
-            else:
-                _tax_r = 0
-            tax_val = _tax_r if _tax_r else gl.get('tax_rate', 0)
-            # Tax
-            for ci in range(DS, LC + 1):
-                cl = get_column_letter(ci)
-                if _tax_r:
-                    C(ws, R, ci, f'={cl}{line_op_r}*{cl}{_tax_r}', fmt=NUM)
+            # NM assumed → NI = Rev × NM → Tax = OI - NI (derived)
+            line_nm = ll.get('tax_rate')  # JSON field: NM array
+            nm_rates = line_nm if (line_nm and isinstance(line_nm, list)) else gl.get('tax_rate', [])
+            _nm_r = R
+            for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
+                cl = get_column_letter(col)
+                if yr_i < len(nm_rates):
+                    I(ws, R, col, nm_rates[yr_i], fmt=PCT)
                 else:
-                    C(ws, R, ci, f'={cl}{line_op_r}*{tax_val}', fmt=NUM)
-            C(ws, R, 3, '  Tax', font=itf)
+                    C(ws, R, col, '', fmt=PCT)
+            for i in range(proj_n):
+                ri = 3 + i
+                if ri < len(nm_rates):
+                    I(ws, R, FY0 + 1 + i, nm_rates[ri], fmt=PCT)
+            C(ws, R, 3, '  NM', font=itf)
             R += 1
-            # NI
-            for ci in range(DS, LC + 1):
+            # NI = Rev × NM (same pattern as GP = Rev × GM)
+            for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
-                C(ws, R, ci, f'={cl}{line_op_r}-{cl}{R - 1}', fmt=NUM)
+                CF(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{_nm_r},"")', fmt=NUM)
             C(ws, R, 3, '  NI', font=bf)
-            R += 1
+            line_ni_r = R; R += 1
+
+        # ── Check Rev: at end of line section, Q→Y + split verification ──
+        check_rev_r = 0
+        if lrev_row and s1_rev_row and split_r:
+            for col in (DS, DS + 1, FY0):
+                _chk_gap(ws, R, col, result['rev_r'], lrev_row)
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
+                _chk_gap(ws, R, ci, result['rev_r'], lrev_row)
+            gm_fy0 = gm.get('fy0', 0)
+            gm_label = f' ({gm_fy0:.0%} ' + ('EBITDA margin' if is_ebitda_depth else 'GM') + ')' if gm_fy0 else ''
+            C(ws, R, 3, f'  Check Rev{gm_label}', font=itf)
+            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+            check_rev_r = R; R += 1
 
         result['gm_r'] = gm_r
         result['gp_r'] = gp_r
         result['op_r'] = line_op_r
+        result['ni_r'] = 0  # NI depth removed
         result['next_R'] = R
         L[ln] = result
-        # Protect Rev, GM, GP, Check and per-line profit from D/E clear
+        # Protect Rev, GM, GP, OI, NI from D/E clear
         protected_rows.update([result['rev_r'], gm_r, gp_r])
+        if line_op_r: protected_rows.add(line_op_r)
+        # line_ni_r protection removed
+        # Store check row refs for agent diagnosis (Section 2: Check Rev + Util only)
+        result['check_rev_r'] = check_rev_r
+        result['check_util_r'] = check_util_r
+        if check_rev_r: protected_rows.add(check_rev_r)
         for scan_r in range(result['rev_r'], R):
             cv = str(ws.cell(row=scan_r, column=3).value or '')
             if any(kw in cv for kw in ('Check', 'YoY', 'Opex', 'OP', 'Tax', 'NI')):
@@ -1325,25 +1385,40 @@ def build(json_path, output_path=None):
                     elif qi < q_actual_n:
                         I(ws, result['vol_r'], col, round(vol_fy0 / 4), fmt=INT)
                     else:
-                        I(ws, result['vol_r'], col,
-                          ll.get('q_volume', ll['volume']['proj'])[min(qi - q_actual_n, len(ll['volume']['proj']) - 1)],
-                          fmt=INT)
+                        # Fallback: use annual volume for this Q's FY (divided evenly across 4 Qs)
+                        fy_year = q_start_yr + (q_start_q - 1 + qi) // 4
+                        fy_ofs = fy_year - bfyr - 1  # 0=FY26, 1=FY27, ...
+                        vp_arr = ll.get('q_volume', ll['volume']['proj'])
+                        ann_vol = vp_arr[min(max(0, fy_ofs), len(vp_arr) - 1)]
+                        I(ws, result['vol_r'], col, round(ann_vol / 4), fmt=INT)
                 # Q ASP row (first tier, mirrors annual ASP) — pre-fill from annual or q_history
                 asp_r = result.get('asp_rows', [0])[0] if result.get('asp_rows') else 0
                 if asp_r:
-                    asp_fy0 = ll['tiers'][0].get('asp_fy0') or ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))[0]
+                    t0 = ll['tiers'][0]
+                    # BBE tiers: use asp_base for Q distribution (same as driver)
+                    if any(k in t0 for k in ('asp_bull', 'asp_base', 'asp_bear')):
+                        asp_arr = t0.get('asp_base', t0.get('asp', [0]))
+                    else:
+                        asp_arr = t0.get('asp', t0.get('asp_base', [0]))
+                    # If tier has no explicit asp_fy0, asp_arr[0] is FY0, proj starts at [1]
+                    asp_offset = 0 if 'asp_fy0' in t0 else 1
+                    asp_fy0_val = t0.get('asp_fy0') or asp_arr[0]
                     for qi in range(q_actual_n + q_proj_n):
                         col = Q_START + qi
                         q_asp = q_hist.get(f'q{qi+1}', {}).get('asp')  # check all Qs
                         if q_asp is not None:
                             I(ws, asp_r, col, q_asp, fmt=DEC)
                         elif qi < q_actual_n:
-                            I(ws, asp_r, col, asp_fy0, fmt=DEC)
+                            I(ws, asp_r, col, asp_fy0_val, fmt=DEC)
                         else:
-                            I(ws, asp_r, col,
-                              ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))[min(qi - q_actual_n,
-                                len(ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base', [0]))) - 1)],
-                              fmt=DEC)
+                            # Fallback: use annual ASP for the Q's fiscal year
+                            fy_year = q_start_yr + (q_start_q - 1 + qi) // 4
+                            fy_ofs = fy_year - bfyr  # 0=FY0, 1=FY26, ...
+                            if asp_offset:
+                                ap_idx = min(fy_ofs, len(asp_arr) - 1)  # arr[0]=FY0
+                            else:
+                                ap_idx = min(max(0, fy_ofs - 1), len(asp_arr) - 1)  # arr[0]=FY26
+                            I(ws, asp_r, col, asp_arr[ap_idx], fmt=DEC)
                 # Q Revenue: =Q_Vol × Q_ASP / scale (mirrors annual formula)
                 for qi in range(q_actual_n + q_proj_n):
                     col = Q_START + qi; cl = get_column_letter(col)
@@ -1368,7 +1443,14 @@ def build(json_path, output_path=None):
                     s1r = anchor_info.get(ln, (0, 0))[0]
                     anchor_row = s1r if ln in one_to_one else lrev_row
                     # 1:1 actual Q: use S1 reference like GM/OpexRev (real data)
-                    if ln in one_to_one and anchor_row and is_q_actual:
+                    # Non-core: use q_history hardcodes for all Qs (residual distribution avoids chain compounding)
+                    if ln == 'Non-core' and qi < q_actual_n:
+                        qv = q_hist.get(f'q{qi+1}', {}).get('rev')
+                        if qv is not None:
+                            I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
+                        elif anchor_row:
+                            C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
+                    elif ln in one_to_one and anchor_row and is_q_actual:
                         C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
                     elif is_q_actual:
                         # non-1:1 actual Q: q_history rev or S1 anchor
@@ -1377,6 +1459,16 @@ def build(json_path, output_path=None):
                             I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
                         elif anchor_row:
                             C(ws, result['rev_r'], col, f'={cl}{anchor_row}', fmt=NUM)
+                    elif ln == 'Non-core':
+                        # Non-core proj Q: use q_history hardcode (residual avoids chain compounding)
+                        qv = q_hist.get(f'q{qi+1}', {}).get('rev')
+                        if qv is not None:
+                            I(ws, result['rev_r'], col, sc(qv), fmt=NUM)
+                        else:
+                            # fallback to chain formula
+                            pl = get_column_letter(col - 1)
+                            CF(ws, result['rev_r'], col,
+                               f'={pl}{result["rev_r"]}*(1+{cl}{ya})', fmt=NUM)
                     else:
                         # proj Q: chain formula (never use stale q_history rev)
                         pl = get_column_letter(col - 1)
@@ -1407,36 +1499,17 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi)
                 CF(ws, gp_r, qi, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
             if line_op_r:
-                q_opex_r = line_op_r - 1
                 for qi in range(Q_START, Q_END + 1):
                     cl = get_column_letter(qi)
-                    CF(ws, line_op_r, qi, f'={cl}{gp_r}-{cl}{q_opex_r}', fmt=NUM)
-            # QoQ row (collapsed, Q columns only)
-            for ci in range(DS, LC_ANNUAL + 1):
-                C(ws, R, ci, '', fmt=PCT)
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-                else: C(ws, R, qi, f'=IFERROR({cl}{result["rev_r"]}/{pl}{result["rev_r"]}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  QoQ', font=itf)
-            R += 1
-
-        # ── Check rows: extend to Q actual columns (scan C column for positions) ──
-        if has_q and q_actual_n > 0:
+                    CF(ws, line_op_r, qi, f'=IFERROR({cl}{result["rev_r"]}*{cl}{_om_r},"")', fmt=NUM)
+        # ── Check rows: extend Check Rev to Q columns ──
+        if has_q:
             for scan_r in range(result['rev_r'], R):
                 cv = str(ws.cell(row=scan_r, column=3).value or '')
-                if 'Check Rev' in cv and needs_rev_check and lrev_row:
-                    for qi in range(q_actual_n):
-                        cl = get_column_letter(Q_START + qi)
-                        C(ws, scan_r, Q_START + qi, f'={cl}{lrev_row}', fmt=NUM)
-                if 'Check GP' in cv and needs_gp_check and hist_gp_ok:
-                    for qi in range(q_actual_n):
-                        cl = get_column_letter(Q_START + qi)
-                        C(ws, scan_r, Q_START + qi, f'={cl}{s1_gp_row}*{cl}{split_r}', fmt=NUM)
-                if 'Check OP' in cv and si.get("op", 0) and split_r:
-                    for qi in range(q_actual_n):
-                        cl = get_column_letter(Q_START + qi)
-                        C(ws, scan_r, Q_START + qi, f'={cl}{si["op"]}*{cl}{split_r}', fmt=NUM)
+                if 'Check Rev' in cv and lrev_row:
+                    for qi in range(q_actual_n + q_proj_n):
+                        col = Q_START + qi; cl = get_column_letter(col)
+                        _chk_gap(ws, scan_r, col, result['rev_r'], lrev_row)
 
     # ═══════════════ §2→§1 Fill ─ Section 1 FY26E+ ═══════════════
     for seg in segments:
@@ -1459,9 +1532,7 @@ def build(json_path, output_path=None):
             CF(ws, s1r, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
                 ([str(sc(res_val))] if res_val else [])), fmt=NUM)
-            CF(ws, s1c, ci, '=' + '+'.join(
-                [f'{cl}{L[ln["name"]]["rev_r"]}*(1-{cl}{L[ln["name"]]["gm_r"]})' for ln in lls] +
-                ([f'{sc(res_val)}*(1-{res_gm})'] if res_val else [])), fmt=NUM)
+            CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
             CF(ws, s1g, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
                 ([f'{sc(res_val)}*{res_gm}'] if res_val else [])), fmt=NUM)
@@ -1480,9 +1551,7 @@ def build(json_path, output_path=None):
                 CF(ws, s1r, ci, '=' + '+'.join(
                     [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
                     ([str(sc(res_val))] if res_val else [])), fmt=NUM)
-                CF(ws, s1c, ci, '=' + '+'.join(
-                    [f'{cl}{L[ln["name"]]["rev_r"]}*(1-{cl}{L[ln["name"]]["gm_r"]})' for ln in lls] +
-                    ([f'{sc(res_val)}*(1-{res_gm})'] if res_val else [])), fmt=NUM)
+                CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
                 CF(ws, s1g, ci, '=' + '+'.join(
                     [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
                     ([f'{sc(res_val)}*{res_gm}'] if res_val else [])), fmt=NUM)
@@ -1511,6 +1580,26 @@ def build(json_path, output_path=None):
                 refs = '+'.join([f'{cl}{r}' for r in srows])
                 CF(ws, res_row, ci, f'=1-({refs})', fmt=PCT)
 
+        # Write Segment Check formulas (multi-line segments only)
+        seg_check_gp_r = si.get('seg_check_gp_r', 0)
+        seg_check_op_r = si.get('seg_check_op_r', 0)
+        if seg_check_gp_r:
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                line_sum = '+'.join([f'{cl}{L[l["name"]]["gp_r"]}' for l in lls])
+                if res_val:
+                    line_sum += f'+{sc(round(res_val * res_gm))}'
+                CF(ws, seg_check_gp_r, ci,
+                   f'=IFERROR(({line_sum}-{cl}{s1g})/ABS({cl}{s1g}),"")', fmt=PCT)
+        if seg_check_op_r:
+            op_lls = [l for l in lls if L[l['name']].get('op_r')]
+            if op_lls:
+                for ci in range(DS, ALL_END + 1):
+                    cl = get_column_letter(ci)
+                    line_sum = '+'.join([f'{cl}{L[l["name"]]["op_r"]}' for l in op_lls])
+                    CF(ws, seg_check_op_r, ci,
+                       f'=IFERROR(({line_sum}-{cl}{s1_op})/ABS({cl}{s1_op}),"")', fmt=PCT)
+
     # ── Non-core absorbs all segment residuals ──
     total_residual = 0; gp_residual = 0
     for seg in segments:
@@ -1523,7 +1612,8 @@ def build(json_path, output_path=None):
         nc = L['Non-core']
         nc_rev_r = nc['rev_r']
         nc_gp_r = nc['gp_r']
-        for ci in range(FY0, LC + 1):
+        # Annual columns: add full annual residual
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
             old_rev = ws.cell(row=nc_rev_r, column=ci).value or ''
             old_gp = ws.cell(row=nc_gp_r, column=ci).value or ''
@@ -1531,8 +1621,20 @@ def build(json_path, output_path=None):
                 CF(ws, nc_rev_r, ci, old_rev + f'+{sc(total_residual)}', fmt=NUM)
             if isinstance(old_gp, str) and old_gp.startswith('='):
                 CF(ws, nc_gp_r, ci, old_gp + f'+{sc(gp_residual)}', fmt=NUM)
+        # Q columns: add residual_per_q to chain formulas only (hardcoded values already include it)
+        if has_q:
+            residual_per_q = round(total_residual / 4)
+            gp_residual_per_q = round(gp_residual / 4)
+            for qi in range(q_actual_n + q_proj_n):
+                col = Q_START + qi; cl = get_column_letter(col)
+                old_rev = ws.cell(row=nc_rev_r, column=col).value or ''
+                old_gp = ws.cell(row=nc_gp_r, column=col).value or ''
+                if isinstance(old_rev, str) and old_rev.startswith('='):
+                    CF(ws, nc_rev_r, col, old_rev + f'+{sc(residual_per_q)}', fmt=NUM)
+                if isinstance(old_gp, str) and old_gp.startswith('='):
+                    CF(ws, nc_gp_r, col, old_gp + f'+{sc(gp_residual_per_q)}', fmt=NUM)
 
-    # ── Q Columns: post-Fill GM + opex_rate extension ──
+    # ── Q Columns: post-Fill GM + opm extension ──
     if has_q:
         for ll in logic_lines:
             ln = ll['name']; rows = L.get(ln)
@@ -1555,25 +1657,21 @@ def build(json_path, output_path=None):
                     I(ws, gm_r, qi, gm.get('fy0', 0), fmt=PCT)
                 cur_q += 1
                 if cur_q > 4: cur_q = 1; cur_yr += 1
-            # Opex/Rev rate → Q columns (1:1 actual Qs use S1 (GP−OP)/Rev)
-            line_opex = ll.get('opex_rate')
-            opex_rates = line_opex if line_opex else gl.get('opex_rate', [])
-            s1_op_row = si.get('op', 0)
+            # OPM → Q columns (1:1 actual Qs use S1 (GP−OP)/Rev)
+            om_arr = ll.get('opm') or gl.get('opm', [])
             cur_yr, cur_q = q_start_yr, q_start_q
             for scan_r in range(rev_r, rows.get('op_r', rev_r + 6)):
                 cv = str(ws.cell(row=scan_r, column=3).value or '')
-                if 'Opex / Rev' in cv:
+                if 'OPM' in cv:
                     for qi in range(Q_START, Q_END + 1):
                         cl = get_column_letter(qi)
                         is_q_actual = qi < Q_START + q_actual_n
-                        # 1:1 actual Q: use segment (GP−OP)/Rev like GM
                         if (ln in one_to_one) and s1_gp_row and s1_op_row and s1_rev_row and is_q_actual:
                             CF(ws, scan_r, qi, f'=IFERROR(({cl}{s1_gp_row}-{cl}{s1_op_row})/{cl}{s1_rev_row},"")', fmt=PCT)
                         else:
                             _py = cur_yr - bfyr - 1
-                            _idx = 2 + _py + 1
-                            _idx = max(0, min(_idx, len(opex_rates) - 1))
-                            I(ws, scan_r, qi, opex_rates[_idx], fmt=PCT)
+                            _idx = max(0, min(2 + _py + 1, len(om_arr) - 1))
+                            I(ws, scan_r, qi, om_arr[_idx], fmt=PCT)
                         cur_q += 1
                         if cur_q > 4: cur_q = 1; cur_yr += 1
                     break
@@ -1581,17 +1679,20 @@ def build(json_path, output_path=None):
     # Collapse Section 1 (segment rows only)
     ws.row_dimensions.group(s1_start, s1_end, outline_level=1, hidden=True)
 
-    # ═══════════════ Global Opex / Tax rate ═══════════════
+    # ═══════════════ Overall rates ═══════════════
     s2_end = R  # Section 2 ends before Global; D/E clear stops here
-    R += 1
-    # Placeholder — formulas filled after P&L builds trev/ov rows
-    for ci in range(DS, LC + 1):
+    R += 1  # blank row
+    # Overall Opex/Rev (GP depth only — Opex is derived for OP/EBITDA depth)
+    opex_r = 0
+    if meta.get('p&l_depth') == 'gp':
+        for ci in range(DS, ALL_END + 1):
+            C(ws, R, ci, 0, fmt=PCT)
+        C(ws, R, 3, 'Overall Opex/Rev', font=nf)
+        opex_r = R; R += 1
+    # Overall (OI-NI)/Rev (all depths)
+    for ci in range(DS, ALL_END + 1):
         C(ws, R, ci, 0, fmt=PCT)
-    C(ws, R, 3, 'Opex / Rev', font=bf)
-    opex_r = R; R += 1
-    for ci in range(DS, LC + 1):
-        C(ws, R, ci, 0, fmt=PCT)
-    C(ws, R, 3, 'Tax rate', font=bf)
+    C(ws, R, 3, 'Overall (OI-NI)/Rev', font=nf)
     tax_r = R; R += 1
 
     # ═══════════════ §3 P&L ═══════════════
@@ -1611,6 +1712,9 @@ def build(json_path, output_path=None):
 
     residual_term = f'+{sc(total_residual)}' if total_residual else ''
     gp_residual_term = f'+{sc(gp_residual)}' if gp_residual else ''
+    # Q columns: Non-core already absorbs residual_per_q, no extra term needed
+    q_residual_term = ''
+    q_gp_residual_term = ''
 
     # Total Revenue (FY23-25 actuals, FY26+ formula)
     A(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
@@ -1619,7 +1723,7 @@ def build(json_path, output_path=None):
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
-          font=bf, fmt=NUM)
+          fmt=NUM)
     # Q actuals A() (synthesized from segment Q data) + Q proj Σ
     if has_q:
         for qi in range(q_actual_n):
@@ -1628,24 +1732,23 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
-              font=bf, fmt=NUM)
+            C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + q_residual_term,
+              fmt=NUM)
     C(ws, R, 3, 'Total Revenue')
     trev = R; R += 1
 
-    # Check Rev (model formula for all columns)
-    for ci in range(DS, LC + 1):
+    # Check Rev: (model sum - actual total rev) / actual total rev → gap%
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term, fmt=NUM)
-    C(ws, R, 3, '  Check (model)', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-    check_rev_r = R; R += 1
-
+        term = q_residual_term if ci >= Q_START else residual_term
+        model_sum = '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + term
+        CF(ws, R, ci,
+           f'=IFERROR(({model_sum}-{cl}{trev})/ABS({cl}{trev}),"")', fmt=PCT)
     # Revenue YoY
     C(ws, R, DS, '', fmt=PCT)
     cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
     C(ws, R, DS + 1, f'=IFERROR({cl_e}{trev}/{cl_d}{trev}-1,"")', fmt=PCT)
-    for ci in range(FY0, LC + 1):
+    for ci in range(FY0, ALL_END + 1):
         cl = get_column_letter(ci)
         if ci >= Q_START:
             # Q columns: YoY (4Q back) if year-ago exists, else blank
@@ -1671,13 +1774,13 @@ def build(json_path, output_path=None):
         R += 1
 
     # Total GP (FY23-25 actuals, FY26+ formula)
-    A(ws, R, DS, sc(a['fy-2']['gp']), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1']['gp']), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['gp']), fmt=NUM)
+    A(ws, R, DS, sc(a['fy-2'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term,
-          font=bf, fmt=NUM)
+          fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1685,10 +1788,25 @@ def build(json_path, output_path=None):
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term,
-              font=bf, fmt=NUM)
-    C(ws, R, 3, 'Total GP')
+            C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term,
+              fmt=NUM)
+    C(ws, R, 3, 'Total EBITDA' if is_ebitda_depth else 'Total GP')
     tgp = R; R += 1
+    # EBITDA depth: add GP row = EBITDA − Rev × gap_gp
+    if is_ebitda_depth:
+        gap_gp = ebitda_gaps['gp']
+        gap_gp_str = f'{gap_gp:.4f}'
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{gap_gp_str}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{gap_gp_str}', fmt=NUM)
+        C(ws, R, 3, 'GP')
+        gp_row = R; R += 1
+    else:
+        gp_row = 0  # GP same as tgp for non-EBITDA depth
     # GP YoY
     C(ws, R, DS, '', fmt=PCT)
     _gpe = get_column_letter(DS + 1); _gpd = get_column_letter(DS)
@@ -1698,7 +1816,7 @@ def build(json_path, output_path=None):
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'GP YoY')
+    C(ws, R, 3, ('EBITDA' if is_ebitda_depth else 'GP') + ' YoY')
     R += 1
     # GP QoQ
     if has_q:
@@ -1708,21 +1826,14 @@ def build(json_path, output_path=None):
             cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
             if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
             else: C(ws, R, qi, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
-        C(ws, R, 3, '  GP QoQ', font=itf)
+        C(ws, R, 3, '  ' + ('EBITDA' if is_ebitda_depth else 'GP') + ' QoQ', font=itf)
         R += 1
 
-    # Check GP (model formula for all columns)
-    for ci in range(DS, LC + 1):
+    # Blended GM = GP / Rev
+    _gp_ref = gp_row if is_ebitda_depth else tgp
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term, fmt=NUM)
-    C(ws, R, 3, '  Check (model)', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-    R += 1
-
-    # Blended GM
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'=IFERROR({cl}{tgp}/{cl}{trev},"")', fmt=PCT)
+        C(ws, R, ci, f'=IFERROR({cl}{_gp_ref}/{cl}{trev},"")', fmt=PCT)
     C(ws, R, 3, 'Blended GM')
     R += 1
 
@@ -1730,45 +1841,33 @@ def build(json_path, output_path=None):
     nci_rate = meta.get('nci_rate', 0)
     net_debt = meta.get('net_debt', 0)
 
-    # Opex + OP (always computed)
-    opex_fy2 = a['fy-2'].get('opex', a['fy-2']['gp'] - a['fy-2']['op'])
-    opex_fy1 = a['fy-1'].get('opex', a['fy-1']['gp'] - a['fy-1']['op'])
-    _opex_start = R
-    A(ws, R, DS, sc(opex_fy2), fmt=NUM)
-    A(ws, R, DS + 1, sc(opex_fy1), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['opex']), fmt=NUM)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{trev}*{cl}{opex_r}', fmt=NUM)
-    if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('opex', 0) for seg in segments)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{trev}*{cl}{opex_r}', fmt=NUM)
-    C(ws, R, 3, 'Opex')
-    ov = R; R += 1
-
+    # OI (from actuals or per-line; EBITDA depth: gap from EBITDA)
     A(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
     A(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
     A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
+    has_line_op = any(L[ln].get('op_r') for ln in LN)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
+        if is_ebitda_depth:
+            C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+        elif has_line_op:
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+        else:
+            C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
             qv = sum(seg.get('quarters', {}).get(qk, {}).get('op', 0) for seg in segments)
-            # Fallback to company quarters
             if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('op', 0)
-            cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            else: C(ws, R, Q_START + qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{tgp}-{cl}{ov}', fmt=NUM)
+            if is_ebitda_depth:
+                C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+            elif has_line_op:
+                C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+            else:
+                C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
     C(ws, R, 3, 'OI')
     op = R; R += 1
 
@@ -1794,7 +1893,7 @@ def build(json_path, output_path=None):
         C(ws, R, 3, '  OI QoQ', font=itf)
         R += 1
 
-    for ci in range(DS, LC + 1):
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'=IFERROR({cl}{op}/{cl}{trev},"")', fmt=PCT)
     C(ws, R, 3, 'OPM')
@@ -1808,73 +1907,83 @@ def build(json_path, output_path=None):
     A(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
     A(ws, R, FY0, sc(da_fy0), fmt=NUM)
     da_actuals_r = R
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_actuals_r}/{get_column_letter(FY0)}{trev}', fmt=NUM)
-    if has_q:
-        da_fy0_col = get_column_letter(FY0)
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('da', 0) for seg in segments)
-            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('da', 0)
-            cl = get_column_letter(Q_START + qi)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            else: C(ws, R, Q_START + qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            C(ws, R, qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
+    if is_ebitda_depth:
+        # D&A = Rev × gap_oi (≈EBITDA − OI gap)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'={cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+    else:
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_actuals_r}/{get_column_letter(FY0)}{trev}', fmt=NUM)
+        if has_q:
+            da_fy0_col = get_column_letter(FY0)
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'
+                qv = sum(seg.get('quarters', {}).get(qk, {}).get('da', 0) for seg in segments)
+                if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('da', 0)
+                cl = get_column_letter(Q_START + qi)
+                if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+                else: C(ws, R, Q_START + qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
     C(ws, R, 3, 'D&A')
     da_r = R; R += 1
 
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', fmt=NUM)
-    C(ws, R, 3, 'EBITDA')
-    ebitda_r = R; R += 1
-    # EBITDA YoY
-    C(ws, R, DS, '', fmt=PCT)
-    _ebe = get_column_letter(DS + 1); _ebd = get_column_letter(DS)
-    C(ws, R, DS + 1, f'=IFERROR({_ebe}{ebitda_r}/{_ebd}{ebitda_r}-1,"")', fmt=PCT)
-    _ebf0 = get_column_letter(FY0); _ebf1 = get_column_letter(FY0 - 1)
-    C(ws, R, FY0, f'=IFERROR({_ebf0}{ebitda_r}/{_ebf1}{ebitda_r}-1,"")', fmt=PCT)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-        C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'EBITDA YoY')
-    R += 1
-    # EBITDA QoQ
-    if has_q:
-        for ci in range(DS, LC_ANNUAL + 1):
-            C(ws, R, ci, '', fmt=PCT)
-        for qi in range(Q_START, Q_END + 1):
-            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-            else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, '  EBITDA QoQ', font=itf)
+    ebitda_r = R
+    if not is_ebitda_depth:
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', fmt=NUM)
+        C(ws, R, 3, 'EBITDA')
         R += 1
+    if not is_ebitda_depth:
+        # EBITDA YoY
+        C(ws, R, DS, '', fmt=PCT)
+        _ebe = get_column_letter(DS + 1); _ebd = get_column_letter(DS)
+        C(ws, R, DS + 1, f'=IFERROR({_ebe}{ebitda_r}/{_ebd}{ebitda_r}-1,"")', fmt=PCT)
+        _ebf0 = get_column_letter(FY0); _ebf1 = get_column_letter(FY0 - 1)
+        C(ws, R, FY0, f'=IFERROR({_ebf0}{ebitda_r}/{_ebf1}{ebitda_r}-1,"")', fmt=PCT)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+            C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, 'EBITDA YoY')
+        R += 1
+        # EBITDA QoQ
+        if has_q:
+            for ci in range(DS, LC_ANNUAL + 1):
+                C(ws, R, ci, '', fmt=PCT)
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, '  EBITDA QoQ', font=itf)
+            R += 1
 
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{cl}{trev},"")', fmt=PCT)
-    C(ws, R, 3, 'EBITDA margin')
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{cl}{trev},"")', fmt=PCT)
+        C(ws, R, 3, 'EBITDA margin')
     _ebitda_end = R; R += 1
 
-    # Check EBIT (model formula for all columns)
-    for ci in range(DS, LC + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
-    C(ws, R, 3, '  Check (model)', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-    R += 1
-
-    # Tax + NI (always computed)
+    # NM → NI = Rev × NM, Tax = OI - NI (derived)
+    nm_val = gl.get('tax_rate', 0)  # global NM assumption
     _ni_start = R
-    A(ws, R, DS, sc(a['fy-2']['tax']), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1']['tax']), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['tax']), fmt=NUM)
+    # Tax (reference only — historical from actuals, FY26+ derived)
+    A(ws, R, DS, sc(a['fy-2'].get('tax', 0)), fmt=NUM)
+    A(ws, R, DS + 1, sc(a['fy-1'].get('tax', 0)), fmt=NUM)
+    A(ws, R, FY0, sc(a['fy0'].get('tax', 0)), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
+        if is_ebitda_depth:
+            C(ws, R, ci, f'={cl}{trev}*{gap_ni:.4f}', fmt=NUM)  # Tax = Rev × gap_ni (since NI = OI − Rev×gap_ni, Tax = OI−NI = Rev×gap_ni)
+        else:
+            C(ws, R, ci, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1882,10 +1991,13 @@ def build(json_path, output_path=None):
             if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('tax', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            else: C(ws, R, Q_START + qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
+            elif is_ebitda_depth:
+                C(ws, R, Q_START + qi, f'={cl}{trev}*{gap_ni:.4f}', fmt=NUM)
+            else:
+                C(ws, R, Q_START + qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{op}*{cl}{tax_r}', fmt=NUM)
+            C(ws, R, qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
     C(ws, R, 3, 'Tax')
     tv = R; R += 1
 
@@ -1894,7 +2006,10 @@ def build(json_path, output_path=None):
     A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, f'={cl}{op}-{cl}{tv}', fmt=NUM)
+        if is_ebitda_depth:
+            C(ws, R, ci, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
+        else:
+            C(ws, R, ci, f'={cl}{trev}*{nm_val}', fmt=NUM)
     if has_q:
         for qi in range(q_actual_n):
             qk = f'q{qi+1}'
@@ -1902,15 +2017,21 @@ def build(json_path, output_path=None):
             if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('ni', 0)
             cl = get_column_letter(Q_START + qi)
             if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            else: C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
+            elif is_ebitda_depth:
+                C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
+            else:
+                C(ws, R, Q_START + qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
         for qi in range(Q_START + q_actual_n, Q_END + 1):
             cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
+            if is_ebitda_depth:
+                C(ws, R, qi, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
+            else:
+                C(ws, R, qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
     C(ws, R, 3, 'Net Income')
     ni_r = R; R += 1
 
     if nci_rate > 0:
-        for ci in range(DS, LC + 1):
+        for ci in range(DS, ALL_END + 1):
             cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{ni_r}*(1-{nci_rate})', fmt=NUM)
         C(ws, R, 3, 'NI attributable')
@@ -1919,7 +2040,7 @@ def build(json_path, output_path=None):
     C(ws, R, DS, '', fmt=PCT)
     cl_e = get_column_letter(DS + 1); cl_d = get_column_letter(DS)
     C(ws, R, DS + 1, f'=IFERROR({cl_e}{ni_r}/{cl_d}{ni_r}-1,"")', fmt=PCT)
-    for ci in range(FY0, LC + 1):
+    for ci in range(FY0, ALL_END + 1):
         cl = get_column_letter(ci)
         if ci >= Q_START and ci - 4 >= Q_START:
             pl = get_column_letter(ci - 4)
@@ -1941,19 +2062,57 @@ def build(json_path, output_path=None):
         C(ws, R, 3, '  NI QoQ', font=itf)
         R += 1
     # NPM (after NI YoY+QoQ, consistent with OPM placement)
-    for ci in range(DS, LC + 1):
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{cl}{trev},"")', fmt=PCT)
     C(ws, R, 3, 'NPM')
     R += 1
     _ni_end = R; R += 1
 
+    # ═══ P&L Checks (consolidated at bottom, collapsed) ═══
+    # Check Total Rev
+    for ci in range(DS, ALL_END + 1):
+        cl = get_column_letter(ci)
+        term = q_residual_term if ci >= Q_START else residual_term
+        model_sum = '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + term
+        CF(ws, R, ci,
+           f'=IFERROR(({model_sum}-{cl}{trev})/ABS({cl}{trev}),"")', fmt=PCT)
+    C(ws, R, 3, '  Check Total Rev', font=itf)
+    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+    R += 1
+
+    # Check Total GP
+    for ci in range(DS, ALL_END + 1):
+        cl = get_column_letter(ci)
+        term = q_gp_residual_term if ci >= Q_START else gp_residual_term
+        model_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + term
+        CF(ws, R, ci,
+           f'=IFERROR(({model_sum}-{cl}{tgp})/ABS({cl}{tgp}),"")', fmt=PCT)
+    C(ws, R, 3, '  Check Total EBITDA' if is_ebitda_depth else '  Check Total GP', font=itf)
+    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+    R += 1
+
+    # Check OI (GP/OP depth only; EBITDA depth doesn't check OI)
+    if not is_ebitda_depth:
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            has_line_op = any(L[ln].get('op_r') for ln in LN)
+            if has_line_op:
+                model_op = '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')])
+            else:
+                model_op = f'{cl}{op}'
+            CF(ws, R, ci,
+               f'=IFERROR(({model_op}-{cl}{op})/ABS({cl}{op}),"")', fmt=PCT)
+        C(ws, R, 3, '  Check OI', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        R += 1
+
 
     # ── Inline Check columns: per-row Annual−QSum at existing rows (S1-S3) ──
     if has_q:
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
         total_q = q_actual_n + q_proj_n
-        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'Tax rate', 'ASP', 'Shares')
+        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'NM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'ASP', 'Shares')
         while qi < total_q:
             rem_in_fy = 4 - cur_q + 1; fyc = min(rem_in_fy, total_q - qi)
             if fyc == 4:
@@ -1975,31 +2134,33 @@ def build(json_path, output_path=None):
                     ws.column_dimensions.group(cc, cc, outline_level=1, hidden=True)
             qi += fyc; cur_yr += 1; cur_q = 1
 
-    # ── Fix Global Opex rate / Tax rate formulas ──
-    # FY23-25: =Opex/Rev, =Tax/OP
-    for ci in [DS, DS + 1, FY0]:
-        cl = get_column_letter(ci)
-        CF(ws, opex_r, ci, f'=IFERROR({cl}{ov}/{cl}{trev},"")', fmt=PCT)
-    for i, ov_val in enumerate(gl['opex_rate'][3:], FY0 + 1):
-        I(ws, opex_r, i, ov_val, fmt=PCT)
-    if has_q:
-        _opex_rates = gl.get('opex_rate', [0.25]*8)
-        cur_yr, cur_q = q_start_yr, q_start_q
-        for qi in range(q_actual_n + q_proj_n):
-            _py = cur_yr - bfyr - 1
-            if _py < 0: _py = 0  # actual Q in base year → use FY0 rate
-            _idx = min(3 + _py, len(_opex_rates) - 1)
-            I(ws, opex_r, Q_START + qi, _opex_rates[_idx], fmt=PCT)
+    # ── Fix Overall Opex/Rev formulas (GP depth only) ──
+    if meta.get('p&l_depth') == 'gp':
+        for ci in [DS, DS + 1, FY0]:
+            cl = get_column_letter(ci)
+            CF(ws, opex_r, ci, f'=IFERROR({cl}{op}/{cl}{trev},"")', fmt=PCT)
+        for i, ov_val in enumerate(gl.get('opm', [0]*8)[3:], FY0 + 1):
+            I(ws, opex_r, i, ov_val, fmt=PCT)
+        if has_q:
+            _opms = gl.get('opm', [0.25]*8)
+            cur_yr, cur_q = q_start_yr, q_start_q
+            for qi in range(q_actual_n + q_proj_n):
+                _py = cur_yr - bfyr - 1
+                if _py < 0: _py = 0
+                _idx = min(3 + _py, len(_opms) - 1)
+                I(ws, opex_r, Q_START + qi, _opms[_idx], fmt=PCT)
             cur_q += 1
             if cur_q > 4: cur_q = 1; cur_yr += 1
+    # Overall (OI-NI)/Rev: historical = (OI-NI)/Rev, FY26+ from assumption
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
-        CF(ws, tax_r, ci, f'=IFERROR({cl}{tv}/{cl}{op},"")', fmt=PCT)
+        CF(ws, tax_r, ci, f'=IFERROR(({cl}{op}-{cl}{ni_r})/{cl}{trev},"")', fmt=PCT)
+    nm_val = gl.get('tax_rate', 0)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        I(ws, tax_r, ci, gl['tax_rate'], fmt=PCT)
+        I(ws, tax_r, ci, nm_val, fmt=PCT)
     if has_q:
         for qi in range(q_actual_n + q_proj_n):
-            I(ws, tax_r, Q_START + qi, gl['tax_rate'], fmt=PCT)
+            I(ws, tax_r, Q_START + qi, nm_val, fmt=PCT)
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
     R += 1
@@ -2021,7 +2182,7 @@ def build(json_path, output_path=None):
         if method == 'pe':
             return ni_r, 'NI'
         if method == 'ev_ebitda':
-            return ebitda_r, 'EBITDA'
+            return (tgp if is_ebitda_depth else ebitda_r), 'EBITDA'
         if method == 'ev_ebit':
             return op, 'EBIT'
         if method in ('ev_sales', 'ps'):
@@ -2039,7 +2200,7 @@ def build(json_path, output_path=None):
 
         # GP (allocation base)
         C(ws, R, 2, ln, font=bf)
-        C(ws, R, 3, 'GP')
+        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
         C(ws, R, SC, f'={gc}', fmt=NUM)
         R += 1
 
@@ -2055,7 +2216,7 @@ def build(json_path, output_path=None):
         R += 1
 
         # Multiple input
-        if method == 'pe':      label_m = 'PE'
+        if method == 'pe':      label_m = 'EV/EBITDA' if is_ebitda_depth else 'PE'
         elif method == 'ps':    label_m = 'P/S'
         else:                   label_m = method.replace('_', '/').upper()
         I(ws, R, SC, mult, fmt='0.0x')
@@ -2110,7 +2271,7 @@ def build(json_path, output_path=None):
         mc = f'{sc_l}{metric_r_s}'
 
         C(ws, R, 2, sn, font=bf)
-        C(ws, R, 3, 'GP')
+        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
         C(ws, R, SC, f'={gc}', fmt=NUM)
         R += 1
 
@@ -2124,7 +2285,7 @@ def build(json_path, output_path=None):
         C(ws, R, SC, alloc_f_s, fmt=NUM)
         R += 1
 
-        if method_s == 'pe':      label_ms = 'PE'
+        if method_s == 'pe':      label_ms = 'EV/EBITDA' if is_ebitda_depth else 'PE'
         elif method_s == 'ps':    label_ms = 'P/S'
         else:                     label_ms = method_s.replace('_', '/').upper()
         I(ws, R, SC, mult_s, fmt='0.0x')
@@ -2222,7 +2383,7 @@ def build(json_path, output_path=None):
     methods = set()
     for ll in logic_lines:
         if ll.get('sotp'):
-            methods.add(ll['sotp'].get('method', 'pe'))
+            methods.add(ll['sotp'].get('method', 'ev_ebitda' if is_ebitda_depth else 'pe'))
         elif 'sotp_pe' in ll:
             methods.add('pe')
     if not methods: methods = {'pe'}
@@ -2260,10 +2421,9 @@ def build(json_path, output_path=None):
             continue
         rf = '=' + '+'.join(rp)
         gf = '=' + '+'.join(gp)
-        # NI = (GP - Rev×opex_rate) × (1-tax_rate) — correct P&L path
+        # NI = Rev × NM (NM from global assumption)
         rev_total_sc = f'({rf[1:]})' if rf.startswith('=') else rf
-        gp_total_sc = f'({gf[1:]})' if gf.startswith('=') else gf
-        nf_s = f'=({gp_total_sc}-{rev_total_sc}*{syc}{opex_r})*(1-{syc}{tax_r})'
+        nf_s = f'={rev_total_sc}*{syc}{tax_r}'
         pf = f'=IFERROR({mref}/({nf_s[1:]}),"")'
         C(ws, R, 2, label, font=bf)
         C(ws, R, DS, rf, fmt=NUM)
@@ -2275,7 +2435,7 @@ def build(json_path, output_path=None):
     # ═══════════════ Post-format ═══════════════
     for row in range(1, R):
         # Clear placeholder zeros (only cells without explicit format)
-        for c in range(DS, LC + 1):
+        for c in range(DS, ALL_END + 1):
             cl = ws.cell(row=row, column=c)
             if cl.value == 0 and cl.number_format == 'General':
                 cl.value = None
@@ -2288,7 +2448,7 @@ def build(json_path, output_path=None):
         # Bold key C-column labels
         cv = ws.cell(row=row, column=3).value
         if cv and isinstance(cv, str) and cv.strip() in {
-            'Revenue', 'Cost', 'GP', 'GM', 'OP', 'OPM', 'OP YoY',
+            'Revenue', 'Cost', 'GP', 'GM', 'OP', 'OPM', 'OI YoY',
             'Total Revenue', 'Rev YoY', 'Total GP', 'Blended GM',
             'Opex', 'Operating Profit', 'EBITDA', 'EBIT',
             'Tax', 'Net Income', 'NPM', 'NI YoY',
@@ -2305,7 +2465,7 @@ def build(json_path, output_path=None):
     ws.column_dimensions['A'].width = 18
     ws.column_dimensions['B'].width = 24
     ws.column_dimensions['C'].width = 36
-    for ci in range(DS, LC + 1):
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
         ws.column_dimensions[cl].width = 5 if has_q and ci in (LC_ANNUAL + 1, LC_ANNUAL + 2) else 13
 
