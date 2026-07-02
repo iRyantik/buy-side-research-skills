@@ -901,33 +901,29 @@ def build(json_path, output_path=None):
             R += 1
 
         if is_ebitda_depth:
-            # ── EBITDA block ──
-            seg_margin = sebitda / srev if srev else 0
-            for yr_key, col in hist_years:
-                C(ws, R, col, '', fmt=PCT)
-            I(ws, R, FY0, seg_margin, fmt=PCT)
-            for i in range(proj_n):
-                C(ws, R, FY0 + 1 + i, 0, fmt=PCT)
-            C(ws, R, 3, 'EBITDA margin', font=nf)
-            gm_r = R; R += 1
-
+            # ── EBITDA block (EBITDA first, margin formula after) ──
             for yr_key, col in hist_years:
                 yr = seg.get(yr_key)
                 if yr and yr.get('ebitda'): A(ws, R, col, sc(yr['ebitda']), fmt=NUM)
                 else: C(ws, R, col, '', fmt=NUM)
             A(ws, R, FY0, sc(sebitda), fmt=NUM)
-            gp_r = R
+            if has_q:
+                for qi in range(q_actual_n):
+                    qk = f'q{qi+1}'
+                    q_ebitda = seg.get('quarters', {}).get(qk, {}).get('ebitda', 0)
+                    if q_ebitda: A(ws, R, Q_START + qi, sc(q_ebitda), fmt=NUM)
+            ebitda_r_s1 = R
             C(ws, R, 3, 'EBITDA', font=bf)
             R += 1
             # EBITDA YoY
             C(ws, R, DS, '', fmt=PCT)
             _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
-            C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, DS + 1, f'=IFERROR({_cle}{ebitda_r_s1}/{_cld}{ebitda_r_s1}-1,"")', fmt=PCT)
             _f0 = get_column_letter(FY0); _f1 = get_column_letter(FY0 - 1)
-            C(ws, R, FY0, f'=IFERROR({_f0}{gp_r}/{_f1}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, FY0, f'=IFERROR({_f0}{ebitda_r_s1}/{_f1}{ebitda_r_s1}-1,"")', fmt=PCT)
             for ci in range(FY0 + 1, LC_ANNUAL + 1):
                 cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-                C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+                C(ws, R, ci, f'=IFERROR({cl}{ebitda_r_s1}/{pl}{ebitda_r_s1}-1,"")', fmt=PCT)
             C(ws, R, 3, 'EBITDA YoY', font=nf)
             R += 1
             # EBITDA QoQ
@@ -937,10 +933,17 @@ def build(json_path, output_path=None):
                 for qi in range(Q_START, Q_END + 1):
                     cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
                     if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-                    else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+                    else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r_s1}/{pl}{ebitda_r_s1}-1,"")', fmt=PCT)
                 C(ws, R, 3, '  EBITDA QoQ', font=itf)
                 R += 1
+            # EBITDA margin = EBITDA / Revenue (formula)
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{ebitda_r_s1}/{cl}{rev_r},"")', fmt=PCT)
+            C(ws, R, 3, 'EBITDA margin', font=nf)
+            gm_r = R; R += 1
             cost_r = 0
+            gp_r = ebitda_r_s1  # alias for seg_info
         else:
             # ── GP block ──
             _gp_r = R + 2
@@ -1194,11 +1197,11 @@ def build(json_path, output_path=None):
             cost_s2_r = 0
 
         if ln in one_to_one:
-            # 1:1 → S1 formula for history + FY0
+            # 1:1 → reference S1 margin row directly
             for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]:
                 if col == FY0 or (seg_obj and seg_obj.get(yr_key)):
                     cl = get_column_letter(col)
-                    C(ws, R, col, f'=IFERROR({cl}{si["gp"]}/{cl}{si["rev"]},"")', fmt=PCT)
+                    C(ws, R, col, f'={cl}{si["gm"]}', fmt=PCT)
         else:
             # Non-1:1 or EBITDA depth → I() assumption
             for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1)]:
@@ -2331,6 +2334,13 @@ def build(json_path, output_path=None):
             return trev, 'Revenue'
         return tgp, 'GP'
 
+    # Detect whether all lines use EV methods (for TOTAL directional logic)
+    _all_methods = set()
+    for ll in logic_lines:
+        _m, _ = _sotp_info(ll)
+        _all_methods.add(_m)
+    is_ev_method = _all_methods and all(m.startswith('ev_') for m in _all_methods)
+
     for ll in logic_lines:
         ln = ll['name']
         method, mult = _sotp_info(ll)
@@ -2376,22 +2386,31 @@ def build(json_path, output_path=None):
         C(ws, R, SC, value_f, fmt=DEC)
         mc_rows.append(R); R += 1
 
-    # TOTAL (Σ EV or Σ Mkt Cap)
-    C(ws, R, 2, 'TOTAL', font=bf)
-    C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows]),
-      font=bf, fmt=DEC)
-    sotp_r = R; R += 1
-    # Net Debt (once, at total level)
-    if net_debt:
-        I(ws, R, SC, net_debt, fmt=DEC)
-        C(ws, R, 3, 'Net Debt', font=bf)
-        nd_total_r = R; R += 1
-        mcap_total_f = f'=IFERROR({sc_l}{sotp_r}-{sc_l}{nd_total_r},"")'
-    else:
-        mcap_total_f = f'={sc_l}{sotp_r}'
-    C(ws, R, 3, 'Mkt Cap', font=bf)
-    C(ws, R, SC, mcap_total_f, font=bf, fmt=DEC)
+    # Blank row before Total section + Enterprise Value → Net Debt → Mkt Cap
     R += 1
+    nd_total_r = R + 1  # Net Debt row (forward ref for PE/PS)
+    if is_ev_method:
+        ev_f = '=' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows])
+    else:
+        ev_f = '=(' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows]) + f')+{sc_l}{nd_total_r}'
+    C(ws, R, 2, 'Total', font=bf)
+    C(ws, R, SC, ev_f, fmt=DEC)
+    C(ws, R, 3, 'Enterprise Value', font=bf)
+    sotp_ev_r = R; R += 1
+
+    # Net Debt
+    I(ws, R, SC, net_debt, fmt=DEC)
+    C(ws, R, 3, 'Net Debt', font=bf)
+    nd_total_r = R; R += 1
+
+    # Mkt Cap (EV method: EV − Net Debt; PE/PS: Σ Mkt Cap)
+    if is_ev_method:
+        mcap_f = f'=IFERROR({sc_l}{sotp_ev_r}-{sc_l}{nd_total_r},"")'
+    else:
+        mcap_f = '=' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows])
+    C(ws, R, SC, mcap_f, fmt=DEC)
+    C(ws, R, 3, 'Mkt Cap', font=bf)
+    sotp_mcap_r = R; R += 1
 
     # ═══════════════ §5 SOTP - Segments ═══════════════
     R += 1
@@ -2452,30 +2471,37 @@ def build(json_path, output_path=None):
         C(ws, R, SC, value_f_s, fmt=DEC)
         smc_rows.append(R); R += 1
 
-    # TOTAL
-    C(ws, R, 2, 'TOTAL', font=bf)
-    C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows]),
-      font=bf, fmt=DEC)
-    sotp_seg_r = R; R += 1
-    # Net Debt
-    if net_debt:
-        I(ws, R, SC, net_debt, fmt=DEC)
-        C(ws, R, 3, 'Net Debt', font=bf)
-        nd_seg_r = R; R += 1
-        mcap_seg_f = f'=IFERROR({sc_l}{sotp_seg_r}-{sc_l}{nd_seg_r},"")'
-    else:
-        mcap_seg_f = f'={sc_l}{sotp_seg_r}'
-    C(ws, R, 3, 'Mkt Cap', font=bf)
-    C(ws, R, SC, mcap_seg_f, font=bf, fmt=DEC)
+    # Blank row before Total + Enterprise Value → Net Debt → Mkt Cap
     R += 1
+    nd_seg_r = R + 1
+    if is_ev_method:
+        ev_f_s = '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows])
+    else:
+        ev_f_s = '=(' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows]) + f')+{sc_l}{nd_seg_r}'
+    C(ws, R, 2, 'Total', font=bf)
+    C(ws, R, SC, ev_f_s, fmt=DEC)
+    C(ws, R, 3, 'Enterprise Value', font=bf)
+    sotp_seg_ev_r = R; R += 1
+
+    I(ws, R, SC, net_debt, fmt=DEC)
+    C(ws, R, 3, 'Net Debt', font=bf)
+    nd_seg_r = R; R += 1
+
+    if is_ev_method:
+        mcap_f_s = f'=IFERROR({sc_l}{sotp_seg_ev_r}-{sc_l}{nd_seg_r},"")'
+    else:
+        mcap_f_s = '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows])
+    C(ws, R, SC, mcap_f_s, fmt=DEC)
+    C(ws, R, 3, 'Mkt Cap', font=bf)
+    sotp_seg_mcap_r = R; R += 1
     ws.row_dimensions.group(sotp_seg_start, R - 1, outline_level=1, hidden=True)
 
     # ═══════════════ §6 Market Data ═══════════════
     R += 1
     C(ws, R, 1, 'Market Cap', font=bf12)
     R += 1
-    # Key metrics — highlighted
-    C(ws, R, 3, 'MCap', font=hlfont, fill=hlfill)
+    # Key metrics — highlighted (actual market data)
+    C(ws, R, 3, 'MCap (Actual)', font=hlfont, fill=hlfill)
     C(ws, R, SC, mcap_d, fmt=NUM)
     mcap_data_r = R; R += 1
     if shares:
@@ -2489,21 +2515,10 @@ def build(json_path, output_path=None):
     R += 1
     mref = f'{sc_l}{mcap_data_r}'
 
-    # Bridge: Net Debt + Enterprise Value (collapsed)
-    if net_debt:
-        nd_start = R
-        C(ws, R, 3, '  Net Debt', font=itf)
-        C(ws, R, SC, sc(net_debt), fmt=NUM)
-        nd_r = R; R += 1
-        C(ws, R, 3, '  Enterprise Value', font=itf)
-        C(ws, R, SC, f'={sc_l}{sotp_r}+{sc_l}{nd_r}', fmt=NUM)
-        ev_r = R; R += 1
-        ws.row_dimensions.group(nd_start, ev_r, outline_level=1, hidden=True)
-
-    # Implied valuation
+    # Implied valuation (references SOTP-derived Mkt Cap, not EV)
     if shares:
-        implied_logic = f'=IFERROR({sc_l}{sotp_r}*{div}/{sc_l}{shares_data_r},"")'
-        implied_seg = f'=IFERROR({sc_l}{sotp_seg_r}*{div}/{sc_l}{shares_data_r},"")'
+        implied_logic = f'=IFERROR({sc_l}{sotp_mcap_r}*{div}/{sc_l}{shares_data_r},"")'
+        implied_seg = f'=IFERROR({sc_l}{sotp_seg_mcap_r}*{div}/{sc_l}{shares_data_r},"")'
         C(ws, R, 3, 'Implied Price')
         C(ws, R, SC, implied_logic, fmt=price_fmt)
         imp_row = R; R += 1
