@@ -358,7 +358,7 @@ FY+1 增速路径：
 2. 缺口检测：
    - `opex` (fy-2/fy-1/fy0) 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
    - `da` 缺失？→ 同上
-   - segment rev/cost/gp/gm 缺失？→ 爬年报/WebSearch
+   - segment rev/gp/[op]/[ebitda] 缺失？→ 爬年报/WebSearch
    - actuals 超过 180 天未更新？→ 强制刷新
 3. 分部数据必须全——找不到标 `not-disclosed`
 4. 补全后 Write actuals-resolved.json
@@ -374,7 +374,7 @@ FY+1 增速路径：
 
 ```
 §1 Segments FY{bfyr}A
-| Segment | Rev | Cost | GP | GM | OP? | NI? | Logic Lines |
+| Segment | Rev | GP | [OP] | [EBITDA] | Logic Lines |
 
 §2 Logic Lines — 每条单独一个表
 | R1 MLCC Powder | FY25 | FY26 | FY27 | FY28 | FY29 | FY30 |
@@ -385,7 +385,8 @@ FY+1 增速路径：
 | AI ASP Base | 26 | 30 | ... |
 | ... (所有 tier 的 Share + ASP BBE) |
 | Revenue (验算) | 450M | ... |
-| GM | 40% | 45% | ... |
+| GM / EBITDA margin | 40% | 45% | ... |
+| OPM (op/ebitda depth) | 25% | 26% | ... |
 
 估值方法
 | Logic Line | Method | Multiple | 理由 |
@@ -454,9 +455,21 @@ build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。
 
 驱动分配内部（ann、remaining_vol、remaining_asp）全部用原始单位，不碰 div 和 unit_scale。
 
-### ⛔ GATE 2.5: Q→FY Check
+### ⛔ GATE 2.5: Check Matrix — Agent 验证
 
-Q 列生成后，X 列 Check = `(Annual−ΣQ)/Annual` %。
+Build 完成后，Agent 读 Check 行，按 ±2% 阈值验证模型质量。规则：**只 check 段级有披露的项目**。
+
+| Check | gp depth | op depth | ebitda depth |
+|---|---|---|---|
+| Check Rev (line vs anchor) | ✓ | ✓ | ✓ |
+| Check Seg GP / EBITDA | ✓(GP) | ✓(GP) | ✓(EBITDA) |
+| Check Seg OP | — | ✓ | — |
+| Check Total Rev | ✓ | ✓ | ✓ |
+| Check Total GP | ✓ | ✓ | — |
+| Check Total EBITDA | — | — | ✓ |
+| Check OI | — | ✓ | — |
+
+Agent 看到 gap：(1) 识别 pattern (2) 归因 (3) 调 JSON (4) rebuild (5) 重验。最多 3 轮。
 
 **收敛保证**：
 - **Revenue Δ→0%**：build 内 driver 分配（季节权重或二分搜索 r）数学保证 ΣQ_Rev = Annual_Rev
