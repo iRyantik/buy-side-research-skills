@@ -24,6 +24,38 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
+## Model Architecture (v1.5)
+
+### P&L Depth
+Three depths control segment disclosure and P&L behavior:
+- `gp`: segments disclose GP only. P&L OI/Tax/NI = A (actuals for history). Check: Rev, GP.
+- `op`: segments disclose down to OI. P&L D&A/Tax/NI = A. Check: Rev, GP, OI.
+- `ebitda`: segments disclose EBITDA only (US non-GAAP). All P&L rows = F (formula). GP/OI/NI derived via gaps. Check: Rev, GP, OI, D&A, EBITDA, Tax, NI.
+
+### F/A Rules
+| P&L Row | GP depth | OP depth | EBITDA depth |
+|---|---|---|---|
+| Rev, GP | F/F | F/F | F/F |
+| OI | A/F | F/F | F/F (gap) |
+| D&A, Tax, NI | A/F | A/F | F/F |
+
+F/F = all formula. A/F = actuals history + formula projected.
+
+### Hidden Bridge (EBITDA depth)
+Collapsed area before P&L storing FY-2/FY-1/FY0 actuals + gap formulas. Gaps computed via Excel formulas referencing FY0 actuals — never Python-hardcoded.
+
+### Check System
+Checks compare P&L formula values vs actuals from Hidden Bridge. `=(P&L − actuals) / ABS(actuals)`. Projected years blank. All F/F rows get a Check row.
+
+### SOTP
+- Revenue row added (all methods)
+- No per-line Net Debt — only at TOTAL level
+- EV/Mkt Cap switches by method
+
+### Labels
+- Revenue (not "Total Revenue"), GP (not "Total GP"), GM (not "Blended GM")
+- Column C: bf=$ amounts, nf=ratios, itf=annotations
+
 ## Financial-Data 联动
 
 弹性 KPI 先查 workspace `.references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：

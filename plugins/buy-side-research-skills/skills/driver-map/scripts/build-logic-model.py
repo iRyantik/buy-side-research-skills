@@ -256,23 +256,8 @@ def build(json_path, output_path=None):
     validate_json(cfg)
 
     is_ebitda_depth = cfg['meta'].get('p&l_depth') == 'ebitda'
-
-    # Compute Non-GAAP gaps for EBITDA→GP/OI/NI bridge
-    def compute_gaps():
-        gaps = {'gp': 0, 'oi': 0, 'ni': 0}
-        if not is_ebitda_depth: return gaps
-        for gap_key, upper, lower in [('gp', 'ebitda', 'gp'), ('oi', 'ebitda', 'op'), ('ni', 'op', 'ni')]:
-            diffs = []
-            for fy in ['fy-2', 'fy-1', 'fy0']:
-                hi = cfg['actuals'][fy].get(upper, 0)
-                lo = cfg['actuals'][fy].get(lower, 0)
-                rv = cfg['actuals'][fy].get('rev', 1)
-                if hi and lo and rv: diffs.append((hi - lo) / rv)
-            if diffs: gaps[gap_key] = sum(diffs) / len(diffs)
-        return gaps
-    ebitda_gaps = compute_gaps()
-    gap_gp = ebitda_gaps['gp']; gap_oi = ebitda_gaps['oi']; gap_ni = ebitda_gaps['ni']
-    print('  [EBITDA gaps] gp=%.4f oi=%.4f ni=%.4f' % (gap_gp, gap_oi, gap_ni))
+    is_op_depth = cfg['meta'].get('p&l_depth') == 'op'
+    is_gp_depth = cfg['meta'].get('p&l_depth') == 'gp'
 
     # ═══ Phase 1.1: Reconcile — scale Q→FY for M=4 complete actual FYs ═══
     meta_tmp = cfg['meta']
@@ -860,7 +845,6 @@ def build(json_path, output_path=None):
         srev = fy0['rev']
         if is_ebitda_depth:
             sebitda = fy0.get('ebitda', 0)
-            sgp = sebitda; sgm = sebitda / srev if srev else 0; scost = srev - sebitda
         else:
             sgp = fy0['gp']; sgm = sgp / srev if srev else 0; scost = srev - sgp
         # History layer: fy-2 (FY23) and fy-1 (FY24). Optional — leave empty if segment didn't exist.
@@ -881,7 +865,7 @@ def build(json_path, output_path=None):
             C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
         rev_r = R
         C(ws, R, 2, sn, font=bf)
-        C(ws, R, 3, 'Revenue')
+        C(ws, R, 3, 'Revenue', font=bf)
         R += 1
 
         # Implied YoY (annual) + QoQ (quarterly)
@@ -903,7 +887,7 @@ def build(json_path, output_path=None):
                     C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
                 else:
                     C(ws, R, qi, '', fmt=PCT)
-        C(ws, R, 3, 'Rev YoY')
+        C(ws, R, 3, 'Rev YoY', font=nf)
         R += 1
         # QoQ row (collapsed, Q columns only)
         if has_q:
@@ -916,66 +900,105 @@ def build(json_path, output_path=None):
             C(ws, R, 3, '  Rev QoQ', font=itf)
             R += 1
 
-        # Cost = Rev - GP (gp_r = R + 2 because Cost→GM→GP)
-        _gp_r = R + 2
-        for ci in range(DS, ALL_END + 1):
-            cl = get_column_letter(ci)
-            C(ws, R, ci, f'=IFERROR({cl}{rev_r}-{cl}{_gp_r},"")', fmt=NUM)
-        cost_r = R
-        C(ws, R, 3, 'Cost')
-        R += 1
+        if is_ebitda_depth:
+            # ── EBITDA block ──
+            seg_margin = sebitda / srev if srev else 0
+            for yr_key, col in hist_years:
+                C(ws, R, col, '', fmt=PCT)
+            I(ws, R, FY0, seg_margin, fmt=PCT)
+            for i in range(proj_n):
+                C(ws, R, FY0 + 1 + i, 0, fmt=PCT)
+            C(ws, R, 3, 'EBITDA margin', font=nf)
+            gm_r = R; R += 1
 
-        # GM = GP/Rev (gp_r = R + 1)
-        for ci in range(DS, ALL_END + 1):
-            cl = get_column_letter(ci)
-            CF(ws, R, ci, f'=IFERROR({cl}{R + 1}/{cl}{rev_r},"")', fmt=PCT)
-        gm_r = R
-        C(ws, R, 3, 'EBITDA margin' if is_ebitda_depth else 'GM')
-        R += 1
-
-        # GP
-        for yr_key, col in hist_years:
-            yr = seg.get(yr_key)
-            if yr: A(ws, R, col, sc(yr['gp']), fmt=NUM)
-            else: C(ws, R, col, '', fmt=NUM)
-        A(ws, R, FY0, sc(sgp), fmt=NUM)
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
-            if qd.get('gp'): A(ws, R, Q_START + qi, sc(qd['gp']), fmt=NUM)
-        for qi in range(q_proj_n):
-            C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
-        gp_r = R
-        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
-        R += 1
-        # GP/EBITDA YoY
-        C(ws, R, DS, '', fmt=PCT)
-        _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
-        C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
-        _cf0 = get_column_letter(FY0); _cf1 = get_column_letter(FY0 - 1)
-        C(ws, R, FY0, f'=IFERROR({_cf0}{gp_r}/{_cf1}{gp_r}-1,"")', fmt=PCT)
-        for ci in range(FY0 + 1, LC_ANNUAL + 1):
-            cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-            C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, ('EBITDA' if is_ebitda_depth else 'GP') + ' YoY')
-        R += 1
-        # GP QoQ
-        if has_q:
-            for ci in range(DS, LC_ANNUAL + 1):
-                C(ws, R, ci, '', fmt=PCT)
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-                else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  ' + ('EBITDA' if is_ebitda_depth else 'GP') + ' QoQ', font=itf)
+            for yr_key, col in hist_years:
+                yr = seg.get(yr_key)
+                if yr and yr.get('ebitda'): A(ws, R, col, sc(yr['ebitda']), fmt=NUM)
+                else: C(ws, R, col, '', fmt=NUM)
+            A(ws, R, FY0, sc(sebitda), fmt=NUM)
+            gp_r = R
+            C(ws, R, 3, 'EBITDA', font=bf)
+            R += 1
+            # EBITDA YoY
+            C(ws, R, DS, '', fmt=PCT)
+            _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
+            C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
+            _f0 = get_column_letter(FY0); _f1 = get_column_letter(FY0 - 1)
+            C(ws, R, FY0, f'=IFERROR({_f0}{gp_r}/{_f1}{gp_r}-1,"")', fmt=PCT)
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
+                cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+                C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, 'EBITDA YoY', font=nf)
+            R += 1
+            # EBITDA QoQ
+            if has_q:
+                for ci in range(DS, LC_ANNUAL + 1):
+                    C(ws, R, ci, '', fmt=PCT)
+                for qi in range(Q_START, Q_END + 1):
+                    cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                    if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                    else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+                C(ws, R, 3, '  EBITDA QoQ', font=itf)
+                R += 1
+            cost_r = 0
+        else:
+            # ── GP block ──
+            _gp_r = R + 2
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                C(ws, R, ci, f'=IFERROR({cl}{rev_r}-{cl}{_gp_r},"")', fmt=NUM)
+            cost_r = R
+            C(ws, R, 3, 'Cost', font=bf)
             R += 1
 
+            for ci in range(DS, ALL_END + 1):
+                cl = get_column_letter(ci)
+                CF(ws, R, ci, f'=IFERROR({cl}{R + 1}/{cl}{rev_r},"")', fmt=PCT)
+            gm_r = R
+            C(ws, R, 3, 'GM', font=nf)
+            R += 1
+
+            for yr_key, col in hist_years:
+                yr = seg.get(yr_key)
+                if yr: A(ws, R, col, sc(yr['gp']), fmt=NUM)
+                else: C(ws, R, col, '', fmt=NUM)
+            A(ws, R, FY0, sc(sgp), fmt=NUM)
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
+                if qd.get('gp'): A(ws, R, Q_START + qi, sc(qd['gp']), fmt=NUM)
+            for qi in range(q_proj_n):
+                C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
+            gp_r = R
+            C(ws, R, 3, 'GP', font=bf)
+            R += 1
+            # GP YoY
+            C(ws, R, DS, '', fmt=PCT)
+            _cle = get_column_letter(DS + 1); _cld = get_column_letter(DS)
+            C(ws, R, DS + 1, f'=IFERROR({_cle}{gp_r}/{_cld}{gp_r}-1,"")', fmt=PCT)
+            _f0 = get_column_letter(FY0); _f1 = get_column_letter(FY0 - 1)
+            C(ws, R, FY0, f'=IFERROR({_f0}{gp_r}/{_f1}{gp_r}-1,"")', fmt=PCT)
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
+                cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+                C(ws, R, ci, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+            C(ws, R, 3, 'GP YoY', font=nf)
+            R += 1
+            # GP QoQ
+            if has_q:
+                for ci in range(DS, LC_ANNUAL + 1):
+                    C(ws, R, ci, '', fmt=PCT)
+                for qi in range(Q_START, Q_END + 1):
+                    cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+                    if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+                    else: C(ws, R, qi, f'=IFERROR({cl}{gp_r}/{pl}{gp_r}-1,"")', fmt=PCT)
+                C(ws, R, 3, '  GP QoQ', font=itf)
+                R += 1
         # Opex = GP - OI (OP depth only, OI = R + 1)
         op_r_est = R + 1
         if not is_ebitda_depth and fy0.get('op') is not None:
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{gp_r}-{cl}{op_r_est},"")', fmt=NUM)
-            C(ws, R, 3, 'Opex')
+            C(ws, R, 3, 'Opex', font=bf)
             R += 1
 
         # OP row (if segment discloses operating profit)
@@ -997,7 +1020,7 @@ def build(json_path, output_path=None):
             for qi in range(q_proj_n):
                 C(ws, R, Q_START + q_actual_n + qi, '', fmt=NUM)
             op_r = R
-            C(ws, R, 3, 'OI')
+            C(ws, R, 3, 'OI', font=bf)
             R += 1
             # OI YoY
             for yr_key, col in hist_years:
@@ -1016,7 +1039,7 @@ def build(json_path, output_path=None):
                         C(ws, R, qi, f'=IFERROR({cl}{op_r}/{pl}{op_r}-1,"")', fmt=PCT)
                     else:
                         C(ws, R, qi, '', fmt=PCT)
-            C(ws, R, 3, 'OI YoY')
+            C(ws, R, 3, 'OI YoY', font=nf)
             R += 1
             # OI QoQ (collapsed, Q columns only)
             if has_q:
@@ -1032,7 +1055,7 @@ def build(json_path, output_path=None):
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{op_r}/{cl}{rev_r},"")', fmt=PCT)
-            C(ws, R, 3, 'OPM')
+            C(ws, R, 3, 'OPM', font=nf)
             R += 1
 
 
@@ -1165,12 +1188,12 @@ def build(json_path, output_path=None):
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}-{cl}{R + 2},"")', fmt=NUM)
-            C(ws, R, 3, 'Cost', font=itf)
+            C(ws, R, 3, 'Cost', font=bf)
             cost_s2_r = R; R += 1
         else:
             cost_s2_r = 0
 
-        if ln in one_to_one and not is_ebitda_depth:
+        if ln in one_to_one:
             # 1:1 → S1 formula for history + FY0
             for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]:
                 if col == FY0 or (seg_obj and seg_obj.get(yr_key)):
@@ -1256,7 +1279,7 @@ def build(json_path, output_path=None):
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{gp_r}-{cl}{_oi_r_expected},"")', fmt=NUM)
-            C(ws, R, 3, 'Opex', font=itf)
+            C(ws, R, 3, 'Opex', font=bf)
             R += 1
 
             # OPM = OI/Rev (operating margin assumption)
@@ -1275,7 +1298,7 @@ def build(json_path, output_path=None):
                 ri = 3 + i
                 if ri < len(om_rates):
                     I(ws, R, FY0 + 1 + i, om_rates[ri], fmt=PCT)
-            C(ws, R, 3, 'OPM', font=itf)
+            C(ws, R, 3, 'OPM', font=nf)
             R += 1
             # OI = Rev × OPM (historical: S1 OP×split for actual years)
             for ci in range(DS, ALL_END + 1):
@@ -1300,7 +1323,7 @@ def build(json_path, output_path=None):
             for ci in range(FY0 + 1, LC_ANNUAL + 1):
                 cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
                 C(ws, R, ci, f'=IFERROR({cl}{line_op_r}/{pl}{line_op_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, 'OI YoY')
+            C(ws, R, 3, 'OI YoY', font=nf)
             R += 1
             # OI QoQ
             if has_q:
@@ -1532,11 +1555,13 @@ def build(json_path, output_path=None):
             CF(ws, s1r, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
                 ([str(sc(res_val))] if res_val else [])), fmt=NUM)
-            CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
+            if s1c:
+                CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
             CF(ws, s1g, ci, '=' + '+'.join(
                 [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
                 ([f'{sc(res_val)}*{res_gm}'] if res_val else [])), fmt=NUM)
-            CF(ws, s1gm, ci, f'=IFERROR({cl}{s1g}/{cl}{s1r},"")', fmt=PCT)
+            if s1gm:
+                CF(ws, s1gm, ci, f'=IFERROR({cl}{s1g}/{cl}{s1r},"")', fmt=PCT)
             # OP fill (if segment discloses OP)
             s1_op = si.get('op', 0)
             if s1_op and max_seg_depth >= DEPTH_RANK['op']:
@@ -1551,11 +1576,13 @@ def build(json_path, output_path=None):
                 CF(ws, s1r, ci, '=' + '+'.join(
                     [f'{cl}{L[ln["name"]]["rev_r"]}' for ln in lls] +
                     ([str(sc(res_val))] if res_val else [])), fmt=NUM)
-                CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
+                if s1c:
+                    CF(ws, s1c, ci, f'=IFERROR({cl}{s1r}-{cl}{s1g},"")', fmt=NUM)
                 CF(ws, s1g, ci, '=' + '+'.join(
                     [f'{cl}{L[ln["name"]]["gp_r"]}' for ln in lls] +
                     ([f'{sc(res_val)}*{res_gm}'] if res_val else [])), fmt=NUM)
-                CF(ws, s1gm, ci, f'=IFERROR({cl}{s1g}/{cl}{s1r},"")', fmt=PCT)
+                if s1gm:
+                    CF(ws, s1gm, ci, f'=IFERROR({cl}{s1g}/{cl}{s1r},"")', fmt=PCT)
                 s1_op = si.get('op', 0)
                 if s1_op and max_seg_depth >= DEPTH_RANK['op']:
                     op_terms = [f'{cl}{L[ln["name"]]["op_r"]}' for ln in lls if L[ln["name"]].get('op_r')]
@@ -1687,13 +1714,106 @@ def build(json_path, output_path=None):
     if meta.get('p&l_depth') == 'gp':
         for ci in range(DS, ALL_END + 1):
             C(ws, R, ci, 0, fmt=PCT)
-        C(ws, R, 3, 'Overall Opex/Rev', font=nf)
+        C(ws, R, 2, 'Overall', font=bf)
+        C(ws, R, 3, 'Opex/Rev', font=nf)
         opex_r = R; R += 1
     # Overall (OI-NI)/Rev (all depths)
     for ci in range(DS, ALL_END + 1):
         C(ws, R, ci, 0, fmt=PCT)
-    C(ws, R, 3, 'Overall (OI-NI)/Rev', font=nf)
+    C(ws, R, 2, 'Overall', font=bf)
+    C(ws, R, 3, '(OI-NI)/Rev', font=nf)
     tax_r = R; R += 1
+
+    # ═══ Hidden Bridge: actuals + gap formulas (all depths, collapsed) ═══
+    R += 1
+    _ds_col = get_column_letter(DS)
+    _fy0_col = get_column_letter(FY0)
+    gap_gp_ref = gap_oi_ref = gap_ni_ref = tax_rate_ref = '0'
+    rev_act_r = gp_act_r = op_act_r = ebitda_act_r = ni_act_r = tax_act_r = da_act_r = 0
+    rev_act_cells = gp_act_cells = op_act_cells = ebitda_act_cells = ni_act_cells = tax_act_cells = da_act_cells = {}
+
+    # Rev actuals (all depths)
+    for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+        I(ws, R, ci, sc(cfg['actuals'][fy]['rev']), fmt=NUM)
+    C(ws, R, 3, '  actuals Rev', font=itf)
+    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+    rev_act_r = R
+    rev_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+    R += 1
+
+    # GP actuals (all depths)
+    for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+        I(ws, R, ci, sc(cfg['actuals'][fy].get('gp', 0)), fmt=NUM)
+    C(ws, R, 3, '  actuals GP', font=itf)
+    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+    gp_act_r = R
+    gp_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+    R += 1
+
+    # OI actuals (OP + EBITDA depth)
+    if not is_gp_depth:
+        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+            I(ws, R, ci, sc(cfg['actuals'][fy].get('op', 0)), fmt=NUM)
+        C(ws, R, 3, '  actuals OI', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        op_act_r = R
+        op_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+        R += 1
+
+    # EBITDA depth extras: ebitda, ni, tax actuals + gap formulas
+    if is_ebitda_depth:
+        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+            I(ws, R, ci, sc(cfg['actuals'][fy].get('ebitda', 0)), fmt=NUM)
+        C(ws, R, 3, '  actuals EBITDA', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        ebitda_act_r = R
+        ebitda_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+        R += 1
+
+        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+            I(ws, R, ci, sc(cfg['actuals'][fy].get('ni', 0)), fmt=NUM)
+        C(ws, R, 3, '  actuals NI', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        ni_act_r = R
+        ni_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+        R += 1
+
+        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+            I(ws, R, ci, sc(cfg['actuals'][fy].get('tax', 0)), fmt=NUM)
+        C(ws, R, 3, '  actuals Tax', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        tax_act_r = R
+        tax_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+        R += 1
+
+        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
+            I(ws, R, ci, sc(cfg['actuals'][fy].get('da', 0)), fmt=NUM)
+        C(ws, R, 3, '  actuals D&A', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        da_act_r = R
+        da_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
+        R += 1
+
+        # Gap formulas (Excel, referencing FY0 actuals above)
+        C(ws, R, DS, f'=({ebitda_act_cells["fy0"]}-{gp_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
+        C(ws, R, 3, '  gap_gp (EBITDA→GP)', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        gap_gp_ref = f'${_ds_col}${R}'; R += 1
+
+        C(ws, R, DS, f'=({ebitda_act_cells["fy0"]}-{op_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
+        C(ws, R, 3, '  gap_oi (EBITDA→OI)', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        gap_oi_ref = f'${_ds_col}${R}'; R += 1
+
+        C(ws, R, DS, f'=({op_act_cells["fy0"]}-{ni_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
+        C(ws, R, 3, '  gap_ni (OI→NI)', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        gap_ni_ref = f'${_ds_col}${R}'; R += 1
+
+        C(ws, R, DS, f'={tax_act_cells["fy0"]}/{op_act_cells["fy0"]}', fmt=PCT)
+        C(ws, R, 3, '  tax_rate', font=itf)
+        ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+        tax_rate_ref = f'${_ds_col}${R}'; R += 1
 
     # ═══════════════ §3 P&L ═══════════════
     R += 1
@@ -1716,25 +1836,17 @@ def build(json_path, output_path=None):
     q_residual_term = ''
     q_gp_residual_term = ''
 
-    # Total Revenue (FY23-25 actuals, FY26+ formula)
-    A(ws, R, DS, sc(a['fy-2']['rev']), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1']['rev']), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['rev']), fmt=NUM)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+    # Total Revenue (Σ line rev, all years formula)
+    for ci in range(DS, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
           fmt=NUM)
-    # Q actuals A() (synthesized from segment Q data) + Q proj Σ
     if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('rev', 0) for seg in segments)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
+        for qi in range(Q_START, Q_END + 1):
             cl = get_column_letter(qi)
             C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + q_residual_term,
               fmt=NUM)
-    C(ws, R, 3, 'Total Revenue')
+    C(ws, R, 3, 'Revenue', font=bf)
     trev = R; R += 1
 
     # Check Rev: (model sum - actual total rev) / actual total rev → gap%
@@ -1750,7 +1862,7 @@ def build(json_path, output_path=None):
     C(ws, R, DS + 1, f'=IFERROR({cl_e}{trev}/{cl_d}{trev}-1,"")', fmt=PCT)
     for ci in range(FY0, ALL_END + 1):
         cl = get_column_letter(ci)
-        if ci >= Q_START:
+        if has_q and ci >= Q_START:
             # Q columns: YoY (4Q back) if year-ago exists, else blank
             if ci - 4 >= Q_START:
                 pl = get_column_letter(ci - 4)
@@ -1760,7 +1872,7 @@ def build(json_path, output_path=None):
             # Annual columns: YoY = current/prior year - 1
             pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{trev}/{pl}{trev}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'Rev YoY')
+    C(ws, R, 3, 'Rev YoY', font=nf)
     R += 1
     # QoQ (collapsed, Q columns only)
     if has_q:
@@ -1773,50 +1885,58 @@ def build(json_path, output_path=None):
         C(ws, R, 3, '  Rev QoQ', font=itf)
         R += 1
 
-    # Total GP (FY23-25 actuals, FY26+ formula)
-    A(ws, R, DS, sc(a['fy-2'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0'].get('ebitda' if is_ebitda_depth else 'gp', 0)), fmt=NUM)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+    # ═══ P&L: Cost → GM → GP (GP row pre-computed for forward ref) ═══
+    # GP will be at R+2 (after Cost, GM)
+    _gp_future = R + 2
+
+    # Cost = Rev - GP
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
-        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term,
-          fmt=NUM)
-    if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('gp', 0) for seg in segments)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term,
-              fmt=NUM)
-    C(ws, R, 3, 'Total EBITDA' if is_ebitda_depth else 'Total GP')
-    tgp = R; R += 1
-    # EBITDA depth: add GP row = EBITDA − Rev × gap_gp
+        C(ws, R, ci, f'=IFERROR({cl}{trev}-{cl}{_gp_future},"")', fmt=NUM)
+    C(ws, R, 3, 'Cost', font=bf)
+    R += 1
+
+    # GM = GP / Rev
+    for ci in range(DS, ALL_END + 1):
+        cl = get_column_letter(ci)
+        C(ws, R, ci, f'=IFERROR({cl}{_gp_future}/{cl}{trev},"")', fmt=PCT)
+    C(ws, R, 3, 'GM', font=nf)
+    R += 1
+
+    # GP (all depths, all years formula)
     if is_ebitda_depth:
-        gap_gp = ebitda_gaps['gp']
-        gap_gp_str = f'{gap_gp:.4f}'
-        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{gap_gp_str}', fmt=NUM)
+            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+            C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_gp_ref}', fmt=NUM)
         if has_q:
-            for qi in range(Q_START + q_actual_n, Q_END + 1):
+            for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
-                C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{gap_gp_str}', fmt=NUM)
-        C(ws, R, 3, 'GP')
-        gp_row = R; R += 1
+                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term
+                C(ws, R, qi, f'={line_sum}-{cl}{trev}*{gap_gp_ref}', fmt=NUM)
     else:
-        gp_row = 0  # GP same as tgp for non-EBITDA depth
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term, fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term, fmt=NUM)
+    C(ws, R, 3, 'GP', font=bf)
+    tgp = R; gp_row = R if is_ebitda_depth else 0
+    R += 1
+
     # GP YoY
+    _gp_yoy_ref = gp_row if is_ebitda_depth else tgp
     C(ws, R, DS, '', fmt=PCT)
     _gpe = get_column_letter(DS + 1); _gpd = get_column_letter(DS)
-    C(ws, R, DS + 1, f'=IFERROR({_gpe}{tgp}/{_gpd}{tgp}-1,"")', fmt=PCT)
+    C(ws, R, DS + 1, f'=IFERROR({_gpe}{_gp_yoy_ref}/{_gpd}{_gp_yoy_ref}-1,"")', fmt=PCT)
     _gf0 = get_column_letter(FY0); _gf1 = get_column_letter(FY0 - 1)
-    C(ws, R, FY0, f'=IFERROR({_gf0}{tgp}/{_gf1}{tgp}-1,"")', fmt=PCT)
+    C(ws, R, FY0, f'=IFERROR({_gf0}{_gp_yoy_ref}/{_gf1}{_gp_yoy_ref}-1,"")', fmt=PCT)
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-        C(ws, R, ci, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
-    C(ws, R, 3, ('EBITDA' if is_ebitda_depth else 'GP') + ' YoY')
+        C(ws, R, ci, f'=IFERROR({cl}{_gp_yoy_ref}/{pl}{_gp_yoy_ref}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'GP YoY', font=nf)
     R += 1
     # GP QoQ
     if has_q:
@@ -1825,50 +1945,60 @@ def build(json_path, output_path=None):
         for qi in range(Q_START, Q_END + 1):
             cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
             if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-            else: C(ws, R, qi, f'=IFERROR({cl}{tgp}/{pl}{tgp}-1,"")', fmt=PCT)
-        C(ws, R, 3, '  ' + ('EBITDA' if is_ebitda_depth else 'GP') + ' QoQ', font=itf)
+            else: C(ws, R, qi, f'=IFERROR({cl}{_gp_yoy_ref}/{pl}{_gp_yoy_ref}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  GP QoQ', font=itf)
         R += 1
 
-    # Blended GM = GP / Rev
-    _gp_ref = gp_row if is_ebitda_depth else tgp
-    for ci in range(DS, ALL_END + 1):
-        cl = get_column_letter(ci)
-        C(ws, R, ci, f'=IFERROR({cl}{_gp_ref}/{cl}{trev},"")', fmt=PCT)
-    C(ws, R, 3, 'Blended GM')
-    R += 1
-
-    # ── P&L depth (controls display, SOTP always has full chain) ──
+    _gp_ref = tgp  # GP row for Cost/GM/Opex formulas
     nci_rate = meta.get('nci_rate', 0)
     net_debt = meta.get('net_debt', 0)
 
-    # OI (from actuals or per-line; EBITDA depth: gap from EBITDA)
-    A(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
-    has_line_op = any(L[ln].get('op_r') for ln in LN)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+    # Opex = GP - OI (OI = R + 1)
+    for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
-        if is_ebitda_depth:
-            C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{gap_oi:.4f}', fmt=NUM)
-        elif has_line_op:
-            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
-        else:
+        C(ws, R, ci, f'=IFERROR({cl}{_gp_ref}-{cl}{R + 1},"")', fmt=NUM)
+    C(ws, R, 3, 'Opex', font=bf)
+    R += 1
+
+    # OI (depth-aware: GP=A/F, OP=F/F, EBITDA=F/F)
+    if is_gp_depth:
+        # GP depth: OI not from lines — keep actuals for historical, global OPM for projected
+        A(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
+        A(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
+        A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
-    if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('op', 0) for seg in segments)
-            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('op', 0)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            if is_ebitda_depth:
-                C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{gap_oi:.4f}', fmt=NUM)
-            elif has_line_op:
-                C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
-            else:
+        if has_q:
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'
+                qv = sum(seg.get('quarters', {}).get(qk, {}).get('op', 0) for seg in segments)
+                if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('op', 0)
+                if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
                 C(ws, R, qi, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
-    C(ws, R, 3, 'OI')
+    elif is_op_depth:
+        # OP depth: OI = Σ line OI (all years formula)
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+    else:
+        # EBITDA depth: OI = Σ line EBITDA − Rev × gap_oi (all years formula)
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+            C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term
+                C(ws, R, qi, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
+    C(ws, R, 3, 'OI', font=bf)
     op = R; R += 1
 
     # OI YoY
@@ -1880,7 +2010,7 @@ def build(json_path, output_path=None):
     for ci in range(FY0 + 1, LC_ANNUAL + 1):
         cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{op}/{pl}{op}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'OI YoY')
+    C(ws, R, 3, 'OI YoY', font=nf)
     R += 1
     # OI QoQ
     if has_q:
@@ -1896,27 +2026,27 @@ def build(json_path, output_path=None):
     for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'=IFERROR({cl}{op}/{cl}{trev},"")', fmt=PCT)
-    C(ws, R, 3, 'OPM')
+    C(ws, R, 3, 'OPM', font=nf)
     _opex_end = R; R += 1
 
-    # D&A + EBITDA (always computed)
-    da_fy2 = a['fy-2'].get('da', 0); da_fy1 = a['fy-1'].get('da', 0)
-    da_fy0 = a['fy0'].get('da', 0)
+    # D&A (EBITDA depth: F/F = Rev×gap_oi; GP/OP depth: A/F = OI-ratio)
     _ebitda_start = R
-    A(ws, R, DS, sc(da_fy2), fmt=NUM)
-    A(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
-    A(ws, R, FY0, sc(da_fy0), fmt=NUM)
-    da_actuals_r = R
     if is_ebitda_depth:
-        # D&A = Rev × gap_oi (≈EBITDA − OI gap)
-        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+            C(ws, R, ci, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
         if has_q:
-            for qi in range(Q_START + q_actual_n, Q_END + 1):
+            for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
-                C(ws, R, qi, f'={cl}{trev}*{gap_oi:.4f}', fmt=NUM)
+                C(ws, R, qi, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
+        da_actuals_r = 0
     else:
+        da_fy2 = a['fy-2'].get('da', 0); da_fy1 = a['fy-1'].get('da', 0)
+        da_fy0 = a['fy0'].get('da', 0)
+        A(ws, R, DS, sc(da_fy2), fmt=NUM)
+        A(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
+        A(ws, R, FY0, sc(da_fy0), fmt=NUM)
+        da_actuals_r = R
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{op}*{get_column_letter(FY0)}{da_actuals_r}/{get_column_letter(FY0)}{trev}', fmt=NUM)
@@ -1932,102 +2062,119 @@ def build(json_path, output_path=None):
             for qi in range(Q_START + q_actual_n, Q_END + 1):
                 cl = get_column_letter(qi)
                 C(ws, R, qi, f'=({da_fy0_col}{op}*{da_fy0_col}{da_actuals_r}/{da_fy0_col}{trev})/4', fmt=NUM)
-    C(ws, R, 3, 'D&A')
+    C(ws, R, 3, 'D&A', font=bf)
     da_r = R; R += 1
 
     ebitda_r = R
-    if not is_ebitda_depth:
+    if is_ebitda_depth:
+        # EBITDA depth: = Σ line EBITDA (all years formula)
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+            C(ws, R, ci, f'={line_sum}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + q_gp_residual_term
+                C(ws, R, qi, f'={line_sum}', fmt=NUM)
+    else:
+        # GP/OP depth: EBITDA = OI + D&A
         for ci in range(DS, ALL_END + 1):
             cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{op}+{cl}{da_r}', fmt=NUM)
-        C(ws, R, 3, 'EBITDA')
+    C(ws, R, 3, 'EBITDA', font=bf)
+    R += 1
+    # EBITDA YoY (all depths)
+    C(ws, R, DS, '', fmt=PCT)
+    _ebe = get_column_letter(DS + 1); _ebd = get_column_letter(DS)
+    C(ws, R, DS + 1, f'=IFERROR({_ebe}{ebitda_r}/{_ebd}{ebitda_r}-1,"")', fmt=PCT)
+    _ebf0 = get_column_letter(FY0); _ebf1 = get_column_letter(FY0 - 1)
+    C(ws, R, FY0, f'=IFERROR({_ebf0}{ebitda_r}/{_ebf1}{ebitda_r}-1,"")', fmt=PCT)
+    for ci in range(FY0 + 1, LC_ANNUAL + 1):
+        cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
+        C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+    C(ws, R, 3, 'EBITDA YoY', font=nf)
+    R += 1
+    # EBITDA QoQ
+    if has_q:
+        for ci in range(DS, LC_ANNUAL + 1):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  EBITDA QoQ', font=itf)
         R += 1
-    if not is_ebitda_depth:
-        # EBITDA YoY
-        C(ws, R, DS, '', fmt=PCT)
-        _ebe = get_column_letter(DS + 1); _ebd = get_column_letter(DS)
-        C(ws, R, DS + 1, f'=IFERROR({_ebe}{ebitda_r}/{_ebd}{ebitda_r}-1,"")', fmt=PCT)
-        _ebf0 = get_column_letter(FY0); _ebf1 = get_column_letter(FY0 - 1)
-        C(ws, R, FY0, f'=IFERROR({_ebf0}{ebitda_r}/{_ebf1}{ebitda_r}-1,"")', fmt=PCT)
-        for ci in range(FY0 + 1, LC_ANNUAL + 1):
-            cl = get_column_letter(ci); pl = get_column_letter(ci - 1)
-            C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
-        C(ws, R, 3, 'EBITDA YoY')
-        R += 1
-        # EBITDA QoQ
-        if has_q:
-            for ci in range(DS, LC_ANNUAL + 1):
-                C(ws, R, ci, '', fmt=PCT)
-            for qi in range(Q_START, Q_END + 1):
-                cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
-                if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
-                else: C(ws, R, qi, f'=IFERROR({cl}{ebitda_r}/{pl}{ebitda_r}-1,"")', fmt=PCT)
-            C(ws, R, 3, '  EBITDA QoQ', font=itf)
-            R += 1
 
-        for ci in range(DS, ALL_END + 1):
-            cl = get_column_letter(ci)
-            C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{cl}{trev},"")', fmt=PCT)
-        C(ws, R, 3, 'EBITDA margin')
+    for ci in range(DS, ALL_END + 1):
+        cl = get_column_letter(ci)
+        C(ws, R, ci, f'=IFERROR({cl}{ebitda_r}/{cl}{trev},"")', fmt=PCT)
+    C(ws, R, 3, 'EBITDA margin', font=nf)
     _ebitda_end = R; R += 1
 
-    # NM → NI = Rev × NM, Tax = OI - NI (derived)
+    # Tax + NI (EBITDA depth: F/F gap-derived; GP/OP depth: A/F)
     nm_val = gl.get('tax_rate', 0)  # global NM assumption
     _ni_start = R
-    # Tax (reference only — historical from actuals, FY26+ derived)
-    A(ws, R, DS, sc(a['fy-2'].get('tax', 0)), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1'].get('tax', 0)), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0'].get('tax', 0)), fmt=NUM)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci)
-        if is_ebitda_depth:
-            C(ws, R, ci, f'={cl}{trev}*{gap_ni:.4f}', fmt=NUM)  # Tax = Rev × gap_ni (since NI = OI − Rev×gap_ni, Tax = OI−NI = Rev×gap_ni)
-        else:
+    if is_ebitda_depth:
+        # EBITDA depth: Tax = OI × tax_rate (all years formula)
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{op}*{tax_rate_ref}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'={cl}{op}*{tax_rate_ref}', fmt=NUM)
+    else:
+        # GP/OP depth: Tax = OI − NI (historical actuals, projected formula)
+        A(ws, R, DS, sc(a['fy-2'].get('tax', 0)), fmt=NUM)
+        A(ws, R, DS + 1, sc(a['fy-1'].get('tax', 0)), fmt=NUM)
+        A(ws, R, FY0, sc(a['fy0'].get('tax', 0)), fmt=NUM)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
-    if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('tax', 0) for seg in segments)
-            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('tax', 0)
-            cl = get_column_letter(Q_START + qi)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            elif is_ebitda_depth:
-                C(ws, R, Q_START + qi, f'={cl}{trev}*{gap_ni:.4f}', fmt=NUM)
-            else:
-                C(ws, R, Q_START + qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            C(ws, R, qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
-    C(ws, R, 3, 'Tax')
+        if has_q:
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'
+                qv = sum(seg.get('quarters', {}).get(qk, {}).get('tax', 0) for seg in segments)
+                if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('tax', 0)
+                cl = get_column_letter(Q_START + qi)
+                if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+                else: C(ws, R, Q_START + qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
+    C(ws, R, 3, 'Tax', font=bf)
     tv = R; R += 1
 
-    A(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
-    A(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
-    A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        cl = get_column_letter(ci)
-        if is_ebitda_depth:
-            C(ws, R, ci, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
-        else:
+    if is_ebitda_depth:
+        # EBITDA depth: NI = OI − Rev × gap_ni (all years formula)
+        for ci in range(DS, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
+            C(ws, R, ci, f'={cl}{op}-{cl}{trev}*{gap_ni_ref}', fmt=NUM)
+        if has_q:
+            for qi in range(Q_START, Q_END + 1):
+                cl = get_column_letter(qi)
+                C(ws, R, qi, f'={cl}{op}-{cl}{trev}*{gap_ni_ref}', fmt=NUM)
+    else:
+        # GP/OP depth: NI = Rev × NM (historical actuals, projected formula)
+        A(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
+        A(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
+        A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{trev}*{nm_val}', fmt=NUM)
-    if has_q:
-        for qi in range(q_actual_n):
-            qk = f'q{qi+1}'
-            qv = sum(seg.get('quarters', {}).get(qk, {}).get('ni', 0) for seg in segments)
-            if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('ni', 0)
-            cl = get_column_letter(Q_START + qi)
-            if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-            elif is_ebitda_depth:
-                C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
-            else:
-                C(ws, R, Q_START + qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
-        for qi in range(Q_START + q_actual_n, Q_END + 1):
-            cl = get_column_letter(qi)
-            if is_ebitda_depth:
-                C(ws, R, qi, f'={cl}{op}-{cl}{trev}*{gap_ni:.4f}', fmt=NUM)
-            else:
+        if has_q:
+            for qi in range(q_actual_n):
+                qk = f'q{qi+1}'
+                qv = sum(seg.get('quarters', {}).get(qk, {}).get('ni', 0) for seg in segments)
+                if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('ni', 0)
+                cl = get_column_letter(Q_START + qi)
+                if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
+                else: C(ws, R, Q_START + qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
+            for qi in range(Q_START + q_actual_n, Q_END + 1):
+                cl = get_column_letter(qi)
                 C(ws, R, qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
-    C(ws, R, 3, 'Net Income')
+    C(ws, R, 3, 'Net Income', font=bf)
     ni_r = R; R += 1
 
     if nci_rate > 0:
@@ -2042,14 +2189,14 @@ def build(json_path, output_path=None):
     C(ws, R, DS + 1, f'=IFERROR({cl_e}{ni_r}/{cl_d}{ni_r}-1,"")', fmt=PCT)
     for ci in range(FY0, ALL_END + 1):
         cl = get_column_letter(ci)
-        if ci >= Q_START and ci - 4 >= Q_START:
+        if has_q and ci >= Q_START and ci - 4 >= Q_START:
             pl = get_column_letter(ci - 4)
-        elif ci >= Q_START:
+        elif has_q and ci >= Q_START:
             continue
         else:
             pl = get_column_letter(ci - 1)
         C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{pl}{ni_r}-1,"")', fmt=PCT)
-    C(ws, R, 3, 'NI YoY')
+    C(ws, R, 3, 'NI YoY', font=nf)
     R += 1
     # QoQ (collapsed, Q columns only)
     if has_q:
@@ -2065,47 +2212,41 @@ def build(json_path, output_path=None):
     for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
         C(ws, R, ci, f'=IFERROR({cl}{ni_r}/{cl}{trev},"")', fmt=PCT)
-    C(ws, R, 3, 'NPM')
+    C(ws, R, 3, 'NPM', font=nf)
     R += 1
     _ni_end = R; R += 1
 
     # ═══ P&L Checks (consolidated at bottom, collapsed) ═══
-    # Check Total Rev
-    for ci in range(DS, ALL_END + 1):
-        cl = get_column_letter(ci)
-        term = q_residual_term if ci >= Q_START else residual_term
-        model_sum = '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + term
-        CF(ws, R, ci,
-           f'=IFERROR(({model_sum}-{cl}{trev})/ABS({cl}{trev}),"")', fmt=PCT)
-    C(ws, R, 3, '  Check Total Rev', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-    R += 1
-
-    # Check Total GP
-    for ci in range(DS, ALL_END + 1):
-        cl = get_column_letter(ci)
-        term = q_gp_residual_term if ci >= Q_START else gp_residual_term
-        model_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + term
-        CF(ws, R, ci,
-           f'=IFERROR(({model_sum}-{cl}{tgp})/ABS({cl}{tgp}),"")', fmt=PCT)
-    C(ws, R, 3, '  Check Total EBITDA' if is_ebitda_depth else '  Check Total GP', font=itf)
-    ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-    R += 1
-
-    # Check OI (GP/OP depth only; EBITDA depth doesn't check OI)
-    if not is_ebitda_depth:
+    # Each Check: (P&L formula row - bridge actuals) / ABS(bridge actuals)
+    # Historical years have actuals; projected years blank
+    def _write_check(ref_r, act_cells, label):
         for ci in range(DS, ALL_END + 1):
             cl = get_column_letter(ci)
-            has_line_op = any(L[ln].get('op_r') for ln in LN)
-            if has_line_op:
-                model_op = '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')])
+            if ci == DS:
+                cell = act_cells.get('fy-2', '')
+            elif ci == DS + 1:
+                cell = act_cells.get('fy-1', '')
+            elif ci == FY0:
+                cell = act_cells.get('fy0', '')
             else:
-                model_op = f'{cl}{op}'
-            CF(ws, R, ci,
-               f'=IFERROR(({model_op}-{cl}{op})/ABS({cl}{op}),"")', fmt=PCT)
-        C(ws, R, 3, '  Check OI', font=itf)
+                cell = ''
+            if cell:
+                C(ws, R, ci, f'=IFERROR(({cl}{ref_r}-{cell})/ABS({cell}),"")', fmt=PCT)
+            else:
+                C(ws, R, ci, '', fmt=PCT)
+        C(ws, R, 3, f'  Check {label}', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-        R += 1
+        return R + 1
+
+    R = _write_check(trev, rev_act_cells, 'Rev')
+    R = _write_check(tgp, gp_act_cells, 'GP')
+    if not is_gp_depth:
+        R = _write_check(op, op_act_cells, 'OI')
+    if is_ebitda_depth:
+        R = _write_check(ebitda_r, ebitda_act_cells, 'EBITDA')
+        R = _write_check(da_r, da_act_cells, 'D&A')
+        R = _write_check(tv, tax_act_cells, 'Tax')
+        R = _write_check(ni_r, ni_act_cells, 'NI')
 
 
     # ── Inline Check columns: per-row Annual−QSum at existing rows (S1-S3) ──
@@ -2174,7 +2315,8 @@ def build(json_path, output_path=None):
         s = ll.get('sotp', {})
         if not s and 'sotp_pe' in ll:
             s = {'method': 'pe', 'multiple': ll['sotp_pe']}
-        return s.get('method', 'pe'), s.get('multiple', 10)
+        default_method = 'ev_ebitda' if is_ebitda_depth else 'pe'
+        return s.get('method', default_method), s.get('multiple', 10)
 
     def _sotp_metric_ref(method):
         """Return (metric_row, metric_label) for a given valuation method.
@@ -2182,7 +2324,7 @@ def build(json_path, output_path=None):
         if method == 'pe':
             return ni_r, 'NI'
         if method == 'ev_ebitda':
-            return (tgp if is_ebitda_depth else ebitda_r), 'EBITDA'
+            return ebitda_r, 'EBITDA'
         if method == 'ev_ebit':
             return op, 'EBIT'
         if method in ('ev_sales', 'ps'):
@@ -2193,21 +2335,23 @@ def build(json_path, output_path=None):
         ln = ll['name']
         method, mult = _sotp_info(ll)
         metric_r, metric_label = _sotp_metric_ref(method)
-        gc = f'{sc_l}{L[ln]["gp_r"]}'
-        mc = f'{sc_l}{metric_r}'
-        tc_gp = f'{sc_l}{tgp}'
-        tc_rev = f'{sc_l}{trev}'
+        gc = f'{sc_l}{L[ln]["gp_r"]}'        # line profit (allocation key)
+        lr = f'{sc_l}{L[ln]["rev_r"]}'        # line revenue
+        mc = f'{sc_l}{metric_r}'              # total metric
+        tc_gp = f'{sc_l}{tgp}'                # total profit
+        is_ev = method.startswith('ev_')
+        is_ps = method in ('ev_sales', 'ps')
 
-        # GP (allocation base)
+        # Revenue (all methods)
         C(ws, R, 2, ln, font=bf)
-        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
-        C(ws, R, SC, f'={gc}', fmt=NUM)
+        C(ws, R, 3, 'Revenue', font=bf)
+        C(ws, R, SC, f'={lr}', fmt=NUM)
         R += 1
 
         # Allocated metric
-        if method in ('ev_sales', 'ps'):
-            alloc_ref = f'{sc_l}{L[ln]["rev_r"]}'
-            alloc_formula = f'={alloc_ref}'
+        if is_ps:
+            alloc_formula = f'={lr}'
+            alloc_ref = lr
         else:
             alloc_formula = f'=IFERROR({mc}*{gc}/{tc_gp},"")'
             alloc_ref = f'({mc}*{gc}/{tc_gp})'
@@ -2215,37 +2359,39 @@ def build(json_path, output_path=None):
         C(ws, R, SC, alloc_formula, fmt=NUM)
         R += 1
 
-        # Multiple input
-        if method == 'pe':      label_m = 'EV/EBITDA' if is_ebitda_depth else 'PE'
+        # Multiple
+        if method == 'pe':      label_m = 'PE'
         elif method == 'ps':    label_m = 'P/S'
         else:                   label_m = method.replace('_', '/').upper()
         I(ws, R, SC, mult, fmt='0.0x')
-        C(ws, R, 3, label_m)
+        C(ws, R, 3, label_m, font=nf)
         mult_row = R; R += 1
 
-        # MCap (with EV bridge for EV methods)
-        if method.startswith('ev_'):
-            nd_share = f'({gc}/{tc_gp}*{net_debt})' if net_debt else '0'
-            # Enterprise Value
-            C(ws, R, 3, '  EV', font=itf)
-            C(ws, R, SC, f'={alloc_ref}*{sc_l}{mult_row}', fmt=DEC)
-            ev_line_r = R; R += 1
-            # Net Debt (allocated)
-            C(ws, R, 3, '  Net Debt', font=itf)
-            C(ws, R, SC, f'={nd_share}' if net_debt else '0', fmt=DEC)
-            R += 1
-            # Mkt Cap
-            mcap_f = f'=IFERROR({sc_l}{ev_line_r}-{sc_l}{R - 1},"")'
+        # EV or Mkt Cap (no per-line Net Debt)
+        value_f = f'=IFERROR({alloc_ref}*{sc_l}{mult_row},"")'
+        if is_ev:
+            C(ws, R, 3, 'EV', font=bf)
         else:
-            mcap_f = f'=IFERROR({alloc_ref}*{sc_l}{mult_row},"")'
-        C(ws, R, 3, 'Mkt Cap')
-        C(ws, R, SC, mcap_f, font=bf, fmt=DEC)
+            C(ws, R, 3, 'Mkt Cap', font=bf)
+        C(ws, R, SC, value_f, fmt=DEC)
         mc_rows.append(R); R += 1
 
+    # TOTAL (Σ EV or Σ Mkt Cap)
     C(ws, R, 2, 'TOTAL', font=bf)
     C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in mc_rows]),
       font=bf, fmt=DEC)
     sotp_r = R; R += 1
+    # Net Debt (once, at total level)
+    if net_debt:
+        I(ws, R, SC, net_debt, fmt=DEC)
+        C(ws, R, 3, 'Net Debt', font=bf)
+        nd_total_r = R; R += 1
+        mcap_total_f = f'=IFERROR({sc_l}{sotp_r}-{sc_l}{nd_total_r},"")'
+    else:
+        mcap_total_f = f'={sc_l}{sotp_r}'
+    C(ws, R, 3, 'Mkt Cap', font=bf)
+    C(ws, R, SC, mcap_total_f, font=bf, fmt=DEC)
+    R += 1
 
     # ═══════════════ §5 SOTP - Segments ═══════════════
     R += 1
@@ -2260,24 +2406,28 @@ def build(json_path, output_path=None):
 
     for seg in segments:
         sn = seg['name']; lls = seg['logic_lines']
-        # Weighted multiple across logic lines in segment
-        lmethods = [LL_SOTP[l['name']][1] for l in lls]  # multiples only
+        lmethods = [LL_SOTP[l['name']][1] for l in lls]
         w_mult = sum(lmethods[i] * seg['fy0']['rev'] * lls[i]['split']
                      for i in range(len(lls))) / seg['fy0']['rev'] if seg['fy0']['rev'] > 0 else 10
         mult_s = round(w_mult)
-        method_s = LL_SOTP[lls[0]['name']][0]  # use first line's method for segment
+        method_s = LL_SOTP[lls[0]['name']][0]
         metric_r_s, metric_label_s = _sotp_metric_ref(method_s)
         gc = f'{sc_l}{seg_info[sn]["gp"]}'
+        sr = f'{sc_l}{seg_info[sn]["rev"]}'
         mc = f'{sc_l}{metric_r_s}'
+        is_ev_s = method_s.startswith('ev_')
+        is_ps_s = method_s in ('ev_sales', 'ps')
 
+        # Revenue
         C(ws, R, 2, sn, font=bf)
-        C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
-        C(ws, R, SC, f'={gc}', fmt=NUM)
+        C(ws, R, 3, 'Revenue', font=bf)
+        C(ws, R, SC, f'={sr}', fmt=NUM)
         R += 1
 
-        if method_s in ('ev_sales', 'ps'):
-            alloc_ref_s = f'{sc_l}{seg_info[sn]["rev"]}'
-            alloc_f_s = f'={alloc_ref_s}'
+        # Allocated metric
+        if is_ps_s:
+            alloc_f_s = f'={sr}'
+            alloc_ref_s = sr
         else:
             alloc_f_s = f'=IFERROR({mc}*{gc}/{sc_l}{tgp},"")'
             alloc_ref_s = f'({mc}*{gc}/{sc_l}{tgp})'
@@ -2285,35 +2435,40 @@ def build(json_path, output_path=None):
         C(ws, R, SC, alloc_f_s, fmt=NUM)
         R += 1
 
-        if method_s == 'pe':      label_ms = 'EV/EBITDA' if is_ebitda_depth else 'PE'
+        # Multiple
+        if method_s == 'pe':      label_ms = 'PE'
         elif method_s == 'ps':    label_ms = 'P/S'
         else:                     label_ms = method_s.replace('_', '/').upper()
         I(ws, R, SC, mult_s, fmt='0.0x')
-        C(ws, R, 3, label_ms)
+        C(ws, R, 3, label_ms, font=nf)
         pe_row = R; R += 1
 
-        if method_s.startswith('ev_'):
-            nd_s = f'({gc}/{sc_l}{tgp}*{net_debt})' if net_debt else '0'
-            # Enterprise Value
-            C(ws, R, 3, '  EV', font=itf)
-            C(ws, R, SC, f'={alloc_ref_s}*{sc_l}{pe_row}', fmt=DEC)
-            ev_line_s = R; R += 1
-            # Net Debt (allocated)
-            C(ws, R, 3, '  Net Debt', font=itf)
-            C(ws, R, SC, f'={nd_s}' if net_debt else '0', fmt=DEC)
-            R += 1
-            mcap_f_s = f'=IFERROR({sc_l}{ev_line_s}-{sc_l}{R - 1},"")'
+        # EV or Mkt Cap
+        value_f_s = f'=IFERROR({alloc_ref_s}*{sc_l}{pe_row},"")'
+        if is_ev_s:
+            C(ws, R, 3, 'EV', font=bf)
         else:
-            mcap_f_s = f'=IFERROR({alloc_ref_s}*{sc_l}{pe_row},"")'
-        C(ws, R, 3, 'Mkt Cap')
-        C(ws, R, SC, mcap_f_s, font=bf, fmt=DEC)
+            C(ws, R, 3, 'Mkt Cap', font=bf)
+        C(ws, R, SC, value_f_s, fmt=DEC)
         smc_rows.append(R); R += 1
 
+    # TOTAL
     C(ws, R, 2, 'TOTAL', font=bf)
     C(ws, R, SC, '=' + '+'.join([f'{sc_l}{mr}' for mr in smc_rows]),
       font=bf, fmt=DEC)
     sotp_seg_r = R; R += 1
-    ws.row_dimensions.group(sotp_seg_start, sotp_seg_r, outline_level=1, hidden=True)
+    # Net Debt
+    if net_debt:
+        I(ws, R, SC, net_debt, fmt=DEC)
+        C(ws, R, 3, 'Net Debt', font=bf)
+        nd_seg_r = R; R += 1
+        mcap_seg_f = f'=IFERROR({sc_l}{sotp_seg_r}-{sc_l}{nd_seg_r},"")'
+    else:
+        mcap_seg_f = f'={sc_l}{sotp_seg_r}'
+    C(ws, R, 3, 'Mkt Cap', font=bf)
+    C(ws, R, SC, mcap_seg_f, font=bf, fmt=DEC)
+    R += 1
+    ws.row_dimensions.group(sotp_seg_start, R - 1, outline_level=1, hidden=True)
 
     # ═══════════════ §6 Market Data ═══════════════
     R += 1

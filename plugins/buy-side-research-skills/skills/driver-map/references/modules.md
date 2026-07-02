@@ -53,6 +53,24 @@ Beg Backlog × Burn Rate，跨列链式。Rev = Beg × Burn。End = Beg × (1 + 
  "gm": {...}, "sotp": {...}}
 ```
 
+## ebitda (modules/ebitda.py)
+
+EBITDA margin-based module. Used when `p&l_depth=ebitda` (US non-GAAP segments). Per-line renders:
+
+- **EBITDA margin** (I): analyst assumption, blue font yellow fill
+- **EBITDA** (F): = Revenue x EBITDA margin
+- **EBITDA YoY** (F): = (EBITDA_t / EBITDA_{t-1}) - 1
+
+No Cost, GM, Opex, or OI rows rendered in Section 1 / Section 2 for EBITDA depth lines. These are derived at the P&L level via gap formulas from the Hidden Bridge.
+
+```json
+{"name": "S1", "module": "ebitda",
+ "ebitda_margin": {"fy-2": 0.32, "fy-1": 0.34, "fy0": 0.36, "proj": [0.38, 0.40, ...]},
+ "sotp": {...}}
+```
+
+History values (`fy-2`/`fy-1`/`fy0`) use I() (assumption cells, not A() actuals). The Hidden Bridge stores FY0 actual EBITDA; Check rows compare formula EBITDA vs bridge actuals.
+
 ## Module Contract
 
 ```python

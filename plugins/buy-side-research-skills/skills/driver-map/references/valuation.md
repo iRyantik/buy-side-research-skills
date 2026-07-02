@@ -33,3 +33,19 @@ Agent 从 actuals TTM PE 或行业估值表推测初始值（蓝格，研究员�
 | `ev_sales` | Revenue × EV/Sales − NetDebt_alloc → MCap | net_debt |
 
 向后兼容：旧 `"sotp_pe": 40` 自动 → `{"method": "pe", "multiple": 40}`。
+
+## SOTP Structure
+
+Per-line chain: **Revenue** -> **[Metric]** -> **[Multiple]** -> **EV/Mkt Cap** (method-dependent). The Metric column depends on the valuation method:
+- `pe`: Revenue -> NI_alloc -> PE -> Mkt Cap
+- `ps`: Revenue -> Revenue -> P/S -> Mkt Cap
+- `ev_ebitda`: Revenue -> EBITDA_alloc -> EV/EBITDA -> EV
+- `ev_ebit`: Revenue -> EBIT_alloc -> EV/EBIT -> EV
+- `ev_sales`: Revenue -> Revenue -> EV/Sales -> EV
+
+**Net Debt** is placed at the TOTAL level only — never allocated per-line. SOTP line EV/Mkt Cap values sum to a subtotal, then:
+
+```
+TOTAL = Σ per-line EV (or Mkt Cap)
+Mkt Cap = TOTAL − Net Debt (for EV methods) / TOTAL (for Mkt Cap methods)
+```

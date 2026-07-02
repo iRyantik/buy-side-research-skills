@@ -72,7 +72,7 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | `base_fy` | int | FY0（最新完整财年） |
 | `proj_years` | int | 投影年数，默认 5 |
 | `sotp_offset` | int | SOTP 年距 FY0 的 offset，默认 2 |
-| `p&l_depth` | str | gp / ebitda / ebit / ni。用于 validate_json，**运行时由 max_seg_depth 接管** |
+| `p&l_depth` | str | `gp` / `op` / `ebitda`。控制 P&L 披露深度 + F/A 规则 + Check 行。segment 无对应数据时自动降级 |
 | `net_debt` | int | EV 估值用，默认 0 |
 | `nci_rate` | float | 少数股东占比，默认 0 |
 | `basis` | str | 可选 `gaap`/`non-gaap`/`adjusted`。标记会计口径。不影响渲染 |
@@ -80,11 +80,17 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 
 ### actuals
 
-| 字段 | fy-2/fy-1 | fy0 | 说明 |
-|---|---|---|---|
-| `rev, gp, op, tax, ni` | 必填 | 必填 | 单位 M |
-| `opex` | 不填→gp−op推导 | 必填 | 单位 M |
-| `da` | 默认 0 | ebitda深度时必填 | 单位 M |
+| 字段 | 说明 |
+|---|---|
+| `rev` | 必填（全 depth）。单位 M |
+| `gp` | gp/op depth 必填；**ebitda depth 必填**（GAAP GP，用于 gap_gp 计算） |
+| `op` | 必填（全 depth） |
+| `ni` | 必填（全 depth） |
+| `tax` | 必填（全 depth） |
+| `da` | 必填（全 depth）。EBITDA depth 用于 Check D&A |
+| `ebitda` | **ebitda depth 必填**（non-GAAP，公司 IR 披露） |
+
+Cost、GM、Opex 永远公式推导，**不在 JSON 中存储**。
 
 ### segments
 
@@ -92,8 +98,8 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 |---|---|
 | `name` | 披露原文名 |
 | `name_cn` | 可选。中文翻译，独占一行（B列 italic gray） |
-| `fy-2`, `fy-1` | 可选。segment 历史数据: `{rev, cost, gp, gm, op?, ni?}` |
-| `fy0` | 必填: `{rev, cost, gp, gm}`。`op`/`ni` 选填——披露到什么填什么 |
+| `fy-2`, `fy-1` | 可选。按 depth 填：gp depth→`{rev, gp}`; op depth→`{rev, gp, op}`; ebitda depth→`{rev, ebitda}` |
+| `fy0` | 必填。按 depth 填对应字段。op/ni 选填——披露到什么填什么 |
 | `logic_lines` | 数组。每个 `{name, split}` |
 | `residual` | 选填: `{gm}`。split 之和未满 1.0 时的尾部 |
 | `max_seg_depth` | 自动检测：扫描所有 seg.fy0，有 op→`op`，有 ni→`ni` |
@@ -109,7 +115,7 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | `asp_unit` | vol_asp: ASP 行标签后缀 |
 | `tiers` | vol_asp: 数组，最后一项为 residual (无 share%) |
 | `yoy` | yoy: `{bull, base, bear}` 各 proj_years 值 |
-| `gm` | `{fy-2?, fy-1?, fy0, proj: [proj_years値]}`。非 1:1 线必须填 history GM，否则 GP=0→OP 为负 |
+| `gm` | `{fy-2?, fy-1?, fy0, proj: [proj_years値]}`。非 1:1 线必须填 history。**EBITDA depth 时语义为 EBITDA margin**，label 自动切换 |
 | `sotp` | `{method, multiple}`。旧 `sotp_pe:40` 兼容 |
 | `history` | 可选。`{fy-2/fy-1: {volume?, rev?, <tier>_asp?...}}` |
 | `opex_rate` | 可选数组。per-line opex 覆盖，不填 fallback 到 global。长度 = 3 + proj_years |
@@ -126,8 +132,7 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 
 | 字段 | 说明 |
 |---|---|
-| `opex_rate` | 数组，长度 = 3(实际年) + proj_years |
-| `tax_rate` | 单一值或数组 |
+| `tax_rate` | GP/OP depth: NM (=NI/Rev) 单一值；EBITDA depth: tax_rate (=Tax/OI) 单一值。**EBITDA depth 时 tax_rate 由 Excel 公式 `=Tax/OI` 从 FY0 actuals 自动计算** |
 
 ### 跨市场单位
 
@@ -137,22 +142,35 @@ Agent 产出此 JSON 文件，与 driver-map.md 同目录同日期前缀。`buil
 | jp/kr | 1 | 是 | #,##0.0 |
 | us/hk/eu | — | M mode: #,##0.0 |
 
-### 利润深度——自动检测
+### P&L Depth 架构 (v1.5+)
 
-不再依赖 `p&l_depth` 字段控制 Section 2 per-line 深度。脚本扫描所有 segment 的 `fy0` 字段：
-- 有 `op` → per-line 渲染 Opex→OP→Check OP
-- 有 `ni` → per-line 渲染 Tax→NI→Check NI
+`p&l_depth` 控制三个维度的行为：
 
-Section 3 始终渲染全 P&L 链（GP→OP→EBITDA→EBIT→NI）。
+**F/A 规则**：拆了 line 的 item → F/F（全公式）；没拆 line 的 → A/F（历史 actuals，预测公式）；EBITDA depth 特殊——gap 推导的 item 也 F/F。
 
-### Check 行规则
+| P&L Row | GP depth | OP depth | EBITDA depth |
+|---|---|---|---|
+| Rev | F/F | F/F | F/F |
+| GP | F/F | F/F | F/F (gap公式) |
+| OI | A/F | F/F | F/F (gap公式) |
+| D&A | A/F | A/F | F/F |
+| EBITDA | F/F | F/F | F/F |
+| Tax | A/F | A/F | F/F |
+| NI | A/F | A/F | F/F |
 
-| Check | 触发条件 | 公式 |
-|---|---|---|
-| Check Rev | 模块为 vol_asp/backlog_burn/capacity_util | `=S1 anchor Rev` |
-| Check GP | line 非 1:1（GM 为 I()） | `=seg_gp × split%` |
-| Check OP | seg 有 op | `=seg_op × split%` |
-| Check NI | seg 有 ni | `=seg_ni × split%` |
+**Hidden Bridge (EBITDA depth)**：P&L 上方 collapsed 区，存 FY-2/FY-1/FY0 actuals + gap 公式。Gap = Excel 公式引用 FY0 actuals（不硬编码）。
+
+**Check 行**：所有 F/F 行有对应 Check。Check 存 actuals（I()），公式 `=(P&L行 − actuals) / ABS(actuals)`。预测年空白。
+
+| Check | GP | OP | EBITDA |
+|---|---|---|---|
+| Rev | ✓ | ✓ | ✓ |
+| GP | ✓ | ✓ | ✓ |
+| OI | — | ✓ | ✓ |
+| D&A | — | — | ✓ |
+| EBITDA | — | — | ✓ |
+| Tax | — | — | ✓ |
+| NI | — | — | ✓ |
 
 ## Quarterly Columns (v4.1+)
 

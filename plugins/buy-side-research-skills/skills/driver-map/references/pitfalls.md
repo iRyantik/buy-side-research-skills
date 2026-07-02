@@ -102,3 +102,21 @@
 | Q1 | unit_scale 导致 Rev 偏差 10x | 验算: Vol×ASP/scale ≈ anchor，gap>10% 检查 ASP 单位 |
 | Q2 | ASP 用 万 导致 scale 错 | ASP 和 Rev 同单位，避免 K/M 混淆 |
 | Q3 | Q actual 和 Q proj 混合 FY | Check column 显示 Δ，进入 calibration |
+
+## EBITDA Depth Pitfalls
+
+### 1. gap_gp=0 trap
+
+如果 actuals 缺 `gp` 字段，`gap_gp` 退化为 0，导致 GP = EBITDA，Cost / GM / Opex 无意义。必须在 actuals 补全 GAAP `gp` 字段。EBITDA depth 的 P&L 全部走公式链（F/F），GP 依赖 gap 从 EBITDA 反推——gap 本身需要 actuals 里的 gp 对位锚定。
+
+### 2. FY0-only gap vs multi-year avg
+
+gap 公式用 FY0 单年锚（`gap_gp = FY0_EBITDA - FY0_GP`），时间漂移会在历史年（FY-2、FY-1）Check 行显为 gap。Agent 应审视是否需要调整为多年平均 gap，尤其是当 GP/EBITDA 关系在历史年有明显趋势变化时。
+
+### 3. Check reading
+
+历史年 Check 非零 = 模型假设偏离 actuals。检查对应 line assumptions（GM、Opex rate、D&A assumptions）是否需调整。**注意**：FY0 年 Check 接近 0% 不意味着模型正确——FY0 是 gap 的计算基年，gap 公式天然锚在 FY0，FY0 Check 只能验证公式实现正确性，不能验证 gap 假设的合理性。
+
+### 4. 1:1 lines in EBITDA depth
+
+Section 2 不引用 Section 1（即使用了 I() 假设而非 S1 formula）。确保每条 1:1 line 有正确的 EBITDA margin 历史假设（`fy-2`/`fy-1`/`fy0`），否则 EBITDA 投影失去历史锚定。1:1 lines 在 EBITDA depth 下独立渲染完整 EBITDA margin -> EBITDA -> EBITDA YoY 链，不依赖 Section 1 的聚合结果。

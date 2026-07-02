@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.0.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.1.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 
@@ -165,6 +165,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v7.1.0 | 2026-07 | driver-map v1.5.0：EBITDA depth（segment 直接披露 EBITDA）、P&L F/A 规则系统（拆 line→F/F）、Hidden Bridge actuals 区 + gap 公式化（Excel 自算）、Check 行重设计（Σ line vs actuals）、SOTP 重构（Revenue 行 + Net Debt 总层）、P&L 顺序 Cost→GM→GP、C 列加粗规范 |
 | v7.0.0 | 2026-06 | driver-map v2.0：Q driver 分配重构（Revenue 自动收敛）+ Blend 步骤（实际 Q 利润率更新年度假设）+ 1:1 GM/OM/OpexRev S1 引用 + D&A Q 公式 + Rev YoY F70 fix |
 | v6.7.0 | 2026-06 | driver-map v1.4.0：CF/HL/BOLD helpers + yoy 模块 + audit_style.py + 多深度利润链(gp→op→ni) + 渲染时 style 系统 + NUM=#,##0.0 全局一位小数 + pre_write_gate CHECK 17 |
 | v6.5.14 | 2026-06 | RAG 四层回退链（WebFetch→Playwright→curl→[需查证]）、Evidence Ledger（ticker-scoped 跨 artifact 复用）、句尾锚全 skill 覆盖、16 hook 回归测试、actuals source_map provenance、Fill-Gaps 统一回退 |
