@@ -1713,13 +1713,15 @@ def build(json_path, output_path=None):
                 gap_val = round(cv - seg_sum)
                 if gap_val:
                     A(ws, nc_gp_r, col, sc(gap_val), fmt=NUM)
-            for ll in logic_lines:
-                if 'Non-core' in ll['name']:
-                    qh = ll.get('q_history', {})
-                    for i, qk in enumerate(['q1','q2','q3','q4']):
-                        gv = qh.get(qk, {}).get('gp', 0)
-                        if gv:
-                            A(ws, nc_gp_r, Q_START + i, sc(gv), fmt=NUM)
+            # Q gap = company Q ebitda - Σ seg Q ebitda
+            if has_q and 'quarters' in cfg:
+                for i, qk in enumerate(['q1','q2','q3','q4']):
+                    cq = cfg['quarters'].get(qk, {})
+                    q_company = cq.get('ebitda', 0)
+                    q_seg = sum(s.get('quarters',{}).get(qk,{}).get('ebitda',0) for s in cfg.get('segments',[]))
+                    q_gap = round(q_company - q_seg)
+                    if q_gap:
+                        A(ws, nc_gp_r, Q_START + i, sc(q_gap), fmt=NUM)
 
     # ── Q Columns: post-Fill GM + opm extension ──
     if has_q:
