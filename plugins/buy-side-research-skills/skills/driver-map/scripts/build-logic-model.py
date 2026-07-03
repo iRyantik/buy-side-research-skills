@@ -2326,7 +2326,7 @@ def build(json_path, output_path=None):
     if has_q:
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
         total_q = q_actual_n + q_proj_n
-        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'NM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'ASP', 'Shares', '(OI', 'NI)/', 'gap_', 'tax_rate', 'Line Revenue')
+        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'NM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'ASP', 'Shares', '(OI', 'NI)/', 'gap_', 'tax_rate', 'Line Revenue', 'actuals')
         while qi < total_q:
             rem_in_fy = 4 - cur_q + 1; fyc = min(rem_in_fy, total_q - qi)
             if fyc == 4:
@@ -2341,7 +2341,7 @@ def build(json_path, output_path=None):
                     for row in range(s1_start, _ni_end + 1):
                         cv = str(ws.cell(row=row, column=3).value or '').strip()
                         if not cv or any(kw in cv for kw in SKIP_KW): continue
-                        ws.cell(row=row, column=chk_col).value = f'=({ac}{row}-({q_sum_f.format(r=row)}))/{ac}{row}'
+                        ws.cell(row=row, column=chk_col).value = f'=IFERROR(({ac}{row}-({q_sum_f.format(r=row)}))/ABS({ac}{row}),"")'
                         ws.cell(row=row, column=chk_col).number_format = PCT
                         ws.cell(row=row, column=chk_col).font = nf
                     ws.column_dimensions[cc].width = 12
