@@ -1878,26 +1878,24 @@ def build(json_path, output_path=None):
         tax_rate_ref = f'${_ds_col}${R}'; R += 1
 
 
-    # ── Q actuals bridge (per-quarter, for qq_checks) ──
+    # ── Q actuals bridge (one row per metric, Q1-Q4 in Q columns) ──
     q_act_cells = {}  # {label: {qk: row_number}}
     if has_q:
         Q_M = [('Revenue','rev'), ('GP','gp'), ('OI','op')]
         if is_ebitda_depth: Q_M += [('EBITDA','ebitda'), ('NI','ni'), ('Tax','tax')]
         for lab, mk in Q_M:
-            d = {}
-            for qk in ['q1','q2','q3','q4','q5','q6','q7','q8'][:min(q_actual_n, 4)]:
+            q_act_cells[lab] = {}
+            for qi, qk in enumerate(['q1','q2','q3','q4','q5','q6','q7','q8'][:min(q_actual_n, 4)]):
                 v = cfg.get('quarters', {}).get(qk, {}).get(mk, 0)
                 if not v:
                     v = sum(s.get('quarters',{}).get(qk,{}).get(mk,0) for s in cfg.get('segments',[]))
+                qc = Q_START + qi
                 if v:
-                    I(ws, R, DS, sc(v), fmt=NUM)
-                else:
-                    C(ws, R, DS, '', fmt=NUM)
-                d[qk] = R
-                C(ws, R, 3, f'  actuals {qk.upper()} {lab}', font=itf)
-                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-                R += 1
-            q_act_cells[lab] = d
+                    I(ws, R, qc, sc(v), fmt=NUM)
+                q_act_cells[lab][qk] = R
+            C(ws, R, 3, f'  actuals {lab}', font=itf)
+            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+            R += 1
         R += 1
 
     # ═══════════════ §3 P&L ═══════════════
@@ -2326,27 +2324,27 @@ def build(json_path, output_path=None):
     # Each Check: (P&L formula row - bridge actuals) / ABS(bridge actuals)
     # Historical years have actuals; projected years blank
     def _write_check(ref_r, act_cells, label):
-        # Q-level checks when Q actuals exist, else FY-level
+        # FY checks (D/E/F columns)
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            if ci == DS: cell = act_cells.get('fy-2', '')
+            elif ci == DS + 1: cell = act_cells.get('fy-1', '')
+            elif ci == FY0: cell = act_cells.get('fy0', '')
+            else: cell = ''
+            if cell:
+                C(ws, R, ci, f'=IFERROR(({cl}{ref_r}-{cell})/ABS({cell}),"")', fmt=PCT)
+            else:
+                C(ws, R, ci, '', fmt=PCT)
+        # Q checks (N/Q_START... columns, when Q actuals exist)
         q_ok = has_q and label in q_act_cells and q_actual_n > 0
         if q_ok:
             for qi in range(min(q_actual_n, 4)):
                 qk = f'q{qi+1}'; qc = Q_START + qi; cl = get_column_letter(qc)
                 br = q_act_cells.get(label, {}).get(qk, 0)
                 if br:
-                    C(ws, R, qc, f'=IFERROR(({cl}{ref_r}-$D${br})/ABS($D${br}),"")', fmt=PCT)
+                    C(ws, R, qc, f'=IFERROR(({cl}{ref_r}-{cl}{br})/ABS({cl}{br}),"")', fmt=PCT)
                 else:
                     C(ws, R, qc, '', fmt=PCT)
-        else:
-            for ci in range(DS, ALL_END + 1):
-                cl = get_column_letter(ci)
-                if ci == DS: cell = act_cells.get('fy-2', '')
-                elif ci == DS + 1: cell = act_cells.get('fy-1', '')
-                elif ci == FY0: cell = act_cells.get('fy0', '')
-                else: cell = ''
-                if cell:
-                    C(ws, R, ci, f'=IFERROR(({cl}{ref_r}-{cell})/ABS({cell}),"")', fmt=PCT)
-                else:
-                    C(ws, R, ci, '', fmt=PCT)
         C(ws, R, 3, f'  Check {label}', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         return R + 1
