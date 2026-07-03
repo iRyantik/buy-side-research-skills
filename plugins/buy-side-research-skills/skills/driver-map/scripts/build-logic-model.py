@@ -802,20 +802,6 @@ def build(json_path, output_path=None):
         ALL_END = LC_ANNUAL
         QL = []
 
-    # ── Map: which annual columns should = ΣQ (complete 4Q years) ──
-    ann_to_qs = {}  # {ann_col: [q_col1, q_col2, q_col3, q_col4]}
-    if has_q:
-        _yr, _q, _qi = q_start_yr, q_start_q, 0
-        _total_q = q_actual_n + q_proj_n
-        while _qi < _total_q:
-            _rem = 4 - _q + 1
-            _fyc = min(_rem, _total_q - _qi)
-            if _fyc == 4:
-                _ann = DS + (_yr - bfyr + 2)
-                if _ann <= LC_ANNUAL:
-                    ann_to_qs[_ann] = [Q_START + _qi + j for j in range(4)]
-            _qi += _fyc; _yr += 1; _q = 1
-
     YR = [f'FY{bfyr - 2}A', f'FY{bfyr - 1}A', f'FY{bfyr}A'] + \
          [f'FY{bfyr + i}E' for i in range(1, proj_n + 1)]
 
@@ -1919,15 +1905,11 @@ def build(json_path, output_path=None):
     q_residual_term = ''
     q_gp_residual_term = ''
 
-    # Total Revenue (Σ line rev or =ΣQ for complete 4Q years)
+    # Total Revenue (all years Σ line rev)
     for ci in range(DS, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        if ci in ann_to_qs:
-            qsum = '+'.join(f'{get_column_letter(qc)}{R}' for qc in ann_to_qs[ci])
-            C(ws, R, ci, f'={qsum}', fmt=NUM)
-        else:
-            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
-              fmt=NUM)
+        C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["rev_r"]}' for ln in LN]) + residual_term,
+          fmt=NUM)
     if has_q:
         for qi in range(Q_START, Q_END + 1):
             cl = get_column_letter(qi)
@@ -1976,13 +1958,6 @@ def build(json_path, output_path=None):
     # GP will be at R+2 (after Cost, GM)
     _gp_future = R + 2
 
-    # Helper: if annual column has complete 4Q, return =ΣQ formula
-    def _ann_fmt(col, r):
-        if col in ann_to_qs:
-            qs = '+'.join(f'{get_column_letter(qc)}{r}' for qc in ann_to_qs[col])
-            return f'={qs}'
-        return None
-
     # Cost = Rev - GP
     for ci in range(DS, ALL_END + 1):
         cl = get_column_letter(ci)
@@ -2000,10 +1975,7 @@ def build(json_path, output_path=None):
     # GP (all depths, all years formula)
     for ci in range(DS, LC_ANNUAL + 1):
         cl = get_column_letter(ci)
-        qf = _ann_fmt(ci, R)
-        if qf:
-            C(ws, R, ci, qf, fmt=NUM)
-        elif is_ebitda_depth:
+        if is_ebitda_depth:
             line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
             C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_gp_ref}', fmt=NUM)
         else:
@@ -2076,9 +2048,7 @@ def build(json_path, output_path=None):
         # OP depth: OI = Σ line OI (all years formula, =ΣQ for complete 4Q years)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            qf = _ann_fmt(ci, R)
-            if qf: C(ws, R, ci, qf, fmt=NUM)
-            else: C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
+            C(ws, R, ci, '=' + '+'.join([f'{cl}{L[ln]["op_r"]}' for ln in LN if L[ln].get('op_r')]), fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2087,11 +2057,8 @@ def build(json_path, output_path=None):
         # EBITDA depth: OI = Σ line EBITDA − Rev × gap_oi (=ΣQ for complete 4Q years)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            qf = _ann_fmt(ci, R)
-            if qf: C(ws, R, ci, qf, fmt=NUM)
-            else:
-                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
-                C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
+            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+            C(ws, R, ci, f'={line_sum}-{cl}{trev}*{gap_oi_ref}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2133,9 +2100,7 @@ def build(json_path, output_path=None):
     if is_ebitda_depth:
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            qf = _ann_fmt(ci, R)
-            if qf: C(ws, R, ci, qf, fmt=NUM)
-            else: C(ws, R, ci, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
+            C(ws, R, ci, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
@@ -2171,11 +2136,8 @@ def build(json_path, output_path=None):
         # EBITDA depth: = Σ line EBITDA (all years formula, =ΣQ for complete 4Q)
         for ci in range(DS, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            qf = _ann_fmt(ci, R)
-            if qf: C(ws, R, ci, qf, fmt=NUM)
-            else:
-                line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
-                C(ws, R, ci, f'={line_sum}', fmt=NUM)
+            line_sum = '+'.join([f'{cl}{L[ln]["gp_r"]}' for ln in LN]) + gp_residual_term
+            C(ws, R, ci, f'={line_sum}', fmt=NUM)
         if has_q:
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
