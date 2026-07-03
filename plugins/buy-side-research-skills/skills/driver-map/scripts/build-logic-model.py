@@ -1793,11 +1793,24 @@ def build(json_path, output_path=None):
     gap_gp_ref = gap_oi_ref = gap_ni_ref = tax_rate_ref = '0'
     rev_act_r = gp_act_r = op_act_r = ebitda_act_r = ni_act_r = tax_act_r = da_act_r = 0
     rev_act_cells = gp_act_cells = op_act_cells = ebitda_act_cells = ni_act_cells = tax_act_cells = da_act_cells = {}
+    q_act_cells = {}
+
+    # Helper for Q actuals, reusable
+    def _q_act(mkey, qkey):
+        if not has_q: return
+        q_act_cells[qkey] = {}
+        for _qi, _qk in enumerate(['q1','q2','q3','q4'][:min(q_actual_n,4)]):
+            _v = cfg.get('quarters',{}).get(_qk,{}).get(mkey,0)
+            if not _v:
+                _v = sum(_s.get('quarters',{}).get(_qk,{}).get(mkey,0) for _s in cfg.get('segments',[]))
+            if _v: I(ws, R, Q_START+_qi, sc(_v), fmt=NUM)
+            q_act_cells[qkey][_qk] = R
 
     # Rev actuals (all depths)
     for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
         I(ws, R, ci, sc(cfg['actuals'][fy]['rev']), fmt=NUM)
     C(ws, R, 3, '  actuals Rev', font=itf)
+    _q_act('rev', 'Revenue')
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     rev_act_r = R
     rev_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1807,6 +1820,7 @@ def build(json_path, output_path=None):
     for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
         I(ws, R, ci, sc(cfg['actuals'][fy].get('gp', 0)), fmt=NUM)
     C(ws, R, 3, '  actuals GP', font=itf)
+    _q_act('gp', 'GP')
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
     gp_act_r = R
     gp_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1817,6 +1831,7 @@ def build(json_path, output_path=None):
         for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
             I(ws, R, ci, sc(cfg['actuals'][fy].get('op', 0)), fmt=NUM)
         C(ws, R, 3, '  actuals OI', font=itf)
+        _q_act('op', 'OI')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         op_act_r = R
         op_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1827,6 +1842,7 @@ def build(json_path, output_path=None):
         for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
             I(ws, R, ci, sc(cfg['actuals'][fy].get('ebitda', 0)), fmt=NUM)
         C(ws, R, 3, '  actuals EBITDA', font=itf)
+        _q_act('ebitda', 'EBITDA')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         ebitda_act_r = R
         ebitda_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1835,6 +1851,7 @@ def build(json_path, output_path=None):
         for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
             I(ws, R, ci, sc(cfg['actuals'][fy].get('ni', 0)), fmt=NUM)
         C(ws, R, 3, '  actuals NI', font=itf)
+        _q_act('ni', 'NI')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         ni_act_r = R
         ni_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1843,6 +1860,7 @@ def build(json_path, output_path=None):
         for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
             I(ws, R, ci, sc(cfg['actuals'][fy].get('tax', 0)), fmt=NUM)
         C(ws, R, 3, '  actuals Tax', font=itf)
+        _q_act('tax', 'Tax')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         tax_act_r = R
         tax_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1851,6 +1869,7 @@ def build(json_path, output_path=None):
         for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
             I(ws, R, ci, sc(cfg['actuals'][fy].get('da', 0)), fmt=NUM)
         C(ws, R, 3, '  actuals D&A', font=itf)
+        _q_act('da', 'D&A')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         da_act_r = R
         da_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
@@ -1878,25 +1897,6 @@ def build(json_path, output_path=None):
         tax_rate_ref = f'${_ds_col}${R}'; R += 1
 
 
-    # ── Q actuals bridge (one row per metric, Q1-Q4 in Q columns) ──
-    q_act_cells = {}  # {label: {qk: row_number}}
-    if has_q:
-        Q_M = [('Revenue','rev'), ('GP','gp'), ('OI','op')]
-        if is_ebitda_depth: Q_M += [('EBITDA','ebitda'), ('NI','ni'), ('Tax','tax')]
-        for lab, mk in Q_M:
-            q_act_cells[lab] = {}
-            for qi, qk in enumerate(['q1','q2','q3','q4','q5','q6','q7','q8'][:min(q_actual_n, 4)]):
-                v = cfg.get('quarters', {}).get(qk, {}).get(mk, 0)
-                if not v:
-                    v = sum(s.get('quarters',{}).get(qk,{}).get(mk,0) for s in cfg.get('segments',[]))
-                qc = Q_START + qi
-                if v:
-                    I(ws, R, qc, sc(v), fmt=NUM)
-                q_act_cells[lab][qk] = R
-            C(ws, R, 3, f'  actuals {lab}', font=itf)
-            ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
-            R += 1
-        R += 1
 
     # ═══════════════ §3 P&L ═══════════════
     R += 1
