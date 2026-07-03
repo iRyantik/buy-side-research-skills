@@ -259,10 +259,142 @@ def validate_json(cfg):
 # Main build function
 # ═══════════════════════════════════════════════════════════════
 
+def _adapt_new_to_old(cfg):
+    """Convert research-model.json new structure to backward-compat old keys."""
+    if 'assumptions' not in cfg:
+        return cfg  # already old format
+    a = cfg['actuals']
+    asm = cfg['assumptions']
+    fy_map = {'FY2023': 'fy-2', 'FY2024': 'fy-1', 'FY2025': 'fy0'}
+
+    # actuals
+    n_act = {}
+    for new_fy, old_fy in fy_map.items():
+        ann = a.get(new_fy, {}).get('annual', {})
+        gaap = ann.get('gaap', {}).get('is', {})
+        non_gaap = ann.get('non_gaap', {}).get('is', {})
+        n_act[old_fy] = {
+            'rev': gaap.get('rev', 0),
+            'gp': gaap.get('gp', 0),
+            'op': gaap.get('oi', 0),
+            'ni': gaap.get('ni', 0),
+            'tax': gaap.get('tax', 0),
+            'da': gaap.get('da', 0),
+            'ebitda': non_gaap.get('ebitda', 0),
+            'details': ann.get('non_gaap', {}).get('adj', {}),
+        }
+    cfg['actuals'] = n_act
+
+    # segments (from most recent FY gaap + non_gaap)
+    def _match_seg(name, candidates):
+        """Match segment name (handle 'Segment' suffix difference)."""
+        for c in candidates:
+            if c.startswith(name) or name.startswith(c):
+                return c
+        return None
+
+    segs = []
+    for s in a.get('FY2025', {}).get('annual', {}).get('gaap', {}).get('segments', []):
+        s_name = s['name']
+        # Find matching lines from assumptions
+        matched_lines = [ll for ll in asm.get('lines', []) if ll.get('segment') and (ll['segment'] in s_name or s_name in ll['segment'])]
+        if not matched_lines:
+            continue
+        seg_entry = {
+            'name': s_name,
+            'fy0': {'rev': s.get('rev', 0)},
+            'logic_lines': [{'name': ll['name'], 'split': 1.0 if ll.get('one_to_one') else 0} for ll in matched_lines],
+            'quarters': {},
+        }
+        # Non-GAAP ebitda + historical years
+        for ns in a.get('FY2025', {}).get('annual', {}).get('non_gaap', {}).get('segments', []):
+            if ns['name'] == s_name or s_name in ns['name']:
+                seg_entry['fy0']['ebitda'] = ns.get('ebitda', 0)
+        for new_fy, old_fy in fy_map.items():
+            sg = {}
+            for sg_g in a.get(new_fy, {}).get('annual', {}).get('gaap', {}).get('segments', []):
+                if sg_g['name'] == s_name or s_name in sg_g['name']:
+                    sg['rev'] = sg_g.get('rev', 0)
+            for sg_n in a.get(new_fy, {}).get('annual', {}).get('non_gaap', {}).get('segments', []):
+                if sg_n['name'] == s_name or s_name in sg_n['name']:
+                    sg['ebitda'] = sg_n.get('ebitda', 0)
+            if sg:
+                seg_entry[old_fy] = sg
+        # Quarters
+        for qk in ['Q1','Q2','Q3','Q4']:
+            seg_entry['quarters'][qk.lower()] = {'rev': 0, 'ebitda': 0}
+            q_non = a.get('FY2025', {}).get(qk, {}).get('non_gaap', {}).get('segments', [])
+            for sq in q_non:
+                if sq['name'] == s_name or s_name in sq['name']:
+                    seg_entry['quarters'][qk.lower()] = {'rev': a.get('FY2025',{}).get(qk,{}).get('gaap',{}).get('is',{}).get('rev',0), 'ebitda': sq.get('ebitda', 0)}
+        if seg_entry['logic_lines']:
+            segs.append(seg_entry)
+    # Remaining logic lines (no segment) -> add as Non-core line at top level
+    remaining = [ll for ll in asm.get('lines', []) if not any(ll['name'] in [l['name'] for s2 in segs for l in s2['logic_lines']] for _ in [1])]
+    cfg['segments'] = segs
+
+    # logic_lines from assumptions.lines
+    cfg['logic_lines'] = []
+    for ll in asm.get('lines', []):
+        entry = {'name': ll['name'], 'module': ll['module']}
+        # gm
+        gm = ll.get('gm', {})
+        if gm:
+            entry['gm'] = {
+                'fy-2': gm.get('FY2023', None),
+                'fy-1': gm.get('FY2024', None),
+                'fy0': gm.get('FY2025', 0),
+                'proj': [gm.get(k, 0) for k in sorted([k for k in gm.keys() if 'E' in k])],
+            }
+        # yoy
+        yoy = ll.get('yoy', {})
+        if yoy:
+            entry['yoy'] = {}
+            for scenario in ['bull','base','bear']:
+                if yoy.get(scenario):
+                    items = sorted([(k,v) for k,v in yoy[scenario].items()])
+                    entry['yoy'][scenario] = [v for _,v in items]
+        # q_history
+        qd = ll.get('q_data', {})
+        if qd:
+            entry['q_history'] = {}
+            for fy, qs in qd.items():
+                for qk, qv in qs.items():
+                    if qv.get('rev') is not None:
+                        entry['q_history'][qk.lower()] = {'rev': qv['rev']}
+            if not entry['q_history']:
+                del entry['q_history']
+        # sotp
+        if ll.get('sotp'):
+            entry['sotp'] = ll['sotp']
+        cfg['logic_lines'].append(entry)
+
+    # quarters (company-level from actuals)
+    cfg['quarters'] = {}
+    for qk in ['Q1','Q2','Q3','Q4']:
+        q_gaap = a.get('FY2025', {}).get(qk, {}).get('gaap', {}).get('is', {})
+        q_non = a.get('FY2025', {}).get(qk, {}).get('non_gaap', {}).get('is', {})
+        if q_gaap.get('rev') is not None:
+            cfg['quarters'][qk.lower()] = {
+                'rev': q_gaap.get('rev', 0),
+                'gp': q_gaap.get('gp', 0),
+                'op': q_gaap.get('oi', 0),
+                'ni': q_gaap.get('ni', 0),
+                'tax': q_gaap.get('tax', 0),
+                'ebitda': q_non.get('ebitda', 0),
+            }
+
+    # global
+    cfg['global'] = {'tax_rate': asm.get('global', {}).get('tax_rate', {}).get('FY2025', 0.22)}
+
+    return cfg
+
+
 def build(json_path, output_path=None):
     with codecs.open(json_path, 'r', 'utf-8') as f:
         cfg = json.load(f)
 
+    cfg = _adapt_new_to_old(cfg)
     validate_json(cfg)
 
     is_ebitda_depth = cfg['meta'].get('p&l_depth') == 'ebitda'
