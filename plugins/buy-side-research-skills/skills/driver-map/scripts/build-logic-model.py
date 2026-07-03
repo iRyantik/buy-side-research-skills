@@ -1847,6 +1847,28 @@ def build(json_path, output_path=None):
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         tax_rate_ref = f'${_ds_col}${R}'; R += 1
 
+    # ── Q actuals bridge (per-quarter, for qq_checks) ──
+    q_act_cells = {}  # {label: {qk: row_number}}
+    if has_q:
+        Q_M = [('Revenue','rev'), ('GP','gp'), ('OI','op')]
+        if is_ebitda_depth: Q_M += [('EBITDA','ebitda'), ('NI','ni'), ('Tax','tax')]
+        for lab, mk in Q_M:
+            d = {}
+            for qk in ['q1','q2','q3','q4','q5','q6','q7','q8'][:min(q_actual_n, 4)]:
+                v = cfg.get('quarters', {}).get(qk, {}).get(mk, 0)
+                if not v:
+                    v = sum(s.get('quarters',{}).get(qk,{}).get(mk,0) for s in cfg.get('segments',[]))
+                if v:
+                    I(ws, R, DS, sc(v), fmt=NUM)
+                else:
+                    C(ws, R, DS, '', fmt=NUM)
+                d[qk] = R
+                C(ws, R, 3, f'  actuals {qk.upper()} {lab}', font=itf)
+                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+                R += 1
+            q_act_cells[lab] = d
+        R += 1
+
     # ═══════════════ §3 P&L ═══════════════
     R += 1
     C(ws, R, 1, 'P&L', font=bf12)
@@ -2756,6 +2778,31 @@ def build(json_path, output_path=None):
                     elif v is not None:
                         q_check_data[fy_label][cv] = str(v)[:20]
 
+        # qq_checks: COM read P&L Q cells vs bridge Q actuals
+        qq_check_data = {}
+        if q_act_cells and q_actual_n > 0:
+            xl.Calculation = -4105
+            xl.CalculateFull()
+            time.sleep(2)
+            MAP = {'Revenue': trev, 'GP': tgp, 'OI': op, 'EBITDA': ebitda_r, 'NI': ni_r, 'Tax': tv}
+            for qi in range(min(q_actual_n, 4)):
+                qk = f'q{qi+1}'; qc = Q_START + qi
+                qq_check_data[qk] = {}
+                for lab, pnl_r in MAP.items():
+                    if not pnl_r: continue
+                    try:
+                        cl = get_column_letter(qc)
+                        v = ws2.Range(f'{cl}{pnl_r}').Value
+                    except:
+                        v = ws2.Cells(pnl_r, qc).Value
+                    ar = q_act_cells.get(lab, {}).get(qk, 0)
+                    try:
+                        av = ws2.Range(f'{get_column_letter(DS)}{ar}').Value if ar else None
+                    except:
+                        av = ws2.Cells(ar, DS).Value if ar else None
+                    if isinstance(v, float) and isinstance(av, float) and abs(av) > 0.01:
+                        qq_check_data[qk][lab] = f'{(v - av) / abs(av):.2%}'
+
         wb2.Close(False)
         xl.Quit()
 
@@ -2769,6 +2816,8 @@ def build(json_path, output_path=None):
         }
         if has_q:
             result['q_checks'] = q_check_data
+        if qq_check_data:
+            result['qq_checks'] = qq_check_data
         with open(cj_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
         print(f'  Checks: {cj_path}')
