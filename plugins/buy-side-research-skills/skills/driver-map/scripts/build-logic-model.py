@@ -1693,6 +1693,25 @@ def build(json_path, output_path=None):
                 if isinstance(old_gp, str) and old_gp.startswith('='):
                     CF(ws, nc_gp_r, col, old_gp + f'+{sc(gp_residual_per_q)}', fmt=NUM)
 
+# EBITDA depth: Non-core Corporate absorbs company ebitda gap
+    if is_ebitda_depth and 'Non-core' in L:
+        nc = L['Non-core']
+        nc_gp_r = nc.get('gp_r', 0)
+        if nc_gp_r:
+            for fy_idx, fy_key, col in [(0,'fy-2',DS),(1,'fy-1',DS+1),(2,'fy0',FY0)]:
+                seg_sum = sum(s.get(fy_key,{}).get('ebitda',0) for s in cfg.get('segments',[]))
+                cv = cfg['actuals'][fy_key]['ebitda']
+                gap_val = round(cv - seg_sum)
+                if gap_val:
+                    A(ws, nc_gp_r, col, sc(gap_val), fmt=NUM)
+            for ll in logic_lines:
+                if 'Non-core' in ll['name']:
+                    qh = ll.get('q_history', {})
+                    for i, qk in enumerate(['q1','q2','q3','q4']):
+                        gv = qh.get(qk, {}).get('gp', 0)
+                        if gv:
+                            A(ws, nc_gp_r, Q_START + i, sc(gv), fmt=NUM)
+
     # ── Q Columns: post-Fill GM + opm extension ──
     if has_q:
         for ll in logic_lines:
@@ -1846,6 +1865,28 @@ def build(json_path, output_path=None):
         C(ws, R, 3, '  tax_rate', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         tax_rate_ref = f'${_ds_col}${R}'; R += 1
+
+
+    # Q actuals bridge (per-Q for qq_checks)
+    q_act_cells = {}
+    if has_q:
+        Q_M = [("Rev","rev"), ("GP","gp"), ("OI","op")]
+        if is_ebitda_depth:
+            Q_M += [("EBITDA","ebitda"), ("NI","ni"), ("Tax","tax")]
+        for lab, mk in Q_M:
+            d = {}
+            for qk in ["q1","q2","q3","q4","q5","q6","q7","q8"][:min(q_actual_n, 4)]:
+                v = cfg.get("quarters", {}).get(qk, {}).get(mk, 0)
+                if not v:
+                    v = sum(s.get("quarters",{}).get(qk,{}).get(mk,0) for s in cfg.get("segments",[]))
+                I(ws, R, DS, sc(v or 0), fmt=NUM) if v else C(ws, R, DS, "", fmt=NUM)
+                d[qk] = R
+                C(ws, R, 3, f"  actuals {qk.upper()} {lab}", font=itf)
+                ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
+                R += 1
+            q_act_cells[lab] = d
+        R += 1
+
 
     # ── Q actuals bridge (per-quarter, for qq_checks) ──
     q_act_cells = {}  # {label: {qk: row_number}}
@@ -2800,6 +2841,23 @@ def build(json_path, output_path=None):
                         av = ws2.Range(f'{get_column_letter(DS)}{ar}').Value if ar else None
                     except:
                         av = ws2.Cells(ar, DS).Value if ar else None
+                    if isinstance(v, float) and isinstance(av, float) and abs(av) > 0.01:
+                        qq_check_data[qk][lab] = f'{(v - av) / abs(av):.2%}'
+
+        # qq_checks: COM read P&L Q vs bridge actuals
+        qq_check_data = {}
+        if q_act_cells and q_actual_n > 0:
+            xl.CalculateFull()
+            time.sleep(2)
+            MAP = {'Revenue':trev, 'GP':tgp, 'OI':op, 'EBITDA':ebitda_r, 'NI':ni_r, 'Tax':tv}
+            for qi in range(min(q_actual_n, 4)):
+                qk = f'q{qi+1}'; qc = Q_START + qi
+                qq_check_data[qk] = {}
+                for lab, pnl_r in MAP.items():
+                    if not pnl_r: continue
+                    v = ws2.Cells(pnl_r, qc).Value
+                    ar = q_act_cells.get(lab, {}).get(qk, 0)
+                    av = ws2.Cells(ar, DS).Value if ar else None
                     if isinstance(v, float) and isinstance(av, float) and abs(av) > 0.01:
                         qq_check_data[qk][lab] = f'{(v - av) / abs(av):.2%}'
 
