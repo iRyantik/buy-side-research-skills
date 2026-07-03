@@ -307,26 +307,34 @@ def _adapt_new_to_old(cfg):
             'quarters': {},
         }
         # Non-GAAP ebitda + historical years
-        for ns in a.get('FY2025', {}).get('annual', {}).get('non_gaap', {}).get('segments', []):
-            if ns['name'] == s_name or s_name in ns['name']:
-                seg_entry['fy0']['ebitda'] = ns.get('ebitda', 0)
+        s_short = s_name.replace(' Segment', '').replace(' segment', '')
+        all_segs_gaap = a.get('FY2025', {}).get('annual', {}).get('gaap', {}).get('segments', [])
+        all_segs_non = a.get('FY2025', {}).get('annual', {}).get('non_gaap', {}).get('segments', [])
+        def _find(v, lst):
+            for x in lst:
+                xn = x.get('name','')
+                if xn == v or xn == v.replace(' Segment','') or v == xn.replace(' Segment','') or xn in v or v in xn:
+                    return x
+            return None
+        ns = _find(s_name, all_segs_non)
+        if ns:
+            seg_entry['fy0']['ebitda'] = ns.get('ebitda', 0)
         for new_fy, old_fy in fy_map.items():
             sg = {}
-            for sg_g in a.get(new_fy, {}).get('annual', {}).get('gaap', {}).get('segments', []):
-                if sg_g['name'] == s_name or s_name in sg_g['name']:
-                    sg['rev'] = sg_g.get('rev', 0)
-            for sg_n in a.get(new_fy, {}).get('annual', {}).get('non_gaap', {}).get('segments', []):
-                if sg_n['name'] == s_name or s_name in sg_n['name']:
-                    sg['ebitda'] = sg_n.get('ebitda', 0)
+            for lst, key in [(a.get(new_fy,{}).get('annual',{}).get('gaap',{}).get('segments',[]), 'rev'),
+                             (a.get(new_fy,{}).get('annual',{}).get('non_gaap',{}).get('segments',[]), 'ebitda')]:
+                m = _find(s_name, lst)
+                if m: sg[key] = m.get(key, 0)
             if sg:
                 seg_entry[old_fy] = sg
-        # Quarters
+        # Quarters (FY2025)
         for qk in ['Q1','Q2','Q3','Q4']:
-            seg_entry['quarters'][qk.lower()] = {'rev': 0, 'ebitda': 0}
-            q_non = a.get('FY2025', {}).get(qk, {}).get('non_gaap', {}).get('segments', [])
-            for sq in q_non:
-                if sq['name'] == s_name or s_name in sq['name']:
-                    seg_entry['quarters'][qk.lower()] = {'rev': a.get('FY2025',{}).get(qk,{}).get('gaap',{}).get('is',{}).get('rev',0), 'ebitda': sq.get('ebitda', 0)}
+            q_rev = 0; q_ebitda = 0
+            for sq in a.get('FY2025',{}).get(qk,{}).get('non_gaap',{}).get('segments',[]):
+                if _find(s_name, [sq]):
+                    q_ebitda = sq.get('ebitda', 0)
+                    q_rev = a.get('FY2025',{}).get(qk,{}).get('gaap',{}).get('is',{}).get('rev',0)
+            seg_entry['quarters'][qk.lower()] = {'rev': q_rev, 'ebitda': q_ebitda}
         if seg_entry['logic_lines']:
             segs.append(seg_entry)
     # Remaining logic lines (no segment) -> add as Non-core line at top level
@@ -1823,14 +1831,16 @@ def build(json_path, output_path=None):
         if nc_rev_r:
             for ci in range(DS, ALL_END + 1):
                 A(ws, nc_rev_r, ci, 0, fmt=NUM)
-        # Write EBITDA = company gap
+        # Write EBITDA = company gap (all years, including 0)
         if nc_gp_r:
             for fy_idx, fy_key, col in [(0,'fy-2',DS),(1,'fy-1',DS+1),(2,'fy0',FY0)]:
                 seg_sum = sum(s.get(fy_key,{}).get('ebitda',0) for s in cfg.get('segments',[]))
                 cv = cfg['actuals'][fy_key]['ebitda']
                 gap_val = round(cv - seg_sum)
-                if gap_val:
-                    A(ws, nc_gp_r, col, sc(gap_val), fmt=NUM)
+                A(ws, nc_gp_r, col, sc(gap_val), fmt=NUM)
+            # Projected FY columns: gap = 0
+            for ci in range(FY0 + 1, LC_ANNUAL + 1):
+                A(ws, nc_gp_r, ci, 0, fmt=NUM)
             # Q gap = company Q ebitda - Σ seg Q ebitda
             if has_q and 'quarters' in cfg:
                 for i, qk in enumerate(['q1','q2','q3','q4']):
@@ -1838,8 +1848,7 @@ def build(json_path, output_path=None):
                     q_company = cq.get('ebitda', 0)
                     q_seg = sum(s.get('quarters',{}).get(qk,{}).get('ebitda',0) for s in cfg.get('segments',[]))
                     q_gap = round(q_company - q_seg)
-                    if q_gap:
-                        A(ws, nc_gp_r, Q_START + i, sc(q_gap), fmt=NUM)
+                    A(ws, nc_gp_r, Q_START + i, sc(q_gap), fmt=NUM)
 
     # ── Q Columns: post-Fill GM + opm extension ──
     if has_q:
