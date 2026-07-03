@@ -1693,10 +1693,19 @@ def build(json_path, output_path=None):
                 if isinstance(old_gp, str) and old_gp.startswith('='):
                     CF(ws, nc_gp_r, col, old_gp + f'+{sc(gp_residual_per_q)}', fmt=NUM)
 
-# EBITDA depth: Non-core Corporate absorbs company ebitda gap
-    if is_ebitda_depth and 'Non-core' in L:
-        nc = L['Non-core']
+    # EBITDA depth: Non-core Corporate - zero revenue + absorb company ebitda gap
+    nc = None
+    if is_ebitda_depth:
+        _nc_key = next((k for k in L.keys() if 'Non-core' in k), None)
+        nc = L[_nc_key] if _nc_key else None
+    if nc is not None:
+        nc_rev_r = nc.get('rev_r', 0)
         nc_gp_r = nc.get('gp_r', 0)
+        # Zero out Revenue (Non-core has no revenue)
+        if nc_rev_r:
+            for ci in range(DS, ALL_END + 1):
+                A(ws, nc_rev_r, ci, 0, fmt=NUM)
+        # Write EBITDA = company gap
         if nc_gp_r:
             for fy_idx, fy_key, col in [(0,'fy-2',DS),(1,'fy-1',DS+1),(2,'fy0',FY0)]:
                 seg_sum = sum(s.get(fy_key,{}).get('ebitda',0) for s in cfg.get('segments',[]))
