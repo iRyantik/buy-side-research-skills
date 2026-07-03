@@ -2326,7 +2326,7 @@ def build(json_path, output_path=None):
     if has_q:
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
         total_q = q_actual_n + q_proj_n
-        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'NM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'ASP', 'Shares')
+        SKIP_KW = ('YoY', 'QoQ', 'GM', 'OPM', 'NPM', 'NM', 'margin', '/ Rev', '%', 'Check', 'Implied', 'Bull', 'Base', 'Bear', 'ASP', 'Shares', '(OI', 'NI)/', 'gap_')
         while qi < total_q:
             rem_in_fy = 4 - cur_q + 1; fyc = min(rem_in_fy, total_q - qi)
             if fyc == 4:
