@@ -509,11 +509,41 @@ OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
 - Revenue 不动——只 blend 利润率
 - 效果：GP/OP Δ 收窄 65-80%，但不强制为 0（残余差 = 季节性信息）
 
+### Model File Conventions
+
+所有 driver-map 产出遵循统一的公司级路径：
+
+```
+industry/<industry>/companies/<ticker>/
+├── <ticker>-model.xlsx              ← 模型 Excel（公司根目录，直接可见）
+├── .cache/
+│   └── scripts/
+│       ├── research-model.json      ← model JSON（build 输入）
+│       ├── research-model_checks.json ← checks（build 自动产出）
+│       ├── build-logic-model.py     ← 公司本地副本（首次建模时复制）
+│       ├── modules/                 ← 模块副本
+│       └── helpers/                 ← helper 副本
+└── YYYY-MM-DD-driver-map.md         ← research artifact
+```
+
+**路径规则：**
+- **Excel**：`industry/<industry>/companies/<ticker>/<ticker>-model.xlsx`。公司根目录，和 artifact 同级，不藏在 cache 里。
+- **JSON**：`.cache/scripts/research-model.json`。机器输入，cache 下。
+- **Checks**：`.cache/scripts/research-model_checks.json`。和 JSON 同目录。
+- **Ticker 格式**：小写。例如 `hwm-model.xlsx`、`santec-model.xlsx`。
+
 ### ⛔ GATE 2: 生成 Excel
 
 ```bash
-python <ticker>/.cache/scripts/build-logic-model.py <json> [-o output.xlsx]
-python <ticker>/.cache/scripts/audit_style.py <output.xlsx>
+# 首次建模：公司本地脚本副本（按 CLAUDE.md §6.5 规则）
+mkdir -p industry/<industry>/companies/<ticker>/.cache/scripts/modules
+cp .scripts/driver-map/build-logic-model.py <ticker>/.cache/scripts/
+cp .scripts/driver-map/modules/*.py <ticker>/.cache/scripts/modules/
+cp .scripts/driver-map/helpers/*.py <ticker>/.cache/scripts/helpers/
+
+# Build（output 自动落在公司根目录）
+python <ticker>/.cache/scripts/build-logic-model.py <ticker>/.cache/scripts/research-model.json
+# → 产出 <ticker>/<ticker>-model.xlsx
 ```
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。

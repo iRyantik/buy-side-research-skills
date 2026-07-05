@@ -2923,7 +2923,24 @@ def build(json_path, output_path=None):
 
     ws.freeze_panes = 'D2'
 
-    out_path = output_path or json_path.replace('.json', '.xlsx')
+    # Output: auto-derive to company root as {ticker}-model.xlsx
+    if output_path:
+        out_path = output_path
+    else:
+        # json_path: industry/<ind>/companies/<ticker>/.cache/scripts/research-model.json
+        # → derive company dir + ticker
+        json_dir = os.path.dirname(os.path.abspath(json_path))
+        # Walk up from .cache/scripts/ to find company root
+        parts = json_dir.replace('\\', '/').split('/')
+        # Find 'companies' index, get ticker from next part
+        try:
+            ci = parts.index('companies')
+            ticker_dir = parts[ci + 1]  # e.g. 'hwm' or 'zhenhua-chem'
+            company_root = '/'.join(parts[:ci + 2])  # up to companies/<ticker>
+            # Ticker from directory name (canonical slug), not JSON meta.ticker (may be numeric)
+            out_path = os.path.join(company_root, f'{ticker_dir}-model.xlsx')
+        except (ValueError, IndexError):
+            out_path = json_path.replace('.json', '.xlsx')
     wb.save(out_path)
     print(f'OK: {out_path}')
 
