@@ -20,8 +20,8 @@ def render(ws, R, ll, anchor_info, ctx):
     proj_n = ctx['proj_n']
 
     ln = ll['name']
-    yoy = ll['yoy']
-    bull = yoy['bull']; base = yoy['base']; bear = yoy['bear']
+    _yoy_li = ctx.get('_yoy_li', lambda sc, fy: 0)
+    bfyr = ctx['bfyr']
     s1r, _ = anchor_info.get(ln, (0, 0))
 
     # ── Revenue (history + FY0 = Section 1 ref) ──
@@ -61,14 +61,15 @@ def render(ws, R, ll, anchor_info, ctx):
         C(ws, R, 3, '  Rev QoQ', font=itf)
         R += 1
 
-    # ── BBE YoY hidden rows ──
+    # ── BBE YoY hidden rows (read from new-format FY-keyed assumptions) ──
     yb = ys = ye = 0
-    for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
+    _PROJ_FYS = ctx.get('_PROJ_FYS', [])
+    for scenario, label in [('bull', 'Bull'), ('base', 'Base'), ('bear', 'Bear')]:
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
         C(ws, R, FY0, '', fmt=PCT)
-        for i, v in enumerate(arr):
-            I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+        for i in range(min(proj_n, len(_PROJ_FYS))):
+            I(ws, R, FY0 + 1 + i, _yoy_li(scenario, _PROJ_FYS[i]), fmt=PCT)
         C(ws, R, 3, f'  {label}', font=itf)
         ws.row_dimensions[R].hidden = True
         if label == 'Bull':   yb = R

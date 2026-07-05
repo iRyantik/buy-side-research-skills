@@ -21,39 +21,49 @@ def render(ws, R, ll, anchor_info, ctx):
     proj_n = ctx['proj_n']; bfyr = ctx['bfyr']
 
     ln = ll['name']
-    vol = ll['volume']; tiers = ll['tiers']
-    v0 = vol['fy0']; vp = vol['proj']
-    cap = ll.get('capacity')
-    scale = ll.get('unit_scale', 100)
-    asp_unit = ll.get('asp_unit', '万/t')
-    # History layer: fy-2 (col DS) and fy-1 (col DS+1)
-    hist_all = ll.get('history', {})
-    H2 = hist_all.get('fy-2', {}); H1 = hist_all.get('fy-1', {})
+    tiers = ll['tiers']
+    _vol_li = ctx.get('_vol_li', lambda fy: 0)
+    _asp_li = ctx.get('_asp_li', lambda fy, ti=0, sc=None: 0)
+    _share_li = ctx.get('_share_li', lambda fy, ti=0: 0)
+    _cap_li = ctx.get('_cap_li', lambda fy: 0)
+    _has_bb_li = ctx.get('_has_bb_li', lambda ti=0: False)
+    _PROJ_FYS = ctx.get('_PROJ_FYS', [])
+    scale = ctx.get('_us_li', ll.get('unit_scale', 100))
+    asp_unit = ll.get('asp_unit', 'M¥/unit')
+    FY0_KEY = f'FY{bfyr}'; FY1_KEY = f'FY{bfyr-1}'; FY2_KEY = f'FY{bfyr-2}'
+    vol_unit = ll.get('volume', {}).get('unit', 'units')
 
     # ── Volume row ──
-    for yr_h, col in [(H2, DS), (H1, DS + 1)]:
-        if yr_h.get('volume'): I(ws, R, col, yr_h['volume'], fmt=INT)
+    for fy_key, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
+        hv = _vol_li(fy_key)
+        if hv: I(ws, R, col, hv, fmt=INT)
         else: C(ws, R, col, '', fmt=INT)
+    v0 = _vol_li(FY0_KEY)
     I(ws, R, FY0, v0, fmt=INT)
-    for i, v in enumerate(vp):
-        I(ws, R, FY0 + 1 + i, v, fmt=INT)
+    for i in range(proj_n):
+        proj_fy = _PROJ_FYS[i]
+        I(ws, R, FY0 + 1 + i, _vol_li(proj_fy), fmt=INT)
     C(ws, R, 2, ln, font=bf)
-    HL(ws, R, 3, f'Volume ({vol["unit"]})')
+    HL(ws, R, 3, f'Volume ({vol_unit})')
     vol_r = R; R += 1
 
     # ── Nameplate Capacity + Utilization (if capacity field exists) ──
-    cap_r = 0
-    if cap:
+    cap_r = 0; cap_fy0 = _cap_li(FY0_KEY)
+    has_cap = cap_fy0 > 0
+    if has_cap:
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=INT)
-        I(ws, R, FY0, cap['fy0'], fmt=INT)
-        for i, v in enumerate(cap['proj']):
-            I(ws, R, FY0 + 1 + i, v, fmt=INT)
-        C(ws, R, 3, f'  Nameplate Capacity ({cap["unit"]})', font=itf)
+        I(ws, R, FY0, cap_fy0, fmt=INT)
+        for i in range(proj_n):
+            proj_fy = _PROJ_FYS[i]
+            I(ws, R, FY0 + 1 + i, _cap_li(proj_fy), fmt=INT)
+        cap_unit = ll.get('capacity', {}).get('unit', 'units')
+        C(ws, R, 3, f'  Nameplate Capacity ({cap_unit})', font=itf)
         cap_r = R; R += 1
 
         # Ramp-up notes as cell comments
-        for key, note in cap.get('ramp_notes', {}).items():
+        cap_data = ll.get('capacity', {})
+        for key, note in cap_data.get('ramp_notes', {}).items():
             try:
                 yr = int(key.replace('fy', ''))
                 offset = yr - (bfyr % 100)
@@ -81,26 +91,24 @@ def render(ws, R, ll, anchor_info, ctx):
         if not is_last:
             for ci in range(DS, DS + 2):
                 C(ws, R, ci, '', fmt=PCT)
-            I(ws, R, FY0, t.get('share_fy0', 0), fmt=PCT)
-            for i, v in enumerate(t.get('share_proj', [])):
-                I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+            I(ws, R, FY0, _share_li(FY0_KEY, t_idx), fmt=PCT)
+            for i in range(proj_n):
+                proj_fy = _PROJ_FYS[i]
+                I(ws, R, FY0 + 1 + i, _share_li(proj_fy, t_idx), fmt=PCT)
             C(ws, R, 3, f'  {tn} Share %', font=itf)
             share_rows.append(R)
             R += 1
         else:
             share_rows.append(0)
 
-        # ASP row — two paths: BBE (3-scenario) or simple array
-        if any(k in t for k in ('asp_bull', 'asp_base', 'asp_bear')):
+        # ASP row — two paths: BBE (3-scenario) or simple
+        is_bb = _has_bb_li(t_idx)
+        if is_bb:
             # ── BBE ASP ──
-            bull = t.get('asp_bull', [])
-            base = t.get('asp_base', [])
-            bear = t.get('asp_bear', [])
-
             # ASP history + Active
-            asp_h_2 = H2.get(f'{tn}_asp'); asp_h_1 = H1.get(f'{tn}_asp')
-            for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
-                if h_val: I(ws, R, col, h_val, fmt=DEC)
+            for fy_key, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
+                h_asp = _asp_li(fy_key, t_idx)
+                if h_asp: I(ws, R, col, h_asp, fmt=DEC)
                 else: C(ws, R, col, '', fmt=NUM)
             for ci in range(FY0, LC + 1):
                 C(ws, R, ci, 0, fmt=NUM)
@@ -108,14 +116,15 @@ def render(ws, R, ll, anchor_info, ctx):
             asp_a_r = R; R += 1
 
             asp_b_r = asp_bs_r = asp_be_r = 0
-            for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
-                for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
-                    if h_val: I(ws, R, col, h_val, fmt=DEC)
+            for scenario, label in [('bull', 'Bull'), ('base', 'Base'), ('bear', 'Bear')]:
+                for fy_key, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
+                    h_asp = _asp_li(fy_key, t_idx)
+                    if h_asp: I(ws, R, col, h_asp, fmt=DEC)
                     else: C(ws, R, col, '', fmt=NUM)
-                I(ws, R, FY0, arr[0] if arr else 0, fmt=DEC)
-                for i, v in enumerate(arr[1:] if len(arr) > 1 else []):
-                    if i < proj_n:
-                        I(ws, R, FY0 + 1 + i, v, fmt=DEC)
+                I(ws, R, FY0, _asp_li(FY0_KEY, t_idx, scenario), fmt=DEC)
+                for i in range(proj_n):
+                    proj_fy = _PROJ_FYS[i]
+                    I(ws, R, FY0 + 1 + i, _asp_li(proj_fy, t_idx, scenario), fmt=DEC)
                 C(ws, R, 3, f'    {label} ({asp_unit})', font=itf)
                 ws.row_dimensions[R].hidden = True
                 if label == 'Bull':    asp_b_r = R
@@ -126,9 +135,8 @@ def render(ws, R, ll, anchor_info, ctx):
             ws.row_dimensions.group(asp_b_r, asp_be_r, outline_level=1, hidden=True)
 
             # ASP Active formula
-            f0_val = base[0] if base else 0
-            cll = FY0
-            C(ws, asp_a_r, cll, f0_val, fmt=DEC)
+            f0_val = _asp_li(FY0_KEY, t_idx, 'base')
+            C(ws, asp_a_r, FY0, f0_val, fmt=DEC)
             for i in range(proj_n):
                 ci = FY0 + 1 + i
                 cl = get_column_letter(ci)
@@ -139,22 +147,15 @@ def render(ws, R, ll, anchor_info, ctx):
             tier_bbe.append((t_idx, asp_a_r, asp_b_r, asp_bs_r, asp_be_r))
 
         else:
-            # ── Simple ASP array ──
-            ap = t.get('asp', [])
-            afy0 = t.get('asp_fy0')
-            if afy0 is None and ap:
-                afy0 = ap[0]; ap = ap[1:]
-            elif afy0 is None:
-                afy0 = 0
-
-            asp_h_2 = H2.get(f'{tn}_asp'); asp_h_1 = H1.get(f'{tn}_asp')
-            for col, h_val in [(DS, asp_h_2), (DS + 1, asp_h_1)]:
-                if h_val: I(ws, R, col, h_val, fmt=DEC)
+            # ── Simple ASP ──
+            for fy_key, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
+                h_asp = _asp_li(fy_key, t_idx)
+                if h_asp: I(ws, R, col, h_asp, fmt=DEC)
                 else: C(ws, R, col, '', fmt=NUM)
-            I(ws, R, FY0, afy0, fmt=DEC)
-            for i, v in enumerate(ap):
-                if i < proj_n:
-                    I(ws, R, FY0 + 1 + i, v, fmt=DEC)
+            I(ws, R, FY0, _asp_li(FY0_KEY, t_idx), fmt=DEC)
+            for i in range(proj_n):
+                proj_fy = _PROJ_FYS[i]
+                I(ws, R, FY0 + 1 + i, _asp_li(proj_fy, t_idx), fmt=DEC)
             HL(ws, R, 3, f'  {tn} ASP ({asp_unit})')
             asp_rows.append(R)
             R += 1
@@ -163,9 +164,9 @@ def render(ws, R, ll, anchor_info, ctx):
     # ── Revenue formula row ──
     rev_r = R
     # History columns: =Vol × ASP / scale if data exists
-    for col, h_key in [(DS, H2), (DS + 1, H1)]:
+    for fy_key, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
         cl = get_column_letter(col)
-        if h_key.get('volume') and asp_rows:
+        if _vol_li(fy_key) and asp_rows:
             C(ws, R, col, f'=({cl}{vol_r}*{cl}{asp_rows[0]})/{scale}', fmt=NUM)
         else:
             C(ws, R, col, '', fmt=NUM)
@@ -249,7 +250,7 @@ def render(ws, R, ll, anchor_info, ctx):
         'gp_r': None,
         'vol_r': vol_r,
         'cap_r': cap_r,
-        'util_r': util_r if cap else 0,
+        'util_r': util_r if has_cap else 0,
         'share_rows': share_rows,
         'asp_rows': asp_rows,
         'module': 'vol_asp',

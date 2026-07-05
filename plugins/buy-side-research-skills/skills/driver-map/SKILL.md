@@ -24,13 +24,47 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
-## Model Architecture (v1.5)
+## Model Architecture (v1.6)
+
+### JSON Schema — FY-inside format
+research-model.json uses unified FY-inside access: `{source}.{field}.{FY}.{period}`
+
+```json
+{
+  "actuals": {
+    "gaap": { "is": { "rev": { "FY2025": { "annual": 8252 } } } },
+    "non_gaap": { "is": { "ebitda": { "FY2025": { "annual": 2390 } } } }
+  },
+  "assumptions": {
+    "lines": [{ "name": "L1", "module": "yoy", "base_rate": {"FY2026E": {"annual": 0.34}} }],
+    "global": {
+      "opex_rev": { "FY2025": { "annual": 0.25 } },
+      "gap_oi_ni": { "FY2025": { "annual": 0.3 } },
+      "tax_rate": { "FY2025": { "annual": 0.22 } }
+    },
+    "segment_residuals": { "Non-core": { "base_rate": 0.22 } }
+  },
+  "meta": {
+    "p&l_depth": "ebitda",
+    "display_unit": "M",
+    "display_decimals": 1
+  }
+}
+```
+
+Key schema changes from v1.5:
+- `gm` → `base_rate` (all lines, FY-keyed)
+- `tax_rate` (old) → `gap_oi_ni` (OI→NI gap rate, renamed). New `tax_rate` = real tax rate
+- `nm` removed (was unused dead field)
+- `display_unit` + `display_decimals` explicit in meta
+- No adapter: build() reads FY-inside format directly via `_gaap()`, `_br()`, `_yoy()` accessors
+- Module renderers use ctx helpers (`_br_li`, `_yoy_li`, `_vol_li`, `_asp_li`)
 
 ### P&L Depth
 Three depths control segment disclosure and P&L behavior:
-- `gp`: segments disclose GP only. P&L OI/Tax/NI = A (actuals for history). Check: Rev, GP.
-- `op`: segments disclose down to OI. P&L D&A/Tax/NI = A. Check: Rev, GP, OI.
-- `ebitda`: segments disclose EBITDA only (US non-GAAP). All P&L rows = F (formula). GP/OI/NI derived via gaps. Check: Rev, GP, OI, D&A, EBITDA, Tax, NI.
+- `gp`: segments disclose GP only. OI = GP − Rev×Opex/Rev. P&L D&A/Tax/NI = A (actuals for history).
+- `op`: segments disclose down to OI. OI = Σ line OI. P&L D&A/Tax/NI = A.
+- `ebitda`: segments disclose EBITDA only (US non-GAAP). GP/OI derived via gap formulas from actuals at FY0.
 
 ### F/A Rules
 | P&L Row | GP depth | OP depth | EBITDA depth |
@@ -41,20 +75,30 @@ Three depths control segment disclosure and P&L behavior:
 
 F/F = all formula. A/F = actuals history + formula projected.
 
-### Hidden Bridge (EBITDA depth)
-Collapsed area before P&L storing FY-2/FY-1/FY0 actuals + gap formulas. Gaps computed via Excel formulas referencing FY0 actuals — never Python-hardcoded.
+### Rate Bridge (unified, all depths)
+Single collapsed section storing actuals + Opex/Rev (visible) + (OI-NI)/Rev (visible) + gap anchors (EBITDA only, collapsed).
+- Opex/Rev: formula `=(GP−OI)/Rev` for OP/EBITDA, assumption for GP
+- (OI-NI)/Rev: assumption (`gap_oi_ni`) for GP/OP, FY0 actuals anchor for EBITDA
+- Gap rows (EBITDA only): `gap_gp`, `gap_oi`, `gap_ni`, `tax_rate` — computed from FY0 actuals, serve as formula anchors
+
+### P&L Tail — NI chain
+- Tax = Rev × (OI-NI)/Rev_cell (formula reference, not hardcoded)
+- NI = OI − Tax_cell (formula reference)
+- NPM = NI / Rev (formula)
+- Scenario Summary NI mirrors main P&L: OI = GP − Rev×Opex/Rev, NI = OI − Rev×(OI-NI)/Rev
 
 ### Check System
-Checks compare P&L formula values vs actuals from Hidden Bridge. `=(P&L − actuals) / ABS(actuals)`. Projected years blank. All F/F rows get a Check row.
+Checks compare P&L formula values vs actuals from Rate Bridge. `=(P&L − actuals) / ABS(actuals)`. Projected years blank.
 
 ### SOTP
 - Revenue row added (all methods)
-- No per-line Net Debt — only at TOTAL level
 - EV/Mkt Cap switches by method
+- Scenario Summary: Bull/Base/Bear with per-scenario Rev/GP/NI(EBITDA)/Implied Multiple
 
 ### Labels
 - Revenue (not "Total Revenue"), GP (not "Total GP"), GM (not "Blended GM")
 - Column C: bf=$ amounts, nf=ratios, itf=annotations
+- Style: A()=gray bg actuals, I()=blue+yellow assumption, CF()=formula
 
 ## Financial-Data 联动
 

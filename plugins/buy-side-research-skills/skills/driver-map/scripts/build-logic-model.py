@@ -54,8 +54,9 @@ class Ref:
 
 # ── Format constants ──
 PCT = '0.0%'; NUM = '#,##0.0'; DEC = '#,##0.00'; INT = '#,##0'
-PRICE_FMT = {'cn': '¥#,##0.00', 'jp': '¥#,##0', 'kr': '₩#,##0', 'tw': 'NT$#,##0.00',
-             'us': '$#,##0.00', 'hk': 'HK$#,##0.00', 'sg': 'S$#,##0.00'}
+PRICE_FMT = {'USD': '$#,##0.00', 'JPY': '¥#,##0', 'CNY': '¥#,##0.00', 'KRW': '₩#,##0',
+             'TWD': 'NT$#,##0.00', 'HKD': 'HK$#,##0.00', 'SGD': 'S$#,##0.00',
+             'EUR': '€#,##0.00', 'GBP': '£#,##0.00'}
 DS = 4
 
 # ── Fonts / fills ──
@@ -133,6 +134,10 @@ def _load_module(name):
             from modules.yoy import render as fn
         elif name == 'vol_asp':
             from modules.vol_asp import render as fn
+        elif name == 'capacity_util':
+            from modules.capacity_util import render as fn
+        elif name == 'ebitda':
+            from modules.ebitda import render as fn
         elif name == 'backlog_burn':
             from modules.backlog_burn import render as fn
         else:
@@ -146,274 +151,328 @@ def _load_module(name):
 
 VALID_DEPTH = {'gp', 'op', 'ebitda'}
 VALID_METHOD = {'pe', 'ps', 'ev_ebitda', 'ev_ebit', 'ev_sales'}
-
-def validate_json(cfg):
-    """Check JSON structure before build. Raises ValueError on issues."""
-    meta = cfg.get('meta', {})
-    a = cfg.get('actuals', {})
+def validate_json_new(raw_cfg):
+    """Validate research-model.json in new FY-inside format (reads raw before adapter)."""
+    meta = raw_cfg.get('meta', {})
+    asm = raw_cfg.get('assumptions', {})
     proj_n = meta.get('proj_years', 5)
+    bfyr = meta.get('base_fy', 2025)
 
-    # depth
     depth = meta.get('p&l_depth', 'ni')
     if depth not in VALID_DEPTH:
         raise ValueError(f'p&l_depth must be one of {VALID_DEPTH}, got {depth}')
 
-    # actuals required fields (varies by depth)
-    if depth == 'ebitda':
-        req_fields = ['rev', 'ebitda', 'op', 'ni']
-    elif depth == 'op':
-        req_fields = ['rev', 'gp', 'op']
-    else:
-        req_fields = ['rev', 'gp']
-    for fy_key in ['fy-2', 'fy-1', 'fy0']:
-        fy = a.get(fy_key, {})
-        for field in req_fields:
-            if field not in fy:
-                raise ValueError(f'actuals.{fy_key}.{field} is required')
+    # Actuals: warn if core fields are missing for all history FYs
+    gaap_is = raw_cfg.get('actuals', {}).get('gaap', {}).get('is', {})
+    non_is = raw_cfg.get('actuals', {}).get('non_gaap', {}).get('is', {})
+    history_fys = [f'FY{bfyr-2}', f'FY{bfyr-1}', f'FY{bfyr}']
 
-    # global opm only required for GP/OP depth
-    if depth != 'ebitda':
-        opm_arr = cfg.get('global', {}).get('opm', [])
-        if len(opm_arr) != 3 + proj_n:
-            raise ValueError(f'global.opm length {len(opm_arr)} != {3 + proj_n} (3 actual + {proj_n} proj)')
+    core_gaap = ['rev']
+    if depth != 'ebitda': core_gaap.append('gp')
+    for fy_key in history_fys:
+        for field in core_gaap:
+            val = gaap_is.get(field, {}).get(fy_key, {}).get('annual')
+            if val is None:
+                print(f'  [warn] actuals.gaap.is.{field}.{fy_key}.annual missing')
 
-    # segments: split sum sanity
-    for seg in cfg.get('segments', []):
-        sn = seg.get('name', '?')
-        lls = seg.get('logic_lines', [])
-        if lls:
-            total_split = sum(l.get('split', 0) for l in lls)
-            if abs(total_split - 1.0) > 0.05:
-                print(f'  [warn] seg "{sn}" logic_lines split sum={total_split:.3f} (≠1.0 by {abs(total_split-1.0):.1%})')
-
-    # logic_lines
-    for ll in cfg.get('logic_lines', []):
+    # Logic lines
+    lines = asm.get('lines', [])
+    seg_names = set()
+    for ll in lines:
         ln = ll.get('name', '?')
-        # sotp method
+        seg = ll.get('segment', '')
+        if seg:
+            seg_names.add(seg)
+
+        # SOTP — required, no empty defaults
         sotp = ll.get('sotp', {})
-        if sotp:
-            m = sotp.get('method', 'pe')
-            if m not in VALID_METHOD:
-                raise ValueError(f'{ln}: sotp.method {m} not in {VALID_METHOD}')
-            if 'multiple' not in sotp:
-                raise ValueError(f'{ln}: sotp.multiple required')
-        # module volume/asp arrays
+        if not sotp or 'method' not in sotp:
+            raise ValueError(f'{ln}: sotp is required (method + multiple)')
+        m = sotp.get('method', 'pe')
+        if m not in VALID_METHOD:
+            raise ValueError(f'{ln}: sotp.method {m} not in {VALID_METHOD}')
+        if 'multiple' not in sotp:
+            raise ValueError(f'{ln}: sotp.multiple required')
+
+        # vol_asp: check projection year coverage
         if ll.get('module') == 'vol_asp':
             vol = ll.get('volume', {})
-            proj = vol.get('proj', [])
-            if len(proj) != proj_n:
-                raise ValueError(f'{ln}: volume.proj length {len(proj)} != proj_years {proj_n}')
+            for i in range(1, proj_n + 1):
+                proj_fy = f'FY{bfyr + i}E'
+                v = vol.get(proj_fy)
+                if isinstance(v, dict): v = v.get('annual')
+                if v is None:
+                    print(f'  [warn] {ln}: volume.{proj_fy} missing')
             for t in ll.get('tiers', []):
-                for k in ('asp', 'asp_bull', 'asp_base', 'asp_bear'):
-                    arr = t.get(k, [])
-                    if arr and len(arr) < 1 + proj_n:
-                        print(f'  [warn] {ln} {t.get("name","?")} {k}: {len(arr)} values, need >={1+proj_n}')
-            # ── Unit scale check: Vol×ASP/scale must ≈ anchor revenue ──
-            vol_fy0 = ll['volume']['fy0']
-            scale = ll.get('unit_scale', 100)
-            asp_fy0 = ll['tiers'][0].get('asp_fy0', ll['tiers'][0].get('asp', [0])[0] if ll['tiers'][0].get('asp') else 0)
-            computed = vol_fy0 * asp_fy0 / scale  # in display units
-            # Compute div for anchor conversion (same logic as main build)
-            _meta = cfg.get('meta', {})
-            _use_B = _meta.get('unit') == 'B' or _meta.get('market', '') in ('jp', 'kr', 'tw')
-            _div = 1000 if _use_B else 1
-            # Find anchor revenue (seg rev × split), also in display units
-            anchor = 0
-            for seg in cfg.get('segments', []):
-                for l in seg.get('logic_lines', []):
-                    if l['name'] == ln:
-                        anchor = seg['fy0']['rev'] * l['split'] / _div
-                        break
-            if anchor > 0:
-                gap = abs(computed - anchor) / anchor
-                if gap > 0.10:
-                    print(f'  [!!] UNIT SCALE: {ln} Vol({vol_fy0})xASP({asp_fy0})/scale({scale})={computed:.0f} vs anchor={anchor:.0f} gap={gap:.1%} -- fix unit_scale or Vol/ASP!')
+                tn = t.get('name', '?')
+                for k in ('asp', 'asp_base'):
+                    asp = t.get(k, {})
+                    if not asp: continue
+                    for i in range(1, proj_n + 1):
+                        proj_fy = f'FY{bfyr + i}E'
+                        a = asp.get(proj_fy)
+                        if isinstance(a, dict): a = a.get('annual')
+                        if a is None:
+                            print(f'  [warn] {ln}/{tn} {k}.{proj_fy} missing')
 
-    # ── Provenance: warn on fields without source tracking ──
-    _PROVENANCE_OK = {'edgartools:', 'edinet:', 'yfinance:', 'calculated:', 'disclosed:',
-                      'akshare:', 'dart-fss:', 'openesef:', 'finmind:', 'eastmoney:',
-                      'longbridge:', 'websearch:', 'webfetch:', 'curl:', 'manual:'}
-    _CRITICAL_FIELDS = ['rev', 'gp', 'op', 'ni', 'tax', 'da', 'opex', 'cost',
-                        'ebit', 'ebitda', 'pretax', 'nci', 'sbc', 'eps',
-                        'gaap_op', 'nongaap_op', 'gaap_ni', 'nongaap_ni']
-    est_count = 0
-    for fy_key in ['fy-2', 'fy-1', 'fy0']:
-        fy = a.get(fy_key, {})
-        for field in _CRITICAL_FIELDS:
-            src = fy.get('_src', '')
-            is_ok = any(src.startswith(p) for p in _PROVENANCE_OK)
-            if not is_ok and field in fy:
-                print(f'  [provenance] actuals.{fy_key}.{field}: no _src')
-                est_count += 1
-    for field in ['da', 'opex', 'tax']:
-        vals = [a.get(fk, {}).get(field) for fk in ['fy-2', 'fy-1', 'fy0']]
-        if vals[0] == vals[1] == vals[2] and vals[0] is not None and vals[0] > 0:
-            print(f'  [warn] actuals.{field}: identical 3y ({vals[0]}) — verify not copy-paste')
-    if est_count:
-        print(f'  [provenance] {est_count} fields without source — review needed')
+    # Segment residuals: warn if references unknown segment names
+    residuals = asm.get('segment_residuals', {})
+    for seg_name in residuals:
+        if seg_name not in seg_names:
+            print(f'  [warn] segment_residuals "{seg_name}" not referenced by any line.segment')
 
-    print(f'  Validated: depth={depth}, {len(cfg.get("logic_lines",[]))} logic lines, {len(cfg.get("segments",[]))} segments')
+    print(f'  Validated: depth={depth}, {len(lines)} logic lines, {len(seg_names)} segments')
 
 
 # ═══════════════════════════════════════════════════════════════
 # Main build function
 # ═══════════════════════════════════════════════════════════════
 
-def _adapt_new_to_old(cfg):
-    """Convert research-model.json new structure to backward-compat old keys."""
-    if 'assumptions' not in cfg:
-        return cfg  # already old format
-    a = cfg['actuals']
-    asm = cfg['assumptions']
-    fy_map = {'FY2023': 'fy-2', 'FY2024': 'fy-1', 'FY2025': 'fy0'}
+def _build_segments(raw_cfg):
+    """Build minimal segment list + company Q data from raw (replaces old adapter)."""
+    lines = raw_cfg['assumptions']['lines']
+    gaap_segs = raw_cfg['actuals']['gaap']['segments']
+    non_segs = raw_cfg['actuals']['non_gaap'].get('segments', [])
+    residuals = raw_cfg['assumptions'].get('segment_residuals', {})
+    bfyr = raw_cfg['meta'].get('base_fy', 2025)
+    fy_keys = [f'FY{bfyr-2}', f'FY{bfyr-1}', f'FY{bfyr}']
+    q_start_q = int(raw_cfg['meta'].get('q_start_q', 1))
+    q_actual_n = int(raw_cfg['meta'].get('q_actual_count', 4))
 
-    # actuals
-    n_act = {}
-    for new_fy, old_fy in fy_map.items():
-        ann = a.get(new_fy, {}).get('annual', {})
-        gaap = ann.get('gaap', {}).get('is', {})
-        non_gaap = ann.get('non_gaap', {}).get('is', {})
-        n_act[old_fy] = {
-            'rev': gaap.get('rev', 0),
-            'gp': gaap.get('gp', 0),
-            'op': gaap.get('oi', 0),
-            'ni': gaap.get('ni', 0),
-            'tax': gaap.get('tax', 0),
-            'da': gaap.get('da', 0),
-            'ebitda': non_gaap.get('ebitda', 0),
-            'details': ann.get('non_gaap', {}).get('adj', {}),
-        }
-    cfg['actuals'] = n_act
+    seg_to_lines = {}
+    for ll in lines:
+        sn = ll.get('segment', '')
+        if sn:
+            seg_to_lines.setdefault(sn, []).append(ll)
 
-    # segments (from most recent FY gaap + non_gaap)
-    def _match_seg(name, candidates):
-        """Match segment name (handle 'Segment' suffix difference)."""
-        for c in candidates:
-            if c.startswith(name) or name.startswith(c):
-                return c
-        return None
-
-    segs = []
-    for s in a.get('FY2025', {}).get('annual', {}).get('gaap', {}).get('segments', []):
-        s_name = s['name']
-        # Find matching lines from assumptions
-        matched_lines = [ll for ll in asm.get('lines', []) if ll.get('segment') and (ll['segment'] in s_name or s_name in ll['segment'])]
-        if not matched_lines:
+    segments = []
+    for gs in gaap_segs:
+        sn = gs['name']
+        matched = seg_to_lines.get(sn, [])
+        if not matched:
             continue
+        seg_q = {}
+        for qi in range(q_actual_n):
+            cal_qk = f'Q{((q_start_q - 1 + qi) % 4) + 1}'
+            rel_qk = f'q{qi+1}'
+            fy_ofs = qi // 4
+            q_fy = f'FY{int(fy_keys[2][2:]) + fy_ofs}'
+            q_entry = {}
+            for fld, old_key in [('rev', 'rev'), ('gp', 'gp'), ('oi', 'op')]:
+                v = gs.get(fld, {}).get(q_fy, {}).get(cal_qk, 0) or gs.get(fld, {}).get(fy_keys[2], {}).get(cal_qk, 0)
+                if v: q_entry[old_key] = v
+            s_short = sn.replace(' Segment', '')
+            ns = next((s for s in non_segs if s['name'] == s_short), None)
+            if ns:
+                eb_q = ns.get('ebitda', {}).get(q_fy, {}).get(cal_qk, 0)
+                if eb_q: q_entry['ebitda'] = eb_q
+            if q_entry:
+                seg_q[rel_qk] = q_entry
         seg_entry = {
-            'name': s_name,
-            'fy0': {'rev': s.get('rev', 0)},
-            'logic_lines': [{'name': ll['name'], 'split': 1.0 if ll.get('one_to_one') else 0} for ll in matched_lines],
-            'quarters': {},
+            'name': sn,
+            'logic_lines': [{'name': ll['name'],
+                           'split': 1.0 if ll.get('one_to_one') else ll.get('split', 1.0 / max(1, len(matched)))}
+                          for ll in matched],
+            'quarters': seg_q,
+            'residual': {},
         }
-        # Non-GAAP ebitda + historical years
-        s_short = s_name.replace(' Segment', '').replace(' segment', '')
-        all_segs_gaap = a.get('FY2025', {}).get('annual', {}).get('gaap', {}).get('segments', [])
-        all_segs_non = a.get('FY2025', {}).get('annual', {}).get('non_gaap', {}).get('segments', [])
-        def _find(v, lst):
-            for x in lst:
-                xn = x.get('name','')
-                if xn == v or xn == v.replace(' Segment','') or v == xn.replace(' Segment','') or xn in v or v in xn:
-                    return x
-            return None
-        ns = _find(s_name, all_segs_non)
-        if ns:
-            seg_entry['fy0']['ebitda'] = ns.get('ebitda', 0)
-        for new_fy, old_fy in fy_map.items():
-            sg = {}
-            for lst, key in [(a.get(new_fy,{}).get('annual',{}).get('gaap',{}).get('segments',[]), 'rev'),
-                             (a.get(new_fy,{}).get('annual',{}).get('non_gaap',{}).get('segments',[]), 'ebitda')]:
-                m = _find(s_name, lst)
-                if m: sg[key] = m.get(key, 0)
-            if sg:
-                seg_entry[old_fy] = sg
-        # Quarters (FY2025)
-        for qk in ['Q1','Q2','Q3','Q4']:
-            q_rev = 0; q_ebitda = 0
-            for sq in a.get('FY2025',{}).get(qk,{}).get('non_gaap',{}).get('segments',[]):
-                if _find(s_name, [sq]):
-                    q_ebitda = sq.get('ebitda', 0)
-                    q_rev = a.get('FY2025',{}).get(qk,{}).get('gaap',{}).get('is',{}).get('rev',0)
-            seg_entry['quarters'][qk.lower()] = {'rev': q_rev, 'ebitda': q_ebitda}
-        if seg_entry['logic_lines']:
-            segs.append(seg_entry)
-    # Remaining logic lines (no segment) -> add as Non-core line at top level
-    remaining = [ll for ll in asm.get('lines', []) if not any(ll['name'] in [l['name'] for s2 in segs for l in s2['logic_lines']] for _ in [1])]
-    cfg['segments'] = segs
+        res = residuals.get(sn, {}) or residuals.get(sn.replace(' Segment', ''), {})
+        if res:
+            seg_entry['residual'] = {'gm': res.get('base_rate', 0)}
+        segments.append(seg_entry)
 
-    # logic_lines from assumptions.lines
-    cfg['logic_lines'] = []
-    for ll in asm.get('lines', []):
-        entry = {'name': ll['name'], 'module': ll['module']}
-        # gm
-        gm = ll.get('gm', {})
-        if gm:
-            entry['gm'] = {
-                'fy-2': gm.get('FY2023', None),
-                'fy-1': gm.get('FY2024', None),
-                'fy0': gm.get('FY2025', 0),
-                'proj': [gm.get(k, 0) for k in sorted([k for k in gm.keys() if 'E' in k])],
-            }
-        # yoy
-        yoy = ll.get('yoy', {})
-        if yoy:
-            entry['yoy'] = {}
-            for scenario in ['bull','base','bear']:
-                if yoy.get(scenario):
-                    items = sorted([(k,v) for k,v in yoy[scenario].items()])
-                    entry['yoy'][scenario] = [v for _,v in items]
-        # q_history
-        qd = ll.get('q_data', {})
-        if qd:
-            entry['q_history'] = {}
-            for fy, qs in qd.items():
-                for qk, qv in qs.items():
-                    if qv.get('rev') is not None:
-                        entry['q_history'][qk.lower()] = {'rev': qv['rev']}
-            if not entry['q_history']:
-                del entry['q_history']
-        # sotp
-        if ll.get('sotp'):
-            entry['sotp'] = ll['sotp']
-        cfg['logic_lines'].append(entry)
+    # Company-level Q data
+    quarters = {}
+    gaap_is = raw_cfg['actuals']['gaap']['is']
+    non_is = raw_cfg['actuals']['non_gaap']['is']
+    for qi in range(q_actual_n):
+        cal_qk = f'Q{((q_start_q - 1 + qi) % 4) + 1}'
+        rel_qk = f'q{qi+1}'
+        fy_ofs = qi // 4
+        q_fy = f'FY{int(fy_keys[2][2:]) + fy_ofs}'
+        quarters[rel_qk] = {
+            'rev': gaap_is.get('rev', {}).get(q_fy, {}).get(cal_qk, 0),
+            'gp': gaap_is.get('gp', {}).get(q_fy, {}).get(cal_qk, 0),
+            'op': gaap_is.get('oi', {}).get(q_fy, {}).get(cal_qk, 0),
+            'ni': gaap_is.get('ni', {}).get(q_fy, {}).get(cal_qk, 0),
+            'tax': gaap_is.get('tax', {}).get(q_fy, {}).get(cal_qk, 0),
+            'ebitda': non_is.get('ebitda', {}).get(q_fy, {}).get(cal_qk, 0),
+        }
+    return segments, quarters
 
-    # quarters (company-level from actuals)
-    cfg['quarters'] = {}
-    for qk in ['Q1','Q2','Q3','Q4']:
-        q_gaap = a.get('FY2025', {}).get(qk, {}).get('gaap', {}).get('is', {})
-        q_non = a.get('FY2025', {}).get(qk, {}).get('non_gaap', {}).get('is', {})
-        if q_gaap.get('rev') is not None:
-            cfg['quarters'][qk.lower()] = {
-                'rev': q_gaap.get('rev', 0),
-                'gp': q_gaap.get('gp', 0),
-                'op': q_gaap.get('oi', 0),
-                'ni': q_gaap.get('ni', 0),
-                'tax': q_gaap.get('tax', 0),
-                'ebitda': q_non.get('ebitda', 0),
-            }
-
-    # global
-    cfg['global'] = {'tax_rate': asm.get('global', {}).get('tax_rate', {}).get('FY2025', 0.22)}
-
-    return cfg
 
 
 def build(json_path, output_path=None):
     with codecs.open(json_path, 'r', 'utf-8') as f:
         cfg = json.load(f)
 
-    cfg = _adapt_new_to_old(cfg)
-    validate_json(cfg)
+    # ── Validate, build compat structures from raw ──
+    validate_json_new(cfg)
+    raw = cfg                                             # no deep copy needed
+    segments, cfg_quarters = _build_segments(raw)         # thin compat layer
+    cfg['segments'] = segments
+    cfg['quarters'] = cfg_quarters
+    logic_lines = raw['assumptions']['lines']             # new-format lines directly
 
-    is_ebitda_depth = cfg['meta'].get('p&l_depth') == 'ebitda'
+    meta = raw['meta']
+    # ── /Compat ──
+
+    is_ebitda_depth = meta.get('p&l_depth') == 'ebitda'
     is_op_depth = cfg['meta'].get('p&l_depth') == 'op'
     is_gp_depth = cfg['meta'].get('p&l_depth') == 'gp'
+
+    # ── New-format direct accessors (FY-inside structure) ──
+    bfyr = cfg['meta'].get('base_fy', 2025)
+    FY0_KEY = f'FY{bfyr}'
+    FY1_KEY = f'FY{bfyr-1}'
+    FY2_KEY = f'FY{bfyr-2}'
+    _R = raw['actuals']  # shortcut to flipped actuals
+
+    def _gaap(field, fy, period='annual'):
+        return _R['gaap']['is'].get(field, {}).get(fy, {}).get(period, 0)
+
+    def _non(field, fy, period='annual'):
+        return _R['non_gaap']['is'].get(field, {}).get(fy, {}).get(period, 0)
+
+    def _gaap_seg(name, field, fy, period='annual'):
+        for s in _R['gaap'].get('segments', []):
+            if s['name'] == name:
+                return s.get(field, {}).get(fy, {}).get(period)
+        return None
+
+    def _non_seg(name, field, fy, period='annual'):
+        s_short = name.replace(' Segment', '')
+        for s in _R['non_gaap'].get('segments', []):
+            if s['name'] == s_short:
+                return s.get(field, {}).get(fy, {}).get(period)
+        return None
+
+    def _non_seg(name, field, fy, period='annual'):
+        s_short = name.replace(' Segment', '')
+        for s in _R['non_gaap'].get('segments', []):
+            if s['name'] == s_short:
+                return s.get(field, {}).get(fy, {}).get(period, 0)
+        return 0
+
+    def _br(line_idx, fy):
+        return raw['assumptions']['lines'][line_idx].get('base_rate', {}).get(fy, {}).get('annual', 0)
+
+    def _yoy(line_idx, scenario, fy):
+        return raw['assumptions']['lines'][line_idx].get('yoy', {}).get(scenario, {}).get(fy, {}).get('annual', 0)
+
+    def _gl(field, fy):
+        return raw['assumptions']['global'].get(field, {}).get(fy, {}).get('annual', 0)
+
+    def _seg_name(line_idx):
+        return raw['assumptions']['lines'][line_idx].get('segment', '')
+
+    # ── Mutable OPM cache (Phase 1.3 blend modifies in-place) ──
+    # Compute proj_keys dynamically (matches adapter's scan for FY keys with 'E')
+    _proj_keys = set()
+    for _ll in raw['assumptions']['lines']:
+        for _field in ['base_rate', 'volume']:
+            for _k in _ll.get(_field, {}):
+                if isinstance(_k, str) and 'E' in _k: _proj_keys.add(_k)
+        for _sc in ['bull', 'base', 'bear']:
+            for _k in _ll.get('yoy', {}).get(_sc, {}):
+                if isinstance(_k, str) and 'E' in _k: _proj_keys.add(_k)
+        for _t in _ll.get('tiers', []):
+            for _ak in ['asp', 'asp_base', 'asp_bull', 'asp_bear']:
+                for _k in _t.get(_ak, {}):
+                    if isinstance(_k, str) and 'E' in _k: _proj_keys.add(_k)
+    _PROJ_FYS = sorted(_proj_keys)
+    _ALL_FYS = [FY2_KEY, FY1_KEY, FY0_KEY] + _PROJ_FYS
+    _opm_cache = {}
+    for _fy in _ALL_FYS:
+        _v = _gl('opex_rev', _fy)
+        _opm_cache[_fy] = round(_v, 4) if _v else 0.25
+
+    def _opm(fy):
+        """Mutable Opex/Rev rate cache — use _opm(fy_key) instead of gl['opm'][idx]."""
+        if fy not in _opm_cache:
+            _v = _gl('opex_rev', fy)
+            _opm_cache[fy] = round(_v, 4) if _v else 0.25
+        return _opm_cache[fy]
+
+    # ── Mutable GM cache (Phase 1.3 blend modifies in-place) ──
+    _gm_cache = {}
+
+    def _gm(line_idx, fy):
+        """Mutable base_rate cache — use _gm(line_idx, fy) instead of ll['gm'][...]."""
+        key = (line_idx, fy)
+        if key not in _gm_cache:
+            _gm_cache[key] = _br(line_idx, fy)
+        return _gm_cache[key]
+
+    # ── Line-level helpers (replace ll['...'] old-format access) ──
+    def _vol(line_idx, fy):
+        """Volume for a line+FY — direct access to raw assumptions (FY-inside: {FY: {annual: N}})."""
+        v = raw['assumptions']['lines'][line_idx].get('volume', {}).get(fy, 0)
+        return v.get('annual', 0) if isinstance(v, dict) else v
+
+    def _asp(line_idx, fy, tier_idx=0, scenario=None):
+        """ASP for a line+FY+tier — direct access to raw assumptions. scenario='base'|'bull'|'bear' for BBE."""
+        tiers = raw['assumptions']['lines'][line_idx].get('tiers', [])
+        if tier_idx < len(tiers):
+            t = tiers[tier_idx]
+            if scenario:
+                v = t.get(f'asp_{scenario}', {}).get(fy, 0)
+                if isinstance(v, dict): v = v.get('annual', 0)
+                if v: return v
+            for key in ('asp_base', 'asp', 'asp_bull', 'asp_bear'):
+                v = t.get(key, {}).get(fy, 0)
+                if isinstance(v, dict): v = v.get('annual', 0)
+                if v: return v
+        return 0
+
+    def _has_bb(line_idx, tier_idx=0):
+        """Check if tier has BBE scenario ASP arrays."""
+        tiers = raw['assumptions']['lines'][line_idx].get('tiers', [])
+        if tier_idx < len(tiers):
+            t = tiers[tier_idx]
+            return any(k in t for k in ('asp_bull', 'asp_base', 'asp_bear'))
+        return False
+
+    def _share(line_idx, fy, tier_idx=0):
+        """Tier share%% for a line+FY — {FY: {annual: N}}."""
+        tiers = raw['assumptions']['lines'][line_idx].get('tiers', [])
+        if tier_idx < len(tiers):
+            v = tiers[tier_idx].get('share', {}).get(fy, 0)
+            return v.get('annual', 0) if isinstance(v, dict) else v
+        return 0
+
+    def _capacity(line_idx, fy):
+        """Capacity for a line+FY — {FY: {annual: N}}."""
+        v = raw['assumptions']['lines'][line_idx].get('capacity', {}).get(fy, 0)
+        return v.get('annual', 0) if isinstance(v, dict) else v
+
+    def _utilization(line_idx, fy):
+        """Utilization%% for a line+FY — {FY: {annual: N}}."""
+        v = raw['assumptions']['lines'][line_idx].get('utilization', {}).get(fy, 0)
+        return v.get('annual', 0) if isinstance(v, dict) else v
+
+    def _bb_field(line_idx, field, fy, scenario=None):
+        """Generic backlog_burn field reader — {FY: {annual: N}} or {scenario: {FY: {annual: N}}}."""
+        data = raw['assumptions']['lines'][line_idx].get(field, {})
+        if scenario and isinstance(data.get(scenario), dict):
+            v = data[scenario].get(fy, 0)
+        else:
+            v = data.get(fy, 0)
+        return v.get('annual', 0) if isinstance(v, dict) else v
+
+    def _has_module(line_idx, module_name):
+        """Check if a line uses a specific module."""
+        return raw['assumptions']['lines'][line_idx].get('module') == module_name
+
+    def _unit_scale(line_idx):
+        """Unit scale for a vol_asp line (default 100 if not set)."""
+        return raw['assumptions']['lines'][line_idx].get('unit_scale', 100)
 
     # ═══ Phase 1.1: Reconcile — scale Q→FY for M=4 complete actual FYs ═══
     meta_tmp = cfg['meta']
     q_actual_n = meta_tmp.get('q_actual_count', 0)
     if q_actual_n > 0:
-        a = cfg['actuals']; bfyr = meta_tmp['base_fy']; proj_n = meta_tmp['proj_years']
+        bfyr = meta_tmp['base_fy']; proj_n = meta_tmp['proj_years']
         q_start_yr = meta_tmp.get('q_start_yr', bfyr)
         q_start_q = meta_tmp.get('q_start_q', 1)
         cur_yr, cur_q, qi = q_start_yr, q_start_q, 0
@@ -424,24 +483,25 @@ def build(json_path, output_path=None):
                 fy_idx = cur_yr - bfyr + 2
                 fy_rev = 0
                 if fy_idx < 3:
-                    fy_rev = a[['fy-2','fy-1','fy0'][fy_idx]]['rev']
+                    fy_rev = _gaap('rev', f'FY{cur_yr}')
                 elif fy_idx < 3 + proj_n:
                     proj_i = fy_idx - 3
-                    for ll in cfg.get('logic_lines', []):
-                        if ll.get('module') == 'vol_asp':
-                            vp = ll['volume']['proj']; ap = ll['tiers'][0].get('asp', ll['tiers'][0].get('asp_base',[0]))
-                            if proj_i < len(vp):
-                                asp = ap[min(proj_i,len(ap)-1)]
-                                fy_rev += vp[proj_i] * asp / ll.get('unit_scale',100)
+                    proj_fy = f'FY{bfyr + proj_i + 1}E'
+                    for line_idx, ll in enumerate(logic_lines):
+                        if _has_module(line_idx, 'vol_asp'):
+                            vol_v = _vol(line_idx, proj_fy)
+                            asp_v = _asp(line_idx, proj_fy)
+                            if vol_v:
+                                fy_rev += vol_v * asp_v / _unit_scale(line_idx)
                         else:
-                            base = ll['yoy']['base']
                             for seg in cfg.get('segments',[]):
                                 for l in seg.get('logic_lines',[]):
                                     if l['name'] == ll['name']:
-                                        f0 = seg['fy0']['rev'] * l['split']
+                                        f0 = _gaap_seg(seg['name'], 'rev', FY0_KEY) * l['split']
                                         cum = 1.0
                                         for bi in range(proj_i+1):
-                                            if bi < len(base): cum *= (1+base[bi])
+                                            prior_fy = f'FY{bfyr + bi + 1}E'
+                                            cum *= (1 + _yoy(line_idx, 'base', prior_fy))
                                         fy_rev += round(f0*cum)
                 if fy_rev == 0: qi += fyc; cur_yr += 1; cur_q = 1; continue
                 qdata = cfg.get('quarters',{})
@@ -471,57 +531,11 @@ def build(json_path, output_path=None):
                                 qh[qk]['volume']=round(qh[qk]['rev']*ll.get('unit_scale',100)/qd['asp'])
             qi += fyc; cur_yr += 1; cur_q = 1
 
-        # ═══ Phase 1.2: Company Q → Segment Q split (A-share: seg Q from company Q) ═══
-        cq = cfg.get('quarters', {})
-        segs = cfg.get('segments', [])
-        for qk, qd in cq.items():
-            if not qd.get('rev'): continue
-            q_rev = qd['rev']; q_gp = qd.get('gp', 0); q_op = qd.get('op')
-            # Check if ANY segment has Q data for this qk
-            any_seg_has = any(s.get('quarters', {}).get(qk, {}).get('rev', 0) > 0 for s in segs)
-            if any_seg_has: continue
-            # Split by FY0 proportions
-            fy0_tot_rev = sum(s['fy0']['rev'] for s in segs)
-            fy0_tot_gp = sum(s['fy0']['gp'] for s in segs)
-            if fy0_tot_rev <= 0: continue
-            for s in segs:
-                sq = s.get('quarters', {})
-                w_rev = s['fy0']['rev'] / fy0_tot_rev
-                w_gp = s['fy0']['gp'] / fy0_tot_gp if fy0_tot_gp else w_rev
-                sq[qk] = sq.get(qk, {})
-                sq[qk]['rev'] = round(q_rev * w_rev)
-                if q_gp: sq[qk]['gp'] = round(q_gp * w_gp)
-                if q_op is not None:
-                    tot_op = sum(s2['fy0'].get('op', 0) for s2 in segs)
-                    if tot_op: sq[qk]['op'] = round(q_op * s['fy0'].get('op', 0) / tot_op)
-                q_opex = qd.get('opex', 0)
-                if q_opex:
-                    # Derive seg FY0 opex = gp - op
-                    fy0_seg_opex = {s2['name']: s2['fy0'].get('gp',0) - s2['fy0'].get('op',0) for s2 in segs}
-                    tot_seg_opex = sum(v for v in fy0_seg_opex.values())
-                    if tot_seg_opex > 0:
-                        sq[qk]['opex'] = round(q_opex * fy0_seg_opex.get(s['name'], 0) / tot_seg_opex)
-                s['quarters'] = sq
-            # Also write to per-line q_history for 1:1 lines
-            for ll in cfg.get('logic_lines', []):
-                qh = ll.setdefault('q_history', {})
-                qd = qh.get(qk, {})
-                if qd.get('rev'): continue  # already has data
-                if qd.get('volume') and qd.get('asp'): continue  # vol_asp: use own Q data
-                for s in segs:
-                    for l in s.get('logic_lines', []):
-                        if l['name'] == ll['name']:
-                            sq = s['quarters']
-                            if qk in sq:
-                                qh[qk] = qh.get(qk, {})
-                                qh[qk]['rev'] = round(sq[qk]['rev'] * l['split'])
-                                if sq[qk].get('gp'):
-                                    qh[qk]['gp'] = round(sq[qk]['gp'] * l['split'])
-                            break
-
         # ═══ Phase 1.3: Blend — actual Q profit rates → annual model assumptions ═══
         # For projection FYs with M∈{1,2,3}, blend actual Q margins with model
-        gl = cfg.get('global', {})
+        _line_idx_by_name = {}
+        for _i, _ll in enumerate(logic_lines):
+            _line_idx_by_name[_ll['name']] = _i
         cur_yr, cur_q, qi_b = q_start_yr, q_start_q, 0
         while qi_b < total_q:
             rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi_b)
@@ -548,29 +562,36 @@ def build(json_path, output_path=None):
                         for ll_cfg in seg.get('logic_lines', []):
                             ln_name = ll_cfg['name']
                             ll_obj = None
-                            for ll in cfg.get('logic_lines', []):
+                            for ll in logic_lines:
                                 if ll['name'] == ln_name: ll_obj = ll; break
                             if not ll_obj: continue
 
                             # GM blend
                             if seg_q_gps and sum(seg_q_revs) > 0:
                                 gm_actual = sum(seg_q_gps) / sum(seg_q_revs)
-                                gm_model = ll_obj['gm']['proj'][proj_i] if proj_i < len(ll_obj['gm']['proj']) else 0
-                                gm_blend = w_act * gm_actual + w_mod * gm_model
-                                ll_obj['gm']['proj'][proj_i] = round(gm_blend, 4)
+                                _blend_idx = _line_idx_by_name.get(ln_name)
+                                if _blend_idx is not None and proj_i < len(_PROJ_FYS):
+                                    proj_fy_blend = _PROJ_FYS[proj_i]
+                                    gm_model = _gm(_blend_idx, proj_fy_blend)
+                                    gm_blend = w_act * gm_actual + w_mod * gm_model
+                                    _gm_cache[(_blend_idx, proj_fy_blend)] = round(gm_blend, 4)
 
                             # Opex/Rev blend (requires OP data)
                             if seg_q_ops and seg_q_gps and sum(seg_q_revs) > 0:
                                 opex_actual = sum(seg_q_gps) - sum(seg_q_ops)
                                 om_actual = opex_actual / sum(seg_q_revs) if sum(seg_q_revs) > 0 else 0
                                 line_opex = ll_obj.get('opm')
-                                opm_arr = line_opex if line_opex else gl.get('opm', [])
-                                idx_o = 3 + proj_i
-                                om_model = opm_arr[idx_o] if idx_o < len(opm_arr) else 0.25
-                                om_blend = w_act * om_actual + w_mod * om_model
-                                if idx_o < len(opm_arr):
-                                    if line_opex: ll_obj['opm'][idx_o] = round(om_blend, 4)
-                                    else: gl.get('opm', [])[idx_o] = round(om_blend, 4)
+                                proj_fy_om = _PROJ_FYS[proj_i] if proj_i < len(_PROJ_FYS) else _PROJ_FYS[-1]
+                                if line_opex:
+                                    idx_o = 3 + proj_i
+                                    om_model = line_opex[idx_o] if idx_o < len(line_opex) else 0.25
+                                    om_blend = w_act * om_actual + w_mod * om_model
+                                    if idx_o < len(line_opex):
+                                        ll_obj['opm'][idx_o] = round(om_blend, 4)
+                                else:
+                                    om_model = _opm(proj_fy_om)
+                                    om_blend = w_act * om_actual + w_mod * om_model
+                                    _opm_cache[proj_fy_om] = round(om_blend, 4)
                     # Blend global opm (company-level, from all segments' actual Qs)
                     if M_seg > 0:
                         all_act_rev = 0; all_act_gp = 0; all_act_op = 0
@@ -587,11 +608,10 @@ def build(json_path, output_path=None):
                                     if ov is not None: all_act_op += ov
                         if all_act_rev > 0 and all_act_gp > 0 and all_act_op > 0:
                             co_om_act = (all_act_gp - all_act_op) / all_act_rev
-                            co_om_mod = gl.get('opm', [])[3 + proj_i] if 3 + proj_i < len(gl.get('opm', [])) else 0.25
+                            proj_fy_om = _PROJ_FYS[proj_i] if proj_i < len(_PROJ_FYS) else _PROJ_FYS[-1]
+                            co_om_mod = _opm(proj_fy_om)
                             co_blend = (M_seg / 4) * co_om_act + (1 - M_seg / 4) * co_om_mod
-                            idx_g = 3 + proj_i
-                            if idx_g < len(gl.get('opm', [])):
-                                gl.get('opm', [])[idx_g] = round(co_blend, 4)
+                            _opm_cache[proj_fy_om] = round(co_blend, 4)
             qi_b += fyc; cur_yr += 1; cur_q = 1
 
         # ═══ Phase 1.4: Q Driver Distribution — annual drivers → Q projections ═══
@@ -603,7 +623,7 @@ def build(json_path, output_path=None):
         # Pre-compute total_residual (Non-core absorbs all segment residuals)
         total_residual = 0; gp_residual = 0
         for seg in cfg.get('segments', []):
-            r = round(seg['fy0']['rev'] - sum(seg['fy0']['rev'] * l['split'] for l in seg.get('logic_lines', [])))
+            r = round(_gaap_seg(seg['name'], 'rev', FY0_KEY) - sum(_gaap_seg(seg['name'], 'rev', FY0_KEY) * l['split'] for l in seg.get('logic_lines', [])))
             if r > 0:
                 total_residual += r
                 gp_residual += round(r * seg.get('residual', {}).get('gm', 0))
@@ -612,10 +632,11 @@ def build(json_path, output_path=None):
             rem = 4 - cur_q + 1; fyc = min(rem, total_q - qi)
             if fyc == 4:
                 fy_idx = cur_yr - bfyr + 2; proj_i = fy_idx - 3
-                for ll in cfg.get('logic_lines', []):
+                proj_fy = f'FY{bfyr + proj_i + 1}E'
+                for line_idx, ll in enumerate(logic_lines):
                     ln = ll['name']; qh = ll.setdefault('q_history', {})
                     module = ll.get('module', 'yoy')
-                    us = ll.get('unit_scale', 100)
+                    us = _unit_scale(line_idx)
 
                     # ── Compute annual revenue & drivers ──
                     ann = 0; ann_vol = 0; ann_asp = 0
@@ -629,38 +650,23 @@ def build(json_path, output_path=None):
                                         ann += yr_data['rev'] * l['split']
                     elif 0 <= proj_i < proj_n:
                         if module == 'vol_asp':
-                            vp = ll['volume']['proj']
-                            t0 = ll['tiers'][0]
-                            # BBE tiers: use asp_base (Base scenario) for Q distribution
-                            if any(k in t0 for k in ('asp_bull', 'asp_base', 'asp_bear')):
-                                ap = t0.get('asp_base', t0.get('asp', [0]))
-                            else:
-                                ap = t0.get('asp', t0.get('asp_base', [0]))
-                            if proj_i < len(vp):
-                                # ASP array: if tier has no explicit asp_fy0, ap[0]=FY0,
-                                # proj values start at ap[1]. BBE arrays always FY0-first.
-                                asp_offset = 0 if 'asp_fy0' in t0 else 1
-                                ap_idx = min(proj_i + asp_offset, len(ap) - 1)
-                                ann_asp = ap[ap_idx]
-                                ann_vol = vp[proj_i]
-                                ann = ann_vol * ann_asp / us  # display units, matches actual Q rev
+                            us = _unit_scale(line_idx)
+                            ann_vol = _vol(line_idx, proj_fy)
+                            ann_asp = _asp(line_idx, proj_fy)
+                            ann = ann_vol * ann_asp / us if ann_vol else 0
                         elif module == 'backlog_burn':
-                            bp = ll['backlog']['burn']['proj']; ap_arr = ll.get('asp', [])
-                            # backlog_burn asp array: check if first element is FY0
-                            bb_asp_offset = 0 if ll.get('asp_fy0') is not None else 1
-                            bb_ap_idx = min(proj_i + bb_asp_offset, len(ap_arr) - 1)
-                            ann_asp = ap_arr[bb_ap_idx] if ap_arr else 0
-                            ann_vol = bp[proj_i]  # burn = "volume" in this context
-                            ann = ann_vol * ann_asp / us if ann_asp else 0  # display units
+                            ann_vol = _bb_field(line_idx, 'burn_rate', proj_fy)
+                            ann_asp = _asp(line_idx, proj_fy, 0)
+                            ann = ann_vol * ann_asp / _unit_scale(line_idx) if ann_asp else 0
                         else:  # yoy
-                            base = ll['yoy']['base']
                             for seg in cfg.get('segments', []):
                                 for l in seg.get('logic_lines', []):
                                     if l['name'] == ln:
-                                        f0 = seg['fy0']['rev'] * l['split']
+                                        f0 = _gaap_seg(seg['name'], 'rev', FY0_KEY) * l['split']
                                         cum = 1.0
                                         for bi in range(proj_i + 1):
-                                            if bi < len(base): cum *= (1 + base[bi])
+                                            prior_fy = f'FY{bfyr + bi + 1}E'
+                                            cum *= (1 + _yoy(line_idx, 'base', prior_fy))
                                         ann += round(f0 * cum)
                             # Non-core absorbs all segment residuals
                             if ln == 'Non-core':
@@ -697,19 +703,27 @@ def build(json_path, output_path=None):
                             if r_prev > 0: qoq_rates.append(r_curr / r_prev - 1)
                         _r = sum(qoq_rates) / len(qoq_rates) if qoq_rates else 0.02
                     else:
-                        _yoy = 0
+                        _yoy_rate = 0
                         if fy_idx < 3:
-                            fy_a = ['fy-2', 'fy-1', 'fy0']
                             if fy_idx > 0:
-                                _yoy = a[fy_a[fy_idx]]['rev'] / a[fy_a[fy_idx - 1]]['rev'] - 1
+                                fy_curr = f'FY{bfyr + fy_idx - 2}'
+                                fy_prev = f'FY{bfyr + fy_idx - 3}'
+                                _yoy_rate = _gaap('rev', fy_curr) / _gaap('rev', fy_prev) - 1
                         elif module == 'yoy':
-                            _yoy = ll['yoy']['base'][proj_i] if proj_i < len(ll['yoy']['base']) else 0
-                        elif module in ('vol_asp', 'backlog_burn'):
-                            _src = ll.get('volume', ll.get('backlog', {}).get('burn', {}))
-                            vp = _src.get('proj', [])
-                            if proj_i > 0 and proj_i - 1 < len(vp) and vp[proj_i - 1] > 0:
-                                _yoy = vp[proj_i] / vp[proj_i - 1] - 1
-                        _r = (1 + _yoy) ** (1 / 4) - 1 if _yoy > -0.99 else 0.02
+                            _yoy_rate = _yoy(line_idx, 'base', proj_fy)
+                        elif module == 'vol_asp':
+                            if proj_i > 0:
+                                prev_fy = f'FY{bfyr + proj_i}E'
+                                vol_prev = _vol(line_idx, prev_fy)
+                                if vol_prev > 0:
+                                    _yoy_rate = _vol(line_idx, proj_fy) / vol_prev - 1
+                        elif module == 'backlog_burn':
+                            if proj_i > 0:
+                                prev_fy_bb = f'FY{bfyr + proj_i}E'
+                                vol_prev_bb = _bb_field(line_idx, 'burn_rate', prev_fy_bb)
+                                if vol_prev_bb > 0:
+                                    _yoy_rate = _bb_field(line_idx, 'burn_rate', proj_fy) / vol_prev_bb - 1
+                        _r = (1 + _yoy_rate) ** (1 / 4) - 1 if _yoy_rate > -0.99 else 0.02
                     _r = max(-0.2, min(0.2, _r))  # cap for vol_asp/backlog weights only
 
                     # ── Compute seasonal weights ──
@@ -755,7 +769,7 @@ def build(json_path, output_path=None):
                         if ln == 'Non-core' and total_residual > 0:
                             residual_per_q = round(total_residual / 4)
                             gp_residual_per_q = round(gp_residual / 4)
-                            nc_gm = ll.get('gm', {}).get('proj', [ll.get('gm', {}).get('fy0', 0.22)])[0] if proj_i < len(ll.get('gm', {}).get('proj', [0.22])) else 0.22
+                            nc_gm = _br(line_idx, proj_fy) or 0.22
                             if not isinstance(nc_gm, (int, float)): nc_gm = 0.22
                             for j in range(4):
                                 qk = f'q{qi+j+1}'
@@ -862,7 +876,7 @@ def build(json_path, output_path=None):
                             else:  # backlog_burn
                                 qh[qk]['burn'] = remaining_vol * w[j]  # remaining_vol = Burn_budget
                                 qh[qk]['asp'] = remaining_asp * s[j]
-                                order_yr = ll['backlog']['order']['proj'][proj_i] if proj_i < len(ll['backlog']['order']['proj']) else 0
+                                order_yr = _bb_field(line_idx, 'order_rate', proj_fy)
                                 qh[qk]['order'] = order_yr * w[j]
 
                         # Debug output
@@ -879,9 +893,6 @@ def build(json_path, output_path=None):
                               f'revs={[round(x) for x in _revs]} sum={round(sum(_revs))} ann={round(ann)}')
 
             qi += fyc; cur_yr += 1; cur_q = 1
-
-    meta = cfg['meta']; actuals = cfg['actuals']; segments = cfg['segments']
-    logic_lines = cfg['logic_lines']; gl = cfg['global']
 
     # ═══ Phase 1.5: Market Data — yfinance snapshot ═══
     try:
@@ -901,17 +912,17 @@ def build(json_path, output_path=None):
     else: mcap_M = int(mcap_raw / 1e6) if mcap_raw else 0
     if meta.get('price'): price = meta['price']
     if meta.get('shares_m'): shares = meta['shares_m']
-    # Unit: explicit override > market heuristic > auto
-    if 'unit' in meta:
-        use_B = meta['unit'] == 'B'
-    else:
-        use_B = meta.get('market', '') in ('jp', 'kr', 'tw') or mcap_M > 1_000_000
+    # Unit: display_unit ("M"=millions) + display_decimals from JSON meta
+    display_unit = meta.get('display_unit', 'M')
+    display_decimals = meta.get('display_decimals', 1)
+    # B-mode: JPY/KRW/TWD display in billions (extra ÷1000)
+    use_B = meta.get('currency', '') in ('JPY', 'KRW', 'TWD')
     div = 1000 if use_B else 1
-    mcap_d = round(mcap_M / div, 1)
-    price_fmt = PRICE_FMT.get(meta.get('market', 'cn'), '¥#,##0.00')
+    mcap_d = round(mcap_M / div, display_decimals)
+    price_fmt = PRICE_FMT.get(meta.get('currency', 'USD'), '$#,##0.00')
 
     def sc(v):
-        return round(v / div, 2)
+        return round(v / div, display_decimals)
 
     bfyr = meta['base_fy']; proj_n = meta['proj_years']; s_off = meta['sotp_offset']
     q_actual_n = meta.get('q_actual_count', 0)
@@ -972,7 +983,7 @@ def build(json_path, output_path=None):
 
     print(f'  Cols: D=DS({DS}) FY0={get_column_letter(FY0)}({FY0}) '
           f'LC={get_column_letter(LC_ANNUAL)}({LC_ANNUAL}) SC={get_column_letter(SC)}({SC}) '
-          f'proj_n={proj_n} B_mode={use_B} div={div}'
+          f'proj_n={proj_n} unit={display_unit} div={div}'
           + (f' Q={get_column_letter(Q_START)}({Q_START})-{get_column_letter(Q_END)}({Q_END})' if has_q else ''))
 
     # ═══ Phase 2.1: §1 Reported Segments ═══
@@ -996,19 +1007,19 @@ def build(json_path, output_path=None):
     line_to_split = {}  # {ln: split_row}
 
     for seg in segments:
-        sn = seg['name']; fy0 = seg['fy0']; lls = seg['logic_lines']
-        srev = fy0['rev']
+        sn = seg['name']; lls = seg['logic_lines']
+        srev = _gaap_seg(sn, 'rev', FY0_KEY) or 0
         if is_ebitda_depth:
-            sebitda = fy0.get('ebitda', 0)
+            sebitda = _non_seg(sn, 'ebitda', FY0_KEY) or 0
         else:
-            sgp = fy0['gp']; sgm = sgp / srev if srev else 0; scost = srev - sgp
-        # History layer: fy-2 (FY23) and fy-1 (FY24). Optional — leave empty if segment didn't exist.
-        hist_years = [('fy-2', DS), ('fy-1', DS + 1)]
+            sgp = _gaap_seg(sn, 'gp', FY0_KEY) or 0; sgm = sgp / srev if srev else 0; scost = srev - sgp
+        # History layer: FY-2 and FY-1. Optional — leave empty if segment didn't exist.
+        hist_years = [(FY2_KEY, DS), (FY1_KEY, DS + 1)]
 
         # Revenue
         for yr_key, col in hist_years:
-            yr = seg.get(yr_key)
-            if yr: A(ws, R, col, sc(yr['rev']), fmt=NUM)
+            yr_val = _gaap_seg(sn, 'rev', yr_key)
+            if yr_val: A(ws, R, col, sc(yr_val), fmt=NUM)
             else: C(ws, R, col, '', fmt=NUM)
         A(ws, R, FY0, sc(srev), fmt=NUM)
         # Q columns: segment Q actuals
@@ -1022,6 +1033,12 @@ def build(json_path, output_path=None):
         C(ws, R, 2, sn, font=bf)
         C(ws, R, 3, 'Revenue', font=bf)
         R += 1
+        # name_cn line (if exists)
+        name_cn = seg.get('name_cn', '')
+        if name_cn:
+            C(ws, R, 2, name_cn, font=itf)
+            ws.cell(row=R, column=2).font = Font(color='808080', italic=True)
+            R += 1
 
         # Implied YoY (annual) + QoQ (quarterly)
         for yr_key, col in hist_years:
@@ -1058,8 +1075,8 @@ def build(json_path, output_path=None):
         if is_ebitda_depth:
             # ── EBITDA block (EBITDA first, margin formula after) ──
             for yr_key, col in hist_years:
-                yr = seg.get(yr_key)
-                if yr and yr.get('ebitda'): A(ws, R, col, sc(yr['ebitda']), fmt=NUM)
+                yr_val = _non_seg(sn, 'ebitda', yr_key)
+                if yr_val: A(ws, R, col, sc(yr_val), fmt=NUM)
                 else: C(ws, R, col, '', fmt=NUM)
             A(ws, R, FY0, sc(sebitda), fmt=NUM)
             if has_q:
@@ -1117,8 +1134,8 @@ def build(json_path, output_path=None):
             R += 1
 
             for yr_key, col in hist_years:
-                yr = seg.get(yr_key)
-                if yr: A(ws, R, col, sc(yr['gp']), fmt=NUM)
+                yr_val = _gaap_seg(sn, 'gp', yr_key)
+                if yr_val: A(ws, R, col, sc(yr_val), fmt=NUM)
                 else: C(ws, R, col, '', fmt=NUM)
             A(ws, R, FY0, sc(sgp), fmt=NUM)
             for qi in range(q_actual_n):
@@ -1152,7 +1169,7 @@ def build(json_path, output_path=None):
                 R += 1
         # Opex = GP - OI (OP depth only, OI = R + 1)
         op_r_est = R + 1
-        if not is_ebitda_depth and fy0.get('op') is not None:
+        if not is_ebitda_depth and _gaap_seg(sn, 'oi', FY0_KEY) is not None:
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{gp_r}-{cl}{op_r_est},"")', fmt=NUM)
@@ -1160,19 +1177,19 @@ def build(json_path, output_path=None):
             R += 1
 
         # OP row (if segment discloses operating profit)
-        fy0_op = fy0.get('op')
+        fy0_op = _gaap_seg(sn, 'oi', FY0_KEY)
         op_r = 0
         if fy0_op is not None:
             for yr_key, col in hist_years:
-                yr = seg.get(yr_key)
-                if yr and yr.get('op') is not None: A(ws, R, col, sc(yr['op']), fmt=NUM)
+                yr_val = _gaap_seg(sn, 'oi', yr_key)
+                if yr_val is not None: A(ws, R, col, sc(yr_val), fmt=NUM)
                 else: C(ws, R, col, '', fmt=NUM)
             A(ws, R, FY0, sc(fy0_op), fmt=NUM)
             for qi in range(q_actual_n):
                 qk = f'q{qi+1}'; qd = seg_quarters.get(qk, {})
                 _op = qd.get('op')
                 if not _op and qd.get('gp') and qd.get('rev'):
-                    _op_rate = gl.get('opm', [0.25]*8)[2]  # FY0 rate
+                    _op_rate = _gl('opex_rev', FY0_KEY)  # FY0 rate
                     _op = round(qd['gp'] - qd['rev'] * _op_rate)
                 if _op is not None: A(ws, R, Q_START + qi, sc(_op), fmt=NUM)
             for qi in range(q_proj_n):
@@ -1295,8 +1312,8 @@ def build(json_path, output_path=None):
     max_seg_depth = 0
     for seg in segments:
         fy0 = seg.get('fy0', {})
-        if fy0.get('op') is not None and DEPTH_RANK['op'] > max_seg_depth: max_seg_depth = DEPTH_RANK['op']
-        if fy0.get('ni') is not None and DEPTH_RANK['ni'] > max_seg_depth: max_seg_depth = DEPTH_RANK['ni']
+        if _gaap_seg(sn, 'oi', FY0_KEY) is not None and DEPTH_RANK['op'] > max_seg_depth: max_seg_depth = DEPTH_RANK['op']
+        if _gaap_seg(sn, 'ni', FY0_KEY) is not None and DEPTH_RANK['ni'] > max_seg_depth: max_seg_depth = DEPTH_RANK['ni']
 
     # ═══════════════ §2 Logic Lines ═══════════════
     s1_end = R  # Section 1 rows end here
@@ -1313,13 +1330,28 @@ def build(json_path, output_path=None):
     R += 1
     L = {}
     protected_rows = set()
-    for ll in logic_lines:
+    for line_idx, ll in enumerate(logic_lines):
         ln = ll['name']
         module_name = ll.get('module', 'yoy')
 
         # Dispatch to module
         _load_module(module_name)
         render_fn = MODULES[module_name]
+
+        # ── Inject per-line helpers into ctx (module renderers use these instead of ll['...']) ──
+        ctx['li'] = line_idx
+        ctx['_PROJ_FYS'] = _PROJ_FYS  # dynamic projection FY keys
+        ctx['_br_li'] = lambda fy: _br(line_idx, fy)
+        ctx['_yoy_li'] = lambda sc, fy: _yoy(line_idx, sc, fy)
+        ctx['_vol_li'] = lambda fy: _vol(line_idx, fy)
+        ctx['_asp_li'] = lambda fy, ti=0, sc=None: _asp(line_idx, fy, ti, sc)
+        ctx['_share_li'] = lambda fy, ti=0: _share(line_idx, fy, ti)
+        ctx['_cap_li'] = lambda fy: _capacity(line_idx, fy)
+        ctx['_util_li'] = lambda fy: _utilization(line_idx, fy)
+        ctx['_bb_li'] = lambda field, fy, sc=None: _bb_field(line_idx, field, fy, sc)
+        ctx['_has_bb_li'] = lambda ti=0: _has_bb(line_idx, ti)
+        ctx['_us_li'] = _unit_scale(line_idx)
+        ctx['_has_module_li'] = lambda m: _has_module(line_idx, m)
 
         result = render_fn(ws, R, ll, anchor_info, ctx)
         R = result['next_R']
@@ -1340,7 +1372,6 @@ def build(json_path, output_path=None):
                 break
 
         # ── Common: GM + GP (all modules) ──
-        gm = ll['gm']
         # Cost = Rev - GP (GP/OP depth only, GP = R + 2: Cost→GM→GP)
         if not is_ebitda_depth:
             for ci in range(DS, ALL_END + 1):
@@ -1358,13 +1389,15 @@ def build(json_path, output_path=None):
                     cl = get_column_letter(col)
                     C(ws, R, col, f'={cl}{si["gm"]}', fmt=PCT)
         else:
-            # Non-1:1 or EBITDA depth → I() assumption
-            for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1)]:
-                if gm.get(yr_key): I(ws, R, col, gm[yr_key], fmt=PCT)
+            # Non-1:1 → I() assumption (blend-aware via _gm cache)
+            for yr_fy, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1)]:
+                br_val = _gm(line_idx, yr_fy)
+                if br_val: I(ws, R, col, br_val, fmt=PCT)
                 else: C(ws, R, col, '', fmt=PCT)
-            if gm.get('fy0') is not None: I(ws, R, FY0, gm['fy0'], fmt=PCT)
-        for i, v in enumerate(gm['proj']):
-            I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+            br_fy0 = _gm(line_idx, FY0_KEY)
+            if br_fy0: I(ws, R, FY0, br_fy0, fmt=PCT)
+        for i, proj_fy in enumerate(_PROJ_FYS):
+            I(ws, R, FY0 + 1 + i, _gm(line_idx, proj_fy), fmt=PCT)
         C(ws, R, 3, 'EBITDA margin' if is_ebitda_depth else 'GM')
         gm_r = R; R += 1
 
@@ -1442,7 +1475,10 @@ def build(json_path, output_path=None):
 
             # OPM = OI/Rev (operating margin assumption)
             line_om_arr = ll.get('opm')
-            om_rates = line_om_arr if line_om_arr else gl.get('opm', [])
+            if line_om_arr:
+                om_rates = line_om_arr
+            else:
+                om_rates = [_opm(fy) for fy in _ALL_FYS]
             _om_r = R
             for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
                 cl = get_column_letter(col)
@@ -1496,7 +1532,10 @@ def build(json_path, output_path=None):
         if max_seg_depth >= DEPTH_RANK['ni']:
             # NM assumed → NI = Rev × NM → Tax = OI - NI (derived)
             line_nm = ll.get('tax_rate')  # JSON field: NM array
-            nm_rates = line_nm if (line_nm and isinstance(line_nm, list)) else gl.get('tax_rate', [])
+            if line_nm and isinstance(line_nm, list):
+                nm_rates = line_nm
+            else:
+                nm_rates = [_gl('tax_rate', fy) for fy in _ALL_FYS]
             _nm_r = R
             for yr_i, col in [(0, DS), (1, DS + 1), (2, FY0)]:
                 cl = get_column_letter(col)
@@ -1524,7 +1563,7 @@ def build(json_path, output_path=None):
                 _chk_gap(ws, R, col, result['rev_r'], lrev_row)
             for ci in range(FY0 + 1, LC_ANNUAL + 1):
                 _chk_gap(ws, R, ci, result['rev_r'], lrev_row)
-            gm_fy0 = gm.get('fy0', 0)
+            gm_fy0 = _br(line_idx, FY0_KEY)
             gm_label = f' ({gm_fy0:.0%} ' + ('EBITDA margin' if is_ebitda_depth else 'GM') + ')' if gm_fy0 else ''
             C(ws, R, 3, f'  Check Rev{gm_label}', font=itf)
             ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1557,7 +1596,7 @@ def build(json_path, output_path=None):
 
             if is_vol_asp:
                 # Q Volume row (mirrors annual Volume) — pre-fill from annual or q_history
-                vol_fy0 = ll['volume']['fy0']
+                vol_fy0 = _vol(line_idx, FY0_KEY)
                 for qi in range(q_actual_n + q_proj_n):
                     col = Q_START + qi
                     qv = q_hist.get(f'q{qi+1}', {}).get('volume')  # check all Qs
@@ -1569,37 +1608,31 @@ def build(json_path, output_path=None):
                         # Fallback: use annual volume for this Q's FY (divided evenly across 4 Qs)
                         fy_year = q_start_yr + (q_start_q - 1 + qi) // 4
                         fy_ofs = fy_year - bfyr - 1  # 0=FY26, 1=FY27, ...
-                        vp_arr = ll.get('q_volume', ll['volume']['proj'])
-                        ann_vol = vp_arr[min(max(0, fy_ofs), len(vp_arr) - 1)]
+                        proj_fy_v = _PROJ_FYS[fy_ofs] if 0 <= fy_ofs < len(_PROJ_FYS) else _PROJ_FYS[-1]
+                        ann_vol = _vol(line_idx, proj_fy_v)
                         I(ws, result['vol_r'], col, round(ann_vol / 4), fmt=INT)
                 # Q ASP row (first tier, mirrors annual ASP) — pre-fill from annual or q_history
                 asp_r = result.get('asp_rows', [0])[0] if result.get('asp_rows') else 0
                 if asp_r:
-                    t0 = ll['tiers'][0]
+                    is_bb = _has_bb(line_idx, 0)
                     # BBE tiers: use asp_base for Q distribution (same as driver)
-                    if any(k in t0 for k in ('asp_bull', 'asp_base', 'asp_bear')):
-                        asp_arr = t0.get('asp_base', t0.get('asp', [0]))
+                    if is_bb:
+                        asp_fy0 = _asp(line_idx, FY0_KEY, 0, 'base')
                     else:
-                        asp_arr = t0.get('asp', t0.get('asp_base', [0]))
-                    # If tier has no explicit asp_fy0, asp_arr[0] is FY0, proj starts at [1]
-                    asp_offset = 0 if 'asp_fy0' in t0 else 1
-                    asp_fy0_val = t0.get('asp_fy0') or asp_arr[0]
+                        asp_fy0 = _asp(line_idx, FY0_KEY, 0)
+                    _asp_fy0_val = _asp(line_idx, FY0_KEY, 0)
                     for qi in range(q_actual_n + q_proj_n):
                         col = Q_START + qi
                         q_asp = q_hist.get(f'q{qi+1}', {}).get('asp')  # check all Qs
                         if q_asp is not None:
                             I(ws, asp_r, col, q_asp, fmt=DEC)
                         elif qi < q_actual_n:
-                            I(ws, asp_r, col, asp_fy0_val, fmt=DEC)
+                            I(ws, asp_r, col, _asp_fy0_val, fmt=DEC)
                         else:
                             # Fallback: use annual ASP for the Q's fiscal year
                             fy_year = q_start_yr + (q_start_q - 1 + qi) // 4
-                            fy_ofs = fy_year - bfyr  # 0=FY0, 1=FY26, ...
-                            if asp_offset:
-                                ap_idx = min(fy_ofs, len(asp_arr) - 1)  # arr[0]=FY0
-                            else:
-                                ap_idx = min(max(0, fy_ofs - 1), len(asp_arr) - 1)  # arr[0]=FY26
-                            I(ws, asp_r, col, asp_arr[ap_idx], fmt=DEC)
+                            asp_fy = f'FY{fy_year}E' if fy_year > bfyr else f'FY{fy_year}'
+                            I(ws, asp_r, col, _asp(line_idx, asp_fy, 0), fmt=DEC)
                 # Q Revenue: =Q_Vol × Q_ASP / scale (mirrors annual formula)
                 for qi in range(q_actual_n + q_proj_n):
                     col = Q_START + qi; cl = get_column_letter(col)
@@ -1669,7 +1702,7 @@ def build(json_path, output_path=None):
                                 I(ws, result[rk], Q_START + qi, q_yoy, fmt=PCT)
                         elif 0 <= proj_idx < proj_n:
                             # Fallback: convert annual rate to QoQ
-                            _ann_rate = ll['yoy']['base'][proj_idx] if proj_idx < len(ll['yoy']['base']) else 0
+                            _ann_rate = _yoy(line_idx, 'base', _PROJ_FYS[proj_idx]) if proj_idx < len(_PROJ_FYS) else 0
                             _q_rate = (1 + _ann_rate) ** (1 / 4) - 1 if _ann_rate > -0.99 else 0.02
                             for arr_key, rk in yoy_keys:
                                 I(ws, result[rk], Q_START + qi, _q_rate, fmt=PCT)
@@ -1695,8 +1728,8 @@ def build(json_path, output_path=None):
     # ═══════════════ §2→§1 Fill ─ Section 1 FY26E+ ═══════════════
     for seg in segments:
         sn = seg['name']; lls = seg['logic_lines']
-        res_val = round(seg['fy0']['rev'] -
-                        sum(seg['fy0']['rev'] * l['split'] for l in lls))
+        res_val = round(_gaap_seg(seg['name'], 'rev', FY0_KEY) -
+                        sum(_gaap_seg(seg['name'], 'rev', FY0_KEY) * l['split'] for l in lls))
         res_val = res_val if res_val > 0 else 0
         res_gm = seg.get('residual', {}).get('gm', 0)
         si = seg_info.get(sn, {})
@@ -1788,7 +1821,7 @@ def build(json_path, output_path=None):
     # ── Non-core absorbs all segment residuals ──
     total_residual = 0; gp_residual = 0
     for seg in segments:
-        r = round(seg['fy0']['rev'] - sum(seg['fy0']['rev'] * l['split'] for l in seg.get('logic_lines', [])))
+        r = round(_gaap_seg(seg['name'], 'rev', FY0_KEY) - sum(_gaap_seg(seg['name'], 'rev', FY0_KEY) * l['split'] for l in seg.get('logic_lines', [])))
         if r > 0:
             total_residual += r
             gp_residual += round(r * seg.get('residual', {}).get('gm', 0))
@@ -1833,14 +1866,22 @@ def build(json_path, output_path=None):
                 A(ws, nc_rev_r, ci, 0, fmt=NUM)
         # Write EBITDA = company gap (all years, including 0)
         if nc_gp_r:
-            for fy_idx, fy_key, col in [(0,'fy-2',DS),(1,'fy-1',DS+1),(2,'fy0',FY0)]:
-                seg_sum = sum(s.get(fy_key,{}).get('ebitda',0) for s in cfg.get('segments',[]))
-                cv = cfg['actuals'][fy_key]['ebitda']
+            gap_fy0 = 0
+            _asm_nc = raw.get('assumptions', {}).get('noncore_gap', {})
+            for new_fy, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1), (FY0_KEY, FY0)]:
+                seg_sum = sum((_non_seg(s['name'], 'ebitda', new_fy) or 0) for s in cfg.get('segments', []))
+                cv = _non('ebitda', new_fy)
                 gap_val = round(cv - seg_sum)
+                if new_fy == FY0_KEY: gap_fy0 = gap_val
                 A(ws, nc_gp_r, col, sc(gap_val), fmt=NUM)
-            # Projected FY columns: gap = 0
+            # Projected FY columns: carry FY0 gap (agent override via assumptions.noncore_gap)
             for ci in range(FY0 + 1, LC_ANNUAL + 1):
-                A(ws, nc_gp_r, ci, 0, fmt=NUM)
+                fy_proj = f'FY{bfyr + (ci - FY0)}E'
+                proj_gap = _asm_nc.get(fy_proj, {}).get('annual')
+                if proj_gap is not None:
+                    A(ws, nc_gp_r, ci, sc(proj_gap), fmt=NUM)
+                else:
+                    A(ws, nc_gp_r, ci, sc(gap_fy0), fmt=NUM)
             # Q gap = company Q ebitda - Σ seg Q ebitda
             if has_q and 'quarters' in cfg:
                 for i, qk in enumerate(['q1','q2','q3','q4']):
@@ -1852,10 +1893,10 @@ def build(json_path, output_path=None):
 
     # ── Q Columns: post-Fill GM + opm extension ──
     if has_q:
-        for ll in logic_lines:
+        for line_idx, ll in enumerate(logic_lines):
             ln = ll['name']; rows = L.get(ln)
             if not rows: continue
-            gm = ll['gm']; rev_r = rows['rev_r']; gm_r = rows['gm_r']
+            rev_r = rows['rev_r']; gm_r = rows['gm_r']
             seg_name = line_to_seg.get(ln, ''); si = seg_info.get(seg_name, {})
             s1_gp_row = si.get('gp', 0); s1_rev_row = si.get('rev', 0)
             is_1to1 = ln in one_to_one
@@ -1867,14 +1908,17 @@ def build(json_path, output_path=None):
                 # GM: 1:1 actual Qs use S1 GP/Rev (real quarterly margin)
                 if is_1to1 and s1_gp_row and s1_rev_row and is_q_actual:
                     CF(ws, gm_r, qi, f'=IFERROR({cl}{s1_gp_row}/{cl}{s1_rev_row},"")', fmt=PCT)
-                elif is_1to1 and not is_q_actual and 0 <= proj_idx < len(gm.get('proj', [])):
-                    I(ws, gm_r, qi, gm['proj'][proj_idx], fmt=PCT)
+                elif is_1to1 and not is_q_actual and proj_idx < len(_PROJ_FYS):
+                    I(ws, gm_r, qi, _gm(line_idx, _PROJ_FYS[proj_idx]), fmt=PCT)
                 else:
-                    I(ws, gm_r, qi, gm.get('fy0', 0), fmt=PCT)
+                    I(ws, gm_r, qi, _gm(line_idx, FY0_KEY), fmt=PCT)
                 cur_q += 1
                 if cur_q > 4: cur_q = 1; cur_yr += 1
             # OPM → Q columns (1:1 actual Qs use S1 (GP−OP)/Rev)
-            om_arr = ll.get('opm') or gl.get('opm', [])
+            if ll.get('opm'):
+                om_arr = ll['opm']
+            else:
+                om_arr = [_opm(fy) for fy in _ALL_FYS]
             cur_yr, cur_q = q_start_yr, q_start_q
             for scan_r in range(rev_r, rows.get('op_r', rev_r + 6)):
                 cv = str(ws.cell(row=scan_r, column=3).value or '')
@@ -1895,25 +1939,10 @@ def build(json_path, output_path=None):
     # Collapse Section 1 (segment rows only)
     ws.row_dimensions.group(s1_start, s1_end, outline_level=1, hidden=True)
 
-    # ═══════════════ Overall rates ═══════════════
-    s2_end = R  # Section 2 ends before Global; D/E clear stops here
+    # ═══════════════ Rate Bridge (unified: actuals + rates + gaps, all depths) ═══════════════
+    s2_end = R  # Section 2 ends before Bridge; D/E clear stops here
     R += 1  # blank row
-    # Overall Opex/Rev (GP depth only — Opex is derived for OP/EBITDA depth)
-    opex_r = 0
-    if meta.get('p&l_depth') == 'gp':
-        for ci in range(DS, ALL_END + 1):
-            C(ws, R, ci, 0, fmt=PCT)
-        C(ws, R, 2, 'Overall', font=bf)
-        C(ws, R, 3, 'Opex/Rev', font=nf)
-        opex_r = R; R += 1
-    # Overall (OI-NI)/Rev (all depths)
-    for ci in range(DS, ALL_END + 1):
-        C(ws, R, ci, 0, fmt=PCT)
-    C(ws, R, 2, 'Overall', font=bf)
-    C(ws, R, 3, '(OI-NI)/Rev', font=nf)
-    tax_r = R; R += 1
-
-    # ═══ Hidden Bridge: actuals + gap formulas (all depths, collapsed) ═══
+    C(ws, R, 1, 'Rate Bridge', font=bf12)
     R += 1
     _ds_col = get_column_letter(DS)
     _fy0_col = get_column_letter(FY0)
@@ -1922,20 +1951,22 @@ def build(json_path, output_path=None):
     rev_act_cells = gp_act_cells = op_act_cells = ebitda_act_cells = ni_act_cells = tax_act_cells = da_act_cells = {}
     q_act_cells = {}
 
-    # Helper for Q actuals, reusable
+    # Helper for Q actuals — reads new-format actuals (FY-inside)
     def _q_act(mkey, qkey):
         if not has_q: return
         q_act_cells[qkey] = {}
-        for _qi, _qk in enumerate(['q1','q2','q3','q4'][:min(q_actual_n,4)]):
-            _v = cfg.get('quarters',{}).get(_qk,{}).get(mkey,0)
-            if not _v:
-                _v = sum(_s.get('quarters',{}).get(_qk,{}).get(mkey,0) for _s in cfg.get('segments',[]))
-            if _v: I(ws, R, Q_START+_qi, sc(_v), fmt=NUM)
-            q_act_cells[qkey][_qk] = R
+        NON_GAAP_FIELDS = {'ebitda'}
+        for _qi, _qk in enumerate(['Q1','Q2','Q3','Q4'][:min(q_actual_n,4)]):
+            if mkey in NON_GAAP_FIELDS:
+                _v = _non(mkey, FY0_KEY, _qk)
+            else:
+                _v = _gaap(mkey, FY0_KEY, _qk)
+            if _v: A(ws, R, Q_START+_qi, sc(_v), fmt=NUM)
+            q_act_cells[qkey][_qk.lower()] = R
 
-    # Rev actuals (all depths)
-    for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-        I(ws, R, ci, sc(cfg['actuals'][fy]['rev']), fmt=NUM)
+    # ── Actuals (all depths, collapsed) — A() = gray bg actuals style ──
+    for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+        A(ws, R, ci, sc(_gaap('rev', new_fy)), fmt=NUM)
     C(ws, R, 3, '  actuals Rev', font=itf)
     _q_act('rev', 'Revenue')
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1943,9 +1974,8 @@ def build(json_path, output_path=None):
     rev_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
     R += 1
 
-    # GP actuals (all depths)
-    for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-        I(ws, R, ci, sc(cfg['actuals'][fy].get('gp', 0)), fmt=NUM)
+    for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+        A(ws, R, ci, sc(_gaap('gp', new_fy)), fmt=NUM)
     C(ws, R, 3, '  actuals GP', font=itf)
     _q_act('gp', 'GP')
     ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1953,10 +1983,9 @@ def build(json_path, output_path=None):
     gp_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
     R += 1
 
-    # OI actuals (OP + EBITDA depth)
     if not is_gp_depth:
-        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-            I(ws, R, ci, sc(cfg['actuals'][fy].get('op', 0)), fmt=NUM)
+        for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+            A(ws, R, ci, sc(_gaap('oi', new_fy)), fmt=NUM)
         C(ws, R, 3, '  actuals OI', font=itf)
         _q_act('op', 'OI')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1964,10 +1993,10 @@ def build(json_path, output_path=None):
         op_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-    # EBITDA depth extras: ebitda, ni, tax actuals + gap formulas
+    # EBITDA depth extras: ebitda, ni, tax, da actuals
     if is_ebitda_depth:
-        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-            I(ws, R, ci, sc(cfg['actuals'][fy].get('ebitda', 0)), fmt=NUM)
+        for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+            A(ws, R, ci, sc(_non('ebitda', new_fy)), fmt=NUM)
         C(ws, R, 3, '  actuals EBITDA', font=itf)
         _q_act('ebitda', 'EBITDA')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1975,8 +2004,8 @@ def build(json_path, output_path=None):
         ebitda_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-            I(ws, R, ci, sc(cfg['actuals'][fy].get('ni', 0)), fmt=NUM)
+        for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+            A(ws, R, ci, sc(_gaap('ni', new_fy)), fmt=NUM)
         C(ws, R, 3, '  actuals NI', font=itf)
         _q_act('ni', 'NI')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1984,8 +2013,8 @@ def build(json_path, output_path=None):
         ni_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-            I(ws, R, ci, sc(cfg['actuals'][fy].get('tax', 0)), fmt=NUM)
+        for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+            A(ws, R, ci, sc(_gaap('tax', new_fy)), fmt=NUM)
         C(ws, R, 3, '  actuals Tax', font=itf)
         _q_act('tax', 'Tax')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -1993,8 +2022,8 @@ def build(json_path, output_path=None):
         tax_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-        for ci, fy in [(DS, 'fy-2'), (DS + 1, 'fy-1'), (FY0, 'fy0')]:
-            I(ws, R, ci, sc(cfg['actuals'][fy].get('da', 0)), fmt=NUM)
+        for ci, new_fy in [(DS, FY2_KEY), (DS + 1, FY1_KEY), (FY0, FY0_KEY)]:
+            A(ws, R, ci, sc(_gaap('da', new_fy)), fmt=NUM)
         C(ws, R, 3, '  actuals D&A', font=itf)
         _q_act('da', 'D&A')
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
@@ -2002,24 +2031,37 @@ def build(json_path, output_path=None):
         da_act_cells = {fy: f'{get_column_letter(col)}{R}' for fy, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]}
         R += 1
 
-        # Gap formulas (Excel, FY0 single-year anchor — stable for modeling)
+    # ── Opex/Rev (visible, all depths) — filled in P&L tail ──
+    for ci in range(DS, ALL_END + 1):
+        C(ws, R, ci, 0, fmt=PCT)
+    C(ws, R, 3, 'Opex/Rev', font=nf)
+    opex_r = R; R += 1
+
+    # ── (OI-NI)/Rev (visible, all depths) — filled in P&L tail ──
+    for ci in range(DS, ALL_END + 1):
+        C(ws, R, ci, 0, fmt=PCT)
+    C(ws, R, 3, '(OI-NI)/Rev', font=nf)
+    tax_r = R; R += 1
+
+    # ── Gap rows (collapsed, EBITDA depth only) ──
+    if is_ebitda_depth:
         C(ws, R, DS, f'=({ebitda_act_cells["fy0"]}-{gp_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
-        C(ws, R, 3, '  gap_gp (EBITDA→GP)', font=itf)
+        C(ws, R, 3, '  gap_gp (EBITDA→GP anchor)', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         gap_gp_ref = f'${_ds_col}${R}'; R += 1
 
         C(ws, R, DS, f'=({ebitda_act_cells["fy0"]}-{op_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
-        C(ws, R, 3, '  gap_oi (EBITDA→OI)', font=itf)
+        C(ws, R, 3, '  gap_oi (EBITDA→OI anchor)', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         gap_oi_ref = f'${_ds_col}${R}'; R += 1
 
         C(ws, R, DS, f'=({op_act_cells["fy0"]}-{ni_act_cells["fy0"]})/{rev_act_cells["fy0"]}', fmt=PCT)
-        C(ws, R, 3, '  gap_ni (OI→NI)', font=itf)
+        C(ws, R, 3, '  gap_ni (OI→NI anchor)', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         gap_ni_ref = f'${_ds_col}${R}'; R += 1
 
         C(ws, R, DS, f'={tax_act_cells["fy0"]}/{op_act_cells["fy0"]}', fmt=PCT)
-        C(ws, R, 3, '  tax_rate', font=itf)
+        C(ws, R, 3, '  tax_rate (Tax/OI anchor)', font=itf)
         ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
         tax_rate_ref = f'${_ds_col}${R}'; R += 1
 
@@ -2037,7 +2079,6 @@ def build(json_path, output_path=None):
         _blabel += f' — {_bnote[:120]}'
     C(ws, R, 1, _blabel, font=itf)
     R += 1
-    a = actuals
     LN = [ln['name'] for ln in logic_lines]
 
     residual_term = f'+{sc(total_residual)}' if total_residual else ''
@@ -2170,9 +2211,9 @@ def build(json_path, output_path=None):
     # OI (depth-aware: GP=A/F, OP=F/F, EBITDA=F/F)
     if is_gp_depth:
         # GP depth: OI not from lines — keep actuals for historical, global OPM for projected
-        A(ws, R, DS, sc(a['fy-2']['op']), fmt=NUM)
-        A(ws, R, DS + 1, sc(a['fy-1']['op']), fmt=NUM)
-        A(ws, R, FY0, sc(a['fy0']['op']), fmt=NUM)
+        A(ws, R, DS, sc(_gaap('oi', FY2_KEY)), fmt=NUM)
+        A(ws, R, DS + 1, sc(_gaap('oi', FY1_KEY)), fmt=NUM)
+        A(ws, R, FY0, sc(_gaap('oi', FY0_KEY)), fmt=NUM)
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
             C(ws, R, ci, f'={cl}{tgp}-{cl}{trev}*{cl}{opex_r}', fmt=NUM)
@@ -2248,8 +2289,8 @@ def build(json_path, output_path=None):
                 C(ws, R, qi, f'={cl}{trev}*{gap_oi_ref}', fmt=NUM)
         da_actuals_r = 0
     else:
-        da_fy2 = a['fy-2'].get('da', 0); da_fy1 = a['fy-1'].get('da', 0)
-        da_fy0 = a['fy0'].get('da', 0)
+        da_fy2 = _gaap('da', FY2_KEY); da_fy1 = _gaap('da', FY1_KEY)
+        da_fy0 = _gaap('da', FY0_KEY)
         A(ws, R, DS, sc(da_fy2), fmt=NUM)
         A(ws, R, DS + 1, sc(da_fy1), fmt=NUM)
         A(ws, R, FY0, sc(da_fy0), fmt=NUM)
@@ -2320,7 +2361,7 @@ def build(json_path, output_path=None):
     _ebitda_end = R; R += 1
 
     # Tax + NI (EBITDA depth: F/F gap-derived; GP/OP depth: A/F)
-    nm_val = gl.get('tax_rate', 0)  # global NM assumption
+    # gap_val = (OI-NI)/Rev — the gap rate between operating income and net income
     _ni_start = R
     if is_ebitda_depth:
         # EBITDA depth: Tax = OI × tax_rate (all years formula)
@@ -2332,13 +2373,13 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi)
                 C(ws, R, qi, f'={cl}{op}*{tax_rate_ref}', fmt=NUM)
     else:
-        # GP/OP depth: Tax = OI − NI (historical actuals, projected formula)
-        A(ws, R, DS, sc(a['fy-2'].get('tax', 0)), fmt=NUM)
-        A(ws, R, DS + 1, sc(a['fy-1'].get('tax', 0)), fmt=NUM)
-        A(ws, R, FY0, sc(a['fy0'].get('tax', 0)), fmt=NUM)
+        # GP/OP depth: Tax = Rev × (OI-NI)/Rev (formula reference, historical actuals)
+        A(ws, R, DS, sc(_gaap('tax', FY2_KEY)), fmt=NUM)
+        A(ws, R, DS + 1, sc(_gaap('tax', FY1_KEY)), fmt=NUM)
+        A(ws, R, FY0, sc(_gaap('tax', FY0_KEY)), fmt=NUM)
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
+            C(ws, R, ci, f'={cl}{trev}*{cl}{tax_r}', fmt=NUM)
         if has_q:
             for qi in range(q_actual_n):
                 qk = f'q{qi+1}'
@@ -2346,10 +2387,10 @@ def build(json_path, output_path=None):
                 if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('tax', 0)
                 cl = get_column_letter(Q_START + qi)
                 if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-                else: C(ws, R, Q_START + qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
+                else: C(ws, R, Q_START + qi, f'={cl}{trev}*{cl}{tax_r}', fmt=NUM)
             for qi in range(Q_START + q_actual_n, Q_END + 1):
                 cl = get_column_letter(qi)
-                C(ws, R, qi, f'={cl}{op}-({cl}{trev}*{nm_val})', fmt=NUM)
+                C(ws, R, qi, f'={cl}{trev}*{cl}{tax_r}', fmt=NUM)
     C(ws, R, 3, 'Tax', font=bf)
     tv = R; R += 1
 
@@ -2363,13 +2404,13 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(qi)
                 C(ws, R, qi, f'={cl}{op}-{cl}{trev}*{gap_ni_ref}', fmt=NUM)
     else:
-        # GP/OP depth: NI = Rev × NM (historical actuals, projected formula)
-        A(ws, R, DS, sc(a['fy-2']['ni']), fmt=NUM)
-        A(ws, R, DS + 1, sc(a['fy-1']['ni']), fmt=NUM)
-        A(ws, R, FY0, sc(a['fy0']['ni']), fmt=NUM)
+        # GP/OP depth: NI = OI − Rev × (OI-NI)/Rev (formula reference, historical actuals)
+        A(ws, R, DS, sc(_gaap('ni', FY2_KEY)), fmt=NUM)
+        A(ws, R, DS + 1, sc(_gaap('ni', FY1_KEY)), fmt=NUM)
+        A(ws, R, FY0, sc(_gaap('ni', FY0_KEY)), fmt=NUM)
         for ci in range(FY0 + 1, LC_ANNUAL + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'={cl}{trev}*{nm_val}', fmt=NUM)
+            C(ws, R, ci, f'={cl}{op}-{cl}{tv}', fmt=NUM)
         if has_q:
             for qi in range(q_actual_n):
                 qk = f'q{qi+1}'
@@ -2377,10 +2418,10 @@ def build(json_path, output_path=None):
                 if not qv: qv = cfg.get('quarters', {}).get(qk, {}).get('ni', 0)
                 cl = get_column_letter(Q_START + qi)
                 if qv: A(ws, R, Q_START + qi, sc(qv), fmt=NUM)
-                else: C(ws, R, Q_START + qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
+                else: C(ws, R, Q_START + qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
             for qi in range(Q_START + q_actual_n, Q_END + 1):
                 cl = get_column_letter(qi)
-                C(ws, R, qi, f'={cl}{trev}*{nm_val}', fmt=NUM)
+                C(ws, R, qi, f'={cl}{op}-{cl}{tv}', fmt=NUM)
     C(ws, R, 3, 'Net Income', font=bf)
     ni_r = R; R += 1
 
@@ -2489,15 +2530,16 @@ def build(json_path, output_path=None):
                     ws.column_dimensions.group(cc, cc, outline_level=1, hidden=True)
             qi += fyc; cur_yr += 1; cur_q = 1
 
-    # ── Fix Overall Opex/Rev formulas (GP depth only) ──
+    # ── Rate Bridge: fill Opex/Rev + (OI-NI)/Rev (all depths) ──
     if meta.get('p&l_depth') == 'gp':
+        # GP depth: historical = formula, projected = assumption
         for ci in [DS, DS + 1, FY0]:
             cl = get_column_letter(ci)
-            CF(ws, opex_r, ci, f'=IFERROR({cl}{op}/{cl}{trev},"")', fmt=PCT)
-        for i, ov_val in enumerate(gl.get('opm', [0]*8)[3:], FY0 + 1):
-            I(ws, opex_r, i, ov_val, fmt=PCT)
+            CF(ws, opex_r, ci, f'=IFERROR(({cl}{tgp}-{cl}{op})/{cl}{trev},"")', fmt=PCT)
+        for i, proj_fy in enumerate(_PROJ_FYS, FY0 + 1):
+            I(ws, opex_r, i, _opm(proj_fy), fmt=PCT)
         if has_q:
-            _opms = gl.get('opm', [0.25]*8)
+            _opms = [_opm(fy) for fy in _ALL_FYS]
             cur_yr, cur_q = q_start_yr, q_start_q
             for qi in range(q_actual_n + q_proj_n):
                 _py = cur_yr - bfyr - 1
@@ -2506,16 +2548,37 @@ def build(json_path, output_path=None):
                 I(ws, opex_r, Q_START + qi, _opms[_idx], fmt=PCT)
             cur_q += 1
             if cur_q > 4: cur_q = 1; cur_yr += 1
-    # Overall (OI-NI)/Rev: historical = (OI-NI)/Rev, FY26+ from assumption
+    else:
+        # OP/EBITDA depth: Opex/Rev = (GP−OI)/Rev (derived from P&L)
+        for ci in range(DS, ALL_END + 1):
+            cl = get_column_letter(ci)
+            CF(ws, opex_r, ci, f'=IFERROR(({cl}{tgp}-{cl}{op})/{cl}{trev},"")', fmt=PCT)
+
+    # (OI-NI)/Rev: historical = formula, projected depends on depth
     for ci in [DS, DS + 1, FY0]:
         cl = get_column_letter(ci)
         CF(ws, tax_r, ci, f'=IFERROR(({cl}{op}-{cl}{ni_r})/{cl}{trev},"")', fmt=PCT)
-    nm_val = gl.get('tax_rate', 0)
-    for ci in range(FY0 + 1, LC_ANNUAL + 1):
-        I(ws, tax_r, ci, nm_val, fmt=PCT)
-    if has_q:
-        for qi in range(q_actual_n + q_proj_n):
-            I(ws, tax_r, Q_START + qi, nm_val, fmt=PCT)
+    if is_ebitda_depth:
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            C(ws, tax_r, ci, f'={gap_ni_ref}', fmt=PCT)
+        if has_q:
+            for qi in range(q_actual_n + q_proj_n):
+                C(ws, tax_r, Q_START + qi, f'={gap_ni_ref}', fmt=PCT)
+    else:
+        _gap_hist = []
+        for _fy in [FY2_KEY, FY1_KEY, FY0_KEY]:
+            _oi_v = _gaap('oi', _fy); _ni_v = _gaap('ni', _fy); _rev_v = _gaap('rev', _fy)
+            if _oi_v and _ni_v and _rev_v and _rev_v > 0:
+                _gap_hist.append((_oi_v - _ni_v) / _rev_v)
+        _avg_gap = round(sum(_gap_hist) / len(_gap_hist), 4) if _gap_hist else _gl('gap_oi_ni', FY0_KEY)
+        for ci in range(FY0 + 1, LC_ANNUAL + 1):
+            proj_idx = ci - FY0 - 1
+            rate_val = _gl('gap_oi_ni', _PROJ_FYS[proj_idx]) if 0 <= proj_idx < len(_PROJ_FYS) else 0
+            I(ws, tax_r, ci, rate_val or _avg_gap, fmt=PCT)
+        if has_q:
+            _q_rate = _gl('gap_oi_ni', FY0_KEY) or _avg_gap
+            for qi in range(q_actual_n + q_proj_n):
+                I(ws, tax_r, Q_START + qi, _q_rate, fmt=PCT)
 
     # ═══════════════ §4 SOTP - Logic ═══════════════
     R += 1
@@ -2637,8 +2700,8 @@ def build(json_path, output_path=None):
     for seg in segments:
         sn = seg['name']; lls = seg['logic_lines']
         lmethods = [LL_SOTP[l['name']][1] for l in lls]
-        w_mult = sum(lmethods[i] * seg['fy0']['rev'] * lls[i]['split']
-                     for i in range(len(lls))) / seg['fy0']['rev'] if seg['fy0']['rev'] > 0 else 10
+        w_mult = sum(lmethods[i] * _gaap_seg(seg['name'], 'rev', FY0_KEY) * lls[i]['split']
+                     for i in range(len(lls))) / _gaap_seg(seg['name'], 'rev', FY0_KEY) if _gaap_seg(seg['name'], 'rev', FY0_KEY) > 0 else 10
         mult_s = round(w_mult)
         method_s = LL_SOTP[lls[0]['name']][0]
         metric_r_s, metric_label_s = _sotp_metric_ref(method_s)
@@ -2748,7 +2811,7 @@ def build(json_path, output_path=None):
         C(ws, R, SC, round(fwd_pe, 1), fmt='0.0x')
         R += 1
     if hi52:
-        currency_prefix = PRICE_FMT.get(meta.get('market', 'cn'), '¥#,##0.00').replace('#,##0.00','').replace('#,##0','').rstrip()
+        currency_prefix = PRICE_FMT.get(meta.get('currency', 'USD'), '$#,##0.00').replace('#,##0.00','').replace('#,##0','').rstrip()
         C(ws, R, 3, '52W Range')
         C(ws, R, SC, f'{currency_prefix}{lo52:.0f} - {currency_prefix}{hi52:.0f}')
         R += 1
@@ -2802,9 +2865,17 @@ def build(json_path, output_path=None):
             continue
         rf = '=' + '+'.join(rp)
         gf = '=' + '+'.join(gp)
-        # NI = Rev × NM (NM from global assumption)
         rev_total_sc = f'({rf[1:]})' if rf.startswith('=') else rf
-        nf_s = f'={rev_total_sc}*{syc}{tax_r}'
+        # NI/EBITDA metric — mirrors main P&L logic exactly:
+        #   EBITDA depth: metric = Σ(line_rev × EBITDA_margin) = gf (already EBITDA)
+        #   GP/OP depth: OI = GP − Rev×Opex/Rev, NI = OI − Rev×(OI-NI)/Rev
+        #     → NI = GP − Rev×(Opex/Rev_cell) − Rev×((OI-NI)/Rev_cell)
+        if ev_only:
+            nf_s = gf  # EBITDA = sum of line EBITDA (gf already computes this)
+        else:
+            _opex_cell = f'{syc}{opex_r}'
+            _gap_cell = f'{syc}{tax_r}'
+            nf_s = f'={gf[1:]}-({rev_total_sc}*{_opex_cell})-({rev_total_sc}*{_gap_cell})'
         pf = f'=IFERROR({mref}/({nf_s[1:]}),"")'
         C(ws, R, 2, label, font=bf)
         C(ws, R, DS, rf, fmt=NUM)

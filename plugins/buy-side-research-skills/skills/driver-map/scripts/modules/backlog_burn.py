@@ -3,11 +3,6 @@
 Contract:
   render(ws, R, ll, anchor_info, ctx) -> dict
 
-  Input:  logic_line JSON with module="backlog_burn"
-          beg_backlog: {fy0, unit}
-          order_rate: {fy0, proj} | {bull, base, bear} (BBE optional)
-          burn_rate:  {fy0, proj} | {bull, base, bear}
-
   Chain:  End_Backlog_t = Beg_Backlog_t × (1 + Order_Rate_t − Burn_Rate_t)
           Beg_Backlog_{t+1} = End_Backlog_t  (cross-column chain link)
 
@@ -17,19 +12,24 @@ Contract:
 from openpyxl.utils import get_column_letter
 
 
-def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
-    """Write Order Rate or Burn Rate rows. Returns (active_row, next_R, yb, ys, ye)."""
+def _write_bb_rate(ws, R, line_idx, field, label, ctx):
+    """Write Order Rate or Burn Rate rows using FY-keyed access. Returns (active_r, next_R, yb, ys, ye)."""
     C = ctx['C']; I = ctx['I']; CF = ctx.get('CF', C)
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     PCT = ctx['PCT']; NUM = ctx['NUM']; DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']
-    proj_n = ctx['proj_n']
+    proj_n = ctx['proj_n']; bfyr = ctx['bfyr']
+    _bb_li = ctx.get('_bb_li', lambda f, fy, sc=None: 0)
+    _PROJ_FYS = ctx.get('_PROJ_FYS', [])
+    FY0_KEY = f'FY{bfyr}'
+    FY1_KEY = f'FY{bfyr-1}'; FY2_KEY = f'FY{bfyr-2}'
 
-    is_bbe = isinstance(rate_data, dict) and 'bull' in rate_data
+    # Check if BBE (bull/base/bear scenarios exist for this field)
+    has_bull = _bb_li(field, FY0_KEY, 'bull') != 0 or any(
+        _bb_li(field, fy, 'bull') for fy in _PROJ_FYS)
+    is_bbe = has_bull
     yb = ys = ye = 0
 
     if is_bbe:
-        bull = rate_data['bull']; base = rate_data['base']; bear = rate_data['bear']
-
         # Active row
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
@@ -40,12 +40,14 @@ def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
         active_r = R; R += 1
 
         # Hidden BBE rows
-        for arr, lbl in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
+        for scenario, lbl in [('bull', 'Bull'), ('base', 'Base'), ('bear', 'Bear')]:
             for ci in range(DS, DS + 2):
                 C(ws, R, ci, '', fmt=PCT)
             C(ws, R, FY0, '', fmt=PCT)
-            for i, v in enumerate(arr):
-                I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+            I(ws, R, FY0, _bb_li(field, FY0_KEY, scenario), fmt=PCT)
+            for i in range(proj_n):
+                if i < len(_PROJ_FYS):
+                    I(ws, R, FY0 + 1 + i, _bb_li(field, _PROJ_FYS[i], scenario), fmt=PCT)
             C(ws, R, 3, f'    {lbl}', font=itf)
             ws.row_dimensions[R].hidden = True
             if lbl == 'Bull':   yb = R
@@ -65,9 +67,10 @@ def _write_bb_rate(ws, R, rate_data, label, ctx, is_order):
         # Simple rate — no BBE
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
-        I(ws, R, FY0, rate_data.get('fy0', rate_data.get('proj', [0])[0] if rate_data.get('proj') else 0), fmt=PCT)
-        for i, v in enumerate(rate_data.get('proj', [])):
-            I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+        I(ws, R, FY0, _bb_li(field, FY0_KEY), fmt=PCT)
+        for i in range(proj_n):
+            if i < len(_PROJ_FYS):
+                I(ws, R, FY0 + 1 + i, _bb_li(field, _PROJ_FYS[i]), fmt=PCT)
         C(ws, R, 3, label)
         active_r = R; R += 1
 
@@ -79,29 +82,34 @@ def render(ws, R, ll, anchor_info, ctx):
     nf = ctx['nf']; bf = ctx['bf']; itf = ctx['itf']
     NUM = ctx['NUM']; DEC = ctx['DEC']; PCT = ctx['PCT']
     DS = ctx['DS']; FY0 = ctx['FY0']; LC = ctx['LC']; SC = ctx['SC']
-    proj_n = ctx['proj_n']
+    proj_n = ctx['proj_n']; bfyr = ctx['bfyr']
 
     ln = ll['name']
-    beg = ll['beg_backlog']
-    order = ll['order_rate']
-    burn = ll['burn_rate']
-    has_bbe = isinstance(order, dict) and 'bull' in order
+    li = ctx.get('li', 0)
+    _bb_li = ctx.get('_bb_li', lambda f, fy, sc=None: 0)
+    _PROJ_FYS = ctx.get('_PROJ_FYS', [])
+    FY0_KEY = f'FY{bfyr}'; FY1_KEY = f'FY{bfyr-1}'; FY2_KEY = f'FY{bfyr-2}'
+
+    # BBE check: does order_rate have bull scenario?
+    has_bbe = _bb_li('order_rate', FY0_KEY, 'bull') != 0 or any(
+        _bb_li('order_rate', fy, 'bull') for fy in _PROJ_FYS)
 
     # ── Beginning Backlog ──
     for ci in range(DS, DS + 2):
         C(ws, R, ci, '', fmt=NUM)
-    I(ws, R, FY0, beg['fy0'], fmt=NUM)
+    I(ws, R, FY0, _bb_li('beg_backlog', FY0_KEY), fmt=NUM)
+    beg_unit = ll.get('beg_backlog', {}).get('unit', 'units')
     C(ws, R, 2, ln, font=bf)
-    C(ws, R, 3, f'Beg Backlog ({beg["unit"]})')
+    C(ws, R, 3, f'Beg Backlog ({beg_unit})')
     beg_r = R; R += 1
 
     # ── Order Rate (BBE or simple) ──
-    order_r, R, ob, os, oe = _write_bb_rate(ws, R, order, 'Order Rate (% backlog)', ctx, True)
+    order_r, R, ob, os, oe = _write_bb_rate(ws, R, li, 'order_rate', 'Order Rate (% backlog)', ctx)
 
     # ── Burn Rate (BBE or simple) ──
-    burn_r, R, bb, bs, be = _write_bb_rate(ws, R, burn, 'Burn Rate (% backlog)', ctx, False)
+    burn_r, R, bb, bs, be = _write_bb_rate(ws, R, li, 'burn_rate', 'Burn Rate (% backlog)', ctx)
 
-    yb = ob if ob else bb  # use order's yb as primary, fallback to burn
+    yb = ob if ob else bb
     ys = os if os else bs
     ye = oe if oe else be
 
@@ -118,21 +126,8 @@ def render(ws, R, ll, anchor_info, ctx):
     # ── Scenario Revenue cache (if BBE) ──
     if has_bbe:
         sc_cl = get_column_letter(SC)
-        for arr_key, arr_idx, label in [('bull', 2, 'Bull'), ('base', 3, 'Base'), ('bear', 4, 'Bear')]:
-            # Rate arrays: bull=[0], base=[1], bear=[2] in BBE tuple
-            # Use burn rate BBE rows for revenue scenario
-            burn_bb = [yb, ys, ye]  # [bull_row, base_row, bear_row]
-            # Actually need to reference the correct BBE row
-            # Revenue = Beg × Burn_Rate_Scenario
-            # Build SC formula: =SC_beg * SC_burn_fy(row)
-            if arr_key == 'bull':
-                burn_sc_row = ys  # fall back
-                if bb: burn_sc_row = bb
-            elif arr_key == 'base':
-                burn_sc_row = ys
-            else:
-                burn_sc_row = ye
-
+        for scenario, label in [('bull', 'Bull'), ('base', 'Base'), ('bear', 'Bear')]:
+            burn_sc_row = {'bull': bb, 'base': bs, 'bear': be}.get(scenario, bs)
             if burn_sc_row:
                 for ci in range(DS, DS + 2):
                     C(ws, R, ci, '', fmt=NUM)
