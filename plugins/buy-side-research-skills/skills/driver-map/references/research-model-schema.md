@@ -305,7 +305,7 @@ period: annual, Q1, Q2, Q3, Q4
 投影: assumptions → §2 yoy/vol_asp → §2 Line Rev → §2→§1 Fill → §1 Seg(=Σ线)
 ```
 
-### 9.2 Hidden Bridge (EBITDA depth)
+### 9.2 Rate Bridge (all depths, EBITDA depth shown)
 
 gap_gp = (EBITDA_fy0 − GP_fy0) / Rev_fy0  
 gap_oi = (EBITDA_fy0 − OI_fy0) / Rev_fy0  
@@ -315,7 +315,7 @@ gap_ni = (OI_fy0 − NI_fy0) / Rev_fy0
 
 ### 9.3 (OI-NI)/Rev
 
-EBITDA depth: 引用 Hidden Bridge gap_ni 公式。  
+EBITDA depth: 引用 Rate Bridge gap_ni anchor 公式。  
 其他 depth: 锚定 FY0 列值。
 
 ### 9.4 build 零推理原则
