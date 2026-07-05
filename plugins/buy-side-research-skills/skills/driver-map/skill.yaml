@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'driver-map'
 id: 'driver-map'
 display_name: 'Driver Map'
-version: '1.6.0'
+version: '1.5.1'
 system_generation: '5.0.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
