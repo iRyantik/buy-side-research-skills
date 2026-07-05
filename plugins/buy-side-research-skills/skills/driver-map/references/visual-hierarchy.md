@@ -14,20 +14,20 @@
 ## Actual 格 (A) 应用位置
 
 - **§1 Segments**: FY0 Rev / GP / OP / EBITDA + history（gray fill）
-- **§3 P&L**: **无 A() 在 P&L 数据行中**——所有数据行都是 F 或 gap 推导（EBITDA depth 模式）。A() 只在 Hidden Bridge 和 Check 行出现
-- **Hidden Bridge**: 存 FY-2 / FY-1 / FY0 actuals（`I()` 值，collapsed）
+- **§3 P&L**: **无 A() 在 P&L 数据行中**——所有数据行都是 F 或 gap 推导（EBITDA depth 模式）。A() 只在 Rate Bridge 和 Check 行出现
+- **Rate Bridge**: 存 FY-2 / FY-1 / FY0 actuals（`A()` 值，collapsed）
 - **自动规则**: gray fill 格在 data 列自动加粗
 
-## Hidden Bridge（P&L 前，collapsed）
+## Rate Bridge（P&L 前，collapsed）
 
-Hidden Bridge 位于 P&L header 之前，是一个 collapsed section，用于存储历史 actuals 以便公式引用：
+Rate Bridge 位于 P&L header 之前，是一个 collapsed section，用于存储历史 actuals 以便公式引用：
 
 - 内容：FY-2 / FY-1 / FY0 actuals for Rev, GP, OI, EBITDA, NI, Tax, D&A（per depth）
 - **EBITDA depth 模式**：`gap_gp` / `gap_oi` / `gap_ni` + `tax_rate` = Excel 公式引用 FY0 actuals 计算（**非 Python hardcoded**）
 - 所有 bridge 行 collapsed：`outline_level=1`, `hidden=True`
 - C 列 label 使用 `itf`（italic）字体
 
-Bridge 用途：P&L 中的 gap 推导公式引用 Hidden Bridge 中的 FY0 actuals 计算 gap 值，确保所有历史推演可从 actuals 复算。
+Bridge 用途：P&L 中的 gap 推导公式引用 Rate Bridge 中的 FY0 actuals 计算 gap 值，确保所有历史推演可从 actuals 复算。
 
 ## C 列字体规则
 
@@ -46,7 +46,7 @@ C 列标签字体按行类型决定，不再使用统一的 key-labels 自动加
 - Nameplate Capacity
 - SOTP multiples
 - SOTP gap cells（EBITDA depth）
-- Hidden Bridge actuals（FY-2 / FY-1 / FY0）
+- Rate Bridge actuals（FY-2 / FY-1 / FY0）
 - Check 行 actuals（historical years）
 - **注意**: per-line history Volume/ASP 也是 I()——这些是分析师估计值，不是公司披露
 

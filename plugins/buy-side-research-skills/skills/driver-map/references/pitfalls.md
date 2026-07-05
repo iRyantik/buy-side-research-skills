@@ -7,7 +7,7 @@
 - [ ] `volume.proj` 长度 = `proj_years`
 - [ ] 每个 tier 的 `asp` / `asp_bull` / `asp_base` / `asp_bear` 数组 ≥ `1 + proj_years`
 - [ ] `gm.proj` 长度 = `proj_years`
-- [ ] **非 1:1 线必须填 `gm.fy-2` / `gm.fy-1`**——缺 history GM → GP=0 → OP 为负
+- [ ] **非 1:1 线必须填 `base_rate` FY{bfyr-2}/FY{bfyr-1}**——缺 history GM → GP=0 → OP 为负
 - [ ] `yoy.bull/base/bear` 各数组长度 = `proj_years`
 - [ ] `opex_rate` 长度 = `3 + proj_years`
 
@@ -26,9 +26,9 @@
 
 ## ASP
 
-- [ ] BBE tier: `bull[0] = base[0] = bear[0] = asp_fy0`（FY0 固定值，不随情景变）
-- [ ] Simple ASP: 有 `asp_fy0` 时 `asp[0..]` = 投影年；无 `asp_fy0` 时 `asp[0]` = FY0
-- [ ] **禁止** `asp_fy0` 和 `asp[0]` 写相同值——导致 FY+1 锁在 FY0
+- [ ] BBE tier: `FY-keyed: bull.FY0 = base.FY0 = bear.FY0 = asp.FY0`（FY0 固定值，不随情景变）
+- [ ] Simple ASP: ASP 值按 FY key 分别存储，无 offset 逻辑
+- [ ] **禁止** 同一 FY 写相同 ASP 值——导致 FY+1 锁在 FY0
 
 ## Calibration
 
@@ -38,7 +38,7 @@
 
 ## Segment 数据
 
-- [ ] segment 填了 `fy-2`/`fy-1`（如果公司有历史披露）
+- [ ] segment 有 FY{bfyr-2}/FY{bfyr-1} 的 actuals 数据（如果公司有历史披露）
 - [ ] seg 有 op 披露 → 填 `op`，max_seg_depth 自动升到 op
 - [ ] seg 有 ni 披露 → 填 `ni`
 - [ ] `name_cn` 已填（中文翻译，独占一行）
@@ -73,7 +73,7 @@
 
 | # | 坑 | 避法 |
 |---|---|---|
-| 1 | 非 1:1 line 缺 history GM → GP=0 → OP 负 | 自查: 每条非 1:1 线填 `gm.fy-2/fy-1` |
+| 1 | 非 1:1 line 缺 history GM → GP=0 → OP 负 | 自查: 每条非 1:1 线填 `base_rate FY{bfyr-2}/FY{bfyr-1}` |
 | 2 | B mode 忘了改 unit_scale → Revenue 量级错 1000x | 验算: unit_scale = div（B mode=1000, M mode=1） |
 | 3 | D/E 列 OP 公式被清 | 脚本已加 protected_rows |
 | 4 | P&L actuals 没加粗 | 脚本 post-format 自动处理 |
@@ -119,4 +119,4 @@ gap 公式用 FY0 单年锚（`gap_gp = FY0_EBITDA - FY0_GP`），时间漂移�
 
 ### 4. 1:1 lines in EBITDA depth
 
-Section 2 不引用 Section 1（即使用了 I() 假设而非 S1 formula）。确保每条 1:1 line 有正确的 EBITDA margin 历史假设（`fy-2`/`fy-1`/`fy0`），否则 EBITDA 投影失去历史锚定。1:1 lines 在 EBITDA depth 下独立渲染完整 EBITDA margin -> EBITDA -> EBITDA YoY 链，不依赖 Section 1 的聚合结果。
+Section 2 不引用 Section 1（即使用了 I() 假设而非 S1 formula）。确保每条 1:1 line 有正确的 EBITDA margin 历史假设（FY{bfyr-2}/FY{bfyr-1}/FY{bfyr} (FY-keyed)），否则 EBITDA 投影失去历史锚定。1:1 lines 在 EBITDA depth 下独立渲染完整 EBITDA margin -> EBITDA -> EBITDA YoY 链，不依赖 Section 1 的聚合结果。
