@@ -1113,7 +1113,7 @@ def build(json_path, output_path=None):
                 cl = get_column_letter(ci)
                 C(ws, R, ci, f'=IFERROR({cl}{ebitda_r_s1}/{cl}{rev_r},"")', fmt=PCT)
             C(ws, R, 3, 'EBITDA margin', font=nf)
-            gm_r = R; R += 1
+            margin_r = R; R += 1
             cost_r = 0
             gp_r = ebitda_r_s1  # alias for seg_info
         else:
@@ -1129,7 +1129,7 @@ def build(json_path, output_path=None):
             for ci in range(DS, ALL_END + 1):
                 cl = get_column_letter(ci)
                 CF(ws, R, ci, f'=IFERROR({cl}{R + 1}/{cl}{rev_r},"")', fmt=PCT)
-            gm_r = R
+            margin_r = R
             C(ws, R, 3, 'GM', font=nf)
             R += 1
 
@@ -1296,7 +1296,7 @@ def build(json_path, output_path=None):
                 seg_check_op_r = R; R += 1
 
         seg_info[sn] = {
-            'rev': rev_r, 'cost': cost_r, 'gp': gp_r, 'gm': gm_r,
+            'rev': rev_r, 'cost': cost_r, 'gp': gp_r, 'gm': margin_r,
             'split_rows': srows, 'lrev_rows': lrevs, 'res_row': res_row,
             'seg_check_gp_r': seg_check_gp_r, 'seg_check_op_r': seg_check_op_r,
         }
@@ -1399,11 +1399,11 @@ def build(json_path, output_path=None):
         for i, proj_fy in enumerate(_PROJ_FYS):
             I(ws, R, FY0 + 1 + i, _gm(line_idx, proj_fy), fmt=PCT)
         C(ws, R, 3, 'EBITDA margin' if is_ebitda_depth else 'GM')
-        gm_r = R; R += 1
+        margin_r = R; R += 1
 
         for ci in range(DS, ALL_END + 1):
             cl = get_column_letter(ci)
-            C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
+            C(ws, R, ci, f'=IFERROR({cl}{result["rev_r"]}*{cl}{margin_r},"")', fmt=NUM)
         C(ws, R, 3, 'EBITDA' if is_ebitda_depth else 'GP')
         gp_r = R; R += 1
         # GP/EBITDA YoY
@@ -1569,14 +1569,14 @@ def build(json_path, output_path=None):
             ws.row_dimensions.group(R, R, outline_level=1, hidden=True)
             check_rev_r = R; R += 1
 
-        result['gm_r'] = gm_r
+        result['gm_r'] = margin_r
         result['gp_r'] = gp_r
         result['op_r'] = line_op_r
         result['ni_r'] = 0  # NI depth removed
         result['next_R'] = R
         L[ln] = result
         # Protect Rev, GM, GP, OI, NI from D/E clear
-        protected_rows.update([result['rev_r'], gm_r, gp_r])
+        protected_rows.update([result['rev_r'], margin_r, gp_r])
         if line_op_r: protected_rows.add(line_op_r)
         # line_ni_r protection removed
         # Store check row refs for agent diagnosis (Section 2: Check Rev + Util only)
@@ -1711,7 +1711,7 @@ def build(json_path, output_path=None):
             # Q GP/OP cascade (same as annual)
             for qi in range(Q_START, Q_END + 1):
                 cl = get_column_letter(qi)
-                CF(ws, gp_r, qi, f'=IFERROR({cl}{result["rev_r"]}*{cl}{gm_r},"")', fmt=NUM)
+                CF(ws, gp_r, qi, f'=IFERROR({cl}{result["rev_r"]}*{cl}{margin_r},"")', fmt=NUM)
             if line_op_r:
                 for qi in range(Q_START, Q_END + 1):
                     cl = get_column_letter(qi)
@@ -1896,7 +1896,7 @@ def build(json_path, output_path=None):
         for line_idx, ll in enumerate(logic_lines):
             ln = ll['name']; rows = L.get(ln)
             if not rows: continue
-            rev_r = rows['rev_r']; gm_r = rows['gm_r']
+            rev_r = rows['rev_r']; margin_r = rows['gm_r']
             seg_name = line_to_seg.get(ln, ''); si = seg_info.get(seg_name, {})
             s1_gp_row = si.get('gp', 0); s1_rev_row = si.get('rev', 0)
             is_1to1 = ln in one_to_one
@@ -1907,11 +1907,11 @@ def build(json_path, output_path=None):
                 is_q_actual = qi < Q_START + q_actual_n
                 # GM: 1:1 actual Qs use S1 GP/Rev (real quarterly margin)
                 if is_1to1 and s1_gp_row and s1_rev_row and is_q_actual:
-                    CF(ws, gm_r, qi, f'=IFERROR({cl}{s1_gp_row}/{cl}{s1_rev_row},"")', fmt=PCT)
+                    CF(ws, margin_r, qi, f'=IFERROR({cl}{s1_gp_row}/{cl}{s1_rev_row},"")', fmt=PCT)
                 elif is_1to1 and not is_q_actual and proj_idx < len(_PROJ_FYS):
-                    I(ws, gm_r, qi, _gm(line_idx, _PROJ_FYS[proj_idx]), fmt=PCT)
+                    I(ws, margin_r, qi, _gm(line_idx, _PROJ_FYS[proj_idx]), fmt=PCT)
                 else:
-                    I(ws, gm_r, qi, _gm(line_idx, FY0_KEY), fmt=PCT)
+                    I(ws, margin_r, qi, _gm(line_idx, FY0_KEY), fmt=PCT)
                 cur_q += 1
                 if cur_q > 4: cur_q = 1; cur_yr += 1
             # OPM → Q columns (1:1 actual Qs use S1 (GP−OP)/Rev)
@@ -2821,8 +2821,9 @@ def build(json_path, output_path=None):
     C(ws, R, 1, 'Scenario Summary', font=bf12)
     R += 1
     syl = YR[2 + s_off].replace('A', 'E')
+    _gp_label = 'EBITDA' if is_ebitda_depth else 'GP'
     C(ws, R, DS, f'{syl} Rev', font=bf)
-    C(ws, R, DS + 1, f'{syl} GP', font=bf)
+    C(ws, R, DS + 1, f'{syl} {_gp_label}', font=bf)
     # Determine dominant metric/multiple labels from SOTP methods in use
     methods = set()
     for ll in logic_lines:
@@ -2923,22 +2924,19 @@ def build(json_path, output_path=None):
 
     ws.freeze_panes = 'D2'
 
-    # Output: auto-derive to company root as {ticker}-model.xlsx
+    # Output: auto-derive to company root as YYYY-MM-DD-driver-model.xlsx
     if output_path:
         out_path = output_path
     else:
         # json_path: industry/<ind>/companies/<ticker>/.cache/scripts/research-model.json
-        # → derive company dir + ticker
+        # → derive company dir
         json_dir = os.path.dirname(os.path.abspath(json_path))
-        # Walk up from .cache/scripts/ to find company root
         parts = json_dir.replace('\\', '/').split('/')
-        # Find 'companies' index, get ticker from next part
         try:
             ci = parts.index('companies')
-            ticker_dir = parts[ci + 1]  # e.g. 'hwm' or 'zhenhua-chem'
             company_root = '/'.join(parts[:ci + 2])  # up to companies/<ticker>
-            # Ticker from directory name (canonical slug), not JSON meta.ticker (may be numeric)
-            out_path = os.path.join(company_root, f'{ticker_dir}-model.xlsx')
+            today = datetime.date.today().isoformat()
+            out_path = os.path.join(company_root, f'{today}-driver-model.xlsx')
         except (ValueError, IndexError):
             out_path = json_path.replace('.json', '.xlsx')
     wb.save(out_path)
