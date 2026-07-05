@@ -6,116 +6,78 @@
 
 ```json
 {"name": "G1", "module": "yoy",
- "yoy": {"bull":[0.20,...], "base":[0.15,...], "bear":[0.10,...]},
- "gm": {"fy-2":0.28, "fy-1":0.30, "fy0":0.32, "proj":[0.34,...]},
- "sotp": {...}}
+ "yoy": {"base": {"FY2026E": {"annual": 0.15}, "FY2027E": {"annual": 0.12}},
+         "bull": {"FY2026E": {"annual": 0.20}},
+         "bear": {"FY2026E": {"annual": 0.10}}},
+ "base_rate": {"FY2026E": {"annual": 0.34}, "FY2027E": {"annual": 0.35}},
+ "sotp": {"method": "ev_ebitda", "multiple": 10}}
 ```
+
+YoY rates are FY-keyed inside each scenario. Build reads via `ctx['_yoy_li'](scenario, FY)`.
+base_rate is FY-keyed, read via `ctx['_br_li'](FY)`.
 
 ## vol_asp
 
 Volume × Share% × ASP。Rev = Σ(Vol×Shr×ASP)/unit_scale。Tiers 分 BBE ASP 和 simple ASP。有 `capacity` 字段时渲染 Nameplate Capacity + Utilization 行。
 
-- `unit_scale`: ASP×Vol → Rev 的除数。cn 默认 100（万→M）。日韩等市场自动 B mode 时设为 1000。
-- `asp_unit`: ASP 行 C 列标签后缀。默认 `万/t`。
-- History: `history.fy-2`/`history.fy-1` 存 `{volume, rev, <tier>_asp}`。所有 history 值用 I() 黄底。
+- `unit_scale`: ASP×Vol → Rev 的除数。默认 100（M→M）。日韩等市场 B mode 时设为 1000。
+- `asp_unit`: ASP 行 C 列标签后缀。默认 `M¥/unit`。
+- History volume/ASP: 从各 FY 的 `volume` 和 `tiers[].asp` 直接读取（FY-inside），不再需要单独的 `history` 结构。
+- Build reads via `ctx['_vol_li'](FY)`, `ctx['_asp_li'](FY, ti, sc)`, `ctx['_share_li'](FY, ti)`.
 
 ```json
 {"name": "R1", "module": "vol_asp",
- "unit_scale": 100, "asp_unit": "万/t",
- "volume": {"fy0":7000, "proj":[8000,...], "unit":"t"},
- "capacity": {"fy0":10000, "proj":[10000,...], "unit":"t",
-              "ramp_notes": {"fy26": "P1 爬坡50%", ...}},
+ "unit_scale": 100, "asp_unit": "M¥/unit",
+ "volume": {"FY2025": {"annual": 7000}, "FY2026E": {"annual": 8000}, "unit": "t"},
+ "capacity": {"FY2025": {"annual": 10000}, "FY2026E": {"annual": 10000}, "unit": "t",
+              "ramp_notes": {"FY2026E": "P1 爬坡50%"}},
  "tiers": [
-   {"name": "AI", "share_fy0":0.05, "share_proj":[...],
-    "asp_bull":[26,...], "asp_base":[26,...], "asp_bear":[26,...],
-    "asp_fy0": 26},
-   {"name": "Consumer", "asp":[5.5, 6.5, 7.5, 8.5, 9], "asp_fy0":4.9}
+   {"name": "AI", "share": {"FY2025": {"annual": 0.05}, "FY2026E": {"annual": 0.06}},
+    "asp_bull": {"FY2025": {"annual": 26}, "FY2026E": {"annual": 28}},
+    "asp_base": {"FY2025": {"annual": 26}, "FY2026E": {"annual": 27}},
+    "asp_bear": {"FY2025": {"annual": 26}, "FY2026E": {"annual": 25}}},
+   {"name": "Consumer", "asp": {"FY2025": {"annual": 4.9}, "FY2026E": {"annual": 5.5}}}
  ],
- "gm": {"fy-2":0.35, "fy-1":0.37, "fy0":0.40, "proj":[0.45,0.50,...]},
- "sotp": {...},
- "history": {
-   "fy-2": {"volume":6000, "rev":2500, "AI_asp":24},
-   "fy-1": {"volume":6500, "rev":2800, "AI_asp":25}
- }}
-```
-
-**BBE 缓存**: 3 个隐藏行 `Bull/Base/Bear Rev @ SOTP`，Scenario Summary 读取。无 BBE tier 的 line 返回单值。
-
-## backlog_burn
-
-Beg Backlog × Burn Rate，跨列链式。Rev = Beg × Burn。End = Beg × (1 + OrderRate − Burn)。Beg_{t+1} = End_t（Excel 公式跨列链式引用）。
-
-```json
-{"name": "设备", "module": "backlog_burn",
- "beg_backlog": {"fy0":2500, "unit":"M"},
- "order_rate": {"fy0":0.45, "proj":[...]},
- "burn_rate": {"fy0":0.35, "proj":[...]},
- "gm": {...}, "sotp": {...}}
+ "base_rate": {"FY2025": {"annual": 0.40}, "FY2026E": {"annual": 0.45}},
+ "sotp": {"method": "pe", "multiple": 20}}
 ```
 
 ## ebitda (modules/ebitda.py)
 
-EBITDA margin-based module. Used when `p&l_depth=ebitda` (US non-GAAP segments). Per-line renders:
-
-- **EBITDA margin** (I): analyst assumption, blue font yellow fill
-- **EBITDA** (F): = Revenue x EBITDA margin
-- **EBITDA YoY** (F): = (EBITDA_t / EBITDA_{t-1}) - 1
-
-No Cost, GM, Opex, or OI rows rendered in Section 1 / Section 2 for EBITDA depth lines. These are derived at the P&L level via gap formulas from the Hidden Bridge.
+EBITDA margin assumption → EBITDA = Rev × margin。Rev 从 ctx 获取。
 
 ```json
-{"name": "S1", "module": "ebitda",
- "ebitda_margin": {"fy-2": 0.32, "fy-1": 0.34, "fy0": 0.36, "proj": [0.38, 0.40, ...]},
- "sotp": {...}}
+{"name": "E1", "module": "ebitda",
+ "base_rate": {"FY2025": {"annual": 0.30}, "FY2026E": {"annual": 0.32}},
+ "sotp": {"method": "ev_ebitda", "multiple": 12}}
 ```
 
-History values (`fy-2`/`fy-1`/`fy0`) use I() (assumption cells, not A() actuals). The Hidden Bridge stores FY0 actual EBITDA; Check rows compare formula EBITDA vs bridge actuals.
+## backlog_burn (modules/backlog_burn.py)
 
-## Module Contract
+Beginning Backlog × Burn Rate。Order Rate + Burn Rate 支持 BBE 三场景。
 
-```python
-def render(ws, R, ll, anchor_info, ctx) -> dict:
-    """
-    ctx keys: C, I, A, CF, HL, nf, bf, itf, NUM, DEC, PCT, INT, DS, FY0, LC, SC, proj_n, bfyr
-    
-    Returns: {
-        'next_R': int,
-        'rev_r': int, 'gm_r': None, 'gp_r': None,  # gm_r/gp_r filled by caller
-        'op_r': int,    # filled by caller if per-line profit chain renders
-        'module': str,
-        # Module-specific:
-        'vol_r': int,     # vol_asp: Volume row
-        'cap_r': int,     # vol_asp: Nameplate Capacity row (0 if none)
-        'asp_rows': list, # vol_asp: ASP row numbers
-        'asp_h_r': int,   # vol_asp: first ASP row (for Revenue history formula)
-        'share_rows': list,
-        'yb': int,        # BBE: Bull cache row
-        'ybs': int, 'ybe': int,
-        'ya': int,        # yoy: YoY Active row
-        'beg_r': int,     # backlog_burn: Beg Backlog row
-        'end_r': int, 'order_r': int, 'burn_r': int,
-    }
-    """
+```json
+{"name": "B1", "module": "backlog_burn",
+ "beg_backlog": {"FY2025": {"annual": 5000}, "unit": "units"},
+ "order_rate": {"FY2025": {"annual": 0.15}, "FY2026E": {"annual": 0.12}},
+ "burn_rate": {"FY2025": {"annual": 0.20}, "FY2026E": {"annual": 0.18}},
+ "sotp": {"method": "pe", "multiple": 15}}
 ```
 
-### Cell Helpers（通过 ctx 传入）
+BBE 场景下 `order_rate`/`burn_rate` 包含 `bull`/`base`/`bear` 子键，每个 FY-keyed。
+Build reads via `ctx['_bb_li'](field, FY, scenario)`.
 
-| Helper | 样式 | 用途 |
-|---|---|---|
-| `C()` | black Calibri 11, no fill | 通用值/公式 |
-| `I()` | blue font, yellow fill | 假设（分析师可调） |
-| `A()` | gray fill | Actuals（财报披露） |
-| `CF()` | black font, no fill, guaranteed number_format | **公式专用**——强制 fmt |
-| `HL()` | white bold font, deep red fill | 重点 driver 标签 |
-| `BOLD()` | black bold font | 关键指标加粗 |
+## capacity_util (modules/capacity_util.py)
 
-### 格式常量
+Capacity × Utilization% × ASP。Volume = Capacity × Utilization（隐含，公式推导）。
 
-| 常量 | 值 | 用途 |
-|---|---|---|
-| `NUM` | #,##0.0 | Rev/GP/OP/NI/Cost/Opex 等 |
-| `DEC` | #,##0.00 | ASP/价格 |
-| `INT` | #,##0 | Volume/Capacity/Shares |
-| `PCT` | 0.0% | GM/YoY/Margins/Rates |
+```json
+{"name": "C1", "module": "capacity_util",
+ "capacity": {"FY2025": {"annual": 12000}, "FY2026E": {"annual": 15000}, "unit": "units"},
+ "utilization": {"FY2025": {"annual": 0.85}, "FY2026E": {"annual": 0.90}},
+ "unit_scale": 100,
+ "tiers": [{"name": "Main", "asp": {"FY2025": {"annual": 50}, "FY2026E": {"annual": 55}}}],
+ "sotp": {"method": "pe", "multiple": 18}}
+```
 
-注册: `MODULES` dict + `_load_module()`。新 module 放 `modules/<name>.py`。
+Build reads via `ctx['_cap_li'](FY)`, `ctx['_util_li'](FY)`, `ctx['_asp_li'](FY, ti)`.
