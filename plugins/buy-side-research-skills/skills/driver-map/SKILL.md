@@ -432,7 +432,7 @@ FY+1 增速路径：
 
 1. 读 existing `actuals-resolved.json`
 2. 缺口检测：
-   - `opex` (fy-2/fy-1/fy0) 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
+   - `opex_rev` assumption 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
    - `da` 缺失？→ 同上
    - segment rev/gp/[op]/[ebitda] 缺失？→ 爬年报/WebSearch
    - actuals 超过 180 天未更新？→ 强制刷新
@@ -505,7 +505,7 @@ OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
 - M/4 = 实际 Q 的权重（M=1→25%，M=3→75%）
 - GM_actual_Q = Σ(S1实际Q_GP) / Σ(S1实际Q_Rev)（从 seg_quarters 取）
 - OM_actual_Q = Σ(S1实际Q_GP − S1实际Q_OP) / Σ(S1实际Q_Rev)
-- 写回 `gm['proj'][idx]` 和 `opex_rates[idx]`
+- 写回 `_gm_cache` 和 `_opm_cache`（blend 修改 mutable cache，Section 2 从 cache 读取）
 - Revenue 不动——只 blend 利润率
 - 效果：GP/OP Δ 收窄 65-80%，但不强制为 0（残余差 = 季节性信息）
 
@@ -543,7 +543,7 @@ Build 完成后自动生成 `checks.json`（与 driver-map JSON 同目录），�
 }
 ```
 
-- **checks**: P&L formula vs actuals from Hidden Bridge。`=(P&L − actuals) / ABS(actuals)`
+- **checks**: P&L formula vs actuals from Rate Bridge。`=(P&L − actuals) / ABS(actuals)`
 - **q_checks**: Annual vs ΣQ（U 列 Check）。仅扫 P&L F/F 行，按 FY 分组。目标 0%
 - **flags**: 超过阈值的自动标注。Agent 优先看 flags
 
