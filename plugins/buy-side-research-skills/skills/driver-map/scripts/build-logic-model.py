@@ -236,6 +236,7 @@ def _build_segments(raw_cfg):
     residuals = raw_cfg['assumptions'].get('segment_residuals', {})
     bfyr = raw_cfg['meta'].get('base_fy', 2025)
     fy_keys = [f'FY{bfyr-2}', f'FY{bfyr-1}', f'FY{bfyr}']
+    q_start_yr = int(raw_cfg['meta'].get('q_start_yr', bfyr))
     q_start_q = int(raw_cfg['meta'].get('q_start_q', 1))
     q_actual_n = int(raw_cfg['meta'].get('q_actual_count', 4))
 
@@ -256,10 +257,10 @@ def _build_segments(raw_cfg):
             cal_qk = f'Q{((q_start_q - 1 + qi) % 4) + 1}'
             rel_qk = f'q{qi+1}'
             fy_ofs = qi // 4
-            q_fy = f'FY{int(fy_keys[2][2:]) + fy_ofs}'
+            q_fy = f'FY{q_start_yr + fy_ofs}'
             q_entry = {}
             for fld, old_key in [('rev', 'rev'), ('gp', 'gp'), ('oi', 'op')]:
-                v = gs.get(fld, {}).get(q_fy, {}).get(cal_qk, 0) or gs.get(fld, {}).get(fy_keys[2], {}).get(cal_qk, 0)
+                v = gs.get(fld, {}).get(q_fy, {}).get(cal_qk, 0) or gs.get(fld, {}).get(f'FY{q_start_yr}', {}).get(cal_qk, 0)
                 if v: q_entry[old_key] = v
             s_short = sn.replace(' Segment', '')
             ns = next((s for s in non_segs if s['name'] == s_short), None)
@@ -289,7 +290,7 @@ def _build_segments(raw_cfg):
         cal_qk = f'Q{((q_start_q - 1 + qi) % 4) + 1}'
         rel_qk = f'q{qi+1}'
         fy_ofs = qi // 4
-        q_fy = f'FY{int(fy_keys[2][2:]) + fy_ofs}'
+        q_fy = f'FY{q_start_yr + fy_ofs}'
         quarters[rel_qk] = {
             'rev': gaap_is.get('rev', {}).get(q_fy, {}).get(cal_qk, 0),
             'gp': gaap_is.get('gp', {}).get(q_fy, {}).get(cal_qk, 0),
