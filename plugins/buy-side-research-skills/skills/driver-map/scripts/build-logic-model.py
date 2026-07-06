@@ -1385,8 +1385,8 @@ def build(json_path, output_path=None):
 
         if ln in one_to_one:
             # 1:1 → reference S1 margin row directly
-            for yr_key, col in [('fy-2', DS), ('fy-1', DS + 1), ('fy0', FY0)]:
-                if col == FY0 or (seg_obj and seg_obj.get(yr_key)):
+            for yr_fy, col in [(FY2_KEY, DS), (FY1_KEY, DS + 1), (FY0_KEY, FY0)]:
+                if col == FY0 or _gaap_seg(seg_name, 'rev', yr_fy):
                     cl = get_column_letter(col)
                     C(ws, R, col, f'={cl}{si["gm"]}', fmt=PCT)
         else:
@@ -2935,9 +2935,10 @@ def build(json_path, output_path=None):
         parts = json_dir.replace('\\', '/').split('/')
         try:
             ci = parts.index('companies')
+            ticker_dir = parts[ci + 1]  # e.g. 'hwm', 'dpc'
             company_root = '/'.join(parts[:ci + 2])  # up to companies/<ticker>
             today = datetime.date.today().isoformat()
-            out_path = os.path.join(company_root, f'{today}-driver-model.xlsx')
+            out_path = os.path.join(company_root, f'{today}-{ticker_dir}-driver-model.xlsx')
         except (ValueError, IndexError):
             out_path = json_path.replace('.json', '.xlsx')
     wb.save(out_path)
