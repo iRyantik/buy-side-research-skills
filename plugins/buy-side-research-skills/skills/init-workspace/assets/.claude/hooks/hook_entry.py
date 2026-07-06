@@ -44,6 +44,7 @@ STOP_RULES = [
     "evidence_ledger_floor",
     "research_memory_gate",
     "pdf_auto_cache",
+    "session_conflict_clean",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [

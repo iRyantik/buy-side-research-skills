@@ -93,7 +93,9 @@ def fetch_latest() -> tuple[str, Path]:
     if not zip_url:
         _fail("No zipball_url in release")
 
-    tmp = Path(tempfile.mkdtemp(prefix="bsrs-update-"))
+    short_tmp = Path("C:/tmp")
+    short_tmp.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix="bsrs-", dir=str(short_tmp)))
     zip_path = tmp / "release.zip"
     _download(zip_url, zip_path)
 
