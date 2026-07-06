@@ -2938,7 +2938,7 @@ def build(json_path, output_path=None):
             ticker_dir = parts[ci + 1]  # e.g. 'hwm', 'dpc'
             company_root = '/'.join(parts[:ci + 2])  # up to companies/<ticker>
             today = datetime.date.today().isoformat()
-            out_path = os.path.join(company_root, f'{today}-{ticker_dir}-driver-model.xlsx')
+            out_path = os.path.join(company_root, f'{today}-driver-model-{ticker_dir}.xlsx')
         except (ValueError, IndexError):
             out_path = json_path.replace('.json', '.xlsx')
     wb.save(out_path)

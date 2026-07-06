@@ -515,7 +515,7 @@ OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
 
 ```
 industry/<industry>/companies/<ticker>/
-├── <ticker>-model.xlsx              ← 模型 Excel（公司根目录，直接可见）
+├── YYYY-MM-DD-driver-model-<ticker>.xlsx  ← 模型 Excel（公司根目录，artifact 命名规则）
 ├── .cache/
 │   └── scripts/
 │       ├── research-model.json      ← model JSON（build 输入）
@@ -527,7 +527,7 @@ industry/<industry>/companies/<ticker>/
 ```
 
 **路径规则：**
-- **Excel**：`industry/<industry>/companies/<ticker>/<ticker>-model.xlsx`。公司根目录，和 artifact 同级，不藏在 cache 里。
+- **Excel**：`industry/<industry>/companies/<ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx`。日期+skill+标识符，遵循 `.references/runtime/research-runtime.md` artifact 命名规则。
 - **JSON**：`.cache/scripts/research-model.json`。机器输入，cache 下。
 - **Checks**：`.cache/scripts/research-model_checks.json`。和 JSON 同目录。
 - **Ticker 格式**：小写。例如 `hwm-model.xlsx`、`santec-model.xlsx`。
@@ -543,7 +543,7 @@ cp .scripts/driver-map/helpers/*.py <ticker>/.cache/scripts/helpers/
 
 # Build（output 自动落在公司根目录）
 python <ticker>/.cache/scripts/build-logic-model.py <ticker>/.cache/scripts/research-model.json
-# → 产出 <ticker>/<ticker>-model.xlsx
+# → 产出 <ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx
 ```
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
