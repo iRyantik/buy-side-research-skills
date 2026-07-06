@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.3.4 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.5.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 
@@ -165,6 +165,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v7.5.0 | 2026-07 | browser-harness CDP tier：browser-cdp.py 共享脚本、verify-claim Tier 2 CDP（真实 Chrome，过 Cloudflare）、web-extract --cdp、verify-runtime +browser-harness 检查 |
 | v7.3.4 | 2026-07 | driver-map v1.5.1: Sum of Q = Y (Annual=ΣQ 公式化), checks.json + q_checks + threshold flags, vol_asp Q driver 修复, Lumentum seg OP reconciliation, checks.json 路径与 JSON 同目录 |
 | v7.1.1 | 2026-07 | fix: SOTP Enterprise Value→Net Debt→Mkt Cap bidirectional, Total label, MCap (Actual) sign, Implied Price uses Mkt Cap/shares, removed duplicate EV bridge |
 | v7.1.0 | 2026-07 | driver-map v1.5.0：EBITDA depth（segment 直接披露 EBITDA）、P&L F/A 规则系统（拆 line→F/F）、Hidden Bridge actuals 区 + gap 公式化（Excel 自算）、Check 行重设计（Σ line vs actuals）、SOTP 重构（Revenue 行 + Net Debt 总层）、P&L 顺序 Cost→GM→GP、C 列加粗规范 |
