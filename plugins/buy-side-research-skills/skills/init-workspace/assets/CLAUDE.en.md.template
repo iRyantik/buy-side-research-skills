@@ -209,7 +209,7 @@ Shared tools under `.scripts/shared/`. All skills use these — do not reinvent.
 
 | Tool | Purpose | Usage |
 |---|---|---|
-| `verify-claim.py` | Source verification chain (Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
+| `verify-claim.py` | Source verification chain (Tier 1 HTTP→2 CDP→3 Playwright→4 curl→5 [UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
 | `download-image.py` | Image download (product, workspace-level cache, cross-skill shared) | `python .scripts/shared/download-image.py <url> --output <slug>` |
 | `verify-runtime.py` | One-click 12-item runtime dependency check | `python .scripts/verify-runtime.py` |
 
@@ -229,10 +229,11 @@ Built into the buy-side-research-skills plugin. Available without invoking any s
 
 | Script | Purpose | Usage |
 |---|---|---|
-| `shared/verify-claim.py` | Source verification chain (HTTP→Playwright→curl→[UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
+| `shared/verify-claim.py` | Source verification chain (HTTP→CDP→Playwright→curl→[UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
 | `shared/download-image.py` | Image download (product, workspace-level cache) | `<url> --output <slug>` |
-| `shared/verify-runtime.py` | One-click 12-item dependency check | `python .scripts/verify-runtime.py` |
-| `shared/web-extract.py` | Clean body text from web pages | `<url> [--markdown]` |
+| `shared/verify-runtime.py` | One-click 13-item dependency check | `python .scripts/verify-runtime.py` |
+| `shared/web-extract.py` | Clean body text from web pages | `<url> [--markdown] [--cdp]` |
+| `shared/browser-cdp.py` | browser-harness CDP wrapper (real Chrome, bypasses Cloudflare/JS) | `browser_cdp_extract_visible(url)` |
 | `shared/to-markdown.py` | Any file → markdown (PDF/Word/Excel/PPT/Web auto-routed) | `<file> [--cache <TICKER> <desc>]` |
 | `shared/pdf-extract.py` | PDF text + tables | `<file_or_url> [--smart] [--tables]` |
 | `financial-data/actuals-to-appendix.py` | Sell-side appendix from actuals-resolved.json | `--tickers T1,T2,...` |
@@ -301,8 +302,9 @@ Triggers automatically on every Write/Edit to a research artifact:
 ### Source Verification Rules
 
 - Every `[I#]` source must pass at least Tier 1-2
-- Tier chain: HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
+- Tier chain: HTTP GET → browser-harness CDP (real Chrome, auto) → Playwright MCP (agent-manual) → curl → [UNVERIFIED]
 - `[UNVERIFIED]` only after all tiers fail
+- browser-harness CDP preferred over Playwright MCP: uses user's real Chrome with native fingerprints/cookies/logins, bypasses Cloudflare
 
 ### Reference Files
 
@@ -395,7 +397,7 @@ The following rules apply to ALL skill pipeline steps. Non-negotiable. Cannot be
 
 3. **Preconditions MUST be verified**: Before starting the next step, confirm that the previous step's output actually exists. Do not assume "it should be done." If Step 2 requires actuals-resolved.json, Read the file after Step 1 and verify it exists and is not empty.
 
-4. **Tools are NOT substitutable**: The script/command specified by a skill is the ONLY execution path. Do NOT use browser_take_screenshot instead of download-image.py, do NOT use WebSearch instead of verify-claim.py, do NOT hand-write markdown instead of evidence_ledger.py.
+4. **Tools are NOT substitutable**: The script/command specified by a skill is the ONLY execution path. Do NOT use browser_take_screenshot instead of download-image.py, do NOT use WebSearch instead of verify-claim.py, do NOT hand-write markdown instead of evidence_ledger.py. For JS-rendered/Cloudflare-protected pages, prefer browser-cdp via verify-claim.py Tier 2 over Playwright MCP Tier 3.
 
 5. **Do NOT pre-judge that a company/industry is "not worth it"**: Complete the current skill before passing judgment. You can say "not worth it" in the conclusion — but not during execution.
 

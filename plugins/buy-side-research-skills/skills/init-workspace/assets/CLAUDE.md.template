@@ -192,7 +192,7 @@ Bridge（US/HK/SH/SZ/SG 首选）
   ↓ 不可用 / 超时 / 未覆盖该市场
 yfinance（market data 兜底 + quick financial snapshot）
   ↓ 也不可用
-WebSearch / WebFetch（最后兜底）
+browser-cdp / WebSearch / WebFetch（最后兜底：CDP 用于 JS 页面，WebFetch 用于静态页面）
 ```
 
 Bridge 挂了 + actuals 不存在时的行为：yfinance 先给快照 + `[建议拉 financial-data CLI]`。
@@ -264,10 +264,11 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 | 脚本 | 用途 | 调用示例 |
 |---|---|---|
-| `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
+| `shared/verify-claim.py` | 来源验证链（HTTP→CDP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
 | `shared/download-image.py` | 图片下载（产品图，workspace 级缓存跨 skill 共享） | `<url> --output <slug>` |
-| `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python .scripts/verify-runtime.py` |
-| `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
+| `shared/verify-runtime.py` | 一键检查 13 项运行时依赖 | `python .scripts/verify-runtime.py` |
+| `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown] [--cdp]` |
+| `shared/browser-cdp.py` | browser-harness CDP 封装（真实 Chrome，过 Cloudflare/JS 渲染） | `browser_cdp_extract_visible(url)` |
 | `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
 | `shared/describe-figures.py` | 图表描述提取（从 docling/pymupdf 缓存 markdown 中提取 figure 并生成带编号描述） | `<markdown_path>` |
@@ -342,8 +343,9 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 ### 来源验证规则
 
 - 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
-- Tier 链：HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
+- Tier 链：HTTP GET → browser-harness CDP（真实 Chrome，自动执行）→ Playwright MCP（agent 手动）→ curl → [UNVERIFIED]
 - `[UNVERIFIED]` 仅在所有 tier 失败后标记
+- browser-harness CDP 优先于 Playwright MCP：连接用户真实 Chrome，继承指纹/cookie/登录态，能绕过 Cloudflare 等反爬
 
 ### Canvas 文件
 

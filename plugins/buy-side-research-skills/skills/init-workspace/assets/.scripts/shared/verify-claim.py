@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """verify-claim.py — unified source verification chain.
 
-Orchestrates the Tier 1→2→3 fallback for any web claim URL.
+Orchestrates the Tier 1→2→3→4 fallback for any web claim URL.
 Returns structured output so consuming skills don't need to
 re-implement the chain.
 
@@ -12,9 +12,10 @@ Usage:
 
 Tier chain:
   Tier 1 — HTTP GET (urllib, no auth, 30s timeout)
-  Tier 2 — Playwright MCP required (script prints instruction for agent)
-  Tier 3 — curl subprocess (last resort)
-  Tier 4 — [UNVERIFIED] (nothing worked)
+  Tier 2 — browser-harness CDP (real Chrome, auto, bypasses Cloudflare/JS)
+  Tier 3 — Playwright MCP required (script prints instruction for agent)
+  Tier 4 — curl subprocess (last resort)
+  Tier 5 — [UNVERIFIED] (nothing worked)
 """
 from __future__ import annotations
 
@@ -27,16 +28,18 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
 from html.parser import HTMLParser
+from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
 
 # Domains known to return HTTP 403 with anti-bot protection
-# Tier 1 is skipped for these; verification routes directly to Tier 2 (Playwright)
+# Tier 1 is skipped for these; verification routes directly to Tier 2 (CDP)
 KNOWN_403_DOMAINS = {
     "marketscreener.com", "tipranks.com", "simplywall.st",
     "macrotrends.net", "stockanalysis.com", "financecharts.com",
     "finviz.com", "tradingview.com", "wsj.com",
+    "perplexity.ai", "x.com", "twitter.com",
 }
 
 
@@ -108,21 +111,47 @@ def _tier1_http(url: str) -> tuple[str | None, str | None]:
         return None, f"Unexpected error: {e}"
 
 
-# ── Tier 2: Playwright MCP ─────────────────────────────
+# ── Tier 2: browser-harness CDP ──────────────────────────
 
-def _tier2_instruction(url: str) -> str:
+def _tier2_cdp(url: str) -> tuple[str | None, str | None]:
+    """browser-harness CDP — connects to user's real Chrome.
+    Bypasses Cloudflare, handles JS-rendered pages that Tier 1 misses.
+    Runs automatically as a subprocess — no agent intervention needed."""
+    script = Path(__file__).parent / "browser-cdp.py"
+    if not script.exists():
+        return None, "browser-cdp.py not found in shared scripts"
+
+    try:
+        r = subprocess.run(
+            [sys.executable, str(script), "extract", url],
+            capture_output=True, text=True, timeout=45,
+            encoding="utf-8",
+        )
+        if r.returncode == 0 and len(r.stdout.strip()) > 100:
+            return r.stdout.strip()[:10000], None
+        err = r.stderr.strip() or r.stdout.strip()
+        return None, f"CDP extraction failed: {err[:300]}"
+    except subprocess.TimeoutExpired:
+        return None, "CDP timed out after 45s"
+    except Exception as e:
+        return None, f"CDP error: {e}"
+
+
+# ── Tier 3: Playwright MCP ─────────────────────────────
+
+def _tier3_instruction(url: str) -> str:
     """Return the instruction for the agent to use Playwright MCP."""
     return (
-        f"Tier 2 — Playwright MCP required:\n"
+        f"Tier 3 — Playwright MCP required:\n"
         f"  browser_navigate → {url}\n"
         f"  browser_snapshot → capture page text\n"
         f"  Feed the snapshot text back to: python verify-claim.py {url} --playwright-text \"<text>\""
     )
 
 
-# ── Tier 3: curl ────────────────────────────────────────
+# ── Tier 4: curl ────────────────────────────────────────
 
-def _tier3_curl(url: str) -> tuple[str | None, str | None]:
+def _tier4_curl(url: str) -> tuple[str | None, str | None]:
     """curl subprocess fallback. Returns (text, error)."""
     try:
         r = subprocess.run(
@@ -146,8 +175,9 @@ def _tier3_curl(url: str) -> tuple[str | None, str | None]:
 
 # ── main ────────────────────────────────────────────────
 
-def verify(url: str, max_tier: int = 3,
-           playwright_text: str | None = None) -> dict:
+def verify(url: str, max_tier: int = 4,
+           playwright_text: str | None = None,
+           cdp_text: str | None = None) -> dict:
     """Run the verification chain. Returns structured result."""
     result: dict = {
         "url": url,
@@ -158,11 +188,17 @@ def verify(url: str, max_tier: int = 3,
         "next_action": None,
     }
 
-    # If Playwright text was provided from a previous run
+    # If text was provided from a previous retry
     if playwright_text:
         result["status"] = "verified"
         result["tier"] = "Playwright"
         result["text"] = playwright_text[:10000]
+        return result
+
+    if cdp_text:
+        result["status"] = "verified"
+        result["tier"] = "browser-harness CDP"
+        result["text"] = cdp_text[:10000]
         return result
 
     # Tier 1: HTTP (skip if known 403 domain)
@@ -178,23 +214,32 @@ def verify(url: str, max_tier: int = 3,
                 return result
             result["tier1_error"] = err
 
-    # Tier 2: Playwright MCP (requires agent)
+    # Tier 2: browser-harness CDP (auto, no agent intervention needed)
     if max_tier >= 2:
-        result["next_action"] = _tier2_instruction(url)
-        # Don't fall to Tier 3 yet — let agent handle Tier 2 first
+        text, err = _tier2_cdp(url)
+        if text:
+            result["status"] = "verified"
+            result["tier"] = "browser-harness CDP"
+            result["text"] = text[:10000]
+            return result
+        result["tier2_error"] = err
+
+    # Tier 3: Playwright MCP (requires agent)
+    if max_tier >= 3:
+        result["next_action"] = _tier3_instruction(url)
         return result
 
-    # Tier 3: curl
-    if max_tier >= 3:
-        text, err = _tier3_curl(url)
+    # Tier 4: curl
+    if max_tier >= 4:
+        text, err = _tier4_curl(url)
         if text:
             result["status"] = "verified"
             result["tier"] = "curl"
             result["text"] = text[:10000]
             return result
-        result["tier3_error"] = err
+        result["tier4_error"] = err
 
-    # Tier 4: nothing worked
+    # Tier 5: nothing worked
     result["status"] = "unverified"
     result["tier"] = None
     result["error"] = "All tiers exhausted"
@@ -206,16 +251,19 @@ def cli():
         description="Unified source verification chain"
     )
     parser.add_argument("url", help="URL to verify")
-    parser.add_argument("--tier", type=int, default=3,
-                       help="Max tier to attempt (1=HTTP, 2=Playwright, 3=curl, default: 3)")
+    parser.add_argument("--tier", type=int, default=4,
+                       help="Max tier (1=HTTP, 2=CDP, 3=Playwright, 4=curl, default: 4)")
     parser.add_argument("--json", action="store_true",
                        help="Output structured JSON")
     parser.add_argument("--playwright-text", default=None,
-                       help="Playwright snapshot text (from Tier 2 retry)")
+                       help="Playwright snapshot text (from Tier 3 retry)")
+    parser.add_argument("--cdp-text", default=None,
+                       help="browser-harness CDP extracted text (from Tier 2 retry)")
     args = parser.parse_args()
 
     result = verify(args.url, max_tier=args.tier,
-                    playwright_text=args.playwright_text)
+                    playwright_text=args.playwright_text,
+                    cdp_text=args.cdp_text)
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -225,11 +273,12 @@ def cli():
             print(f"---")
             print(result["text"])
         elif result.get("next_action"):
-            print(f"⚠️  Tier 1 failed. {result['next_action']}")
+            print(f"⚠️  Tier 1-2 exhausted. {result['next_action']}")
         else:
             print(f"❌ [UNVERIFIED] All tiers exhausted. "
                   f"Tier 1: {result.get('tier1_error', 'N/A')}. "
-                  f"Tier 3: {result.get('tier3_error', 'N/A')}")
+                  f"Tier 2: {result.get('tier2_error', 'N/A')}. "
+                  f"Tier 4: {result.get('tier4_error', 'N/A')}")
 
     sys.exit(0 if result["status"] == "verified" else 1)
 
