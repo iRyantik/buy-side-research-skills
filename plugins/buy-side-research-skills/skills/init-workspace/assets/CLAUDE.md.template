@@ -450,3 +450,58 @@ Agent 在校准过程中**可以修改公司本地副本**——包括公式逻�
 - 本文件服务用户 research workspace。
 - 插件开发治理维护在 plugin dev repo root `CLAUDE.md`，不在本文件展开。
 
+---
+
+## 9. 多机同步
+
+本 workspace 支持在多台电脑间切换（如台式机 + 笔记本）。以下规则防止环境漂移和数据丢失。
+
+### 9.1 新电脑初始化
+
+换到新电脑时，按顺序执行：
+
+1. 安装 Python 3.12+、Node.js 18+、Chrome
+2. 开启 Chrome 远程调试：`chrome://inspect/#remote-debugging` → Allow
+3. 克隆 plugin 源并拉取最新：`git clone <repo> && cd <repo> && git pull`
+4. 跑初始化：`/init-workspace`
+5. 跑运行时检查：`python .scripts/verify-runtime.py`（自动安装缺失依赖）
+
+### 9.2 双 repo 纪律
+
+workspace 和 plugin 源是**两个独立的 git repo**，改共享脚本时必须两边都处理：
+
+```
+workspace s:/                    plugin 源 (路径不固定)
+├── .scripts/shared/*.py   ←→   skills/init-workspace/assets/.scripts/
+└── CLAUDE.md              ←→   CLAUDE.md.template
+```
+
+流程：先改 workspace 验证 → 确认可用 → 同步改 plugin 源 → commit + push。不要只改一边。
+
+### 9.3 换电脑工作流
+
+```
+离开电脑前：git push（workspace + plugin 源两边）
+换电脑后：  git pull（两边）
+           python .scripts/verify-runtime.py
+           Chrome → chrome://inspect → 确认 Allow 已勾选
+```
+
+### 9.4 Python 路径兼容
+
+不同电脑的 Python 安装路径可能不同（系统安装、Anaconda、Microsoft Store 等）。`browser-cdp.py` 和 `verify-runtime.py` 已内置 `pip show` 动态查找机制。如遇 `browser-harness not found`：
+
+```bash
+python -m pip show browser-harness  # 确认已安装及路径
+python .scripts/shared/browser-cdp.py check  # 快速诊断
+```
+
+### 9.5 常见问题
+
+| 症状 | 原因 | 解决 |
+|---|---|---|
+| CDP 连接失败 | Chrome 远程调试未开 | `chrome://inspect` → Allow |
+| `browser-harness not found` | pip 路径不在搜索列表 | `pip show` 已兜底，如仍失败手动装 |
+| `npm ERR! npx` 相关 | Node.js 未装或版本过低 | 装 Node.js ≥18 |
+| git 身份自动生成 | 新电脑未设 user.name/email | `git config --global user.name/email` |
+

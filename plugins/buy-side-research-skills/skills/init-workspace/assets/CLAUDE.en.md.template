@@ -423,3 +423,59 @@ All Chinese or multilingual text files must use **UTF-8 without BOM**.
 
 - This file serves the user research workspace.
 - Plugin development governance is maintained in the plugin dev repo root `CLAUDE.md`, not expanded here.
+
+---
+
+## 9. Cross-Machine Sync
+
+This workspace supports switching between multiple machines (e.g., desktop + laptop). These rules prevent environment drift and data loss.
+
+### 9.1 New Machine Setup
+
+When switching to a new machine, in order:
+
+1. Install Python 3.12+, Node.js 18+, Chrome
+2. Enable Chrome remote debugging: `chrome://inspect/#remote-debugging` → Allow
+3. Clone plugin source and pull latest: `git clone <repo> && cd <repo> && git pull`
+4. Run init: `/init-workspace`
+5. Run runtime check: `python .scripts/verify-runtime.py` (auto-installs missing deps)
+
+### 9.2 Dual Repo Discipline
+
+The workspace and plugin source are **two independent git repos**. Both must be updated when modifying shared scripts:
+
+```
+workspace s:/                    plugin source (path varies)
+├── .scripts/shared/*.py   ←→   skills/init-workspace/assets/.scripts/
+└── CLAUDE.md              ←→   CLAUDE.md.template
+```
+
+Workflow: modify workspace first → validate → sync changes to plugin source → commit + push. Never update only one side.
+
+### 9.3 Daily Machine Switch Workflow
+
+```
+Before leaving:  git push (both workspace + plugin source)
+After switching: git pull (both)
+                 python .scripts/verify-runtime.py
+                 Chrome → chrome://inspect → confirm Allow is ticked
+```
+
+### 9.4 Python Path Compatibility
+
+Python install paths vary across machines (system, Anaconda, Microsoft Store, etc.). `browser-cdp.py` and `verify-runtime.py` use `pip show` for dynamic path discovery. If `browser-harness not found`:
+
+```bash
+python -m pip show browser-harness  # verify installed + location
+python .scripts/shared/browser-cdp.py check  # quick diagnostic
+```
+
+### 9.5 Common Issues
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| CDP connection fails | Chrome remote debugging not enabled | `chrome://inspect` → Allow |
+| `browser-harness not found` | pip path not in search list | `pip show` fallback handles this; manual reinstall if still failing |
+| `npm ERR! npx` related | Node.js missing or too old | Install Node.js ≥18 |
+| git identity auto-generated | user.name/email not set on new machine | `git config --global user.name/email` |
+
