@@ -5,20 +5,20 @@ description: Convert raw research files into source-tracked topic cache markdown
 
 # Ingest
 
-`ingest` converts local raw materials into LLM-friendly, source-tracked Markdown under a topic `_cache/`. It records source path, hash, modified time, converter, converted time, document type, route, and precision caveats. It is an operations skill, not a research skill.
+`ingest` converts local raw materials into LLM-friendly, source-tracked Markdown under a topic `.cache/`. It records source path, hash, modified time, converter, converted time, document type, route, and precision caveats. It is an operations skill, not a research skill.
 
 ## 心法
 
-The invariant is traceability. `_cache/` is easier for an LLM to read, but the original file remains the source of truth.
+The invariant is traceability. `.cache/` is easier for an LLM to read, but the original file remains the source of truth.
 
-Agent (per policy baseline §11) auto-creates the industry root. `ingest` creates `_raw/` and `_cache/` only when material is actually converted, so empty research directories stay light.
+Agent (per policy baseline §11) auto-creates the industry root. `ingest` creates `_raw/` and `.cache/` only when material is actually converted, so empty research directories stay light.
 
 ## 职责边界
 
 负责：
 - Convert TXT, Markdown, CSV, PDF, DOCX, PPTX, XLSX, XLSM, and supported workbook-style files.
-- Write source-tracked Markdown to `industry/<industry>/companies/<ticker>/_cache/[source-filename].md`.
-- Create `_raw/<category>/` and `_cache/` on first conversion.
+- Write source-tracked Markdown to `industry/<industry>/companies/<ticker>/.cache/[source-filename].md`.
+- Create `_raw/<category>/` and `.cache/` on first conversion.
 - Move successfully converted source files from topic `_inbox/` to `_raw/<category>/`.
 - Report converted / skipped / failed summary.
 - Fail honestly on dependency or conversion gaps.
@@ -27,7 +27,7 @@ Agent (per policy baseline §11) auto-creates the industry root. `ingest` create
 - Do not create topic roots or `index.md`; agent auto-creates them per policy baseline §11 before calling ingest.
 - Do not move files already under `_raw/`.
 - Do not write investment conclusions or earned insight.
-- Do not treat `_cache/` as original source.
+- Do not treat `.cache/` as original source.
 - Do not fetch structured financial data by ticker; use `financial-data`.
 - Do not silently install dependencies.
 
@@ -77,7 +77,7 @@ Only install dependencies after explicit user confirmation.
 1. Verify workspace and topic root exist.
 2. Detect document format and category.
 3. Convert to Markdown using the best available route.
-4. Create `_cache/` and `_raw/<category>/` as needed.
+4. Create `.cache/` and `_raw/<category>/` as needed.
 5. Write cache Markdown.
 6. If the source was inside topic `_inbox/`, move it to `_raw/<category>/`.
 
@@ -144,7 +144,7 @@ Cache header must include:
 
 ## Topic
 - topic: [...]
-- cache: `industry/<industry>/companies/<ticker>/_cache/`
+- cache: `industry/<industry>/companies/<ticker>/.cache/`
 - raw: `industry/<industry>/companies/<ticker>/_raw/<category>/`
 
 ## Route / Dependency
@@ -181,14 +181,14 @@ Cache header must include:
 Artifact policy:
 - `save_policy`: `cache_artifact`
 - `default_artifact`: `[source-filename].md`
-- `canonical_location`: `industry/<industry>/companies/<ticker>/_cache/[source-filename].md`
+- `canonical_location`: `industry/<industry>/companies/<ticker>/.cache/[source-filename].md`
 
 ## 安全自查
 
 - ❌ Created a topic root or `index.md`.
 - ❌ Moved a source file before conversion succeeded.
 - ❌ Moved files already under `_raw/`.
-- ❌ Treated `_cache/` as original source.
+- ❌ Treated `.cache/` as original source.
 - ❌ Wrote investment conclusions.
 - ❌ Silently installed dependencies.
 - ❌ Ran recursive ingest without explicit request.

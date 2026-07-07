@@ -130,15 +130,15 @@ N 家公司共享的行业坐标系，只写一次。
 
 | 公司 | 市场 | 货币 | 市值(LC) | 市值(USD) | FX rate / as-of | 收入(LTM) | 收入 YoY | EBITDA margin | **PE TTM** | EV/EBITDA | FCF yield | Ev |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | 7.9B | +12% | 24% | 35x | 29x | 2.1% | [S1](./_cache/sources/mycr-peers-data.md) |
-| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | ~1.5B | +30% | ~15% | N/A | ~100x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+| MYCR | SE | SEK | 58.3B | 5.8B | 10.5 | 7.9B | +12% | 24% | 35x | 29x | 2.1% | [S1](./.cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CN | CNY | ~1000B | ~138B | 7.25 | ~1.5B | +30% | ~15% | N/A | ~100x | N/A | [S2](./.cache/sources/ficontec-peers-data.md) |
 
 **Table B — 质量 + 回报（8-10 列，可选）**：
 
 | 公司 | 会计基准 | ROIC（除现金）| 净负债/EBITDA | Capex/D&A | PE NTM | PB | 资本返还/FCF | Ev |
 |---|---|---|---|---|---|---|---|---|
-| MYCR | IFRS | 22% | 0.1x | 0.6x | 18x | 7.4x | 60% | [S1](./_cache/sources/mycr-peers-data.md) |
-| ficonTEC/300757 | CAS | N/A | N/A | N/A | N/A | 50x | N/A | [S2](./_cache/sources/ficontec-peers-data.md) |
+| MYCR | IFRS | 22% | 0.1x | 0.6x | 18x | 7.4x | 60% | [S1](./.cache/sources/mycr-peers-data.md) |
+| ficonTEC/300757 | CAS | N/A | N/A | N/A | N/A | 50x | N/A | [S2](./.cache/sources/ficontec-peers-data.md) |
 
 > **拆表规则**：超过 12 列必须拆成 Table A + Table B。Table A 必填（市场 + 核心盈利 + 关键估值），Table B 按需（公司 ≥5 家或 ROIC/PB 等质量指标为当前行业核心 debate 时才加）。
 

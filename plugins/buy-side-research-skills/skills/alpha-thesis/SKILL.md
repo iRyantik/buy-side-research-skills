@@ -147,7 +147,7 @@ Short-only 时必须先声明 trade structure。Long-only 跳过此节，在 §1
 - **Short-only**：下行 catalyst（财报 miss、guidance cut、负面监管、debt 到期）。
 
 例（Long-only）：
-  - "Q3 财报（11 月 [I1](https://example.com/ir-earnings-calendar)）：管理层若给出 2026 capex 指引 < $2B [S1](./_cache/sources/q2-2024-capex-call.md)，将证伪 capital cycle bear thesis（概率 60%）"
+  - "Q3 财报（11 月 [I1](https://example.com/ir-earnings-calendar)）：管理层若给出 2026 capex 指引 < $2B [S1](./.cache/sources/q2-2024-capex-call.md)，将证伪 capital cycle bear thesis（概率 60%）"
   - "OPEC+ 12 月会议 [I2](https://example.com/opec-calendar)：减产延长将支撑油价 base case > $75（概率 70%）"
 
 反例："长期来看市场会认识到价值"——这不是 catalyst，是 hope。
@@ -191,7 +191,7 @@ Target Price 必须标注 PE 倍数依据。Upside/Downside 行放在最底，�
 按 trade structure 调整 kill 形式：
 
 **Long-only**：基本面恶化触发
-- 例："若 2024Q4 单井产量下降幅度 > 18%（vs. 当前 12% [S2](./_cache/sources/q3-2024-production-note.md)），decline 加速 thesis 失效"
+- 例："若 2024Q4 单井产量下降幅度 > 18%（vs. 当前 12% [S2](./.cache/sources/q3-2024-production-note.md)），decline 加速 thesis 失效"
 
 **Short-only**：上行 catalyst 出现 / squeeze 风险
 - 例："若 short interest 升至 30%+ 且 days-to-cover > 5（[I3](https://example.com/finra-short-interest) 当前 18% / 3.2 天），squeeze 风险升温必须减仓"

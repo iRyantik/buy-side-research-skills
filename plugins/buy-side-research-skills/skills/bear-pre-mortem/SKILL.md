@@ -111,17 +111,17 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 | 红旗项 | 当前数 | 警戒阈值 | 状态 | Ev |
 |---|---|---|---|---|
-| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | [S1](./_cache/sources/ar-aging-note.md) |
+| DSO / 应收账款增速 vs 收入增速 | DSO 78 天 | > 收入增速 1.5x | 🚩 | [S1](./.cache/sources/ar-aging-note.md) |
 
-| 库存增速 vs 收入增速 | ... | ... | ... | [S1](./_cache/sources/inventory-vs-revenue.md) |
-| Capex vs D&A 长期比例 | 1.8x | 持续 > 1.5x 警惕过投 | ... | [S2](./_cache/sources/capex-da-history.md) |
-| 经营性现金流 vs 净利润长期匹配度 | OCF/NI 0.6 | < 0.7 持续是警告 | 🚩 | [S3](./_cache/sources/ocf-ni-bridge.md) |
-| 商誉 / 无形资产占比、近期减值历史 | ... | ... | ... | [S4](./_cache/sources/goodwill-impairment-note.md) |
-| 关联交易 / 表外项目 | ... | ... | ... | [S5](./_cache/sources/related-party-note.md) |
-| 分部合并、披露口径变化 | ... | 任何变化都警惕 | ... | [S6](./_cache/sources/segment-disclosure-history.md) |
-| 股权激励真实成本（加回去后还赚钱吗） | ... | SBC > 净利润 30% 警惕 | ... | [S7](./_cache/sources/sbc-note.md) |
+| 库存增速 vs 收入增速 | ... | ... | ... | [S1](./.cache/sources/inventory-vs-revenue.md) |
+| Capex vs D&A 长期比例 | 1.8x | 持续 > 1.5x 警惕过投 | ... | [S2](./.cache/sources/capex-da-history.md) |
+| 经营性现金流 vs 净利润长期匹配度 | OCF/NI 0.6 | < 0.7 持续是警告 | 🚩 | [S3](./.cache/sources/ocf-ni-bridge.md) |
+| 商誉 / 无形资产占比、近期减值历史 | ... | ... | ... | [S4](./.cache/sources/goodwill-impairment-note.md) |
+| 关联交易 / 表外项目 | ... | ... | ... | [S5](./.cache/sources/related-party-note.md) |
+| 分部合并、披露口径变化 | ... | 任何变化都警惕 | ... | [S6](./.cache/sources/segment-disclosure-history.md) |
+| 股权激励真实成本（加回去后还赚钱吗） | ... | SBC > 净利润 30% 警惕 | ... | [S7](./.cache/sources/sbc-note.md) |
 | 管理层 / 内部人最近的减持 | ... | 集中减持是信号 | ... | [I1](https://example.com/form4-disclosure) |
-| 审计 / 会计政策近期变化 | ... | 任何变化都警惕 | ... | [S8](./_cache/sources/audit-policy-note.md) |
+| 审计 / 会计政策近期变化 | ... | 任何变化都警惕 | ... | [S8](./.cache/sources/audit-policy-note.md) |
 
 每个 🚩 状态的项必须单独展开，引用具体数据点和对比基准。
 
@@ -135,7 +135,7 @@ Stress test an investment thesis and build the strongest opposing case with sour
 
 | 可比情境 | 时间窗口 | 公司 / 标的 | 结局 | Ev |
 |---|---|---|---|---|
-| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | [S1](./_cache/sources/whiting-10k-2014.md) [S2](https://example.com/whiting-price-history) |
+| 类似估值 + capex cycle 顶 | 2014 Q3 - 2016 Q1 | Whiting Petroleum | 股价从 $X 跌到 $Y，-90% | [S1](./.cache/sources/whiting-10k-2014.md) [S2](https://example.com/whiting-price-history) |
 
 | ... | ... | ... | ... | ... |
 

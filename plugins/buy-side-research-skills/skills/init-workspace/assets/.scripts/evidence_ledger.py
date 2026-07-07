@@ -20,7 +20,7 @@ Usage:
     python evidence_ledger.py add   <artifact.md> ...   # deprecated
 
 The ticker ledger is stored as:
-  _cache/evidence/<TICKER>.evidence.json
+  .cache/evidence/<TICKER>.evidence.json
 """
 
 import json
@@ -52,7 +52,7 @@ METHOD_TIERS = {
 
 # --- Path resolution ---
 def _ticker_to_ledger_path(artifact_path: str, ticker: str) -> Path:
-    """Resolve <artifact_dir>/_cache/evidence/<TICKER>.evidence.json"""
+    """Resolve <artifact_dir>/.cache/evidence/<TICKER>.evidence.json"""
     ap = Path(artifact_path).resolve()
     if ap.is_file():
         ap = ap.parent
@@ -81,7 +81,7 @@ def _validate_ledger_path(ledger_path: Path):
 
 
 def _artifact_path_to_ledger_path(artifact_path: str) -> Path:
-    """Legacy: <dir>/_cache/evidence/<artifact-filename>.evidence.json"""
+    """Legacy: <dir>/.cache/evidence/<artifact-filename>.evidence.json"""
     ap = Path(artifact_path).resolve()
     if ap.is_dir():
         print(f"ERROR: '{artifact_path}' is a directory, not a file path.", file=sys.stderr)

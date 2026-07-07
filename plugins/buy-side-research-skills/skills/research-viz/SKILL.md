@@ -114,7 +114,7 @@ Create memo-ready and screenshot-ready HTML research visualizations paired with 
 
 1. 识别图表类型：把用户请求映射到 18 类之一。
 2. 识别基准研究 artifact：优先用用户指定的 `.md`；否则从当前 topic 最近相关主文里选一个明确基准。
-3. 收集数据：优先复用基准研究文、topic `_cache/`、已有 source-backed tables；必要时才补 source。
+3. 收集数据：优先复用基准研究文、topic `.cache/`、已有 source-backed tables；必要时才补 source。
 4. 加载 `references/design-tokens.md` 和目标 chart reference；interactive 时再加载 `references/interaction-patterns.md`。
 5. 从相应 template 起稿，不从零乱搭。
 6. 写标题、副标题、source line、必要 callout。

@@ -360,7 +360,7 @@ def _provider_identifier(market, ticker_value, fallback):
 def _official_web_cache_path(industry, ticker):
     return os.path.join(
         _company_root(industry, ticker),
-        '.cache', 'financial-data', 'internal', '.raw', 'official_web_cache.json'
+        '.cache', 'financial-data', 'internal', '.raw', 'official_web.cache.json'
     )
 
 

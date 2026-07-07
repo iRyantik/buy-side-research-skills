@@ -2,7 +2,7 @@
 
 Detects PDFs written by Bash/browser_download, checks if they are primary-source
 documents (IR/filing URL patterns or filename keywords), converts via to-markdown.py,
-caches to a layered _cache/ tree, and deletes the original PDF.
+caches to a layered .cache/ tree, and deletes the original PDF.
 
 Non-blocking — failures log warnings and preserve the PDF.
 """

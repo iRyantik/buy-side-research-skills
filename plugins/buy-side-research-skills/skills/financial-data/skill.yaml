@@ -62,7 +62,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: 'financial-data-summary.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/_cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/'
+  canonical_location: 'industry/<industry>/companies/<ticker>/.cache/datasets/financial-data/[market]/[canonical-id]/[run-id]/'
   save_trigger: 'write a financial evidence pack only after the user provides market, identifier, company_slug, and a valid research workspace topic'
 workflow:
   stage: 'structured-financial-data'

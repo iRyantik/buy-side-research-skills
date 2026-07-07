@@ -24,7 +24,7 @@ _ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
 ANCHOR_RE = re.compile(r'\[(?:S|I|LBG|P)\d+\]\([^)]+\)')
 IMAGE_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
 
-LEDGER_DIR = "_cache/evidence"
+LEDGER_DIR = ".cache/evidence"
 
 # Methods that count as "actually verified" (shared tooling or direct page access)
 DIRECT_ACCESS_METHODS = {"verify-claim.py", "download-image.py", "actuals-to-appendix.py",
@@ -61,14 +61,14 @@ def _find_ledger(artifact_path: str) -> str | None:
 
 
 def _check_image_exists(artifact_path: str, display: str):
-    """Rule: every _cache/images/* reference must exist on disk."""
+    """Rule: every .cache/images/* reference must exist on disk."""
     with open(artifact_path, "r", encoding="utf-8") as f:
         text = f.read()
     images = IMAGE_RE.findall(text)
     missing = []
     artifact_dir = os.path.dirname(artifact_path)
     for img in images:
-        if not img.startswith("_cache/images/") and not img.startswith("./_cache/"):
+        if not img.startswith(".cache/images/") and not img.startswith("./.cache/"):
             continue
         img_path = os.path.join(artifact_dir, img)
         if not os.path.exists(img_path):

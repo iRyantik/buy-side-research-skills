@@ -13,7 +13,7 @@ Build DCF valuation workbooks using source-tracked actuals drivers WACC terminal
 
 **GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 - Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
-- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `.cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 

@@ -13,7 +13,7 @@ DRIVER_FIELDS = {
 TOLERANCE = 0.02  # 2 percentage points
 
 def _find_driver_json(ticker):
-    candidates = glob.glob(f"industry/*/companies/{ticker}/_cache/driver-map/*.json", recursive=True)
+    candidates = glob.glob(f"industry/*/companies/{ticker}/.cache/driver-map/*.json", recursive=True)
     if candidates:
         for p in candidates:
             with open(p, encoding="utf-8") as f:

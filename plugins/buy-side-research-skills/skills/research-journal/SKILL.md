@@ -202,10 +202,10 @@ industry/<industry>/companies/<ticker>/index.md
 ## [研究问题 / insight]
 
 **结论先行**
-[1-2 句话说清楚已经赚到的 insight，例如：`订单结构的变化比总 backlog 更能解释 margin inflection；FY25 服务订单占比提升至 42%。 [S1](./_cache/sources/company-annual-report.md)`]
+[1-2 句话说清楚已经赚到的 insight，例如：`订单结构的变化比总 backlog 更能解释 margin inflection；FY25 服务订单占比提升至 42%。 [S1](./.cache/sources/company-annual-report.md)`]
 
 **Source anchors**
-- `[S1](./_cache/sources/company-annual-report.md) = [source title] | as-of/filed [date]`
+- `[S1](./.cache/sources/company-annual-report.md) = [source title] | as-of/filed [date]`
 
 **为什么重要**
 - [改变了什么业务实质 / driver / market framing / peer group / 研究优先级]

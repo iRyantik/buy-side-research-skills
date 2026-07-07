@@ -39,7 +39,7 @@ capabilities:
   output_path: 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   writes:
     - 'industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run-id]/'
-    - 'industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run-id]/'
+    - 'industry/<industry>/companies/<ticker>/.cache/datasets/reddit-sentiment/[run-id]/'
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   feeds_into:
     - 'information-impact'

@@ -1235,10 +1235,10 @@ def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | N
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Ingest raw research materials into the topic _cache/ directory markdown.")
+    parser = argparse.ArgumentParser(description="Ingest raw research materials into the topic .cache/ directory markdown.")
     parser.add_argument("source_path", nargs="?", help="Source file or directory to ingest.")
     parser.add_argument("--workspace", help="Research workspace root. If omitted, discover from source path.")
-    parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/<topic>/_cache.")
+    parser.add_argument("--cache-root", help="Override cache root. Defaults to <workspace>/<topic>/.cache.")
     parser.add_argument("--topic", help="Namespaced topic for organizing raw/cache (e.g. 'industry/space-launch' or 'company/rklb').")
     parser.add_argument("--category", help="Document category: filings, transcripts, sellside, industry, irdecks, datasets. Auto-inferred if omitted.")
     parser.add_argument("--bucket", help="Deprecated. Use --topic instead.")
