@@ -2,7 +2,7 @@
 
 This repo is the source wrapper for the `buy-side-research-skills` plugin. Runtime research work happens in a user-owned research workspace created by `init-workspace`.
 
-macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapters no longer hardcode `powershell`; `init-workspace` renders Claude/Codex hook configs through a cross-platform launcher that uses `pwsh` on macOS and prefers `pwsh` on Windows before falling back to Windows PowerShell.
+macOS support assumes PowerShell 7 (`pwsh`) is installed. Workspace hook adapters use a cross-platform Python launcher (`.claude/hooks/py` / `.claude/hooks/py.cmd`) that auto-locates Python across machines.
 
 ## Source Layout
 
@@ -12,6 +12,9 @@ The canonical plugin payload lives under `plugins/buy-side-research-skills/`:
 repo-root/
   .claude-plugin/
     marketplace.json
+  .agents/
+    plugins/
+      marketplace.json
   plugins/
     buy-side-research-skills/
       .claude-plugin/
@@ -21,15 +24,15 @@ repo-root/
       skills/
         <skill-name>/
           SKILL.md
+          SKILL.en.md
           skill.yaml
+          scripts/       (optional — deployed to workspace .scripts/<skill>/)
+          assets/        (optional — deployed to workspace .scripts/<skill>/)
   docs/
   examples/
   CLAUDE.md
-  AGENTS.md
   README.md
 ```
-
-Root `scripts/` and root `skills/` are not part of the current source layout. Do not restore the old root-level runtime manifests or validator/build scripts unless the tooling is redesigned in a separate change.
 
 ## Active Skill Layout
 
@@ -40,141 +43,104 @@ plugins/buy-side-research-skills/skills/<skill-name>/SKILL.md
 plugins/buy-side-research-skills/skills/<skill-name>/skill.yaml
 ```
 
-Do not move active skills into `skills/research/` or `skills/operations/`.
+### Operations Skills
 
-Operations skills:
-
-```text
-init-workspace
-new-session
-ingest
-financial-data
-integrate
-promote-company
-trusted-market-bridge
-meta-skill
-```
-
-Current bridge consumers: 
-- `consensus-map` 
-- `earnings-setup` 
-- `peer-deep-dive` 
-- `pair-trade` 
-- `cross-market-compare` 
-- `stock-quickread` 
-- `candidate-screener` 
-- `alpha-thesis`
-- `bear-pre-mortem`
-- `industry-landscape`
-
-For these skills, `trusted-market-bridge` is the default trusted third-party layer for the market-snapshot track after `topic-local evidence cache / financial-data` and before generic web fallback. It is currently best suited to market-data-heavy use cases such as quote, valuation, price-action, FX normalization, ADR/AH premium framing, quick consensus context, financial snapshots, and high-level `market_screen` signals for candidate generation. Disclosure-fact fields still prefer `primary public` and do not get downgraded into provider truth. If Longbridge returns `scope_restricted`, the default behavior is to fall back to the existing web / internet market-source path and record the fallback reason in `## Resources`.
-
-Maintainer acceptance coverage for this bridge lives in `docs/longbridge-bridge-test-plan.md`.
-
-`integrate` keeps its legacy meaning: whole-topic directory merge. `promote-company` is separate: it promotes company-scoped files from an industry/theme workbench into `topics/company/<company-slug>/`.
+| Skill | Purpose |
+|---|---|
+| `init-workspace` | Create or repair workspace root scaffold |
+| `update-agent-runtime` | Update plugin runtime + sync workspace assets |
+| `ingest` | Convert raw materials to markdown cache |
+| `financial-data` | Structured financial statements + market snapshots |
+| `trusted-market-bridge` | Longbridge MCP: quote, valuation, filings (US/HK/SH/SZ/SG) |
+| `meta-skill` | Skill authoring governance |
+| `integrate` | Whole-topic directory merge |
+| `research-viz` | Research → memo-ready HTML charts |
+| `research-journal` | Capture and organize research insights |
+| `coverage-monitor` | Track coverage status across companies |
 
 ## Workspace Shape
 
-`init-workspace` creates the workspace shell. `new-session` creates lightweight topic roots. `ingest`, `financial-data`, `driver-map`, and modeling skills create operational folders only when needed.
+`init-workspace` creates the workspace shell. Topic scaffolding happens automatically when research skills save artifacts.
 
 ```text
 research-workspace/
   CLAUDE.md
-  AGENTS.md
+  COVERAGE.md
   _inbox/
-  _scripts/
-  edge-radar.md
-  topics/
-    industry/<industry-slug>/
-      index.md
-      _inbox/
-      2026-05-18-industry-landscape.md
-      2026-05-18-peer-deep-dive.md
-      2026-05-18-rklb-stock-quickread.md
-      2026-05-18-rklb-driver-map.md
-
-    company/<company-slug>/
-      index.md
-      _inbox/
-      2026-05-18-stock-quickread.md
-      _raw/       # on demand by ingest
-      _cache/     # on demand by ingest / financial-data / driver-map
-      _models/    # on demand by modeling skills
+  .scripts/
+    shared/               ← Platform-owned shared scripts
+      browser-cdp.py      ← Real Chrome CDP bridge
+      verify-claim.py     ← Source verification (HTTP→CDP→Playwright→curl)
+      web-extract.py      ← Web text extraction (--cdp for JS pages)
+      pdf-extract.py
+      search.py
+      ...
+    browser-cdp/          ← CDP recipes (twitter, xiaohongshu, etc.)
+    financial-data/
+    driver-map/
+    ingest/
+  .references/
+  industry/
+    <industry-slug>/
+      panorama/            ← Industry-wide artifacts by skill
+      companies/
+        <ticker>/
+          [YYYY-MM-DD]-*.md
+          .cache/
+      RESEARCH.md           ← Industry overview + company registry
+      .cache/
 ```
 
-Rules:
-- `new-session` creates only `index.md` and `_inbox/`.
-- `new-session` does not create `_raw/`, `_cache/`, or `_models/`.
-- `ingest` requires the topic root to exist and creates `_raw/<category>/` and `_cache/` on first conversion.
-- Industry and theme topics do not get `_models/` by default.
-- Company canonical topics are the durable home for company financial data, canonical driver maps, and model workbooks.
+### Built-in Shared Scripts
 
-## Company Promotion
+| Script | Purpose |
+|---|---|
+| `shared/browser-cdp.py` | Real Chrome CDP wrapper — bypasses Cloudflare, handles JS rendering |
+| `shared/verify-claim.py` | 5-tier source verification: HTTP → CDP → Playwright → curl → UNVERIFIED |
+| `shared/web-extract.py` | Clean text extraction (HTTP or `--cdp` for JS pages) |
+| `shared/pdf-extract.py` | PDF text + table extraction |
+| `shared/search.py` | DDG news search (bilingual, no API key) |
+| `verify-runtime.py` | One-click 13-item dependency check + auto-install |
 
-Use `promote-company` when a company first researched inside an industry/theme workbench deserves a canonical company topic.
+### Cross-Machine Sync
 
-Default behavior:
-- create or locate `topics/company/<company-slug>/index.md` and `_inbox/`
-- move root Markdown matching `YYYY-MM-DD-<company-slug>-*.md`
-- remove the company prefix after moving
-- move clearly attributable `_inbox`, `_raw`, and `_cache` files
-- leave mixed peer/industry files in the source topic and backlink them
-- update both indexes with provenance
+The workspace supports switching between multiple machines. Key rules:
 
-Example:
-
-```text
-topics/industry/space-launch/2026-05-18-rklb-stock-quickread.md
--> topics/company/rklb/2026-05-18-stock-quickread.md
-```
-
-Do not use `promote-company` for whole-topic directory merges; use `integrate`.
+- Workspace and plugin source are **two independent git repos** — both must be committed/pushed
+- `python .scripts/verify-runtime.py` auto-installs missing dependencies on each machine
+- Chrome remote debugging must be enabled on each machine: `chrome://inspect/#remote-debugging`
+- `browser-cdp.py` uses `pip show` fallback for cross-machine Python path detection
 
 ## Cache And Modeling Inputs
-
-`ingest` cache:
-
-```text
-topics/<namespace>/<topic-slug>/_cache/<source-filename>.md
-```
 
 `financial-data` canonical company cache:
 
 ```text
-topics/company/<company-slug>/_cache/financial-data/
-  financial-data-summary.md
-  internal/
-    actuals-resolved.json
-    evidence-pack.json
-    source-map.json
-    completeness.json
-    full-filing.md
+industry/<industry>/companies/<ticker>/.cache/financial-data/
+  financials.normalized.json
+  actuals-resolved.json
+  evidence-pack.json
+  source-map.json
+  completeness.json
 ```
-
-`actuals-resolved.json` contains the three statements and may include `statements.revenue_split` when a provider exposes structured revenue split. US SEC split rows come from XBRL dimensions and remain review-only until `driver-map` maps them to model buckets. If no structured split is available, `completeness.json` marks `revenue_split` as `provider-gap`; `driver-map` may then use `full-filing.md` for LLM extraction.
 
 `driver-map` canonical company cache:
 
 ```text
-topics/company/<company-slug>/_cache/driver-map/
+industry/<industry>/companies/<ticker>/.cache/driver-map/
   driver-map.md
   internal/
     driver-map.json
 ```
 
-`driver-map` reads financial-data first. It treats SEC XBRL dimension `revenue_split` as `provider-structured`, table fallback split as `provider-table-review`, and uses `review_required` metadata to map axis/member labels into model buckets. If no structured split exists, it uses `full-filing.md` for `llm-extracted-review` revenue split or marks the split `not-disclosed`.
-
 Model workbooks:
 
 ```text
-topics/company/<company-slug>/_models/
+industry/<industry>/companies/<ticker>/_models/
   <ticker>-3statement-model.xlsx
-  <ticker>-3statement-dcf-model.xlsx
+  <ticker>-dcf-model.xlsx
   <ticker>-comps-analysis.xlsx
-  <ticker>-model-update.xlsx
 ```
-
-Modeling skills must not coerce missing or unmapped actuals to zero.
 
 ## Release Package
 
@@ -187,4 +153,4 @@ skills/
 README.md
 ```
 
-Release packages must not contain `plugins/`, root `CLAUDE.md`, root `AGENTS.md`, `docs/`, `examples/`, `.git/`, `dist/`, or local machine state.
+Release packages must not contain `plugins/`, root `CLAUDE.md`, `docs/`, `examples/`, `.git/`, `dist/`, or local machine state.

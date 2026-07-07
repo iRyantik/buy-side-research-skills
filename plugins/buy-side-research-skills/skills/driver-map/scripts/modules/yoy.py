@@ -20,8 +20,8 @@ def render(ws, R, ll, anchor_info, ctx):
     proj_n = ctx['proj_n']
 
     ln = ll['name']
-    yoy = ll['yoy']
-    bull = yoy['bull']; base = yoy['base']; bear = yoy['bear']
+    _yoy_li = ctx.get('_yoy_li', lambda sc, fy: 0)
+    bfyr = ctx['bfyr']
     s1r, _ = anchor_info.get(ln, (0, 0))
 
     # ── Revenue (history + FY0 = Section 1 ref) ──
@@ -44,17 +44,32 @@ def render(ws, R, ll, anchor_info, ctx):
     C(ws, R, FY0, f'=IFERROR({f0}{rev_r}/{f_1}{rev_r}-1,"")', fmt=PCT)
     for i in range(proj_n):
         C(ws, R, FY0 + 1 + i, 0, fmt=PCT)
-    C(ws, R, 3, 'YoY')
+    C(ws, R, 3, 'Rev YoY')
     R += 1
 
-    # ── BBE YoY hidden rows ──
+    # ── Rev QoQ (right below Rev YoY) ──
+    Q_START = ctx.get('Q_START', 0)
+    Q_END = ctx.get('Q_END', 0)
+    has_q = ctx.get('q_actual_n', 0) + ctx.get('q_proj_n', 0) > 0
+    if has_q:
+        for ci in range(DS, ctx.get('LC', DS + 5)):
+            C(ws, R, ci, '', fmt=PCT)
+        for qi in range(Q_START, Q_END + 1):
+            cl = get_column_letter(qi); pl = get_column_letter(qi - 1)
+            if qi == Q_START: C(ws, R, qi, '', fmt=PCT)
+            else: C(ws, R, qi, f'=IFERROR({cl}{rev_r}/{pl}{rev_r}-1,"")', fmt=PCT)
+        C(ws, R, 3, '  Rev QoQ', font=itf)
+        R += 1
+
+    # ── BBE YoY hidden rows (read from new-format FY-keyed assumptions) ──
     yb = ys = ye = 0
-    for arr, label in [(bull, 'Bull'), (base, 'Base'), (bear, 'Bear')]:
+    _PROJ_FYS = ctx.get('_PROJ_FYS', [])
+    for scenario, label in [('bull', 'Bull'), ('base', 'Base'), ('bear', 'Bear')]:
         for ci in range(DS, DS + 2):
             C(ws, R, ci, '', fmt=PCT)
         C(ws, R, FY0, '', fmt=PCT)
-        for i, v in enumerate(arr):
-            I(ws, R, FY0 + 1 + i, v, fmt=PCT)
+        for i in range(min(proj_n, len(_PROJ_FYS))):
+            I(ws, R, FY0 + 1 + i, _yoy_li(scenario, _PROJ_FYS[i]), fmt=PCT)
         C(ws, R, 3, f'  {label}', font=itf)
         ws.row_dimensions[R].hidden = True
         if label == 'Bull':   yb = R

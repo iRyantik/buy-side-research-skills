@@ -2,19 +2,23 @@
 """web-extract — fetch a URL and extract clean body text from HTML.
 
 Usage:
-  python web-extract.py <url>              # plain text body
+  python web-extract.py <url>              # plain text body (HTTP)
   python web-extract.py <url> --html       # cleaned HTML fragment
   python web-extract.py <url> --markdown   # markdown (requires html2text)
+  python web-extract.py <url> --cdp        # via browser-harness (JS rendering, Cloudflare bypass)
 
 Replaces the Tier 3 curl fallback in the source verification chain.
 Removes nav, header, footer, sidebar, scripts, styles.
+--cdp mode uses real Chrome to render JavaScript and bypass Cloudflare.
 """
 from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from html.parser import HTMLParser
+from pathlib import Path
 from urllib.request import Request, urlopen
 
 
@@ -125,7 +129,13 @@ def main():
     parser.add_argument("url", help="URL to fetch")
     parser.add_argument("--html", action="store_true", help="Output cleaned HTML fragment")
     parser.add_argument("--markdown", action="store_true", help="Output markdown (requires html2text)")
+    parser.add_argument("--cdp", action="store_true",
+                       help="Use browser-harness CDP (real Chrome, JS rendering, Cloudflare bypass)")
     args = parser.parse_args()
+
+    if args.cdp:
+        _extract_cdp(args.url)
+        return
 
     try:
         html = _fetch(args.url)
@@ -139,6 +149,26 @@ def main():
         print(_clean_html(html))
     else:
         print(_html_to_text(html))
+
+
+def _extract_cdp(url: str):
+    """Extract via browser-harness CDP (real Chrome)."""
+    script = Path(__file__).parent / "browser-cdp.py"
+    if not script.exists():
+        print("browser-cdp.py not found in shared scripts", file=sys.stderr)
+        sys.exit(1)
+
+    cmd = [sys.executable, str(script), "extract", url]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=45,
+                          encoding="utf-8")
+        if r.returncode != 0:
+            print(f"CDP failed: {(r.stderr or r.stdout)[:500]}", file=sys.stderr)
+            sys.exit(1)
+        print(r.stdout.strip())
+    except subprocess.TimeoutExpired:
+        print("CDP timed out after 45s", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

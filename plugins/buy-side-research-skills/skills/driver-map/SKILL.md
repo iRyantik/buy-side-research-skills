@@ -24,6 +24,82 @@ Decompose revenue margin backlog price volume mix and segment drivers before mod
 
 **最重要的纪律**：不披露的 driver 不能编；只能写成 `[来源待补]`、`[需查证]` 或 researcher assumption。没有 source 的 driver map 是假精确。
 
+## Model Architecture (v1.6)
+
+### JSON Schema — FY-inside format
+research-model.json uses unified FY-inside access: `{source}.{field}.{FY}.{period}`
+
+```json
+{
+  "actuals": {
+    "gaap": { "is": { "rev": { "FY2025": { "annual": 8252 } } } },
+    "non_gaap": { "is": { "ebitda": { "FY2025": { "annual": 2390 } } } }
+  },
+  "assumptions": {
+    "lines": [{ "name": "L1", "module": "yoy", "base_rate": {"FY2026E": {"annual": 0.34}} }],
+    "global": {
+      "opex_rev": { "FY2025": { "annual": 0.25 } },
+      "gap_oi_ni": { "FY2025": { "annual": 0.3 } },
+      "tax_rate": { "FY2025": { "annual": 0.22 } }
+    },
+    "segment_residuals": { "Non-core": { "base_rate": 0.22 } }
+  },
+  "meta": {
+    "p&l_depth": "ebitda",
+    "display_unit": "M",
+    "display_decimals": 1
+  }
+}
+```
+
+Key schema changes from v1.5:
+- `gm` → `base_rate` (all lines, FY-keyed)
+- `tax_rate` (old) → `gap_oi_ni` (OI→NI gap rate, renamed). New `tax_rate` = real tax rate
+- `nm` removed (was unused dead field)
+- `display_unit` + `display_decimals` explicit in meta
+- No adapter: build() reads FY-inside format directly via `_gaap()`, `_br()`, `_yoy()` accessors
+- Module renderers use ctx helpers (`_br_li`, `_yoy_li`, `_vol_li`, `_asp_li`)
+
+### P&L Depth
+Three depths control segment disclosure and P&L behavior:
+- `gp`: segments disclose GP only. OI = GP − Rev×Opex/Rev. P&L D&A/Tax/NI = A (actuals for history).
+- `op`: segments disclose down to OI. OI = Σ line OI. P&L D&A/Tax/NI = A.
+- `ebitda`: segments disclose EBITDA only (US non-GAAP). GP/OI derived via gap formulas from actuals at FY0.
+
+### F/A Rules
+| P&L Row | GP depth | OP depth | EBITDA depth |
+|---|---|---|---|
+| Rev, GP | F/F | F/F | F/F |
+| OI | A/F | F/F | F/F (gap) |
+| D&A, Tax, NI | A/F | A/F | F/F |
+
+F/F = all formula. A/F = actuals history + formula projected.
+
+### Rate Bridge (unified, all depths)
+Single collapsed section storing actuals + Opex/Rev (visible) + (OI-NI)/Rev (visible) + gap anchors (EBITDA only, collapsed).
+- Opex/Rev: formula `=(GP−OI)/Rev` for OP/EBITDA, assumption for GP
+- (OI-NI)/Rev: assumption (`gap_oi_ni`) for GP/OP, FY0 actuals anchor for EBITDA
+- Gap rows (EBITDA only): `gap_gp`, `gap_oi`, `gap_ni`, `tax_rate` — computed from FY0 actuals, serve as formula anchors
+
+### P&L Tail — NI chain
+- Tax = Rev × (OI-NI)/Rev_cell (formula reference, not hardcoded)
+- NI = OI − Tax_cell (formula reference)
+- NPM = NI / Rev (formula)
+- Scenario Summary NI mirrors main P&L: OI = GP − Rev×Opex/Rev, NI = OI − Rev×(OI-NI)/Rev
+
+### Check System
+Checks compare P&L formula values vs actuals from Rate Bridge. `=(P&L − actuals) / ABS(actuals)`. Projected years blank.
+
+### SOTP
+- Revenue row added (all methods)
+- EV/Mkt Cap switches by method
+- Scenario Summary: Bull/Base/Bear with per-scenario Rev/GP/NI(EBITDA)/Implied Multiple
+
+### Labels
+- Revenue (not "Total Revenue"), GP (not "Total GP"), GM (not "Blended GM")
+- Column C: bf=$ amounts, nf=ratios, itf=annotations
+- Style: A()=gray bg actuals, I()=blue+yellow assumption, CF()=formula
+
 ## Financial-Data 联动
 
 弹性 KPI 先查 workspace `.references/kpi-drivers/` 按 business model 路由。从 `actuals-resolved.json` 取数据，按 revenue_split 状态分类处理：
@@ -356,9 +432,9 @@ FY+1 增速路径：
 
 1. 读 existing `actuals-resolved.json`
 2. 缺口检测：
-   - `opex` (fy-2/fy-1/fy0) 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
+   - `opex_rev` assumption 缺失？→ `/financial-data --lite --periods FY{bfyr-2}-FY{bfyr}Q{latest}`
    - `da` 缺失？→ 同上
-   - segment rev/cost/gp/gm 缺失？→ 爬年报/WebSearch
+   - segment rev/gp/[op]/[ebitda] 缺失？→ 爬年报/WebSearch
    - actuals 超过 180 天未更新？→ 强制刷新
 3. 分部数据必须全——找不到标 `not-disclosed`
 4. 补全后 Write actuals-resolved.json
@@ -374,7 +450,7 @@ FY+1 增速路径：
 
 ```
 §1 Segments FY{bfyr}A
-| Segment | Rev | Cost | GP | GM | OP? | NI? | Logic Lines |
+| Segment | Rev | GP | [OP] | [EBITDA] | Logic Lines |
 
 §2 Logic Lines — 每条单独一个表
 | R1 MLCC Powder | FY25 | FY26 | FY27 | FY28 | FY29 | FY30 |
@@ -385,7 +461,8 @@ FY+1 增速路径：
 | AI ASP Base | 26 | 30 | ... |
 | ... (所有 tier 的 Share + ASP BBE) |
 | Revenue (验算) | 450M | ... |
-| GM | 40% | 45% | ... |
+| GM / EBITDA margin | 40% | 45% | ... |
+| OPM (op/ebitda depth) | 25% | 26% | ... |
 
 估值方法
 | Logic Line | Method | Multiple | 理由 |
@@ -416,26 +493,112 @@ cp .scripts/driver-map/modules/*.py "$TICKER_DIR/.cache/scripts/modules/"
 - 已生成模型的公司后续 rebuild 用公司自己的脚本副本
 - **禁止**多个公司共用同一份脚本——改了量纲/参数会互相污染
 
+### Blend 步骤（build 内部自动执行）
+
+对每个有 M∈{1,2,3} 的投影年，实际 Q 的利润率（GM、OM）混入年度模型假设：
+
+```
+GM_blended   = M/4 × GM_actual_Q   + (1−M/4) × GM_model
+OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
+```
+
+- M/4 = 实际 Q 的权重（M=1→25%，M=3→75%）
+- GM_actual_Q = Σ(S1实际Q_GP) / Σ(S1实际Q_Rev)（从 seg_quarters 取）
+- OM_actual_Q = Σ(S1实际Q_GP − S1实际Q_OP) / Σ(S1实际Q_Rev)
+- 写回 `_gm_cache` 和 `_opm_cache`（blend 修改 mutable cache，Section 2 从 cache 读取）
+- Revenue 不动——只 blend 利润率
+- 效果：GP/OP Δ 收窄 65-80%，但不强制为 0（残余差 = 季节性信息）
+
+### Model File Conventions
+
+所有 driver-map 产出遵循统一的公司级路径：
+
+```
+industry/<industry>/companies/<ticker>/
+├── YYYY-MM-DD-driver-model-<ticker>.xlsx  ← 模型 Excel（公司根目录，artifact 命名规则）
+├── .cache/
+│   └── scripts/
+│       ├── research-model.json      ← model JSON（build 输入）
+│       ├── research-model_checks.json ← checks（build 自动产出）
+│       ├── build-logic-model.py     ← 公司本地副本（首次建模时复制）
+│       ├── modules/                 ← 模块副本
+│       └── helpers/                 ← helper 副本
+└── YYYY-MM-DD-driver-map.md         ← research artifact
+```
+
+**路径规则：**
+- **Excel**：`industry/<industry>/companies/<ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx`。日期+skill+标识符，遵循 `.references/runtime/research-runtime.md` artifact 命名规则。
+- **JSON**：`.cache/scripts/research-model.json`。机器输入，cache 下。
+- **Checks**：`.cache/scripts/research-model_checks.json`。和 JSON 同目录。
+- **Ticker 格式**：小写。例如 `hwm-model.xlsx`、`santec-model.xlsx`。
+
 ### ⛔ GATE 2: 生成 Excel
 
 ```bash
-python <ticker>/.cache/scripts/build-logic-model.py <json> [-o output.xlsx]
-python <ticker>/.cache/scripts/audit_style.py <output.xlsx>
+# 首次建模：公司本地脚本副本（按 CLAUDE.md §6.5 规则）
+mkdir -p industry/<industry>/companies/<ticker>/.cache/scripts/modules
+cp .scripts/driver-map/build-logic-model.py <ticker>/.cache/scripts/
+cp .scripts/driver-map/modules/*.py <ticker>/.cache/scripts/modules/
+cp .scripts/driver-map/helpers/*.py <ticker>/.cache/scripts/helpers/
+
+# Build（output 自动落在公司根目录）
+python <ticker>/.cache/scripts/build-logic-model.py <ticker>/.cache/scripts/research-model.json
+# → 产出 <ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx
 ```
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。
 
-### ⛔ GATE 2.5: Q→FY Check
+**量纲规则**：
 
-Q 列生成后，X 列 Check = `(Annual−ΣQ)/Annual` %。
+- **div**：存储单位 → 显示单位 的换算。`sc(v) = v / div`，只用于 A() 和 I() 格
+- **unit_scale**：Vol×ASP 原始乘积 → 显示财务单位，**已含 div**。公式 = `Vol×ASP/unit_scale`
+- CF() 公式不走 sc()，unit_scale 保证公式产出 = 显示单位
 
-**收敛保证**：
-- **Revenue Δ→0%**：build 内 driver 分配（季节权重或二分搜索 r）数学保证 ΣQ_Rev = Annual_Rev
-- **Volume Δ→0%**：权重 Σw=1 保证 ΣQ_Vol = Vol_year
-- **GP/OP Δ** 是结构性残余：实际 Q1 的 S1 利润率 ≠ 年度模型假设（Blend 步骤已收窄但不强制为 0）
-- **D&A Δ**：实际 Q1 D&A 来自披露 ≠ 模型季度均分
+| 市场 | 存储 | 显示 | div | unit_scale 示例 |
+|---|---|---|---|---|
+| US/CN/EU/HK | M | M | 1 | 1 |
+| JP/KR/TW | M | bn | 1000 | 1000 |
 
-**不再需要** agent 手动调 q_history 循环 rebuild。Revenue 自动收敛。GP/OP/D&A 残余差是信息，供分析师判断季度异常。详见 `references/calibration.md` §Quarterly Calibration。
+驱动分配内部（ann、remaining_vol、remaining_asp）全部用原始单位，不碰 div 和 unit_scale。
+
+### ⛔ GATE 2.5: Check System — Agent 验证
+
+Build 完成后自动生成 `checks.json`（与 driver-map JSON 同目录），包含三个 section：
+
+```json
+{
+  "checks": { "Check Rev": {"FY2023": "0.00%", ...}, ... },
+  "q_checks": { "FY2027": {"Revenue": "0.00%", "GP": "0.00%", ...} },
+  "flags": { "P&L": [], "Q": [] }
+}
+```
+
+- **checks**: P&L formula vs actuals from Rate Bridge。`=(P&L − actuals) / ABS(actuals)`
+- **q_checks**: Annual vs ΣQ（U 列 Check）。仅扫 P&L F/F 行，按 FY 分组。目标 0%
+- **flags**: 超过阈值的自动标注。Agent 优先看 flags
+
+**水平 Check 阈值**：
+
+| Check | GP depth | OP depth | EBITDA depth |
+|-------|:--------:|:--------:|:------------:|
+| Rev | 2% | 2% | 2% |
+| GP | 5% | 5% | 15% |
+| OI | — | 5% | 15% |
+| EBITDA | — | — | 5% |
+| D&A | — | — | 20% |
+| Tax | — | — | 10% |
+| NI | — | — | 15% |
+
+**垂直 Check（Q）**：
+- 阈值：0%（ΣQ = Annual 数学保证）
+- 仅扫 per-depth 的 PNL_LABELS 集合
+- 非 0% → 代码问题，Agent 报，不调 JSON
+
+**Agent 流程**：
+1. Build → Read `checks.json`
+2. flags 为空 → 通过 ✓
+3. flags.P&L 非空 → Agent 调 JSON 假设 → rebuild → 重读。最多 3 轮
+4. flags.Q 非空 → Agent 报代码 bug，不调 JSON
 
 ## Schema + Reference
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """verify-runtime.py — one-click runtime verification for buy-side-research-skills.
 
-Checks 12 components across 3 layers. Any failure → INSTALLS the missing
+Checks 13 components across 3 layers. Any failure → INSTALLS the missing
 dependency (winget on Windows, brew on macOS), then re-checks. If auto-install
 fails, prints the manual command and exits non-zero.
 
@@ -18,6 +18,7 @@ if sys.platform == "win32":
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import importlib
@@ -181,6 +182,77 @@ def manual_curl() -> str:
     return "Install curl via your package manager"
 
 
+def check_browser_harness() -> tuple[bool, str]:
+    """Check if browser-harness CLI is installed and Chrome CDP is ready."""
+    exe = None
+    candidates = []
+    if IS_WINDOWS:
+        candidates = [
+            Path.home() / "AppData" / "Roaming" / "Python" / "Python312" / "Scripts" / "browser-harness.exe",
+            Path.home() / "AppData" / "Roaming" / "Python" / "Python311" / "Scripts" / "browser-harness.exe",
+        ]
+    else:
+        candidates = [
+            Path.home() / ".local" / "bin" / "browser-harness",
+            Path("/usr/local/bin/browser-harness"),
+        ]
+    for c in candidates:
+        if c.exists():
+            exe = c
+            break
+
+    if not exe:
+        found = shutil.which("browser-harness")
+        if found:
+            exe = Path(found)
+        else:
+            # Try pip show fallback (handles Store Python, custom installs)
+            try:
+                r = subprocess.run(
+                    [sys.executable, "-m", "pip", "show", "browser-harness"],
+                    capture_output=True, text=True, timeout=15,
+                )
+                if r.returncode == 0:
+                    for line in r.stdout.split("\n"):
+                        if line.startswith("Location:"):
+                            loc = Path(line.split(":", 1)[1].strip())
+                            scripts_dir = loc.parent / "Scripts" if IS_WINDOWS else loc.parent / "bin"
+                            candidate = scripts_dir / ("browser-harness.exe" if IS_WINDOWS else "browser-harness")
+                            if candidate.exists():
+                                exe = candidate
+                                break
+            except Exception:
+                pass
+
+        if not exe:
+            return False, "browser-harness not installed (pip install browser-harness)"
+
+    try:
+        r = subprocess.run(
+            [str(exe)],
+            input="print(page_info())",
+            capture_output=True, text=True, timeout=20, encoding="utf-8",
+        )
+        if r.returncode == 0 and "url" in r.stdout:
+            return True, f"browser-harness ready ({exe})"
+        if "chrome running" in (r.stdout + r.stderr):
+            if "FAIL" in (r.stdout + r.stderr) and "daemon" in (r.stdout + r.stderr):
+                return False, "Chrome CDP not enabled: chrome://inspect/#remote-debugging"
+        return False, f"CDP check failed: {(r.stderr or r.stdout)[:200]}"
+    except subprocess.TimeoutExpired:
+        return False, "browser-harness timed out"
+    except Exception as e:
+        return False, f"browser-harness error: {e}"
+
+
+def install_browser_harness() -> str | None:
+    """Install browser-harness via pip."""
+    ok = _try_pip_install("browser-harness")
+    if ok:
+        return None
+    return "pip install browser-harness\nThen: chrome://inspect/#remote-debugging → Allow"
+
+
 # ── layer 2: python packages ───────────────────────────────
 
 def check_package(import_name: str, pkg_name: str) -> tuple[bool, str]:
@@ -250,6 +322,7 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         "node": None,
         "npx": None,
         "curl": None,
+        "browser_harness": None,
         "packages": {},
         "mcp_json": None,
         "hooks": None,
@@ -265,6 +338,7 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         ("Node.js", check_node, install_node),
         ("npx", check_npx, None),  # npx comes with Node.js, no separate install
         ("curl", check_curl, install_curl),
+        ("browser-harness", check_browser_harness, install_browser_harness),
     ]:
         ok, detail = check_fn()
         if ok:
@@ -328,9 +402,9 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
     results["all_pass"] = not failed
 
     # Summary
-    total = 4 + len(CORE_PACKAGES) + 2  # 4 system + 6 packages + 2 config = 12
+    total = 5 + len(CORE_PACKAGES) + 2  # 5 system + 8 packages + 2 config = 15
     passed = (
-        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"]] if v)
+        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"], results["browser_harness"]] if v)
         + sum(1 for v in results["packages"].values() if v)
         + sum(1 for v in [results["mcp_json"], results["hooks"]] if v)
     )

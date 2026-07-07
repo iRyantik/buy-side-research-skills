@@ -38,7 +38,14 @@ def resolve_path(path: str, cwd: str) -> Optional[str]:
     if not clean:
         return None
     try:
-        return str(Path(clean).resolve() if os.path.isabs(clean) else (Path(cwd) / clean).resolve())
+        # Git Bash: /s/... → S:\... on Windows
+        if sys.platform == "win32" and re.match(r'^/[a-zA-Z]/', clean):
+            drive = clean[1] + ":"
+            win_path = drive + clean[2:]
+            return str(Path(win_path).resolve()) if os.path.exists(win_path) else str((Path(cwd) / clean.lstrip("/")).resolve())
+        if os.path.isabs(clean):
+            return str(Path(clean).resolve())
+        return str((Path(cwd) / clean).resolve())
     except Exception:
         return None
 

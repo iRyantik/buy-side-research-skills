@@ -21,32 +21,49 @@
 
 这会创建：`CLAUDE.md`、`AGENTS.md`、`.claude/hooks/`、`_scripts/`、`.gitignore`。
 
-## Step 3: 确认 Playwright Runtime
+## Step 3: 确认 Browser Runtime
 
-Playwright 是推荐的 workspace baseline runtime capability，用于：
+推荐**两个** browser runtime：
 
-- 图片下载（如共享 `download-product-image.js`）
-- 页面级 fallback extraction
-- 依赖 Playwright MCP / browser runtime 的 consumer flow
+| Runtime | 用途 | 需要什么 |
+|---|---|---|
+| **Playwright MCP** | 图片下载、页面 fallback extraction | 插件已包含，`/init-workspace` 自动配置 |
+| **browser-harness CDP** | JS 渲染页面、Cloudflare 反爬绕过 | `pip install browser-harness` + Chrome 远程调试 |
 
-安装顺序固定为：**安装插件 → `/init-workspace` → 确认 Playwright runtime 可用 → 再跑 skill smoke test**。
+安装顺序固定为：**安装插件 → `/init-workspace` → 确认 browser runtime 可用 → 再跑 skill smoke test**。
 
-检查以下两件事：
+### Playwright MCP
 
-- 当前 Claude / Codex 宿主有可用的 Playwright MCP 或等价 browser runtime
-- 当前 workspace 已有 Playwright 共享资产：`_scripts/download-product-image.js`、`.claude/mcp.json`、`.codex/mcp.example.json`
+- 当前 Claude / Codex 宿主有可用的 Playwright MCP
+- `.claude/mcp.json` 包含 `playwright` key（`/init-workspace` 自动配置）
 
-未启用 Playwright 不阻塞插件安装，但会影响图片抓取和部分网页 fallback 能力。Playwright 不通过 `.env` 配置；market/provider credential 仍按下一步配置。
+### browser-harness CDP
+
+browser-harness 连接你的真实 Chrome，继承登录态和浏览器指纹，能访问 Playwright 打不开的页面（如 Perplexity Finance、小红书等 Cloudflare 保护站点）。
+
+```bash
+# 安装
+pip install browser-harness
+
+# 开启 Chrome 远程调试
+# 在 Chrome 地址栏输入 chrome://inspect/#remote-debugging → 勾选 Allow
+```
 
 ## Step 4: 检查依赖
 
-执行以下检查，缺什么装什么：
+一键检查 + 自动安装所有缺失依赖：
 
 ```
-python _scripts/financial-data/financial_data.py --check-deps
+python .scripts/verify-runtime.py
 ```
 
-按输出提示安装缺失的 Python 包。A 股（AKShare）和港股（Eastmoney）到此已完成。
+（检查 13 项：Python / Node / curl / browser-harness / 8 个 Python 包 / Playwright MCP / hooks）
+
+也可单独检查 financial-data 依赖：
+
+```
+python .scripts/financial-data/financial_data.py --check-deps
+```
 
 ## Step 5: 配置 Credential（按用户覆盖的市场）
 

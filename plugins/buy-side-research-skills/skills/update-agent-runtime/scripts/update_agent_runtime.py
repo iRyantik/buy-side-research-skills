@@ -93,7 +93,9 @@ def fetch_latest() -> tuple[str, Path]:
     if not zip_url:
         _fail("No zipball_url in release")
 
-    tmp = Path(tempfile.mkdtemp(prefix="bsrs-update-"))
+    short_tmp = Path("C:/tmp")
+    short_tmp.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix="bsrs-", dir=str(short_tmp)))
     zip_path = tmp / "release.zip"
     _download(zip_url, zip_path)
 
@@ -199,8 +201,7 @@ def sync_workspace(payload: Path, workspace: Path):
     # C1 — platform-owned scripts from assets/.scripts/
     scripts_src = assets / ".scripts"
     if scripts_src.is_dir():
-        for f in scripts_src.glob("*.py"):
-            shutil.copy2(f, workspace / ".scripts" / f.name)
+        shutil.copytree(scripts_src, workspace / ".scripts", dirs_exist_ok=True)
     # C2 — skill workspace scripts (auto-discover)
     skills_dir = payload / "skills"
     if skills_dir.is_dir():
