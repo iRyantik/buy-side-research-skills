@@ -66,7 +66,7 @@ def _find_harness() -> str:
             for line in r.stdout.split("\n"):
                 if line.startswith("Location:"):
                     loc = Path(line.split(":", 1)[1].strip())
-                    exe = loc / "browser-harness.exe" if sys.platform == "win32" else loc.parent / "bin" / "browser-harness"
+                    exe = loc.parent / "Scripts" / "browser-harness.exe" if sys.platform == "win32" else loc.parent / "bin" / "browser-harness"
                     if exe.exists():
                         return str(exe)
     except Exception:

@@ -206,6 +206,25 @@ def check_browser_harness() -> tuple[bool, str]:
         if found:
             exe = Path(found)
         else:
+            # Try pip show fallback (handles Store Python, custom installs)
+            try:
+                r = subprocess.run(
+                    [sys.executable, "-m", "pip", "show", "browser-harness"],
+                    capture_output=True, text=True, timeout=15,
+                )
+                if r.returncode == 0:
+                    for line in r.stdout.split("\n"):
+                        if line.startswith("Location:"):
+                            loc = Path(line.split(":", 1)[1].strip())
+                            scripts_dir = loc.parent / "Scripts" if IS_WINDOWS else loc.parent / "bin"
+                            candidate = scripts_dir / ("browser-harness.exe" if IS_WINDOWS else "browser-harness")
+                            if candidate.exists():
+                                exe = candidate
+                                break
+            except Exception:
+                pass
+
+        if not exe:
             return False, "browser-harness not installed (pip install browser-harness)"
 
     try:
