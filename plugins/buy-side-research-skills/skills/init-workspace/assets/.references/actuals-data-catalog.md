@@ -1,6 +1,6 @@
 # actuals-resolved.json Data Catalog
 
-> 本文件是 `_cache/financial-data/internal/actuals-resolved.json` 的字段清单。
+> 本文件是 `.cache/financial-data/internal/actuals-resolved.json` 的字段清单。
 > 消费 actuals 的 skill 在附录中引用本文件，agent 可据此判断哪些数据可用，无需打开 JSON。
 > 由 `/financial-data` 生成。字段存在与否取决于 provider 覆盖和公司披露。
 

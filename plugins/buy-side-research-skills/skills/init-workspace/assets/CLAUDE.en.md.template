@@ -421,3 +421,97 @@ All Chinese or multilingual text files must use **UTF-8 without BOM**.
 
 - This file serves the user research workspace.
 - Plugin development governance is maintained in the plugin dev repo root `CLAUDE.md`, not expanded here.
+
+---
+
+## 9. Multi-Machine Sync
+
+This workspace supports switching between multiple machines (e.g., desktop + laptop). These rules prevent environment drift and data loss.
+
+### 9.1 New Machine Initialization
+
+When setting up a new machine, execute in order:
+
+1. Install Python 3.12+, Node.js 18+, Chrome
+2. Enable Chrome remote debugging: `chrome://inspect/#remote-debugging` → Allow
+3. Clone workspace repo + pull: `git clone <workspace-repo> && cd <workspace> && git pull`
+4. Clone plugin source + pull: `git clone <plugin-repo> && cd <plugin> && git pull`
+5. Run init: `/init-workspace`
+6. **Wait for OneDrive sync to complete** (system tray icon stops spinning) — otherwise sessions are incomplete
+7. Run runtime check: `python .scripts/verify-runtime.py` (auto-installs missing dependencies)
+8. **Run session sync setup**: `python .scripts/sync/setup.py` (creates junction to OneDrive `.sessions/`)
+9. Manually configure machine-local files (see §9.6)
+
+### 9.2 Dual Repo Discipline
+
+The workspace and plugin source are **two independent git repos**. Shared script changes must be handled on both sides:
+
+```
+workspace s:/                    plugin source (path varies)
+├── .scripts/shared/*.py   ←→   skills/init-workspace/assets/.scripts/
+└── CLAUDE.md              ←→   CLAUDE.md.template
+```
+
+Process: modify workspace first → verify → sync to plugin source → commit + push. Never modify only one side.
+
+### 9.3 Switch-Machine Workflow
+
+```
+Before leaving: git push (both workspace + plugin source)
+                Close Claude Code normally (triggers Stop hook → conflict cleanup)
+After arriving: git pull (both sides)
+                Wait for OneDrive sync to complete
+                python .scripts/sync/setup.py  # first time only; skip if already set up
+                python .scripts/verify-runtime.py
+                Chrome → chrome://inspect → confirm Allow is checked
+```
+
+### 9.4 Python Path Compatibility
+
+Python installation paths may differ across machines (system install, Anaconda, Microsoft Store, etc.). `browser-cdp.py` and `verify-runtime.py` use `pip show` for dynamic path discovery. If `browser-harness not found`:
+
+```bash
+python -m pip show browser-harness  # confirm installed and path
+python .scripts/shared/browser-cdp.py check  # quick diagnosis
+```
+
+### 9.5 Session Sync Mechanism
+
+Claude Code writes conversation history to `~/.claude/projects/<workspace-hash>/` (one `.jsonl` per session). `setup.py` replaces the hash directory with a **Windows junction** (or macOS symlink) pointing to the workspace `.sessions/` (inside OneDrive), so all machines share the same session files.
+
+```
+~/.claude/projects/<workspace-hash>/  ——→  .sessions/ (OneDrive synced)
+```
+
+**Daily use**: Nothing required. Opening CC automatically reads/writes sessions in OneDrive.
+
+**Conflict handling**: If two machines have CC open simultaneously, OneDrive may produce `<file>-<MACHINE>.jsonl` conflict copies. The Stop hook (`session_conflict_clean.py`) auto union-merges unique lines → writes back to base file → deletes the conflict copy. Normal use (close one machine before opening the other) won't produce conflicts.
+
+**First-time setup**: `python .scripts/sync/setup.py` (`--dry-run` to preview without changes).
+
+### 9.6 Machine-Local Config Files (Manual Migration Required)
+
+The following files are **NOT in git/OneDrive** — they contain API tokens or machine-specific paths and must be manually configured when switching machines:
+
+| File | Content | Migration |
+|---|---|---|
+| `~/.claude/settings.json` | API tokens, model routing, effort level, plugin marketplace | Copy from old machine, fill in tokens |
+| `~/.claude/envs.json` | API provider presets (with auth tokens) | Copy from old machine, fill in tokens |
+| `~/.claude/mcp.json` | Playwright MCP server config | Copy from old machine, adjust executable path |
+| `~/.claude/npx-wrapper.cmd` | npx wrapper script (Windows) | Copy directly |
+| `~/.gitconfig` | git user.name / user.email | `git config --global user.name/email "..."` |
+
+> ⚠️ Files containing tokens must **NOT** be synced via git or public cloud storage. Use encrypted transfer (Bitwarden Send, self-encrypted zip) or manually copy and fill in tokens.
+
+### 9.7 Common Problems
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| CDP connection failure | Chrome remote debugging not enabled | `chrome://inspect` → Allow |
+| `browser-harness not found` | pip path not in search list | `pip show` has fallback; manually install if still failing |
+| `npm ERR! npx` related | Node.js not installed or version too low | Install Node.js ≥18 |
+| git identity auto-generated | New machine without user.name/email set | `git config --global user.name/email` |
+| Session history empty | Junction not established | `python .scripts/sync/setup.py` |
+| OneDrive conflict files | Two machines had CC open simultaneously | Stop hook auto-merge cleanup; normal switching won't trigger |
+| Plugin version mismatch | New machine plugin cache outdated | Run `/update-agent-runtime` |
+| `setup.py` can't find `.sessions/` | OneDrive sync not yet complete | Wait for system tray OneDrive icon to stop spinning |

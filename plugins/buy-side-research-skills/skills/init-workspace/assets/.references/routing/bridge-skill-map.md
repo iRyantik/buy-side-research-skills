@@ -167,7 +167,7 @@
 - `research-viz` — 消费而非获取
 - `research-journal` — 知识沉淀
 - `coverage-tracker` — 覆盖管理
-- `` — 路由建议
+- `next-step` — 路由建议
 - `financial-data` — Bridge 的上游（CLI 写入 actuals）
 - `init-workspace` — operations skill
 - `update-agent-runtime` — operations skill

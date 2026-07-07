@@ -412,3 +412,97 @@ skill 是决策工具，不是装饰性模板。
 
 - 本文件服务用户 research workspace。
 - 插件开发治理维护在 plugin dev repo root `CLAUDE.md`，不在本文件展开。
+
+---
+
+## 9. 多机同步
+
+本 workspace 支持在多台电脑间切换（如台式机 + 笔记本）。以下规则防止环境漂移和数据丢失。
+
+### 9.1 新电脑初始化
+
+换到新电脑时，按顺序执行：
+
+1. 安装 Python 3.12+、Node.js 18+、Chrome
+2. 开启 Chrome 远程调试：`chrome://inspect/#remote-debugging` → Allow
+3. Clone workspace repo + pull：`git clone <workspace-repo> && cd <workspace> && git pull`
+4. Clone plugin 源并拉取最新：`git clone <plugin-repo> && cd <plugin> && git pull`
+5. 跑初始化：`/init-workspace`
+6. **等 OneDrive 完成同步**（系统托盘图标停止转动）——否则 session 不完整
+7. 跑运行时检查：`python .scripts/verify-runtime.py`（自动安装缺失依赖）
+8. **跑 session sync setup**：`python .scripts/sync/setup.py`（建立 junction 连到 OneDrive `.sessions/`）
+9. 手动配置机器级文件（见 §9.6）
+
+### 9.2 双 repo 纪律
+
+workspace 和 plugin 源是**两个独立的 git repo**，改共享脚本时必须两边都处理：
+
+```
+workspace s:/                    plugin 源 (路径不固定)
+├── .scripts/shared/*.py   ←→   skills/init-workspace/assets/.scripts/
+└── CLAUDE.md              ←→   CLAUDE.md.template
+```
+
+流程：先改 workspace 验证 → 确认可用 → 同步改 plugin 源 → commit + push。不要只改一边。
+
+### 9.3 换电脑工作流
+
+```
+离开电脑前：git push（workspace + plugin 源两边）
+           正常关闭 Claude Code（触发 Stop hook → 冲突清理）
+换电脑后： git pull（两边）
+           OneDrive 等同步完成
+           python .scripts/sync/setup.py  # 仅新电脑首次需要；已设好则跳过
+           python .scripts/verify-runtime.py
+           Chrome → chrome://inspect → 确认 Allow 已勾选
+```
+
+### 9.4 Python 路径兼容
+
+不同电脑的 Python 安装路径可能不同（系统安装、Anaconda、Microsoft Store 等）。`browser-cdp.py` 和 `verify-runtime.py` 已内置 `pip show` 动态查找机制。如遇 `browser-harness not found`：
+
+```bash
+python -m pip show browser-harness  # 确认已安装及路径
+python .scripts/shared/browser-cdp.py check  # 快速诊断
+```
+
+### 9.5 Session Sync 机制
+
+Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录（每个 session 一个 `.jsonl`）。`setup.py` 将 hash 目录替换为指向 workspace `.sessions/`（OneDrive 内）的 **Windows junction**（或 macOS symlink），使所有机器共享同一份 session 文件。
+
+```
+~/.claude/projects/<workspace-hash>/  ——→  .sessions/（OneDrive 同步）
+```
+
+**日常使用**：无需任何操作。打开 CC 即自动读/写 OneDrive 内的 session。
+
+**冲突处理**：两台机器同时开 CC 时 OneDrive 可能产生 `<file>-<MACHINE>.jsonl` 冲突副本。Stop hook（`session_conflict_clean.py`）自动 union-merge 去重行→写回基文件→删除冲突副本。正常使用（一台关再开另一台）不会产生冲突。
+
+**首次 setup**：`python .scripts/sync/setup.py`（`--dry-run` 预览不执行）。
+
+### 9.6 机器级配置文件（需手动迁移）
+
+以下文件**不在 git/OneDrive 内**——含 API tokens 或机器相关路径，换电脑时需手动配置：
+
+| 文件 | 内容 | 迁移方式 |
+|---|---|---|
+| `~/.claude/settings.json` | API tokens、model routing、effort level、plugin marketplace | 从旧机复制，填入 token |
+| `~/.claude/envs.json` | API provider presets（含 auth tokens） | 从旧机复制，填入 token |
+| `~/.claude/mcp.json` | Playwright MCP server 配置 | 从旧机复制，改 executable 路径 |
+| `~/.claude/npx-wrapper.cmd` | npx 封装脚本（Windows） | 直接复制 |
+| `~/.gitconfig` | git user.name / user.email | `git config --global user.name/email "..."` |
+
+> ⚠️ 含 token 的文件**不要**通过 git 或公开云盘同步。用加密方式（Bitwarden Send、自加密 zip）或手动复制后填入。
+
+### 9.7 常见问题
+
+| 症状 | 原因 | 解决 |
+|---|---|---|
+| CDP 连接失败 | Chrome 远程调试未开 | `chrome://inspect` → Allow |
+| `browser-harness not found` | pip 路径不在搜索列表 | `pip show` 已兜底，如仍失败手动装 |
+| `npm ERR! npx` 相关 | Node.js 未装或版本过低 | 装 Node.js ≥18 |
+| git 身份自动生成 | 新电脑未设 user.name/email | `git config --global user.name/email` |
+| Session 历史为空 | junction 未建立 | `python .scripts/sync/setup.py` |
+| OneDrive 冲突文件 | 两台机器同时开了 CC | Stop hook 自动合并清理，正常切换不会触发 |
+| 插件版本不一致 | 新机 plugin cache 过期 | 跑 `/update-agent-runtime` |
+| `setup.py` 找不到 `.sessions/` | OneDrive 未同步完成 | 等系统托盘 OneDrive 停止转动再跑 |
