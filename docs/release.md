@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `7.5.3`.
+Current release version: `7.6.0`.
 
 ## Source And Runtime Shape
 
@@ -132,7 +132,7 @@ skills/update-agent-runtime/scripts/update_agent_runtime.py
 
 Root `scripts/` has been removed from this source layout. Do not reference the old validator or build-release commands in maintenance instructions.
 
-Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-7.5.3.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
+Packaging for this release is assembled manually from the payload into `dist/buy-side-research-skills-7.6.0.zip`. If future releases need automation again, design that tooling in a separate change rather than restoring stale root scripts.
 
 Before publishing a marketplace/plugin manifest change, confirm these JSON files parse without a UTF-8 BOM and start with `{`:
 

@@ -1,6 +1,6 @@
 # Buy-Side Research Skills
 
-> v7.5.3 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.6.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 A journal-first buy-side equity research skill suite: 38 skills covering triage, foundation, deep-work, and operations layers. Source-tracked, evidence-gated, cross-market.
 
@@ -154,7 +154,7 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 | Version | Date | Changes |
 |---|---|---|
-| v7.5.3 | 2026-07 | docs: §9 cross-machine sync — new machine setup, dual repo discipline, switch workflow |
+| v7.6.0 | 2026-07 | docs: §9 cross-machine sync — new machine setup, dual repo discipline, switch workflow |
 | v7.5.2 | 2026-07 | fix: pip show fallback for cross-machine Python path detection (Store Python / custom installs) |
 | v7.5.1 | 2026-07 | browser-cdp recipes + sync subdirectory support; remove browser-act skills |
 | v7.5.0 | 2026-07 | browser-harness CDP tier: browser-cdp.py, verify-claim Tier 2 CDP (real Chrome, Cloudflare bypass), web-extract --cdp, verify-runtime +browser-harness check |
@@ -175,7 +175,7 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.5.3 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.6.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
 
