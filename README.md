@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.5.2 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.5.3 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 ---
 
@@ -165,6 +165,7 @@ Step 7: alpha-thesis          → thesis + kill criteria + next catalyst
 
 | 版本 | 日期 | 主要变化 |
 |---|---|---|
+| v7.5.3 | 2026-07 | docs: §9 多机同步 — workspace 模板加入新电脑初始化、双 repo 纪律、换机工作流 |
 | v7.5.2 | 2026-07 | fix: pip show fallback for cross-machine Python path detection (Store Python / custom installs) |
 | v7.5.1 | 2026-07 | browser-cdp recipes + sync 子目录支持；移除 browser-act skills |
 | v7.5.0 | 2026-07 | browser-harness CDP tier：browser-cdp.py 共享脚本、verify-claim Tier 2 CDP（真实 Chrome，过 Cloudflare）、web-extract --cdp、verify-runtime +browser-harness 检查 |
