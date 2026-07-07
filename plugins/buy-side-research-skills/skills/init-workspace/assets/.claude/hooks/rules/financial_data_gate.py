@@ -54,7 +54,7 @@ SLUG_RE = re.compile(
 # - provider_api: stable structured provider routes, including provider-fetched official filings cached locally
 # - official_web / trusted_web / broad_web: Layer 3 fallback split by web-source priority
 #   official_web includes company IR/results pages, official public filing portals found via web search,
-#   and explicitly curated official_web cache entries written under internal/_raw/official_web.cache.json
+#   and explicitly curated official_web cache entries written under internal/.raw/official_web_cache.json
 # Source-trust ranking is separate from execution order:
 # - tier 1: provider_api, official_web
 # - tier 2: yfinance

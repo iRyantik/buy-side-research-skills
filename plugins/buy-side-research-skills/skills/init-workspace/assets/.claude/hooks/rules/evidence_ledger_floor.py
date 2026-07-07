@@ -6,7 +6,7 @@ Also checks: tier-gap (WebSearch-only → play missing Playwright) and image aud
 | gate | action | agent fix |
 |---|---|---|
 | image_missing | goto_step_5_download | Execute Step 5a-5f for each missing file |
-| ledger_missing | goto_step_2_init_ledger | Run `python _scripts/evidence_ledger.py init <artifact> -t <TICKER>` |
+| ledger_missing | goto_step_2_init_ledger | Run `python .scripts/evidence_ledger.py init <artifact> -t <TICKER>` |
 | ledger_corrupted | goto_step_2_init_ledger | Delete and re-init the ledger |
 | fabrication_risk | goto_step_4_verify | Verify or delete the flagged claim |
 | tier_gap | goto_step_4_verify | Each [I#] must have ≥1 WebFetch/Playwright/curl attempt |
