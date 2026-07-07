@@ -11,7 +11,7 @@ class TestLedgerFloor(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         self.artifact = os.path.join(self.tmp, "2026-06-03-test.md")
-        self.cache = os.path.join(self.tmp, "_cache", "evidence")
+        self.cache = os.path.join(self.tmp, ".cache", "evidence")
         os.makedirs(self.cache, exist_ok=True)
         with open(self.artifact, "w") as f:
             f.write("# Test\nRevenue EUR 591.3m [S1](https://a.com)\n")

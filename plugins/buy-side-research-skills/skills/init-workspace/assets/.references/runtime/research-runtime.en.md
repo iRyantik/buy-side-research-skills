@@ -10,7 +10,7 @@ Hook-enforced rules (source boundary, structure floor, table render, mermaid syn
 
 ```
 /financial-data <TICKER>
-  → _cache/financial-data/internal/actuals-resolved.json
+  → .cache/financial-data/internal/actuals-resolved.json
 ```
 
 - Default Lite: `/financial-data <ticker>` → latest FY + latest Q/H (~46 fields)
@@ -136,7 +136,7 @@ Automated Tier 1→2 fallback:
 | 2 | Playwright MCP | Script outputs instruction; agent executes `browser_navigate` + `browser_evaluate` to extract base64 |
 | 3 | `[missing]` | All tiers exhausted, mark `[missing image]` |
 
-Cache: `_cache/images/` + `.cache.json` index, workspace-level, cross-skill shared.
+Cache: `.cache/images/` + `.cache.json` index, workspace-level, cross-skill shared.
 
 Product naming: `<slug>.{ext}` (manual `--output`).
 
@@ -203,7 +203,7 @@ See `.references/policy/research-policy-baseline.md` §9-11.
 □ 3.  Every [I#] has ≥1 Tier 1-2 verification record (hook: evidence_ledger_floor Rule 4)
 □ 4.  No bare [actuals] (§2.2: read [S#] tags from source_map)
 □ 5.  No browser_take_screenshot (use download-image.py)
-□ 6.  Images downloaded to _cache/images/, cache index updated
+□ 6.  Images downloaded to .cache/images/, cache index updated
 □ 7.  [missing] only used after all tiers exhausted, ledger has attempt record
 □ 8.  [needs verification] count ≤ 8 (hook: pre_write_gate CHECK 8)
 □ 9.  Table header/separator/data column counts match, ≤12 columns (hook: pre_write_gate CHECK 13)

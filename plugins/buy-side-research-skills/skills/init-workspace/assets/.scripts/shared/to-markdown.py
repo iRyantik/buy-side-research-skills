@@ -57,9 +57,9 @@ def _cache_path(workspace: Path, ticker: str, desc: str) -> Path:
     industry_dirs = list(workspace.glob("industry/*/companies/*"))
     for d in industry_dirs:
         if ticker.lower() in d.name.lower() or ticker.split(".")[0].lower() in d.name.lower():
-            return d / "_cache" / f"{ticker}-{desc}.md"
-    # Fallback: workspace root _cache
-    return workspace / "_cache" / f"{ticker}-{desc}.md"
+            return d / ".cache" / f"{ticker}-{desc}.md"
+    # Fallback: workspace root .cache
+    return workspace / ".cache" / f"{ticker}-{desc}.md"
 
 
 def convert(filepath: str, format: str | None = None) -> tuple[str, dict | None]:

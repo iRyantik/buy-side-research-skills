@@ -383,27 +383,27 @@ def build(json_path, output_path=None):
                     if isinstance(_k, str) and 'E' in _k: _proj_keys.add(_k)
     _PROJ_FYS = sorted(_proj_keys)
     _ALL_FYS = [FY2_KEY, FY1_KEY, FY0_KEY] + _PROJ_FYS
-    _opm_cache = {}
+    _opm.cache = {}
     for _fy in _ALL_FYS:
         _v = _gl('opex_rev', _fy)
-        _opm_cache[_fy] = round(_v, 4) if _v else 0.25
+        _opm.cache[_fy] = round(_v, 4) if _v else 0.25
 
     def _opm(fy):
         """Mutable Opex/Rev rate cache — use _opm(fy_key) instead of gl['opm'][idx]."""
-        if fy not in _opm_cache:
+        if fy not in _opm.cache:
             _v = _gl('opex_rev', fy)
-            _opm_cache[fy] = round(_v, 4) if _v else 0.25
-        return _opm_cache[fy]
+            _opm.cache[fy] = round(_v, 4) if _v else 0.25
+        return _opm.cache[fy]
 
     # ── Mutable GM cache (Phase 1.3 blend modifies in-place) ──
-    _gm_cache = {}
+    _gm.cache = {}
 
     def _gm(line_idx, fy):
         """Mutable base_rate cache — use _gm(line_idx, fy) instead of ll['gm'][...]."""
         key = (line_idx, fy)
-        if key not in _gm_cache:
-            _gm_cache[key] = _br(line_idx, fy)
-        return _gm_cache[key]
+        if key not in _gm.cache:
+            _gm.cache[key] = _br(line_idx, fy)
+        return _gm.cache[key]
 
     # ── Line-level helpers (replace ll['...'] old-format access) ──
     def _vol(line_idx, fy):
@@ -575,7 +575,7 @@ def build(json_path, output_path=None):
                                     proj_fy_blend = _PROJ_FYS[proj_i]
                                     gm_model = _gm(_blend_idx, proj_fy_blend)
                                     gm_blend = w_act * gm_actual + w_mod * gm_model
-                                    _gm_cache[(_blend_idx, proj_fy_blend)] = round(gm_blend, 4)
+                                    _gm.cache[(_blend_idx, proj_fy_blend)] = round(gm_blend, 4)
 
                             # Opex/Rev blend (requires OP data)
                             if seg_q_ops and seg_q_gps and sum(seg_q_revs) > 0:
@@ -592,7 +592,7 @@ def build(json_path, output_path=None):
                                 else:
                                     om_model = _opm(proj_fy_om)
                                     om_blend = w_act * om_actual + w_mod * om_model
-                                    _opm_cache[proj_fy_om] = round(om_blend, 4)
+                                    _opm.cache[proj_fy_om] = round(om_blend, 4)
                     # Blend global opm (company-level, from all segments' actual Qs)
                     if M_seg > 0:
                         all_act_rev = 0; all_act_gp = 0; all_act_op = 0
@@ -612,7 +612,7 @@ def build(json_path, output_path=None):
                             proj_fy_om = _PROJ_FYS[proj_i] if proj_i < len(_PROJ_FYS) else _PROJ_FYS[-1]
                             co_om_mod = _opm(proj_fy_om)
                             co_blend = (M_seg / 4) * co_om_act + (1 - M_seg / 4) * co_om_mod
-                            _opm_cache[proj_fy_om] = round(co_blend, 4)
+                            _opm.cache[proj_fy_om] = round(co_blend, 4)
             qi_b += fyc; cur_yr += 1; cur_q = 1
 
         # ═══ Phase 1.4: Q Driver Distribution — annual drivers → Q projections ═══

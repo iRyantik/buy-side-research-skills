@@ -6,7 +6,7 @@
   },
 
   "sources": {
-    "actuals_cache": {
+    "actuals.cache": {
       "type": "local",
       "description": "Structured financial actuals + market data snapshot written by financial-data CLI",
       "markets": ["US", "HK", "SH", "SZ", "JP", "KR", "TW", "EU"],
@@ -98,14 +98,14 @@
   },
 
   "chains": {
-    "market_quote":           ["actuals_cache", "longbridge_mcp", "yfinance", "web_search"],
+    "market_quote":           ["actuals.cache", "longbridge_mcp", "yfinance", "web_search"],
     "price_action":           ["longbridge_mcp", "yfinance", "web_search"],
     "price_intraday":         ["longbridge_mcp", "web_search"],
     "price_history":          ["longbridge_mcp", "yfinance", "web_search"],
 
-    "valuation_snapshot":     ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "valuation_snapshot":     ["actuals.cache", "longbridge_mcp", "yfinance"],
     "valuation_peer":         ["longbridge_mcp", "yfinance"],
-    "valuation_history":      ["longbridge_mcp", "actuals_cache", "yfinance"],
+    "valuation_history":      ["longbridge_mcp", "actuals.cache", "yfinance"],
     "valuation_rank":         ["longbridge_mcp"],
     "industry_valuation":     ["longbridge_mcp"],
     "industry_valuation_dist":["longbridge_mcp"],
@@ -113,22 +113,22 @@
     "consensus":              ["longbridge_mcp"],
     "forecast_eps":           ["longbridge_mcp"],
 
-    "financial_snapshot":     ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "financial_snapshot":     ["actuals.cache", "longbridge_mcp", "yfinance"],
     "financial_snapshot_detail":["longbridge_mcp"],
-    "financial_statement":    ["actuals_cache", "financial_data_cli", "longbridge_mcp"],
-    "financial_report":       ["actuals_cache", "financial_data_cli", "longbridge_mcp"],
-    "business_segments":      ["longbridge_mcp", "actuals_cache"],
+    "financial_statement":    ["actuals.cache", "financial_data_cli", "longbridge_mcp"],
+    "financial_report":       ["actuals.cache", "financial_data_cli", "longbridge_mcp"],
+    "business_segments":      ["longbridge_mcp", "actuals.cache"],
 
-    "income_statement":       ["actuals_cache", "financial_data_cli"],
-    "balance_sheet":          ["actuals_cache", "financial_data_cli"],
-    "cash_flow":              ["actuals_cache", "financial_data_cli"],
-    "revenue_split":          ["actuals_cache", "financial_data_cli"],
+    "income_statement":       ["actuals.cache", "financial_data_cli"],
+    "balance_sheet":          ["actuals.cache", "financial_data_cli"],
+    "cash_flow":              ["actuals.cache", "financial_data_cli"],
+    "revenue_split":          ["actuals.cache", "financial_data_cli"],
 
     "news":                   ["longbridge_mcp", "web_search"],
     "filings":                ["longbridge_mcp", "web_search"],
     "calendar":               ["longbridge_mcp", "web_search"],
 
-    "dividend":               ["actuals_cache", "longbridge_mcp", "yfinance"],
+    "dividend":               ["actuals.cache", "longbridge_mcp", "yfinance"],
     "shareholder":            ["longbridge_mcp"],
     "shareholder_top":        ["longbridge_mcp"],
     "executive":              ["longbridge_mcp"],

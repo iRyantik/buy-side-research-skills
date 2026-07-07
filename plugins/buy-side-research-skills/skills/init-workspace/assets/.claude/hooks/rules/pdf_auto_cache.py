@@ -238,7 +238,7 @@ def check(ctx):
         # ── Ticker derivation ──
         ticker = _derive_ticker(root, path)
         if not ticker and top == "disclosure":
-            warn(f"pdf_auto_cache: cannot derive ticker for {filename}, caching to inbox")
+            warn(f"pdf_auto.cache: cannot derive ticker for {filename}, caching to inbox")
             source_type = ("inbox", "")
             ticker = None
 
@@ -249,7 +249,7 @@ def check(ctx):
         if os.path.exists(cache_path):
             try:
                 os.remove(path)
-                print(f"pdf_auto_cache: {filename} already cached at {cache_path}, "
+                print(f"pdf_auto.cache: {filename} already cached at {cache_path}, "
                       f"deleted redundant PDF", file=sys.stderr)
             except OSError:
                 pass
@@ -258,7 +258,7 @@ def check(ctx):
         # Convert + cache + delete
         to_md = os.path.join(root, ".scripts", "shared", "to-markdown.py")
         if not os.path.exists(to_md):
-            warn(f"pdf_auto_cache: to-markdown.py not found, skipping {filename}")
+            warn(f"pdf_auto.cache: to-markdown.py not found, skipping {filename}")
             continue
 
         # Build to-markdown.py args with full output path + metadata
@@ -271,14 +271,14 @@ def check(ctx):
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=root)
             if r.returncode != 0:
-                warn(f"pdf_auto_cache: conversion failed for {filename}: {r.stderr[:200]}")
+                warn(f"pdf_auto.cache: conversion failed for {filename}: {r.stderr[:200]}")
             elif r.stderr:
                 for line in r.stderr.strip().split("\n"):
                     if line.strip():
-                        print(f"pdf_auto_cache: {line.strip()}", file=sys.stderr)
+                        print(f"pdf_auto.cache: {line.strip()}", file=sys.stderr)
         except subprocess.TimeoutExpired:
-            warn(f"pdf_auto_cache: timeout converting {filename} (>120s), PDF preserved")
+            warn(f"pdf_auto.cache: timeout converting {filename} (>120s), PDF preserved")
         except Exception as e:
-            warn(f"pdf_auto_cache: error processing {filename}: {e}")
+            warn(f"pdf_auto.cache: error processing {filename}: {e}")
 
     sys.exit(0)

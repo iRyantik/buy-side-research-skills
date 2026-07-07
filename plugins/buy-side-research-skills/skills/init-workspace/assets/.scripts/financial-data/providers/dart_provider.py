@@ -96,7 +96,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                     timings["corp_code_cache_age_days"] = cache_age_days
                 if cache_status == "stale-fallback":
                     result.setdefault("data_gaps", []).append(
-                        "corp_code_cache: stale-cache-review; using stale ticker-to-corp_code metadata after OpenDART lookup failed"
+                        "corp_code.cache: stale-cache-review; using stale ticker-to-corp_code metadata after OpenDART lookup failed"
                     )
             result["items_extracted"].append("identity")
         except Exception as e:
@@ -200,7 +200,7 @@ def _get_corp_from_open_dart(identifier: str, api_key: str, years: list[int]) ->
             lookup_error = exc
         if direct is not None:
             _write_cached_corp_code(clean, direct)
-            _annotate_corp_cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
+            _annotate_corp.cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
             return direct
         if os.getenv("BSRS_DART_ENABLE_CORP_MASTER") == "1":
             try:
@@ -209,7 +209,7 @@ def _get_corp_from_open_dart(identifier: str, api_key: str, years: list[int]) ->
                 lookup_error = exc
             if direct is not None:
                 _write_cached_corp_code(clean, direct)
-                _annotate_corp_cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
+                _annotate_corp.cache(direct, lookup_status, cached_age_days if lookup_status == "stale" else 0)
                 return direct
         if cached_entry and not cached_is_fresh:
             stale = _corp_from_cache_entry(cached_entry, "stale-fallback", cached_age_days)
@@ -294,11 +294,11 @@ def _corp_from_cache_entry(entry: dict[str, Any], status: str, age_days: float |
         stock_code=str(entry.get("stock_code") or "").strip(),
         corp_name=str(entry.get("corp_name") or "").strip(),
     )
-    _annotate_corp_cache(corp, status, age_days)
+    _annotate_corp.cache(corp, status, age_days)
     return corp
 
 
-def _annotate_corp_cache(corp: Any, status: str, age_days: float | None) -> None:
+def _annotate_corp.cache(corp: Any, status: str, age_days: float | None) -> None:
     corp.corp_code_cache_status = status
     if age_days is not None:
         corp.corp_code_cache_age_days = age_days

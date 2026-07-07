@@ -60,7 +60,7 @@ Must have a source:
 ### 3.0 Claim-Level Source Contract (shared baseline, not skill-local boilerplate)
 
 - `truth-like claim` = any verifiable or refutable fact, number, quote, business relationship, market data, industry fact, historical event, disclosure classification change.
-- Every `truth-like claim` must be immediately followed by an inline clickable short source anchor; visible text stays short-code, but the short code itself must carry a real link, e.g. `[S1](./source.md)`, `[L1](./_cache/source.md)`, `[P1](https://...)` or `[I1](https://...)`. Do not embed dates or long URLs in the visible text.
+- Every `truth-like claim` must be immediately followed by an inline clickable short source anchor; visible text stays short-code, but the short code itself must carry a real link, e.g. `[S1](./source.md)`, `[L1](./.cache/source.md)`, `[P1](https://...)` or `[I1](https://...)`. Do not embed dates or long URLs in the visible text.
 - Body text example: `FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./source.md)`
 - Every research artifact must end with one and only one `## Resources`, reusing the same clickable short anchors, and expanding source type, title/provider, as-of / filed date, page / table / URL location, fallback reason (if applicable). Short codes in the body and tables must be directly clickable; do not default to expanding full source metadata below tables.
 - Multiple sources are written as `[S1](./source.md) [I1](https://...)`, not as `[S1][I1]`; only when the same source code has conflicting versions within the same artifact should you escalate to `[S1a](...)` / `[S1b](...)`.
@@ -74,12 +74,12 @@ Must have a source:
 - Market-snapshot track: `topic-local evidence cache / financial-data > trusted third-party > web`. Use this for `market_quote`, `valuation_snapshot`, `price_action`, `kline_snapshot`, `consensus`, `financial_snapshot`, `fx_snapshot`, `adr_ah_premium`, and clearly market-data-like liquidity / market-context fields.
 - `financial-data` is the highest-value reusable structured cache inside `topic-local evidence cache`. It takes priority over trusted third-party providers for market / snapshot fields, but it does not replace `primary public` when wording, segment definition, or disclosure truth must be checked.
 - Optional provider bridge rule: when a skill explicitly invokes `trusted-market-bridge`, A-share / Hong Kong / US market-snapshot fields may use Longbridge as the default trusted third-party layer before generic internet fallback. Supported bridge domains now include market data, price action, valuation, FX, ADR/AH premium, consensus, financial snapshots, and high-level `market_screen` signals. This does not upgrade Longbridge into `primary public source` or company-truth authority.
-- `topic-local evidence cache` means this research workspace's topic `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
+- `topic-local evidence cache` means this research workspace's topic `.cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
 - Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
 - Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
 
 - The shorthand order is not a single-line total order, but dual-track: disclosure-fact track `topic-local evidence cache > primary public > trusted third-party > web`; market-snapshot track `topic-local evidence cache / financial-data > trusted third-party > web`.
-- `topic-local evidence cache`: current topic `_cache/`, company `financial-data`, source-tracked markdown after ingest, saved internal data packs; does not include research artifacts, which can only serve as navigation, routing, and pending-review clues.
+- `topic-local evidence cache`: current topic `.cache/`, company `financial-data`, source-tracked markdown after ingest, saved internal data packs; does not include research artifacts, which can only serve as navigation, routing, and pending-review clues.
 - `primary public source`: filings, IR, exchange, regulatory, government, industry association, company website, and other publicly verifiable original sources.
 - `trusted third-party`: provider aggregation layers such as Longbridge; the current unified entry preference is `trusted-market-bridge`, but it only serves market / snapshot fields and does not elevate to company truth.
 - `internet source`: market/provider data on public web pages, financial sites, trading pages, public news pages, public database pages.
@@ -174,7 +174,7 @@ Research artifacts must not exhibit sell-side patterns:
 
 Evidence tracking is ticker-scoped, not artifact-scoped. Cross-artifact reuse is the default.
 
-- Ledger path: `_cache/evidence/<TICKER>.evidence.json`
+- Ledger path: `.cache/evidence/<TICKER>.evidence.json`
 - Init: `evidence_ledger.py init <DIR> -t <TICKER>` (ticker mode only — artifact-scoped mode is deprecated)
 - Each claim carries: id, source code, text, status, method, tier, quote, section, checked_at, provenances, attempts
 - Statuses: verified, plausible, unverified, disputed, fabrication_risk
@@ -183,7 +183,7 @@ Evidence tracking is ticker-scoped, not artifact-scoped. Cross-artifact reuse is
 
 ## 8. Actuals Data Contract
 
-`financial-data` writes structured actuals to `_cache/financial-data/internal/actuals-resolved.json`. Research skills consume it — do not bypass it to fetch raw financials directly.
+`financial-data` writes structured actuals to `.cache/financial-data/internal/actuals-resolved.json`. Research skills consume it — do not bypass it to fetch raw financials directly.
 
 - 22 core line items: Revenue, COGS, Gross Profit, SG&A, R&D, EBIT, Interest Expense, Pre-Tax Income, Net Income, SBC, Cash, AR, Inventory, Goodwill, Short-Term Debt, Long-Term Debt, Bonds Payable, Total Equity, Operating CF, CapEx, D&A, Dividends
 - Market data: Market Cap, PE, EV, EBITDA, Beta, 52w High/Low, Share Price, Shares Outstanding

@@ -50,13 +50,13 @@ def _default_matrix() -> dict:
     """Minimal fallback matrix if workspace file is missing."""
     return {
         "sources": {
-            "actuals_cache": {"type": "local", "markets": ["*"], "check": "file_exists"},
+            "actuals.cache": {"type": "local", "markets": ["*"], "check": "file_exists"},
             "longbridge_mcp": {"type": "mcp", "markets": ["US", "HK", "SH", "SZ", "SG"]},
             "yfinance": {"type": "python_lib", "markets": ["*"]},
             "web_search": {"type": "tool", "markets": ["*"]},
         },
         "chains": {
-            "market_quote": ["actuals_cache", "longbridge_mcp", "yfinance", "web_search"],
+            "market_quote": ["actuals.cache", "longbridge_mcp", "yfinance", "web_search"],
             "default": ["longbridge_mcp", "yfinance", "web_search"],
         },
         "tool_map": {},
@@ -77,12 +77,12 @@ def find_actuals_path(workspace: Path, ticker: str) -> Path | None:
     for ind in industry_dir.iterdir():
         if not ind.is_dir():
             continue
-        candidate = ind / "companies" / slug / "_cache" / "financial-data" / "actuals-resolved.json"
+        candidate = ind / "companies" / slug / ".cache" / "financial-data" / "actuals-resolved.json"
         if candidate.exists():
             return candidate
         # Also try uppercase slug
         slug_upper = ticker.split(".")[0].upper().lower()
-        candidate2 = ind / "companies" / slug_upper / "_cache" / "financial-data" / "actuals-resolved.json"
+        candidate2 = ind / "companies" / slug_upper / ".cache" / "financial-data" / "actuals-resolved.json"
         if candidate2.exists():
             return candidate2
     return None
@@ -217,11 +217,11 @@ def route(
         tool = None
         params = None
 
-        # --- actuals_cache check ---
-        if source_name == "actuals_cache":
+        # --- actuals.cache check ---
+        if source_name == "actuals.cache":
             if not source_supported_market(src, market):
                 available = False
-                reason = f"actuals_cache not available for market {market}"
+                reason = f"actuals.cache not available for market {market}"
             else:
                 actuals_path = find_actuals_path(ws, ticker)
                 if actuals_path is None:

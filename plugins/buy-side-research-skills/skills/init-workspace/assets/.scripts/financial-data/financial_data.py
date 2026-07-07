@@ -107,7 +107,7 @@ FULL_EXTRA_FIELDS = {
 # ---------------------------------------------------------------------------
 # Concept mapping: parse statement-line-items.md → {concept_alias: standard_field}
 # ---------------------------------------------------------------------------
-_concept_map_cache = None
+_concept_map.cache = None
 
 # Standard field name aliases: canonical name / variant → LITE_FIELDS-compatible key
 _FIELD_ALIASES = {
@@ -300,22 +300,22 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
     and variant names to standard LITE_FIELDS-compatible field names.
     Cached globally after first call.
     """
-    global _concept_map_cache
-    if _concept_map_cache is not None:
-        return _concept_map_cache
+    global _concept_map.cache
+    if _concept_map.cache is not None:
+        return _concept_map.cache
 
     if workspace is None:
         try:
             workspace = discover_workspace()
         except RuntimeError:
-            _concept_map_cache = {}
+            _concept_map.cache = {}
             return {}
 
     template = workspace / ".references" / "policy" / "statement-line-items.md"
     if not template.exists():
         template = workspace / "references" / "policy" / "statement-line-items.md"
     if not template.exists():
-        _concept_map_cache = {}
+        _concept_map.cache = {}
         return {}
 
     text = template.read_text(encoding="utf-8")
@@ -368,7 +368,7 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
     for concept, std_name in _SEC_CONCEPT_MAP.items():
         mapping[concept] = std_name
 
-    _concept_map_cache = mapping
+    _concept_map.cache = mapping
     return mapping
 
 
@@ -382,7 +382,7 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
         '매출' → 'revenue' (KR label)
     """
     if concept_map is None:
-        concept_map = _concept_map_cache or {}
+        concept_map = _concept_map.cache or {}
 
     if not concept or not isinstance(concept, str):
         return concept.lower().replace(" ", "_") if concept else ""
@@ -1239,7 +1239,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     write_json(raw_dir / "provider_payload.json", normalized["provider_payload"])
     write_raw_evidence_pack(raw_dir, provider, company, filing)
 
-    # _cache output
+    # .cache output
     manifest = {
         "schema_version": 2, "generated_at_utc": utc_now(), "run_id": rid,
         "output_scope": args.output_scope, "market": args.market,

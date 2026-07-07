@@ -118,7 +118,7 @@ def fetch_latest() -> tuple[str, Path]:
 
 # ── cache update ──────────────────────────────────────────────
 
-def update_host_cache(payload: Path, version: str, cache_dir: Path, host_name: str):
+def update_host.cache(payload: Path, version: str, cache_dir: Path, host_name: str):
     """Copy plugin payload into host cache directory."""
     ver_dir = cache_dir / version
     if ver_dir.exists():
@@ -277,13 +277,13 @@ def main():
     # 2. Update host caches
     hosts_updated = []
     if _host_installed(CLAUDE_CACHE):
-        update_host_cache(payload, version, CLAUDE_CACHE, "Claude Code")
+        update_host.cache(payload, version, CLAUDE_CACHE, "Claude Code")
         hosts_updated.append("Claude Code")
     else:
         _log("Claude Code not installed, skipping")
 
     if _host_installed(CODEX_CACHE):
-        update_host_cache(payload, version, CODEX_CACHE, "Codex")
+        update_host.cache(payload, version, CODEX_CACHE, "Codex")
         hosts_updated.append("Codex")
     else:
         _log("Codex not installed, skipping")

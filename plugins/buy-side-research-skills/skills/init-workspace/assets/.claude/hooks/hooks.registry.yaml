@@ -224,7 +224,7 @@ hooks:
     severity: block
 
   # === Governance (non-blocking infrastructure) ===
-  - name: pdf_auto_cache
+  - name: pdf_auto.cache
     file: rules/pdf_auto.cache.py
     layer: governance
     events: [Stop]

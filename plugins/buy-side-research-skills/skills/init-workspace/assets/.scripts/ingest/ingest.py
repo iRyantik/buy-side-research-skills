@@ -1075,7 +1075,7 @@ def output_path_for(source: Path, workspace: Path, cache_root: Path | None, topi
     resolved = resolve_topic(source, workspace, topic)
     if cache_root:
         return cache_root / resolved / f"{source.stem}.md"
-    return workspace / resolved / "_cache" / f"{source.stem}.md"
+    return workspace / resolved / ".cache" / f"{source.stem}.md"
 
 
 def read_cache_metadata(path: Path) -> dict[str, str]:
