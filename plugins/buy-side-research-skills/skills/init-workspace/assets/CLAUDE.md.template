@@ -527,10 +527,11 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 ### 10.2 Artifact File
 
 ```
-YYYY-MM-DD-<skill>-<Company-Name>.md
+YYYY-MM-DD-<skill>-<Company-Name>[-<qualifier>].<ext>
 ```
 
 `<Company-Name>` = COVERAGE `Company (EN)` 列，空格替换为 `-`，保留原生大小写。
+`<qualifier>` = 可选，版本号、场景标记等。支持 `.md`/`.json`/`.xlsx`。
 
 ### 10.3 创建新公司
 
