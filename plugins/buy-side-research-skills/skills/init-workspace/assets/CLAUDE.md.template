@@ -514,35 +514,27 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 ### 10.1 Company Directory
 
 ```
-<TICKER.MARKET>-<name>
+<TICKER.MARKET> - <Company Name>
 ```
 
-| TICKER.MARKET | `-` | name |
+| 段 | 来源 | 格式 |
 |---|---|---|
-| actuals `identity.ticker`（`<CODE>.<MARKET>`） | 固定分隔 | CN/HK/TW：COVERAGE Native 列中文名 |
-| COVERAGE 兜底 | | 其余：COVERAGE EN name 转 kebab-case |
-
-```
-# 中国公司（中文名）
-603067.SH-振华股份/
-300285.SZ-国瓷材料/
-
-# 非中国公司（英文 slug）
-012450.KS-hanwha-aerospace/
-BESI.NA-be-semiconductor/
-```
+| TICKER.MARKET | actuals `identity.ticker`（`<CODE>.<MARKET>`） | 点分隔，大写 |
+| ` - ` | 固定分隔 | 空格-空格 |
+| Company Name | CN/HK/TW：COVERAGE Native 列 | 原生中文 |
+| | 其余：COVERAGE `Company (EN)` 列 | 原生大小写+空格 |
 
 ### 10.2 Artifact File
 
 ```
-YYYY-MM-DD-<skill>-<slug>.md
+YYYY-MM-DD-<skill>-<Company-Name>.md
 ```
 
-`<slug>` = `actuals → identity.name_en` 转 kebab-case。**不**来自目录名。
+`<Company-Name>` = COVERAGE `Company (EN)` 列，空格替换为 `-`，保留原生大小写。
 
 ### 10.3 创建新公司
 
 1. 查 `actuals-resolved.json` → `identity`（ticker + name_en + name_native）
 2. actuals 不存在 → 查 `COVERAGE.md`
-3. 有中文名 → 目录用中文名；否则用 name_en 转 kebab-case
-4. 按 §10.2 命名 artifact（slug = name_en kebab-case）
+3. CN/HK/TW → Company Name 用 Native 列中文；其余 → 用 EN 列
+4. Artifact = EN name，空格换 `-`，保留大小写
