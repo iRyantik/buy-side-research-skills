@@ -527,7 +527,13 @@ YYYYMMDD-[skill-name]-[Company-Name][-qualifier].<ext>
 
 日期无括号，skill 和 Company Name 用 `[]` 包裹，`-` 连接。
 
-### 10.3 创建新公司
+### 10.3 日期规则
+
+- 创建 artifact：日期使用系统当前日期（YYYYMMDD），不手动指定
+- 更新 artifact：数据/结论/模型参数变更时，mv 更新文件名日期；typo/formatting 不改
+- .cache/ 内文件不受此约束
+
+### 10.4 创建新公司
 
 1. 查 `actuals-resolved.json` → `identity`（ticker + name_en + name_native）
 2. actuals 不存在 → 查 `COVERAGE.md`
