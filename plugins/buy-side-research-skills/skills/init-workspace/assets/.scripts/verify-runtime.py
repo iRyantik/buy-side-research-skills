@@ -338,24 +338,26 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         ("Node.js", check_node, install_node),
         ("npx", check_npx, None),  # npx comes with Node.js, no separate install
         ("curl", check_curl, install_curl),
-        ("browser-harness", check_browser_harness, install_browser_harness),
+        ("browser-harness", check_browser_harness, None),  # optional, no auto-install
     ]:
         ok, detail = check_fn()
         if ok:
             print(f"  {detail:<40} ✅")
         else:
-            print(f"  {detail:<40} ❌")
+            is_optional = (name == "browser-harness")
+            mark = "⚠️ (optional)" if is_optional else "❌"
+            print(f"  {detail:<40} {mark}")
             if auto_install and install_fn:
                 err = install_fn()
                 if err is None:
-                    # Re-check after install
                     ok2, detail2 = check_fn()
                     if ok2:
                         print(f"  {detail2:<40} ✅ (auto-installed)")
                         results[name.lower().replace(".", "_")] = True
                         continue
-            failed = True
-            results[name.lower().replace(".", "_")] = False
+            if not is_optional:
+                failed = True
+            results[name.lower().replace(".", "_")] = ok if not is_optional else True  # optional always passes
             if name == "npx":
                 print(f"  → Fix: re-install Node.js LTS ({manual_node()})")
         results[name.lower().replace(".", "_")] = ok
