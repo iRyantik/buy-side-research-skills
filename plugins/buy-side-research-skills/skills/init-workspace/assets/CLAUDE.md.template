@@ -514,14 +514,23 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 ### 10.1 Company Directory
 
 ```
-<TICKER-MARKET>--<slug>[--<中文名>]
+<TICKER.MARKET>-<name>
 ```
 
-| 段 | 来源 | 格式 | 示例 |
-|---|---|---|---|
-| TICKER-MARKET | actuals → COVERAGE 兜底 | `<CODE>-<MARKET>` | `603067-SH`、`BESI-NA` |
-| slug | COVERAGE EN name | kebab-case | `zhenhua-chemical` |
-| 中文名 | COVERAGE Native 列 | 仅 CN/HK/TW 加 | `振华股份` |
+| TICKER.MARKET | `-` | name |
+|---|---|---|
+| actuals `identity.ticker`（`<CODE>.<MARKET>`） | 固定分隔 | CN/HK/TW：COVERAGE Native 列中文名 |
+| COVERAGE 兜底 | | 其余：COVERAGE EN name 转 kebab-case |
+
+```
+# 中国公司（中文名）
+603067.SH-振华股份/
+300285.SZ-国瓷材料/
+
+# 非中国公司（英文 slug）
+012450.KS-hanwha-aerospace/
+BESI.NA-be-semiconductor/
+```
 
 ### 10.2 Artifact File
 
@@ -529,10 +538,11 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 YYYY-MM-DD-<skill>-<slug>.md
 ```
 
-`<slug>` = 目录名的中间段（`--` 分隔的第二段）。
+`<slug>` = `actuals → identity.name_en` 转 kebab-case。**不**来自目录名。
 
 ### 10.3 创建新公司
 
-1. 查 `actuals-resolved.json` → `identity`；不存在则查 `COVERAGE.md`
-2. 按 §10.1 生成目录名 → `mkdir`
-3. 按 §10.2 命名 artifact
+1. 查 `actuals-resolved.json` → `identity`（ticker + name_en + name_native）
+2. actuals 不存在 → 查 `COVERAGE.md`
+3. 有中文名 → 目录用中文名；否则用 name_en 转 kebab-case
+4. 按 §10.2 命名 artifact（slug = name_en kebab-case）
