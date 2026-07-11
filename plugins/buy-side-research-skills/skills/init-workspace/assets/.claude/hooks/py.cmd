@@ -7,13 +7,18 @@ python  --version >nul 2>&1 && (python  %* & exit /b 0)
 python3 --version >nul 2>&1 && (python3 %* & exit /b 0)
 py      --version >nul 2>&1 && (py      %* & exit /b 0)
 
-REM Fallback: machine-specific install paths
+REM Fallback: machine-specific install paths (cross-machine coverage)
+REM Order: Anaconda > Miniconda > Official Python (3.13→3.11) > Windows Store > local
 set "FOUND="
 for %%p in (
     "C:\ProgramData\anaconda3\python.exe"
+    "C:\ProgramData\miniconda3\python.exe"
     "C:\Users\%USERNAME%\anaconda3\python.exe"
+    "C:\Users\%USERNAME%\miniconda3\python.exe"
+    "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python313\python.exe"
     "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python312\python.exe"
     "C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python311\python.exe"
+    "C:\Users\%USERNAME%\AppData\Local\Microsoft\WindowsApps\python.exe"
     "C:\Users\%USERNAME%\.local\bin\python.exe"
 ) do (
     if not defined FOUND (
@@ -25,5 +30,5 @@ for %%p in (
     )
 )
 
-echo [py.cmd] Python not found on this machine >&2
+echo [py.cmd] Python not found — add to PATH or install ^(https://python.org^) >&2
 exit /b 1
