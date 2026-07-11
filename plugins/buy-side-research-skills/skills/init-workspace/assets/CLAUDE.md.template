@@ -514,15 +514,10 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 ### 10.1 Company Directory
 
 ```
-<TICKER.MARKET> - <Company Name>
+<TICKER.MARKET>-<Company-Name>
 ```
 
-| 段 | 来源 | 格式 |
-|---|---|---|
-| TICKER.MARKET | actuals `identity.ticker`（`<CODE>.<MARKET>`） | 点分隔，大写 |
-| ` - ` | 固定分隔 | 空格-空格 |
-| Company Name | CN/HK/TW：COVERAGE Native 列 | 原生中文 |
-| | 其余：COVERAGE `Company (EN)` 列 | 原生大小写+空格 |
+`<Company-Name>` = CN/HK/TW：COVERAGE Native 列（中文原样），其余：EN 列（空格换 `-`）。
 
 ### 10.2 Artifact File
 
