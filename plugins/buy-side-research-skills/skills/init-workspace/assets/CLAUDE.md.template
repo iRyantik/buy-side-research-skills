@@ -506,3 +506,33 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 | OneDrive 冲突文件 | 两台机器同时开了 CC | Stop hook 自动合并清理，正常切换不会触发 |
 | 插件版本不一致 | 新机 plugin cache 过期 | 跑 `/update-agent-runtime` |
 | `setup.py` 找不到 `.sessions/` | OneDrive 未同步完成 | 等系统托盘 OneDrive 停止转动再跑 |
+
+---
+
+## 10. 文件命名规范
+
+### 10.1 Company Directory
+
+```
+<TICKER-MARKET>--<slug>[--<中文名>]
+```
+
+| 段 | 来源 | 格式 | 示例 |
+|---|---|---|---|
+| TICKER-MARKET | actuals → COVERAGE 兜底 | `<CODE>-<MARKET>` | `603067-SH`、`BESI-NA` |
+| slug | COVERAGE EN name | kebab-case | `zhenhua-chemical` |
+| 中文名 | COVERAGE Native 列 | 仅 CN/HK/TW 加 | `振华股份` |
+
+### 10.2 Artifact File
+
+```
+YYYY-MM-DD-<skill>-<slug>.md
+```
+
+`<slug>` = 目录名的中间段（`--` 分隔的第二段）。
+
+### 10.3 创建新公司
+
+1. 查 `actuals-resolved.json` → `identity`；不存在则查 `COVERAGE.md`
+2. 按 §10.1 生成目录名 → `mkdir`
+3. 按 §10.2 命名 artifact
