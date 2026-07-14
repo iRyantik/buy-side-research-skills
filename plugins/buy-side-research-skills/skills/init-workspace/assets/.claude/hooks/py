@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# py — Cross-machine Python locator for Claude Code hooks (macOS / Linux)
+if command -v python3 &>/dev/null; then
+    exec python3 "$@"
+elif command -v python &>/dev/null; then
+    exec python "$@"
+else
+    echo "[py] Python not found" >&2
+    exit 1
+fi

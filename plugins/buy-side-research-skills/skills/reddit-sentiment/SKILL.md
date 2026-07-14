@@ -103,7 +103,7 @@ skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
 run_id = YYYY-MM-DDTHH-MM-SSZ
 scrapi_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]/scrapi
 raw_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]
-cache_dir = industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run_id]
+cache_dir = industry/<industry>/companies/<ticker>/.cache/datasets/reddit-sentiment/[run_id]
 report_path = industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-reddit-sentiment.md
 ```
 
@@ -140,7 +140,7 @@ _raw/datasets/reddit-sentiment/[run_id]/
   manifest.json
   comments-cache/
 
-_cache/datasets/reddit-sentiment/[run_id]/
+.cache/datasets/reddit-sentiment/[run_id]/
   evidence-cards.md
   coverage-summary.md
   manifest.json
@@ -155,15 +155,15 @@ _cache/datasets/reddit-sentiment/[run_id]/
 ```markdown
 ## Verdict
 
-[2-4 句结论先行：Reddit 情绪是什么、最大分歧是什么、这对研究下一步意味着什么。样本数 / 时间窗 / 最大 cluster 必须挂 `[C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
+[2-4 句结论先行：Reddit 情绪是什么、最大分歧是什么、这对研究下一步意味着什么。样本数 / 时间窗 / 最大 cluster 必须挂 `[C1](./.cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
 
 ## 1. Coverage & Caveats
 
 | Item | Setting / Result | Ev |
 |---|---|---|
-| Time window | [from-to] | [C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
+| Time window | [from-to] | [C1](./.cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
 | Collection route | search + subreddit scan | [C4](./_raw/datasets/reddit-sentiment/[run_id]/manifest.json) |
-| Core posts / usable comments | [n posts / n comments] | [C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
+| Core posts / usable comments | [n posts / n comments] | [C1](./.cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) |
 | Biggest limitation | [coverage caveat] | [C4](./_raw/datasets/reddit-sentiment/[run_id]/manifest.json) |
 
 **Takeaway**: Reddit 是 clue-only social source；下文只说明叙事和情绪，不把评论当公司事实。
@@ -172,8 +172,8 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 | Segment | Subreddits | Sample / signal | Bias caveat | Ev |
 |---|---|---|---|---|
-| Trader / meme | r/wallstreetbets 等 | [核心情绪] | 夸大短期价格和 options | [R001](https://www.reddit.com/r/wallstreetbets/comments/example) [C2](./_cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
-| Fundamental / value | r/investing 等 | [核心情绪] | 样本少、偏谨慎 | [R002](https://www.reddit.com/r/investing/comments/example) [C2](./_cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
+| Trader / meme | r/wallstreetbets 等 | [核心情绪] | 夸大短期价格和 options | [R001](https://www.reddit.com/r/wallstreetbets/comments/example) [C2](./.cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
+| Fundamental / value | r/investing 等 | [核心情绪] | 样本少、偏谨慎 | [R002](https://www.reddit.com/r/investing/comments/example) [C2](./.cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) |
 
 ## 3. Narrative Clusters
 
@@ -196,7 +196,7 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 ## 6. Excluded Material
 
-[说明 false positives、tiny posts、deleted/removed comments、低质量板块，必须挂 `[C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
+[说明 false positives、tiny posts、deleted/removed comments、低质量板块，必须挂 `[C1](./.cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md)`。]
 
 ## 7. Phase 1 Routing
 
@@ -217,8 +217,8 @@ _cache/datasets/reddit-sentiment/[run_id]/
 
 ## Resources
 
-- [C1](./_cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) = local cache | coverage summary | run [run_id]
-- [C2](./_cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) = local cache | evidence cards | run [run_id]
+- [C1](./.cache/datasets/reddit-sentiment/[run_id]/coverage-summary.md) = local cache | coverage summary | run [run_id]
+- [C2](./.cache/datasets/reddit-sentiment/[run_id]/evidence-cards.md) = local cache | evidence cards | run [run_id]
 - [C3](./_raw/datasets/reddit-sentiment/[run_id]/cluster-counts.json) = local cache | cluster counts | run [run_id]
 - [C4](./_raw/datasets/reddit-sentiment/[run_id]/manifest.json) = local cache | manifest and source caveats | run [run_id]
 - [R014](https://www.reddit.com/...) = reddit social source | r/[subreddit] | [title] | collected [date] | caveat: clue only

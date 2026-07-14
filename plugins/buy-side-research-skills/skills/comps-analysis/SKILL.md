@@ -13,7 +13,7 @@ Build comparable company valuation workbooks with peer multiples and operating m
 
 **GATE**: Read workspace `.references/runtime/research-runtime.md` BEFORE any action. All runtime rules in that file + hooks — capsule only states what is unique to this skill.
 - Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
-- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `.cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - **数据验证**：Claim Fill Pipeline — Tier 0(actuals)→1(WebFetch)→2(Playwright)→3(curl)→4([需查证])。见  §3.2。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
@@ -26,7 +26,7 @@ Step 1: Fork N subagents — 一 ticker 一 card（并行）
 
   a. 拉取财务数据
      python .scripts/financial-data/financial_data.py --market <M> --identifier <TICKER> --company-slug <S> --mode full
-     → 写入 _cache/financial-data/actuals-resolved.json
+     → 写入 .cache/financial-data/actuals-resolved.json
 
   b. 生成证据卡
      读取 actuals + WebSearch 关键信息 → 按 `references/policy/evidence-card-schema.json` 输出 JSON

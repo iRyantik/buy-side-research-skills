@@ -160,13 +160,6 @@ Operations skills 不嵌 research capsule，只保留各自操作边界、文件
 
 ---
 
-## 8. Release Shape
+## 8. Release
 
-runtime release zip 继续保持扁平 payload：
-
-- `.claude-plugin/`
-- `.codex-plugin/`
-- `skills/`
-- `README.md`
-
-repo docs、authoring baseline、release notes 是否进 zip，以当期 release policy 为准；不要默认把所有 repo 文档塞进运行时包。
+Release 的完整流程、checklist、gh CLI 自检和跨机同步，见 [`docs/release.md`](docs/release.md)。

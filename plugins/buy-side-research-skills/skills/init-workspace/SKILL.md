@@ -91,7 +91,7 @@ for each skill_dir in skills/*/:
 - Installing Docling, Tesseract, onnx, torch, or other heavy dependencies — each skill's `bootstrap.py` handles these on first use.
 - Running `git init`.
 - Creating topic directories — handled automatically by research skills on artifact save (see policy baseline §9).
-- Creating topic-level `_raw/`, `_cache/`, or `_models/`.
+- Creating topic-level `_raw/`, `.cache/`, or `_models/`.
 - Initializing inside the plugin dev repo or plugin install directory.
 - Running `update-agent-runtime` host/plugin upgrades.
 

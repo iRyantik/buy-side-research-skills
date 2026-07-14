@@ -131,6 +131,68 @@ def _union_merge(base_path, conflict_path):
             pass
 
 
+def _clean_deleted_sessions(sessions_dir):
+    """Delete .jsonl files listed in .sessions/deleted.json.
+
+    Shared via OneDrive — when Machine A deletes a session, Machine B's
+    hook sees the same deleted.json and cleans the transcript file.
+    """
+    import json
+    import shutil
+
+    deleted_file = sessions_dir / "deleted.json"
+    if not deleted_file.is_file():
+        return
+
+    try:
+        data = json.loads(deleted_file.read_text(encoding="utf-8"))
+        deleted_ids = {item["sessionId"] for item in data.get("deleted", [])}
+    except (json.JSONDecodeError, KeyError, OSError):
+        return
+
+    if not deleted_ids:
+        return
+
+    # Delete matching .jsonl files and their subdirectories
+    cleaned = []
+    for sid in deleted_ids:
+        jsonl = sessions_dir / f"{sid}.jsonl"
+        subdir = sessions_dir / sid
+
+        removed = False
+        try:
+            if jsonl.is_file():
+                jsonl.unlink()
+                removed = True
+        except OSError:
+            pass
+        try:
+            if subdir.is_dir():
+                shutil.rmtree(subdir, ignore_errors=True)
+                removed = True
+        except OSError:
+            pass
+
+        if removed:
+            cleaned.append(sid)
+
+    # Update deleted.json — remove entries that were cleaned
+    remaining = [item for item in data.get("deleted", [])
+                 if item["sessionId"] not in cleaned]
+    if remaining:
+        data["deleted"] = remaining
+        try:
+            deleted_file.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                                    encoding="utf-8")
+        except OSError:
+            pass
+    else:
+        try:
+            deleted_file.unlink()
+        except OSError:
+            pass
+
+
 def check(ctx):
     """Hook entry point. Best-effort: never raise."""
     sessions_dir = find_sessions_dir()
@@ -144,5 +206,10 @@ def check(ctx):
                 conflict_path.unlink()
             except Exception:
                 continue
+    except Exception:
+        pass
+
+    try:
+        _clean_deleted_sessions(sessions_dir)
     except Exception:
         pass

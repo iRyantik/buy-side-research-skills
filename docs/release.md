@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `7.6.1`.
+Current release version: `7.6.5`.
 
 ## Source And Runtime Shape
 
@@ -154,6 +154,78 @@ rtk rg -n '^description:' plugins/buy-side-research-skills/skills -g SKILL.md
 rtk rg -n '^summary:|^description:' plugins/buy-side-research-skills/skills -g skill.yaml
 rtk rg -n '^(# |## Research Runtime Capsule|## Modeling Runtime Capsule)' plugins/buy-side-research-skills/skills -g SKILL.md
 ```
+
+## Release Workflow
+
+This is the step-by-step release procedure. Execute from `~/dev/buyside`.
+
+### Prerequisites
+
+**gh CLI** (portable install, no admin required):
+
+```bash
+# One-time setup
+mkdir -p ~/.local/gh
+curl -sL "https://github.com/cli/cli/releases/latest/download/gh_VERSION_windows_amd64.zip" -o "$TEMP/gh.zip"
+unzip -o "$TEMP/gh.zip" -d ~/.local/gh
+```
+
+**GitHub token**: gh CLI reads the same credential as git push (Windows Credential Manager). If `gh auth status` shows not logged in, extract the token:
+
+```powershell
+"protocol=https`nhost=github.com`n" | git credential-manager get
+# Copy the password= line, then:
+echo "<token>" | ~/.local/gh/bin/gh auth login --with-token
+# Alternatively, set GH_TOKEN env var:
+export GH_TOKEN="<token>"
+```
+
+### Procedure
+
+All steps are mandatory. Do not skip `gh release create` — the `update-agent-runtime` script fetches from the GitHub Releases API, not git tags.
+
+```bash
+# 1. Commit all changes
+cd ~/dev/buyside
+git add -A
+git commit -m "<type>: <description>"
+
+# 2. Tag
+git tag -a vX.Y.Z -m "vX.Y.Z: <one-line summary>"
+
+# 3. Push
+git push
+git push origin vX.Y.Z
+
+# 4. Create GitHub Release (REQUIRED — not optional)
+~/.local/gh/bin/gh release create vX.Y.Z \
+  --repo iRyantik/buy-side-research-skills \
+  --title "vX.Y.Z" \
+  --notes "<changes summary>"
+
+# 5. Update local runtime
+python s:/.scripts/update-agent-runtime/update_agent_runtime.py
+
+# 6. Verify
+python s:/.scripts/verify-runtime.py
+```
+
+### Post-Release: Cross-Machine Sync
+
+On the **other machine**:
+
+```bash
+cd ~/dev/buyside && git pull
+# Then in CC: /update-agent-runtime
+```
+
+If the other machine doesn't have `~/dev/buyside` yet:
+
+```bash
+mkdir -p ~/dev && git clone https://github.com/iRyantik/buy-side-research-skills.git ~/dev/buyside
+```
+
+---
 
 ## Dependency Policy
 

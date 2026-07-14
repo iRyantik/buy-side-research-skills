@@ -89,11 +89,11 @@ Prepare for or react to earnings and decide whether thesis drivers or model assu
 
 | KPI | 上次基线 + Ev | 这次的关键阈值 | 含义 |
 |---|---|---|---|
-| Permian rig count 2H 指引 | 12 台 [S1](./_cache/sources/permian-rig-guidance.md) | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
+| Permian rig count 2H 指引 | 12 台 [S1](./.cache/sources/permian-rig-guidance.md) | ≥ 14 → 加速；< 12 → 收缩 | 决定 thesis 中 capex 假设 |
 
-正文 claim 示例：`Management kept FY26 revenue guidance unchanged but narrowed the margin range by 50 bps. [S1](./_cache/sources/company-annual-report.md)`
-| Buyback pace | Q2 完成 $300M [S1](./_cache/sources/q2-2024-cashflow.md) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
-| OpEx per BOE | $9.5 [S2](./_cache/sources/q2-2024-supplementals.md) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
+正文 claim 示例：`Management kept FY26 revenue guidance unchanged but narrowed the margin range by 50 bps. [S1](./.cache/sources/company-annual-report.md)`
+| Buyback pace | Q2 完成 $300M [S1](./.cache/sources/q2-2024-cashflow.md) | 全年 framework 是否上调 > $1.5B | 决定股东回报 willingness |
+| OpEx per BOE | $9.5 [S2](./.cache/sources/q2-2024-supplementals.md) | < $9 → 成本控制；> $10 → 通胀失控 | 利润率敏感度 |
 
 每一个都要有**具体数字阈值**，不是"看趋势"。基线数字必须 source 到具体上次 call / 10-Q 的具体位置。
 

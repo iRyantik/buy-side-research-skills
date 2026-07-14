@@ -37,9 +37,10 @@
 
 ### Path conventions
 
-- **Company artifact**: `industry/<industry>/companies/<ticker>/YYYY-MM-DD-<skill>-<qualifier>.md`
+- **Company directory**: `<TICKER-MARKET>--<slug>[--<中文名>]`（见 workspace CLAUDE.md §10）
+- **Company artifact**: `industry/<industry>/companies/<dir>/YYYY-MM-DD-<skill>-<slug>.md`
 - **Industry artifact**: `industry/<industry>/YYYY-MM-DD-<skill>-<qualifier>.md`
-- **Cache**: `industry/<industry>/companies/<ticker>/_cache/`
+- **Cache**: `industry/<industry>/companies/<dir>/_cache/`
 - **Images**: `_cache/images/<slug>-<product>.<ext>` (no subdirectory per skill)
 - **Legacy**: `topics/` is deprecated. `stock-quickread` explicitly warns against saving there.
 

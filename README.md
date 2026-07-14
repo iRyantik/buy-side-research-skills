@@ -1,18 +1,26 @@
 # Buy-Side Research Skills
 
-> v7.6.1 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.6.5 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
-A journal-first buy-side equity research skill suite: 38 skills covering triage, foundation, deep-work, and operations layers. Source-tracked, evidence-gated, cross-market.
+A journal-first buy-side equity research skill suite: 39 skills covering triage, foundation, deep-work, and operations layers. Source-tracked, evidence-gated, cross-market.
 
 ---
 
 ## 0. Install
 
-Tell Claude or Codex:
+**Step 1 — Install plugin:**
+```
+/plugin marketplace add iRyantik/buy-side-research-skills
+/plugin install buy-side-research-skills
+```
 
-```
-Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md to install buy-side-research-skills
-```
+**Step 2 — Create workspace:** Open a new folder in Claude Code / Codex → `/init-workspace`
+
+**Step 3 — Browser runtime:** Enable Chrome remote debugging (`chrome://inspect` → Allow), then `pip install browser-harness`
+
+**Step 4 — Verify:** `python .scripts/verify-runtime.py` (auto-installs missing deps)
+
+**Step 5 — Credentials (optional):** `EDGAR_IDENTITY` (US), `DART_API_KEY` (KR), Longbridge account. See §1 below.
 
 ## 0a. Upgrade
 
@@ -35,7 +43,7 @@ Pulls latest from GitHub Releases, updates plugin version + syncs workspace hook
 | **ingest doc conversion** | Tell Claude: "check ingest dependencies", auto-detects and prompts |
 | **Longbridge account** | Register at [longbridge.com](https://longbridge.com), tell Claude: "connect Longbridge" |
 
-> Unlisted skills work out of the box. Playwright runtime recommended as shared browser capability. See `docs/install.md`.
+> Unlisted skills work out of the box. Playwright MCP recommended as shared browser capability.
 
 ---
 
@@ -73,7 +81,7 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 
 ---
 
-## 3. Full Skill List (38 skills)
+## 3. Full Skill List (39 skills)
 
 ### Triage Layer
 
@@ -154,6 +162,10 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 | Version | Date | Changes |
 |---|---|---|
+| v7.6.5 | 2026-07 | docs: restructure dev docs — release workflow, inline install, remove stale files |
+| v7.6.4 | 2026-07 | fix: expand py.cmd fallback paths for cross-machine Python detection (Anaconda/Miniforge/Store) |
+| v7.6.3 | 2026-07 | (reserved) |
+| v7.6.2 | 2026-07 | sync: init-workspace assets — 9 script dirs, CLAUDE.md §9 cross-machine, coverage schema |
 | v7.6.1 | 2026-07 | docs: §9 cross-machine sync — new machine setup, dual repo discipline, switch workflow |
 | v7.5.2 | 2026-07 | fix: pip show fallback for cross-machine Python path detection (Store Python / custom installs) |
 | v7.5.1 | 2026-07 | browser-cdp recipes + sync subdirectory support; remove browser-act skills |
@@ -175,7 +187,7 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.6.1 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v7.6.5 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
 
@@ -183,11 +195,19 @@ journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、fou
 
 ## 0. 安装
 
-对 Claude / Codex 说：
+**第 1 步 — 安装插件：**
+```
+/plugin marketplace add iRyantik/buy-side-research-skills
+/plugin install buy-side-research-skills
+```
 
-```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
-```
+**第 2 步 — 创建 workspace：** 在 Claude Code / Codex 中打开一个新文件夹 → `/init-workspace`
+
+**第 3 步 — Browser runtime：** 开启 Chrome 远程调试（`chrome://inspect` → Allow），然后 `pip install browser-harness`
+
+**第 4 步 — 验证：** `python .scripts/verify-runtime.py`（自动安装缺失依赖）
+
+**第 5 步 — 凭证配置（按需）：** `EDGAR_IDENTITY`（美股）、`DART_API_KEY`（韩股）、Longbridge 账户。详见上方 §1。
 
 ## 0a. 升级
 

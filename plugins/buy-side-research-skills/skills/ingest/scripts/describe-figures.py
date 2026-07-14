@@ -2,10 +2,10 @@
 """Describe pending figures in cache markdown using a VLM API.
 
 Usage:
-  python describe-figures.py industry/<industry>/companies/<ticker>/_cache/source-file.md
-  python describe-figures.py industry/<industry>/companies/<ticker>/_cache/ --recursive
-  python describe-figures.py industry/<industry>/companies/<ticker>/_cache/source-file.md --api-url http://localhost:11434/v1 --model llava
-  python describe-figures.py industry/<industry>/companies/<ticker>/_cache/source-file.md --print-pending  # just list pending figures
+  python describe-figures.py industry/<industry>/companies/<ticker>/.cache/source-file.md
+  python describe-figures.py industry/<industry>/companies/<ticker>/.cache/ --recursive
+  python describe-figures.py industry/<industry>/companies/<ticker>/.cache/source-file.md --api-url http://localhost:11434/v1 --model llava
+  python describe-figures.py industry/<industry>/companies/<ticker>/.cache/source-file.md --print-pending  # just list pending figures
 
 Environment variables:
   VLM_API_URL     Base URL for OpenAI-compatible VLM API (default: https://api.openai.com/v1)

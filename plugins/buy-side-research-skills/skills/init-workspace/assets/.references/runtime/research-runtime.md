@@ -10,7 +10,7 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
 
 ```
 /financial-data <TICKER>
-  → _cache/financial-data/internal/actuals-resolved.json
+  → .cache/financial-data/internal/actuals-resolved.json
 ```
 
 - 默认 Lite：`/financial-data <ticker>` → latest FY + latest Q/H（~46 字段）
@@ -97,7 +97,7 @@ skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证�
 
 ```
 python .scripts/shared/to-markdown.py <file_or_url>                    # stdout markdown
-python .scripts/shared/to-markdown.py <file> --cache <TICKER> <desc>   # stdout + _cache/ 归档
+python .scripts/shared/to-markdown.py <file> --cache <TICKER> <desc>   # stdout + .cache/ 归档
 ```
 
 | 工具 | 用途 | 内部引擎 |
@@ -133,16 +133,16 @@ PDF → to-markdown.py 调 pdf-extract --smart:
 
 | 类型 | 路径 | 命名 |
 |---|---|---|
-| 年报/10-K/20-F | `_cache/disclosure/annual/` | `FY<year>-<desc>.md` |
-| 季报/10-Q | `_cache/disclosure/quarterly/` | `<year>-Q<n>-<desc>.md` |
-| Transcript | `_cache/disclosure/transcript/` | `<year>-Q<n>-earnings-call.md` |
-| 招股书/S-1 | `_cache/disclosure/prospectus/` | `<year>-IPO-<desc>.md` |
-| 其他 filing | `_cache/disclosure/filing/` | `<date>-<form-type>.md` |
-| 卖方报告 | `_cache/sell-side/<house>/` | `<house>-<date>-<ticker>-<note>.md` |
-| 行业机构 | `_cache/institution/<source>/` | `<source>-<date>-<topic>.md` |
-| 一手调研 | `_cache/primary/<type>/` | `<date>-<company>-<type>.md` |
-| 网页快照 | `_cache/web/` | `<date>-<slug>.md` |
-| 未分类 | `_cache/inbox/` | 兜底 |
+| 年报/10-K/20-F | `.cache/disclosure/annual/` | `FY<year>-<desc>.md` |
+| 季报/10-Q | `.cache/disclosure/quarterly/` | `<year>-Q<n>-<desc>.md` |
+| Transcript | `.cache/disclosure/transcript/` | `<year>-Q<n>-earnings-call.md` |
+| 招股书/S-1 | `.cache/disclosure/prospectus/` | `<year>-IPO-<desc>.md` |
+| 其他 filing | `.cache/disclosure/filing/` | `<date>-<form-type>.md` |
+| 卖方报告 | `.cache/sell-side/<house>/` | `<house>-<date>-<ticker>-<note>.md` |
+| 行业机构 | `.cache/institution/<source>/` | `<source>-<date>-<topic>.md` |
+| 一手调研 | `.cache/primary/<type>/` | `<date>-<company>-<type>.md` |
+| 网页快照 | `.cache/web/` | `<date>-<slug>.md` |
+| 未分类 | `.cache/inbox/` | 兜底 |
 
 **不需满足** artifact 引用条件——一手资料本身就是缓存理由。
 
@@ -152,11 +152,11 @@ PDF → to-markdown.py 调 pdf-extract --smart:
 
 | 文件类型 | 缓存位置 | 检查方式 |
 |---|---|---|
-| 公司披露 | `industry/<slug>/companies/<ticker>/_cache/` | `ls` / `grep` 文件名关键词 |
-| 行业报告 | `industry/<slug>/_cache/` | `ls` / `grep` |
-| 跨行业通用 | `_cache/` | `ls` / `grep` |
+| 公司披露 | `industry/<slug>/companies/<ticker>/.cache/` | `ls` / `grep` 文件名关键词 |
+| 行业报告 | `industry/<slug>/.cache/` | `ls` / `grep` |
+| 跨行业通用 | `.cache/` | `ls` / `grep` |
 
-- ✅ 命中 → 直接 Read 本地缓存，source 写 `[S#](./_cache/<path>)`
+- ✅ 命中 → 直接 Read 本地缓存，source 写 `[S#](./.cache/<path>)`
 - ❌ 未命中 → 上网下载。下载后 §2.1.1 hook 自动缓存一手资料
 
 ---
@@ -191,7 +191,7 @@ python .scripts/shared/download-image.py <url> --output <slug>   # 产品/设备
 | 2 | Playwright MCP | 脚本输出指令，agent 执行 `browser_navigate` + `browser_evaluate` 提取 base64 |
 | 3 | `[缺图]` | 全部失败，标记 `[缺图]` |
 
-缓存：`_cache/images/` + `.cache.json` 索引，workspace 级跨 skill 共享。
+缓存：`.cache/images/` + `.cache.json` 索引，workspace 级跨 skill 共享。
 
 产品图命名：`<slug>.{ext}`（手动 `--output` 指定）。
 
@@ -258,7 +258,7 @@ Agent 保存 artifact 前完成：
 □ 3. 每个 [I#] 有 ≥1 条 Tier 1-2 验证记录（hook: evidence_ledger_floor Rule 4）
 □ 4. 没有裸 [actuals]（§2.2：从 source_map 取 [S#] 标签）
 □ 5. 没有 browser_take_screenshot（用 download-image.py）
-□ 6. 图片已下载到 _cache/images/，缓存索引已更新
+□ 6. 图片已下载到 .cache/images/，缓存索引已更新
 □ 7. [缺图] 仅在全部 tier 失败后使用，ledger 有 attempt 记录
 □ 8. [需查证] 不超过 8 个（hook: pre_write_gate CHECK 8）
 □ 9. 表格 header/separator/data 列数一致，≤12 列（hook: pre_write_gate CHECK 13）

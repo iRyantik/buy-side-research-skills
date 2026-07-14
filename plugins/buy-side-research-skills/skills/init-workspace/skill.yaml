@@ -37,7 +37,7 @@ capabilities:
     - 'create only root workspace scaffold directories and template files'
     - 'never initialize inside the plugin development repo or plugin install directory'
     - 'never overwrite existing CLAUDE.md, AGENTS.md, .gitignore, or root edge-radar.md'
-    - 'do not create topic-level _raw/, _cache/, or _models/'
+    - 'do not create topic-level _raw/, .cache/, or _models/'
     - 'do not git init'
     - 'copy a unified environment setup template and explain common runtime environment variables, but do not install dependencies or persist secrets automatically'
     - 'copy ingest helper scripts and dependency bootstrap when available but do not execute ingest or install dependencies'

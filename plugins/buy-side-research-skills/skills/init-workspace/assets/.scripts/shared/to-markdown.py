@@ -3,7 +3,7 @@
 
 Usage:
   python to-markdown.py <file_or_url>                        # stdout markdown
-  python to-markdown.py <file> --cache <TICKER> <desc>       # stdout + _cache/
+  python to-markdown.py <file> --cache <TICKER> <desc>       # stdout + .cache/
 """
 from __future__ import annotations
 
@@ -53,13 +53,13 @@ def _run_shared(script: str, args: list[str]) -> tuple[int, str, str]:
 
 
 def _cache_path(workspace: Path, ticker: str, desc: str) -> Path:
-    """Resolve _cache/ path for a company. Falls back to workspace root."""
+    """Resolve .cache/ path for a company. Falls back to workspace root."""
     industry_dirs = list(workspace.glob("industry/*/companies/*"))
     for d in industry_dirs:
         if ticker.lower() in d.name.lower() or ticker.split(".")[0].lower() in d.name.lower():
-            return d / "_cache" / f"{ticker}-{desc}.md"
-    # Fallback: workspace root _cache
-    return workspace / "_cache" / f"{ticker}-{desc}.md"
+            return d / ".cache" / f"{ticker}-{desc}.md"
+    # Fallback: workspace root .cache
+    return workspace / ".cache" / f"{ticker}-{desc}.md"
 
 
 def convert(filepath: str, format: str | None = None) -> tuple[str, dict | None]:
@@ -208,7 +208,7 @@ def main():
     p = argparse.ArgumentParser(description="Any file to markdown")
     p.add_argument("file", help="File path or URL")
     p.add_argument("--cache", nargs=2, metavar=("TICKER", "DESC"),
-                   help="Cache output to _cache/<TICKER>-<DESC>.md")
+                   help="Cache output to .cache/<TICKER>-<DESC>.md")
     p.add_argument("--format", help="Force format (pdf/docx/pptx/xlsx/web/text)")
     p.add_argument("--rm", action="store_true",
                    help="Delete source file after successful cache")

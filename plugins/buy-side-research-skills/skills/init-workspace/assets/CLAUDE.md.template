@@ -8,9 +8,9 @@
 
 ## 1. Workspace Context
 
-- Workspace path: `C:\Users\M\Desktop\Hel Ved\Markdown\CC research workspace`
+- Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
-- Created date: `2026-06-18`
+- Created date: `{{DATE}}`
 - Current system generation: `5.0.0`
 
 本 workspace 用于 buy-side equity research。目标不是"了解公司"，而是形成可追溯、有 edge、能支持投资判断和下一步研究优先级的输出。
@@ -60,16 +60,6 @@
 **管理层原话**：只有措辞本身影响判断时保留短原文并贴 source；否则用中文概述并贴 source。
 
 **override**：用户明确说 "用英文输出" / "use English" 时切换英文，覆盖范围至本轮对话结束（除非用户再次声明）。用户在某一段明示用日 / 韩 / 其他语言时，仅该段切换。
-
-**Agent 新闻搜索语言**：搜特定市场股票新闻时，优先本地语言：
-
-| 市场后缀 | 搜索语言 |
-|---|---|
-| `.HK` `.SS` `.SZ` | 简体中文 |
-| `.TW` | 繁体中文 |
-| `.JP` | 日本語 |
-| `.KS` `.KQ` | 한국어 |
-| `.US` `.AS` `.DE` `.L` `.ST` `.KL` | English |
 
 ### 3.2 Directness
 
@@ -127,97 +117,59 @@
 - Bridge 是 trusted third-party 市场数据聚合层（当前实现：Longbridge MCP，覆盖 US/HK/SH/SZ/SG）。详情见 §4.1。
 - `internet source` 只补 market-snapshot track 的缺口，不冒充 company-disclosed fact；公司/披露事实仍优先 `primary public`。
 
-更完整的 claim-level source contract、fallback taxonomy、shared hook law 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
+更完整的 claim-level source contract、fallback taxonomy 和 skill-specific judgment / workflow delta，由被调用的 active skill 与 workspace hooks 共同决定。
 
 ### 4.1 Unified Data Routing（`route.py`）
 
 本 workspace 的数据路由由 `capability-matrix.json` 统一管理。Agent **不手动判断优先级**——每个数据请求前调 `route.py` 获取完整 chain，按序执行。
 
+#### 路由方法
+
 ```bash
 python .scripts/shared/route.py <TICKER.MARKET> <capability>
 ```
 
-Agent 行为：数据请求 → `route.py` → 拿到 chain → 按序执行 → 失败自动下一个。详细 capability 列表见 `.references/routing/capability-matrix.json`。
+**返回**：完整 fallback chain（JSON），含 source / tool / params / available 字段。Agent 按 `chain` 顺序执行，第一个 `available: true` 的 source 直接使用，不需回头重查。
 
-**Bridge 当前实现：Longbridge MCP**（145 工具，覆盖 US/HK/SH/SZ/SG），后续扩展新 source 不改上层路由逻辑。
+**capability 列表**（常用）：
 
-#### 路由决策：三重判断
+| 类别 | capability |
+|---|---|
+| 市场实时 | `market_quote`, `price_action`, `price_intraday`, `price_history` |
+| 估值 | `valuation_snapshot`, `valuation_peer`, `valuation_history`, `valuation_rank`, `industry_valuation`, `industry_valuation_dist` |
+| 基本面 | `financial_snapshot`, `financial_snapshot_detail`, `financial_statement`, `financial_report`, `business_segments` |
+| 一致预期 | `consensus`, `forecast_eps` |
+| 事件 | `news`, `filings`, `calendar` |
+| 股东/管理 | `shareholder`, `shareholder_top`, `executive` |
+| 机构 | `institution_rating`, `institutional_views` |
+| 市场 | `fx_snapshot`, `adr_ah_premium`, `broker_holding`, `market_temperature`, `top_movers`, `market_status`, `operating`, `short_positions` |
+| 结构化 | `income_statement`, `balance_sheet`, `cash_flow`, `revenue_split` |
+| 筛选 | `industry_peers`, `screener`, `market_screen` |
 
-Agent 收到涉及特定公司/市场的数据请求时，按以下顺序判断：
+**完整列表**：`cat .references/routing/capability-matrix.json | python -c "import json,sys; d=json.load(sys.stdin); print('\n'.join(sorted(d['chains'].keys())))"`
 
-```
-1. 问的是哪种数据？── 市场快照 / 财务快照 / 结构化三表
-2. actuals 是否已缓存？── 先扫 industry/*/companies/<ticker>/.cache/financial-data/actuals-resolved.json
-3. 上下文是什么？   ── 日常对话（秒回优先）/ 写 artifact（准确性优先）
-```
+#### Agent 行为
 
-#### 路由表
+1. 数据请求 → `python .scripts/shared/route.py TICKER capability` → 拿到 chain
+2. Chain 第一项 → 执行 tool → 成功则用，失败则下一个
+3. 全链失败 → 报 `[UNVERIFIED]` ＋建议调 `financial-data` CLI（如需结构化数据）
+4. 写 artifact 时 → `/financial-data --lite` 是 skill Pipeline Step 1，不可用 route.py 替代
 
-```
-┌─────────────────────┬───────────────────────┬───────────────────────┐
-│ 问什么                │ actuals 已有           │ actuals 没有           │
-├─────────────────────┼───────────────────────┼───────────────────────┤
-│ 报价/K线/日内        │ Bridge               │ Bridge                │
-│                      │ → yfinance            │ → yfinance            │
-│                      │ → WebSearch           │ → WebSearch           │
-├─────────────────────┼───────────────────────┼───────────────────────┤
-│ 估值/新闻/评级       │ Bridge               │ Bridge                │
-│ /日历/汇率/资金       │ → yfinance            │ → yfinance            │
-│ /股息/情绪/异动       │ → WebSearch           │ → WebSearch           │
-├─────────────────────┼───────────────────────┼───────────────────────┤
-│ 财务快照             │ ① Read actuals        │ Bridge                │
-│ (日常对话：           │    历史FY → 本地缓存   │  financial_report_    │
-│  收入多少/EPS/ROE)    │ ② Bridge              │  latest 秒回          │
-│                      │    financial_report_  │ → yfinance snapshot   │
-│                      │    latest（最新Q）     │ → 用户追问多条时      │
-│                      │ ③ 不一致 prefer       │   建议拉 CLI           │
-│                      │    Bridge（时效性）     │                       │
-├─────────────────────┼───────────────────────┼───────────────────────┤
-│ 结构化三表           │ 读 actuals            │ /financial-data       │
-│ (artifact Step 1)    │ → /financial-data     │ --lite（强制，        │
-│                      │   --lite 增量更新     │  skill Pipeline 不可   │
-│                      │   （artifact 管道     │  跳过）               │
-│                      │    强制步骤）          │                       │
-├─────────────────────┼───────────────────────┼───────────────────────┤
-│ 多期FY对比           │ 读 actuals            │ /financial-data       │
-│ (--periods 3Y等)     │ → 过期 >180天 提醒    │ --lite                │
-│                      │                      │ --periods FY20-FY25    │
-└─────────────────────┴───────────────────────┴───────────────────────┘
-```
+#### 异常处理
 
-#### Fallback 链（统一）
+- `route.py` 返回 workspace_not_found → web_search 兜底
+- Chain 中某 source `available: false` → agent 跳过，reason 字段说明原因
+- Bridge 源（Longbridge MCP）不可用 → chain 自动跳过，下一个源（yfinance）补位
+
+#### 架构
 
 ```
-Bridge（US/HK/SH/SZ/SG 首选）
-  ↓ 不可用 / 超时 / 未覆盖该市场
-yfinance（market data 兜底 + quick financial snapshot）
-  ↓ 也不可用
-browser-cdp / WebSearch / WebFetch（最后兜底：CDP 用于 JS 页面，WebFetch 用于静态页面）
+capability-matrix.json  ← 单一真理源（字段→源→优先级）
+route.py                ← 查矩阵 + 条件判断（actuals 是否存在/fresh）
+各 skill [→ Bridge: x]  ← 标记 capability 名（不改——标记写 domain，路由由 matrix 决定）
 ```
 
-Bridge 挂了 + actuals 不存在时的行为：yfinance 先给快照 + `[建议拉 financial-data CLI]`。
-
-#### Agent 行为摘要
-
-1. 收到涉及特定公司的问题 → 先检查 `actuals-resolved.json` 是否已存在
-2. 市场数据类（报价/估值/新闻/日历）→ Bridge → yfinance → WebSearch
-3. 财务快照类（日常对话"收入多少"）→ actuals 已有则双查（本地+最新Q），无则 Bridge 秒回
-4. 写 artifact 时 → `/financial-data --lite` 是 skill Pipeline Step 1，不可跳过
-5. Bridge 不可用 → yfinance snapshot + 建议拉 CLI
-
-#### Bridge 当前实现
-
-**Longbridge MCP**（`https://openapi.longbridge.com/mcp`）：145 工具，覆盖 US/HK/SH/SZ/SG。
-详细工具映射见 `trusted-market-bridge` skill 的 MCP Tool Mapping 表（已验证 34 个 domain，2026-06-09）。
-
-#### `financial-data` CLI 不可替代的场景
-
-- 结构化三表（IS/BS/CF）的 source-tracked actuals pack
-- 多期 FY data（`--periods FY2020-FY2025`）
-- `actuals-resolved.json` 写入（artifact 的财务数据源）
-- 需要 SEC/DART/EDINET/AKShare 等 primary public provider（Bridge 不替代 primary disclosure）
-
-Bridge 的 `financial_report_latest` / `financial_statement` 是快照辅助，不能替代 `financial-data` CLI 的 source-of-record 地位。
+新的 Bridge 源加入时只需改 `capability-matrix.json` 一个文件——skill 标记和 agent 行为都不变。
 
 ---
 
@@ -241,16 +193,18 @@ industry/
     companies/
       <ticker>/               # 公司深掘——一个公司一个窝
         [YYYY-MM-DD]-*.md
-        .cache/
-    RESEARCH.md               # 行业 overview + 公司注册表 + Source/Thsis/事实/研究轨迹
-    .cache/
-COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / priority / next catalyst）
+        _cache/
+    RESEARCH.md               # 行业 overview + 公司注册表
+    _cache/
+COVERAGE.md                   # 覆盖状态 source of truth（Research Tier / Alert Tier / Last Review / Next Trigger）
 ```
 
 基本约束：
-- 公司 artifact 落 `industry/<industry>/companies/<ticker>/`，行业 artifact 落行业根
-- 跨行业公司在多个行业 `RESEARCH.md` 注册 reference，文件不搬
-- `.cache/` 存放 source-tracked 解析材料、evidence pack、结构化数据
+- 公司 artifact 落 `industry/<industry>/companies/<ticker>/`
+- 行业级 artifact 落 `industry/<industry>/panorama/<skill-slug>/`
+- 非 skill 产出的行业分析落 `panorama/other/`
+- 跨行业公司在多个行业 `index.md` 注册 reference，文件不搬
+- `_cache/` 存放 source-tracked 解析材料、evidence pack、结构化数据
 - topic artifact 命名由 `new-session` 统一解析
 - workspace hooks 属于 runtime contract，不要手改或删除
 
@@ -264,19 +218,15 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 | 脚本 | 用途 | 调用示例 |
 |---|---|---|
-| `shared/verify-claim.py` | 来源验证链（HTTP→CDP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
+| `shared/verify-claim.py` | 来源验证链（HTTP→Playwright→curl→[UNVERIFIED]） | `python .scripts/shared/verify-claim.py <url> --json` |
 | `shared/download-image.py` | 图片下载（产品图，workspace 级缓存跨 skill 共享） | `<url> --output <slug>` |
-| `shared/verify-runtime.py` | 一键检查 13 项运行时依赖 | `python .scripts/verify-runtime.py` |
-| `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown] [--cdp]` |
-| `shared/browser-cdp.py` | browser-harness CDP 封装（真实 Chrome，过 Cloudflare/JS 渲染） | `browser_cdp_extract_visible(url)` |
+| `shared/verify-runtime.py` | 一键检查 12 项运行时依赖 | `python .scripts/verify-runtime.py` |
+| `shared/web-extract.py` | 网页正文提取（去导航/广告/脚本） | `<url> [--markdown]` |
 | `shared/pdf-extract.py` | PDF 文本+表格提取（pymupdf→pdfplumber→pypdf） | `<file_or_url> [--tables]` |
 | `financial-data/actuals-to-appendix.py` | 从 actuals-resolved.json 生成 sell-side 风格附录 | `--tickers T1,T2,...` |
-| `shared/describe-figures.py` | 图表描述提取（从 docling/pymupdf 缓存 markdown 中提取 figure 并生成带编号描述） | `<markdown_path>` |
-| `shared/verify-table-crosscheck.py` | 表格数值交叉验证（PDFPlumber vs Docling/cache markdown） | `<markdown_path> [--pdf <pdf_path>]` |
 | `evidence_ledger.py` | 证据分类账管理 | 跟踪 claim 验证状态 |
-| `shared/search.py` | DDG HTML 新闻搜索（无需 API key，双语搜 + 行情页过滤） | `from search import ddg_search_news; ddg_search_news("query")` → list[dict] |
 
-### 自动 Hook 防御（`pre_write_gate` 13 CHECKS）
+### 自动 Hook 防御（`pre_write_gate` 14 CHECKS）
 
 每次 Write/Edit 研究 artifact 时自动触发，无需手动调用：
 
@@ -296,7 +246,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 | 11 | Evidence 验证覆盖率 <80% |
 | 12 | Mermaid diagram type 无效（如 `scatterchart`） |
 | 13 | 表格列数不匹配 / 缺分隔行 / >12 列未拆分 |
-
+| 14 | artifact 含分部/segment 表格但 actuals 无 revenue_split → block + 给补数命令 |
 ### 其他自动 Hook
 
 | Hook | 触发时机 | 检查内容 |
@@ -312,8 +262,8 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 
 | 操作 | 命令 |
 |---|---|
-| 拉取财务数据 | `/financial-data <TICKER>` |
-| 拉取多期数据 | `/financial-data <TICKER> --periods FY2020-FY2025` |
+| 拉取财务数据（lite 模式） | `/financial-data --lite <TICKER>` |
+| 拉取多期数据 | `/financial-data --lite <TICKER> --periods 3Y` |
 | 检查运行时 | `python .scripts/verify-runtime.py` |
 | 更新插件+同步 workspace | `/update-agent-runtime` |
 
@@ -329,27 +279,29 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 ### 图片规则
 
 - 产品图：`download-image.py <url> --output <slug>`
-- 产品图：`download-image.py <url> --output <slug>`
 - **禁止** `browser_take_screenshot` 代替下载——hook CHECK 6a 直接 block
 - `[缺图]` 仅在所有 tier（HTTP→Playwright）失败后允许
 
 ### 缓存优先
 
 下载外部文件前先检查本地缓存：
-- 公司披露 → `industry/<slug>/companies/<ticker>/.cache/`
-- 行业报告 → `industry/<slug>/.cache/`
+- 公司披露 → `industry/<slug>/companies/<ticker>/_cache/`
+- 行业报告 → `industry/<slug>/_cache/`
 - 命中直接用，未命中再上网。下载后 hook 自动缓存一手资料 PDF。
 
 ### 来源验证规则
 
 - 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
-- Tier 链：HTTP GET → browser-harness CDP（真实 Chrome，自动执行）→ Playwright MCP（agent 手动）→ curl → [UNVERIFIED]
+- Tier 链：HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
 - `[UNVERIFIED]` 仅在所有 tier 失败后标记
+<<<<<<< HEAD
+=======
 - browser-harness CDP 优先于 Playwright MCP：它连接用户真实 Chrome，继承指纹/cookie/登录态，能绕过 Cloudflare 等反爬
+>>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 
 ### Canvas 文件
 
-worktree 操作、`references/runtime/research-runtime.md`（五链全文档）、`references/policy/`（策略基线）、`references/kpi-drivers/`（KPI 模板）、`.references/cache-contract.md`（缓存写契约与删除规则）。
+worktree 操作、`.references/runtime/research-runtime.md`（五链全文档）、`.references/policy/`（策略基线）、`.references/kpi-drivers/`（KPI 模板）。
 
 ### Research Memory 系统
 
@@ -359,13 +311,41 @@ worktree 操作、`references/runtime/research-runtime.md`（五链全文档）�
 3. **事实基线** — 速查卡（thesis 盯的 5-8 个数）+ 完整表 + 已推翻认知
 4. **研究轨迹** — 已完成 artifact、下一步 5 问、已排除方向、上次读到哪
 
-**自动加载**：`memory/research/` 下的薄卡片由 `generate-memory-cards.py` 从 RESEARCH.md 自动生成，CC session 启动时自动注入。
+**自动加载**：`.memory/research/` 下的薄卡片由 `generate-memory-cards.py` 从 RESEARCH.md 自动生成，CC session 启动时自动注入。
 
 **Agent 行为**：
 - 新 session 提到公司/ticker → 先 `Read` 对应公司 RESEARCH.md + 行业 RESEARCH.md
 - 每次产出 artifact 后 → 更新对应 RESEARCH.md 的相关 section（≤5 分钟，增量维护）
 - Hook 会在写 artifact 后提醒更新，但最终由 agent 负责
 - RESEARCH.md 是覆盖更新（非 append），只保留最新状态
+
+### Coverage 维护
+
+产出涉及某公司的 artifact 后，agent 自动更新 COVERAGE.md。
+
+**Coverage 级别**（文件系统判断，不靠记忆）：
+- `Core Coverage`：有 alpha-thesis / deep-work ≥2 / deep-work ≥1 + 完整 model
+- `Building Coverage`：有 stock-quickread / driver-map / 至少 1 个 deep-work
+- `Radar`：有公司目录但 artifact 不满足以上任一
+- Last Review > 90 天 → 提醒降级但不自动降
+
+**Monitor 频率**：Core → Core Watch | Building/Radar → Daily Watch
+
+**触发**：agent 写完 artifact → 顺手更新。monitor 脚本跑日报前扫文件系统兜底纠正。
+
+### 5.6 数据落地规则
+
+任何研究过程中发现的某家公司的数据——不论来源、不论格式、不论用什么工具获取——必须落地到该公司的 `actuals-resolved.json`。
+
+来源可以是：provider pipeline / yfinance / Bridge / Playwright 爬虫 / PDF 手动提取 / Quartr earnings call 摘要 / WebSearch / 任何其他方式。
+
+写入方式：`Read` 当前 actuals → 在 `_supplement` key 下追加数据 → `Edit` 写回。
+
+Edit actuals 前必须先 Read——old_string 包含当前 `_supplement` 全文，防止覆盖已有数据。
+
+写涉及某公司的 artifact 之前，artifact 里该公司的每个数字必须能从它的 `actuals-resolved.json` 复算——能对上才能过。
+
+每家公司的 `actuals-resolved.json` 是该公司在本 workspace 的数据唯一真理源。
 
 ---
 
@@ -394,44 +374,31 @@ skill 是决策工具，不是装饰性模板。
 - 三表/结构化 actuals -> `financial-data`
 - 模型 / DCF / comps -> `3-statement-model` / `dcf-model` / `comps-analysis`
 - 跟踪覆盖状态 -> `coverage-tracker`
+- 生成覆盖日报 / 盘中提醒 -> `coverage-monitor`
 - 沉淀认知 -> `research-journal`
 - 更新插件 / 同步 workspace -> `update-agent-runtime`
 
 具体 procedure、fallback 边界和并行策略，以被调用 skill 为准。
 
----
+### Workflow 执行纪律
 
-## 6.5 driver-map 脚本复制 + 回馈规则
+以下规则适用于所有 skill 的所有 pipeline 步骤。不可绕过，不可协商。
 
-### 脚本隔离
+1. **Pipeline 步骤不可裁减**：Skill 定义的每一步都是强制步骤。Agent 没有权限判断某步骤"不需要"或"可以跳过"。全部执行，无一例外。
 
-新公司首次建模时，**不得直接在通用脚本上操作**。Agent 必须将 `.scripts/driver-map/` 复制到公司本地目录：
+2. **步骤失败 → 报告 + STOP**：任何步骤报错，Agent 必须报告具体错误信息并停止流程。不得发明替代方案，不得静默降级，不得用"看起来类似"的工具替换。如需替代，必须显式向用户报告并等待批准。
 
-```bash
-TICKER_DIR="industry/<industry>/companies/<ticker>"
-mkdir -p "$TICKER_DIR/.cache/scripts/modules"
-cp .scripts/driver-map/build-logic-model.py "$TICKER_DIR/.cache/scripts/"
-cp .scripts/driver-map/modules/*.py "$TICKER_DIR/.cache/scripts/modules/"
-```
+3. **前置条件必须验证**：下一步开始前，必须确认上一步的产出物真实存在。不得假设"应该已经好了"。如 Step 2 需要 actuals-resolved.json，必须在 Step 1 完成后用 Read 确认文件存在且非空。
 
-Agent 在校准过程中**可以修改公司本地副本**——包括公式逻辑、Q 分配参数、rendering 细节。改完之后在本地跑通，再汇报给用户。
+4. **工具不可替换**：Skill 明确指定的脚本/命令就是唯一执行路径。不得用 browser_take_screenshot 代替 download-image.py，不得用 WebSearch 代替 verify-claim.py，不得手写 markdown 代替 evidence_ledger.py。
 
-### 回馈规则
+5. **不得提前判断"不值得"**：正在执行的 skill 必须跑完。不得在中途判断"这个公司没意思"或"这个行业太小"而提前终止。完成后可以在结论里说不值得，但不能在执行中判断。
 
-| 改动类型 | 示例 | 合入通用脚本？ |
-|---------|------|:---:|
-| 结构性改进 | 新 depth 支持、公式修复、Q driver 修正、Check 系统 | ✅ 是 |
-| 公司级参数 | yoy rate、line split、segment OP 调平 | ❌ 否 |
-| 模块 bug | vol_asp Q 分配异常 | ✅ 是 |
+6. **子 Agent 继承父级约束**：使用 Agent tool 分派子任务时，prompt 中必须包含 "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
 
-**Agent 职责**：
-- 识别改动性质（结构性 vs 参数级）
-- 结构性改动 → 汇报用户 → 用户决定是否合入 `.scripts/driver-map/`
-- 合入后 → 用户决定是否同步到 skill 文档 + Release
+7. **Compact/Summary 后重新读 Skill**：对话被压缩后，Agent 不知道哪些步骤已完成。继续工作前必须重新 Read 当前 skill 的 SKILL.md 全文 + Capsule 引用的文件。
 
-**用户职责**：
-- 审核 agent 提交的结构性改动
-- 决定版本 bump 和 Release 节奏
+8. **Best-effort ≠ Optional**：标记为 best-effort 的步骤仍然必须尝试。仅在尝试后确实失败且已报告用户时才能跳过。
 
 ---
 
@@ -543,10 +510,13 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 | 插件版本不一致 | 新机 plugin cache 过期 | 跑 `/update-agent-runtime` |
 | `setup.py` 找不到 `.sessions/` | OneDrive 未同步完成 | 等系统托盘 OneDrive 停止转动再跑 |
 
+<<<<<<< HEAD
+=======
 ### 9.8 Plugin 开发
 
 Plugin 源代码维护在 `~/dev/buyside`（`git clone https://github.com/iRyantik/buy-side-research-skills.git`）。开发与发布流程见该 repo 的 `docs/release.md`。日常部署只需 `/update-agent-runtime`。
 
+>>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 ---
 
 ## 10. 文件命名规范
@@ -559,6 +529,8 @@ Plugin 源代码维护在 `~/dev/buyside`（`git clone https://github.com/iRyant
 
 `<Company-Name>` = CN/HK/TW：COVERAGE Native 列（中文原样），其余：EN 列（空格换 `-`）。
 
+<<<<<<< HEAD
+=======
 ```
 603067.SH-振华股份/
 300285.SZ-国瓷材料/
@@ -567,12 +539,29 @@ DPC.US-Doncaster/
 BESI.NA-BE-Semiconductor/
 ```
 
+>>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 ### 10.2 Artifact File
 
 ```
 YYYYMMDD-[skill-name]-[Company-Name][-qualifier].<ext>
 ```
 
+<<<<<<< HEAD
+日期无括号，skill 和 Company Name 用 `[]` 包裹，`-` 连接。
+
+### 10.3 日期规则
+
+- 创建 artifact：日期使用系统当前日期（YYYYMMDD），不手动指定
+- 更新 artifact：数据/结论/模型参数变更时，mv 更新文件名日期；typo/formatting 不改
+- .cache/ 内文件不受此约束
+
+### 10.4 创建新公司
+
+1. 查 `actuals-resolved.json` → `identity`（ticker + name_en + name_native）
+2. actuals 不存在 → 查 `COVERAGE.md`
+3. CN/HK/TW → Company Name 用 Native 列中文；其余 → 用 EN 列
+4. Artifact = EN name，空格换 `-`，保留大小写
+=======
 日期无括号，skill 和 Company Name 各用 `[]` 包裹，`-` 连接。qualifier 可选，接在 Company Name 后面。
 
 ```
@@ -604,3 +593,4 @@ Agent 首次为某公司创建 artifact 时，**必须按以下顺序**，不得
 **禁止**：使用 `-` 连接的新行业名以外的旧命名方式（如纯 kebab-case、无 ticker 前缀）。
 
 > `.cache/` 内部结构不受 §10.1-§10.3 约束。
+>>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)

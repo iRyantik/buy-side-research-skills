@@ -43,7 +43,7 @@ trigger:
 capabilities:
   modes:
     - 'Driver Map'
-  output_path: 'industry/<industry>/companies/<ticker>/_cache/driver-map/driver-map.md plus internal/driver-map.json when user asks to save model-readable driver inputs'
+  output_path: 'industry/<industry>/companies/<ticker>/.cache/driver-map/driver-map.md plus internal/driver-map.json when user asks to save model-readable driver inputs'
   requirements:
     - 'follow CLAUDE.md source policy'
     - 'map reported buckets to business reality'
@@ -65,7 +65,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: 'driver-map.md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/_cache/driver-map/driver-map.md and internal/driver-map.json'
+  canonical_location: 'industry/<industry>/companies/<ticker>/.cache/driver-map/driver-map.md and internal/driver-map.json'
   save_trigger: 'always save to industry topic'
 workflow:
   stage: 'research-primitive'

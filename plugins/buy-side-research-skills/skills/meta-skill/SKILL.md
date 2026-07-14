@@ -381,7 +381,7 @@ Operations skills：
 | `coverage-monitor` | 把 `COVERAGE.md` 变成覆盖日报和盘中提醒 |
 | `init-workspace` | 创建 / 修复 research workspace scaffold |
 | `integrate` | 合并子 topic 到父 topic 并更新索引 |
-| `ingest` | 把 raw material 转成 source-tracked `_cache/` markdown |
+| `ingest` | 把 raw material 转成 source-tracked `.cache/` markdown |
 | `meta-skill` | 创建 / 修改 / 审查本插件的 skills、metadata、docs、manifests 和 governance |
 | `update-agent-runtime` | 升级已安装 runtime 并同步 workspace 资产 |
 
@@ -467,7 +467,7 @@ Frontmatter 必须只写短单行 UI 摘要，不总结 workflow；`description`
 
 - Hook-enforced modeling rules (missing_actuals_not_zero, balance_integrity, structure_floor, etc.) live in workspace hooks.
 - Shared modeling protocol: workspace `.references/policy/research-policy-baseline.md` §6.
-- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `_cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
+- **数据源**：从 `actuals-resolved.json` 取 historical actuals，从 `.cache/driver-map/` 取 driver assumptions。缺失 actuals 不填零。
 - Sub-agent QA bounded; main agent owns the final workbook.
 
 [如有 skill-specific 建模规则，≤2 行]
@@ -555,7 +555,7 @@ Artifact policy：
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。
 - `coverage-tracker` 作为 memory skill，可用 `earned_memory` 写 workspace 根目录 `COVERAGE.md`；它不是 topic result。
 - `init-workspace` 使用 `workspace_scaffold`，只创建 / 补齐 workspace。
-- `ingest` 使用 `cache_artifact`，只写 `_cache/` operational markdown。
+- `ingest` 使用 `cache_artifact`，只写 `.cache/` operational markdown。
 
 默认 naming tier：
 - `plain`：`stock-quickread`、`company-history`、`alpha-thesis`、`bear-pre-mortem`、`earnings-setup`、`pair-trade`、`research-journal`、`moat-analysis`、`catalyst-map`、`capital-allocation`、`post-earnings-quick`
@@ -732,7 +732,7 @@ Supporting visualization skill：
 - ❌ 恢复 `meta.json`。
 - ❌ 把 active skills 物理嵌套进分类目录。
 - ❌ 把 `research-journal` 当作所有 skill 的普通保存目标。
-- ❌ 把 `_cache/` 当作 earned memory 或 original source。
+- ❌ 把 `.cache/` 当作 earned memory 或 original source。
 
 ## 文档版本
 

@@ -4,5 +4,14 @@
 >
 > This file is the workspace coverage source of truth. Researched companies belong here; `coverage-monitor` consumes it for daily briefs and intraday alerts.
 
-| Ticker | Company | Industry | Research Tier | Alert Tier | Stage | Last Review | Next Trigger | Monitor | Notes |
-|---|---|---|---|---|---|---|---|---|---|
+## Coverage Contract
+
+| Field | Values | Contract |
+|---|---|---|
+| Coverage | Core / Building / Radar | Core = sustained core workstream; Building = company-level coverage started; Radar = tracked candidate |
+| Monitor | Core / Daily | Core = daily company news + movers + industry tape; Daily = daily quote scan + industry tape, company news only on mover/trigger |
+
+## Coverage
+
+| Ticker | Company (EN) | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
+|---|---|---|---|---|---|---|---|---|

@@ -360,7 +360,7 @@ def _provider_identifier(market, ticker_value, fallback):
 def _official_web_cache_path(industry, ticker):
     return os.path.join(
         _company_root(industry, ticker),
-        '.cache', 'financial-data', 'internal', '.raw', 'official_web_cache.json'
+        '.cache', 'financial-data', 'internal', '.raw', 'official_web.cache.json'
     )
 
 
@@ -373,7 +373,7 @@ def _path_target(root, path):
     return current
 
 
-def _apply_official_web_cache(industry, ticker, data):
+def _apply_official_web.cache(industry, ticker, data):
     cache_path = _official_web_cache_path(industry, ticker)
     if not os.path.exists(cache_path):
         return 0
@@ -3077,7 +3077,7 @@ def main():
 
     # Layer 2: provider API
     nulls = fill_layer_2(data, nulls, industry, ticker)
-    official_filled = _apply_official_web_cache(industry, ticker, data)
+    official_filled = _apply_official_web.cache(industry, ticker, data)
     if official_filled:
         print('  official_web cache applied: ' + str(official_filled) + ' fields')
     _finalize_segments_status(data, tried_web=False)

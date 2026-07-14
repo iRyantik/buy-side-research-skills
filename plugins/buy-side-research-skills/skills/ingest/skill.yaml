@@ -35,8 +35,8 @@ capabilities:
   requirements:
     - 'strict topic root check: industry/<industry>/companies/<ticker>/index.md must exist before ingest'
     - 'support namespaced topics such as industry/space-launch and company/rklb'
-    - 'write industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
-    - 'create _cache/ and _raw/<category>/ on first conversion'
+    - 'write industry/<industry>/companies/<ticker>/.cache/[source-filename].md'
+    - 'create .cache/ and _raw/<category>/ on first conversion'
     - 'auto-move source files from topic _inbox/ to _raw/<category>/ after successful conversion'
     - 'never move files already under _raw/'
     - 'never create topic root or index.md'
@@ -52,7 +52,7 @@ capabilities:
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: '[source-filename].md'
-  canonical_location: 'industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
+  canonical_location: 'industry/<industry>/companies/<ticker>/.cache/[source-filename].md'
   save_trigger: 'write cache only when converting a source file for an existing topic'
 workflow:
   stage: 'source-material-ingest'
@@ -81,5 +81,5 @@ quality_gates:
     - 'recursive_ingest_without_explicit_request'
   required_paths:
     - 'industry/<industry>/companies/<ticker>/index.md'
-    - 'industry/<industry>/companies/<ticker>/_cache/[source-filename].md'
+    - 'industry/<industry>/companies/<ticker>/.cache/[source-filename].md'
     - 'industry/<industry>/companies/<ticker>/_raw/[category]/'

@@ -58,7 +58,7 @@
 ### 3.0 Claim-Level Source Contract（shared baseline, not skill-local boilerplate）
 
 - `truth-like claim` = 任何可验证或可反驳的事实、数字、引语、业务关系、市场数据、行业事实、历史事件、披露口径变化。
-- 每个 `truth-like claim` 必须紧跟 inline clickable short source anchor；可见文本保持短码，但短码本身必须带真实 link，例如 `[S1](./source.md)`、`[L1](./_cache/source.md)`、`[P1](https://...)` 或 `[I1](https://...)`，不要在可见文本里塞日期或长 URL。
+- 每个 `truth-like claim` 必须紧跟 inline clickable short source anchor；可见文本保持短码，但短码本身必须带真实 link，例如 `[S1](./source.md)`、`[L1](./.cache/source.md)`、`[P1](https://...)` 或 `[I1](https://...)`，不要在可见文本里塞日期或长 URL。
 - 正文示例：`FY25 revenue grew 18%, while segment EBIT margin expanded 120 bps. [S1](./source.md)`
 - 每篇 research artifact 文末必须有且只有一个 `## Resources`，重复使用同一个 clickable short anchor，并展开 source type、title/provider、as-of / filed date、page / table / URL location、fallback reason（如适用）。正文和表格里的短码必须可直接点击；不要在表格下方默认展开完整 source metadata。
 - 多个 source 写成 `[S1](./source.md) [I1](https://...)`，不要写成 `[S1][I1]`；只有同一篇里同一个 source code 出现多版本冲突时，才升级成 `[S1a](...)` / `[S1b](...)`。
@@ -72,12 +72,12 @@
 - Market-snapshot track: `topic-local evidence cache / financial-data > trusted third-party > web`. Use this for `market_quote`, `valuation_snapshot`, `price_action`, `kline_snapshot`, `consensus`, `financial_snapshot`, `fx_snapshot`, `adr_ah_premium`, and clearly market-data-like liquidity / market-context fields.
 - `financial-data` is the highest-value reusable structured cache inside `topic-local evidence cache`. It takes priority over trusted third-party providers for market / snapshot fields, but it does not replace `primary public` when wording, segment definition, or disclosure truth must be checked.
 - Optional provider bridge rule: when a skill explicitly invokes `trusted-market-bridge`, A-share / Hong Kong / US market-snapshot fields may use Longbridge as the default trusted third-party layer before generic internet fallback. Supported bridge domains now include market data, price action, valuation, FX, ADR/AH premium, consensus, financial snapshots, and high-level `market_screen` signals. This does not upgrade Longbridge into `primary public source` or company-truth authority.
-- `topic-local evidence cache` means this research workspace's topic `_cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
+- `topic-local evidence cache` means this research workspace's topic `.cache/`, company `financial-data`, source-tracked ingest markdown, and saved internal data packs; it is different from home-market / local-language source priority.
 - Within the same quality tier, prefer `home-market / local-language source`: local-language news / event sources for the issuer, main listing venue, regulator, or operating country; primary listing / trading-market data for price, valuation, liquidity, borrow, FX, and cross-market fields.
 - Do not maintain market-specific provider whitelists in global or skill rules. If a global, English, or non-home-market fallback is used because the local-language / home-market source is unavailable or weaker, the final `## Resources` list must state the fallback reason.
 
 - 简写顺序不是单行总顺序，而是双轨：披露事实轨 `topic-local evidence cache > primary public > trusted third-party > web`；市场快照轨 `topic-local evidence cache / financial-data > trusted third-party > web`。
-- `topic-local evidence cache`：当前 topic `_cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包；不包含 research artifacts，它们只能作为导航、routing 和待复核线索。
+- `topic-local evidence cache`：当前 topic `.cache/`、company `financial-data`、ingest 后 source-tracked markdown、已保存的内部数据包；不包含 research artifacts，它们只能作为导航、routing 和待复核线索。
 - `primary public source`：filing、IR、交易所、监管、政府、协会、公司官网等可公开验证原始 source。
 - `trusted third-party`：Longbridge 等 provider 聚合层；当前统一入口优先是 `trusted-market-bridge`，但它只服务 market / snapshot 字段，不上升为 company truth。
 - `internet source`：公开网页上的 market/provider 数据、财经站点、交易页面、公开新闻页、公开数据库页面。
@@ -174,10 +174,10 @@ linter 报错 → 修到 pass 才交付。
 
 ## 4.5 紧凑证据显示
 
-- 表格优先用 `Ev` 或 `证据` 短列承载 inline clickable short source anchor 和例外状态。默认格式是 `[S1](./_cache/sources/company-annual-report.md)`；如果不是干净 source-backed 值，再追加状态：`[S1](./_cache/sources/company-annual-report.md):REV`。
+- 表格优先用 `Ev` 或 `证据` 短列承载 inline clickable short source anchor 和例外状态。默认格式是 `[S1](./.cache/sources/company-annual-report.md)`；如果不是干净 source-backed 值，再追加状态：`[S1](./.cache/sources/company-annual-report.md):REV`。
 - 状态码只用于例外：`REV` = 需复核，`GAP` = 来源缺口，`ND` = 未披露，`EST` = 估算 / 假设，`CON` = 来源冲突。干净值不写 `OK`。
 - 每篇 artifact 文末用 `## Resources` 保持可追溯性，例如：`- [S1](./annual-report.md) = local source | company annual report | filed 2026-03-18 | p.42`。如果全表 as-of 相同，只在 `## Resources` 写一次；只有行级差异进入 `Ev`。
-- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现可点击来源层级：`[L1](./_cache/market/quote-pack.md)` = topic-local evidence cache，`[P1](https://www.hkexnews.hk/example)` = primary public source，`[I1](https://example.com/quote)` = internet source。
+- 启用 internet market data fallback 的 section，`Ev` / `证据` 要直接体现可点击来源层级：`[L1](./.cache/market/quote-pack.md)` = topic-local evidence cache，`[P1](https://www.hkexnews.hk/example)` = primary public source，`[I1](https://example.com/quote)` = internet source。
 - `[I1](https://example.com/quote)` registry 必须展开 provider、as-of、`internet source` 标签和 fallback reason，例如：`- [I1](https://example.com/quote) = internet source | provider quote page | as-of 2026-05-21 | fallback reason: home-market field unavailable`；正文短码与 `## Resources` 必须双写同 target。
 - 某 section 首次使用 internet fallback 时，正文加一句：`以下标记为 internet source 的字段为本地 cache 缺失后的公开网页 fallback，不等同于公司披露原文。`
 
@@ -222,11 +222,11 @@ linter 报错 → 修到 pass 才交付。
 
 ## 8. Primitive Routing
 
-- Workspace routing: 研究 skill 保存 artifact 时自动创建缺失目录（`mkdir -p`）；`ingest` creates `_raw/<category>/` and `_cache/` on first conversion。Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`。`integrate` remains whole-topic directory merge。
+- Workspace routing: 研究 skill 保存 artifact 时自动创建缺失目录（`mkdir -p`）；`ingest` creates `_raw/<category>/` and `.cache/` on first conversion。Industry/theme topics may hold single-company workbench files named `YYYY-MM-DD-<company-slug>-<artifact>.md`。`integrate` remains whole-topic directory merge。
 - 遇到行业机制、工程原理、设备链条、工艺流程、术语或 know-how gap，先 handoff / 触发 `mechanism-insight`。
 - 遇到 revenue / margin / backlog / price-volume-mix driver、披露口径异常或 model-driver gap，先 handoff / 触发 `driver-map`。
 - ingest 前确保 topic root 已存在（`industry/<industry>/index.md` 必须存在）。若缺失，agent 自动创建——无需单独调用 skill。
-- 研究 skill 启动时，先检查 `industry/<industry-slug>/_cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/_cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
+- 研究 skill 启动时，先检查 `industry/<industry-slug>/.cache/` 是否存在已 ingest 的相关材料。如有，优先引用 cache 中的 source-tracked markdown，而非重新获取原始文件。若是单公司研究，同时检查相关 `industry/<industry>/companies/<ticker>/.cache/financial-data/financial-data-summary.md`；需要审计或机器输入时再进入 `internal/evidence-pack.json`、`internal/actuals-resolved.json`、`internal/source-map.json`。
 
 ## 9. 单行业归属规则（Single-Industry Primary Residence）
 
@@ -268,7 +268,7 @@ linter 报错 → 修到 pass 才交付。
 
 ### 9.4 Cache 共享
 
-- `_cache/financial-data/` 和 `_cache/images/` 属于只读数据层，**可以在多个行业目录保留副本**。这不是"重复 artifact"。
+- `.cache/financial-data/` 和 `.cache/images/` 属于只读数据层，**可以在多个行业目录保留副本**。这不是"重复 artifact"。
 - Primary 行业目录的 cache 为主副本（数据最全、最先更新）。
 - 交叉行业如需本地 actuals 加速查询，从 primary 复制，并标注 `_synced_from: <primary_path>`。
 - **禁止在交叉行业目录创建 dated research artifact**——`YYYY-MM-DD-*.md` 只能出现在 primary 目录。
@@ -280,9 +280,9 @@ linter 报错 → 修到 pass 才交付。
 1. 确认最早 artifact 日期——以 `index.md` 首次注册日期为准，不依赖文件修改时间。
 2. 将全部 `YYYY-MM-DD-*.md` 从错误目录迁移到正确目录。
 3. 更新两个行业的 `index.md`。
-4. 合并 `_cache/`（保留较全的数据）。
-5. 错误目录删除 dated artifact，仅保留 `_cache/` + index.md 引用行。
-6. 如果有 evidence ledger，更新 `_cache/evidence/<TICKER>.evidence.json` 路径引用。
+4. 合并 `.cache/`（保留较全的数据）。
+5. 错误目录删除 dated artifact，仅保留 `.cache/` + index.md 引用行。
+6. 如果有 evidence ledger，更新 `.cache/evidence/<TICKER>.evidence.json` 路径引用。
 
 ### 9.6 已知跨行业公司清单
 
@@ -315,7 +315,7 @@ linter 报错 → 修到 pass 才交付。
 2. **公司目录**：`industry/<industry>/companies/<ticker>/` 不存在 → `mkdir -p`
 3. **COVERAGE.md 注册**：公司不在 `COVERAGE.md` → 追加一行 `| <ticker> | <公司名> | <行业> | T3 | A3 | building | <YYYY-MM-DD> |  |  | auto-registered |`
 4. **行业 index.md 注册**：artifact 不在行业 `index.md` 研究产出列表 → 追加一行时间倒序 artifact link
-5. **不要做的事**：不创建 `_inbox/`（不需要了）、不创建 `_cache/`（financial-data 按需自建）、不预建目录、不阻塞主流程
+5. **不要做的事**：不创建 `_inbox/`（不需要了）、不创建 `.cache/`（financial-data 按需自建）、不预建目录、不阻塞主流程
 
 ### Agent 执行伪代码
 

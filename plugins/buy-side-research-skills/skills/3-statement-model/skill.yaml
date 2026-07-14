@@ -38,11 +38,11 @@ capabilities:
     - 'financial-data'
     - 'driver-map'
   preferred_inputs:
-    - '_cache/financial-data/financial-data-summary.md'
-    - '_cache/financial-data/internal/actuals-resolved.json'
-    - '_cache/financial-data/internal/evidence-pack.json'
-    - '_cache/driver-map/driver-map.md'
-    - '_cache/driver-map/internal/driver-map.json'
+    - '.cache/financial-data/financial-data-summary.md'
+    - '.cache/financial-data/internal/actuals-resolved.json'
+    - '.cache/financial-data/internal/evidence-pack.json'
+    - '.cache/driver-map/driver-map.md'
+    - '.cache/driver-map/internal/driver-map.json'
   output_path: 'industry/<industry>/_models/[ticker]-3statement-model.xlsx'
   requirements:
     - 'Prefer source-tracked actuals from financial-data before external or manual data.'

@@ -338,17 +338,16 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         ("Node.js", check_node, install_node),
         ("npx", check_npx, None),  # npx comes with Node.js, no separate install
         ("curl", check_curl, install_curl),
-        ("browser-harness", check_browser_harness, install_browser_harness),
     ]:
         ok, detail = check_fn()
         if ok:
             print(f"  {detail:<40} ✅")
+            results[name.lower().replace(".", "_")] = True
         else:
             print(f"  {detail:<40} ❌")
             if auto_install and install_fn:
                 err = install_fn()
                 if err is None:
-                    # Re-check after install
                     ok2, detail2 = check_fn()
                     if ok2:
                         print(f"  {detail2:<40} ✅ (auto-installed)")
@@ -358,7 +357,6 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
             results[name.lower().replace(".", "_")] = False
             if name == "npx":
                 print(f"  → Fix: re-install Node.js LTS ({manual_node()})")
-        results[name.lower().replace(".", "_")] = ok
 
     print()
 
@@ -402,9 +400,9 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
     results["all_pass"] = not failed
 
     # Summary
-    total = 5 + len(CORE_PACKAGES) + 2  # 5 system + 8 packages + 2 config = 15
+    total = 4 + len(CORE_PACKAGES) + 2  # 4 system + 8 packages + 2 config = 14
     passed = (
-        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"], results["browser_harness"]] if v)
+        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"]] if v)
         + sum(1 for v in results["packages"].values() if v)
         + sum(1 for v in [results["mcp_json"], results["hooks"]] if v)
     )

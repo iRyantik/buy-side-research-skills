@@ -114,7 +114,7 @@ def _check_content(path: str, text: str, display: str):
             continue
         if target.endswith(('.jpg', '.png', '.webp', '.svg', '.gif')):
             continue
-        if '_cache/' in target or target.startswith('./'):
+        if '.cache/' in target or target.startswith('./'):
             continue
         label_lower = label.lower()
         if label in NON_SOURCE_LABELS:
@@ -162,11 +162,11 @@ def _check_content(path: str, text: str, display: str):
     IMG_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
     missing_images = []
     for img in IMG_RE.findall(text):
-        if not re.match(r'(\.cache/|_cache/|\.\./)+(images/)', img):
+        if not re.match(r'(\.cache/|.cache/|\.\./)+(images/)', img):
             continue
         if img.startswith('.cache/'):
             img_path = os.path.join(ws_root, img)
-        elif img.startswith('_cache/'):
+        elif img.startswith('.cache/'):
             img_path = os.path.join(ws_root, img)
         else:
             artifact_dir = os.path.dirname(path) if path else "."
@@ -241,7 +241,7 @@ def _check_content(path: str, text: str, display: str):
                   f"Fix the Pipeline header.")
 
         img_reported_ok = pm.group("images") == "✅"
-        IMG_BODY_RE = re.compile(r'!\[[^\]]*\]\(_cache/images/')
+        IMG_BODY_RE = re.compile(r'!\[[^\]]*\]\(.cache/images/')
         img_count = len(IMG_BODY_RE.findall(text))
         if img_reported_ok and img_count == 0:
             block(f"Blocked by pre_write_gate: {display} Pipeline header "
@@ -553,7 +553,7 @@ def _check_content(path: str, text: str, display: str):
 
 
 def _find_company_actuals(artifact_path: str, slug: str) -> str | None:
-    """Walk up from artifact to find company _cache/financial-data/actuals-resolved.json."""
+    """Walk up from artifact to find company .cache/financial-data/actuals-resolved.json."""
     d = os.path.dirname(artifact_path)
     for _ in range(10):
         if os.path.basename(d) == slug and os.path.basename(os.path.dirname(d)) == "companies":

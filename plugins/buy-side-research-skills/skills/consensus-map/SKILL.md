@@ -53,7 +53,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | 对象 | 单股 / peer set / 行业 / 主题 | 按用户原词；ticker 优先单股，行业词优先 industry/theme |
 | 时间窗 | 3M / 6M / 12M / next print / 2-3Y | 12M，用 3M revision 观察边际 |
 | 方向 | Long / Short / Both | Both，保留 LS 视角 |
-| 数据源 | VA / FactSet / Bloomberg / CapIQ / broker / filings / price data | 优先 topic `_cache/`，否则标 source need |
+| 数据源 | VA / FactSet / Bloomberg / CapIQ / broker / filings / price data | 优先 topic `.cache/`，否则标 source need |
 | 共识层级 | sell-side numbers / buy-side bar / market-implied / narrative | 默认三层都拆 |
 | 输出深度 | quick map / standard map / thesis handoff | 默认 standard map |
 
@@ -92,9 +92,9 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Metric | Current consensus | 3M / 6M revision | Dispersion | Ev | Why it matters |
 |---|---|---|---|---|---|
-| Revenue / EBITDA / EPS / FCF / KPI | [number] | [up/down/flat] | [range/stdev if available] | [S1](./_cache/sources/consensus-pack.md) | [投资含义] |
+| Revenue / EBITDA / EPS / FCF / KPI | [number] | [up/down/flat] | [range/stdev if available] | [S1](./.cache/sources/consensus-pack.md) | [投资含义] |
 
-正文 claim 示例：`Consensus FY26 EBITDA has moved down 6% over three months, while dispersion widened from 8% to 14%. [S1](./_cache/sources/consensus-pack.md)`
+正文 claim 示例：`Consensus FY26 EBITDA has moved down 6% over three months, while dispersion widened from 8% to 14%. [S1](./.cache/sources/consensus-pack.md)`
 
 **Takeaway**: [市场数字共识到底集中在哪个 operating assumption]
 
@@ -119,17 +119,17 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 
 | Assumption ladder | What consensus needs | Observable KPI | Ev | Handoff if unclear |
 |---|---|---|---|---|
-| Revenue | [growth / orders / conversion] | [KPI] | [S1](./_cache/sources/consensus-pack.md) | `driver-map` if mapping unclear |
-| Margin | [mix / pricing / utilization] | [KPI] | [S1](./_cache/sources/consensus-pack.md) | `driver-map` |
+| Revenue | [growth / orders / conversion] | [KPI] | [S1](./.cache/sources/consensus-pack.md) | `driver-map` if mapping unclear |
+| Margin | [mix / pricing / utilization] | [KPI] | [S1](./.cache/sources/consensus-pack.md) | `driver-map` |
 
-正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](./_cache/sources/consensus-pack.md)`
+正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](./.cache/sources/consensus-pack.md)`
 | Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `3-statement-model / dcf-model / comps-analysis / model-update` |
 
 ## 6. Where Consensus Could Be Wrong
 
 | Variant slot | Direction | Why it may be mispriced | Needed proof | Next source |
 |---|---|---|---|---|
-| [slot] | Long / Short | [reason] | [evidence] | [S3](./_cache/sources/variant-slot-note.md) / `` |
+| [slot] | Long / Short | [reason] | [evidence] | [S3](./.cache/sources/variant-slot-note.md) / `` |
 
 ## 7. What Would Change Consensus [→ Bridge: calendar]
 
@@ -188,7 +188,7 @@ flowchart TD
 
 | Anchor | Role in theme | What market seems to price | Key KPI | Ev |
 |---|---|---|---|---|
-| [name] | [stage] | [growth / margin / scarcity / policy] | [KPI] | [S1](./_cache/sources/consensus-pack.md) 或 GAP |
+| [name] | [stage] | [growth / margin / scarcity / policy] | [KPI] | [S1](./.cache/sources/consensus-pack.md) 或 GAP |
 
 ```
 

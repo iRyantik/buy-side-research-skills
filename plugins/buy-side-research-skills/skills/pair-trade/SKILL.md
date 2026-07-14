@@ -105,7 +105,7 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 | Beta to 半导体设备 ETF | 1.05 | 1.10 |
 | 流动性（日均成交量） | $2B | $1.5B |
 | Borrow rate (annual) | n/a | 0.5% |
-| Ev | [S1](./_cache/sources/long-leg-thesis.md) | [S2](./_cache/sources/short-leg-thesis.md) |
+| Ev | [S1](./.cache/sources/long-leg-thesis.md) | [S2](./.cache/sources/short-leg-thesis.md) |
 
 [插入 Mermaid flowchart — pair spread 逻辑：entry spread → converge mechanism → target/exit/kill。示例见下方。]
 
@@ -117,12 +117,12 @@ next_catalyst: "YYYY-MM-DD - [event description]"
 
 | 维度 | Long X | Short Y | Ev |
 |---|---|---|---|
-| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | [S1](./_cache/sources/peer-overlap-map.md) |
+| 终端市场重叠 | 45% logic / 35% memory / 20% packaging | 30% logic / 60% memory / 10% packaging | [S1](./.cache/sources/peer-overlap-map.md) |
 
-| 客户重叠（top 10） | TSMC / Samsung / Intel / SK Hynix | TSMC / Samsung / Intel / Micron | [S1](./_cache/sources/investor-day-deck.md) |
-| 产品 substitution | EUV 不可替代 | DUV / etch / deposition 可替代性不同 | [S2](./_cache/sources/industry-substitution-note.md) |
+| 客户重叠（top 10） | TSMC / Samsung / Intel / SK Hynix | TSMC / Samsung / Intel / Micron | [S1](./.cache/sources/investor-day-deck.md) |
+| 产品 substitution | EUV 不可替代 | DUV / etch / deposition 可替代性不同 | [S2](./.cache/sources/industry-substitution-note.md) |
 | 共同 macro 暴露 | 半导体 capex cycle、科技出口管制、利率 | 同上 | [I1](https://example.com/industry-capex-tracker) |
-| Idiosyncratic 差异 | EUV pricing power、monopoly | Memory cycle 高暴露、etch share | [S3](./_cache/sources/industry-share-data.md) |
+| Idiosyncratic 差异 | EUV pricing power、monopoly | Memory cycle 高暴露、etch share | [S3](./.cache/sources/industry-share-data.md) |
 
 **底线判断**：终端市场重叠 ≥ 60% + 客户重叠 ≥ 50% + 共同 macro 因子 ≥ 2 个 → 才算相关。否则不是真 pair。
 
@@ -160,7 +160,7 @@ Spread converge 论点的强度判断：
 
 | 180D beta (X vs Y) | 1.05 | 用于 sizing：dollar-neutral 还是 beta-neutral | [I2](https://example.com/beta-series) |
 | 共同 macro factor | 半导体设备 ETF beta、USD/JPY、10Y 利率 | 列出最显著的共同因子；这些 hedge 不掉 | [I10](https://example.com/macro-factor-pack) |
-| 独有 idiosyncratic factor | X: EUV bookings；Y: DRAM capex / etch share | 这才是 pair alpha source | [S11](./_cache/sources/idiosyncratic-factor-note.md) |
+| 独有 idiosyncratic factor | X: EUV bookings；Y: DRAM capex / etch share | 这才是 pair alpha source | [S11](./.cache/sources/idiosyncratic-factor-note.md) |
 | 历史 max drawdown of pair | -8% | Pair 不是无风险 | [自算 historical pnl / source] |
 
 **关键判断**：Pair 历史 P/L attribution 应主要来自 idiosyncratic，而非共同 macro。粗略测试：在历史 macro shock 日，pair P/L 是否被 isolation。如果 macro shock 日 pair P/L 也大跌，说明结构没 hedge 住。
@@ -178,7 +178,7 @@ Spread converge 论点的强度判断：
 - **关键假设**：thesis 依赖的 1-3 个核心假设，每个给 source。
 
 例（Long ASML）：
-> Variant view: 2026 EUV bookings $20B+（consensus $17B），来自高 NA EUV 单价 +20% upgrade 周期 [I3](https://example.com/asml-investor-day) + lithography 国产替代失败留出 incremental 需求 [S4](./_cache/sources/lithography-substitution-note.md)。Catalyst: Q3 财报 EUV bookings 数据 + 2027 capacity guidance。关键假设：(1) 高 NA 客户付费意愿 [S5](./_cache/sources/high-na-demand-check.md)；(2) Intel / TSMC 先进制程 capex 不放缓 [I4](https://example.com/foundry-capex)；(3) 替代品量产失败 [S6](./_cache/sources/substitution-failure-check.md)。
+> Variant view: 2026 EUV bookings $20B+（consensus $17B），来自高 NA EUV 单价 +20% upgrade 周期 [I3](https://example.com/asml-investor-day) + lithography 国产替代失败留出 incremental 需求 [S4](./.cache/sources/lithography-substitution-note.md)。Catalyst: Q3 财报 EUV bookings 数据 + 2027 capacity guidance。关键假设：(1) 高 NA 客户付费意愿 [S5](./.cache/sources/high-na-demand-check.md)；(2) Intel / TSMC 先进制程 capex 不放缓 [I4](https://example.com/foundry-capex)；(3) 替代品量产失败 [S6](./.cache/sources/substitution-failure-check.md)。
 
 ##### 5.2 Short leg thesis（why Y should underperform）
 
@@ -189,7 +189,7 @@ Spread converge 论点的强度判断：
 - **关键假设**
 
 例（Short AMAT）：
-> Variant view: 2026 收入 -8%（consensus -3%），核心是 memory 客户 capex cut 比 sell-side 模型多 [I5](https://example.com/samsung-capex-guidance) + etch share 已到顶 [S7](./_cache/sources/lam-cross-check.md)。Catalyst: Q4 财报若 memory 收入 YoY < -20%。关键假设：(1) Memory 价格回升不带动 capex [S8](./_cache/sources/memory-capex-check.md)；(2) etch share gain 不能 offset memory weakness [S9](./_cache/sources/etch-share-check.md)；(3) 服务收入增速放缓 [S10](./_cache/sources/service-revenue-check.md)。
+> Variant view: 2026 收入 -8%（consensus -3%），核心是 memory 客户 capex cut 比 sell-side 模型多 [I5](https://example.com/samsung-capex-guidance) + etch share 已到顶 [S7](./.cache/sources/lam-cross-check.md)。Catalyst: Q4 财报若 memory 收入 YoY < -20%。关键假设：(1) Memory 价格回升不带动 capex [S8](./.cache/sources/memory-capex-check.md)；(2) etch share gain 不能 offset memory weakness [S9](./.cache/sources/etch-share-check.md)；(3) 服务收入增速放缓 [S10](./.cache/sources/service-revenue-check.md)。
 
 ##### 5.3 Spread converge mechanism
 
@@ -385,9 +385,9 @@ flowchart TD
 
 | | Status | 关键变化 | Ev |
 |---|---|---|---|
-| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | [S1](./_cache/sources/long-leg-thesis.md) |
+| Long thesis (§5.1 假设) | still valid / weakened / invalidated | 列出哪条 assumption 变化 | [S1](./.cache/sources/long-leg-thesis.md) |
 
-| Short thesis (§5.2 假设) | still valid / weakened / invalidated | 同上 | [S12](./_cache/sources/short-leg-thesis.md) |
+| Short thesis (§5.2 假设) | still valid / weakened / invalidated | 同上 | [S12](./.cache/sources/short-leg-thesis.md) |
 | Macro / correlation regime | stable / shifting / broken | 共同因子是否变化 | [I13](https://example.com/macro-regime-check) |
 
 #### 4. Action 建议

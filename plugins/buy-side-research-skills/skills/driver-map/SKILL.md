@@ -146,12 +146,12 @@ Checks compare P&L formula values vs actuals from Rate Bridge. `=(P&L − actual
 |---|---|---|---|---|
 | [segment] | [实际卖什么 / 做什么] | [客户或应用] | [S1](url) | [缺口] |
 
-| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](./_cache/sources/company-annual-report.md) | [缺口] |
+| [segment / product] | [实际卖什么 / 做什么] | [客户或应用] | [S1](./.cache/sources/company-annual-report.md) | [缺口] |
 
-> 每个核心 segment 配产品/设备图：下载到公司 `_cache/images/`。
+> 每个核心 segment 配产品/设备图：下载到公司 `.cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![描述](../../../../_cache/images/<slug>.png)`
+> artifact 引用：`![描述](../../../../.cache/images/<slug>.png)`
 
 遇到 `GTE / GTS / Industrial Products / Industrial Solutions / CTS` 这类拆分时，要直接触发 Senior Analyst Radar：这可能不是普通并列 segment，而是 gas turbine 系统价值链、产品本体、配套设备、service、controls 或 end-market 维度的混合拆分。
 
@@ -285,10 +285,10 @@ FY Full (日期): "[原话]" → 最终判断
 
 | Reported bucket | Business reality | End-market / customer | Ev | Gap |
 |---|---|---|---|---|
-> 每个核心 segment 配产品/设备图：下载到公司 `_cache/images/`。
+> 每个核心 segment 配产品/设备图：下载到公司 `.cache/images/`。
 >
 > **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![描述](../../../../_cache/images/<slug>.png)`
+> artifact 引用：`![描述](../../../../.cache/images/<slug>.png)`
 
 ## 2. Business Reality → Model Driver
 
