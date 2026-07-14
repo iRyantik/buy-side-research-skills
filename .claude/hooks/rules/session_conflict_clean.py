@@ -139,9 +139,9 @@ def _clean_orphan_transcripts(sessions_dir):
     remains on disk. CC rescans .jsonl files on restart and recreates
     manifests, causing deleted sessions to reappear.
 
-    This removes .jsonl files with no matching manifest, but ONLY if the
-    .jsonl is older than 7 days (safety: prevent deleting sessions from
-    another machine that hasn't synced manifests recently).
+    With manifests synced via OneDrive (.sessions-manifests/ junction),
+    a missing manifest means the session was genuinely deleted — on any
+    machine. No age threshold needed.
     """
     import time
     import json
@@ -164,7 +164,7 @@ def _clean_orphan_transcripts(sessions_dir):
     if not active_ids:
         return  # No manifests at all — don't clean, safety first
 
-    cutoff = time.time() - 7 * 86400  # 7 days — cross-machine safety
+    cutoff = time.time()  # now — manifests synced via OneDrive, no delay needed
 
     for f in sessions_dir.glob("*.jsonl"):
         # Skip conflict copies (handled by _iter_conflicts)
