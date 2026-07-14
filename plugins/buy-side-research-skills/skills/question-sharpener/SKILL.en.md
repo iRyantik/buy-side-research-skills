@@ -1,69 +1,91 @@
 ---
 name: question-sharpener
-description: Use when a research question is vague, mixes multiple dimensions, or the user says "I don't know how to ask this" — decomposes fuzzy questions into precise answerable sub-questions, maps known vs unknown against existing workspace artifacts, and routes each sub-question to the right downstream skill.
+description: Use when a research question is vague, mixes multiple dimensions, or the user says "I don't know how to ask this" — sharpens fuzzy questions into precise answerable questions by clarifying intent, surfacing hidden assumptions, and reframing the ask. Routing to downstream skills is a brief supplement, not the main output.
 ---
 
 # Question Sharpener
 
-Turn "I don't know how to ask this" into a precise research plan in <200 words.
+Your job is not to route. Your job is to make the question better.
+
+When someone asks a vague question, they usually know what they care about but can't articulate it. Help them find the real question.
 
 ## When to Use
 
-- "What is all this stuff" / "Explain this to me"
-- "Help me figure out how to ask this question"
-- Multiple concepts mixed in one question (materials + companies + costs)
-- User explicitly says they can't articulate the question
+- "What is all this" / "Explain this to me"
+- "Help me figure out how to ask this"
+- "I'm not sure what I'm asking"
+- Multiple concepts mixed together (materials + companies + costs)
+- Questions with hidden assumptions or missing context
+- User's question feels "off" but you can't tell why
 
-**Don't use for:** Single-fact lookup, already-precise questions, routing decisions you can make silently.
+**Don't use for:** Already-precise questions, single-fact lookups, routing decisions you can make silently.
 
 ## Workflow
 
-### Step 1: Dimension Split
+### Step 1: Figure Out What They Actually Want
 
-Decompose one fuzzy question into 2-4 independent dimensions. Each dimension = sub-questions answerable under one cognitive frame.
+Read the fuzzy question and ask yourself:
 
-### Step 2: Known vs Unknown
+1. **What decision is behind this?** — Are they trying to invest? Understand an industry? Verify a claim? Size a market?
+2. **What would a good answer look like?** — A number? A ranked list? A yes/no? A framework?
+3. **What's the hidden context?** — What do they already know? What are they assuming?
 
-| Mark | Meaning |
-|---|---|
-| ✅ | Existing workspace artifact covers this |
-| ⚠️ | Partial coverage, needs supplement |
-| ❓ | Needs new research |
+This step is about intent, not decomposition. You're not splitting the question yet — you're understanding the person.
 
-### Step 3: Route
+### Step 2: Surface the Blind Spots
 
-| Question type | Downstream skill |
-|---|---|
-| "What is this thing" — physical intuition | `teach-in` |
-| "Who makes it / industry structure" | `industry-landscape` |
-| "Which company is worth looking at" | `candidate-screener` |
-| "Verify a specific number or claim" | `deep-research` |
-| "How does this company make money" | `driver-map` |
-| "Compare these companies" | `peer-deep-dive` |
-| "How big is this market" | `market-sizing` |
-| "How does this mechanism work" | `mechanism-insight` |
+What's missing that makes this question hard to answer?
 
-### Step 4: Sequence
+- Missing scope (time horizon? geography? market segment?)
+- Missing definitions (what counts as "good"? "big"? "important"?)
+- Wrong framing (asking "who" when they should ask "how"; asking for a list when they need a mechanism)
+- Premature precision (asking for a number when they don't understand the thing yet)
 
-Always: **physical intuition first → landscape → company drivers → sort**. The sequence must follow cognitive dependency — you can't compare companies you don't understand, you can't analyze drivers without knowing the industry structure.
+State these explicitly. "Your question assumes X, but X isn't settled. Let's check that first."
 
-## Output Format
+### Step 3: Rewrite the Question
+
+Output 1-3 sharpened questions. Each must be:
+
+- **Specific** — names the thing, the scope, the unit
+- **Answerable** — you can imagine what a good answer looks like
+- **Sequenced** — if there are multiple, earlier questions unblock later ones
+
+Format:
 
 ```markdown
-## Question Decomposition
+## Sharpened
 
-> Original: [user's fuzzy question]
+> Your original: "[user's fuzzy question]"
 
-| Dimension | Sub-questions | Status | Route |
-|---|---|---|---|
-| [Name] | [Precise question] | ✅/⚠️/❓ | [skill] |
+What you're really trying to figure out is [intent]. But before we can answer that, we need to resolve [blind spot].
 
-**Suggested sequence**: ① [skill] → ② [skill] → ③ [skill]
+**Reframed:**
+
+1. [Precise, specific question]
+2. [Next question, if needed]
+3. [Final question — the one that answers the original intent]
 ```
+
+### Step 4: Suggested Path (Brief)
+
+If the user wants to pursue the sharpened questions, suggest 1-2 downstream skills as a one-liner. This is not the main output — keep it short.
+
+```
+**Next**: Start with [skill] to [do what]. Then [skill] to [do what].
+```
+
+## Output Principles
+
+- The sharpened questions ARE the output. Everything else supports them.
+- Don't output a routing table as the main deliverable.
+- Write like a senior analyst helping a junior think, not like a dispatcher.
+- If the original question is already good, say so and suggest a direct path.
+- If the question can't be sharpened without more context from the user, ask for it.
 
 ## Common Mistakes
 
-- ❌ Treating a mixed question as one monolithic task — always split dimensions first
-- ❌ Routing to deep research before establishing physical intuition — teach-in first
-- ❌ Skipping the "known" check — check existing artifacts before launching new research
-- ❌ Outputting analysis instead of a routing table — this skill does navigation, not research
+- ❌ Treating sharpening as decomposition — you're not splitting, you're reframing
+- ❌ Outputting a routing table as the main answer — routing is a footnote
+- ❌ Skipping intent and going straight to "which skill" — understand first, route last
+- ❌ Pretending a bad question is good — if it's missing context, say so
