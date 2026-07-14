@@ -131,57 +131,66 @@ def _union_merge(base_path, conflict_path):
             pass
 
 
-def _clean_orphan_transcripts(sessions_dir):
-    """Delete .jsonl transcript files whose sessionId has no manifest.
+def _clean_deleted_sessions(sessions_dir):
+    """Delete .jsonl files listed in .sessions/deleted.json.
 
-    When user deletes a session in CC UI, the manifest file in
-    ~/.claude/sessions/<PID>.json is removed, but the transcript .jsonl
-    remains on disk. CC rescans .jsonl files on restart and recreates
-    manifests, causing deleted sessions to reappear.
-
-    With manifests synced via OneDrive (.sessions-manifests/ junction),
-    a missing manifest means the session was genuinely deleted — on any
-    machine. No age threshold needed.
+    Shared via OneDrive — when Machine A deletes a session, Machine B's
+    hook sees the same deleted.json and cleans the transcript file.
     """
-    import time
     import json
+    import shutil
 
-    manifests_dir = Path.home() / ".claude" / "sessions"
-    if not manifests_dir.is_dir():
+    deleted_file = sessions_dir / "deleted.json"
+    if not deleted_file.is_file():
         return
 
-    # Collect active sessionIds from all manifests
-    active_ids = set()
-    for mf in manifests_dir.glob("*.json"):
+    try:
+        data = json.loads(deleted_file.read_text(encoding="utf-8"))
+        deleted_ids = {item["sessionId"] for item in data.get("deleted", [])}
+    except (json.JSONDecodeError, KeyError, OSError):
+        return
+
+    if not deleted_ids:
+        return
+
+    # Delete matching .jsonl files and their subdirectories
+    cleaned = []
+    for sid in deleted_ids:
+        jsonl = sessions_dir / f"{sid}.jsonl"
+        subdir = sessions_dir / sid
+
+        removed = False
         try:
-            data = json.loads(mf.read_text(encoding="utf-8"))
-            sid = data.get("sessionId")
-            if sid:
-                active_ids.add(sid)
-        except (json.JSONDecodeError, OSError):
-            continue
-
-    if not active_ids:
-        return  # No manifests at all — don't clean, safety first
-
-    cutoff = time.time()  # now — manifests synced via OneDrive, no delay needed
-
-    for f in sessions_dir.glob("*.jsonl"):
-        # Skip conflict copies (handled by _iter_conflicts)
-        if "-" in f.stem and _find_base(f.name, {}):
-            continue
-
-        sid = f.stem  # filename = sessionId
-        if sid in active_ids:
-            continue
-
-        # Check age
-        try:
-            mtime = f.stat().st_mtime
-            if mtime < cutoff:
-                f.unlink()
+            if jsonl.is_file():
+                jsonl.unlink()
+                removed = True
         except OSError:
-            continue
+            pass
+        try:
+            if subdir.is_dir():
+                shutil.rmtree(subdir, ignore_errors=True)
+                removed = True
+        except OSError:
+            pass
+
+        if removed:
+            cleaned.append(sid)
+
+    # Update deleted.json — remove entries that were cleaned
+    remaining = [item for item in data.get("deleted", [])
+                 if item["sessionId"] not in cleaned]
+    if remaining:
+        data["deleted"] = remaining
+        try:
+            deleted_file.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                                    encoding="utf-8")
+        except OSError:
+            pass
+    else:
+        try:
+            deleted_file.unlink()
+        except OSError:
+            pass
 
 
 def check(ctx):
@@ -200,8 +209,7 @@ def check(ctx):
     except Exception:
         pass
 
-    # Clean orphan transcripts (deleted sessions)
     try:
-        _clean_orphan_transcripts(sessions_dir)
+        _clean_deleted_sessions(sessions_dir)
     except Exception:
         pass
