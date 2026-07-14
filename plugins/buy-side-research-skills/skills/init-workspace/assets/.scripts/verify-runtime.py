@@ -338,15 +338,13 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         ("Node.js", check_node, install_node),
         ("npx", check_npx, None),  # npx comes with Node.js, no separate install
         ("curl", check_curl, install_curl),
-        ("browser-harness", check_browser_harness, None),  # optional, no auto-install
     ]:
         ok, detail = check_fn()
         if ok:
             print(f"  {detail:<40} ✅")
+            results[name.lower().replace(".", "_")] = True
         else:
-            is_optional = (name == "browser-harness")
-            mark = "⚠️ (optional)" if is_optional else "❌"
-            print(f"  {detail:<40} {mark}")
+            print(f"  {detail:<40} ❌")
             if auto_install and install_fn:
                 err = install_fn()
                 if err is None:
@@ -355,12 +353,10 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
                         print(f"  {detail2:<40} ✅ (auto-installed)")
                         results[name.lower().replace(".", "_")] = True
                         continue
-            if not is_optional:
-                failed = True
-            results[name.lower().replace(".", "_")] = ok if not is_optional else True  # optional always passes
+            failed = True
+            results[name.lower().replace(".", "_")] = False
             if name == "npx":
                 print(f"  → Fix: re-install Node.js LTS ({manual_node()})")
-        results[name.lower().replace(".", "_")] = ok
 
     print()
 
@@ -404,9 +400,9 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
     results["all_pass"] = not failed
 
     # Summary
-    total = 5 + len(CORE_PACKAGES) + 2  # 5 system + 8 packages + 2 config = 15
+    total = 4 + len(CORE_PACKAGES) + 2  # 4 system + 8 packages + 2 config = 14
     passed = (
-        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"], results["browser_harness"]] if v)
+        sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"]] if v)
         + sum(1 for v in results["packages"].values() if v)
         + sum(1 for v in [results["mcp_json"], results["hooks"]] if v)
     )
