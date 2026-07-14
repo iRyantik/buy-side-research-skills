@@ -164,7 +164,7 @@ def _clean_orphan_transcripts(sessions_dir):
     if not active_ids:
         return  # No manifests at all — don't clean, safety first
 
-    cutoff = time.time()  # now
+    cutoff = time.time() - 7 * 86400  # 7 days — cross-machine safety
 
     for f in sessions_dir.glob("*.jsonl"):
         # Skip conflict copies (handled by _iter_conflicts)
