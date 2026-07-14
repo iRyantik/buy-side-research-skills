@@ -1,0 +1,170 @@
+{
+  "actuals_samples": [
+    {
+      "name": "keysight",
+      "market": "us",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "keysight",
+      "actuals_path": "industry/optical-module-equipment/companies/keysight/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "quarter_dominant": true,
+        "segments_status": "extracted"
+      }
+    },
+    {
+      "name": "bozhong",
+      "market": "cn",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "bozhong",
+      "actuals_path": "industry/optical-module-equipment/companies/bozhong/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "quarter_dominant": true
+      }
+    },
+    {
+      "name": "asmp",
+      "market": "hk",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "asmp",
+      "actuals_path": "industry/optical-module-equipment/companies/asmp/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "latest_quarter_period_basis": "half_year"
+      }
+    },
+    {
+      "name": "anritsu",
+      "market": "jp",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "anritsu",
+      "actuals_path": "industry/optical-module-equipment/companies/anritsu/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "latest_quarter_period_basis": "half_year",
+        "segments_status": "extracted"
+      }
+    },
+    {
+      "name": "besi",
+      "market": "eu",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "besi",
+      "actuals_path": "industry/optical-module-equipment/companies/besi/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "half_year_aware": true,
+        "segments_status": "extracted"
+      }
+    },
+    {
+      "name": "mycronic",
+      "market": "eu",
+      "industry": "optical-module-equipment",
+      "ticker_slug": "mycronic",
+      "actuals_path": "industry/optical-module-equipment/companies/mycronic/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "quarter_dominant": true,
+        "official_query_contains": ["Mycronic"],
+        "segments_status": "extracted"
+      }
+    },
+    {
+      "name": "hyundai-rotem",
+      "market": "kr",
+      "industry": "korea-defense",
+      "ticker_slug": "hyundai-rotem",
+      "actuals_path": "industry/korea-defense/companies/hyundai-rotem/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "latest_quarter_period_basis": "report_period",
+        "segments_status": "extracted"
+      }
+    },
+    {
+      "name": "tsmc",
+      "market": "tw",
+      "industry": "foundry",
+      "ticker_slug": "tsmc",
+      "actuals_path": "industry/foundry/companies/tsmc/.cache/financial-data/internal/actuals-resolved.json",
+      "expected": {
+        "quarter_dominant": true,
+        "segments_status": "extracted"
+      }
+    }
+  ],
+  "provider_smoke_samples": [
+    {
+      "name": "us_sec",
+      "market": "us",
+      "provider": "sec_provider",
+      "identifier": "KEYS",
+      "request": {
+        "market": "us",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "quarterly"
+      }
+    },
+    {
+      "name": "cn_akshare",
+      "market": "cn",
+      "provider": "akshare_provider",
+      "identifier": "300757",
+      "request": {
+        "market": "cn",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "quarterly"
+      }
+    },
+    {
+      "name": "hk_akshare",
+      "market": "hk",
+      "provider": "akshare_provider",
+      "identifier": "0522.HK",
+      "request": {
+        "market": "hk",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "latest"
+      }
+    },
+    {
+      "name": "jp_edinet",
+      "market": "jp",
+      "provider": "edinet_provider",
+      "identifier": "6754",
+      "request": {
+        "market": "jp",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "quarterly"
+      }
+    },
+    {
+      "name": "kr_dart",
+      "market": "kr",
+      "provider": "dart_provider",
+      "identifier": "079550",
+      "request": {
+        "market": "kr",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "quarterly"
+      }
+    },
+    {
+      "name": "tw_finmind",
+      "market": "tw",
+      "provider": "finmind_provider",
+      "identifier": "2330",
+      "request": {
+        "market": "tw",
+        "items": ["income_statement", "balance_sheet", "cash_flow"],
+        "periods": "quarterly"
+      }
+    },
+    {
+      "name": "eu_openesef",
+      "market": "eu",
+      "provider": "openesef_provider",
+      "identifier": "BESI.AS",
+      "request": {
+        "market": "eu",
+        "items": ["filing_index", "latest_full_filing"],
+        "periods": "quarterly"
+      }
+    }
+  ]
+}

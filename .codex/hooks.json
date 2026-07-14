@@ -1,0 +1,49 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event PreToolUse",
+                        "timeout": 15
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "apply_patch|write_file",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event PostToolUse",
+                        "timeout": 20
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event Stop",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ],
+        "SubagentStop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event PostToolUse",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ]
+    }
+}

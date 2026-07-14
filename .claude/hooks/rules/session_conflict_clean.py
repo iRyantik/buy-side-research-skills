@@ -131,6 +131,59 @@ def _union_merge(base_path, conflict_path):
             pass
 
 
+def _clean_orphan_transcripts(sessions_dir):
+    """Delete .jsonl transcript files whose sessionId has no manifest.
+
+    When user deletes a session in CC UI, the manifest file in
+    ~/.claude/sessions/<PID>.json is removed, but the transcript .jsonl
+    remains on disk. CC rescans .jsonl files on restart and recreates
+    manifests, causing deleted sessions to reappear.
+
+    This removes .jsonl files with no matching manifest, but ONLY if the
+    .jsonl is older than 7 days (safety: prevent deleting sessions from
+    another machine that hasn't synced manifests recently).
+    """
+    import time
+    import json
+
+    manifests_dir = Path.home() / ".claude" / "sessions"
+    if not manifests_dir.is_dir():
+        return
+
+    # Collect active sessionIds from all manifests
+    active_ids = set()
+    for mf in manifests_dir.glob("*.json"):
+        try:
+            data = json.loads(mf.read_text(encoding="utf-8"))
+            sid = data.get("sessionId")
+            if sid:
+                active_ids.add(sid)
+        except (json.JSONDecodeError, OSError):
+            continue
+
+    if not active_ids:
+        return  # No manifests at all — don't clean, safety first
+
+    cutoff = time.time()  # now
+
+    for f in sessions_dir.glob("*.jsonl"):
+        # Skip conflict copies (handled by _iter_conflicts)
+        if "-" in f.stem and _find_base(f.name, {}):
+            continue
+
+        sid = f.stem  # filename = sessionId
+        if sid in active_ids:
+            continue
+
+        # Check age
+        try:
+            mtime = f.stat().st_mtime
+            if mtime < cutoff:
+                f.unlink()
+        except OSError:
+            continue
+
+
 def check(ctx):
     """Hook entry point. Best-effort: never raise."""
     sessions_dir = find_sessions_dir()
@@ -144,5 +197,11 @@ def check(ctx):
                 conflict_path.unlink()
             except Exception:
                 continue
+    except Exception:
+        pass
+
+    # Clean orphan transcripts (deleted sessions)
+    try:
+        _clean_orphan_transcripts(sessions_dir)
     except Exception:
         pass

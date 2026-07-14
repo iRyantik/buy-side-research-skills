@@ -1,0 +1,85 @@
+# Fatal section patterns per skill — missing any = block
+# Patterns are case-insensitive regex, | separates multiple accepted forms
+
+alpha-thesis:
+  block:
+    - "Variant View|变体.*观点"
+    - "Kill Criteria|杀论.*标准"
+    - "Bull.*Bear|情景"
+
+consensus-map:
+  block:
+    - "Where Consensus Could Be Wrong|共识.*可能.*错|variant"
+    - "What Would Change|改变.*共识"
+
+stock-quickread:
+  block:
+    - "反向工程|reverse.engineer|implied.growth"
+    - "一眼看懂"
+    - "钱从哪里来"
+    - "什么在驱动股价"
+
+bear-pre-mortem:
+  block:
+    - "Smartest Short|最聪明的空|空头"
+    - "Base Rate|Historical Analogue|历史.*类比"
+
+earnings-setup:
+  block:
+    - "Decision Tree|决策树|scenario"
+
+pair-trade:
+  block:
+    - "Exit Trigger|退出条件|unwind"
+
+peer-deep-dive:
+  block:
+    - "Horizontal Matrix|横向矩阵|Cross-Cut|截面"
+
+driver-map:
+  block:
+    - "Reported Bucket|Business Reality|报告口径.*业务实质"
+
+information-impact:
+  block:
+    - "Verdict|裁决"
+
+primary-research-plan:
+  block:
+    - "Compliance Guardrails|Do Not Ask|不能问"
+
+industry-landscape:
+  block:
+    - "Verdict|裁决"
+
+candidate-screener:
+  block:
+    - "Hypothesis|假设"
+    - "Tier.*1|Direct"
+
+company-history:
+  block:
+    - "Business Snapshot|Segment Reality|分部"
+
+mechanism-insight:
+  block:
+    - "How it works|原理|where value captured|价值.*捕获"
+
+cross-market-compare:
+  block:
+    - "Spread Explanation|价差.*解释"
+    - "Action"
+
+reddit-sentiment:
+  block:
+    - "Verdict|裁决"
+    - "Narrative Cluster|叙事.*聚类"
+
+research-journal:
+  block:
+    - "Research Map|研究.*地图|Writing Decision"
+
+research-viz:
+  block:
+    - "title|标题"
+    - "source.line|来源"
