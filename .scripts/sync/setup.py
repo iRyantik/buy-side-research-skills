@@ -65,7 +65,13 @@ def main():
     if platform.system() == "Windows":
         cleanup_windows()
 
-    # 4. Create links
+    # 4. Find/create .sessions-manifests/ for manifest sync
+    manifests_dir = workspace_root / ".sessions-manifests"
+    manifests_dir.mkdir(exist_ok=True)
+    print(f"[ OK ] .sessions-manifests/ = {manifests_dir}")
+    print()
+
+    # 5. Create links
     if args.dry_run:
         print("[DRY RUN] Would create junctions/symlinks. No changes made.")
         return
@@ -73,7 +79,12 @@ def main():
     for hd in hash_dirs:
         create_link(hd, sessions, workspace_root)
 
-    # 5. Verify
+    # 6. Manifest sync: junction ~/.claude/sessions/ -> .sessions-manifests/
+    print("Manifest sync...")
+    claude_sessions = Path.home() / ".claude" / "sessions"
+    setup_manifest_sync(claude_sessions, manifests_dir)
+
+    # 7. Verify
     print()
     print("Verifying...")
     ok, msg = verify(sessions, hash_dirs)
@@ -301,7 +312,54 @@ def cleanup_windows():
     print()
 
 
-# ── Link creation ─────────────────────────────────────────
+# ── Manifest Sync ─────────────────────────────────────────
+def setup_manifest_sync(claude_sessions, manifests_dir):
+    """Junction ~/.claude/sessions/ -> .sessions-manifests/ for cross-machine sync.
+
+    When manifests are shared via OneDrive, deleting a session on one machine
+    removes the manifest everywhere. The orphan cleanup hook can then safely
+    delete transcript .jsonl files knowing they are genuinely abandoned.
+    """
+    system = platform.system()
+
+    # Already set up?
+    if claude_sessions.exists():
+        if is_junction(claude_sessions):
+            resolved = claude_sessions.resolve()
+            if resolved == manifests_dir.resolve():
+                print(f"  [ OK ] Manifest sync already active")
+                return
+            else:
+                print(f"  [WARN] sessions/ is a junction pointing elsewhere: {resolved}")
+                return
+        # Not a junction — migrate
+        print(f"  Migrating existing manifests to OneDrive...")
+        try:
+            for mf in claude_sessions.glob("*.json"):
+                shutil.copy2(mf, manifests_dir / mf.name)
+        except Exception as e:
+            print(f"  [WARN] Copy error: {e}")
+        print(f"  Removing local sessions/ directory...")
+        shutil.rmtree(claude_sessions, ignore_errors=True)
+
+    # Create junction
+    if system == "Windows":
+        result = subprocess.run(
+            ["cmd", "/c", "mklink", "/J",
+             str(claude_sessions), str(manifests_dir)],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0:
+            print(f"  [WARN] Junction creation failed: {result.stderr.strip()}")
+            print(f"  Manually: mklink /J {claude_sessions} {manifests_dir}")
+        else:
+            print(f"  [ OK ] Manifest sync: {claude_sessions} -> {manifests_dir}")
+    else:
+        try:
+            claude_sessions.symlink_to(manifests_dir, target_is_directory=True)
+            print(f"  [ OK ] Manifest sync: {claude_sessions} -> {manifests_dir}")
+        except Exception as e:
+            print(f"  [WARN] Symlink failed: {e}")
 def create_link(hash_dir, sessions_path, workspace_root):
     """Replace hash_dir with a symlink/junction to sessions_path."""
     system = platform.system()
