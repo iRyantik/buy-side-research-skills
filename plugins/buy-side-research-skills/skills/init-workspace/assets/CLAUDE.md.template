@@ -345,7 +345,7 @@ COVERAGE.md                   # 覆盖公司状态跟踪表（thesis stage / pri
 - 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
 - Tier 链：HTTP GET → browser-harness CDP（真实 Chrome，自动执行）→ Playwright MCP（agent 手动）→ curl → [UNVERIFIED]
 - `[UNVERIFIED]` 仅在所有 tier 失败后标记
-- browser-harness CDP 优先于 Playwright MCP：连接用户真实 Chrome，继承指纹/cookie/登录态，能绕过 Cloudflare 等反爬
+- browser-harness CDP 优先于 Playwright MCP：它连接用户真实 Chrome，继承指纹/cookie/登录态，能绕过 Cloudflare 等反爬
 
 ### Canvas 文件
 
@@ -462,9 +462,13 @@ Agent 在校准过程中**可以修改公司本地副本**——包括公式逻�
 
 1. 安装 Python 3.12+、Node.js 18+、Chrome
 2. 开启 Chrome 远程调试：`chrome://inspect/#remote-debugging` → Allow
-3. 克隆 plugin 源并拉取最新：`git clone <repo> && cd <repo> && git pull`
-4. 跑初始化：`/init-workspace`
-5. 跑运行时检查：`python .scripts/verify-runtime.py`（自动安装缺失依赖）
+3. Clone workspace repo + pull：`git clone <workspace-repo> && cd <workspace> && git pull`
+4. Clone plugin 源并拉取最新：`git clone <plugin-repo> && cd <plugin> && git pull`
+5. 跑初始化：`/init-workspace`
+6. **等 OneDrive 完成同步**（系统托盘图标停止转动）——否则 session 不完整
+7. 跑运行时检查：`python .scripts/verify-runtime.py`（自动安装缺失依赖）
+8. **跑 session sync setup**：`python .scripts/sync/setup.py`（建立 junction 连到 OneDrive `.sessions/`）
+9. 手动配置机器级文件（见 §9.6）
 
 ### 9.2 双 repo 纪律
 
@@ -482,7 +486,10 @@ workspace s:/                    plugin 源 (路径不固定)
 
 ```
 离开电脑前：git push（workspace + plugin 源两边）
-换电脑后：  git pull（两边）
+           正常关闭 Claude Code（触发 Stop hook → 冲突清理）
+换电脑后： git pull（两边）
+           OneDrive 等同步完成
+           python .scripts/sync/setup.py  # 仅新电脑首次需要；已设好则跳过
            python .scripts/verify-runtime.py
            Chrome → chrome://inspect → 确认 Allow 已勾选
 ```
@@ -496,12 +503,104 @@ python -m pip show browser-harness  # 确认已安装及路径
 python .scripts/shared/browser-cdp.py check  # 快速诊断
 ```
 
-### 9.5 常见问题
+### 9.5 Session Sync 机制
+
+Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录（每个 session 一个 `.jsonl`）。`setup.py` 将 hash 目录替换为指向 workspace `.sessions/`（OneDrive 内）的 **Windows junction**（或 macOS symlink），使所有机器共享同一份 session 文件。
+
+```
+~/.claude/projects/<workspace-hash>/  ——→  .sessions/（OneDrive 同步）
+```
+
+**日常使用**：无需任何操作。打开 CC 即自动读/写 OneDrive 内的 session。
+
+**冲突处理**：两台机器同时开 CC 时 OneDrive 可能产生 `<file>-<MACHINE>.jsonl` 冲突副本。Stop hook（`session_conflict_clean.py`）自动 union-merge 去重行→写回基文件→删除冲突副本。正常使用（一台关再开另一台）不会产生冲突。
+
+**首次 setup**：`python .scripts/sync/setup.py`（`--dry-run` 预览不执行）。
+
+### 9.6 机器级配置文件（需手动迁移）
+
+以下文件**不在 git/OneDrive 内**——含 API tokens 或机器相关路径，换电脑时需手动配置：
+
+| 文件 | 内容 | 迁移方式 |
+|---|---|---|
+| `~/.claude/settings.json` | API tokens、model routing、effort level、plugin marketplace | 从旧机复制，填入 token |
+| `~/.claude/envs.json` | API provider presets（含 auth tokens） | 从旧机复制，填入 token |
+| `~/.claude/mcp.json` | Playwright MCP server 配置 | 从旧机复制，改 executable 路径 |
+| `~/.claude/npx-wrapper.cmd` | npx 封装脚本（Windows） | 直接复制 |
+| `~/.gitconfig` | git user.name / user.email | `git config --global user.name/email "..."` |
+
+> ⚠️ 含 token 的文件**不要**通过 git 或公开云盘同步。用加密方式（Bitwarden Send、自加密 zip）或手动复制后填入。
+
+### 9.7 常见问题
 
 | 症状 | 原因 | 解决 |
 |---|---|---|
-| CDP 连接失败 | Chrome 远程调试未开 | `chrome://inspect` → Allow |
-| `browser-harness not found` | pip 路径不在搜索列表 | `pip show` 已兜底，如仍失败手动装 |
+| CDP 连接失败（可选） | browser-harness 未装或 Chrome 远程调试未开 | `pip install browser-harness` → `chrome://inspect` → Allow |
 | `npm ERR! npx` 相关 | Node.js 未装或版本过低 | 装 Node.js ≥18 |
 | git 身份自动生成 | 新电脑未设 user.name/email | `git config --global user.name/email` |
+| Session 历史为空 | junction 未建立 | `python .scripts/sync/setup.py` |
+| OneDrive 冲突文件 | 两台机器同时开了 CC | Stop hook 自动合并清理，正常切换不会触发 |
+| 插件版本不一致 | 新机 plugin cache 过期 | 跑 `/update-agent-runtime` |
+| `setup.py` 找不到 `.sessions/` | OneDrive 未同步完成 | 等系统托盘 OneDrive 停止转动再跑 |
 
+### 9.8 Plugin 开发
+
+Plugin 源代码维护在 `~/dev/buyside`（`git clone https://github.com/iRyantik/buy-side-research-skills.git`）。开发与发布流程见该 repo 的 `docs/release.md`。日常部署只需 `/update-agent-runtime`。
+
+---
+
+## 10. 文件命名规范
+
+### 10.1 Company Directory
+
+```
+<TICKER.MARKET>-<Company-Name>
+```
+
+`<Company-Name>` = CN/HK/TW：COVERAGE Native 列（中文原样），其余：EN 列（空格换 `-`）。
+
+```
+603067.SH-振华股份/
+300285.SZ-国瓷材料/
+DPC.US-Doncaster/
+012450.KS-Hanwha-Aerospace/
+BESI.NA-BE-Semiconductor/
+```
+
+### 10.2 Artifact File
+
+```
+YYYYMMDD-[skill-name]-[Company-Name][-qualifier].<ext>
+```
+
+日期无括号，skill 和 Company Name 各用 `[]` 包裹，`-` 连接。qualifier 可选，接在 Company Name 后面。
+
+```
+20260623-[stock-quickread]-[Zhenhua-Chemical].md
+20260626-[driver-map]-[Zhenhua-Chemical].json
+20260624-[driver-model]-[Sinocera-V5].xlsx
+20260604-[scenario-model]-[Mycronic-bull-2030].md
+20260603-[stock-quickread]-[Mycronic-EN].md
+```
+
+### 10.3 日期规则
+
+- **创建 artifact**：日期使用系统当前日期（`YYYYMMDD` 格式），不手动指定
+- **更新 artifact**：改动涉及数据、结论、模型参数时，将文件名日期更新为当前日期（`mv` 换日期）；typo fix、formatting 不改日期
+- `.cache/` 内文件不受此约束
+
+### 10.4 创建新公司目录（Agent 强制执行）
+
+Agent 首次为某公司创建 artifact 时，**必须按以下顺序**，不得跳过直接建目录：
+
+1. **先查 identity**——读 `actuals-resolved.json` → `identity.ticker`、`identity.name_en`、`identity.name_native`
+2. **actuals 没有**（ticker=N/A 或文件不存在）→ 查 `COVERAGE.md` 对应行
+3. **COVERAGE 也没有**→ **停止**，提示用户先在 COVERAGE.md 注册该公司（含 ticker、EN name、Native name、Industry）
+4. **拿到 ticker + name 后**——按 §10.1 生成目录名，按 §10.2 命名 artifact
+5. **CN/HK/TW 公司**→ 目录用中文名（`603011.CN-合锻智能`）；**其余**→ 用 EN 名（空格换 `-`）
+6. **新行业**→ 在 `industry/` 下建子目录，命名规则同公司：英文 Title-Case（空格换 `-`），如 `PCB-Equipment`、`Korean-Defense`
+
+**禁止**：在 `COVERAGE.md` 无记录的情况下，用猜测的英文 slug 创建公司目录。
+**禁止**：使用 `-` 连接的新行业名以外的旧命名方式（如纯 kebab-case、无 ticker 前缀）。
+
+> `.cache/` 内部结构不受 §10.1-§10.3 约束。
