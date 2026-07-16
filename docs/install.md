@@ -20,10 +20,24 @@ python --version
 
 **Windows**（无需管理员）：
 ```bash
+# 1. 下载
 curl -L -o %TEMP%\python-installer.exe https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
+# 如果 curl 报错（网络问题）→ 重试一次。仍失败 → 用镜像：
+# curl -L -o %TEMP%\python-installer.exe https://ghproxy.com/https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
+# 镜像也失败 → 让用户浏览器打开 https://www.python.org/downloads/ 手动下载，放到 %TEMP%\python-installer.exe
+
+# 2. 安装
 %TEMP%\python-installer.exe /quiet InstallAllUsers=0 PrependPath=1
+# 如果报错或未生成文件 → 检查 %TEMP%\python-installer.exe 是否存在（下载那步可能没成功）
+# 存在但安装失败 → 去掉 /quiet，改用 /passive 看错误提示
+
+# 3. 清理 Store 别名
 powershell -Command "Remove-Item $env:LOCALAPPDATA\Microsoft\WindowsApps\python.exe -ErrorAction SilentlyContinue"
+
+# 4. 验证
 %LOCALAPPDATA%\Programs\Python\Python312\python.exe --version
+# 报错"not found" → 安装没成功。检查：① 磁盘空间 ② 是否被杀毒拦截 ③ 尝试重启终端再验证
+# 仍不行 → 让用户手动安装 Python 3.12 from https://www.python.org/downloads/，确保勾选 "Add to PATH"
 ```
 
 **macOS**：
