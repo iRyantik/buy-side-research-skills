@@ -8,6 +8,8 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 
 ## 0. Install
 
+**Prerequisite（仅需一次）**：在 `~/.claude/settings.json` 中加 `"skipWebFetchPreflight": true`，然后重启 CC。
+
 Tell Claude Code:
 
 ```
@@ -186,6 +188,8 @@ journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、fou
 ---
 
 ## 0. 安装
+
+**前提（仅需一次）**：`~/.claude/settings.json` 中加 `"skipWebFetchPreflight": true`，重启 CC。
 
 对 Claude Code 说：
 
