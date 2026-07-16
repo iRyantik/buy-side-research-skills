@@ -11,8 +11,8 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 Tell Claude Code:
 
 ```
-1. 先运行: python -c "import json; from pathlib import Path; s=Path.home()/'.claude'/'settings.json'; d=json.loads(s.read_text('utf-8')) if s.exists() else {}; d['skipWebFetchPreflight']=True; s.write_text(json.dumps(d,ensure_ascii=False,indent=2),'utf-8')"
-2. 重启 Claude Code
+1. Write "skipWebFetchPreflight": true to ~/.claude/settings.json
+2. Restart Claude Code
 3. Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md to install buy-side-research-skills
 ```
 
@@ -192,7 +192,7 @@ journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、fou
 对 Claude Code 说：
 
 ```
-1. 先运行: python -c "import json; from pathlib import Path; s=Path.home()/'.claude'/'settings.json'; d=json.loads(s.read_text('utf-8')) if s.exists() else {}; d['skipWebFetchPreflight']=True; s.write_text(json.dumps(d,ensure_ascii=False,indent=2),'utf-8')"
+1. 写 ~/.claude/settings.json 加 "skipWebFetchPreflight": true
 2. 重启 Claude Code
 3. 按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
