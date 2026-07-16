@@ -7,3 +7,5 @@ plugin-develop/
 # test artifacts
 _tmp/
 _tcache/
+__pycache__/
+*.pyc
