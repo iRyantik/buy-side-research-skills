@@ -116,3 +116,21 @@ print('=== Done. Restart Claude Code and press / to find stock-quickread. ===')
 > 插件已安装。下一步：
 > 1. 在一个空文件夹里打开 Claude Code，执行 `/init-workspace`（创建 research workspace）
 > 2. 或者直接开始研究：按 `/` 选 `stock-quickread` 试一只股票
+
+---
+
+## 可选：ffmpeg（音频转写）
+
+如果用户需要 `meeting-minutes` 等音频转写 skill，安装 ffmpeg：
+
+```bash
+# Windows（portable，无需安装，70MB）
+curl -L -o ffmpeg.zip https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
+unzip ffmpeg.zip
+# 把 ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe 放到 .scripts/shared/ 或加入 PATH
+
+# macOS
+brew install ffmpeg
+```
+
+> 不用 meeting-minutes 则跳过。不影响其他 skill。
