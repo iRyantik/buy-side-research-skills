@@ -2,6 +2,17 @@
   "files.exclude": {
     "**/.cache/": true,
     "**/__pycache__": true,
-    "**/.raw/": true
+    "**/.raw/": true,
+    ".claude/": true,
+    ".codex/": true,
+    ".memory/": true,
+    ".obsidian/": true,
+    ".playwright-mcp/": true,
+    ".vscode/": true,
+    ".references/": true,
+    ".scripts/": true,
+    ".sessions/": true,
+    ".env": true,
+    ".proxy-config": true
   }
 }
