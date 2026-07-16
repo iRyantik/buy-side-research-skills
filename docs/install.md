@@ -2,51 +2,82 @@
 
 你是 Claude Code 或 Codex agent。按以下步骤为用户安装 buy-side-research-skills。
 
-## 傻瓜式安装
-
 用户只需说一句：
 
 ```
 按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
 
-Agent 收到后自动执行下面全部步骤。
-
 ---
 
 ## Step 1: 安装插件
 
+目标：用户按 `/` 能看到 39 个 research skill（stock-quickread、driver-map、industry-landscape...）。
+
+### 1.1 添加 marketplace
+
 ```
 /plugin marketplace add iRyantik/buy-side-research-skills
+```
+
+**如果成功**：输出会显示 marketplace 已添加。进入 1.2。
+
+**如果报错 "command not found"**：说明 CC 版本不支持 `/plugin` 命令。跳到 1.3 手动安装。
+
+**如果报错 "already exists"**：说明之前添加过。进入 1.2。
+
+**如果网络报错**：重试一次。仍失败则跳到 1.3 手动安装。
+
+### 1.2 安装插件
+
+```
 /plugin install buy-side-research-skills
 ```
 
-如果市场不可用，从 https://github.com/iRyantik/buy-side-research-skills/releases 下载最新 zip，解压到插件目录。
+**如果成功**：输出会显示安装完成 + 版本号。按 `/` 应该能看到 skill 列表。如果看不到，让用户**重启 Claude Code**。重启后仍看不到 → 跳到 1.3。
 
-## Step 2: 创建 Workspace
+**如果报错**：跳到 1.3。
 
-1. 让用户创建一个空文件夹（如果还没有）
-2. 在 Claude Code / Codex 里打开这个文件夹
-3. 执行 `/init-workspace`
+### 1.3 手动安装（兜底）
 
-## Step 3: 检查依赖
+1. 让用户浏览器打开 https://github.com/iRyantik/buy-side-research-skills/releases/latest
+2. 下载 `Source code (zip)`
+3. 解压 zip → 得到一个文件夹（如 `iRyantik-buy-side-research-skills-xxxxx`）→ 进入该文件夹 → 把里面的 **全部内容** 复制到：
+   - **Windows**：`%USERPROFILE%\.claude\plugins\cache\buy-side-research-skills\buy-side-research-skills\<latest-version>\`
+   - **macOS**：`~/.claude/plugins/cache/buy-side-research-skills/buy-side-research-skills/<latest-version>/`
+4. `<latest-version>` = zip 里 `plugins/buy-side-research-skills/.claude-plugin/plugin.json` 中的 `version` 字段
+5. 复制完成后，还需创建/更新 `%USERPROFILE%\.claude\plugins\installed_plugins.json`，内容：
+   ```json
+   {
+     "buy-side-research-skills": {
+       "version": "<latest-version>"
+     }
+   }
+   ```
+6. 重启 Claude Code，按 `/` 验证 skill 列表出现
 
-```
-python .scripts/verify-runtime.py
-```
+---
 
-（Python / Node.js / npx / curl / 8 个 Python 包 / Playwright MCP / hooks。失败项自动安装。）
+## Step 2: 初始化 Workspace
 
-## Step 4: 可选组件
+如果用户还没有 workspace：建一个空文件夹 → 在 CC 里打开 → `/init-workspace`
 
-Agent 逐项问用户是否需要，不要默认安装：
+如果已有 workspace（比如另一台电脑同步过来的）：打开该文件夹 → `/init-workspace`
+
+---
+
+## Step 3: 可选组件
+
+Agent 逐项问用户是否需要，不要默认装：
 
 | 组件 | 用途 | 怎么装 |
 |---|---|---|
 | **browser-harness CDP** | JS 渲染页面、Cloudflare 绕过 | `pip install browser-harness` + Chrome 远程调试（`chrome://inspect` → Allow） |
-| **ffmpeg** | 音频转写（meeting-minutes 等） | `winget install ffmpeg` 或 `choco install ffmpeg` |
+| **ffmpeg** | 音频转写（meeting-minutes 等） | Windows：下载解压 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)，`bin/ffmpeg.exe` 加入 PATH；macOS：`brew install ffmpeg` |
 
-## Step 5: 配置 Credential（按需）
+---
+
+## Step 4: 配置 Credential（按需）
 
 逐项问用户：
 
@@ -58,10 +89,10 @@ Agent 逐项问用户是否需要，不要默认安装：
 | EU 欧股 | 公司 IR 页下载 ESEF 包（iXBRL .zip） |
 | Longbridge（可选） | 市场快照，US/HK/SH/SZ |
 
-## Step 6: 验证
+## Step 5: 验证
 
 ```
 /financial-data --lite AAPL
 ```
 
-返回三表 + 市场快照 = 安装完成。
+返回三表 + 市场快照 = 搞定。
