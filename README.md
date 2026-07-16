@@ -11,7 +11,7 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 Tell Claude Code:
 
 ```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
+Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md to install buy-side-research-skills
 ```
 
 The agent will install the plugin automatically — no git, no manual steps. After install, open a new folder and run `/init-workspace` to create your research workspace.
