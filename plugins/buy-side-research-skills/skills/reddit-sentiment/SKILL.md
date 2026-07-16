@@ -33,7 +33,6 @@ Reddit sentiment 不是为了证明公司基本面，而是为了回答：市场
 skills/reddit-sentiment/
   scripts/reddit_label.py
   scripts/bootstrap.py
-  scripts/bootstrap.py
   assets/requirements-reddit-sentiment.txt
   assets/default-clusters.json
 ```

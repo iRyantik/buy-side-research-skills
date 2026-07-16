@@ -11,7 +11,7 @@ Write-Host ""
 
 # 1. subst S: auto-mount at login (HKCU, no admin)
 Write-Host "[1/3] subst S: auto-mount at login" -ForegroundColor Yellow
-$substCmd = "subst S: `"C:\Users\$env:USERNAME\OneDrive - Hel Ved Capital Management Limited\CC research workspace`""
+$substCmd = "subst S: `"C:\Users\$env:USERNAME\OneDrive - <CompanyName>\CC research workspace`""
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "MapResearchDrive" -Value $substCmd
 Write-Host "  done" -ForegroundColor Green
 

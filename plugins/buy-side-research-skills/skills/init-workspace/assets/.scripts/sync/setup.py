@@ -252,10 +252,10 @@ def _hash_matches_workspace(hash_name, workspace_path_str):
     or simply "s--" (from S:/).
     """
     # Try stripping the hash_name back: remove leading char + first two --
-    # Common patterns: "c--users-yuzhe-..." or "s--"
+    # Common patterns: "c--users-<username>-..." or "s--"
     parts = hash_name.split("--", 1)
     if len(parts) == 2:
-        # Has format like "c--users-yuzhe-..."
+        # Has format like "c--users-<username>-..."
         suffix = parts[1].replace("-", "")
         ws_suffix = workspace_path_str.replace(" ", "").replace("-", "")
         # Check if the suffix is a substring match
