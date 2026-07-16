@@ -51,7 +51,7 @@ def dependency_available() -> bool:
 
 def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not dependency_available():
-        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing dart-fss. Run: pip install dart-fss"}
+        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing dart-fss. Run: pip install --user dart-fss"}
 
     api_key = os.getenv("DART_API_KEY")
     if not api_key:

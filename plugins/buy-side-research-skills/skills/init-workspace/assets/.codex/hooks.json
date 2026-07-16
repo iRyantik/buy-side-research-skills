@@ -17,7 +17,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event PostToolUse",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event SubagentStop",
                         "timeout": 20
                     }
                 ]
@@ -39,7 +39,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event PostToolUse",
+                        "command": "python .claude/hooks/hook_entry.py --runtime codex --event SubagentStop",
                         "timeout": 10
                     }
                 ]

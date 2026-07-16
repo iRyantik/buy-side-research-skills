@@ -44,7 +44,7 @@ python --version
 **Windows**（无需管理员）：
 ```bash
 # 1. 下载 Python（curl.exe，Win10+ 自带）
-curl.exe -L -o %TEMP%\python-installer.exe https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
+curl -L -o %TEMP%\python-installer.exe https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
 # 2. 安装（直接运行，/quiet 静默，自动等待完成）
 %TEMP%\python-installer.exe /quiet InstallAllUsers=0 PrependPath=1
 # 3. 禁用 Microsoft Store 别名

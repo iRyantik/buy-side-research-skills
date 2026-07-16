@@ -113,7 +113,7 @@ def find_sessions_dir():
 
     if system == "Windows":
         # Try S: drive first
-        s_sessions = Path("S:/.sessions")
+        s_sessions = Path(workspace_root) / ".sessions"
         if s_sessions.is_dir():
             return str(s_sessions)
 

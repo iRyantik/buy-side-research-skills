@@ -107,7 +107,7 @@ def main():
     print(f"[..] Running: {' '.join(pip_cmd)}")
     result = subprocess.run(pip_cmd)
     if result.returncode != 0:
-        print("ERROR: pip install failed", file=sys.stderr)
+        print("ERROR: pip install --user failed", file=sys.stderr)
         sys.exit(1)
 
     print("[OK] reddit-sentiment dependencies ready.")

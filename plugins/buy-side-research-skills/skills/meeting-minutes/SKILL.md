@@ -70,14 +70,14 @@ pip install openai-whisper requests
 
 # 2. ffmpeg（不可用时自动下载 BtbN portable）
 python -c "
-import urllib.request, zipfile, io, shutil, os
+import urllib.request, zipfile, io, shutil, os, tempfile
 from pathlib import Path
 ff = Path('.scripts/shared/ffmpeg.exe')
 if ff.exists(): exit()
 print('Downloading ffmpeg...')
 url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
 with urllib.request.urlopen(url) as r: data = r.read()
-tmp = Path(os.environ.get('TEMP','/tmp')) / 'ffmpeg_install'
+tmp = Path(tempfile.gettempdir()) / 'ffmpeg_install'
 shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
 with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(tmp)
 inner = next(tmp.iterdir())

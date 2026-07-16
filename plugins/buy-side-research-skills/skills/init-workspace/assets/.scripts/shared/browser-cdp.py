@@ -5,7 +5,7 @@ Connects to the user's real Chrome via CDP (Chrome DevTools Protocol).
 Inherits all cookies, logins, and browser fingerprints — bypasses
 Cloudflare and other anti-bot detection that blocks headless Playwright.
 
-Requires: browser-harness CLI (pip install browser-harness) +
+Requires: browser-harness CLI (pip install --user browser-harness) +
           Chrome remote debugging enabled (chrome://inspect/#remote-debugging)
 
 Core functions:
@@ -77,7 +77,7 @@ def _find_harness() -> str:
             return str(c)
 
     raise RuntimeError(
-        "browser-harness not found. Install: pip install browser-harness\n"
+        "browser-harness not found. Install: pip install --user browser-harness\n"
         "Then enable Chrome remote debugging: chrome://inspect/#remote-debugging"
     )
 

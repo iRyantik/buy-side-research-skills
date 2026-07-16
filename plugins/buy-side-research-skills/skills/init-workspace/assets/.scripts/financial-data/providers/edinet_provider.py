@@ -34,7 +34,7 @@ def dependency_available() -> bool:
 
 def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not dependency_available():
-        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing edinet-tools. Run: pip install edinet-tools"}
+        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing edinet-tools. Run: pip install --user edinet-tools"}
 
     identifier = request["identifier"]
     items = request.get("items", EXTRACTABLE)

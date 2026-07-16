@@ -31,7 +31,7 @@ def pdfplumber_tables(path: Path) -> dict[str, Any]:
     try:
         import pdfplumber  # type: ignore
     except ImportError as exc:
-        raise RuntimeError("Missing optional dependency: pdfplumber. Install with `pip install pdfplumber`.") from exc
+        raise RuntimeError("Missing optional dependency: pdfplumber. Install with `pip install --user pdfplumber`.") from exc
 
     pages = []
     table_count = 0

@@ -132,42 +132,42 @@ def dependency_matrix() -> dict[str, Any]:
         "docling": {
             "available": module_available("docling"),
             "module": "docling",
-            "install_hint": "pip install docling",
+            "install_hint": "pip install --user docling",
         },
         "edgartools": {
             "available": module_available("edgar"),
             "module": "edgar",
-            "install_hint": "pip install edgartools",
+            "install_hint": "pip install --user edgartools",
         },
         "pymupdf4llm": {
             "available": module_available("pymupdf4llm"),
             "module": "pymupdf4llm",
-            "install_hint": "pip install pymupdf4llm",
+            "install_hint": "pip install --user pymupdf4llm",
         },
         "openpyxl": {
             "available": module_available("openpyxl"),
             "module": "openpyxl",
-            "install_hint": "pip install openpyxl",
+            "install_hint": "pip install --user openpyxl",
         },
         "python-pptx": {
             "available": module_available("pptx"),
             "module": "pptx",
-            "install_hint": "pip install python-pptx",
+            "install_hint": "pip install --user python-pptx",
         },
         "python-docx": {
             "available": module_available("docx"),
             "module": "docx",
-            "install_hint": "pip install python-docx",
+            "install_hint": "pip install --user python-docx",
         },
         "pdfplumber": {
             "available": module_available("pdfplumber"),
             "module": "pdfplumber",
-            "install_hint": "pip install pdfplumber",
+            "install_hint": "pip install --user pdfplumber",
         },
         "pypdf": {
             "available": module_available("pypdf"),
             "module": "pypdf",
-            "install_hint": "pip install pypdf",
+            "install_hint": "pip install --user pypdf",
         },
         "Pillow": {
             "available": module_available("PIL"),

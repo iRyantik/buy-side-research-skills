@@ -23,7 +23,7 @@ def extract(filepath: str) -> dict:
     try:
         import docx
     except ImportError:
-        print("ERROR: python-docx not installed. Run: pip install python-docx", file=sys.stderr)
+        print("ERROR: python-docx not installed. Run: pip install --user python-docx", file=sys.stderr)
         sys.exit(1)
 
     doc = docx.Document(filepath)

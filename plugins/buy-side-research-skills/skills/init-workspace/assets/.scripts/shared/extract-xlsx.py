@@ -20,7 +20,7 @@ def extract(filepath: str, sheet: int | str | None = None) -> list[dict]:
     try:
         import openpyxl
     except ImportError:
-        print("ERROR: openpyxl not installed. Run: pip install openpyxl", file=sys.stderr)
+        print("ERROR: openpyxl not installed. Run: pip install --user openpyxl", file=sys.stderr)
         sys.exit(1)
 
     wb = openpyxl.load_workbook(filepath, data_only=True, read_only=True)

@@ -77,14 +77,14 @@ def _try_install(pkg_name: str, platform_cmds: dict[str, list[str]]) -> bool:
 
 
 def _try_pip_install(pkg_name: str) -> bool:
-    """Try pip install a package. Returns True if succeeded."""
+    """Try pip install --user a package. Returns True if succeeded."""
     print(f"  → pip install {pkg_name}")
     rc, _, err = _run([sys.executable, "-m", "pip", "install", pkg_name], timeout=120)
     if rc == 0:
         print(f"  ✅ {pkg_name} installed")
         return True
     else:
-        print(f"  ❌ pip install failed: {err[:200]}")
+        print(f"  ❌ pip install --user failed: {err[:200]}")
         return False
 
 
@@ -225,7 +225,7 @@ def check_browser_harness() -> tuple[bool, str]:
                 pass
 
         if not exe:
-            return False, "browser-harness not installed (pip install browser-harness)"
+            return False, "browser-harness not installed (pip install --user browser-harness)"
 
     try:
         r = subprocess.run(
@@ -250,7 +250,7 @@ def install_browser_harness() -> str | None:
     ok = _try_pip_install("browser-harness")
     if ok:
         return None
-    return "pip install browser-harness\nThen: chrome://inspect/#remote-debugging → Allow"
+    return "pip install --user browser-harness\nThen: chrome://inspect/#remote-debugging → Allow"
 
 
 # ── layer 2: python packages ───────────────────────────────

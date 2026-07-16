@@ -531,12 +531,12 @@ def dependency_matrix() -> dict[str, Any]:
     return {
         "python": {"version": sys.version.split()[0], "executable": sys.executable},
         "packages": {
-            "edgartools": {"available": module_available("edgar"), "install_hint": "pip install edgartools"},
-            "akshare": {"available": module_available("akshare"), "install_hint": "pip install akshare"},
+            "edgartools": {"available": module_available("edgar"), "install_hint": "pip install --user edgartools"},
+            "akshare": {"available": module_available("akshare"), "install_hint": "pip install --user akshare"},
             "finmind": {"available": True, "install_hint": "uses FinMind public HTTP API; no package required"},
-            "edinet-tools": {"available": module_available("edinet_tools"), "install_hint": "pip install edinet-tools"},
-            "dart-fss": {"available": module_available("dart_fss"), "install_hint": "pip install dart-fss"},
-            "openesef": {"available": module_available("openesef"), "install_hint": "pip install openesef"},
+            "edinet-tools": {"available": module_available("edinet_tools"), "install_hint": "pip install --user edinet-tools"},
+            "dart-fss": {"available": module_available("dart_fss"), "install_hint": "pip install --user dart-fss"},
+            "openesef": {"available": module_available("openesef"), "install_hint": "pip install --user openesef"},
         },
         "env": {
             "EDGAR_IDENTITY": {"configured": bool(os.getenv("EDGAR_IDENTITY"))},

@@ -22,7 +22,7 @@ def extract(filepath: str) -> list[dict]:
     try:
         import pptx
     except ImportError:
-        print("ERROR: python-pptx not installed. Run: pip install python-pptx", file=sys.stderr)
+        print("ERROR: python-pptx not installed. Run: pip install --user python-pptx", file=sys.stderr)
         sys.exit(1)
 
     prs = pptx.Presentation(filepath)
