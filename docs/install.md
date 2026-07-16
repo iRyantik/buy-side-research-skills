@@ -58,15 +58,7 @@
 
 ---
 
-## Step 2: 初始化 Workspace
-
-如果用户还没有 workspace：建一个空文件夹 → 在 CC 里打开 → `/init-workspace`
-
-如果已有 workspace（比如另一台电脑同步过来的）：打开该文件夹 → `/init-workspace`
-
----
-
-## Step 3: 可选组件
+## Step 2: 可选组件
 
 Agent 逐项问用户是否需要，不要默认装：
 
@@ -77,7 +69,7 @@ Agent 逐项问用户是否需要，不要默认装：
 
 ---
 
-## Step 4: 配置 Credential（按需）
+## Step 3: 配置 Credential（按需）
 
 逐项问用户：
 
@@ -89,7 +81,7 @@ Agent 逐项问用户是否需要，不要默认装：
 | EU 欧股 | 公司 IR 页下载 ESEF 包（iXBRL .zip） |
 | Longbridge（可选） | 市场快照，US/HK/SH/SZ |
 
-## Step 5: 验证
+## Step 4: 验证
 
 ```
 /financial-data --lite AAPL
