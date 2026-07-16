@@ -41,13 +41,11 @@ python --version
 
 报错 `command not found` → 自动装：
 
-**Windows**：
+**Windows**（无需管理员）：
 ```bash
-winget install Python.Python.3.12 --silent --accept-package-agreements
+powershell -Command "Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe -OutFile $env:TEMP\python.exe; Start-Process $env:TEMP\python.exe -ArgumentList '/quiet InstallAllUsers=0 PrependPath=1 Include_test=0' -Wait"
 ```
-装完后把 `%LOCALAPPDATA%\Programs\Python\Python312` 加入 PATH，重跑 `python --version`。
-
-> winget 是 Win10/11 自带。没有则让用户浏览器打开 https://www.python.org/downloads/
+安装完成后重启终端，重跑 `python --version` 确认。
 
 **macOS**：
 ```bash
