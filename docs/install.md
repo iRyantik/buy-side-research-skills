@@ -44,13 +44,13 @@ python --version
 **Windows**（无需管理员）：
 ```bash
 # 1. 下载 Python
-powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe' -OutFile $env:TEMP\python.exe"
-# 2. 安装（cmd /c 可靠等待，/quiet 静默，/log 记录日志）
-cmd /c "%TEMP%\python.exe /quiet InstallAllUsers=0 PrependPath=1 Include_test=0 /log %TEMP%\python-install.log"
+curl -L -o "$TEMP/python-installer.exe" "https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe"
+# 2. 安装（cmd //c 可靠等待，不用 Start-Process）
+cmd //c "$TEMP/python-installer.exe /quiet InstallAllUsers=0 PrependPath=1"
 # 3. 禁用 Microsoft Store 别名
-powershell -Command "Remove-Item $env:LOCALAPPDATA\Microsoft\WindowsApps\python.exe -ErrorAction SilentlyContinue; Remove-Item $env:LOCALAPPDATA\Microsoft\WindowsApps\python3.exe -ErrorAction SilentlyContinue"
+powershell -Command "Remove-Item $env:LOCALAPPDATA\\Microsoft\\WindowsApps\\python.exe -ErrorAction SilentlyContinue; Remove-Item $env:LOCALAPPDATA\\Microsoft\\WindowsApps\\python3.exe -ErrorAction SilentlyContinue"
 # 4. 验证
-%LOCALAPPDATA%\Programs\Python\Python312\python.exe --version
+"$LOCALAPPDATA/Programs/Python/Python312/python.exe" --version
 ```
 
 **macOS**：
