@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `7.6.30`.
+Current release version: `8.0.0`.
 
 ## Source And Runtime Shape
 
