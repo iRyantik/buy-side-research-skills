@@ -32,8 +32,8 @@ Reddit sentiment 不是为了证明公司基本面，而是为了回答：市场
 ```text
 skills/reddit-sentiment/
   scripts/reddit_label.py
-  scripts/bootstrap-reddit-sentiment-deps.ps1
-  scripts/bootstrap-reddit-sentiment-deps.sh
+  scripts/bootstrap.py
+  scripts/bootstrap.py
   assets/requirements-reddit-sentiment.txt
   assets/default-clusters.json
 ```
@@ -41,20 +41,20 @@ skills/reddit-sentiment/
 首次运行前先检查依赖：
 
 ```powershell
-skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.ps1 -CheckOnly
+skills/reddit-sentiment/scripts/bootstrap.py -CheckOnly
 ```
 
 如缺 `scrapi-reddit`，用户明确同意安装后再运行：
 
 ```powershell
-skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.ps1 -Yes
+skills/reddit-sentiment/scripts/bootstrap.py -Yes
 ```
 
 macOS / Linux：
 
 ```bash
-skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --check-only
-skills/reddit-sentiment/scripts/bootstrap-reddit-sentiment-deps.sh --yes
+skills/reddit-sentiment/scripts/bootstrap.py --check-only
+skills/reddit-sentiment/scripts/bootstrap.py --yes
 ```
 
 不要静默安装依赖。缺依赖时先报告缺口和需要运行的 bootstrap 命令。

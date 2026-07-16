@@ -81,13 +81,13 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 ```powershell
 python .scripts/financial-data/financial_data.py --check-deps
-.scripts/financial-data/bootstrap-financial-data-deps.ps1 -CheckOnly
+python .scripts/financial-data/bootstrap.py --check
 ```
 
 用户显式确认后才运行：
 
 ```powershell
-.scripts/financial-data/bootstrap-financial-data-deps.ps1 -Yes
+python .scripts/financial-data/bootstrap.py --yes
 ```
 
 ### Canonical Company Fetch

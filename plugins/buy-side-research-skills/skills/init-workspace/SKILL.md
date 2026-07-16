@@ -76,7 +76,6 @@ for each skill_dir in skills/*/:
 - Check Python 3.10+ availability.
 - Install core dependencies globally with `--user`（no venv, no sudo）: `python -m pip install --user yfinance openpyxl requests python-dotenv pyyaml lxml python-docx python-pptx`。
 - Run `pip install --user -r` for each `.scripts/*/requirements*.txt` found (glob discovery). Failures warn, do not block — heavy dependencies (Docling, etc.) are handled by each skill's `bootstrap.py` on first use.
-- **ffmpeg**: Check availability (`ffmpeg -version`). If missing → download portable ffmpeg.exe from https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip and extract to `.scripts/shared/ffmpeg.exe`. On macOS: `brew install ffmpeg`.
 **Interactive provider configuration:**
 - Display a single table of 4 data-provider options (SEC EDGAR, DART, EDINET, FinMind) with their env var names and application URLs.
 - User replies with which providers to configure and their keys. Agent writes `.env` (merges with existing `.env` if present).

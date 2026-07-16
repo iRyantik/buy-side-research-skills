@@ -67,7 +67,7 @@ Topic inference:
 
 ```powershell
 python .scripts/ingest.py --check-deps
-_scripts/bootstrap-ingest-deps.ps1 -CheckOnly
+python .scripts/ingest/bootstrap.py --check
 ```
 
 Only install dependencies after explicit user confirmation.

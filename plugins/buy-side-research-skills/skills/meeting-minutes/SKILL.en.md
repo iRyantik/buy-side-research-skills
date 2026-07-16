@@ -62,8 +62,34 @@ This skill does three things: **correct → contextualize → attach sources**.
 
 ### Step 0: Environment Check
 
-Transcription depends on `.scripts/shared/transcribe.py` + `.scripts/shared/ffmpeg.exe`.
-If missing → prompt user to run `/init-workspace`.
+**Only for audio input.** Text input → skip Step 0.
+
+Check transcription dependencies, install what's missing:
+
+```bash
+# 1. whisper deps (idempotent, skips if installed)
+pip install openai-whisper requests
+
+# 2. ffmpeg (auto-download BtbN portable if missing)
+python -c "
+import urllib.request, zipfile, io, shutil, os
+from pathlib import Path
+ff = Path('.scripts/shared/ffmpeg.exe')
+if ff.exists(): exit()
+print('Downloading ffmpeg...')
+url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
+with urllib.request.urlopen(url) as r: data = r.read()
+tmp = Path(os.environ.get('TEMP','/tmp')) / 'ffmpeg_install'
+shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
+with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(tmp)
+inner = next(tmp.iterdir())
+shutil.copy2(inner / 'bin' / 'ffmpeg.exe', ff)
+shutil.rmtree(tmp, ignore_errors=True)
+print('ffmpeg ready')
+"
+```
+
+**whisper API key**: Read from env vars `WHISPER_API_KEY`, `WHISPER_API_BASE`, `WHISPER_MODEL`. Prompt user if not set.
 
 ### Step 1: Audio Transcription (audio input only)
 

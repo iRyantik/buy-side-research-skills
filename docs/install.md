@@ -1,6 +1,6 @@
 # Buy-Side Research Skills — 安装指南
 
-你是 Claude Code 或 Codex agent。此文档只做一件事：把插件装好，让用户按 `/` 看到 39 个 research skill。
+你是 Claude Code 或 Codex agent。此文档做两件事：**装 Python + 装插件**。
 
 用户只需说：
 
@@ -10,23 +10,21 @@
 
 ---
 
-## Step 0: 确保 Python 可用
-
-先检查 Python 是否存在：
+## Step 1: 装 Python（如果没有）
 
 ```bash
 python --version
 ```
 
-如果报错 `command not found`，自动安装：
+报错 `command not found` → 自动装：
 
 **Windows**：
 ```bash
 winget install Python.Python.3.12 --silent
 ```
-安装后重启终端或把 `%LOCALAPPDATA%\Programs\Python\Python312` 加入 PATH。重新运行 `python --version` 确认。
+装完后把 `%LOCALAPPDATA%\Programs\Python\Python312` 加入 PATH，重跑 `python --version`。
 
-> `winget` 是 Windows 10/11 自带。如果 `winget` 也不可用，让用户从 https://www.python.org/downloads/ 下载安装。
+> winget 是 Win10/11 自带。没有则让用户浏览器打开 https://www.python.org/downloads/
 
 **macOS**：
 ```bash
@@ -35,77 +33,50 @@ brew install python
 
 ---
 
-## Step 1: CC marketplace（首选）
+## Step 2: 装插件
 
 ```
 /plugin marketplace add iRyantik/buy-side-research-skills
 /plugin install buy-side-research-skills
 ```
 
-两条都成功后，让用户按 `/` 查找 `stock-quickread`。能看到 → 完成。看不到 → 重启 CC → 仍看不到 → Step 2。
+第一条报 `command not found`（CC 版本不支持 `/plugin`）→ 跳到 Step 3。
 
-如果第一条 `/plugin marketplace add` 报 `command not found`（CC 版本不支持），直接跳到 Step 2。
-
-> 如果 `/plugin install` 报 `already installed`，运行 `/update-agent-runtime` 升级。
+第二条报 `already installed` → 运行 `/update-agent-runtime` 升级。
 
 ---
 
-## Step 2: Python 全自动安装（兜底）
+## Step 3: Python 全自动安装（兜底，Step 2 失败时用）
 
-你是 agent，**你来执行**，用户不需要动手。以下是一个完整的 Python 脚本，一次性完成：下载 → 解压 → 获取版本号 → 复制 → 注册。
+Agent 执行——下载、解压、复制、注册一步跑完：
 
 ```bash
 python -c "
-import urllib.request, zipfile, io, tempfile, shutil, json, os
+import urllib.request, zipfile, io, tempfile, shutil, json
 from pathlib import Path
 
-print('=== Step 1/5: Downloading latest release... ===')
 url = 'https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/latest'
-with urllib.request.urlopen(url) as r:
-    data = r.read()
-print(f'  Downloaded {len(data)//1024} KB')
-
-print('=== Step 2/5: Extracting... ===')
+with urllib.request.urlopen(url) as r: data = r.read()
 tmp = Path(tempfile.gettempdir()) / 'bsrs_install'
-shutil.rmtree(tmp, ignore_errors=True)
-tmp.mkdir()
-with zipfile.ZipFile(io.BytesIO(data)) as z:
-    z.extractall(tmp)
-# Find the inner folder (GitHub wraps everything in iRyantik-xxx/)
+shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
+with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(tmp)
 inner = next(tmp.iterdir())
-print(f'  Extracted to {inner}')
 
-print('=== Step 3/5: Getting version... ===')
-plugin_json = inner / 'plugins' / 'buy-side-research-skills' / '.claude-plugin' / 'plugin.json'
-info = json.loads(plugin_json.read_text(encoding='utf-8'))
-version = info['version']
-print(f'  Version: {version}')
+info = json.loads((inner/'plugins/buy-side-research-skills/.claude-plugin/plugin.json').read_text('utf-8'))
+ver = info['version']
 
-print('=== Step 4/5: Installing to CC plugin directory... ===')
-plugin_dir = Path.home() / '.claude' / 'plugins' / 'cache' / 'buy-side-research-skills' / 'buy-side-research-skills' / version
-shutil.rmtree(plugin_dir, ignore_errors=True)
-shutil.copytree(inner, plugin_dir)
-print(f'  Installed to {plugin_dir}')
-print(f'  Skills: {len(list((plugin_dir / \"skills\").iterdir()))} dirs')
+dst = Path.home()/'.claude/plugins/cache/buy-side-research-skills/buy-side-research-skills'/ver
+shutil.rmtree(dst, ignore_errors=True); shutil.copytree(inner, dst)
 
-print('=== Step 5/5: Registering plugin... ===')
-installed_file = Path.home() / '.claude' / 'plugins' / 'installed_plugins.json'
-installed = {}
-if installed_file.exists():
-    installed = json.loads(installed_file.read_text(encoding='utf-8'))
-installed['buy-side-research-skills'] = {'version': version}
-installed_file.parent.mkdir(parents=True, exist_ok=True)
-installed_file.write_text(json.dumps(installed, ensure_ascii=False, indent=2), encoding='utf-8')
-print(f'  Registered v{version}')
-
-# Cleanup
+reg = Path.home()/'.claude/plugins/installed_plugins.json'
+data = json.loads(reg.read_text('utf-8')) if reg.exists() else {}
+data['buy-side-research-skills'] = {'version': ver}
+reg.parent.mkdir(parents=True, exist_ok=True)
+reg.write_text(json.dumps(data, ensure_ascii=False, indent=2), 'utf-8')
 shutil.rmtree(tmp, ignore_errors=True)
-print()
-print('=== Done. Restart Claude Code and press / to find stock-quickread. ===')
+print(f'Installed v{ver}. Restart CC and press /.')
 "
 ```
-
-脚本跑完后，让用户**退出并重新打开 Claude Code**，按 `/`，查找 `stock-quickread`。能看到 → 成功。
 
 ---
 
@@ -113,24 +84,5 @@ print('=== Done. Restart Claude Code and press / to find stock-quickread. ===')
 
 告诉用户：
 
-> 插件已安装。下一步：
-> 1. 在一个空文件夹里打开 Claude Code，执行 `/init-workspace`（创建 research workspace）
-> 2. 或者直接开始研究：按 `/` 选 `stock-quickread` 试一只股票
-
----
-
-## 可选：ffmpeg（音频转写）
-
-如果用户需要 `meeting-minutes` 等音频转写 skill，安装 ffmpeg：
-
-```bash
-# Windows（portable，无需安装，70MB）
-curl -L -o ffmpeg.zip https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip
-unzip ffmpeg.zip
-# 把 ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe 放到 .scripts/shared/ 或加入 PATH
-
-# macOS
-brew install ffmpeg
-```
-
-> 不用 meeting-minutes 则跳过。不影响其他 skill。
+> 插件已安装。下一步：新建文件夹打开 CC → `/init-workspace`（创建 research workspace）。
+> 各 skill 的额外依赖（ffmpeg、whisper 等）在首次使用时自动安装。不需要手动配置。

@@ -60,8 +60,34 @@ description: 把音频/转录稿转化为结构化研究输出——briefing（�
 
 ### Step 0: 环境检查
 
-转录依赖 `.scripts/shared/transcribe.py` + `.scripts/shared/ffmpeg.exe`。
-若不存在 → 提示运行 `/init-workspace` 补全。
+**仅当输入为音频时执行。** 输入是文本 → 跳过 Step 0。
+
+检查转录依赖，缺什么装什么：
+
+```bash
+# 1. whisper deps（幂等，已装跳过）
+pip install openai-whisper requests
+
+# 2. ffmpeg（不可用时自动下载 BtbN portable）
+python -c "
+import urllib.request, zipfile, io, shutil, os
+from pathlib import Path
+ff = Path('.scripts/shared/ffmpeg.exe')
+if ff.exists(): exit()
+print('Downloading ffmpeg...')
+url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
+with urllib.request.urlopen(url) as r: data = r.read()
+tmp = Path(os.environ.get('TEMP','/tmp')) / 'ffmpeg_install'
+shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
+with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(tmp)
+inner = next(tmp.iterdir())
+shutil.copy2(inner / 'bin' / 'ffmpeg.exe', ff)
+shutil.rmtree(tmp, ignore_errors=True)
+print('ffmpeg ready')
+"
+```
+
+**whisper API key**：从环境变量 `WHISPER_API_KEY`、`WHISPER_API_BASE`、`WHISPER_MODEL` 读取。未配置时提示用户提供。
 
 ### Step 1: 音频转写（仅当输入为音频）
 
