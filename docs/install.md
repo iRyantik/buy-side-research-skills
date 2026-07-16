@@ -55,36 +55,3 @@
    }
    ```
 6. 重启 Claude Code，按 `/` 验证 skill 列表出现
-
----
-
-## Step 2: 可选组件
-
-Agent 逐项问用户是否需要，不要默认装：
-
-| 组件 | 用途 | 怎么装 |
-|---|---|---|
-| **browser-harness CDP** | JS 渲染页面、Cloudflare 绕过 | `pip install browser-harness` + Chrome 远程调试（`chrome://inspect` → Allow） |
-| **ffmpeg** | 音频转写（meeting-minutes 等） | Windows：下载解压 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip)，`bin/ffmpeg.exe` 加入 PATH；macOS：`brew install ffmpeg` |
-
----
-
-## Step 3: 配置 Credential（按需）
-
-逐项问用户：
-
-| 市场 | 需要什么 |
-|---|---|
-| US 美股 | `EDGAR_IDENTITY`（姓名,邮箱） |
-| JP 日股 | `pip install edinet-tools`，免费 |
-| KR 韩股 | `DART_API_KEY`，[dart.fss.or.kr](https://dart.fss.or.kr) 免费申请 |
-| EU 欧股 | 公司 IR 页下载 ESEF 包（iXBRL .zip） |
-| Longbridge（可选） | 市场快照，US/HK/SH/SZ |
-
-## Step 4: 验证
-
-```
-/financial-data --lite AAPL
-```
-
-返回三表 + 市场快照 = 搞定。
