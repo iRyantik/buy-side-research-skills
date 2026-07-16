@@ -1,6 +1,6 @@
 # Buy-Side Research Skills
 
-> v7.6.35 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v8.0.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 A journal-first buy-side equity research skill suite: 39 skills covering triage, foundation, deep-work, and operations layers. Source-tracked, evidence-gated, cross-market.
 
@@ -156,18 +156,18 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 | Version | Date | Changes |
 |---|---|---|
-| v7.6.35 | 2026-07 | docs: restructure dev docs — release workflow, inline install, remove stale files |
-| v7.6.4 | 2026-07 | fix: expand py.cmd fallback paths for cross-machine Python detection (Anaconda/Miniforge/Store) |
-| v7.6.3 | 2026-07 | (reserved) |
-| v7.6.2 | 2026-07 | sync: init-workspace assets — 9 script dirs, CLAUDE.md §9 cross-machine, coverage schema |
-| v7.6.1 | 2026-07 | docs: §9 cross-machine sync — new machine setup, dual repo discipline, switch workflow |
-| v7.5.2 | 2026-07 | fix: pip show fallback for cross-machine Python path detection (Store Python / custom installs) |
-| v7.5.1 | 2026-07 | browser-cdp recipes + sync subdirectory support; remove browser-act skills |
-| v7.5.0 | 2026-07 | browser-harness CDP tier: browser-cdp.py, verify-claim Tier 2 CDP (real Chrome, Cloudflare bypass), web-extract --cdp, verify-runtime +browser-harness check |
-| v7.3.4 | 2026-07 | driver-map v1.5.1: Sum of Q = Y, checks.json + q_checks, vol_asp Q driver fix, Lumentum seg OP reconciliation |
-| v7.1.1 | 2026-07 | fix: SOTP Enterprise Value→Net Debt→Mkt Cap bidirectional, Total label, MCap sign |
-| v7.1.0 | 2026-07 | driver-map v1.5.0: EBITDA depth, P&L F/A rules, Hidden Bridge actuals zone, Check line redesign, SOTP restructure |
-| v7.0.0 | 2026-06 | driver-map v2.0: Q driver allocation restructure, Blend step, 1:1 GM/OM references |
+| v8.0.0 | 2026-07 | docs: restructure dev docs — release workflow, inline install, remove stale files |
+| v8.0.0 | 2026-07 | fix: expand py.cmd fallback paths for cross-machine Python detection (Anaconda/Miniforge/Store) |
+| v8.0.0 | 2026-07 | (reserved) |
+| v8.0.0 | 2026-07 | sync: init-workspace assets — 9 script dirs, CLAUDE.md §9 cross-machine, coverage schema |
+| v8.0.0 | 2026-07 | docs: §9 cross-machine sync — new machine setup, dual repo discipline, switch workflow |
+| v8.0.0 | 2026-07 | fix: pip show fallback for cross-machine Python path detection (Store Python / custom installs) |
+| v8.0.0 | 2026-07 | browser-cdp recipes + sync subdirectory support; remove browser-act skills |
+| v8.0.0 | 2026-07 | browser-harness CDP tier: browser-cdp.py, verify-claim Tier 2 CDP (real Chrome, Cloudflare bypass), web-extract --cdp, verify-runtime +browser-harness check |
+| v8.0.0 | 2026-07 | driver-map v1.5.1: Sum of Q = Y, checks.json + q_checks, vol_asp Q driver fix, Lumentum seg OP reconciliation |
+| v8.0.0 | 2026-07 | fix: SOTP Enterprise Value→Net Debt→Mkt Cap bidirectional, Total label, MCap sign |
+| v8.0.0 | 2026-07 | driver-map v1.5.0: EBITDA depth, P&L F/A rules, Hidden Bridge actuals zone, Check line redesign, SOTP restructure |
+| v8.0.0 | 2026-06 | driver-map v2.0: Q driver allocation restructure, Blend step, 1:1 GM/OM references |
 | v6.7.0 | 2026-06 | driver-map v1.4.0: CF/HL/BOLD helpers, yoy module, multi-depth profit chain, style system |
 | v6.5.14 | 2026-06 | RAG 4-tier fallback, Evidence Ledger, sentence-end anchors, 16-hook regression, actuals provenance |
 | v5.4.0 | 2026-06 | Source contract injection: 27 skill output tables + Ev column, paragraph-level source density hook |
@@ -181,7 +181,7 @@ Tell Claude: `/update-agent-runtime`. Auto-pulls latest from GitHub Releases.
 
 # Buy-Side Research Skills — AI 研究员工具箱
 
-> v7.6.35 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+> v8.0.0 | Claude Code + Codex 双宿主 | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
 
 journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
 
