@@ -23,7 +23,6 @@ POST_TOOL_USE_RULES = [
     "table_render_integrity",
     "mermaid_syntax",
     "data_claim_cross_check",
-    "subagent_protocol",
     "skill_structure_contract",
     # Provider: market-snapshot + disclosure source boundaries
     "provider.market_snapshot_source_boundary",
@@ -36,13 +35,16 @@ POST_TOOL_USE_RULES = [
     "claim_source_proximity",
     "evidence_ledger_floor",
 ]
+SUBAGENT_STOP_RULES = [
+    "subagent_protocol",
+]
 STOP_RULES = [
     "source_contract",
     "table_render_integrity",
     "mermaid_syntax",
     "evidence_ledger_floor",
     "research_memory_gate",
-    "pdf_auto.cache",
+    "pdf_auto_cache",
     "session_conflict_clean",
 ]
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
@@ -127,6 +129,8 @@ def main():
         rule_names = PRE_TOOL_USE_RULES
     elif args.event == "PostToolUse":
         rule_names = POST_TOOL_USE_RULES
+    elif args.event == "SubagentStop":
+        rule_names = SUBAGENT_STOP_RULES
     elif args.event == "Stop":
         rule_names = STOP_RULES
     else:

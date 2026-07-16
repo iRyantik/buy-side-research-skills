@@ -53,7 +53,8 @@ _PRIMARY_KEYWORDS = [
 ]
 
 # Temp paths we should not try to derive ticker from
-_SKIP_PREFIXES = ("/tmp/", "/temp/", "/var/", "C:\\Windows\\Temp", "Downloads\\")
+_SKIP_PREFIXES = ("/tmp/", "/temp/", "/var/", "C:\\Windows\\Temp", "Downloads\\",
+                  os.environ.get("TEMP", ""), os.environ.get("TMP", ""))
 
 _URL_RE = re.compile(r'https?://[^\s"\'<>]+', re.IGNORECASE)
 

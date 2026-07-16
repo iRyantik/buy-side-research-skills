@@ -294,10 +294,6 @@ COVERAGE.md                   # 覆盖状态 source of truth（Research Tier / A
 - 每个 `[I#]` source 必须至少经过 Tier 1-2 验证
 - Tier 链：HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
 - `[UNVERIFIED]` 仅在所有 tier 失败后标记
-<<<<<<< HEAD
-=======
-- browser-harness CDP 优先于 Playwright MCP：它连接用户真实 Chrome，继承指纹/cookie/登录态，能绕过 Cloudflare 等反爬
->>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 
 ### Canvas 文件
 
@@ -419,9 +415,9 @@ skill 是决策工具，不是装饰性模板。
 
 ---
 
-## 9. 多机同步
+## 9. 多机同步（可选）
 
-本 workspace 支持在多台电脑间切换（如台式机 + 笔记本）。以下规则防止环境漂移和数据丢失。
+如需在多台电脑间切换（如台式机 + 笔记本），使用本功能。单机用户可跳过整节。
 
 ### 9.1 新电脑初始化
 
@@ -510,13 +506,6 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 | 插件版本不一致 | 新机 plugin cache 过期 | 跑 `/update-agent-runtime` |
 | `setup.py` 找不到 `.sessions/` | OneDrive 未同步完成 | 等系统托盘 OneDrive 停止转动再跑 |
 
-<<<<<<< HEAD
-=======
-### 9.8 Plugin 开发
-
-Plugin 源代码维护在 `~/dev/buyside`（`git clone https://github.com/iRyantik/buy-side-research-skills.git`）。开发与发布流程见该 repo 的 `docs/release.md`。日常部署只需 `/update-agent-runtime`。
-
->>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 ---
 
 ## 10. 文件命名规范
@@ -529,68 +518,9 @@ Plugin 源代码维护在 `~/dev/buyside`（`git clone https://github.com/iRyant
 
 `<Company-Name>` = CN/HK/TW：COVERAGE Native 列（中文原样），其余：EN 列（空格换 `-`）。
 
-<<<<<<< HEAD
-=======
-```
-603067.SH-振华股份/
-300285.SZ-国瓷材料/
-DPC.US-Doncaster/
-012450.KS-Hanwha-Aerospace/
-BESI.NA-BE-Semiconductor/
-```
-
->>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)
 ### 10.2 Artifact File
 
 ```
 YYYYMMDD-[skill-name]-[Company-Name][-qualifier].<ext>
 ```
 
-<<<<<<< HEAD
-日期无括号，skill 和 Company Name 用 `[]` 包裹，`-` 连接。
-
-### 10.3 日期规则
-
-- 创建 artifact：日期使用系统当前日期（YYYYMMDD），不手动指定
-- 更新 artifact：数据/结论/模型参数变更时，mv 更新文件名日期；typo/formatting 不改
-- .cache/ 内文件不受此约束
-
-### 10.4 创建新公司
-
-1. 查 `actuals-resolved.json` → `identity`（ticker + name_en + name_native）
-2. actuals 不存在 → 查 `COVERAGE.md`
-3. CN/HK/TW → Company Name 用 Native 列中文；其余 → 用 EN 列
-4. Artifact = EN name，空格换 `-`，保留大小写
-=======
-日期无括号，skill 和 Company Name 各用 `[]` 包裹，`-` 连接。qualifier 可选，接在 Company Name 后面。
-
-```
-20260623-[stock-quickread]-[Zhenhua-Chemical].md
-20260626-[driver-map]-[Zhenhua-Chemical].json
-20260624-[driver-model]-[Sinocera-V5].xlsx
-20260604-[scenario-model]-[Mycronic-bull-2030].md
-20260603-[stock-quickread]-[Mycronic-EN].md
-```
-
-### 10.3 日期规则
-
-- **创建 artifact**：日期使用系统当前日期（`YYYYMMDD` 格式），不手动指定
-- **更新 artifact**：改动涉及数据、结论、模型参数时，将文件名日期更新为当前日期（`mv` 换日期）；typo fix、formatting 不改日期
-- `.cache/` 内文件不受此约束
-
-### 10.4 创建新公司目录（Agent 强制执行）
-
-Agent 首次为某公司创建 artifact 时，**必须按以下顺序**，不得跳过直接建目录：
-
-1. **先查 identity**——读 `actuals-resolved.json` → `identity.ticker`、`identity.name_en`、`identity.name_native`
-2. **actuals 没有**（ticker=N/A 或文件不存在）→ 查 `COVERAGE.md` 对应行
-3. **COVERAGE 也没有**→ **停止**，提示用户先在 COVERAGE.md 注册该公司（含 ticker、EN name、Native name、Industry）
-4. **拿到 ticker + name 后**——按 §10.1 生成目录名，按 §10.2 命名 artifact
-5. **CN/HK/TW 公司**→ 目录用中文名（`603011.CN-合锻智能`）；**其余**→ 用 EN 名（空格换 `-`）
-6. **新行业**→ 在 `industry/` 下建子目录，命名规则同公司：英文 Title-Case（空格换 `-`），如 `PCB-Equipment`、`Korean-Defense`
-
-**禁止**：在 `COVERAGE.md` 无记录的情况下，用猜测的英文 slug 创建公司目录。
-**禁止**：使用 `-` 连接的新行业名以外的旧命名方式（如纯 kebab-case、无 ticker 前缀）。
-
-> `.cache/` 内部结构不受 §10.1-§10.3 约束。
->>>>>>> 819e927 (docs: strict company creation rules — auto lookup, no guessing)

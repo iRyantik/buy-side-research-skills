@@ -166,7 +166,7 @@ This is the step-by-step release procedure. Execute from `~/dev/buyside`.
 ```bash
 # One-time setup
 mkdir -p ~/.local/gh
-curl -sL "https://github.com/cli/cli/releases/latest/download/gh_VERSION_windows_amd64.zip" -o "$TEMP/gh.zip"
+curl -sL "http<workspace-root>//github.com/cli/cli/releases/latest/download/gh_VERSION_windows_amd64.zip" -o "$TEMP/gh.zip"
 unzip -o "$TEMP/gh.zip" -d ~/.local/gh
 ```
 
@@ -204,10 +204,10 @@ git push origin vX.Y.Z
   --notes "<changes summary>"
 
 # 5. Update local runtime
-python s:/.scripts/update-agent-runtime/update_agent_runtime.py
+python <workspace-root>/.scripts/update-agent-runtime/update_agent_runtime.py
 
 # 6. Verify
-python s:/.scripts/verify-runtime.py
+python <workspace-root>/.scripts/verify-runtime.py
 ```
 
 ### Post-Release: Cross-Machine Sync
@@ -222,7 +222,7 @@ cd ~/dev/buyside && git pull
 If the other machine doesn't have `~/dev/buyside` yet:
 
 ```bash
-mkdir -p ~/dev && git clone https://github.com/iRyantik/buy-side-research-skills.git ~/dev/buyside
+mkdir -p ~/dev && git clone http<workspace-root>//github.com/iRyantik/buy-side-research-skills.git ~/dev/buyside
 ```
 
 ---

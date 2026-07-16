@@ -1,51 +1,84 @@
 {
-    "hooks": {
-        "PreToolUse": [
-    {
-      "matcher": "Write|Edit|MultiEdit",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python",
-          "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py", "--runtime", "claude", "--event", "PreToolUse"],
-          "env": {"HOOK_EVENT": "PreToolUse"}
-        }
-      ]
-    }
-  ],
-        "PostToolUse": [
-            {
-                "matcher": "Write|Edit|MultiEdit|Bash",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "python",
-                        "args": [
-                            "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
-                            "--runtime", "claude",
-                            "--event", "PostToolUse"
-                        ],
-                        "timeout": 20
-                    }
-                ]
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+              "--runtime",
+              "claude",
+              "--event",
+              "PreToolUse"
+            ],
+            "env": {
+              "HOOK_EVENT": "PreToolUse"
             }
-        ],
-        "Stop": [
-            {
-                "matcher": "",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "python",
-                        "args": [
-                            "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
-                            "--runtime", "claude",
-                            "--event", "Stop"
-                        ],
-                        "timeout": 10
-                    }
-                ]
-            }
+          }
         ]
-    }
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+              "--runtime",
+              "claude",
+              "--event",
+              "PostToolUse"
+            ],
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+              "--runtime",
+              "claude",
+              "--event",
+              "Stop"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/hook_entry.py",
+              "--runtime",
+              "claude",
+              "--event",
+              "SubagentStop"
+            ],
+            "env": {
+              "HOOK_EVENT": "SubagentStop"
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
