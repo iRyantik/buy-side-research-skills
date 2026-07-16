@@ -78,7 +78,7 @@ python -c "
 import urllib.request, zipfile, io, tempfile, shutil, json
 from pathlib import Path
 
-url = 'https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/latest'
+url = 'https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/main'
 with urllib.request.urlopen(url) as r: data = r.read()
 tmp = Path(tempfile.gettempdir()) / 'bsrs_install'
 shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir()
