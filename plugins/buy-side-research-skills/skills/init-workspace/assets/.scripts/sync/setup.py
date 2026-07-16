@@ -126,7 +126,6 @@ def find_sessions_dir():
             candidates.extend([
                 Path(home) / "OneDrive - Hel Ved Capital Management Limited",
                 Path(home) / "OneDrive",
-                Path(home) / "OneDrive - Personal",
             ])
         else:
             candidates.append(Path(onedrive_base))
