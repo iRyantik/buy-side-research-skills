@@ -38,16 +38,39 @@
 
 ### B1. 下载最新 release
 
-用 curl 下载 GitHub 最新 zipball：
+三条路径按顺序试，第一个成功就用哪个：
 
+**路径 1（Python——最可靠）：**
+
+```bash
+python -c "
+import urllib.request, zipfile, io, os, tempfile
+url = 'https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/latest'
+print('Downloading...')
+with urllib.request.urlopen(url) as r:
+    data = r.read()
+with zipfile.ZipFile(io.BytesIO(data)) as z:
+    z.extractall('/tmp/bsrs_extracted')
+print('Extracted to /tmp/bsrs_extracted/')
+"
 ```
+
+**路径 2（curl——如果 Python 不可用）：**
+
+```bash
 curl -L -o /tmp/bsrs.zip https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/latest
-```
-
-解压：
-```
 unzip -o /tmp/bsrs.zip -d /tmp/bsrs_extracted
 ```
+
+**路径 3（浏览器——兜底）：**
+
+如果上面都失败，让用户浏览器打开 https://github.com/iRyantik/buy-side-research-skills/releases/latest ，下载 `Source code (zip)` 并告知你本地路径。你再用以下命令解压：
+
+```bash
+unzip /path/to/downloaded.zip -d /tmp/bsrs_extracted
+```
+
+> Windows 无 `unzip` 时用 PowerShell：`Expand-Archive -Path /tmp/bsrs.zip -DestinationPath /tmp/bsrs_extracted`
 
 解压后 `/tmp/bsrs_extracted/` 下只有一个文件夹（如 `iRyantik-buy-side-research-skills-ab12cd3`），记下路径。
 
