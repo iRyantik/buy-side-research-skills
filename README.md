@@ -8,27 +8,19 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 
 ## 0. Install
 
-**Step 1 — Install plugin:**
+Tell Claude Code:
+
 ```
-/plugin marketplace add iRyantik/buy-side-research-skills
-/plugin install buy-side-research-skills
+按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
 
-**Step 2 — Create workspace:** Open a new folder in Claude Code / Codex → `/init-workspace`
-
-**Step 3 — Browser runtime:** Enable Chrome remote debugging (`chrome://inspect` → Allow), then `pip install browser-harness`
-
-**Step 4 — Verify:** `python .scripts/verify-runtime.py` (auto-installs missing deps)
-
-**Step 5 — Credentials (optional):** `EDGAR_IDENTITY` (US), `DART_API_KEY` (KR), Longbridge account. See §1 below.
+The agent will install the plugin automatically — no git, no manual steps. After install, open a new folder and run `/init-workspace` to create your research workspace.
 
 ## 0a. Upgrade
 
 ```
 /update-agent-runtime
 ```
-
-Pulls latest from GitHub Releases, updates plugin version + syncs workspace hooks. Run once after each release.
 
 ---
 
@@ -195,27 +187,19 @@ journal-first 买方股权研究 skill 套件：38 个 skill 覆盖 triage、fou
 
 ## 0. 安装
 
-**第 1 步 — 安装插件：**
+对 Claude Code 说：
+
 ```
-/plugin marketplace add iRyantik/buy-side-research-skills
-/plugin install buy-side-research-skills
+按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
 
-**第 2 步 — 创建 workspace：** 在 Claude Code / Codex 中打开一个新文件夹 → `/init-workspace`
-
-**第 3 步 — Browser runtime：** 开启 Chrome 远程调试（`chrome://inspect` → Allow），然后 `pip install browser-harness`
-
-**第 4 步 — 验证：** `python .scripts/verify-runtime.py`（自动安装缺失依赖）
-
-**第 5 步 — 凭证配置（按需）：** `EDGAR_IDENTITY`（美股）、`DART_API_KEY`（韩股）、Longbridge 账户。详见上方 §1。
+Agent 会自动安装——不需要 git，不需要手动操作。装完后新建文件夹执行 `/init-workspace` 创建 research workspace。
 
 ## 0a. 升级
 
 ```
 /update-agent-runtime
 ```
-
-自动从 GitHub Release 拉最新版，更新插件版本 + 同步 workspace hooks。每次发版后跑一次即可。
 
 ---
 
