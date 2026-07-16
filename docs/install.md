@@ -43,7 +43,7 @@ python --version
 
 **Windows**：
 ```bash
-winget install Python.Python.3.12 --silent
+winget install Python.Python.3.12 --silent --accept-package-agreements
 ```
 装完后把 `%LOCALAPPDATA%\Programs\Python\Python312` 加入 PATH，重跑 `python --version`。
 
