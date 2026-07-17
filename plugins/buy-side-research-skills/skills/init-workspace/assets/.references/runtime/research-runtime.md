@@ -19,7 +19,7 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
 - 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`），不硬编码 `fy_y2/y1/y0`
 - 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行
 - 消费 skill 直接从 `actuals-resolved.json` 取数，不重复声明 provider/tier
-- **actuals 更新后必须同步 artifact**：任何字段被修改 → 找到所有引用该 ticker 的 artifact → 同步数字、结论、估值（规则详见 workspace `CLAUDE.md` §5.5）
+- **actuals 更新后必须同步 artifact**：任何字段被修改 → 找到所有引用该 ticker 的 artifact → 同步数字、结论、估值（详见 `CLAUDE.md` §3.5 做完就记）
 
 ---
 
@@ -265,4 +265,24 @@ Agent 保存 artifact 前完成：
 □ 10. Mermaid 图用了合法类型（quadrantChart 不是 scatterchart）（hook: mermaid_syntax）
 □ 11. `## Resources` 节格式正确，每个 label 是 [S#] 或 [I#]
 □ 12. `## Appendix: Financial Data` 已嵌入（actuals-to-appendix.py 先跑，不留占位符）
+
+---
+
+## Standard Research Capsule
+
+新 skill 的 `## Research Runtime Capsule` 统一写：
+
+```markdown
+## Research Runtime Capsule
+
+**执行本 skill 前必须先读取以下文件：**
+- workspace `CLAUDE.md` §3（Agent Rules）§4（Source Stance）§5（Output Style）§6（Pipeline Contract）
+- `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§4（产出合约）§5（保存合约）
+- `.references/style/language-guide.md`（语言规则）
+- `.references/routing/data-routing.md`（数据路由，需要外部数据时）
+
+**自动 Hook 防御：** `pre_write_gate` `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read all referenced files BEFORE any action. Capsule only states what is unique to this skill.
+```
 ```
