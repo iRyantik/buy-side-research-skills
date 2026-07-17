@@ -62,133 +62,133 @@ hooks:
     file: rules/modeling/model_checks_result.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model, comps-analysis]
+    scope: [model-update]
     severity: block
   - name: model_meta_sheet
     file: rules/modeling/model_meta_sheet.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model, comps-analysis]
+    scope: [model-update]
     severity: block
   - name: model_balance_integrity
     file: rules/modeling/model_balance_integrity.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, model-update]
+    scope: [model-update]
     severity: block
   - name: model_statement_presence
     file: rules/modeling/model_statement_presence.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: model_missing_actuals
     file: rules/modeling/model_missing_actuals.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model, model-update]
+    scope: [model-update]
     severity: block
   - name: model_no_hardcoded
     file: rules/modeling/model_no_hardcoded.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model]
+    scope: []
     severity: block
   - name: actuals_cross_check
     file: rules/modeling/model_actuals_cross_check.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: driver_cross_check
     file: rules/modeling/model_driver_cross_check.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: internal_consistency
     file: rules/modeling/model_internal_consistency.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: dcf_linked_to_3sm
     file: rules/modeling/model_dcf_linked_to_3sm.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model]
+    scope: []
     severity: block
   - name: dcf_input_sourcing
     file: rules/modeling/model_dcf_input_sourcing.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model]
+    scope: []
     severity: block
   - name: comps_sourced
     file: rules/modeling/model_comps_sourced.py
     layer: modeling
     events: [PostToolUse]
-    scope: [comps-analysis]
+    scope: []
     severity: block
   - name: comps_structure_floor
     file: rules/modeling/comps_structure_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [comps-analysis]
+    scope: []
     severity: block
   - name: dcf_structure_floor
     file: rules/modeling/dcf_structure_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model]
+    scope: []
     severity: block
   - name: dcf_audit_floor
     file: rules/modeling/dcf_audit_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model]
+    scope: []
     severity: block
   - name: three_statement_structure_floor
     file: rules/modeling/three_statement_structure_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: three_statement_audit_floor
     file: rules/modeling/three_statement_audit_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: three_statement_driver_floor
     file: rules/modeling/three_statement_driver_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: model_period_floor
     file: rules/modeling/model_period_floor.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model]
+    scope: []
     severity: warn
   - name: model_driver_breakdown
     file: rules/modeling/model_driver_breakdown.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model]
+    scope: []
     severity: block
   - name: model_historical_actuals
     file: rules/modeling/model_historical_actuals.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model]
+    scope: []
     severity: block
   - name: model_statement_structure
     file: rules/modeling/model_statement_structure.py
     layer: modeling
     events: [PostToolUse]
-    scope: [3-statement-model, dcf-model, comps-analysis]
+    scope: [model-update]
     severity: block
   - name: model_update_change_map
     file: rules/modeling/model_update_change_map.py
@@ -200,13 +200,13 @@ hooks:
     file: rules/modeling/model_valuation_basis.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model, comps-analysis, model-update]
+    scope: [model-update]
     severity: block
   - name: model_dcf_tv_wacc_sanity
     file: rules/modeling/model_dcf_tv_wacc_sanity.py
     layer: modeling
     events: [PostToolUse]
-    scope: [dcf-model]
+    scope: []
     severity: warn
 
   # === Fact Governance ===
