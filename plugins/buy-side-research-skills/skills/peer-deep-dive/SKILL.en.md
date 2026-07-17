@@ -274,12 +274,11 @@ When customer concentration is a core investment variable for the comparison sub
 - 3–5 companies: ~3,000 words / 6–8 companies: ~5,000 words / >8 companies: group by sub-industry / business model first
 - Exceeding the upper bound typically means falling into the "N quickreads stitched together" trap — go back and delete content that restates what is already in the §5 differential
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-If the path is unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Industry-Name][-variant].ext`.
+Save to `industry/<industry>/panorama/<skill-slug>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Anti-Pattern Checklist
 

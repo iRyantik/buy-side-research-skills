@@ -143,12 +143,11 @@ If the short logic is correct, what does the share-price decline path look like?
 
 This section lets you know in advance what the **loss path** looks like, so you don't get reframed by narrative in the moment ("this is just a technical correction," "market sentiment is overreacting").
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-Path unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Growth Break Scenario
 

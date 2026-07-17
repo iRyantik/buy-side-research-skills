@@ -383,10 +383,9 @@ FY+1 增速路径：
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-路径不明 → agent 按 policy baseline §11 自动创建。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name][-variant].ext`。
+保存至 `industry/<industry>/companies/<ticker>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## Growth Quality（200 字）
 
@@ -515,7 +514,7 @@ OM_blended   = M/4 × OM_actual_Q   + (1−M/4) × OM_model
 
 ```
 industry/<industry>/companies/<ticker>/
-├── YYYY-MM-DD-driver-model-<ticker>.xlsx  ← 模型 Excel（公司根目录，artifact 命名规则）
+├── YYYYMMDD-driver-model-<ticker>.xlsx  ← 模型 Excel（公司根目录，artifact 命名规则）
 ├── .cache/
 │   └── scripts/
 │       ├── research-model.json      ← model JSON（build 输入）
@@ -523,11 +522,11 @@ industry/<industry>/companies/<ticker>/
 │       ├── build-logic-model.py     ← 公司本地副本（首次建模时复制）
 │       ├── modules/                 ← 模块副本
 │       └── helpers/                 ← helper 副本
-└── YYYY-MM-DD-driver-map.md         ← research artifact
+└── YYYYMMDD-driver-map.md         ← research artifact
 ```
 
 **路径规则：**
-- **Excel**：`industry/<industry>/companies/<ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx`。日期+skill+标识符，遵循 `.references/runtime/research-runtime.md` artifact 命名规则。
+- **Excel**：`industry/<industry>/companies/<ticker>/YYYYMMDD-driver-model-<ticker_dir>.xlsx`。日期+skill+标识符，遵循 `.references/runtime/research-runtime.md` artifact 命名规则。
 - **JSON**：`.cache/scripts/research-model.json`。机器输入，cache 下。
 - **Checks**：`.cache/scripts/research-model_checks.json`。和 JSON 同目录。
 - **Ticker 格式**：小写。例如 `hwm-model.xlsx`、`santec-model.xlsx`。
@@ -543,7 +542,7 @@ cp .scripts/driver-map/helpers/*.py <ticker>/.cache/scripts/helpers/
 
 # Build（output 自动落在公司根目录）
 python <ticker>/.cache/scripts/build-logic-model.py <ticker>/.cache/scripts/research-model.json
-# → 产出 <ticker>/YYYY-MM-DD-driver-model-<ticker_dir>.xlsx
+# → 产出 <ticker>/YYYYMMDD-driver-model-<ticker_dir>.xlsx
 ```
 
 build 自动执行：Reconcile → Blend → Q Driver Distribution → Render。Q 配平无需 agent 手动干预。生成 → audit → 0 errors 方可交付。参数见 `references/cli.md`。生成后用户打开 Excel 审。

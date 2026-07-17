@@ -276,15 +276,11 @@ Prohibited formulations:
 
 If there are too many candidates, tighten by purity and discovery edge first; do not output 20 tickers and leave the user to screen them.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write into the industry topic:
-
-```text
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-```
-
-Path unclear -> `agent` resolves the industry. When saving, the default artifact remains `candidate-screener.md`; a qualifier may be used to indicate the theme, e.g., `candidate-screener-optical-module-equipment.md`.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Industry-Name][-variant].ext`.
+Save to `industry/<industry>/panorama/<skill-slug>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Workflow Links
 

@@ -204,12 +204,11 @@ Output compressed to:
 
 600–900 words; below 600 words typically cannot simultaneously cover source, bar, and routing.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write to industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-Path unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Implied Growth Check
 

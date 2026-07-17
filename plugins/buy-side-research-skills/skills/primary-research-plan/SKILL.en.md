@@ -110,12 +110,11 @@ Used for a single expert call. Output compressed to 600–1000 words — §1 one
 
 Used for bulk verification via customers / suppliers / distributors. Builds on Mode A with an added sample plan (target n≥10, persona split, geographic split) and bias controls (don't only look at happy customers / recent buyers). Length 800–1400 words.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-If path is unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Anti-Pattern Checklist
 

@@ -245,10 +245,9 @@ Target Price 必须标注 PE 倍数依据。Upside/Downside 行放在最底，�
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-路径不明 → agent 按 policy baseline §11 自动创建。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name][-variant].ext`。
+保存至 `industry/<industry>/companies/<ticker>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## 反模式自查
 
@@ -306,13 +305,11 @@ Target Price 必须标注 PE 倍数依据。Upside/Downside 行放在最底，�
 
 ## Journal-First Handoff
 
-本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，把 thesis 作为当前日期化保存路径的研究材料保存为：
+本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name].md`。
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-alpha-thesis-<Company-Name>.md
 ```
-
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；只有文件名冲突时才交给 `agent` 追加 `-2 / -3` 兜底，不把 qualifier 当 thesis 默认命名。
 
 如果当前日期化保存路径不明确，agent 按 policy baseline §11 自动创建目录和索引。
 

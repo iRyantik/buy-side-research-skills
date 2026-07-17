@@ -185,14 +185,11 @@ Cognitive calibration for the **reader** — not anti-patterns for the AI. Forma
 
 5–7 specific questions — specific enough that a single number, event, or document can answer them. Followed by the standard Routing Handoff table.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write to the industry topic root:
-```
-industry/<industry-slug>/YYYY-MM-DD-teach-in-<qualifier>.md
-```
-
-Path resolution is handled automatically by the agent per policy baseline §11. `qualifier` is required — e.g. `optical-module`, `die-bonding-equipment`.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Industry-Name][-variant].ext`.
+Save to `industry/<industry>/panorama/<skill-slug>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Workflow Handoff
 

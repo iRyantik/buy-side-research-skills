@@ -345,10 +345,9 @@ quadrantChart
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-    industry/<industry>/panorama/peer-deep-dive/YYYY-MM-DD-peer-deep-dive.md
-
-路径不明 → agent 按 policy baseline §11 自动创建。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Industry-Name][-variant].ext`。
+保存至 `industry/<industry>/panorama/<skill-slug>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## 反模式自查
 

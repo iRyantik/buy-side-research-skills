@@ -180,12 +180,9 @@ artifact 引用：`![描述](.cache/images/mechanism-insight/<slug>.png)`
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-```
-industry/<industry-slug>/panorama/mechanism-insight/YYYY-MM-DD-mechanism-insight-<qualifier>.md
-```
-
-`naming_mode = required_qualifier`，qualifier 按具体机制/设备/工艺命名。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Industry-Name][-variant].ext`。
+保存至 `industry/<industry>/panorama/<skill-slug>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## Workflow 联动
 

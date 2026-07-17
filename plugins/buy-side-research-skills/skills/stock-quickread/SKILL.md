@@ -415,10 +415,9 @@ python .scripts/shared/search.py --query "<Company EN> <ticker>" --news
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-路径不明 → agent 按 policy baseline §11 自动创建。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name][-variant].ext`。
+保存至 `industry/<industry>/companies/<ticker>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## 反模式自查
 
@@ -451,14 +450,14 @@ python .scripts/shared/search.py --query "<Company EN> <ticker>" --news
 
 ## 保存
 
-写入公司 primary 行业目录：
+写入公司 primary 行业目录。文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name].md`。
+
 ```
-industry/<industry-slug>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md
+industry/<industry-slug>/companies/<ticker>/YYYYMMDD-stock-quickread-<Company-Name>.md
 ```
 
 - 路径不明 → 先 handoff `agent` 解析行业和公司。
-- `ticker-slug` 从展示 ticker 规范化而来：小写，空格 / 点号 / 斜杠转 `-`，保留市场后缀（如 `6777-jp`、`spcx-us`、`0522-hk`、`xk4-de`）。
-- `company-slug` 从公司名规范化而来（如 `mycronic`、`robotchnik`）。如果公司未上市或 ticker 待定，用 `no-ticker-<company-slug>`，不要只写公司名。
+- 公司名从 CLAUDE.md §3.3 规则规范化（EN 名，空格换 `-`）。
 
 ## Coverage 更新
 

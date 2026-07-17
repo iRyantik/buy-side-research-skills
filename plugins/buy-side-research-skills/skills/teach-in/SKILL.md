@@ -208,12 +208,9 @@ artifact 引用：`![描述](.cache/images/teach-in/<slug>.png)`
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-```
-industry/<industry-slug>/panorama/teach-in/YYYY-MM-DD-teach-in-<qualifier>.md
-```
-
-路径解析由 agent 按 policy baseline §11 自动完成。`qualifier` 必填——例如 `optical-module`、`die-bonding-equipment`。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Industry-Name][-variant].ext`。
+保存至 `industry/<industry>/panorama/<skill-slug>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## Workflow 联动
 

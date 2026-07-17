@@ -172,7 +172,9 @@ Action must be one of:
 
 ## Artifact / Save Policy
 
-Conversation output. When the user requests a save, write to industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Anti-Pattern Self-Check
 

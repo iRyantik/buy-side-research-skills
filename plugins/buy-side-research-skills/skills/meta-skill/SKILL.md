@@ -353,8 +353,8 @@ Topic-centric 组织：
 industry/
   [topic-namespace]/[topic-slug]/
     index.md
-    [YYYY-MM-DD]-research-journal.md
-    [YYYY-MM-DD]-boss-brief.md
+    YYYYMMDD-research-journal.md
+    YYYYMMDD-boss-brief.md
 ```
 
 ### 3. Research / Operations 双轨结构
@@ -530,7 +530,7 @@ capabilities: ...
 artifact_policy:
   save_policy: optional_topic_result
   default_artifact: skill-name.md
-  canonical_location: industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-skill-name.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYYMMDD-skill-name.md
   naming_mode: plain
   save_trigger: save only when user asks
 ```
@@ -549,7 +549,7 @@ Artifact policy：
 
 - `save_policy` 只能是 `none`、`optional_topic_result`、`default_topic_result`、`earned_memory`、`external_workbook`、`workspace_scaffold`、`cache_artifact`、`topic_scaffold`。
 - 不落盘的 skill 写 `conversation-only`。
-- Topic artifact 必须落在 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-[artifact].md`。
+- Topic artifact 必须落在 `industry/<industry>/companies/<ticker>/YYYYMMDD-[skill]-[Company-Name].md`（格式见 workspace `CLAUDE.md` §3.2）。
 - 只有会落 topic markdown 的 research skill 才声明 `artifact_policy.naming_mode`；可选值只允许 `plain`、`optional_qualifier`、`required_qualifier`。
 - `none`、`external_workbook`、`cache_artifact`、`workspace_scaffold`、`topic_scaffold` 不声明 `naming_mode`。
 - `research-journal` 只写 earned insight / Boss Brief / topic index update，不当作所有 skill 的普通保存目标。

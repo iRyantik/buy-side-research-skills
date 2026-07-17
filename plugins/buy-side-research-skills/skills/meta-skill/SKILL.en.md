@@ -342,8 +342,8 @@ Topic-centric organization:
 industry/
   [topic-namespace]/[topic-slug]/
     index.md
-    [YYYY-MM-DD]-research-journal.md
-    [YYYY-MM-DD]-boss-brief.md
+    YYYYMMDD-research-journal.md
+    YYYYMMDD-boss-brief.md
 ```
 
 ### 3. Research / Operations Dual-Track Structure
@@ -519,7 +519,7 @@ capabilities: ...
 artifact_policy:
   save_policy: optional_topic_result
   default_artifact: skill-name.md
-  canonical_location: industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-skill-name.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYYMMDD-skill-name.md
   naming_mode: plain
   save_trigger: save only when user asks
 ```
@@ -538,7 +538,7 @@ Artifact policy:
 
 - `save_policy` can only be `none`, `optional_topic_result`, `default_topic_result`, `earned_memory`, `external_workbook`, `workspace_scaffold`, `cache_artifact`, or `topic_scaffold`.
 - Skills that do not write to disk use `conversation-only`.
-- Topic artifacts must land in `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-[artifact].md`.
+- Topic artifacts must land in `industry/<industry>/companies/<ticker>/YYYYMMDD-[artifact].md`.
 - Only research skills that produce topic markdown declare `artifact_policy.naming_mode`; allowed values are only `plain`, `optional_qualifier`, `required_qualifier`.
 - `none`, `external_workbook`, `cache_artifact`, `workspace_scaffold`, `topic_scaffold` do not declare `naming_mode`.
 - `research-journal` only writes earned insight / Boss Brief / topic index updates; it is not a generic save target for all skills.

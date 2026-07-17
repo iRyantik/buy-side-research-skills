@@ -278,13 +278,9 @@ Top Ideas 必须给下一步验证路线：
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-
-```text
-industry/<industry>/panorama/candidate-screener/YYYY-MM-DD-candidate-screener.md
-```
-
-路径不明 -> `agent` 解析行业。保存时 default artifact 仍为 `candidate-screener.md`，可用 qualifier 表示主题，例如 `candidate-screener-optical-module-equipment.md`。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Industry-Name][-variant].ext`。
+保存至 `industry/<industry>/panorama/<skill-slug>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## Workflow 联动
 

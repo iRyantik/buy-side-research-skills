@@ -94,10 +94,10 @@ Value tags:
 Write path:
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-research-journal.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-research-journal.md
 ```
 
-`research-journal` has `artifact_policy.naming_mode = plain`. Earned memory continues to use `YYYY-MM-DD-<artifact>.md` by default; the Boss Brief also maintains the same dated-deliverable convention — qualifiers are not the default naming approach.
+`research-journal` has `artifact_policy.naming_mode = plain`. Earned memory continues to use `YYYYMMDD-<artifact>.md` by default; the Boss Brief also maintains the same dated-deliverable convention — qualifiers are not the default naming approach.
 
 The Journal does not use a rigid template, but must include:
 - This round's research map: which questions were researched, not what was discussed.
@@ -113,7 +113,7 @@ The Boss Brief is a high-density transfer for the PM / boss, not a shorter versi
 Write path:
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-boss-brief.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-boss-brief.md
 ```
 
 Before writing, confirm or extract from materials:
@@ -257,10 +257,9 @@ Only `Confirmed`, `Likely`, or clearly tagged `Plausible but unconfirmed` claims
 
 ## Artifact / Save Policy
 
-Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-Path unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Anti-Pattern Self-Check
 

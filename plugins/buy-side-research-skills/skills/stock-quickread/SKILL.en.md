@@ -428,14 +428,9 @@ If the quickread uncovers complex revenue structure, strange segment buckets, or
 
 ## Artifact / Save Policy
 
-Write to industry topic:
-```
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-stock-quickread-<ticker-slug>-<company-slug>.md
-```
-
-- Path unclear → agent auto-creates per policy baseline §11.
-- `ticker-slug` is normalized from the display ticker: lowercase; spaces, dots, and slashes become `-`; keep the market suffix (for example `6777-jp`, `spcx-us`, `0522-hk`, `xk4-de`).
-- `company-slug` is normalized from the company name (for example `mycronic`, `robotchnik`). For unlisted or ticker-pending companies, use `no-ticker-<company-slug>` instead of company-only naming.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Coverage Update
 

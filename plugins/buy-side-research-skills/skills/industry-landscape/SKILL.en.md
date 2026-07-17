@@ -144,14 +144,11 @@ Takeaway: what direction competition in this industry is moving.
 |---|---|---|
 | Product photos | **Required** (key equipment/products) | Official product page → web search → `[缺图]` |
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write to the industry topic root:
-```
-industry/<industry-slug>/YYYY-MM-DD-industry-landscape.md
-```
-
-`naming_mode = optional_qualifier`: use the default name for a full industry landscape; append a qualifier when covering only a specific value chain slice.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Industry-Name][-variant].ext`.
+Save to `industry/<industry>/panorama/<skill-slug>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Workflow Linkage
 

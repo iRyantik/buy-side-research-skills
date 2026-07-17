@@ -176,14 +176,11 @@ Rating hard standards:
 
 **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write to the industry topic root:
-```
-industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
-```
-
-`naming_mode = required_qualifier`, where qualifier is named by the specific mechanism / equipment / process.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Industry-Name][-variant].ext`.
+Save to `industry/<industry>/panorama/<skill-slug>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Workflow Linkage
 

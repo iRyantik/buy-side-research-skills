@@ -164,12 +164,9 @@ artifact 引用：`![描述](.cache/images/industry-landscape/<slug>.png)`
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-```
-industry/<industry-slug>/panorama/industry-landscape/YYYY-MM-DD-industry-landscape.md
-```
-
-`naming_mode = optional_qualifier`：完整行业全景用默认名；只覆盖某段 value chain slice 时追加 qualifier。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Industry-Name][-variant].ext`。
+保存至 `industry/<industry>/panorama/<skill-slug>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## Workflow 联动
 

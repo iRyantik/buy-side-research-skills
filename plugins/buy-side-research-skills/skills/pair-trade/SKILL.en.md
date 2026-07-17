@@ -49,10 +49,10 @@ If all three rules are satisfied, proceed. Otherwise, either swap the pair or ju
 
 Default: save to the current dated-result-path as `pair-note.md`, while also presenting core conclusions in the conversation.
 
-This skill's `artifact_policy.naming_mode = plain`. Default: continue using `YYYY-MM-DD-<artifact>.md`; `pair-note.md` is the complete pair deliverable — do not use qualifiers as default names.
+This skill's `artifact_policy.naming_mode = plain`. Default: continue using `YYYYMMDD-<artifact>.md`; `pair-note.md` is the complete pair deliverable — do not use qualifiers as default names.
 
 If there is no clear dated result path:
-- The agent auto-creates the directory per policy baseline §11, e.g. `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`.
+- The agent auto-creates the directory per policy baseline §11, e.g. `industry/<industry>/companies/<ticker>/YYYYMMDD-pair-note.md`.
 - Confirm topic / slug with the user before saving.
 - Do not fall back to v2's `pairs/[LONG]-[SHORT]/spread-log.md`.
 
@@ -412,10 +412,9 @@ Evaluate the long thesis and short thesis from §A.4.5 separately:
 
 ## Artifact / Save Policy
 
-Write to industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-Path unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Anti-Pattern Self-Check
 

@@ -91,13 +91,11 @@ Value tags：
 
 ### Step 2: 写 research-journal.md
 
-写入路径：
+写入路径，文件命名按 workspace `CLAUDE.md` §3.2：
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-research-journal.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-research-journal-<Company-Name>.md
 ```
-
-`research-journal` 的 `artifact_policy.naming_mode = plain`。earned memory 默认继续使用 `YYYY-MM-DD-<artifact>.md`；Boss Brief 也维持同一 dated deliverable 口径，不把 qualifier 当默认命名。
 
 Journal 不用 rigid template，但必须包含：
 - 本轮研究地图：研究了哪些问题，而不是聊了什么。
@@ -110,10 +108,10 @@ Journal 不用 rigid template，但必须包含：
 
 Boss Brief 是给 PM / boss 的高密度 transfer，不是简略版。
 
-写入路径：
+写入路径，文件命名按 workspace `CLAUDE.md` §3.2：
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-boss-brief.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-boss-brief-<Company-Name>.md
 ```
 
 写前先确认或从材料中提取：
@@ -257,10 +255,9 @@ industry/<industry>/companies/<ticker>/index.md
 
 ## Artifact / 保存策略
 
-写入行业 topic：
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-路径不明 → agent 按 policy baseline §11 自动创建。
+文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name][-variant].ext`。
+保存至 `industry/<industry>/companies/<ticker>/`。
+路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
 ## 反模式自查
 

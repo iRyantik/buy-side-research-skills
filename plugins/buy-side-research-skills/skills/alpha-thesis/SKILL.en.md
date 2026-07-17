@@ -187,12 +187,11 @@ Mandatory:
 - Disconfirming signal for each assumption.
 - Which assumptions should be rechecked at the next earnings release or industry data update.
 
-## Artifact / Save Strategy
+## Artifact / Save Policy
 
-Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
-
-If the path is unclear → agent auto-creates per policy baseline §11.
+File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
+Save to `industry/<industry>/companies/<ticker>/`.
+If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
 
 ## Thesis Driver Mix
 
@@ -232,10 +231,10 @@ Full output **800-1500 words**. This is meant to be pitched — must be high den
 This skill defaults to producing research views and does not write trading-status files. If the user requests saving, save the thesis as a date-stamped research artifact at:
 
 ```text
-industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-alpha-thesis.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-alpha-thesis.md
 ```
 
-This skill's `artifact_policy.naming_mode = plain`. Default continues using `YYYY-MM-DD-<artifact>.md`; only when a filename collision occurs does the `agent` append `-2 / -3` as a fallback — do not make qualifiers the default thesis naming convention.
+This skill's `artifact_policy.naming_mode = plain`. Default continues using `YYYYMMDD-<artifact>.md`; only when a filename collision occurs does the `agent` append `-2 / -3` as a fallback — do not make qualifiers the default thesis naming convention.
 
 If the current date-stamped save path is unclear, the agent auto-creates the directory and index per policy baseline §11.
 

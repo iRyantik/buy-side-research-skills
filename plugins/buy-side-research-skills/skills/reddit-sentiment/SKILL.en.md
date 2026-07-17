@@ -106,7 +106,7 @@ run_id = YYYY-MM-DDTHH-MM-SSZ
 scrapi_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]/scrapi
 raw_dir = industry/<industry>/companies/<ticker>/_raw/datasets/reddit-sentiment/[run_id]
 cache_dir = industry/<industry>/companies/<ticker>/_cache/datasets/reddit-sentiment/[run_id]
-report_path = industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-reddit-sentiment.md
+report_path = industry/<industry>/companies/<ticker>/YYYYMMDD-reddit-sentiment.md
 ```
 
 ### Phase 1: ScrapiReddit Collection
@@ -237,7 +237,7 @@ If you only read 10–15 posts, prioritize these:
 ## Artifact / Save Policy
 
 Write into the industry topic:
-    industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md
+    industry/<industry>/companies/<ticker>/YYYYMMDD-<artifact>.md
 
 Path unknown → agent auto-creates per policy baseline §11.
 
