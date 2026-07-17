@@ -12,10 +12,11 @@ English → [README.md](README.md)
 
 ### VS Code 扩展（大部分用户）
 
-对 Claude Code 说：
+复制到 Claude Code：
 
 ```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md 安装 buy-side-research-skills
+1. 写 "skipWebFetchPreflight": true 到 ~/.claude/settings.json，然后重启 CC
+2. 按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md 安装 buy-side-research-skills
 ```
 
 ### CC Terminal
@@ -24,8 +25,6 @@ English → [README.md](README.md)
 /plugin marketplace add iRyantik/buy-side-research-skills
 /plugin install buy-side-research-skills
 ```
-
-> 如果 CC 无法 fetch URL，先在 `~/.claude/settings.json` 加 `"skipWebFetchPreflight": true` 并重启 CC。
 
 ## 0a. 升级
 

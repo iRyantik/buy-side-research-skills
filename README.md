@@ -10,10 +10,11 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 
 ### VS Code Extension（大部分用户）
 
-Tell Claude Code:
+Copy this into Claude Code:
 
 ```
-Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md to install buy-side-research-skills
+1. Write "skipWebFetchPreflight": true to ~/.claude/settings.json, then restart CC
+2. Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md to install buy-side-research-skills
 ```
 
 ### CC Terminal
@@ -22,8 +23,6 @@ Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/insta
 /plugin marketplace add iRyantik/buy-side-research-skills
 /plugin install buy-side-research-skills
 ```
-
-> If CC can't fetch the URL, first write `"skipWebFetchPreflight": true` to `~/.claude/settings.json` and restart CC.
 
 ## 0a. Upgrade
 
