@@ -114,9 +114,6 @@ Step 7: alpha-thesis          → Thesis + kill criteria + next catalyst
 | `bear-pre-mortem` | Short-side pre-mortem |
 | `pair-trade` | Long-short pair |
 | `primary-research-plan` | Primary research fieldwork plan |
-| `3-statement-model` | Full 3-statement operating model |
-| `dcf-model` | DCF valuation |
-| `comps-analysis` | Comparable company valuation |
 
 ### Supporting
 
@@ -281,9 +278,6 @@ stock-quickread → financial-data → driver-map → moat-analysis
 | `bear-pre-mortem` | 空头 pre-mortem |
 | `pair-trade` | LS 对 |
 | `primary-research-plan` | 一手研究计划 |
-| `3-statement-model` | 完整三表模型 |
-| `dcf-model` | DCF 估值 |
-| `comps-analysis` | 可比估值 |
 
 ### Supporting
 
