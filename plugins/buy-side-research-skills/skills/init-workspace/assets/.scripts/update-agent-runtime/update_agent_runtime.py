@@ -227,21 +227,30 @@ def sync_workspace(payload: Path, workspace: Path):
                 shutil.copytree(src_scripts, dst_dir, dirs_exist_ok=True)
     _log(".scripts/ synced")
 
-    # D. .references/
-    refs = {
-        ".references/policy": assets / ".references" / "policy",
-        ".references/kpi-drivers": assets / ".references" / "kpi-drivers",
-        ".references/runtime": assets / ".references" / "runtime",
-        ".references/templates": assets / ".references" / "templates",
-    }
-    for rel, src in refs.items():
+    # D. .references/ — all subdirs + top-level .md files
+    ref_subdirs = [
+        "policy",
+        "kpi-drivers",
+        "runtime",
+        "templates",
+        "routing",
+        "style",
+    ]
+    refs_root = assets / ".references"
+    for sub in ref_subdirs:
+        src = refs_root / sub
         if src.is_dir():
-            dst = workspace / rel
+            dst = workspace / ".references" / sub
             dst.mkdir(parents=True, exist_ok=True)
             shutil.copytree(src, dst, dirs_exist_ok=True)
+
+    # Top-level reference docs (README.md, edge-radar.md, etc.)
+    for f in refs_root.glob("*.md"):
+        shutil.copy2(f, workspace / ".references" / f.name)
+
     _log(".references/ synced")
 
-    # E. Root docs — edge-radar moved to .references/, everything else via templates
+    # E. Root docs — everything else via templates
 
 
 def run_verify(workspace: Path) -> bool:
