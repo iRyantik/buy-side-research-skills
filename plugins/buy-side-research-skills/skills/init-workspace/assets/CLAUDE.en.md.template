@@ -1,8 +1,7 @@
 # CLAUDE.md — Buy-Side Research Workspace Constitution
 
-> This file is the local constitution for the current research workspace.
-> It governs workspace high-level principles, topic structure, and source stance — not per-skill procedure.
-> If this file conflicts with the specific execution rules of an invoked skill, the stricter, runtime-closer skill rules take precedence.
+> This file is the local constitution for the current research workspace. High-level principles + agent behavioral rules.
+> Per-skill procedures live in each SKILL.md. When they conflict, the skill rules take precedence.
 
 ---
 
@@ -11,507 +10,190 @@
 - Workspace path: `{{WORKSPACE_PATH}}`
 - Created by: `buy-side-research-skills init`
 - Created date: `{{DATE}}`
-- Current system generation: `5.0.0`
 
-This workspace is for buy-side equity research. The goal is not "understand the company" — it is to produce traceable, edge-carrying output that supports investment judgment and defines the next research priority.
+This workspace is for buy-side equity research. Goals: traceable, edge-driven, supports investment decisions. Not sell-side company intros.
 
 ---
 
 ## 2. Researcher Context
 
-- **Role**: Buy-side equity researcher, hedge fund / long-short context.
-- **Primary coverage**: industrials, aerospace and defense, advanced manufacturing, oil & gas, renewable energy, nuclear, emerging tech themes.
-- **Objective**: Decide whether to invest, how to invest, and when to exit — not to write sell-side company introductions.
+- **Role**: Buy-side equity researcher, hedge fund / long-short
+- **Coverage**: industrials, aerospace & defense, advanced manufacturing, oil & gas, renewable, nuclear, emerging tech
+- **Objective**: decide whether to invest, how, and when to exit
 
 ---
 
-## 3. Output Style
+## 3. Agent Rules
 
-### 3.1 Language
+### 3.1 New Session Entry
 
-> `LANG-default = en`
+On first contact, explore the workspace: read `COVERAGE.md` for coverage, read `CLAUDE.md` for rules. `workspace-summary.py` can help with a quick overview but does not replace reading key files.
 
-Default English output.
+### 3.2 File Naming
 
-**Always preserve the original language for**:
+**Company Directory**: `<TICKER.MARKET>-<Company-Name>`
+```
+603067.SH-Zhenhua-Chemical/
+DPC.US-Doncaster/
+012450.KS-Hanwha-Aerospace/
+```
 
-- **Tickers**: `2330 TT`, `AAPL US`, `9988.HK`, `005930 KS`, `7203.T`
-- **Financial ratios / line items**: PE, P/B, EV/EBITDA, EV/Sales, FCF, ROIC, ROE, ROA, NRR, GRR, ARR, GMV, LTV, CAC, IRR, WACC, NPV, SOTP, DCF
-- **Accounting / process abbreviations**: GAAP, Non-GAAP, IFRS, M&A, IPO, SPAC, LBO, PIPE, ESOP, CapEx, OpEx, D&A
-- **Industry / technical jargon**: SaaS, IaaS, DTC, BNPL, Fab, EUV, ASIC, HBM, CoWoS, LLM, RAG
-- **Currency codes**: USD, JPY, KRW, CNY, EUR, SGD, HKD, TWD, INR, GBP
-- **Regulatory / government bodies**: SEC, FDA, CFIUS, FOMC, ECB, MAS, PBoC, CSRC, CMA, JFTC, FSC
-- **Units**: `x` (multiple), `bps`, `pp` (percentage points), `bn`, `m`, `k`, `tn`, `wpm`, `kwh`
-- **Paths / system identifiers**: source titles, URLs, file paths, YAML / JSON keys, skill names, product codenames
-- **Buy-side jargon**: batting average, refi wall, underwater, guide-down, whisper number, tape, book, bid, ask, long, short, cover, squeeze, bagger, re-rate
+**Artifact**: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`
+```
+20260717-[stock-quickread]-[Zhenhua-Chemical].md
+20260717-[meeting-minutes]-[Unicomp-Technology]_briefing_zh.md
+```
 
-**Company names**:
+Use the system's current date. User-downloaded files (`.raw/`) are exempt from this constraint.
 
-- Companies with well-known English names: Apple, Samsung, Toyota, TSMC, Tencent, Alibaba, Sony, Honda, Hyundai, Kia
-- Chinese / HK / Taiwan companies: use the official English name or most widely recognized form (e.g., CATL for 宁德时代, BYD for 比亚迪, Meituan for 美团)
-- Japanese companies: use official English names (Nintendo, Mitsubishi Corporation, Fast Retailing)
+### 3.3 Creating Company Directories
 
-**Company disclosure items in non-English languages**: preserve the source-language anchor on first occurrence using `Original Language (English translation)`. Subsequent references default to the English short name unless the same table contains multiple easily-confused original-language buckets.
+1. Check `actuals-resolved.json` → `identity.ticker` + `name_en` + `name_native`
+2. Not found → check `COVERAGE.md`
+3. CN/HK/TW → Chinese name; everything else → English name (spaces → `-`)
+4. Artifact = English name, spaces → `-`, preserve case
 
-**Management quotes**: preserve a short original quote only when the exact wording itself affects judgment — and attach the source. Otherwise, summarize in English with the source.
+### 3.4 When in Doubt, Ask
 
-**Override**: when the user explicitly says "用中文输出" / "use Chinese", switch to Chinese for the remainder of the conversation (unless the user declares otherwise). If the user specifies Japanese / Korean / another language for a passage, switch for that passage only.
+Which industry does this company belong to? Check COVERAGE → ask if unknown. **Don't guess.** Company ticker? Check COVERAGE → ask if unknown.
 
-### 3.2 Directness
+### 3.5 Record When Done
 
-- Conclusion-first: the first paragraph must deliver the judgment / action / verdict, then the supporting evidence.
-- No filler: "Great question," "you're right," "it depends" — skip it.
-- When uncertain, say so directly and mark `[UNVERIFIED]` or `[SOURCE PENDING]`.
+Finished researching a company → update COVERAGE.md (add if new, update date if existing). Discovered new data → update actuals (don't overwrite existing).
 
-### 3.3 Data First
+### 3.6 Compact Recovery
 
-- Judgments must be supported by numbers, data tables, source-backed evidence, or a clear chain of reasoning.
-- Facts without sources cannot be presented as facts — only honest degradation is permitted.
-- Data tables must have a takeaway; the takeaway must deliver structural insight, not re-read the table.
+After conversation compaction, re-read this section (§3) and §6 Pipeline Contract. Re-read the SKILL.md of any in-progress skill.
 
-### 3.4 Numbers, Currency, Dates, Units
+### 3.7 Tool Aliases
 
-> `NUM-default = western`
+| User says | Actual tool |
+|---|---|
+| harness / browser / CDP | browser-cdp.py / browser-harness |
+| OCR / scanned docs | ingest (Docling) |
+| transcribe / speech-to-text | transcribe.py / meeting-minutes |
+| look up company / previously researched | workspace-locate.py |
+| overview / what industries | workspace-summary.py |
+| naming check | workspace-validate-names.py |
+| pull data / financials / three statements | financial-data |
+| download image / screenshot | download-image.py |
+| search news | search.py |
+| PDF extract | pdf-extract.py |
+| Excel/Word/PPT convert | extract-xlsx.py / extract-docx.py / extract-pptx.py |
+| verify numbers | verify-claim.py |
+| fix anchors / add sources | fix-bare-anchors.py |
+| build model / modeling | driver-map |
 
-**Numbers**: Western thousands separator `1,234,567`.
+### 3.8 Script Index
 
-**Currency**:
-- USD → `$24bn`, `$45m`, or `USD 28.5bn`
-- Non-USD → ISO currency code prefix: `JPY 3,200bn`, `CNY 12bn`, `KRW 4,500bn`, `HKD 850m`, `TWD 1,250bn`, `EUR 2.4bn`
-- Multi-currency comparison / cross-market companies: note the conversion rate and date uniformly. Example: `USD 24bn (at JPY/USD = 152, 2024-09-30)`
-
-**Percentages / multiples / bps**: `14.2%`, `+45bps`, `22.4x`, `0.8x`, `-3.1pp`. Note: `pp` (percentage points) ≠ `%` (relative change).
-
-**Dates / periods**:
-- Body text: "March 2024," "FY2024," "first half," "quarter-over-quarter"
-- Tables / chart axes / data columns: `Mar '24`, `1Q24`, `FY24E`, `4Q23A`, `CY2024`, `YTD`
-- When fiscal year alignment is ambiguous, note explicitly: "(CY24 ≈ AAPL FY24, corresponding to 2023-09 through 2024-09)"
-- Relative time references from the user ("the past year," "the latest quarter") must be converted to absolute periods for analysis
-
-**Magnitude abbreviations**: `bn` / `m` / `k`, not `B` / `M` / `K`. `tn` for trillion.
-
-**Precision**:
-- Percentages default to 1 decimal place (`14.2%`); margin-critical items to 2 decimal places (`28.45%`)
-- Multiples to 1 decimal place (`22.4x`); ROIC / ROE-type metrics may use 2 decimal places
-- Don't feign precision: round survey / estimate numbers to reasonable significant figures, e.g., `~$2bn` not `$2.13bn`, and mark `[ESTIMATE]` or cite the source
+| Script | Purpose |
+|---|---|
+| `workspace-summary.py` | Coverage overview |
+| `workspace-locate.py <kw>` | Find company/industry/background |
+| `workspace-validate-names.py` | Naming violation check |
+| `verify-runtime.py` | Dependency check |
+| `route.py <TICKER> <cap>` | Data routing |
 
 ---
 
 ## 4. Source Stance
 
-- Every factual statement, number, and quote must have a source link or clear source description.
-- Every truth-like claim defaults to using an inline clickable short anchor.
-- Every research artifact must end with a unified `## Resources` section.
+- Every claim, number, quote must have a source link
+- Default: inline clickable short anchor — `[S1](url)`
+- Footer: unified `## Resources`
 - Source quality follows two tracks:
-  - Disclosure-fact track: `topic-local evidence cache > primary public > Bridge > web`
-  - Market-snapshot track: `actuals market_data (fresh <180d) > Bridge > yfinance > WebSearch / WebFetch`
-- Within the same quality tier, prioritize `home-market / local-language source`.
-- `financial-data` CLI is source-of-record — writes `actuals-resolved.json` (structured financials + market_data snapshot); artifact financial data must come from actuals; Bridge is a snapshot supplement, not a replacement.
-- Bridge is the trusted third-party market data aggregation layer (current implementation: Longbridge MCP, covering US/HK/SH/SZ/SG). See §4.1 for details.
-- `internet source` only fills gaps in the market-snapshot track; it must not impersonate company-disclosed fact. Company/disclosure facts still prioritize `primary public`.
-
-The more complete claim-level source contract, fallback taxonomy, and skill-specific judgment / workflow delta are jointly determined by the invoked active skill and workspace hooks.
-
-### 4.1 Unified Data Routing (`route.py`)
-
-This workspace's data routing is managed by `capability-matrix.json`. The agent does **NOT manually evaluate priority chains** — instead, call `route.py` before each data request to receive the full chain, then execute in order.
-
-#### Routing Method
-
-```bash
-python .scripts/shared/route.py <TICKER.MARKET> <capability>
-```
-
-**Returns**: full fallback chain (JSON) with source / tool / params / available fields. Agent executes in `chain` order — first `available: true` source is used directly, no re-query needed on failure.
-
-**Common capabilities**:
-
-| Category | capability |
-|---|---|
-| Market real-time | `market_quote`, `price_action`, `price_intraday`, `price_history` |
-| Valuation | `valuation_snapshot`, `valuation_peer`, `valuation_history`, `valuation_rank`, `industry_valuation`, `industry_valuation_dist` |
-| Fundamentals | `financial_snapshot`, `financial_snapshot_detail`, `financial_statement`, `financial_report`, `business_segments` |
-| Consensus | `consensus`, `forecast_eps` |
-| Events | `news`, `filings`, `calendar` |
-| Shareholders/Mgmt | `shareholder`, `shareholder_top`, `executive` |
-| Institutional | `institution_rating`, `institutional_views` |
-| Market | `fx_snapshot`, `adr_ah_premium`, `broker_holding`, `market_temperature`, `top_movers`, `market_status`, `operating`, `short_positions` |
-| Structured | `income_statement`, `balance_sheet`, `cash_flow`, `revenue_split` |
-| Screening | `industry_peers`, `screener`, `market_screen` |
-
-**Full list**: `cat .references/routing/capability-matrix.json | python -c "import json,sys; d=json.load(sys.stdin); print('\n'.join(sorted(d['chains'].keys())))"`
-
-#### Agent Behavior
-
-1. Data request → `python .scripts/shared/route.py TICKER capability` → receive chain
-2. Chain first item → execute tool → success: use it; failure: next item
-3. All chain items fail → report `[UNVERIFIED]` + suggest `financial-data` CLI (if structured data needed)
-4. Writing an artifact → `/financial-data --lite` is skill Pipeline Step 1, NOT replaceable by route.py
-
-#### Error Handling
-
-- `route.py` returns workspace_not_found → web_search fallback
-- Chain source shows `available: false` → agent skips, reason field explains why
-- Bridge source (Longbridge MCP) unavailable → chain auto-skips, next source (yfinance) fills
-
-#### Architecture
-
-```
-capability-matrix.json  ← single source of truth (capability→source→priority)
-route.py                ← queries matrix + conditional checks (actuals exists/fresh)
-skill [→ Bridge: x]     ← marks capability name (unchanged — domain stays, routing from matrix)
-```
-
-Adding a new Bridge source only requires editing `capability-matrix.json` — skill markers and agent behavior remain unchanged.
+  - **Disclosure fact track**: `topic-local evidence cache > primary public > Bridge > web`
+  - **Market snapshot track**: `actuals market_data (fresh <180d) > Bridge > yfinance > WebSearch / WebFetch`
+- `financial-data` CLI is source-of-record → `actuals-resolved.json`; artifact financial data must come from actuals
+- Bridge = Longbridge MCP (US/HK/SH/SZ/SG), auto-fallback if unavailable
+- Full data routing table → `.references/routing/data-routing.md`
 
 ---
 
-## 5. Workspace Structure
+## 5. Output Style
 
-This workspace is organized around industry topics. Companies are subdirectories of their primary industry:
+> `LANG-default = zh` (Chinese). Override: user says "use English" / "用英文输出" → switch to English for this turn.
 
-```text
-industry/
-  <industry-slug>/
-    panorama/                 # Industry-level output (by skill)
-      teach-in/
-      industry-landscape/
-      mechanism-insight/
-      peer-deep-dive/
-      candidate-screener/
-      scenario-model/
-      consensus-map/
-      market-sizing/
-      other/                  # Non-skill industry analysis
-    companies/
-      <ticker>/               # Company deep-dive — one home per company
-        [YYYY-MM-DD]-*.md
-        _cache/
-    RESEARCH.md               # Industry overview + company registry
-    _cache/
-COVERAGE.md                   # Coverage source of truth (Research Tier / Alert Tier / Last Review / Next Trigger)
-```
+### 5.1 Directness
+- Conclusion first: give the judgment / verdict first, then evidence
+- No filler. If uncertain, say so and mark `[需查证]` (needs verification)
 
-Core constraints:
-- Company artifacts go in `industry/<industry>/companies/<ticker>/`
-- Industry-level artifacts go in `industry/<industry>/panorama/<skill-slug>/`
-- Non-skill industry analysis goes in `panorama/other/`
-- Cross-industry companies are registered as references in multiple industry `index.md` files; the files themselves do not move
-- `_cache/` stores source-tracked parsed materials, evidence packs, and structured data
-- Topic artifact naming is resolved uniformly by `new-session`
-- Workspace hooks are part of the runtime contract — do not manually edit or delete
+### 5.2 Data First
+- Judgments must have numbers + sources. No source = honest degrade
+- Data tables must have a takeaway
 
----
+### 5.3 Numbers, Currency, Dates
 
-## X. Shared Runtime Tools
-
-Shared tools under `.scripts/shared/`. All skills use these — do not reinvent.
-
-| Tool | Purpose | Usage |
+| Type | Format | Example |
 |---|---|---|
-| `verify-claim.py` | Source verification chain (Tier 1 HTTP→2 Playwright→3 curl→4 [UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
-| `download-image.py` | Image download (product, workspace-level cache, cross-skill shared) | `python .scripts/shared/download-image.py <url> --output <slug>` |
-| `verify-runtime.py` | One-click 12-item runtime dependency check | `python .scripts/verify-runtime.py` |
+| Thousands separator | Western | `1,234,567` |
+| USD | `$` prefix | `$24bn`, `$45m` |
+| Non-USD | ISO prefix | `JPY 3,200bn`, `CNY 12bn`, `KRW 4,500bn` |
+| Percentages | 1 decimal | `14.2%`; margins 2 decimals `28.45%` |
+| Multiples | 1 decimal | `22.4x`; ROIC can be 2 decimals |
+| bps | `bps` | `+45bps` |
+| pp | `pp` | `-3.1pp` |
+| Magnitude | `bn`/`m`/`k`/`tn` | never `B`/`M`/`K` |
+| Dates (prose) | Chinese | "2024 年 3 月" |
+| Dates (tables) | Abbreviated | `Mar '24`, `1Q24`, `FY24E` |
+| Precision | round to reasonable sig fig | `~$2bn` not `$2.13bn`; mark `[估算]` (estimated) |
 
-**Image rules**: Product: `<url> --output <slug>`. `browser_take_screenshot` is FORBIDDEN — hook CHECK 6a blocks it. `[missing]` only after all tiers exhausted.
-
-**Source verification rules**: Every `[I#]` source must pass at least Tier 1-2. `[UNVERIFIED]` only after all tiers fail.
-
-Full docs: `.references/runtime/research-runtime.en.md`.
-
----
-
-## 5.5 Plugin Built-In Capabilities
-
-Built into the buy-side-research-skills plugin. Available without invoking any skill.
-
-### Shared Scripts (`.scripts/`)
-
-| Script | Purpose | Usage |
-|---|---|---|
-| `shared/verify-claim.py` | Source verification chain (HTTP→Playwright→curl→[UNVERIFIED]) | `python .scripts/shared/verify-claim.py <url> --json` |
-| `shared/download-image.py` | Image download (product, workspace-level cache) | `<url> --output <slug>` |
-| `shared/verify-runtime.py` | One-click 12-item dependency check | `python .scripts/verify-runtime.py` |
-| `shared/web-extract.py` | Clean body text from web pages | `<url> [--markdown]` |
-| `shared/to-markdown.py` | Any file → markdown (PDF/Word/Excel/PPT/Web auto-routed) | `<file> [--cache <TICKER> <desc>]` |
-| `shared/pdf-extract.py` | PDF text + tables | `<file_or_url> [--smart] [--tables]` |
-| `financial-data/actuals-to-appendix.py` | Sell-side appendix from actuals-resolved.json | `--tickers T1,T2,...` |
-| `evidence_ledger.py` | Evidence ledger management | Track claim verification status |
-
-### Auto Hook Defense (`pre_write_gate` 14 CHECKS)
-
-Triggers automatically on every Write/Edit to a research artifact:
-
-| CHECK | What it blocks |
-|---|---|
-| 1 | Bare anchor ([S1] without URL) |
-| 2 | Double URL concatenation |
-| 3 | Non-standard inline labels |
-| 4 | Invalid Resources format |
-| 5 | Paragraph with ≥3 numbers but zero source anchors |
-| 6 | Referenced image not on disk |
-| 6a | `browser_take_screenshot` used instead of download-image.py |
-| 7 | `[missing]` with no download attempt recorded |
-| 8 | `[需查证]` count exceeds 8 |
-| 9 | Pipeline header mismatches body |
-| 10 | Actuals data older than 180 days |
-| 11 | Evidence verification coverage <80% |
-| 12 | Invalid Mermaid diagram type (e.g., `scatterchart`) |
-| 13 | Table column mismatch / missing separator / >12 columns |
-| 14 | Artifact has segment/split data but actuals lacks revenue_split |
-
-### Other Auto Hooks
-
-| Hook | Trigger | Checks |
-|---|---|---|
-| `source_contract` | PostToolUse / Stop | Source anchor integrity |
-| `table_render_integrity` | PostToolUse | Table structure validity |
-| `mermaid_syntax` | PostToolUse | Mermaid diagram type |
-| `skill_structure_contract` | PostToolUse | Required sections present |
-| `evidence_ledger_floor` | Stop | Verification coverage ≥80% |
-| `workspace_guard` | PreToolUse | No artifacts outside workspace |
-
-### Data Pipeline
-
-| Operation | Command |
-|---|---|
-| Fetch financials (lite) | `/financial-data --lite <TICKER>` |
-| Fetch multi-period | `/financial-data --lite <TICKER> --periods 3Y` |
-| Check runtime | `python .scripts/verify-runtime.py` |
-| Update plugin + sync | `/update-agent-runtime` |
-
-### Actuals ↔ Artifact Sync Rule
-
-> When any field in `actuals-resolved.json` is updated, **MUST** find all artifacts referencing that ticker and sync numbers, conclusions, and valuations.
-
-- **Trigger**: actuals-resolved.json modified via Write/Edit or external script
-- **Process**:
-  1. Note which fields changed (e.g., `ebit: 225 → 350`)
-  2. `grep -r "<ticker>" industry/*/companies/` to find all artifacts referencing that ticker
-  3. Scan each file: does it use the modified field? → if yes, sync numbers, narrative, and valuation
-  4. Validate after write: artifact numbers must be recalculable from actuals-resolved.json
-- **Related**: source verification discipline (`.references/runtime/research-runtime.en.md` §2.2)
-
-### Image Rules
-
-- Product: `download-image.py <url> --output <slug>`
-- `browser_take_screenshot` is **FORBIDDEN** — hook CHECK 6a blocks it
-- `[missing]` only allowed after all tiers (HTTP→Playwright) exhausted
-
-### Source Verification Rules
-
-- Every `[I#]` source must pass at least Tier 1-2
-- Tier chain: HTTP GET → Playwright MCP (`browser_navigate`+`browser_snapshot`) → curl → [UNVERIFIED]
-- `[UNVERIFIED]` only after all tiers fail
-
-### Reference Files
-
-`.references/runtime/research-runtime.en.md` (5-chain full docs), `.references/policy/` (baseline), `.references/kpi-drivers/` (KPI templates).
-
-### Research Memory System
-
-Every industry and company directory has a `RESEARCH.md` (fixed uppercase name) recording four layers of information:
-1. **Source Map** — URLs and local cache paths for all key disclosures / third-party files
-2. **Thesis State** — Current long/short lean, core assumptions and verification status
-3. **Fact Baseline** — Speed card (5-8 numbers the thesis tracks) + full fact table + overturned beliefs
-4. **Research Trail** — Completed artifacts, next 5 questions, excluded directions, last-read position
-
-**Auto-load**: Thin cards in `.memory/research/` are auto-generated by `generate-memory-cards.py` from RESEARCH.md, injected into CC session context at startup.
-
-**Agent behavior**:
-- New session mentioning a company/ticker → `Read` the company RESEARCH.md + industry RESEARCH.md first
-- After each artifact → Update the corresponding RESEARCH.md's relevant section (≤5 minutes, incremental)
-- Hook reminds after artifact write, but agent is ultimately responsible
-- RESEARCH.md is overwrite-update (not append), keeping only latest state
-
-### Coverage Maintenance
-
-After any skill produces an artifact about a company, agent auto-updates COVERAGE.md.
-
-**Coverage tiers** (filesystem-based, no memory reliance):
-- `Core Coverage`: alpha-thesis / deep-work ≥2 / deep-work ≥1 + full model
-- `Building Coverage`: stock-quickread / driver-map / ≥1 deep-work artifact
-- `Radar`: company dir exists but no qualifying artifact
-- Last Review > 90 days → flag for downgrade, do not auto-downgrade
-
-**Monitor frequency**: Core → Core Watch | Building/Radar → Daily Watch
-
-**Trigger**: agent writes artifact → update COVERAGE.md. Monitor script verifies from filesystem before daily report as safety net.
-
-### 5.6 Data Landing Rule
-
-Any company-level data discovered during research — regardless of source, format, or tool used — MUST be landed in that company's `actuals-resolved.json`.
-
-Sources can be: provider pipeline / yfinance / Bridge / Playwright scraping / PDF manual extraction / Quartr earnings call summaries / WebSearch / any other method.
-
-How: `Read` current actuals → append data under `_supplement` key → `Edit` to write back.
-
-Must `Read` actuals before `Edit` — old_string contains the current `_supplement` full text, preventing overwrites.
-
-Before writing an artifact involving a company, every number in that artifact for that company must be recalculable from its `actuals-resolved.json`. If it can't be traced back, don't write it.
-
-Each company's `actuals-resolved.json` is the single source of data truth in this workspace.
+Keep English for: tickers, financial ratios, currency codes, jargon. Company names: use Chinese if available.
 
 ---
 
-## 6. Routing Stance
+## 6. Pipeline Contract
 
-Skills are decision tools, not decorative templates.
+The following rules apply to all pipeline steps of every skill. Non-negotiable, no bypass.
 
-High-level routing hints:
-- Zero-baseline physical intuition → `teach-in`
-- Unfamiliar company first pass → `stock-quickread`
-- Full industry picture / investment judgment → `industry-landscape`
-- Business / segment / disclosure history → `company-history`
-- Industry mechanism / engineering principles / equipment chains → `mechanism-insight`
-- Market sizing / TAM estimation → `market-sizing`
-- Revenue / margin / backlog / price-volume-mix drivers → `driver-map`
-- Market expectations / priced-in / variant-view gap → `consensus-map`
-- Scenario-based L/S ranking → `candidate-screener`
-- Cross-market peer comparison → `peer-deep-dive`
-- Competitive barrier quantification → `moat-analysis`
-- Catalyst timeline → `catalyst-map`
-- Management capital allocation → `capital-allocation`
-- Bull/base/bear odds memo / assumption tracing → `scenario-model`
-- Pre-earnings setup → `earnings-setup`
-- Post-earnings quick verdict → `post-earnings-quick`
-- L/S pair → `pair-trade`
-- Financial statements / structured actuals → `financial-data`
-- Model / DCF / comps → `3-statement-model` / `dcf-model` / `comps-analysis`
-- Track coverage state → `coverage-tracker`
-- Generate daily coverage briefs / intraday alerts → `coverage-monitor`
-- Capture earned insights → `research-journal`
-- Upgrade plugin / sync workspace → `update-agent-runtime`
+1. **Pipeline steps are mandatory**: Every step defined by a skill is required. The Agent has no authority to deem a step "unnecessary" or "skippable." Execute all, without exception.
 
-For specific procedures, fallback boundaries, and parallel strategies, the invoked skill governs.
+2. **Step failure → report + STOP**: Any step error — Agent must report the specific error message and stop. No inventing alternatives, no silent degradation, no substituting "similar" tools. Alternatives require explicit reporting to the user and waiting for approval.
 
-### Workflow Execution Discipline
+3. **Preconditions must be verified**: Before starting the next step, confirm the previous step's output actually exists. Do not assume "it should be done."
 
-The following rules apply to ALL skill pipeline steps. Non-negotiable. Cannot be bypassed.
+4. **Tools are not substitutable**: The script/command specified by a skill is the only execution path. Do not use browser_take_screenshot instead of download-image.py, do not use WebSearch instead of verify-claim.py, do not hand-write markdown instead of evidence_ledger.py.
 
-1. **Pipeline steps are NOT optional**: Every step defined in a skill is mandatory. Agent has no authority to judge a step as "unnecessary" or "skippable." Execute ALL, without exception.
+5. **No premature "not worth it" judgment**: An executing skill must run to completion. Do not terminate mid-execution because "this company isn't interesting" or "this industry is too small." You may conclude it's not worth it in the output — but not during execution.
 
-2. **Step failure → Report + STOP**: If any step errors, Agent MUST report the specific error and STOP. Do NOT invent workarounds, do NOT silently downgrade, do NOT substitute with "similar" tools. If an alternative is needed, explicitly report to the user and wait for approval.
+6. **Sub-agents inherit parent constraints**: When dispatching sub-tasks, the prompt must include: "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
 
-3. **Preconditions MUST be verified**: Before starting the next step, confirm that the previous step's output actually exists. Do not assume "it should be done." If Step 2 requires actuals-resolved.json, Read the file after Step 1 and verify it exists and is not empty.
+7. **Re-read skill after compact/summary**: After context compaction, the Agent does not know which steps were completed. Before continuing work, re-read the current skill's SKILL.md in full.
 
-4. **Tools are NOT substitutable**: The script/command specified by a skill is the ONLY execution path. Do NOT use browser_take_screenshot instead of download-image.py, do NOT use WebSearch instead of verify-claim.py, do NOT hand-write markdown instead of evidence_ledger.py.
-
-5. **Do NOT pre-judge that a company/industry is "not worth it"**: Complete the current skill before passing judgment. You can say "not worth it" in the conclusion — but not during execution.
-
-6. **Sub-agents inherit parent constraints**: When using the Agent tool, the prompt MUST include: "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
-
-7. **After compaction, re-read the Skill**: After conversation summarization, the Agent does not know which steps have been completed. Before continuing, re-Read the current skill's SKILL.md + Capsule-referenced files.
-
-8. **Best-effort ≠ Optional**: Steps marked best-effort MUST still be attempted. Only skip after a genuine attempt that failed, and only after reporting the failure.
+8. **Best-effort ≠ Optional**: Steps marked best-effort must still be attempted. They may only be skipped after genuinely failing and reporting to the user.
 
 ---
 
-## 7. UTF-8 Text Discipline
+## 7. Workspace Structure
 
-All Chinese or multilingual text files must use **UTF-8 without BOM**.
-
-- `.md` / `.yaml` / `.json` defaults to UTF-8 without BOM.
-- When modifying Chinese files, explicitly write back as UTF-8.
-- Batch scripts rewriting text must specify UTF-8 to avoid mojibake.
+```
+industry/<Industry>/
+  panorama/<skill>/          ← industry research
+  companies/<TICKER>-<Name>/ ← company research
+    YYYYMMDD-[skill]-[Company].md
+    .cache/
+COVERAGE.md                  ← coverage status
+```
 
 ---
 
-## 8. Boundary
+## 8. UTF-8
 
-- This file serves the user research workspace.
-- Plugin development governance is maintained in the plugin dev repo root `CLAUDE.md`, not expanded here.
+All `.md`/`.yaml`/`.json` must be UTF-8 without BOM.
 
 ---
 
-## 9. Multi-Machine Sync
+## 9. Multi-Machine Sync (Optional)
 
-This workspace supports switching between multiple machines (e.g., desktop + laptop). These rules prevent environment drift and data loss.
+Enable when switching between multiple computers. Single-machine users skip.
 
-### 9.1 New Machine Initialization
+See `python .scripts/sync/setup.py` for details.
 
-When setting up a new machine, execute in order:
+---
 
-1. Install Python 3.12+, Node.js 18+, Chrome
-2. Enable Chrome remote debugging: `chrome://inspect/#remote-debugging` → Allow
-3. Clone workspace repo + pull: `git clone <workspace-repo> && cd <workspace> && git pull`
-4. Clone plugin source + pull: `git clone <plugin-repo> && cd <plugin> && git pull`
-5. Run init: `/init-workspace`
-6. **Wait for OneDrive sync to complete** (system tray icon stops spinning) — otherwise sessions are incomplete
-7. Run runtime check: `python .scripts/verify-runtime.py` (auto-installs missing dependencies)
-8. **Run session sync setup**: `python .scripts/sync/setup.py` (creates junction to OneDrive `.sessions/`)
-9. Manually configure machine-local files (see §9.6)
-
-### 9.2 Dual Repo Discipline
-
-The workspace and plugin source are **two independent git repos**. Shared script changes must be handled on both sides:
-
-```
-workspace s:/                    plugin source (path varies)
-├── .scripts/shared/*.py   ←→   skills/init-workspace/assets/.scripts/
-└── CLAUDE.md              ←→   CLAUDE.md.template
-```
-
-Process: modify workspace first → verify → sync to plugin source → commit + push. Never modify only one side.
-
-### 9.3 Switch-Machine Workflow
-
-```
-Before leaving: git push (both workspace + plugin source)
-                Close Claude Code normally (triggers Stop hook → conflict cleanup)
-After arriving: git pull (both sides)
-                Wait for OneDrive sync to complete
-                python .scripts/sync/setup.py  # first time only; skip if already set up
-                python .scripts/verify-runtime.py
-                Chrome → chrome://inspect → confirm Allow is checked
-```
-
-### 9.4 Python Path Compatibility
-
-Python installation paths may differ across machines (system install, Anaconda, Microsoft Store, etc.). `browser-cdp.py` and `verify-runtime.py` use `pip show` for dynamic path discovery. If `browser-harness not found`:
-
-```bash
-python -m pip show browser-harness  # confirm installed and path
-python .scripts/shared/browser-cdp.py check  # quick diagnosis
-```
-
-### 9.5 Session Sync Mechanism
-
-Claude Code writes conversation history to `~/.claude/projects/<workspace-hash>/` (one `.jsonl` per session). `setup.py` replaces the hash directory with a **Windows junction** (or macOS symlink) pointing to the workspace `.sessions/` (inside OneDrive), so all machines share the same session files.
-
-```
-~/.claude/projects/<workspace-hash>/  ——→  .sessions/ (OneDrive synced)
-```
-
-**Daily use**: Nothing required. Opening CC automatically reads/writes sessions in OneDrive.
-
-**Conflict handling**: If two machines have CC open simultaneously, OneDrive may produce `<file>-<MACHINE>.jsonl` conflict copies. The Stop hook (`session_conflict_clean.py`) auto union-merges unique lines → writes back to base file → deletes the conflict copy. Normal use (close one machine before opening the other) won't produce conflicts.
-
-**First-time setup**: `python .scripts/sync/setup.py` (`--dry-run` to preview without changes).
-
-### 9.6 Machine-Local Config Files (Manual Migration Required)
-
-The following files are **NOT in git/OneDrive** — they contain API tokens or machine-specific paths and must be manually configured when switching machines:
-
-| File | Content | Migration |
-|---|---|---|
-| `~/.claude/settings.json` | API tokens, model routing, effort level, plugin marketplace | Copy from old machine, fill in tokens |
-| `~/.claude/envs.json` | API provider presets (with auth tokens) | Copy from old machine, fill in tokens |
-| `~/.claude/mcp.json` | Playwright MCP server config | Copy from old machine, adjust executable path |
-| `~/.claude/npx-wrapper.cmd` | npx wrapper script (Windows) | Copy directly |
-| `~/.gitconfig` | git user.name / user.email | `git config --global user.name/email "..."` |
-
-> ⚠️ Files containing tokens must **NOT** be synced via git or public cloud storage. Use encrypted transfer (Bitwarden Send, self-encrypted zip) or manually copy and fill in tokens.
-
-### 9.7 Common Problems
-
-| Symptom | Cause | Solution |
-|---|---|---|
-| CDP connection failure | Chrome remote debugging not enabled | `chrome://inspect` → Allow |
-| `browser-harness not found` | pip path not in search list | `pip show` has fallback; manually install if still failing |
-| `npm ERR! npx` related | Node.js not installed or version too low | Install Node.js ≥18 |
-| git identity auto-generated | New machine without user.name/email set | `git config --global user.name/email` |
-| Session history empty | Junction not established | `python .scripts/sync/setup.py` |
-| OneDrive conflict files | Two machines had CC open simultaneously | Stop hook auto-merge cleanup; normal switching won't trigger |
-| Plugin version mismatch | New machine plugin cache outdated | Run `/update-agent-runtime` |
-| `setup.py` can't find `.sessions/` | OneDrive sync not yet complete | Wait for system tray OneDrive icon to stop spinning |
+- This file serves the research workspace. For plugin development, see the repo root `CLAUDE.md`.
+- Detailed rule references:
+  - Language / translation / company names / search language → `.references/style/language-guide.md`
+  - Data routing full table / decision tree → `.references/routing/data-routing.md`
+  - Research policy baseline → `.references/policy/research-policy-baseline.md`
+  - References index → `.references/README.md`

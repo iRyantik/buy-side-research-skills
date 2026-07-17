@@ -24,12 +24,15 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
 GITHUB_API = "https://api.github.com/repos/iRyantik/buy-side-research-skills/releases/latest"
 PLUGIN_NAME = "buy-side-research-skills"
+PLUGIN_DIRS = [".claude-plugin", ".codex-plugin", "skills"]  # only these go into cache
+CACHE_TTL_DAYS = 30  # auto-delete orphaned versions older than this
 CLAUDE_CACHE = Path.home() / ".claude" / "plugins" / "cache" / PLUGIN_NAME / PLUGIN_NAME
 CODEX_CACHE = Path.home() / ".codex" / "plugins" / "cache" / PLUGIN_NAME / PLUGIN_NAME
 CODEX_SKILLS = Path.home() / ".codex" / "plugins" / "cache" / PLUGIN_NAME / "skills"
@@ -118,14 +121,66 @@ def fetch_latest() -> tuple[str, Path]:
 
 # ── cache update ──────────────────────────────────────────────
 
-def update_host.cache(payload: Path, version: str, cache_dir: Path, host_name: str):
-    """Copy plugin payload into host cache directory."""
+def _is_version_dir(path: Path) -> bool:
+    """Check if a directory looks like a plugin version dir (semver-ish name)."""
+    if not path.is_dir():
+        return False
+    # skip dot-dirs (.DS_Store etc) and non-semver names
+    name = path.name
+    if name.startswith("."):
+        return False
+    parts = name.split(".")
+    return len(parts) >= 2 and all(p.isdigit() for p in parts)
+
+
+def update_host_cache(payload: Path, version: str, cache_dir: Path, host_name: str):
+    """Copy only plugin essentials into host cache, set .in_use, manage old versions."""
     ver_dir = cache_dir / version
     if ver_dir.exists():
         shutil.rmtree(ver_dir)
     ver_dir.mkdir(parents=True)
-    _log(f"Copying to {host_name} cache: {ver_dir}")
-    shutil.copytree(payload, ver_dir, dirs_exist_ok=True)
+
+    # Copy only the three plugin directories (not leaked workspace files)
+    for sub in PLUGIN_DIRS:
+        src = payload / sub
+        if src.is_dir():
+            shutil.copytree(src, ver_dir / sub, symlinks=True)
+            _log(f"  {sub}/")
+
+    # Mark as active
+    (ver_dir / ".in_use").touch()
+    _log(f"Copied to {host_name} cache: {ver_dir}")
+
+    # Manage old versions
+    _manage_old_versions(cache_dir, version)
+
+
+def _manage_old_versions(cache_dir: Path, current_version: str):
+    """Deactivate old versions, clean up expired orphans."""
+    now = datetime.now(timezone.utc)
+    for entry in cache_dir.iterdir():
+        if not _is_version_dir(entry):
+            continue
+        if entry.name == current_version:
+            continue
+
+        # Deactivate: remove .in_use, touch .orphaned_at
+        in_use = entry / ".in_use"
+        if in_use.exists():
+            in_use.unlink()
+        orphaned_at = entry / ".orphaned_at"
+        if not orphaned_at.exists():
+            orphaned_at.write_text(now.isoformat(), encoding="utf-8")
+
+        # Clean up expired orphans
+        try:
+            ts = datetime.fromisoformat(orphaned_at.read_text(encoding="utf-8").strip())
+            age_days = (now - ts).days
+            if age_days > CACHE_TTL_DAYS:
+                _log(f"Removing expired cache: {entry.name} (orphaned {age_days}d ago)")
+                shutil.rmtree(entry)
+        except (ValueError, OSError):
+            pass
 
 
 def update_marketplace_pointers(version: str):
@@ -139,7 +194,6 @@ def update_marketplace_pointers(version: str):
             for entry in data["plugins"][key]:
                 entry["version"] = version
                 entry["installPath"] = str(CLAUDE_CACHE / version)
-                from datetime import datetime, timezone
                 entry["lastUpdated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
             with open(INSTALLED_PLUGINS, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
@@ -277,13 +331,13 @@ def main():
     # 2. Update host caches
     hosts_updated = []
     if _host_installed(CLAUDE_CACHE):
-        update_host.cache(payload, version, CLAUDE_CACHE, "Claude Code")
+        update_host_cache(payload, version, CLAUDE_CACHE, "Claude Code")
         hosts_updated.append("Claude Code")
     else:
         _log("Claude Code not installed, skipping")
 
     if _host_installed(CODEX_CACHE):
-        update_host.cache(payload, version, CODEX_CACHE, "Codex")
+        update_host_cache(payload, version, CODEX_CACHE, "Codex")
         hosts_updated.append("Codex")
     else:
         _log("Codex not installed, skipping")
