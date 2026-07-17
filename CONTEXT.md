@@ -67,3 +67,22 @@ The `topics/<namespace>/<slug>/` structure added an unnecessary container layer.
 |---|---|---|---|
 | Mycronic (MYCR SS) | optical-module-equipment | pcb-equipment | ATG bare board testing, GT PCB test |
 | Keysight (KEYS US) | optical-module-equipment | pcb-equipment | ICT bed-of-nails, TDR modules |
+
+## Cache Layouts
+
+financial-data canonical company cache:
+```
+industry/<industry>/companies/<ticker>/.cache/financial-data/
+  financials.normalized.json
+  actuals-resolved.json
+  evidence-pack.json
+  source-map.json
+  completeness.json
+```
+
+driver-map canonical company cache:
+```
+industry/<industry>/companies/<ticker>/.cache/driver-map/
+  driver-map.md
+  internal/driver-map.json
+```
