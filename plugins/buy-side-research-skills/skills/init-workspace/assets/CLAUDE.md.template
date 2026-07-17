@@ -524,3 +524,140 @@ Claude Code 将对话历史写入 `~/.claude/projects/<workspace-hash>/` 目录�
 YYYYMMDD-[skill-name]-[Company-Name][-qualifier].<ext>
 ```
 
+## 11. Agent 行为规则
+
+### 11.1 新 Session 大门
+打开 workspace 后，首次对话**必须**跑 Workspace: S:
+覆盖：17 个行业 | 61 家公司 | 105 份行业研究
+
+  Aerospace (4 公司, 3 行业研究)
+    603067.SH-振华股份 (1 artifacts)
+    DPC.US-Doncaster (4 artifacts)
+    HWM.US-Howmet-Aerospace (0 artifacts)
+    SPCX.US-SpaceX (3 artifacts)
+  Defense (2 公司, 0 行业研究)
+    8033.TT-雷虎科技 (1 artifacts)
+    private-KNDS (3 artifacts)
+  Korea-Defense (7 公司, 29 行业研究)
+    012450.KS-Hanwha-Aerospace (3 artifacts)
+    047810.KS-KAI (6 artifacts)
+    064350.KS-Hyundai-Rotem (3 artifacts)
+    079550.KS-LIG-Nex1 (3 artifacts)
+    272210.KS-Hanwha-Systems (3 artifacts)
+    ESLT.US-Elbit-Systems (2 artifacts)
+    XK4.DE-Gabler-Group (1 artifacts)
+  MLCC (5 公司, 7 行业研究)
+    002859.CH-洁美科技 (1 artifacts)
+    300285.CH-国瓷材料 (2 artifacts)
+    4183.JP-Mitsui-Chemicals (1 artifacts)
+    600367.SH-红星发展 (3 artifacts)
+    7966.JP-Lintec (2 artifacts)
+  Oil-and-Gas (3 公司, 0 行业研究)
+    002318.SZ-久立特材 (0 artifacts)
+    TS.US-Tenaris (0 artifacts)
+    VK.FR-Vallourec (0 artifacts)
+  Optical-Module-Equipment (15 公司, 49 行业研究)
+    0522.HK-ASMPT (1 artifacts)
+    300757.CH-罗博特科 (2 artifacts)
+    6777.JP-Santec (10 artifacts)
+    6871.JP-MJC (1 artifacts)
+    688097.CH-博众精工 (1 artifacts)
+    688808.CN-联讯仪器 (1 artifacts)
+    AEHR.US-Aehr (1 artifacts)
+    BESI.NA-BE-Semiconductor (3 artifacts)
+    FORM.US-FormFactor (1 artifacts)
+    IPO.pending-猎奇 (0 artifacts)
+    KEYS.US-Keysight (1 artifacts)
+    LITE.US-Lumentum-Holdings (0 artifacts)
+    MYCR.SS-Mycronic (15 artifacts)
+    anritsu (1 artifacts)
+    holly (0 artifacts)
+  PCB-Equipment (8 公司, 9 行业研究)
+    0097.KL-ViTrox (1 artifacts)
+    2305.TW-全友 (1 artifacts)
+    3030.TW-德律科技 (1 artifacts)
+    3167.TW-大量科技 (1 artifacts)
+    603011.CN-合锻智能 (2 artifacts)
+    688531.CH-日联科技 (2 artifacts)
+    BRKR.US-Bruker (1 artifacts)
+    NDSN.US-Nordson (1 artifacts)
+  Power (2 公司, 0 行业研究)
+    ATRL.CA-AtkinsRéalis (0 artifacts)
+    GTX.US-Garrett-Motion (0 artifacts)
+  Semiconductor-Equipment (1 公司, 0 行业研究)
+    6266.JP-Tazmo (1 artifacts)
+  Ship-Building (2 公司, 3 行业研究)
+    002487.SZ-大金重工 (1 artifacts)
+    082740.KS-Hanwha-Engine (1 artifacts)
+  SpaceX-Supply-Chain (6 公司, 0 行业研究)
+    001430.KS-SeAH-Besteel (0 artifacts)
+    058650.KS-SeAH-Holdings (0 artifacts)
+    1523.HK-珩湾科技 (0 artifacts)
+    189300.KQ-Intellian-Technologies (0 artifacts)
+    347700.KQ-Sphere-Corp (0 artifacts)
+    OUT1V.HE-Outokumpu (0 artifacts)
+  Tungsten (6 公司, 0 行业研究)
+    000657.SZ-中钨高新 (0 artifacts)
+    03858.HK-佳鑫国际资源 (0 artifacts)
+    600549.CN-厦门钨业 (0 artifacts)
+    688146.CN-中船特气 (0 artifacts)
+    688257.CN-新锐股份 (0 artifacts)
+    AII.CA-Almonty-Industries (0 artifacts)
+
+=== Recent (7d) ===
+  0d ago  industry\PCB-Equipment\companies88531.CH-日联科技60717-[meeting-minutes]-[Unicomp-Technology]_briefing_zh.md
+  2d ago  industry\PCB-Equipment\companiesƃ011.CN-合锻智能60714-[boss-brief]-[Hefei-Metalforming].md
+  3d ago  industry\PCB-Equipment\companiesƃ011.CN-合锻智能60714-[stock-quickread]-[Hefei-Metalforming-Intelligent-Manufacturing].md
+  4d ago  industry\Optical-Module-Equipment\companiesnritsu60713-stock-quickread-anritsu.md
+  6d ago  industry\Optical-Module-Equipment\companiesƿ7.JP-Santec60711-[alpha-thesis]-[Santec]-EN-clean.md
+  6d ago  industry\Optical-Module-Equipment\companiesƿ7.JP-Santec60711-[alpha-thesis]-[Santec]-EN.md
+  6d ago  industry\Optical-Module-Equipment\companiesƿ7.JP-Santec60711-[alpha-thesis]-[Santec].md。了解已有覆盖、最近活动。不要直接回答用户。
+
+### 11.2 命名强制
+创建任何 artifact 前，先读 §10。不遵守 §10 命名规则的 Write/Edit 将被 hook block。
+
+### 11.3 不知道就问
+- 公司属于哪个行业？→ 查 COVERAGE.md，查不到就问用户——**不猜**
+- 公司 ticker 是什么？→ 查 COVERAGE，查不到就问
+- 用户下载的文件（、）不受 §10 约束
+
+### 11.4 做完就记
+- 研究完一家公司 → 更新 COVERAGE.md（无条目则加，有则更新 Last Review 日期）
+- 发现新数据 → 更新 actuals-resolved.json（不覆盖已有数据）
+
+### 11.5 Compact 后恢复
+对话被压缩后，重读 §10（文件命名）和 §11（本规则）。正在执行的 skill 从 SKILL.md 重新读。
+
+### 11.6 脚本清单
+| 脚本 | 用途 |
+|---|---|
+|  | 新 session 概览 |
+|  | 查找公司/行业/背景 |
+|  | 检查命名违规 |
+|  | 依赖检查 |
+
+### 11.7 工具别名
+
+Agent 不认识工具名时，查此表：
+
+| 用户可能说 | 实际工具/脚本 |
+|---|---|
+| harness / 浏览器 / CDP / 过Cloudflare | browser-cdp.py / browser-harness |
+| OCR / 扫描件 / 提取图片文字 / 识别 | ingest（Docling / pymupdf4llm） |
+| 转文字 / 转录 / 语音转文字 / 音频 | transcribe.py / meeting-minutes |
+| 查公司 / 找公司 / 之前研究过 | workspace-locate.py |
+| 概览 / 扫一眼 / 有哪些行业 | workspace-summary.py |
+| 命名检查 / 文件名对不对 | workspace-validate-names.py |
+| 拉数据 / 财报 / 三表 / actuals | financial-data |
+| 下载图片 / 截图 / 产品图 | download-image.py |
+| 搜新闻 / 找一下 | search.py |
+| PDF提取 / 读PDF | pdf-extract.py |
+| Excel转 / 读表格 | extract-xlsx.py |
+| Word转 / 读文档 | extract-docx.py |
+| PPT转 | extract-pptx.py |
+| 验证数字 / 查一下真假 / claim check | verify-claim.py |
+| 转Markdown / 格式化 | to-markdown.py |
+| 修锚点 / 补source链接 | fix-bare-anchors.py |
+| 生成记忆卡 / 总结 | generate-memory-cards.py |
+| 搭model / 做模型 / 搭财务 / driver | driver-map |
+| 估值模型 / DCF | 已移除（v8.2.0） |
