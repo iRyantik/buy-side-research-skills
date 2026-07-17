@@ -190,7 +190,7 @@ linter 报错 → 修到 pass 才交付。
 
 ## 6. Model Sub-Agent Protocol
 
-- `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
+- `driver-map` and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
 - Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
 - Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
 - Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.

@@ -23,7 +23,7 @@ Map consensus buy-side bar priced-in assumptions revisions and variant-view gaps
 
 Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：可见的 sell-side consensus、不可见但可推断的 buy-side bar、以及价格 / 估值 / 仓位已经隐含的 assumptions。三者不一致时，机会或风险通常就在缝里。
 
-本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-landscape` 的 first-pass，不替代 `3-statement-model / dcf-model / comps-analysis / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
+本 skill 是 foundation layer。它不替代 `stock-quickread` / `industry-landscape` 的 first-pass，不替代 `driver-map / model-update` 的 reverse DCF 和详细建模，也不替代 `earnings-setup` 的 print-specific bar。它负责在 thesis 之前把"共识到底是什么"拆清楚。
 
 ## 触发场景
 
@@ -41,7 +41,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 - 只是陌生行业 / 主题 first-pass：先用 `industry-landscape`。
 - 要写完整 long / short thesis、catalyst、kill criteria：用 `alpha-thesis`。
 - 要做财报前后 print bar、implied move、beat / miss setup：用 `earnings-setup`。
-- 要量化 reverse DCF、三表、comps、scenario valuation：用 `3-statement-model / dcf-model / comps-analysis / model-update`。
+- 要量化 reverse DCF、三表、comps、scenario valuation：用 `driver-map / model-update`。
 - 要拆公司 / segment / disclosed KPI 到 revenue / margin driver：用 `driver-map`。
 
 ## 输入澄清要求
@@ -123,7 +123,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Margin | [mix / pricing / utilization] | [KPI] | [S1](./.cache/sources/consensus-pack.md) | `driver-map` |
 
 正文 claim 示例：`Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](./.cache/sources/consensus-pack.md)`
-| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `driver-map / model-update` |
 
 ## 6. Where Consensus Could Be Wrong
 
@@ -143,7 +143,7 @@ Consensus 不等于 sell-side EPS。真正会影响仓位的是三层东西：�
 | Finding | Next step |
 |---|---|
 | Variant gap is clear and driver support exists | `alpha-thesis` |
-| Price-implied assumptions need quantification | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| Price-implied assumptions need quantification | `driver-map / model-update` |
 | Next print bar / implied move matters | `earnings-setup` |
 | Revenue / margin / KPI mapping unclear | `driver-map` |
 | Mechanism / value-capture premise unclear | `mechanism-insight` |
@@ -234,7 +234,7 @@ flowchart TD
 - Debate map 是通用 SWOT，不是当前市场实际争论的 KPI / event / assumption。
 - 直接写成完整 `alpha-thesis`，包含 position sizing、kill criteria 或 scenario returns。
 - print-specific bar 明显是核心问题却不路由 `earnings-setup`。
-- reverse DCF / implied CAGR 需要模型却硬算成精确结论；应 handoff `3-statement-model / dcf-model / comps-analysis / model-update`。
+- reverse DCF / implied CAGR 需要模型却硬算成精确结论；应 handoff `driver-map / model-update`。
 - revenue / margin / backlog / KPI 到 model driver 不清，却不 handoff `driver-map`。
 - 表格没有 takeaway，或 takeaway 复述表格。
 - 下一步问题空泛，不能被具体 source / dataset / filing 回答。

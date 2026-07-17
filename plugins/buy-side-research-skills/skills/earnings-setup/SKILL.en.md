@@ -160,13 +160,13 @@ Post-print must explicitly state whether the research judgment has changed, not 
 | Output Field | Allowed Values | Description |
 |---|---|---|
 | `research_update` | `none` / `refresh_required` / `thesis_weakened` / `thesis_strengthened` | Whether research views or related thesis need to be updated or rewritten |
-| `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | Whether `3-statement-model / dcf-model / comps-analysis / model-update` needs to be triggered |
+| `model_update` | `no` / `actuals_only` / `driver_change` / `assumption_change` | Whether `driver-map / model-update` needs to be triggered |
 | `journal_handoff` | `no` / `research-journal` / `boss-brief` | Whether a judgment increment worth crystallizing or showing the boss has been formed |
 | `_trigger` | `no` / `yes` | Whether a high-value question has been exposed that needs `` to unpack further |
 | `mechanism_map_trigger` | `no` / `yes` | Whether `mechanism-insight` needs to be triggered due to equipment chains, engineering constraints, capacity units, process flows, or know-how gaps |
 | `driver_map_trigger` | `no` / `yes` | Whether `driver-map` needs to be triggered due to changes in segments, KPI definitions, backlog, orders, margin, price / volume / mix |
 
-If earnings expose strange signals in disclosure definitions, drivers, margins, or source conflicts, call them out directly per the Senior Analyst Radar. If the surprise is a mechanism / know-how issue, trigger `mechanism-insight` first; if the numbers change revenue / margin / backlog / price-volume-mix definitions, trigger `driver-map` first; if already in model-update territory, trigger `3-statement-model / dcf-model / comps-analysis / model-update`.
+If earnings expose strange signals in disclosure definitions, drivers, margins, or source conflicts, call them out directly per the Senior Analyst Radar. If the surprise is a mechanism / know-how issue, trigger `mechanism-insight` first; if the numbers change revenue / margin / backlog / price-volume-mix definitions, trigger `driver-map` first; if already in model-update territory, trigger `driver-map / model-update`.
 
 ---
 

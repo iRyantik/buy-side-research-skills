@@ -114,20 +114,20 @@
 | 估值历史/分位 | valuation_history | `valuation_history`, `valuation_rank` |
 | 一致预期参照 | consensus, forecast_eps | `consensus`, `forecast_eps` |
 
-## comps-analysis
+## driver-map
 
 | Section | Bridge Domain | MCP Tool |
 |---|---|---|
 | Peer multiples | valuation_peer, industry_valuation | `valuation_comparison`, `industry_valuation` |
 | Market data | market_quote | `quote` |
 
-## dcf-model
+## driver-map
 
 | Section | Bridge Domain | MCP Tool |
 |---|---|---|
 | Terminal check / 交叉验证 | consensus | `consensus` |
 
-## 3-statement-model
+## driver-map
 
 | Section | Bridge Domain | MCP Tool |
 |---|---|---|

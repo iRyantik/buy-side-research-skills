@@ -390,7 +390,7 @@ skill 是决策工具，不是装饰性模板。
 - 财报后快速判断 -> `post-earnings-quick`
 - LS pair -> `pair-trade`
 - 三表/结构化 actuals -> `financial-data`
-- 模型 / DCF / comps -> `3-statement-model` / `dcf-model` / `comps-analysis`
+- 模型 / DCF / comps -> `driver-map` / `driver-map` / `driver-map`
 - 跟踪覆盖状态 -> `coverage-tracker`
 - 沉淀认知 -> `research-journal`
 - 更新插件 / 同步 workspace -> `update-agent-runtime`

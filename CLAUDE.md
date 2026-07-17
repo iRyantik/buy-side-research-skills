@@ -106,7 +106,7 @@ Research skills 必须内嵌 **canonical medium capsule + skill-specific delta**
 
 ### 4.2 Modeling skills
 
-`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 使用 **separate modeling capsule**，不吃 research capsule。
+`driver-map`、`model-update` 使用 **separate modeling capsule**，不吃 research capsule。
 
 公共 modeling capsule 至少覆盖：
 - actuals completeness

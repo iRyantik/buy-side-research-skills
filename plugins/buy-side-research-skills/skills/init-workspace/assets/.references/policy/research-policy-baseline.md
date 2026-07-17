@@ -183,14 +183,14 @@ linter 报错 → 修到 pass 才交付。
 
 ## 5. Sub-Agent Evidence Protocol（shared baseline, not skill-local boilerplate）
 
-- 默认执行 Parallel Evidence Pass 的 research skill 现在只保留：`peer-deep-dive`、`candidate-screener`、`pair-trade`、`driver-map`。这些 shortlist skill 默认启动 sub-agent / delegate worker 并行查 source；以下 8 个 company-level skill 的 financial-data 获取**默认委托 subagent 执行**（不等待用户显式授权）：`stock-quickread`、`company-history`、`driver-map`、`alpha-thesis`、`consensus-map`、`earnings-setup`、`bear-pre-mortem`、`comps-analysis`。其它 research skill 默认单线执行，只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时才开启并行。sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
+- 默认执行 Parallel Evidence Pass 的 research skill 现在只保留：`peer-deep-dive`、`candidate-screener`、`pair-trade`、`driver-map`。这些 shortlist skill 默认启动 sub-agent / delegate worker 并行查 source；以下 8 个 company-level skill 的 financial-data 获取**默认委托 subagent 执行**（不等待用户显式授权）：`stock-quickread`、`company-history`、`driver-map`、`alpha-thesis`、`consensus-map`、`earnings-setup`、`bear-pre-mortem`、`driver-map`。其它 research skill 默认单线执行，只有用户明确要求 `sub-agent`、`delegate` 或 `并行` 时才开启并行。sub-agent 只能返回 evidence card，不得写最终结论、ranking、thesis、valuation 或 model treatment。Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.
 - Evidence card 必须包含 claim、source title、URL 或 source location、quote / metric、as-of、confidence、caveat 和 suggested use；缺任一关键项时只能作为线索。
 - 主 agent 必须完成 URL/claim spot check、source conflict handling 和最终 synthesis；未经主 agent 抽查的 sub-agent 输出不得进入最终 artifact 的结论层。
 - If a default-parallel shortlist skill or a user-explicit parallel request cannot spawn sub-agents on the current host / runner, the main agent must state `sub-agent unavailable`, the reason, the single-thread evidence-card fallback used instead, and the resulting source coverage caveat. Do not silently downgrade.
 
 ## 6. Model Sub-Agent Protocol
 
-- `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
+- `driver-map`, `driver-map`, `driver-map`, and `model-update` use a separate Model Sub-Agent Protocol, not the evidence-card-only research protocol.
 - Modeling sub-agents may return model QA notes / work-packet findings, including actuals mapping audits, formula checks, peer multiple checks, and update-map QA.
 - Main agent owns the final workbook, valuation verdict, price target, model treatment, and delivery decision.
 - Runtime cap: no per-skill sub-agent count limit; max 6-8 active sub-agents globally; parallel within one skill but serial across skills; close sub-agents immediately after evidence cards or QA notes return.

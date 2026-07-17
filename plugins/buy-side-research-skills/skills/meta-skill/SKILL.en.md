@@ -85,7 +85,7 @@ For rewriting or substantially modifying an existing skill. Must preserve the us
 
 For adjusting categories, version policy, artifact policy, global rules, docs, or manifests. Must sync public docs, payload manifests, and root marketplace metadata to avoid "rules written but install entry points not updated."
 
-Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-update`) use `Model Sub-Agent Protocol`. Do not add them to `Parallel Evidence Pass`, and do not give them `evidence_cards_only`.
+Modeling skills (`driver-map`, `driver-map`, `driver-map`, `model-update`) use `Model Sub-Agent Protocol`. Do not add them to `Parallel Evidence Pass`, and do not give them `evidence_cards_only`.
 
 ### Mode D: Review / Gap Audit
 
@@ -123,7 +123,7 @@ Already-hookified source legality, anchor / `## Resources` contract, subagent bi
 
 ### Modeling skills
 
-`3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` use a separate modeling capsule and do not consume the research capsule.
+`driver-map`, `driver-map`, `driver-map`, `model-update` use a separate modeling capsule and do not consume the research capsule.
 
 ### Supporting visualization skills
 
@@ -148,7 +148,7 @@ Hooks are responsible only for binary / machine-checkable guardrails, such as so
 `information-impact` claim qualification and `primary-research-plan` compliance floor also belong to hook-first binary rules.
 `reddit-sentiment` social clue-only boundary also belongs to hook-first binary rules.
 `peer-deep-dive` cross-market parity (listing status / currency / as-of) is enforced by the skill's own §4.1 column definition (5 cross-market columns mandatory when ≥2 markets), no separate hook.
-When modeling workbook artifacts are in scope, statement presence, balance integrity, formula discipline, missing-actuals floor, valuation-basis floor, actuals_cross_check, driver_cross_check, internal_consistency, dcf_linked_to_3sm, dcf_input_sourcing, comps_sourced, and meta_sheet for `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` also belong to xlsx-aware hook-first binary rules.
+When modeling workbook artifacts are in scope, statement presence, balance integrity, formula discipline, missing-actuals floor, valuation-basis floor, actuals_cross_check, driver_cross_check, internal_consistency, dcf_linked_to_3sm, dcf_input_sourcing, comps_sourced, and meta_sheet for `driver-map`, `driver-map`, `driver-map`, and `model-update` also belong to xlsx-aware hook-first binary rules.
 `research-journal` earned-insight gate and topic index map-only boundary also belong to hook-first binary rules.
 `research-viz` stem-binding, self-contained delivery, and source-line contract also belong to hook-first binary rules.
 The quantitative fact governance layer (`fact_provenance`: Tier 0-3 verification, `claim_source_proximity`: strong claims must have source anchors) also belongs to hook-first binary rules.
@@ -359,7 +359,7 @@ Research layers:
 |---|---|---|
 | `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `` | Filter information, rapid judgment, post-earnings rapid reaction, social sentiment, identify the next highest-leverage question |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | Lay the foundation: zero-to-one physical intuition, industry landscape, structured financial + market data, TAM estimation, company business/disclosure history, market expectations, industry mechanisms, model drivers |
-| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | Deep research: scenario-based L/S ranking, horizontal comparison (same market / cross-market), competitive moat, catalyst chain, management capital allocation, thesis, odds memo, modeling |
+| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `driver-map`, `driver-map`, `driver-map`, `model-update` | Deep research: scenario-based L/S ranking, horizontal comparison (same market / cross-market), competitive moat, catalyst chain, management capital allocation, thesis, odds memo, modeling |
 | `supporting` | `research-viz` | Visualization post-processing |
 | `memory` | `research-journal`, `coverage-tracker` | Retain earned insight, track covered-company status and priority |
 

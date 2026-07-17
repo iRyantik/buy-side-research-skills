@@ -5,7 +5,7 @@ description: Quantify a scenario thesis into a verdict-first odds memo with bull
 
 # Scenario Model
 
-Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model replacement and not a full thesis writer — fast envelope math that forces every assumption onto the table where it can be challenged.
+Turn a scenario thesis into a verdict-first odds memo. Not a driver-map replacement and not a full thesis writer — fast envelope math that forces every assumption onto the table where it can be challenged.
 
 ## Research Runtime Capsule
 
@@ -40,7 +40,7 @@ Scenario model 的真正价值不是那个 upside 数字，而是 **暴露哪个
 | **TAM** | 1. `market-sizing` artifact（优先）→ 2. 招股书/年报引用第三方报告 → 3. WebSearch 行业报告 → 4. 公司 IR presentation | 标 `[agent推算, Tier 2]`，写推算逻辑 |
 | **目标份额** | 1. `mechanism-insight` 竞争格局（当前台数/金额份额）→ 2. 客户财报里的 supplier concentration → 3. 行业峰会/产品发布 → 4. 对标相似行业新生市场的 leader 份额 | 至少给 high/low range，不拍单点 |
 | **目标 Margin** | 1. `financial-data` actuals 当前 margin → 2. 同行业 scale effect benchmark（revenue doubling 时 margin 通常 improve 多少）→ 3. peer 可比产品线 margin | 默认 = 当前 margin |
-| **目标 PE** | 1. `comps-analysis` 同组 forward PE → 2. `peer-deep-dive` valuation table → 3. 公司自身 3 年 PE range → 4. 同行业同等 growth rate 公司的 PE | 必填 |
+| **目标 PE** | 1. `driver-map` 同组 forward PE → 2. `peer-deep-dive` valuation table → 3. 公司自身 3 年 PE range → 4. 同行业同等 growth rate 公司的 PE | 必填 |
 | **当前估值** | `/financial-data` market_data | — |
 
 > Tier 0（机器验证）= actuals / Bridge。Tier 1（trusted 第三方）= Frost/Gartner cited in 官方文件。Tier 2（agent 推算）= 有 derivation 但未经第三方验证。所有 Tier 2 假设必须写推导过程，由研究员确认后进测算。
@@ -63,8 +63,8 @@ Phase 2: 测算 → sensitivity（相关性标注）→ 给出 verdict 和最值
 
 - `market-sizing` 仍是 TAM/SAM/SOM 主 skill。`scenario-model` 优先复用它；如果没有现成 TAM artifact，才允许做最小 TAM derivation，并显式标 Tier。
 - `alpha-thesis` 仍是完整 thesis skill。`scenario-model` 只输出 odds memo，不接管完整 variant view、catalyst narrative、kill criteria。
-- `dcf-model` 仍是完整 valuation workbook。`scenario-model` 不做 full forecast、WACC、terminal value 或完整 workbook。
-- `3-statement-model` 仍负责三表联动。`scenario-model` 只做 envelope math。
+- `driver-map` 仍是完整 valuation workbook。`scenario-model` 不做 full forecast、WACC、terminal value 或完整 workbook。
+- `driver-map` 仍负责三表联动。`scenario-model` 只做 envelope math。
 
 ## 测算方法
 
@@ -90,7 +90,7 @@ Phase 2: 测算 → sensitivity（相关性标注）→ 给出 verdict 和最值
                            │ × 目标 PE (40x)
                            ▼
                     ┌──────────────┐
-                    │  场景市值     │  ← comps-analysis 同组 forward PE 中位
+                    │  场景市值     │  ← driver-map 同组 forward PE 中位
                     │  $7.2B       │
                     └──────┬───────┘
                            │ ÷ 当前市值 ($2.9B)
@@ -205,7 +205,7 @@ Agent 根据用户 query 自动判定方向。
 
 - `go alpha-thesis`
 - `go market-sizing`
-- `go dcf-model`
+- `go driver-map`
 - `stop`
 
 ## Reverse Check
@@ -238,7 +238,7 @@ Agent 根据用户 query 自动判定方向。
 - [ ] 如果明天 share assumption 被证明错了，upside 会怎样？
 - [ ] 三个假设里哪个如果错了 upside 直接归零？
 - [ ] 当前市场是不是已经在 price 这个场景了？（看当前 PE 和 scenario PE 的 gap）
-- [ ] 这个 memo 的下一步是 `alpha-thesis`、`dcf-model`、`market-sizing` 还是直接停止？
+- [ ] 这个 memo 的下一步是 `alpha-thesis`、`driver-map`、`market-sizing` 还是直接停止？
 
 ## 篇幅基准
 
@@ -251,7 +251,7 @@ Agent 根据用户 query 自动判定方向。
 | 上游 | `market-sizing` | TAM |
 | 上游 | `financial-data` | baseline |
 | 上游 | `mechanism-insight` | 份额依据 |
-| 上游 | `comps-analysis` | PE 锚 |
+| 上游 | `driver-map` | PE 锚 |
 | 下游 | `candidate-screener` | 量化场景推票 |
 | 下游 | `alpha-thesis` | bull/base/bear sizing + odds framing |
 

@@ -64,7 +64,7 @@ If the output is merely an encyclopedia explanation, or if after reading it one 
 - Completely zero base, no physical intuition built → `teach-in`
 - Full-industry value chain and profit pools → `industry-landscape`
 - "What is this company's revenue driver" → `driver-map`
-- "Help me build a model / DCF / comps" → `3-statement-model / dcf-model / comps-analysis / model-update`
+- "Help me build a model / DCF / comps" → `driver-map / model-update`
 
 ## Input Clarification Requirements
 
@@ -190,7 +190,7 @@ industry/<industry-slug>/YYYY-MM-DD-mechanism-insight-<qualifier>.md
 | Scenario | Next Step |
 |---|---|
 | Mechanism is explained; need to decompose revenue / margin / backlog drivers | `driver-map` |
-| Mechanism affects model | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| Mechanism affects model | `driver-map / model-update` |
 | Mechanism exposes high-value unknowns but unclear how to ask | `` |
 | Mechanism explains peer divergence or KPI incomparability | `peer-deep-dive` |
 | Mechanism forms a long / short variant view | `alpha-thesis` |

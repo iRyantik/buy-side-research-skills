@@ -83,7 +83,7 @@ Agent and plugin runtime upgrades belong to `update-agent-runtime`; `init-worksp
 
 用于调整分类、版本策略、artifact policy、global rules、docs 或 manifests。必须同步 public docs、payload manifests 和 root marketplace metadata，避免“规则写了但安装入口没更新”。
 
-Modeling skills (`3-statement-model`, `dcf-model`, `comps-analysis`, `model-update`) use `Model Sub-Agent Protocol`. Do not add them to `Parallel Evidence Pass`, and do not give them `evidence_cards_only`.
+Modeling skills (`driver-map`, `driver-map`, `driver-map`, `model-update`) use `Model Sub-Agent Protocol`. Do not add them to `Parallel Evidence Pass`, and do not give them `evidence_cards_only`.
 
 ### Mode D: Review / Gap Audit
 
@@ -124,7 +124,7 @@ Capsule 格式（不可变）：
 
 ### Modeling skills
 
-`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 使用 separate modeling capsule，不吃 research capsule。
+`driver-map`、`driver-map`、`driver-map`、`model-update` 使用 separate modeling capsule，不吃 research capsule。
 
 ### Supporting visualization skills
 
@@ -159,7 +159,7 @@ hook 只负责 binary / machine-checkable guardrails，例如 source legality、
 `information-impact` 的 claim qualification 与 `primary-research-plan` 的 compliance floor 也属于 hook-first binary rules。
 `reddit-sentiment` 的 social clue-only boundary 也属于 hook-first binary rules。
 `peer-deep-dive` 的 cross-market parity（上市身份 / 货币 / as-of）由 skill 自身的 §4.1 列定义强制（≥2 市场时必填 5 cross-market 列），不另设 hook。
-modeling workbook artifacts 在范围内时，`3-statement-model`、`dcf-model`、`comps-analysis`、`model-update` 的 statement presence、balance integrity、formula discipline、missing-actuals floor、valuation-basis floor、actuals_cross_check、driver_cross_check、internal_consistency、dcf_linked_to_3sm、dcf_input_sourcing、comps_sourced、meta_sheet 也属于 xlsx-aware hook-first binary rules。
+modeling workbook artifacts 在范围内时，`driver-map`、`driver-map`、`driver-map`、`model-update` 的 statement presence、balance integrity、formula discipline、missing-actuals floor、valuation-basis floor、actuals_cross_check、driver_cross_check、internal_consistency、dcf_linked_to_3sm、dcf_input_sourcing、comps_sourced、meta_sheet 也属于 xlsx-aware hook-first binary rules。
 `research-journal` 的 earned-insight gate 与 topic index map-only boundary 也属于 hook-first binary rules。
 `research-viz` 的 stem-binding、self-contained delivery 和 source-line contract 也属于 hook-first binary rules。
 定量事实治理层（`fact_provenance`：Tier 0-3 验证，`claim_source_proximity`：强声明必有 source 锚点）也属于 hook-first binary rules。
@@ -370,7 +370,7 @@ Research layers：
 |---|---|---|
 | `triage` | `information-impact`, `stock-quickread`, `post-earnings-quick`, `reddit-sentiment`, `` | 过滤信息、快速判断、财报后快速反应、social sentiment、识别下一步最高杠杆问题 |
 | `foundation` | `teach-in`, `industry-landscape`, `financial-data`, `market-sizing`, `company-history`, `consensus-map`, `mechanism-insight`, `driver-map` | 打地基：零基础物理直觉、行业全景、结构化财务+市场数据、TAM 估算、公司业务/披露历史、市场预期、行业机制、model driver |
-| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `3-statement-model`, `dcf-model`, `comps-analysis`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、赔率 memo、建模 |
+| `deep-work` | `candidate-screener`, `peer-deep-dive`, `moat-analysis`, `catalyst-map`, `capital-allocation`, `alpha-thesis`, `bear-pre-mortem`, `earnings-setup`, `pair-trade`, `primary-research-plan`, `scenario-model`, `driver-map`, `driver-map`, `driver-map`, `model-update` | 深度研究：分场景 L/S 排序、横向比较（同市场/跨市场）、竞争壁垒、催化剂链、管理层资本配置、thesis、赔率 memo、建模 |
 | `supporting` | `research-viz` | 可视化后处理 |
 | `memory` | `research-journal`, `coverage-tracker` | 沉淀 earned insight、跟踪已覆盖公司状态和优先级 |
 

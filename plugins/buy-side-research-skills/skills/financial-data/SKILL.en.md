@@ -7,7 +7,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 # Financial Data
 
-`financial-data` turns machine-readable financial data from each market into a source-tracked evidence pack. It is an operations skill, not a research skill: it is only responsible for fetching, parsing, normalizing, annotating completeness, and writing to `_cache/financial-data/`. It does not interpret investment meaning, does not produce forecasts, and does not substitute for `driver-map` or `3-statement-model / dcf-model / comps-analysis / model-update`.
+`financial-data` turns machine-readable financial data from each market into a source-tracked evidence pack. It is an operations skill, not a research skill: it is only responsible for fetching, parsing, normalizing, annotating completeness, and writing to `_cache/financial-data/`. It does not interpret investment meaning, does not produce forecasts, and does not substitute for `driver-map` or `driver-map / model-update`.
 
 The core deliverable is not "three statements that look complete," but rather "which fields are actually available, where they come from, and whether they can be fed into a model." V1 fetches three statements by default; when the provider can structurally capture a revenue split, it writes it into `statements.revenue_split` in `actuals-resolved.json`; when it cannot, it marks `revenue_split = provider-gap` and preserves the original filing / annual report text for `driver-map` to extract via LLM. Inference-based gap-filling is not allowed.
 
@@ -15,7 +15,7 @@ The core deliverable is not "three statements that look complete," but rather "w
 
 The most common pitfall in financial data fetching is not an API error; it is data that looks too clean: a provider-normalized label mistaken for original company disclosure, a segment bucket auto-merged, a ticker-only route resolving to the wrong entity, or the three statements being available while the revenue split the model actually needs is missing.
 
-This skill's operating logic is **provenance first + completeness before model use**. Save the raw provider payload first, then save the normalized evidence pack. Day-to-day external consumption only sees `summary.md`; machine input files are flat under `_cache/financial-data/`. Tell the researcher what is missing first, then let `driver-map` and `3-statement-model / dcf-model / comps-analysis / model-update` decide whether modeling can proceed.
+This skill's operating logic is **provenance first + completeness before model use**. Save the raw provider payload first, then save the normalized evidence pack. Day-to-day external consumption only sees `summary.md`; machine input files are flat under `_cache/financial-data/`. Tell the researcher what is missing first, then let `driver-map` and `driver-map / model-update` decide whether modeling can proceed.
 
 `financial-data` serves the industry-centric architecture: single-company data defaults to `industry/<industry>/companies/<ticker>/`; theme / industry directories only save snapshots or links, and do not become a second set of company master files.
 
@@ -35,7 +35,7 @@ Responsible for:
 Not responsible for:
 
 - Company business interpretation, driver judgment, revenue split inference, or the true economic meaning of segments; those are handed to `company-history` / `driver-map`.
-- Forecasts, DCF, comps, reverse DCF, or workbook updates; those are handed to `3-statement-model / dcf-model / comps-analysis / model-update`.
+- Forecasts, DCF, comps, reverse DCF, or workbook updates; those are handed to `driver-map / model-update`.
 - Both Full and Lite automatically fetch market snapshot data (stock price, market cap, PE/PB/PS/EV/EBITDA, etc.) via the unified incremental fill engine: `yfinance(full set) → Bridge(covers US/HK/SH/SZ) → WebSearch(field-by-field) → Google Finance(last resort)`. See the market data section for details.
 - Bridge only performs cross-checks in actuals (does not replace provider_api); in market data it serves as the US/HK/SH/SZ primary.
 - Turning `_cache/` into earned memory; knowledge crystallization is handed to `research-journal`.
@@ -67,7 +67,7 @@ Input fields:
 | `periods` | `latest`, `FY2021-FY2025`, `quarterly`, etc. | Default `latest` |
 | `items` | Three statements, `revenue_split`, filing / full text | Default fetch all |
 | `source_mode` | `auto` / `filing_only` / `provider_normalized` | Default `auto` |
-| `financial_data_pack_path` | Points a snapshot or `3-statement-model / dcf-model / comps-analysis / model-update` to an existing pack | Optional |
+| `financial_data_pack_path` | Points a snapshot or `driver-map / model-update` to an existing pack | Optional |
 
 Europe special rules:
 
@@ -123,7 +123,7 @@ industry/<industry>/companies/<ticker>/
     full-filing.md
 ```
 
-`_cache/financial-data/summary.md` is the default entry point for humans and LLMs. `_cache/financial-data/actuals-resolved.json` is the recommended machine entry point for `driver-map`, `3-statement-model`, `dcf-model`, `comps-analysis`, and `model-update` to read historical actuals; `statements` within it may contain `income_statement`, `balance_sheet`, `cash_flow`, and optional `revenue_split`. Missing / unmapped fields must not be written as 0. `evidence-pack.json` aggregates completeness, source map, and cross-check; the run-id pack is only opened directly during audit or debugging.
+`_cache/financial-data/summary.md` is the default entry point for humans and LLMs. `_cache/financial-data/actuals-resolved.json` is the recommended machine entry point for `driver-map`, `driver-map`, `driver-map`, `driver-map`, and `model-update` to read historical actuals; `statements` within it may contain `income_statement`, `balance_sheet`, `cash_flow`, and optional `revenue_split`. Missing / unmapped fields must not be written as 0. `evidence-pack.json` aggregates completeness, source map, and cross-check; the run-id pack is only opened directly during audit or debugging.
 
 If `industry/<industry>/companies/<ticker>/index.md` does not exist, the agent must auto-create the directory and index per policy baseline §11 before continuing.
 
@@ -149,7 +149,7 @@ Lite mode does not parse the full filing and does not build an evidence pack. It
 
 **Consumer contract**:
 - Lite (default): `/financial-data <ticker>` → latest FY + latest Q/H (~46 fields). Used by stock-quickread / candidate / peer / consensus / earnings-setup and other pre-research skills.
-- Full: `/financial-data <ticker> --mode full` → 5 FY + 4 Q/H (~72 fields). Used by 3-statement-model / dcf-model / comps-analysis and other modeling skills needing multi-period full fields.
+- Full: `/financial-data <ticker> --mode full` → 5 FY + 4 Q/H (~72 fields). Used by driver-map and other modeling skills needing multi-period full fields.
 - Flexible: `--periods FY2020-FY2025` or `--periods Q1-FY2026`.
 - Agent reads actuals-resolved.json and calls `get_fields(statements, mode)` to obtain the required field set.
 - All provider routing, trust ranking, and market-data fallback chains execute inside financial-data. Consuming skill Runtime Capsules must not repeat provider names, trust chains, or subagent data-fetch flows.
@@ -399,7 +399,7 @@ Segment rule:
 ## Financial Data Result
 
 **Conclusion-first**
-[available / partial / provider-gap / failed — one sentence on whether it can be used by 3-statement-model / dcf-model / comps-analysis / model-update]
+[available / partial / provider-gap / failed — one sentence on whether it can be used by driver-map / model-update]
 
 | Data item | Status | Source/provider | Period coverage | Model usable? | Caveat |
 |---|---|---|---|---|---|
@@ -441,7 +441,7 @@ Segment rule:
 | User only has local PDF / XLSX / CSV | Hand to `ingest` |
 | User wants to pull structured financials by ticker / filing package | Use `financial-data` |
 | User wants to explain revenue buckets or drivers | After `financial-data`, hand to `driver-map` |
-| User wants to model, DCF, comps, update workbook | `financial-data` can serve as optional input to `3-statement-model / dcf-model / comps-analysis / model-update` |
+| User wants to model, DCF, comps, update workbook | `financial-data` can serve as optional input to `driver-map / model-update` |
 | Theme / industry needs a basket of company data | Use `current_topic_snapshot`, and link to the canonical company pack |
 | Data gaps affect model or research priority | `` / `driver-map` / `company-history` |
 

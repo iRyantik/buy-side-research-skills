@@ -146,7 +146,7 @@ timeline
 
 - `driver-map`: [...]
 - `peer-deep-dive`: [...]
-- `3-statement-model / dcf-model / comps-analysis / model-update`: [...]
+- `driver-map / model-update`: [...]
 ```
 
 ## Artifact / Save Strategy

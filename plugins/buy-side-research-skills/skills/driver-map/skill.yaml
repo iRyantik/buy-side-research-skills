@@ -75,9 +75,9 @@ workflow:
     - 'stock-quickread'
     - 'information-impact'
   feeds_into:
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
+    - 'driver-map'
+    - 'driver-map'
+    - 'driver-map'
     - 'model-update'
     - 'alpha-thesis'
     - 'primary-research-plan'

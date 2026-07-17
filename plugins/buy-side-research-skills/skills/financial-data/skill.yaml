@@ -75,15 +75,15 @@ workflow:
     - 'earnings-setup'
     - 'peer-deep-dive'
 
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
+    - 'driver-map'
+    - 'driver-map'
+    - 'driver-map'
     - 'model-update'
   can_trigger:
     - 'driver-map'
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
+    - 'driver-map'
+    - 'driver-map'
+    - 'driver-map'
     - 'model-update'
     - ''
 quality_gates:

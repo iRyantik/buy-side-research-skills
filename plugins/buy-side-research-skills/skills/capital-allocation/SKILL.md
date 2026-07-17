@@ -159,6 +159,6 @@ ROI on deployed capital: ~145%
 
 - 不做 moat → `moat-analysis`
 - 不做 thesis → `alpha-thesis`
-- 不做估值 → `dcf-model` / `comps-analysis`
+- 不做估值 → `driver-map` / `driver-map`
 
 

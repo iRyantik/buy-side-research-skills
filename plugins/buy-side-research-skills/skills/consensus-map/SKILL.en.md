@@ -22,7 +22,7 @@ The buy-side purpose of a consensus map is not to know "what everyone thinks" �
 
 Consensus does not equal sell-side EPS. What truly affects positions are three layers: visible sell-side consensus, invisible but inferable buy-side bar, and the assumptions already embedded in price / valuation / positioning. When the three layers diverge, opportunity or risk usually sits in the seams.
 
-This skill is the foundation layer. It does not replace the first-pass of `stock-quickread` / `industry-landscape`, does not replace the reverse DCF and detailed modeling of `3-statement-model / dcf-model / comps-analysis / model-update`, and does not replace the print-specific bar of `earnings-setup`. Its job is to break down "what consensus actually is" before thesis work begins.
+This skill is the foundation layer. It does not replace the first-pass of `stock-quickread` / `industry-landscape`, does not replace the reverse DCF and detailed modeling of `driver-map / model-update`, and does not replace the print-specific bar of `earnings-setup`. Its job is to break down "what consensus actually is" before thesis work begins.
 
 ## Trigger Scenarios
 
@@ -40,7 +40,7 @@ Do not use for:
 - Just a first-pass on an unfamiliar industry / theme: use `industry-landscape` first.
 - Writing a full long / short thesis, catalyst, kill criteria: use `alpha-thesis`.
 - Building a print bar, implied move, beat / miss setup around earnings: use `earnings-setup`.
-- Quantifying reverse DCF, 3-statement, comps, scenario valuation: use `3-statement-model / dcf-model / comps-analysis / model-update`.
+- Quantifying reverse DCF, 3-statement, comps, scenario valuation: use `driver-map / model-update`.
 - Decomposing company / segment / disclosed KPI into revenue / margin drivers: use `driver-map`.
 
 ## Input Clarification Requirements
@@ -122,7 +122,7 @@ Example prose claim: `Consensus FY26 EBITDA has moved down 6% over three months,
 | Margin | [mix / pricing / utilization] | [KPI] | [S1](./_cache/sources/consensus-pack.md) | `driver-map` |
 
 Example prose claim: `Market-implied expectations require backlog conversion to accelerate next year; if the observable KPI is unavailable, write [来源待补] rather than inventing it. [S1](./_cache/sources/consensus-pack.md)`
-| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| Valuation | [multiple / terminal growth] | [multiple / FCF CAGR] | [I5](https://example.com/valuation-setup) | `driver-map / model-update` |
 
 ## 6. Where Consensus Could Be Wrong
 
@@ -142,7 +142,7 @@ Example prose claim: `Market-implied expectations require backlog conversion to 
 | Finding | Next step |
 |---|---|
 | Variant gap is clear and driver support exists | `alpha-thesis` |
-| Price-implied assumptions need quantification | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| Price-implied assumptions need quantification | `driver-map / model-update` |
 | Next print bar / implied move matters | `earnings-setup` |
 | Revenue / margin / KPI mapping unclear | `driver-map` |
 | Mechanism / value-capture premise unclear | `mechanism-insight` |
@@ -233,7 +233,7 @@ After writing, must self-check. If hit, rewrite:
 - Debate map is a generic SWOT, not the KPI / event / assumption the market is actually debating right now.
 - Wrote straight into a full `alpha-thesis`, including position sizing, kill criteria, or scenario returns.
 - Print-specific bar is clearly the core issue but did not route to `earnings-setup`.
-- Reverse DCF / implied CAGR requires a model but was forced into a precise conclusion; should handoff to `3-statement-model / dcf-model / comps-analysis / model-update`.
+- Reverse DCF / implied CAGR requires a model but was forced into a precise conclusion; should handoff to `driver-map / model-update`.
 - Revenue / margin / backlog / KPI to model driver is unclear, but did not handoff to `driver-map`.
 - Tables lack takeaway, or takeaway merely repeats the table.
 - Next-step questions are vague and cannot be answered by a specific source / dataset / filing.

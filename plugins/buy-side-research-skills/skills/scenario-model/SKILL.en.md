@@ -7,7 +7,7 @@ description: Quantify a scenario thesis into a verdict-first odds memo with bull
 
 # Scenario Model
 
-Turn a scenario thesis into a verdict-first odds memo. Not a 3-statement-model replacement and not a full thesis writer — fast envelope math that forces every assumption onto the table where it can be challenged.
+Turn a scenario thesis into a verdict-first odds memo. Not a driver-map replacement and not a full thesis writer — fast envelope math that forces every assumption onto the table where it can be challenged.
 
 ## Research Runtime Capsule
 
@@ -40,7 +40,7 @@ Every input must have a derivation path. The agent follows the path to find it; 
 | **TAM** | 1. `market-sizing` artifact (preferred) → 2. Prospectus / annual report citing third-party research → 3. WebSearch industry reports → 4. Company IR presentation | Mark `[agent推算, Tier 2]`, write out the derivation logic |
 | **Target Share** | 1. `mechanism-insight` competitive landscape (current unit/value share) → 2. Customer filings' supplier concentration → 3. Industry conferences / product launches → 4. Benchmark leader share in analogous industry nascent markets | At minimum give high/low range, never a single-point guess |
 | **Target Margin** | 1. `financial-data` actuals current margin → 2. Same-industry scale effect benchmark (how much margin typically improves when revenue doubles) → 3. Peer comparable product-line margin | Default = current margin |
-| **Target PE** | 1. `comps-analysis` peer-group forward PE → 2. `peer-deep-dive` valuation table → 3. Company's own 3-year PE range → 4. Companies in same industry with equal growth rate PE | Must be filled |
+| **Target PE** | 1. `driver-map` peer-group forward PE → 2. `peer-deep-dive` valuation table → 3. Company's own 3-year PE range → 4. Companies in same industry with equal growth rate PE | Must be filled |
 | **Current Valuation** | `/financial-data` market_data | — |
 
 > Tier 0 (machine-verified) = actuals / Bridge. Tier 1 (trusted third-party) = Frost/Gartner cited in official documents. Tier 2 (agent-derived) = has derivation but not verified by a third party. All Tier 2 assumptions must include the derivation process; they enter the model only after researcher confirmation.
@@ -63,8 +63,8 @@ Phase 2: Calculate → sensitivity (with correlation annotations) → deliver ve
 
 - `market-sizing` remains the primary skill for TAM/SAM/SOM. `scenario-model` reuses it whenever possible; only if no existing TAM artifact exists is a minimal TAM derivation permitted, with explicit Tier annotation.
 - `alpha-thesis` remains the full thesis skill. `scenario-model` only outputs an odds memo — it does not take over the full variant view, catalyst narrative, or kill criteria.
-- `dcf-model` remains the full valuation workbook. `scenario-model` does not do full forecasts, WACC, terminal value, or a complete workbook.
-- `3-statement-model` remains responsible for linked three-statement modeling. `scenario-model` only does envelope math.
+- `driver-map` remains the full valuation workbook. `scenario-model` does not do full forecasts, WACC, terminal value, or a complete workbook.
+- `driver-map` remains responsible for linked three-statement modeling. `scenario-model` only does envelope math.
 
 ## Calculation Method
 
@@ -93,7 +93,7 @@ Phase 2: Calculate → sensitivity (with correlation annotations) → deliver ve
                            │ × Target PE (40x)
                            ▼
                     ┌──────────────┐
-                    │  Scenario    │  ← comps-analysis peer-group
+                    │  Scenario    │  ← driver-map peer-group
                     │  Market Cap  │     forward PE median
                     │  $7.2B       │
                     └──────┬───────┘
@@ -209,7 +209,7 @@ Use footnotes in the sensitivity table to annotate correlations, e.g.: "If TAM �
 
 - `go alpha-thesis`
 - `go market-sizing`
-- `go dcf-model`
+- `go driver-map`
 - `stop`
 
 ## Reverse Check
@@ -242,7 +242,7 @@ After calculating, ask yourself:
 - [ ] If the share assumption is proven wrong tomorrow, what happens to the upside?
 - [ ] Of the three assumptions, which one, if wrong, zeros out the upside entirely?
 - [ ] Is the current market already pricing in this scenario? (Look at the gap between current PE and scenario PE)
-- [ ] Is this memo's next step `alpha-thesis`, `dcf-model`, `market-sizing`, or stop?
+- [ ] Is this memo's next step `alpha-thesis`, `driver-map`, `market-sizing`, or stop?
 
 ## Length Benchmark
 
@@ -255,7 +255,7 @@ After calculating, ask yourself:
 | Upstream | `market-sizing` | TAM |
 | Upstream | `financial-data` | baseline |
 | Upstream | `mechanism-insight` | share basis |
-| Upstream | `comps-analysis` | PE anchor |
+| Upstream | `driver-map` | PE anchor |
 | Downstream | `candidate-screener` | quantified scenario stock screening |
 | Downstream | `alpha-thesis` | bull/base/bear sizing + odds framing |
 

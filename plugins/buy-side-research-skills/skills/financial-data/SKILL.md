@@ -5,7 +5,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 # Financial Data
 
-`financial-data` 把各市场可机器读取的财务数据变成 source-tracked evidence pack。它是 operations skill，不是研究 skill：只负责拉取、解析、标准化、标注完整性和写入 `.cache/financial-data/`，不解释投资含义、不做 forecast、不替代 `driver-map` 或 `3-statement-model / dcf-model / comps-analysis / model-update`。
+`financial-data` 把各市场可机器读取的财务数据变成 source-tracked evidence pack。它是 operations skill，不是研究 skill：只负责拉取、解析、标准化、标注完整性和写入 `.cache/financial-data/`，不解释投资含义、不做 forecast、不替代 `driver-map` 或 `driver-map / model-update`。
 
 核心产物不是“看起来完整的三表”，而是“哪些字段真的可用、来自哪里、能不能进模型”。V1 默认抓三表；如果 provider 能结构化抓到收入拆分，就把它写进 `actuals-resolved.json` 的 `statements.revenue_split`；如果不能，就只标 `revenue_split = provider-gap` 并保留 filing / annual report 原文供 `driver-map` 用 LLM 抽。不能用推断补齐。
 
@@ -13,7 +13,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 
 财务数据拉取最容易出错的地方，不是 API 报错，而是数据看起来太整齐：provider-normalized label 被误当作公司原始披露，segment bucket 被自动合并，ticker-only 路由找错实体，或三表可得但模型真正需要的 revenue split 缺失。
 
-本 skill 的工作逻辑是 **provenance first + completeness before model use**。先保存 raw provider payload，再保存 normalized evidence pack；日常外显只给 `summary.md`，机器输入文件平铺在 `.cache/financial-data/`；先告诉研究员缺什么，再让 `driver-map` 和 `3-statement-model / dcf-model / comps-analysis / model-update` 判断能否建模。
+本 skill 的工作逻辑是 **provenance first + completeness before model use**。先保存 raw provider payload，再保存 normalized evidence pack；日常外显只给 `summary.md`，机器输入文件平铺在 `.cache/financial-data/`；先告诉研究员缺什么，再让 `driver-map` 和 `driver-map / model-update` 判断能否建模。
 
 `financial-data` 服务 topic-centric 架构：单公司数据默认落在 `industry/<industry>/companies/<ticker>/`；theme / industry topic 只保存 snapshot 或 links，不变成第二套公司主档。
 
@@ -33,7 +33,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 不负责：
 
 - 不做公司业务解释、driver 判断、revenue split 推断或 segment 真实经济含义判断；交给 `company-history` / `driver-map`。
-- 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `3-statement-model / dcf-model / comps-analysis / model-update`。
+- 不做 forecast、DCF、comps、reverse DCF 或 workbook 更新；交给 `driver-map / model-update`。
 - Full / Lite 均自动拉市场快照数据（股价、市值、PE/PB/PS/EV/EBITDA 等），走统一增量 fill 引擎：`yfinance(全量) → Bridge(覆盖US/HK/SH/SZ) → WebSearch(逐字段) → Google Finance(兜底)`。详见市场数据段。
 - Bridge 在 actuals 里只做 cross-check（不替代 provider_api）；在市场数据里做 US/HK/SH/SZ primary。
 - 不把 `.cache/` 写成 earned memory；沉淀认知交给 `research-journal`。
@@ -65,7 +65,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 | `periods` | `latest`、`FY2021-FY2025`、`quarterly` 等 | 默认 `latest` |
 | `items` | 三表、`revenue_split`、filing / full text | 默认全取 |
 | `source_mode` | `auto` / `filing_only` / `provider_normalized` | 默认 `auto` |
-| `financial_data_pack_path` | 给 snapshot 或 `3-statement-model / dcf-model / comps-analysis / model-update` 指向已有 pack | 可选 |
+| `financial_data_pack_path` | 给 snapshot 或 `driver-map / model-update` 指向已有 pack | 可选 |
 
 欧洲特殊规则：
 
@@ -121,7 +121,7 @@ industry/<industry>/companies/<ticker>/
     full-filing.md
 ```
 
-`.cache/financial-data/summary.md` 是人和 LLM 的默认入口。`.cache/financial-data/actuals-resolved.json` 是 `driver-map`、`3-statement-model`、`dcf-model`、`comps-analysis` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
+`.cache/financial-data/summary.md` 是人和 LLM 的默认入口。`.cache/financial-data/actuals-resolved.json` 是 `driver-map`、`driver-map`、`driver-map`、`driver-map` 和 `model-update` 读取 historical actuals 的推荐机器入口；其中 `statements` 可包含 `income_statement`、`balance_sheet`、`cash_flow` 和可选 `revenue_split`。missing / unmapped 字段不得写成 0。`evidence-pack.json` 聚合 completeness、source map 和 cross-check；只有审计或 debug 时才直接打开 run-id pack。
 
 如果 `industry/<industry>/companies/<ticker>/index.md` 不存在，由 agent 按 policy baseline §11 自动创建目录和索引后继续。
 
@@ -147,7 +147,7 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心
 
 **Consumer contract**：
 - Lite（默认）：`/financial-data <ticker>` → latest FY + latest Q/H（~46 字段）。stock-quickread / candidate / peer / consensus / earnings-setup 等研究前置 skill 使用。
-- Full：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（~72 字段）。3-statement-model / dcf-model / comps-analysis 等需要多期全字段的 modeling skill 使用。
+- Full：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（~72 字段）。driver-map 等需要多期全字段的 modeling skill 使用。
 - 灵活：`--periods FY2020-FY2025` 或 `--periods Q1-FY2026`。
 - Agent 读取 actuals-resolved.json 后，调用 `get_fields(statements, mode)` 获取所需字段集。
 - 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行。消费 skill 的 Runtime Capsule 不得复读 provider 名、trust chain 或 subagent 数据获取流程。
@@ -398,7 +398,7 @@ Segment rule:
 ## Financial Data Result
 
 **结论先行**
-[available / partial / provider-gap / failed，一句话说明能否给 3-statement-model / dcf-model / comps-analysis / model-update 使用]
+[available / partial / provider-gap / failed，一句话说明能否给 driver-map / model-update 使用]
 
 | Data item | Status | Source/provider | Period coverage | Model usable? | Caveat |
 |---|---|---|---|---|---|
@@ -440,7 +440,7 @@ Segment rule:
 | 用户只有本地 PDF / XLSX / CSV | 交给 `ingest` |
 | 用户要按 ticker / filing package 拉结构化财报 | 使用 `financial-data` |
 | 用户要解释 revenue bucket 或 driver | `financial-data` 后交给 `driver-map` |
-| 用户要建模、DCF、comps、更新 workbook | `financial-data` 可作为 optional input 给 `3-statement-model / dcf-model / comps-analysis / model-update` |
+| 用户要建模、DCF、comps、更新 workbook | `financial-data` 可作为 optional input 给 `driver-map / model-update` |
 | theme / industry 需要一篮子公司数据 | 用 `current_topic_snapshot`，并链接 canonical company pack |
 | 数据缺口影响模型或研究优先级 | `` / `driver-map` / `company-history` |
 

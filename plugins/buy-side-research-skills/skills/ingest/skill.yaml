@@ -64,9 +64,9 @@ workflow:
     - 'mechanism-insight'
     - 'driver-map'
     - 'information-impact'
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
+    - 'driver-map'
+    - 'driver-map'
+    - 'driver-map'
     - 'model-update'
   can_trigger: []
 quality_gates:

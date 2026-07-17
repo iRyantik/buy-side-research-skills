@@ -77,9 +77,9 @@ workflow:
     - ''
   feeds_into:
     - 'driver-map'
-    - '3-statement-model'
-    - 'dcf-model'
-    - 'comps-analysis'
+    - 'driver-map'
+    - 'driver-map'
+    - 'driver-map'
     - 'model-update'
     - 'alpha-thesis'
     - 'peer-deep-dive'

@@ -204,7 +204,7 @@ It is not:
 - a source-of-record actuals pack
 - a basis for full three-statement modeling
 
-If a downstream task needs source-tracked actuals or model-grade field mapping, route to `financial-data`, `3-statement-model`, `dcf-model`, or `model-update`.
+If a downstream task needs source-tracked actuals or model-grade field mapping, route to `financial-data`, `driver-map`, `driver-map`, or `model-update`.
 
 ## Market Screen Boundary
 

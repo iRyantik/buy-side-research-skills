@@ -231,7 +231,7 @@ Geographic segments are secondary and should only be used when business segments
 | Post-earnings quick verdict | `post-earnings-quick` |
 | L/S pair | `pair-trade` |
 | Financial statements / structured actuals | `financial-data` |
-| Model / DCF / comps | `3-statement-model` / `dcf-model` / `comps-analysis` |
+| Model / DCF / comps | `driver-map` / `driver-map` / `driver-map` |
 | Track coverage state | `coverage-tracker` |
 | Generate daily coverage briefs / intraday alerts | `coverage-monitor` |
 | Capture earned insights | `research-journal` |

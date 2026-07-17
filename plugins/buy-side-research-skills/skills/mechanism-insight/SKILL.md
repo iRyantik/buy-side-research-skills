@@ -65,7 +65,7 @@ Deep-dive a single industry mechanism, engineering principle, or equipment chain
 - 完全零基础没建立物理直觉 → `teach-in`
 - 全行业产业链和价值池 → `industry-landscape`
 - "这家公司收入 driver 是什么" → `driver-map`
-- "帮我搭 model / DCF / comps" → `3-statement-model / dcf-model / comps-analysis / model-update`
+- "帮我搭 model / DCF / comps" → `driver-map / model-update`
 
 ## 输入澄清要求
 
@@ -192,7 +192,7 @@ industry/<industry-slug>/panorama/mechanism-insight/YYYY-MM-DD-mechanism-insight
 | 场景 | 下一步 |
 |---|---|
 | 机制已讲清，需拆 revenue / margin / backlog driver | `driver-map` |
-| 机制影响 model | `3-statement-model / dcf-model / comps-analysis / model-update` |
+| 机制影响 model | `driver-map / model-update` |
 | 机制暴露高价值疑点但不知道怎么问 | `` |
 | 机制解释了 peer 差异或 KPI 不可比 | `peer-deep-dive` |
 | 机制形成 long / short variant view | `alpha-thesis` |

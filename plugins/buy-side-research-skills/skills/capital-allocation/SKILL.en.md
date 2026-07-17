@@ -159,6 +159,6 @@ ROI on deployed capital: ~145%
 
 - Moat analysis → `moat-analysis`
 - Thesis building → `alpha-thesis`
-- Valuation → `dcf-model` / `comps-analysis`
+- Valuation → `driver-map` / `driver-map`
 
 
