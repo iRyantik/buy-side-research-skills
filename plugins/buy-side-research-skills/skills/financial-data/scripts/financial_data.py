@@ -487,6 +487,8 @@ PROVIDER_MODULES = {
     "eu": "openesef_provider",
 }
 
+IR_MARKETS = {"jp", "kr", "tw", "eu", "se", "fr", "de", "uk", "sg", "my", "in", "au"}
+
 
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
@@ -1538,6 +1540,34 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _route_ir(args) -> int:
+    """IR market route: Playwright → pdf-to-md → extract-actuals."""
+    import subprocess
+    workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
+    ticker = args.identifier
+    market = args.market.lower()
+    mode = getattr(args, 'mode', 'lite')
+
+    print(f"""=== Financial-Data IR Route ===
+  Market: {market} ({'Lite' if mode == 'lite' else 'Full'} mode)
+  Ticker: {ticker}
+
+## Chain
+  1. Search: WebSearch IR page for {ticker}
+  2. Playwright: navigate → find PDF links
+  3. Download PDFs to .cache/raw/
+  4. pdf-to-md.py each PDF → .cache/financial-data/filings/
+  5. extract-actuals.py --scan → check coverage
+  6. Agent: LLM extract IS/BS/CF/segments → actuals-resolved.json
+  7. extract-actuals.py --validate → verify all values in source
+""")
+
+    ir_cmd = [sys.executable, str(workspace / ".scripts/ingest/ir_download.py"),
+              "--ticker", ticker, "--market", market, "--mode", mode]
+    subprocess.run(ir_cmd)
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     if args.check_deps:
@@ -1555,6 +1585,10 @@ def main() -> int:
     mode = getattr(args, 'mode', 'lite')
     if args.periods == 'latest' and mode == 'full':
         args.periods = '5Y'
+
+    if args.market.lower() in IR_MARKETS:
+        from . import _route_ir
+        return _route_ir(args)
 
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()

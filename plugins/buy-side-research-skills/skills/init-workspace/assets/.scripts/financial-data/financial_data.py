@@ -107,7 +107,7 @@ FULL_EXTRA_FIELDS = {
 # ---------------------------------------------------------------------------
 # Concept mapping: parse statement-line-items.md → {concept_alias: standard_field}
 # ---------------------------------------------------------------------------
-_concept_map.cache = None
+_concept_map_cache = None
 
 # Standard field name aliases: canonical name / variant → LITE_FIELDS-compatible key
 _FIELD_ALIASES = {
@@ -300,22 +300,22 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
     and variant names to standard LITE_FIELDS-compatible field names.
     Cached globally after first call.
     """
-    global _concept_map.cache
-    if _concept_map.cache is not None:
-        return _concept_map.cache
+    global _concept_map_cache
+    if _concept_map_cache is not None:
+        return _concept_map_cache
 
     if workspace is None:
         try:
             workspace = discover_workspace()
         except RuntimeError:
-            _concept_map.cache = {}
+            _concept_map_cache = {}
             return {}
 
     template = workspace / ".references" / "policy" / "statement-line-items.md"
     if not template.exists():
         template = workspace / "references" / "policy" / "statement-line-items.md"
     if not template.exists():
-        _concept_map.cache = {}
+        _concept_map_cache = {}
         return {}
 
     text = template.read_text(encoding="utf-8")
@@ -368,7 +368,7 @@ def _load_concept_map(workspace: Path = None) -> dict[str, str]:
     for concept, std_name in _SEC_CONCEPT_MAP.items():
         mapping[concept] = std_name
 
-    _concept_map.cache = mapping
+    _concept_map_cache = mapping
     return mapping
 
 
@@ -382,7 +382,7 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
         '매출' → 'revenue' (KR label)
     """
     if concept_map is None:
-        concept_map = _concept_map.cache or {}
+        concept_map = _concept_map_cache or {}
 
     if not concept or not isinstance(concept, str):
         return concept.lower().replace(" ", "_") if concept else ""
@@ -487,6 +487,8 @@ PROVIDER_MODULES = {
     "eu": "openesef_provider",
 }
 
+IR_MARKETS = {"jp", "kr", "tw", "eu", "se", "fr", "de", "uk", "sg", "my", "in", "au"}
+
 
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
@@ -531,12 +533,12 @@ def dependency_matrix() -> dict[str, Any]:
     return {
         "python": {"version": sys.version.split()[0], "executable": sys.executable},
         "packages": {
-            "edgartools": {"available": module_available("edgar"), "install_hint": "pip install --user edgartools"},
-            "akshare": {"available": module_available("akshare"), "install_hint": "pip install --user akshare"},
+            "edgartools": {"available": module_available("edgar"), "install_hint": "pip install edgartools"},
+            "akshare": {"available": module_available("akshare"), "install_hint": "pip install akshare"},
             "finmind": {"available": True, "install_hint": "uses FinMind public HTTP API; no package required"},
-            "edinet-tools": {"available": module_available("edinet_tools"), "install_hint": "pip install --user edinet-tools"},
-            "dart-fss": {"available": module_available("dart_fss"), "install_hint": "pip install --user dart-fss"},
-            "openesef": {"available": module_available("openesef"), "install_hint": "pip install --user openesef"},
+            "edinet-tools": {"available": module_available("edinet_tools"), "install_hint": "pip install edinet-tools"},
+            "dart-fss": {"available": module_available("dart_fss"), "install_hint": "pip install dart-fss"},
+            "openesef": {"available": module_available("openesef"), "install_hint": "pip install openesef"},
         },
         "env": {
             "EDGAR_IDENTITY": {"configured": bool(os.getenv("EDGAR_IDENTITY"))},
@@ -1239,7 +1241,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
     write_json(raw_dir / "provider_payload.json", normalized["provider_payload"])
     write_raw_evidence_pack(raw_dir, provider, company, filing)
 
-    # .cache output
+    # _cache output
     manifest = {
         "schema_version": 2, "generated_at_utc": utc_now(), "run_id": rid,
         "output_scope": args.output_scope, "market": args.market,
@@ -1538,6 +1540,34 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _route_ir(args) -> int:
+    """IR market route: Playwright → pdf-to-md → extract-actuals."""
+    import subprocess
+    workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
+    ticker = args.identifier
+    market = args.market.lower()
+    mode = getattr(args, 'mode', 'lite')
+
+    print(f"""=== Financial-Data IR Route ===
+  Market: {market} ({'Lite' if mode == 'lite' else 'Full'} mode)
+  Ticker: {ticker}
+
+## Chain
+  1. Search: WebSearch IR page for {ticker}
+  2. Playwright: navigate → find PDF links
+  3. Download PDFs to .cache/raw/
+  4. pdf-to-md.py each PDF → .cache/financial-data/filings/
+  5. extract-actuals.py --scan → check coverage
+  6. Agent: LLM extract IS/BS/CF/segments → actuals-resolved.json
+  7. extract-actuals.py --validate → verify all values in source
+""")
+
+    ir_cmd = [sys.executable, str(workspace / ".scripts/ingest/ir_download.py"),
+              "--ticker", ticker, "--market", market, "--mode", mode]
+    subprocess.run(ir_cmd)
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     if args.check_deps:
@@ -1555,6 +1585,10 @@ def main() -> int:
     mode = getattr(args, 'mode', 'lite')
     if args.periods == 'latest' and mode == 'full':
         args.periods = '5Y'
+
+    if args.market.lower() in IR_MARKETS:
+        from . import _route_ir
+        return _route_ir(args)
 
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
