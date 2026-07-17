@@ -66,7 +66,7 @@ description: 把音频/转录稿转化为结构化研究输出——briefing（�
 
 ```bash
 # 1. whisper deps（幂等，已装跳过）
-pip install openai-whisper requests
+pip install requests
 
 # 2. ffmpeg（不可用时自动下载 BtbN portable）
 python -c "
