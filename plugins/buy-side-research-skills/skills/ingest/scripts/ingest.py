@@ -1127,7 +1127,9 @@ def _source_is_in_inbox(source: Path, workspace: Path) -> bool:
 def _check_topic_exists(workspace: Path, topic: str) -> None:
     if topic == "unclassified":
         return
-    index_path = workspace / "industry" / topic / "index.md"
+    # topic may already start with "industry/" — avoid doubling
+    topic_path = workspace / topic if topic.startswith("industry/") else workspace / "industry" / topic
+    index_path = topic_path / "index.md"
     if not index_path.exists():
         raise IngestError(
             f"Topic '{topic}' does not exist. Run new-session first to create the topic directory first.\n"
@@ -1141,6 +1143,33 @@ def _move_to_raw(source: Path, workspace: Path, topic: str, category: str) -> Pa
     dest = raw_dir / source.name
     shutil.move(str(source), str(dest))
     return dest
+
+
+def cache_direct(source: Path, output: Path, extract_figures: bool = True) -> dict[str, Any]:
+    """Convert source file and write markdown directly to a specified output path.
+
+    Bypasses all topic/index/resolution logic — just convert and write.
+    """
+    profile = detect_format(source)
+    target = Path(output)
+    route_converter(source, profile, cache_parent=None, extract_figures=extract_figures)
+    result = route_converter(source, profile, cache_parent=None, extract_figures=extract_figures)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(markdown_header(source, result) + result.markdown.rstrip() + "\n", encoding="utf-8")
+    return {
+        "source": str(source),
+        "cache": str(target),
+        "status": "converted",
+        "converter": result.converter,
+        "precision": result.precision,
+        "precision_level": result.precision_level,
+        "document_type": result.document_type,
+        "route": f"{result.route}-direct",
+        "page_count": result.page_count,
+        "table_count": result.table_count,
+        "ocr_required": result.ocr_required,
+        "dependency_status": result.dependency_status,
+    }
 
 
 def cache(source: Path, workspace: Path, cache_root: Path | None, topic: str | None, category: str | None, force: bool, extract_figures: bool = True) -> dict[str, Any]:
@@ -1245,6 +1274,7 @@ def parse_args() -> argparse.Namespace:
                         help="Extract figures/charts from documents during ingest (default: True)")
     parser.add_argument("--no-extract-figures", action="store_false", dest="extract_figures",
                         help="Skip figure extraction")
+    parser.add_argument("--output", help="Direct output path for markdown file. Bypasses topic resolution.")
     return parser.parse_args()
 
 
@@ -1262,6 +1292,17 @@ def main() -> int:
     if not source.exists():
         print(json.dumps({"status": "failed", "error": f"Source path does not exist: {source}"}, ensure_ascii=False, indent=2))
         return 1
+
+    # --output mode: direct conversion, no topic/index logic
+    if args.output:
+        try:
+            result = cache_direct(source, args.output, extract_figures=args.extract_figures)
+            print(json.dumps({"workspace": "direct", "converted": 1, "skipped": 0, "failed": 0,
+                             "results": [result], "errors": []}, ensure_ascii=False, indent=2))
+            return 0
+        except Exception as exc:
+            print(json.dumps({"status": "failed", "error": str(exc)}, ensure_ascii=False, indent=2))
+            return 1
 
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace(source)
