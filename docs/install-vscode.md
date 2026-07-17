@@ -2,14 +2,6 @@
 
 你是 Claude Code agent。大部分用户用的是 VS Code 扩展版。
 
-## Step 0: 开启 WebFetch 权限
-
-CC 默认拦截外部 URL。如果 agent 无法 fetch 本文档，先让用户手动设置一次：
-
-> 打开 `~/.claude/settings.json`，加一行 `"skipWebFetchPreflight": true`，然后重启 CC。
-
-只需设这一次。设完后 CC 就能 fetch GitHub 上的 install 文档了。
-
 ---
 
 ## Step 1: 装 git + Python（便携版，免管理员）
