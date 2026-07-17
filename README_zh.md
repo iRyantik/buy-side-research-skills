@@ -10,13 +10,22 @@ English → [README.md](README.md)
 
 ## 0. 安装
 
+### VS Code 扩展（大部分用户）
+
 对 Claude Code 说：
 
 ```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
+按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md 安装 buy-side-research-skills
 ```
 
-如果提示"unable to verify domain"，先在 `~/.claude/settings.json` 加 `"skipWebFetchPreflight": true` 并重启 CC。
+### CC Terminal
+
+```
+/plugin marketplace add iRyantik/buy-side-research-skills
+/plugin install buy-side-research-skills
+```
+
+> 如果 CC 无法 fetch URL，先在 `~/.claude/settings.json` 加 `"skipWebFetchPreflight": true` 并重启 CC。
 
 ## 0a. 升级
 

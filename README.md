@@ -8,13 +8,22 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 
 ## 0. Install
 
+### VS Code Extension（大部分用户）
+
 Tell Claude Code:
 
 ```
-Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md to install buy-side-research-skills
+Follow https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install-vscode.md to install buy-side-research-skills
 ```
 
-If you see "unable to verify domain", first write `"skipWebFetchPreflight": true` to `~/.claude/settings.json` and restart CC.
+### CC Terminal
+
+```
+/plugin marketplace add iRyantik/buy-side-research-skills
+/plugin install buy-side-research-skills
+```
+
+> If CC can't fetch the URL, first write `"skipWebFetchPreflight": true` to `~/.claude/settings.json` and restart CC.
 
 ## 0a. Upgrade
 
