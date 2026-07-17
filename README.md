@@ -1,8 +1,8 @@
 # Buy-Side Research Skills
 
-> v8.0.0 | Claude Code + Codex Dual-Host | [iRyantik/buy-side-research-skills](https://github.com/iRyantik/buy-side-research-skills)
+中文版 → [README_zh.md](README_zh.md)
 
-A journal-first buy-side equity research skill suite: 39 skills covering triage, foundation, deep-work, and operations layers. Source-tracked, evidence-gated, cross-market.
+35 skills for buy-side equity research: triage, foundation, deep-work, and operations. Source-tracked, evidence-gated, cross-market.
 
 ---
 
