@@ -109,6 +109,17 @@ audio .mp3/.wav/.m4a
 
 Step 1 边界：不改文本、不分 speaker、不加标注。纯原材料。
 
+### Step 1.5: Workspace 感知（可选，在 workspace 内时执行）
+
+```bash
+python .scripts/shared/workspace-locate.py <公司名或行业关键词>
+```
+
+- 命中已有公司目录 → artifact 存到该公司目录下
+- 命中已有行业 → artifact 存到行业 `panorama/meeting-minutes/`
+- 命中已研究过的背景 → 注入到 Step 3 briefing
+- 未命中 → 当前目录输出
+
 ### Step 2: 共享预处理 → scratchpad
 
 产物：`_scratchpad.json`，存入 `.cache/meeting-minutes/`。语言中立（key 用英文，values 保留原语言）。
@@ -149,6 +160,8 @@ scratchpad 必须包含 `verification_log` 字段，每条 fact 挂一个 web se
 ### Step 3: 按 template 输出
 
 **模板数量：2 个。** briefing + qa。每个模板出 ZH 和（可选）EN 两个版本。internal 的组件作为 appendix 嵌入。
+
+> 文件命名按 CLAUDE.md §10：`YYYYMMDD-[skill]-[Company-Name]_<variant>.md`
 
 **语言风格**——以下一律禁止，违者重写：
 
