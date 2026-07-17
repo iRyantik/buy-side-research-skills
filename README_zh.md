@@ -10,7 +10,7 @@ English → [README.md](README.md)
 
 ## 0. 安装
 
-### VS Code 扩展（大部分用户）
+### VS Code 扩展
 
 复制到 Claude Code：
 

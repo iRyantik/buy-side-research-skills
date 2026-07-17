@@ -8,7 +8,7 @@ A journal-first buy-side equity research skill suite: 39 skills covering triage,
 
 ## 0. Install
 
-### VS Code Extension（大部分用户）
+### VS Code Extension
 
 Copy this into Claude Code:
 
