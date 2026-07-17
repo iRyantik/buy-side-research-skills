@@ -1,105 +1,41 @@
 # Buy-Side Research Skills — 安装指南
 
-你是 Claude Code agent。此文档做两件事：**装 Python + 装插件**。
-
-用户只需说：
-
-```
-按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
-```
+你是 Claude Code agent。大部分用户用的是 VS Code 扩展版。
 
 ---
 
-## Step 1: 装 Python（如果没有）
+## Step 1: 装 git（便携版，免管理员，60MB）
+
+CC 的插件系统需要 git。没有就自动装：
 
 ```bash
-python --version
+# 下载便携版 git
+curl -L -o %TEMP%\PortableGit.exe https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.2/PortableGit-2.47.1.2-64-bit.7z.exe
+# 自解压到用户目录
+%TEMP%\PortableGit.exe -o"%USERPROFILE%\.local\git" -y
+# 加入 PATH
+set PATH=%USERPROFILE%\.local\git\bin;%PATH%
+git --version
 ```
 
-报错 → 自动装：
+## Step 2: 用户操作 CC UI（Agent 指导）
 
-**Windows**（无需管理员）：
-```bash
-# 1. 下载
-curl -L -o %TEMP%\python-installer.exe https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
-# 如果 curl 报错（网络问题）→ 重试一次。仍失败 → 用镜像：
-# curl -L -o %TEMP%\python-installer.exe https://ghproxy.com/https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe
-# 镜像也失败 → 让用户浏览器打开 https://www.python.org/downloads/ 手动下载，放到 %TEMP%\python-installer.exe
+告诉用户：
 
-# 2. 安装
-%TEMP%\python-installer.exe /quiet InstallAllUsers=0 PrependPath=1
-# 如果报错或未生成文件 → 检查 %TEMP%\python-installer.exe 是否存在（下载那步可能没成功）
-# 存在但安装失败 → 去掉 /quiet，改用 /passive 看错误提示
+> 在 Claude Code 面板里：
+> 1. 右上角 ⚙ → **Manage Plugins**
+> 2. **Add Marketplace** → 输入 `iRyantik/buy-side-research-skills`
+> 3. 找到 buy-side-research-skills → 点 **Install**
+> 4. 重启 Claude Code
 
-# 3. 清理 Store 别名
-powershell -Command "Remove-Item $env:LOCALAPPDATA\Microsoft\WindowsApps\python.exe -ErrorAction SilentlyContinue"
+## Step 3: 验证
 
-# 4. 验证
-%LOCALAPPDATA%\Programs\Python\Python312\python.exe --version
-# 报错"not found" → 安装没成功。检查：① 磁盘空间 ② 是否被杀毒拦截 ③ 尝试重启终端再验证
-# 仍不行 → 让用户手动安装 Python 3.12 from https://www.python.org/downloads/，确保勾选 "Add to PATH"
-```
+重启后按 `/` → 搜 `stock-quickread`。能看到即成功。
 
-**macOS**：
-```bash
-brew install python
-```
+## Step 4: 初始化 workspace
+
+新建文件夹 → CC 打开 → `/init-workspace`
 
 ---
 
-## Step 2: 安装插件
-
-VS Code 扩展版不支持 `/plugin` 命令——以下 Python 脚本是唯一路径。
-
-```bash
-python -c "
-import urllib.request, zipfile, io, shutil, json
-from pathlib import Path
-
-# Download
-url = 'https://api.github.com/repos/iRyantik/buy-side-research-skills/zipball/main'
-with urllib.request.urlopen(url) as r: data = r.read()
-
-# Extract
-tmp = Path.home() / '.claude' / 'plugins' / '_tmp_install'
-shutil.rmtree(tmp, ignore_errors=True); tmp.mkdir(parents=True)
-with zipfile.ZipFile(io.BytesIO(data)) as z: z.extractall(tmp)
-inner = next(tmp.iterdir())
-
-# Get version
-plugin_json = inner / 'plugins' / 'buy-side-research-skills' / '.claude-plugin' / 'plugin.json'
-ver = json.loads(plugin_json.read_text('utf-8'))['version']
-
-# Install
-dst = Path.home() / '.claude' / 'plugins' / 'cache' / 'buy-side-research-skills' / 'buy-side-research-skills' / ver
-shutil.rmtree(dst, ignore_errors=True); shutil.copytree(inner, dst)
-
-# Register
-reg = Path.home() / '.claude' / 'plugins' / 'installed_plugins.json'
-data = json.loads(reg.read_text('utf-8')) if reg.exists() else {}
-data['buy-side-research-skills'] = {'version': ver}
-reg.parent.mkdir(parents=True, exist_ok=True)
-reg.write_text(json.dumps(data, ensure_ascii=False, indent=2), 'utf-8')
-
-shutil.rmtree(tmp, ignore_errors=True)
-print(f'Installed v{ver}. Restart CC and press /.')
-"
-```
-
-> 如果使用 CC Terminal（非 VS Code），可尝试：`/plugin marketplace add iRyantik/buy-side-research-skills` → `/plugin install buy-side-research-skills`
-
----
-
-## Step 3: 初始化 Workspace
-
-新建文件夹 → 用 CC 打开 → 执行：
-
-```
-/init-workspace
-```
-
----
-
-## 安装完成后
-
-按 `/` 应该看到 `stock-quickread` 等 38 个 skill。各 skill 的额外依赖（ffmpeg、whisper 等）首次使用时自动安装。
+> **CC Terminal 用户**：跳过 Step 1-2，直接 `/plugin marketplace add iRyantik/buy-side-research-skills` → `/plugin install buy-side-research-skills`。

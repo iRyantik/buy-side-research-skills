@@ -13,10 +13,10 @@ English → [README.md](README.md)
 对 Claude Code 说：
 
 ```
-1. 写 ~/.claude/settings.json 加 "skipWebFetchPreflight": true
-2. 重启 Claude Code
-3. 按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
+按照 https://github.com/iRyantik/buy-side-research-skills/blob/main/docs/install.md 安装 buy-side-research-skills
 ```
+
+如果提示"unable to verify domain"，先在 `~/.claude/settings.json` 加 `"skipWebFetchPreflight": true` 并重启 CC。
 
 ## 0a. 升级
 
