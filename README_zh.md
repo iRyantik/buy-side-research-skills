@@ -4,8 +4,6 @@ English → [README.md](README.md)
 
 35 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
 
-English → [README.md](README.md)
-
 ---
 
 ## 0. 安装
