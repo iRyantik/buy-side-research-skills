@@ -27,7 +27,7 @@
 
 ### 3.1 新 Session 大门
 
-每次对话开始，先跑 `python .scripts/shared/workspace-summary.py` 了解已有覆盖。
+首次对话先去了解 workspace：读 `COVERAGE.md` 知道覆盖了哪些行业/公司，读 `CLAUDE.md` 了解规则。`workspace-summary.py` 可以辅助快速概览，但不替代自己读关键文件。
 
 ### 3.2 文件命名
 
@@ -101,21 +101,29 @@ DPC.US-Doncaster/
 - 每条声明、数字、引语必须有 source link
 - 默认 inline clickable short anchor：`[S1](url)`
 - 文末统一 `## Resources`
-- Source 质量：`primary public > Bridge > yfinance > WebSearch`
-- `financial-data` CLI = source-of-record → `actuals-resolved.json`
-- Bridge = Longbridge MCP（US/HK/SH/SZ/SG），不可用时自动 fallback
-- 数据路由细节见 `.references/routing/`
+- Source quality follows two tracks：
+  - **披露事实轨**：`topic-local evidence cache > primary public > Bridge > web`
+  - **市场快照轨**：`actuals market_data（fresh <180天）> Bridge > yfinance > WebSearch / WebFetch`
+- `financial-data` CLI 是 source-of-record → `actuals-resolved.json`；artifact 财务数据必须从 actuals 取
+- Bridge = Longbridge MCP（US/HK/SH/SZ/SG），不可用自动 fallback
+- 数据路由全表 → `.references/routing/data-routing.md`
 
 ---
 
 ## 5. Output Style
 
-> `LANG-default = zh`。用户明确说英文才切。
+> `LANG-default = zh`。override：用户说 "用英文输出" / "use English" → 切英文，覆盖本轮。
 
-- 结论先行。不写空铺垫。
-- 数字 + source 支撑。无 source = honest degrade，标 `[需查证]`。
-- 表格必有 takeaway。
-- 保留英文：股票代码、财务比率、货币代码、jargon。公司名有中文用中文。
+### 5.1 Directness
+- 结论先行：第一段给判断 / verdict，再给依据
+- 不写空铺垫。不确定就说不确定，标 `[需查证]`
+
+### 5.2 Data First
+- 判断必须有数字 + source。无 source = honest degrade
+- 数据表必须有 takeaway
+
+### 5.3 Numbers, Currency, Dates
+保留英文：股票代码、财务比率、货币代码、jargon。公司名有中文用中文。详细语言规则 → `.references/style/language-guide.md`。
 
 **数字格式**：
 | 类型 | 格式 | 示例 |
@@ -138,16 +146,23 @@ DPC.US-Doncaster/
 
 ## 6. Pipeline Contract
 
-所有 skill 的 pipeline 步骤都是强制步骤。不可跳过、不可替换工具、失败 → 报告 + 停止。
+以下规则适用于所有 skill 的全部 pipeline 步骤。不可绕过，不可协商。
 
-1. Pipeline 步骤不可裁减
-2. 步骤失败 → 报告 + STOP
-3. 前置条件验证（Read 确认产物存在）
-4. 工具不可替换
-5. 不提前判断"不值得"
-6. Sub-agent 继承父级约束
-7. Compact 后重读 Skill
-8. Best-effort ≠ Optional
+1. **Pipeline 步骤不可裁减**：Skill 定义的每一步都是强制步骤。Agent 没有权限判断某步骤"不需要"或"可以跳过"。全部执行，无一例外。
+
+2. **步骤失败 → 报告 + STOP**：任何步骤报错，Agent 必须报告具体错误信息并停止流程。不得发明替代方案，不得静默降级，不得用"看起来类似"的工具替换。如需替代，必须显式向用户报告并等待批准。
+
+3. **前置条件必须验证**：下一步开始前，必须确认上一步的产物真实存在。不得假设"应该已经好了"。
+
+4. **工具不可替换**：Skill 明确指定的脚本/命令就是唯一执行路径。不得用 browser_take_screenshot 代替 download-image.py，不得用 WebSearch 代替 verify-claim.py，不得手写 markdown 代替 evidence_ledger.py。
+
+5. **不得提前判断"不值得"**：正在执行的 skill 必须跑完。不得在中途判断"这个公司没意思"或"这个行业太小"而提前终止。完成后可以在结论里说不值得，但不能在执行中判断。
+
+6. **子 Agent 继承父级约束**：分派子任务时，prompt 中必须包含 "Follow all pipeline steps. No skipping, no tool substitution. If a step fails, report the error — do not work around it."
+
+7. **Compact/Summary 后重新读 Skill**：对话被压缩后，Agent 不知道哪些步骤已完成。继续工作前必须重新 Read 当前 skill 的 SKILL.md 全文。
+
+8. **Best-effort ≠ Optional**：标记为 best-effort 的步骤仍然必须尝试。仅在尝试后确实失败且已报告用户时才能跳过。
 
 ---
 
