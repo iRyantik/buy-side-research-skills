@@ -61,28 +61,3 @@ Business segments (PG, GT, AS-HV) explain the economics. Geography segments (Asi
 ### Why topics/ was dropped
 The `topics/<namespace>/<slug>/` structure added an unnecessary container layer. The namespace (`industry/`, `company/`) is already encoded in the path. `industry/pcb-equipment/companies/mycronic/` is self-documenting; `topics/industry/pcb-equipment/` adds no information.
 
-## Known Cross-Industry Companies
-
-| Company | Primary Industry | Cross Industry | Cross Segment |
-|---|---|---|---|
-| Mycronic (MYCR SS) | optical-module-equipment | pcb-equipment | ATG bare board testing, GT PCB test |
-| Keysight (KEYS US) | optical-module-equipment | pcb-equipment | ICT bed-of-nails, TDR modules |
-
-## Cache Layouts
-
-financial-data canonical company cache:
-```
-industry/<industry>/companies/<ticker>/.cache/financial-data/
-  financials.normalized.json
-  actuals-resolved.json
-  evidence-pack.json
-  source-map.json
-  completeness.json
-```
-
-driver-map canonical company cache:
-```
-industry/<industry>/companies/<ticker>/.cache/driver-map/
-  driver-map.md
-  internal/driver-map.json
-```
