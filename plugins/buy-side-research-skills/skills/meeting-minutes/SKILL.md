@@ -161,7 +161,7 @@ scratchpad 必须包含 `verification_log` 字段，每条 fact 挂一个 web se
 
 **模板数量：2 个。** briefing + qa。每个模板出 ZH 和（可选）EN 两个版本。internal 的组件作为 appendix 嵌入。
 
-> 文件命名按 CLAUDE.md §10：`YYYYMMDD-[skill]-[Company-Name]_<variant>.md`
+> 文件命名按 CLAUDE.md §3.2：`YYYYMMDD-[skill]-[Company-Name]_<variant>.md`
 
 **语言风格**——以下一律禁止，违者重写：
 

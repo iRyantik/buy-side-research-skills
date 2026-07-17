@@ -535,7 +535,7 @@ industry/<industry>/companies/<ticker>/
 ### ⛔ GATE 2: 生成 Excel
 
 ```bash
-# 首次建模：公司本地脚本副本（按 CLAUDE.md §6.5 规则）
+# 首次建模：公司本地脚本副本（）
 mkdir -p industry/<industry>/companies/<ticker>/.cache/scripts/modules
 cp .scripts/driver-map/build-logic-model.py <ticker>/.cache/scripts/
 cp .scripts/driver-map/modules/*.py <ticker>/.cache/scripts/modules/

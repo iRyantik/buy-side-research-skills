@@ -79,7 +79,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
    → 查会话上下文（当前讨论哪个行业/topic）
    → WebSearch "<公司名> sector industry classification" 确认
    → 对 workspace `industry/*/` 目录——能匹配就复用，不能则用新 slug
-1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §5.5
+1. Read workspace `.references/runtime/research-runtime.md` + workspace `CLAUDE.md` §3.5
 2. python .scripts/financial-data/financial_data.py --market <market> --identifier <TICKER> --company-slug <slug> --industry <industry-slug> --mode lite → 等待 `actuals-resolved.json` 就绪
    （CLI 自动创建 industry/<slug>/companies/<ticker>/ 目录）
 3. Run `python .scripts/evidence_ledger.py init <artifact-path> -t <TICKER>`
