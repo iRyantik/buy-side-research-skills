@@ -193,5 +193,9 @@ COVERAGE.md                  ← 覆盖状态
 
 ---
 
-- 本文件服务 research workspace。
-- 插件开发见 repo root `CLAUDE.md`。
+- 本文件服务 research workspace。插件开发见 repo root `CLAUDE.md`。
+- 详细规则引用：
+  - 语言/翻译/公司名/搜索语言 → `.references/style/language-guide.md`
+  - 数据路由全表/决策树 → `.references/routing/data-routing.md`
+  - 研究规则基线 → `.references/policy/research-policy-baseline.md`
+  - References 索引 → `.references/README.md`
