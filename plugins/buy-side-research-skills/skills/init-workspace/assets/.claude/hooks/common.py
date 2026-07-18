@@ -331,6 +331,33 @@ def get_markdown_targets(payload: dict) -> list[dict]:
     return targets
 
 
+
+def scan_recent_mtime(workspace_root: str, since_seconds: float = 15.0) -> list[str]:
+    """Scan workspace for files modified in the last N seconds.
+    Only checks root level + industry/ tree (1 level deep for speed).
+    Returns list of full paths."""
+    import time, os
+    root = Path(workspace_root)
+    recent = []
+    cutoff = time.time() - since_seconds
+    try:
+        for entry in os.scandir(str(root)):
+            try:
+                if entry.is_file() and entry.stat().st_mtime > cutoff:
+                    recent.append(str(root / entry.name))
+                elif entry.is_dir() and entry.name in ('industry', '.cache', '.scripts', '.references', '.claude', '.codex'):
+                    for sub in os.scandir(entry.path):
+                        try:
+                            if sub.is_file() and sub.stat().st_mtime > cutoff:
+                                recent.append(str(root / entry.name / sub.name))
+                        except OSError:
+                            pass
+            except OSError:
+                pass
+    except OSError:
+        pass
+    return recent
+
 def block(msg: str):
     sys.stderr.write(f"{msg}\n")
     sys.exit(2)

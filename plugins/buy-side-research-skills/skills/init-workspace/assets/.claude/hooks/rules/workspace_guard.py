@@ -1,26 +1,47 @@
-"""Rule 1: Workspace path/naming guard."""
+"""Rule 1: Workspace path/naming guard + root whitelist."""
 import sys, os, re
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from common import is_under, get_relative_display, is_topic_artifact_root_file, block
+from common import is_under, get_relative_display, is_topic_artifact_root_file, block, warn
 
-# Legacy root paths that are forbidden
 LEGACY_ROOTS = re.compile(r'^(screens|peers|quickreads|cross-market)/')
 
-# Company-level skills that require company qualifier in artifact name
 COMPANY_SKILLS = {
     'stock-quickread', 'company-history', 'driver-map',
     'alpha-thesis', 'consensus-map', 'earnings-setup', 'bear-pre-mortem',
 }
 
-# Topic root artifact naming: YYYY-MM-DD-slug.md
-DATE_PREFIX_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9\-]*\.(md|html)$')
+DATE_PREFIX_RE = re.compile(r'^\d{8}-[a-z0-9A-Z\[\]][a-z0-9A-Z\[\]\-_]*\.(md|html)$')
+
+ROOT_WHITELIST = frozenset({
+    "industry", ".cache", ".scripts", ".claude", ".codex",
+    ".references", "COVERAGE.md", "CLAUDE.md", "AGENTS.md", ".env", ".gitignore",
+})
+
+
+def _check_root_whitelist(path: str, root: str) -> bool:
+    """Check if path is allowed at workspace root level. Returns True if OK."""
+    rel = get_relative_display(path, root).replace("\\", "/")
+    top = rel.split("/")[0] if rel else ""
+    if top.startswith("."):
+        top = "." + top.split("/")[0] if "/" in top else top
+    # Normalize: if rel is just a filename, check against whitelist
+    if "/" not in rel:
+        return rel in ROOT_WHITELIST
+    # If in a subdirectory, check the top-level directory
+    return top in ROOT_WHITELIST
+
 
 def check(ctx: dict):
-    """Entry point called by hook_entry. Blocking errors call block()."""
+    """Entry point called by hook_entry."""
     root = ctx["cwd"]
-    for path in ctx.get("candidate_paths", []):
+    paths = ctx.get("candidate_paths", [])
+    event = ctx.get("event", "")
+
+    for path in paths:
+        if not path:
+            continue
         rel = get_relative_display(path, root)
 
         # Rule 1: Must be inside workspace root
@@ -31,7 +52,15 @@ def check(ctx: dict):
         if LEGACY_ROOTS.match(rel.replace('\\', '/')):
             block(f"Blocked by workspace_guard: legacy root paths not allowed ({rel})")
 
-        # Rule 3: Topic root artifacts must be date-prefixed (except index.md)
+        # Rule 3: Root-level whitelist — warn on PostToolUse, block on PreToolUse
+        if not _check_root_whitelist(path, root):
+            msg = f"workspace_guard: file outside allowed paths ({rel}). Allowed: industry/, .cache/, .scripts/, .claude/, .codex/, .references/, CLAUDE.md, AGENTS.md, COVERAGE.md, .env, .gitignore"
+            if event == "PreToolUse":
+                block(f"Blocked by {msg}")
+            else:
+                warn(f"Warning: {msg}")
+
+        # Rule 4: Topic root artifacts must be date-prefixed (except index.md)
         if is_topic_artifact_root_file(path, root):
             leaf = Path(path).name
             if leaf.lower() == "index.md":
@@ -39,12 +68,11 @@ def check(ctx: dict):
             if not DATE_PREFIX_RE.match(leaf):
                 block(f"Blocked by workspace_guard: topic root artifact must be date-prefixed ({rel})")
 
-        # Rule 4: Company-level skill artifacts must include company qualifier
+        # Rule 5: Company-level skill artifacts must include company qualifier
         leaf = Path(path).name
         if DATE_PREFIX_RE.match(leaf):
-            slug = leaf.rsplit('.', 1)[0]  # remove extension
-            # Extract artifact base name (strip date prefix)
-            parts = slug.split('-', 3)  # YYYY, MM, DD, rest
+            slug = leaf.rsplit('.', 1)[0]
+            parts = slug.split('-', 3)
             if len(parts) >= 4:
                 artifact = parts[3]
                 for skill in COMPANY_SKILLS:

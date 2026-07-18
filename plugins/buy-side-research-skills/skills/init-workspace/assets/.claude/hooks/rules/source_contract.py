@@ -19,7 +19,7 @@ from common import (
     is_valid_source_target, block, warn,
 )
 
-_RESEARCH_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
+_RESEARCH_ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
 
 # Known source words — case-insensitive match for non-standard label detection
 SOURCE_WORDS = {
@@ -180,11 +180,12 @@ def check(ctx: dict):
                 block(f"Blocked by source_contract: {display} has invalid ## Resources target for [{entry['code']}] ({entry['target']}).")
 
         # --- Rule 2a: bare standard anchor codes without URL (e.g. [S1], [I2]) ---
+        # Every [S#]/[I#] must have an inline URL: [S#](url). Bare anchors block.
         for line in body_no_code.split("\n"):
             bare = re.findall(r'\[(?:S|P|I|LBG|R|SRC)\d+\](?!\()', line)
             if bare:
-                block(f"Blocked by source_contract: {display} has bare anchor codes without URLs: {', '.join(bare)}. "
-                      f"Every [S#]/[I#] must have a URL: [S#](url).")
+                block(f"Blocked by source_contract: {display} has bare anchor codes without inline URLs: "
+                      f"{', '.join(bare)}. Every [S#]/[I#] must be clickable: [S#](url).")
 
         # --- Rule 2a2: non-standard source labels without URLs ---
         # Catches lowercase (yfinance), CamelCase (MarketScreener), multi-word (Yahoo Finance),
