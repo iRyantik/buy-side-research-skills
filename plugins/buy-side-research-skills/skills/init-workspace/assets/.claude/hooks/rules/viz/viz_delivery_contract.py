@@ -3,8 +3,8 @@ import re, sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from common import block, warn
 
-GENERIC_NAME = re.compile(r'(?i)^(?:\d{4}-\d{2}-\d{2}-)?research-viz(?:-[^.]+)?\.html$')
-DATED_HTML = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.html$')
+GENERIC_NAME = re.compile(r'(?i)^(?:\d{8}-)?research-viz(?:-[^.]+)?\.html$')
+DATED_HTML = re.compile(r'^\d{8}-.+\.html$')
 TITLE = re.compile(r'(?is)(<title>.+?</title>|<h1\b[^>]*>.+?</h1>)')
 SUBTITLE = re.compile(r'(?is)(subtitle|sub-title|class=["\'][^"\']*subtitle|as-of|updated|ticker|currency)')
 SOURCE = re.compile(r'(?is)(source line|sources?:|data source|class=["\'][^"\']*source|来源)')
@@ -23,7 +23,7 @@ def check(ctx):
             if GENERIC_NAME.search(leaf):
                 block(f"viz_delivery_contract: {d} must bind topic-side HTML to the base research stem, not a generic research-viz file name.")
             if not DATED_HTML.search(leaf):
-                block(f"viz_delivery_contract: {d} must use a dated base-research stem HTML name (YYYY-MM-DD-*.html).")
+                block(f"viz_delivery_contract: {d} must use a dated base-research stem HTML name (YYYYMMDD-*.html).")
         if text:
             if EXTERNAL.search(text):
                 block(f"viz_delivery_contract: {d} must be self-contained and cannot depend on external http(s) assets.")

@@ -20,7 +20,7 @@ import re, sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
 
-_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
+_ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
 ANCHOR_RE = re.compile(r'\[(?:S|I|LBG|P)\d+\]\([^)]+\)')
 IMAGE_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
 

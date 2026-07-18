@@ -19,7 +19,7 @@ from common import (
     is_valid_source_target,
 )
 
-_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
+_ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
 ANCHOR_CODE_RE = re.compile(r'\[(?:S|P|I|LBG|R|SRC)\d+\](?!\()')
 SOURCE_ANCHOR_RE = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|SRC\d+)\]')
 # Currency-agnostic number detector — catches SEK/JPY/HKD etc.
@@ -255,7 +255,7 @@ def _check_content(path: str, text: str, display: str):
 
     # --- CHECK 10: actuals freshness ---
     ACTUALS_REL = re.compile(
-        r'(industry/[^/]+/companies/[^/]+)/\d{4}-\d{2}-\d{2}-.+\.md$')
+        r'(industry/[^/]+/companies/[^/]+)/\d{8}-.+\.md$')
     m = ACTUALS_REL.search(path) if path else None
     if m:
         actuals_path = os.path.join(

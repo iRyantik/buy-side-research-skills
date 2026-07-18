@@ -114,7 +114,7 @@ def _strip_code_blocks(text: str) -> str:
 
 
 def _is_research_artifact(filepath: str) -> bool:
-    """Only dated Markdown files (YYYY-MM-DD-*.md) are research artifacts
+    """Only dated Markdown files (YYYYMMDD-*.md) are research artifacts
     requiring source contract enforcement. Skill files, config files, and
     structural navigation files are exempt."""
     return bool(_RESEARCH_ARTIFACT_RE.match(os.path.basename(filepath)))
@@ -169,7 +169,7 @@ def check(ctx: dict):
         body_no_code = _strip_code_blocks(body)  # for label-matching rules only
         body_anchors = get_short_anchor_matches(body)
 
-        # Rules 2-2e only apply to research artifacts (YYYY-MM-DD-*.md)
+        # Rules 2-2e only apply to research artifacts (YYYYMMDD-*.md)
         # Memory files, config, CLAUDE.md etc. are exempt from source contract
         if not is_artifact:
             continue
