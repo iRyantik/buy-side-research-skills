@@ -39,6 +39,7 @@ INSTALLED_PLUGINS = Path.home() / ".claude" / "plugins" / "installed_plugins.jso
 AGENTS_MARKETPLACE = Path.home() / ".agents" / "plugins" / "marketplace.json"
 
 WORKSPACE_MARKERS = ["industry", "CLAUDE.md", ".scripts"]
+DEV_REPO_MARKERS = ["plugins", ".claude-plugin", ".codex-plugin"]
 
 
 # ── helpers ──────────────────────────────────────────────────
@@ -72,9 +73,16 @@ def _download(url: str, dest: Path):
         _fail(f"Download failed: {e}")
 
 
+def _is_dev_repo(path: Path) -> bool:
+    """Check if path looks like a plugin dev repo (not a research workspace)."""
+    return sum(1 for m in DEV_REPO_MARKERS if (path / m).exists()) >= 2
+
+
 def _discover_workspace() -> Path:
     cwd = Path.cwd()
     for parent in [cwd, *cwd.parents]:
+        if _is_dev_repo(parent):
+            continue
         if sum(1 for m in WORKSPACE_MARKERS if (parent / m).exists()) >= 2:
             return parent
     _fail("Workspace not found. Pass --workspace or run from inside a workspace.")

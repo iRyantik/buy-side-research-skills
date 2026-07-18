@@ -24,14 +24,12 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import URLError
 
 GITHUB_API = "https://api.github.com/repos/iRyantik/buy-side-research-skills/releases/latest"
 PLUGIN_NAME = "buy-side-research-skills"
-PLUGIN_DIRS = [".claude-plugin", ".codex-plugin", "skills"]  # only these go into cache
 CLAUDE_CACHE = Path.home() / ".claude" / "plugins" / "cache" / PLUGIN_NAME / PLUGIN_NAME
 CODEX_CACHE = Path.home() / ".codex" / "plugins" / "cache" / PLUGIN_NAME / PLUGIN_NAME
 CODEX_SKILLS = Path.home() / ".codex" / "plugins" / "cache" / PLUGIN_NAME / "skills"
@@ -39,7 +37,6 @@ INSTALLED_PLUGINS = Path.home() / ".claude" / "plugins" / "installed_plugins.jso
 AGENTS_MARKETPLACE = Path.home() / ".agents" / "plugins" / "marketplace.json"
 
 WORKSPACE_MARKERS = ["industry", "CLAUDE.md", ".scripts"]
-DEV_REPO_MARKERS = ["plugins", ".claude-plugin", ".codex-plugin"]
 
 
 # ── helpers ──────────────────────────────────────────────────
@@ -73,16 +70,9 @@ def _download(url: str, dest: Path):
         _fail(f"Download failed: {e}")
 
 
-def _is_dev_repo(path: Path) -> bool:
-    """Check if path looks like a plugin dev repo (not a research workspace)."""
-    return sum(1 for m in DEV_REPO_MARKERS if (path / m).exists()) >= 2
-
-
 def _discover_workspace() -> Path:
     cwd = Path.cwd()
     for parent in [cwd, *cwd.parents]:
-        if _is_dev_repo(parent):
-            continue
         if sum(1 for m in WORKSPACE_MARKERS if (parent / m).exists()) >= 2:
             return parent
     _fail("Workspace not found. Pass --workspace or run from inside a workspace.")
@@ -103,7 +93,7 @@ def fetch_latest() -> tuple[str, Path]:
     if not zip_url:
         _fail("No zipball_url in release")
 
-    short_tmp = Path(tempfile.gettempdir())
+    short_tmp = Path("C:/tmp")
     short_tmp.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix="bsrs-", dir=str(short_tmp)))
     zip_path = tmp / "release.zip"
@@ -129,22 +119,13 @@ def fetch_latest() -> tuple[str, Path]:
 # ── cache update ──────────────────────────────────────────────
 
 def update_host_cache(payload: Path, version: str, cache_dir: Path, host_name: str):
-    """Copy only plugin essentials into host cache.
-
-    CC manages .in_use / .orphaned_at — this function only writes the plugin files.
-    """
+    """Copy plugin payload into host cache directory."""
     ver_dir = cache_dir / version
     if ver_dir.exists():
         shutil.rmtree(ver_dir)
     ver_dir.mkdir(parents=True)
-
-    for sub in PLUGIN_DIRS:
-        src = payload / sub
-        if src.is_dir():
-            shutil.copytree(src, ver_dir / sub, symlinks=True)
-            _log(f"  {sub}/")
-
-    _log(f"Copied to {host_name} cache: {ver_dir}")
+    _log(f"Copying to {host_name} cache: {ver_dir}")
+    shutil.copytree(payload, ver_dir, dirs_exist_ok=True)
 
 
 def update_marketplace_pointers(version: str):
@@ -158,6 +139,7 @@ def update_marketplace_pointers(version: str):
             for entry in data["plugins"][key]:
                 entry["version"] = version
                 entry["installPath"] = str(CLAUDE_CACHE / version)
+                from datetime import datetime, timezone
                 entry["lastUpdated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
             with open(INSTALLED_PLUGINS, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
@@ -235,30 +217,21 @@ def sync_workspace(payload: Path, workspace: Path):
                 shutil.copytree(src_scripts, dst_dir, dirs_exist_ok=True)
     _log(".scripts/ synced")
 
-    # D. .references/ — all subdirs + top-level .md files
-    ref_subdirs = [
-        "policy",
-        "kpi-drivers",
-        "runtime",
-        "templates",
-        "routing",
-        "style",
-    ]
-    refs_root = assets / ".references"
-    for sub in ref_subdirs:
-        src = refs_root / sub
+    # D. .references/
+    refs = {
+        ".references/policy": assets / ".references" / "policy",
+        ".references/kpi-drivers": assets / ".references" / "kpi-drivers",
+        ".references/runtime": assets / ".references" / "runtime",
+        ".references/templates": assets / ".references" / "templates",
+    }
+    for rel, src in refs.items():
         if src.is_dir():
-            dst = workspace / ".references" / sub
+            dst = workspace / rel
             dst.mkdir(parents=True, exist_ok=True)
             shutil.copytree(src, dst, dirs_exist_ok=True)
-
-    # Top-level reference docs (README.md, edge-radar.md, etc.)
-    for f in refs_root.glob("*.md"):
-        shutil.copy2(f, workspace / ".references" / f.name)
-
     _log(".references/ synced")
 
-    # E. Root docs — everything else via templates
+    # E. Root docs — edge-radar moved to .references/, everything else via templates
 
 
 def run_verify(workspace: Path) -> bool:
