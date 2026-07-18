@@ -559,24 +559,49 @@ def discover_workspace(source: Path | None = None) -> Path:
     raise RuntimeError("Could not discover workspace. Pass --workspace or run init-workspace first.")
 
 
-def ensure_company_topic(workspace: Path, company_slug: str, industry_slug: str = "") -> Path:
-    # Search industry/*/companies/<slug> for the company directory
+def ensure_company_topic(workspace: Path, company_slug: str, industry_slug: str = "",
+                         ticker: str = "", market: str = "") -> Path:
+    """Find or create company directory under industry/*/companies/.
+
+    Uses <TICKER.MARKET>-<Company-Name> format when ticker+market provided.
+    Falls back to company_slug for backward compat.
+    """
     industry_dir = workspace / "industry"
+
+    # Determine company directory name
+    if ticker and market:
+        suffix = market.upper() if market != "sh" and market != "sz" else market.upper()
+        dir_name = f"{ticker.split('.')[0]}.{suffix}-{company_slug}"
+    else:
+        dir_name = company_slug
+
+    # Search existing dirs first
     if industry_dir.is_dir():
         for ind in industry_dir.iterdir():
             if not ind.is_dir():
                 continue
-            tp = ind / "companies" / company_slug
+            tp = ind / "companies" / dir_name
             if tp.is_dir():
                 return tp
-    # Not found — auto-create under specified industry
+            # Also search by company_slug for existing dirs
+            tp2 = ind / "companies" / company_slug
+            if tp2.is_dir():
+                return tp2
+
+    # Auto-create under specified industry (match case of existing dir)
     if not industry_slug:
         raise RuntimeError(
             f"Company directory not found for {company_slug}. "
             f"Pass --industry <slug> to auto-create under that industry."
         )
+    # Find existing industry dir with matching name (case-insensitive)
     target_ind = industry_dir / industry_slug
-    company_dir = target_ind / "companies" / company_slug
+    if industry_dir.is_dir():
+        for ind in industry_dir.iterdir():
+            if ind.is_dir() and ind.name.lower() == industry_slug.lower():
+                target_ind = ind
+                break
+    company_dir = target_ind / "companies" / dir_name
     company_dir.mkdir(parents=True, exist_ok=True)
     return company_dir
 
@@ -1224,7 +1249,8 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
                          workspace: Path, rid: str) -> dict[str, Any]:
     company_slug = slugify(args.company_slug)
     canonical_id = slugify(args.canonical_id or args.identifier)
-    topic_path = ensure_company_topic(workspace, company_slug, getattr(args, 'industry', '') or '')
+    topic_path = ensure_company_topic(workspace, company_slug, getattr(args, 'industry', '') or '',
+                                      ticker=args.identifier, market=args.market)
     rel_tail = Path("financial-data") / args.market / canonical_id / rid
     raw_dir = topic_path / ".raw" / rel_tail
     cache_dir = topic_path / ".cache" / rel_tail
@@ -1587,7 +1613,6 @@ def main() -> int:
         args.periods = '5Y'
 
     if args.market.lower() in IR_MARKETS:
-        from . import _route_ir
         return _route_ir(args)
 
     try:
@@ -1610,7 +1635,8 @@ def main() -> int:
             try:
                 data_dir = output.get("financial_data_dir", "")
                 if not data_dir:
-                    tp = ensure_company_topic(workspace, args.company_slug, getattr(args, 'industry', '') or '')
+                    tp = ensure_company_topic(workspace, args.company_slug, getattr(args, 'industry', '') or '',
+                                              ticker=args.identifier, market=args.market)
                     data_dir = str(tp / ".cache" / "financial-data")
                 actuals_path = Path(data_dir) / "actuals-resolved.json"
                 if actuals_path.exists():

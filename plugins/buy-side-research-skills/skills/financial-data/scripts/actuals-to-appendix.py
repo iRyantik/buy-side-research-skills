@@ -45,10 +45,11 @@ def _find_actuals(workspace: Path, ticker: str) -> Path | None:
                         # Match by ticker in identity or by directory name
                         identity = d.get("identity") or d.get("manifest") or {}
                         stored = (identity.get("ticker") or identity.get("stock_code", "")).lower()
-                        if stored == ticker_lower:
+                        if stored == ticker_lower or stored.startswith(ticker_lower):
                             return subpath
-                        # Also match by company dir name
-                        if co_dir.name.lower() == ticker_lower:
+                        # Also match by company dir name (with or without market suffix)
+                        co_lower = co_dir.name.lower()
+                        if co_lower == ticker_lower or co_lower.split('-')[0].split('.')[0] == ticker_lower:
                             return subpath
                     except Exception:
                         continue
