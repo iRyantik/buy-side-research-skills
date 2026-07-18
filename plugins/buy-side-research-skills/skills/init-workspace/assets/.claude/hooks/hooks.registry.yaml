@@ -24,6 +24,12 @@ hooks:
     events: [PreToolUse]
     scope: [workspace_mutation]
     severity: block
+  - name: bash_workspace_guard
+    file: rules/bash_workspace_guard.py
+    layer: global
+    events: [PreToolUse]
+    scope: [bash]
+    severity: block
   - name: subagent_protocol
     file: rules/subagent_protocol.py
     layer: global
