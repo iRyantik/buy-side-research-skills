@@ -135,6 +135,11 @@ updated: {fm.get('updated', '?')}
 # ── main ─────────────────────────────────────────────────
 
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("Usage: python generate-memory-cards.py [--ticker TICKER] [--industry SLUG]")
+        print("Scans RESEARCH.md files and generates CC memory cards.")
+        print("Without args, generates cards for all companies with RESEARCH.md.")
+        return
     os.makedirs(MEMORY_DIR, exist_ok=True)
 
     count = 0
