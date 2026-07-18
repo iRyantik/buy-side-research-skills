@@ -9,3 +9,11 @@ _tmp/
 _tcache/
 __pycache__/
 *.pyc
+
+# Workspace artifacts (never committed to dev repo root)
+.references/
+.scripts/
+.cache/
+.claude/
+.codex/
+.vscode/
