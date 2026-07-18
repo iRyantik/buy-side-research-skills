@@ -37,7 +37,16 @@ git --version || xcode-select --install
 python3 --version || brew install python
 ```
 
-## Step 2: 用户操作 CC UI（Agent 指导）
+## Step 2: Agent 装 Playwright MCP
+
+日本/韩国/台湾/欧洲市场的 IR 财报下载需要浏览器引擎。Agent 执行：
+
+```bash
+npx -y @playwright/mcp@latest --version
+npx playwright install chromium
+```
+
+## Step 3: 用户操作 CC UI（Agent 指导）
 
 告诉用户：
 
@@ -48,14 +57,14 @@ python3 --version || brew install python
 > 4. 点 **Install**
 > 5. 重启 Claude Code
 
-## Step 3: 验证
+## Step 4: 验证
 
 重启后按 `/` → 搜 `stock-quickread`。能看到即成功。
 
-## Step 4: 初始化 workspace
+## Step 5: 初始化 workspace
 
 新建文件夹 → CC 打开 → `/init-workspace`
 
 ---
 
-> **CC Terminal 用户**：跳过 Step 1-2，直接 `/plugin marketplace add iRyantik/buy-side-research-skills` → `/plugin install buy-side-research-skills`。
+> **CC Terminal 用户**：跳过 Step 1-3，直接 `/plugin marketplace add iRyantik/buy-side-research-skills` → `/plugin install buy-side-research-skills`。
