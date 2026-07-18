@@ -2925,7 +2925,7 @@ def build(json_path, output_path=None):
 
     ws.freeze_panes = 'D2'
 
-    # Output: auto-derive to company root as YYYY-MM-DD-driver-model.xlsx
+    # Output: auto-derive to company root as YYYYMMDD-driver-model.xlsx
     if output_path:
         out_path = output_path
     else:
@@ -2937,7 +2937,7 @@ def build(json_path, output_path=None):
             ci = parts.index('companies')
             ticker_dir = parts[ci + 1]  # e.g. 'hwm', 'dpc'
             company_root = '/'.join(parts[:ci + 2])  # up to companies/<ticker>
-            today = datetime.date.today().isoformat()
+            today = datetime.date.today().strftime('%Y%m%d')
             out_path = os.path.join(company_root, f'{today}-driver-model-{ticker_dir}.xlsx')
         except (ValueError, IndexError):
             out_path = json_path.replace('.json', '.xlsx')
