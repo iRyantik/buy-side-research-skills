@@ -1,0 +1,55 @@
+{
+  "jp_kessan_tanshin": {
+    "market": "jp",
+    "filing_name": "決算短信〔IFRS〕(連結)",
+    "note": "TDnet/kabupro 下载的 PDF，MarkItDown 转换后的 MD。单位不完全统一——摘要表用億円、详细表用百万円。",
+    "fields": {
+      "income_statement": [
+        {"concept": "revenue",           "label_ja": "売上収益",        "search_terms": ["売上収益", "売上高"], "unit": "億円 or 百万円"},
+        {"concept": "operating_profit",  "label_ja": "営業利益",        "search_terms": ["営業利益"], "unit": "億円 or 百万円"},
+        {"concept": "core_op_profit",    "label_ja": "コア営業利益",    "search_terms": ["コア営業利益"], "unit": "億円 or 百万円"},
+        {"concept": "pretax_income",     "label_ja": "税引前利益",      "search_terms": ["税引前利益"], "unit": "億円 or 百万円"},
+        {"concept": "net_income",        "label_ja": "当期利益",        "search_terms": ["当期利益"], "unit": "億円 or 百万円"},
+        {"concept": "net_income_parent", "label_ja": "親会社の所有者に帰属する当期利益", "search_terms": ["親会社の所有者に帰属する当期利益", "帰属する当期利益"], "unit": "億円 or 百万円"},
+        {"concept": "eps_basic",         "label_ja": "基本的１株当たり当期利益", "search_terms": ["基本的１株当たり当期利益", "１株当たり当期利益"], "unit": "円"},
+        {"concept": "dps",              "label_ja": "配当金",           "search_terms": ["配当金", "年間配当金"], "unit": "円"}
+      ],
+      "balance_sheet": [
+        {"concept": "total_assets",     "label_ja": "資産合計",        "search_terms": ["資産合計"], "unit": "百万円"},
+        {"concept": "total_equity",     "label_ja": "資本合計",        "search_terms": ["資本合計"], "unit": "百万円"},
+        {"concept": "equity_parent",    "label_ja": "親会社の所有者に帰属する持分", "search_terms": ["親会社の所有者に帰属する持分"], "unit": "百万円"}
+      ],
+      "cash_flow": [
+        {"concept": "operating_cf",     "label_ja": "営業活動によるキャッシュ・フロー", "search_terms": ["営業活動によるキャッシュ・フロー", "営業ＣＦ"], "unit": "百万円"},
+        {"concept": "investing_cf",     "label_ja": "投資活動によるキャッシュ・フロー", "search_terms": ["投資活動によるキャッシュ・フロー"], "unit": "百万円"},
+        {"concept": "depreciation",     "label_ja": "減価償却費",      "search_terms": ["減価償却費"], "unit": "百万円"},
+        {"concept": "capex",            "label_ja": "設備投資額",      "search_terms": ["設備投資額", "設備投資", "有形固定資産の取得"], "unit": "百万円"}
+      ]
+    },
+    "segment": {
+      "section_header": "セグメント情報",
+      "alt_headers": ["セグメント別の状況", "セグメント別"],
+      "note": "有两种形式——1) 正文 prose（経営成績等の概況内），有 segment 名+收入+利润叙述；2) 正式表格（セグメント情報注記），有完整分表。两种都要读。",
+      "prose_section": {
+        "header": "当期のセグメント別の状況",
+        "pattern": "（<segment_name>）\\n当セグメントの売上収益は…(\\d+)億円…コア営業利益は…(\\d+)億円"
+      },
+      "table_section": {
+        "note": "正式注記表格，通常在 MD 末尾。MarkItDown 对合并单元格处理较差，需人工逐行读。"
+      }
+    },
+    "commentary": {
+      "section_header": "経営成績等の概況",
+      "subsections": [
+        {"label": "当期の経営成績の概況", "purpose": "business segment commentary"},
+        {"label": "当期のセグメント別の状況", "purpose": "segment revenue + profit narrative"},
+        {"label": "当期の財政状態の概況", "purpose": "balance sheet changes"},
+        {"label": "当期のキャッシュ・フローの概況", "purpose": "cash flow analysis"}
+      ]
+    },
+    "outlook": {
+      "section_header": "今後の見通し",
+      "sub_sections": ["次期の業績予想", "次期のセグメント別の見通し"]
+    }
+  }
+}
