@@ -453,7 +453,7 @@ python .scripts/shared/search.py --query "<Company EN> <ticker>" --news
 写入公司 primary 行业目录。文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name].md`。
 
 ```
-industry/<industry-slug>/companies/<ticker>/YYYYMMDD-stock-quickread-<Company-Name>.md
+industry/<industry-slug>/companies/<ticker>/YYYYMMDD-[stock-quickread]-[Company-Name].md
 ```
 
 - 路径不明 → 先 handoff `agent` 解析行业和公司。

@@ -522,7 +522,7 @@ industry/<industry>/companies/<ticker>/
 │       ├── build-logic-model.py     ← 公司本地副本（首次建模时复制）
 │       ├── modules/                 ← 模块副本
 │       └── helpers/                 ← helper 副本
-└── YYYYMMDD-driver-map.md         ← research artifact
+└── YYYYMMDD-[driver-map]-[Company-Name].md         ← research artifact
 ```
 
 **路径规则：**

@@ -49,7 +49,7 @@ Pair trade 真正的价值不是"两边都看一下"，是**用结构隔离共�
 
 默认保存到当前日期化保存路径的 `pair-note.md`，同时在对话中给出核心结论。
 
-本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYY-MM-DD-<artifact>.md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
+本 skill 的 `artifact_policy.naming_mode = plain`。默认继续使用 `YYYYMMDD-[pair-trade]-[Company-Name].md`；`pair-note.md` 是完整 pair deliverable，不把 qualifier 当默认命名。
 
 如果当前没有明确 dated result path：
 - agent 按 policy baseline §11 自动创建目录，例如 `industry/<industry>/companies/<ticker>/[YYYY-MM-DD]-pair-note.md`。

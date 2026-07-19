@@ -94,7 +94,7 @@ Create memo-ready and screenshot-ready HTML research visualizations paired with 
 2026-05-25-mechanism-insight-korea-vs-global-system-dossier-global-map-interactive.html
 ```
 
-默认不要发明平行命名，如 `research-viz.html` 或 `YYYY-MM-DD-research-viz.html`。
+默认不要发明平行命名，如 `research-viz.html` 或 `YYYYMMDD-[research-viz]-[Company-Name].html`。
 
 如果用户没给明确基准研究 artifact，先解析或要求一个基准 markdown 主文，再保存 HTML。
 

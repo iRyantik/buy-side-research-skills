@@ -94,7 +94,7 @@ Value tags：
 写入路径，文件命名按 workspace `CLAUDE.md` §3.2：
 
 ```text
-industry/<industry>/companies/<ticker>/YYYYMMDD-research-journal-<Company-Name>.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-[research-journal]-[Company-Name].md
 ```
 
 Journal 不用 rigid template，但必须包含：
@@ -111,7 +111,7 @@ Boss Brief 是给 PM / boss 的高密度 transfer，不是简略版。
 写入路径，文件命名按 workspace `CLAUDE.md` §3.2：
 
 ```text
-industry/<industry>/companies/<ticker>/YYYYMMDD-boss-brief-<Company-Name>.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-[boss-brief]-[Company-Name].md
 ```
 
 写前先确认或从材料中提取：

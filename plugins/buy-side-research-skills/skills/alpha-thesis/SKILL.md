@@ -308,7 +308,7 @@ Target Price 必须标注 PE 倍数依据。Upside/Downside 行放在最底，�
 本 skill 默认产出研究观点，不再写交易状态文件。若用户要求保存，文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name].md`。
 
 ```text
-industry/<industry>/companies/<ticker>/YYYYMMDD-alpha-thesis-<Company-Name>.md
+industry/<industry>/companies/<ticker>/YYYYMMDD-[alpha-thesis]-[Company-Name].md
 ```
 
 如果当前日期化保存路径不明确，agent 按 policy baseline §11 自动创建目录和索引。

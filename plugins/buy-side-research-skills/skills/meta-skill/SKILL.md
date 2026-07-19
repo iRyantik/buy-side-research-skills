@@ -530,7 +530,7 @@ capabilities: ...
 artifact_policy:
   save_policy: optional_topic_result
   default_artifact: skill-name.md
-  canonical_location: industry/<industry>/companies/<ticker>/YYYYMMDD-skill-name.md
+  canonical_location: industry/<industry>/companies/<ticker>/YYYYMMDD-[skill-name]-[Company-Name].md
   naming_mode: plain
   save_trigger: save only when user asks
 ```
