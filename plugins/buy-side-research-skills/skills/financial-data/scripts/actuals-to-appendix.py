@@ -5,25 +5,78 @@ Usage:
   python actuals-to-appendix.py <TICKER>              # single company
   python actuals-to-appendix.py --tickers T1,T2,T3    # multi-company peer comparison
 
-Reads existing actuals-resolved.json from workspace cache. Does NOT fetch data.
+Reads actuals-resolved.json from workspace cache. Renders ALL available fields.
+Field rendering order from .references/policy/statement-line-items.md registry.
 """
 from __future__ import annotations
 
-import argparse
-import json
-import os
-import re
-import sys
+import argparse, json, re, sys
 from pathlib import Path
 
-# ── helpers ────────────────────────────────────────────
+
+# ── Concept mapping — uses financial_data.py's _map_concept + _FIELD_ALIASES ──
+
+_MAP_CONCEPT = None
+
+def _display_name(row: dict) -> str:
+    """Get best display name using existing concept mapping infrastructure."""
+    global _MAP_CONCEPT
+    if _MAP_CONCEPT is None:
+        try:
+            import importlib.util, sys
+            fd_path = Path(__file__).resolve().parent / "financial_data.py"
+            spec = importlib.util.spec_from_file_location("financial_data", fd_path)
+            fd = importlib.util.module_from_spec(spec)
+            sys.modules["financial_data"] = fd
+            spec.loader.exec_module(fd)
+            _MAP_CONCEPT = fd._map_concept
+            _CONCEPT_MAP = fd._load_concept_map()
+        except Exception:
+            _MAP_CONCEPT = lambda x, m=None: x
+
+    concept = (row.get("concept") or "").strip()
+    label = (row.get("label") or "").strip()
+
+    # Try concept via full mapping
+    std = _MAP_CONCEPT(concept) if concept else ""
+    if std and std != concept and not std.startswith("is-") and not std.startswith("bs-") and not std.startswith("cf-"):
+        return std.replace("_", " ").title()
+    # Try label via full mapping
+    if label:
+        std = _MAP_CONCEPT(label)
+        if std and std != label and not std.startswith("is-") and not std.startswith("bs-") and not std.startswith("cf-"):
+            return std.replace("_", " ").title()
+    # Fallback: snake_case concept
+    if concept and concept != label:
+        return concept.replace("_", " ").title()
+    if label:
+        return label
+    return (row.get("concept") or "?")
+
+# ── Sort hint: known concepts appear first ─────────────────
+
+_KNOWN_CONCEPTS = {
+    "revenue", "cogs", "gross_profit", "sg_and_a", "r_and_d",
+    "operating_income", "ebit", "ebitda", "pretax_income", "income_tax",
+    "net_income", "net_income_parent", "eps_basic", "eps_diluted", "dps",
+    "cash", "receivables", "inventories", "current_assets", "ppe",
+    "goodwill", "intangible_assets", "total_assets",
+    "payables", "short_term_debt", "long_term_debt", "total_debt",
+    "current_liabilities", "total_liabilities",
+    "total_equity", "total_equity_parent",
+    "operating_cf", "investing_cf", "financing_cf", "capex", "depreciation",
+    "amortization", "dividends_paid", "buybacks",
+}
+
+
+# ── Helpers ─────────────────────────────────────────────────
 
 def _find_actuals(workspace: Path, ticker: str) -> Path | None:
     """Walk industry/ tree to find actuals-resolved.json for a ticker."""
     industry_root = workspace / "industry"
     if not industry_root.is_dir():
         return None
-    ticker_lower = ticker.lower()
+    ticker_lower = ticker.lower().replace(".", "").replace("-", "")
     for industry_dir in industry_root.iterdir():
         if not industry_dir.is_dir():
             continue
@@ -33,659 +86,426 @@ def _find_actuals(workspace: Path, ticker: str) -> Path | None:
         for co_dir in companies_dir.iterdir():
             if not co_dir.is_dir():
                 continue
-            # Try new path first (v5.13.13+), then legacy internal/ path
-            for subpath in [
-                co_dir / ".cache" / "financial-data" / "actuals-resolved.json",
-                co_dir / ".cache" / "financial-data" / "internal" / "actuals-resolved.json",
-            ]:
-                if subpath.is_file():
-                    try:
-                        with open(subpath, encoding="utf-8") as f:
-                            d = json.load(f)
-                        # Match by ticker in identity or by directory name
-                        identity = d.get("identity") or d.get("manifest") or {}
-                        stored = (identity.get("ticker") or identity.get("stock_code", "")).lower()
-                        if stored == ticker_lower or stored.startswith(ticker_lower):
-                            return subpath
-                        # Also match by company dir name (with or without market suffix)
-                        co_lower = co_dir.name.lower()
-                        if co_lower == ticker_lower or co_lower.split('-')[0].split('.')[0] == ticker_lower:
-                            return subpath
-                    except Exception:
-                        continue
-            if co_dir.name.lower() == ticker_lower and candidate.is_file():
-                return candidate
+            actuals_path = co_dir / ".cache" / "financial-data" / "actuals-resolved.json"
+            if not actuals_path.is_file():
+                continue
+            try:
+                d = json.loads(actuals_path.read_text(encoding="utf-8"))
+                stored = (d.get("identity", {}).get("ticker", "") or d.get("ticker", "")).lower()
+                if stored.replace(".", "").replace("-", "") == ticker_lower:
+                    return actuals_path
+                if ticker_lower in co_dir.name.lower().replace(".", "").replace("-", ""):
+                    return actuals_path
+            except Exception:
+                continue
     return None
 
 
-def _load_actuals(path: Path) -> dict:
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+def _discover_periods(statements: dict) -> list[str]:
+    """Discover all unique period labels across all statements."""
+    periods = set()
+    for stmt_name in ["income_statement", "balance_sheet", "cash_flow"]:
+        for row in statements.get(stmt_name, []):
+            for p in (row.get("values") or {}).keys():
+                periods.add(str(p))
+    # Sort: FY first (descending), then Q/H (descending)
+    def _sort_key(p):
+        m = re.match(r'(?:FY)?(\d{4})', p)
+        year = int(m.group(1)) if m else 0
+        if p.startswith("FY") or re.match(r'^\d{4}$', p):
+            return (0, -year)
+        if "Q1" in p or "H1" in p:
+            return (1, -year, 1)
+        if "Q2" in p:
+            return (1, -year, 2)
+        if "Q3" in p:
+            return (1, -year, 3)
+        if "Q4" in p or "H2" in p:
+            return (1, -year, 4)
+        return (2, -year)
+    return sorted(periods, key=_sort_key)
 
 
-def _extract_val(field):
-    if field is None:
-        return None
-    if isinstance(field, dict):
-        return field.get("value")
-    if isinstance(field, (int, float)):
-        return field
-    return None
-
-
-def _fmt_val(v, scale="m"):
-    """Format a numeric value. Default scale = millions."""
+def _format_value(v, unit_hint: str = "") -> str:
+    """Format a numeric value for appendix display."""
     if v is None:
         return "-"
-    if not isinstance(v, (int, float)):
-        return str(v)[:80]
-    if scale == "m":
-        return f"{v/1e6:,.0f}"
-    if scale == "raw":
-        return f"{v:,.1f}"
-    return f"{v:,.0f}"
+    if isinstance(v, str):
+        return v[:60]
+    if isinstance(v, float):
+        if abs(v) < 1 and v != 0:
+            return f"{v:.4f}"
+        if abs(v) < 1000:
+            return f"{v:,.1f}"
+        return f"{v:,.0f}"
+    if isinstance(v, int):
+        return f"{v:,}"
+    return str(v)
 
 
-def _fmt_mkt_val(key: str, v) -> str:
-    """Format a market_data field value — field-aware formatting.
-
-    Unlike _fmt_val which defaults to millions division, this uses the
-    correct unit per field (price→2dp, market_cap→bn/m, ratios→1dp, etc.).
-    """
-    if v is None:
-        return "-"
-    if not isinstance(v, (int, float)):
-        return str(v)[:80]
-    if key == "price":
-        return f"{v:,.2f}"
-    if key == "market_cap":
-        if v >= 1e9:
-            return f"{v/1e9:,.1f}bn"
-        return f"{v/1e6:,.0f}m"
-    if key in ("pe_ttm", "pe_ntm", "pb", "ps_ttm", "ev_ebitda", "ev_sales"):
-        return f"{v:,.1f}x"
-    if key == "dividend_yield_pct":
-        return f"{v:.2f}%"
-    if key == "beta":
-        return f"{v:.2f}"
-    if key == "total_shares":
-        return f"{v/1e6:,.0f}m"
-    if key == "eps_ttm":
-        return f"{v:,.2f}"
-    return f"{v:,.1f}"
+def _short_period(p: str) -> str:
+    """Compact period label for table header."""
+    return p.replace("FY", "").strip() if len(p) <= 10 else p[:10]
 
 
-def _read_fy_periods(data: dict, section: str) -> list[str]:
-    """Discover which period keys exist. Dedup fy_y0/latest_fy and sub_N."""
-    section_data = data.get(section, {})
-    fy_keys = [k for k in ["fy_y2", "fy_y1", "fy_y0"] if k in section_data]
-    sub_raw = [k for k in ["sub_0", "sub_1", "sub_2", "sub_3"] if k in section_data]
+# ── Renderers ───────────────────────────────────────────────
 
-    # Collect fy period dates for dedup
-    fy_dates = set()
-    for fk in fy_keys:
-        pd = section_data.get(fk, {})
-        if isinstance(pd, dict) and pd.get("period"):
-            fy_dates.add(pd["period"])
-
-    # Filter sub_keys: skip if same date as a fy key
-    sub_keys = []
-    for sk in sub_raw:
-        sk_pd = section_data.get(sk, {})
-        sk_period = sk_pd.get("period", "") if isinstance(sk_pd, dict) else ""
-        if sk_period not in fy_dates:
-            sub_keys.append(sk)
-
-    # Add latest_fy only if not already covered
-    if "latest_fy" in section_data:
-        lfy_pd = section_data.get("latest_fy", {})
-        lfy_period = lfy_pd.get("period", "") if isinstance(lfy_pd, dict) else ""
-        if lfy_period not in fy_dates:
-            fy_keys.append("latest_fy")
-
-    # Add latest_quarter if not covered by sub_0 or fy
-    if "latest_quarter" in section_data:
-        lq_pd = section_data.get("latest_quarter", {})
-        lq_period = lq_pd.get("period", "") if isinstance(lq_pd, dict) else ""
-        sub_dates = set()
-        for sk in sub_keys:
-            sk_pd = section_data.get(sk, {})
-            sp = sk_pd.get("period", "") if isinstance(sk_pd, dict) else ""
-            if sp:
-                sub_dates.add(sp)
-        if lq_period not in sub_dates and lq_period not in fy_dates:
-            sub_keys.append("latest_quarter")
-
-    return fy_keys + sub_keys
-
-
-def _period_label(data: dict, section: str, key: str) -> str:
-    """Get compact human-readable period label."""
-    period_data = data.get(section, {}).get(key, {})
-    label = period_data.get("period", key) if isinstance(period_data, dict) else key
-    if not isinstance(label, str):
-        label = str(key)
-
-    # "YYYY-MM-DD" — distinguish FY from sub-period by key prefix
-    m = re.match(r"(\d{4})-(\d{2})-(\d{2})", label)
-    if m:
-        y, mo, _ = m.group(1), int(m.group(2)), m.group(3)
-        if key.startswith("sub_"):
-            # Quarterly: show Q + year
-            q = (mo - 1) // 3 + 1
-            return f"Q{q} {y}"
-        return y
-
-    # Already a period label like "Q1 FY2026", "H1 FY2025"
-    return label if len(label) <= 14 else str(key)
-
-
-# ── table renderers ─────────────────────────────────────
-
-_IS_FIELDS = [
-    ("revenue", "Revenue"),
-    ("cost_of_revenue", "Cost of Revenue"),
-    ("gross_profit", "Gross Profit"),
-    ("sg_and_a", "SG&A"),
-    ("r_and_d", "R&D"),
-    ("operating_income", "Operating Income"),
-    ("ebit", "EBIT"),
-    ("interest_expense", "Interest Expense"),
-    ("income_tax", "Income Tax"),
-    ("net_income", "Net Income"),
-]
-
-_BS_FIELDS = [
-    ("cash", "Cash & Equivalents"),
-    ("accounts_receivable", "Accounts Receivable"),
-    ("inventory", "Inventory"),
-    ("total_assets", "Total Assets"),
-    ("total_equity_parent", "Total Equity (Parent)"),
-    ("goodwill", "Goodwill"),
-    ("long_term_debt", "Long-Term Debt"),
-    ("current_liabilities", "Current Liabilities"),
-    ("short_term_debt", "Short-Term Debt"),
-]
-
-_CF_FIELDS = [
-    ("operating_cf", "Operating Cash Flow"),
-    ("capex", "CapEx"),
-    ("d_and_a", "D&A"),
-    ("dividends_paid", "Dividends Paid"),
-    ("share_buybacks", "Share Buybacks"),
-]
-
-_MKT_FIELDS = [
-    ("price", "Share Price"),
-    ("market_cap", "Market Cap"),
-    ("pe_ttm", "P/E (TTM)"),
-    ("pe_ntm", "P/E (NTM)"),
-    ("pb", "P/B"),
-    ("ps_ttm", "P/S (TTM)"),
-    ("ev_ebitda", "EV/EBITDA"),
-    ("ev_sales", "EV/Sales"),
-    ("dividend_yield_pct", "Dividend Yield %"),
-    ("beta", "Beta"),
-    ("eps_ttm", "EPS (TTM)"),
-    ("total_shares", "Shares Outstanding"),
-]
-
-_CONSENSUS_FIELDS = [
-    ("current_year_eps", "EPS (FY0E)"),
-    ("next_year_eps", "EPS (FY1E)"),
-    ("current_year_revenue", "Revenue (FY0E)"),
-]
-
-
-def _render_section(data: dict, section: str, fields: list[tuple[str, str]],
-                    title: str) -> str:
-    """Render a multi-period financial statement table."""
-    periods = _read_fy_periods(data, section)
-    if not periods:
-        return ""
-
-    section_data = data.get(section, {})
-    rows = []
-    for key, label in fields:
-        vals = {}
-        has_any = False
-        for p in periods:
-            period_data = section_data.get(p, {})
-            v = _extract_val(period_data.get(key))
-            vals[p] = v
-            if v is not None:
-                has_any = True
-        if has_any:
-            rows.append((label, vals))
-
+def _render_statement(statements: dict, stmt_name: str, title: str, periods: list[str]) -> str:
+    """Render ALL rows from actuals — no filtering. Sort: known concepts first, then alphabetical."""
+    rows = statements.get(stmt_name, [])
     if not rows:
         return ""
 
+    # Separate known from unknown, build display rows
+    known_rows = []
+    unknown_rows = []
+    for row in rows:
+        concept = row.get("concept", "")
+        display = _display_name(row)
+        values = {str(k): v for k, v in (row.get("values") or {}).items()}
+        if not values:
+            continue
+        cells = [_format_value(values.get(p)) for p in periods]
+        if concept in _KNOWN_CONCEPTS:
+            known_rows.append((concept, display, cells))
+        else:
+            unknown_rows.append((concept, display, cells))
+
+    # Sort: known by concept name, unknown alphabetically by concept
+    known_rows.sort(key=lambda x: x[0])
+    unknown_rows.sort(key=lambda x: x[0])
+    all_rows = known_rows + unknown_rows
+
+    # Dedup: same display name → keep first
+    seen = set()
+    deduped = []
+    for concept, display, cells in all_rows:
+        if display not in seen:
+            seen.add(display)
+            deduped.append((concept, display, cells))
+    all_rows = deduped
+
+    if not all_rows:
+        return ""
+
     lines = [f"### {title}", ""]
-    header = "| Line Item | " + " | ".join(_period_label(data, section, p) for p in periods) + " |"
+    header = "| Line Item | " + " | ".join(_short_period(p) for p in periods) + " |"
     sep = "|---|" + "|".join("---:" for _ in periods) + "|"
     lines.extend([header, sep])
 
-    for label, vals in rows:
-        cells = [_fmt_val(vals[p]) for p in periods]
-        lines.append("| " + label + " | " + " | ".join(cells) + " |")
+    for concept, display, cells in all_rows:
+        lines.append("| " + display + " | " + " | ".join(cells) + " |")
 
     lines.append("")
+    return "\n".join(lines)
+
+
+def _render_segments(statements: dict, periods: list[str]) -> str:
+    """Render revenue_split as segment table."""
+    segs = statements.get("revenue_split", [])
+    if not segs:
+        return ""
+
+    lines = ["### Segments", ""]
+
+    # Revenue table
+    seg_periods = set()
+    for seg in segs:
+        for p in (seg.get("revenue") or {}).keys():
+            seg_periods.add(str(p))
+    seg_periods_sorted = sorted(seg_periods, reverse=True)
+
+    if seg_periods_sorted:
+        lines.append("**Revenue by Segment**")
+        lines.append("")
+        header = "| Segment | Type | " + " | ".join(_short_period(p) for p in seg_periods_sorted) + " |"
+        sep = "|---:|---|" + "|".join("---:" for _ in seg_periods_sorted) + "|"
+        lines.extend([header, sep])
+        for seg in segs:
+            name = seg.get("segment", seg.get("label_ja", seg.get("label_ko", "?")))
+            stype = seg.get("type", "business")
+            rev = seg.get("revenue", {})
+            cells = [_format_value(rev.get(p)) for p in seg_periods_sorted]
+            lines.append(f"| {name} | {stype} | " + " | ".join(cells) + " |")
+        lines.append("")
+
+    # Operating profit table (if available)
+    has_op = any(seg.get("operating_profit") or seg.get("core_op") or seg.get("ebit")
+                 for seg in segs)
+    if has_op:
+        op_key = None
+        for seg in segs:
+            if seg.get("operating_profit"):
+                op_key = "operating_profit"; break
+            if seg.get("core_op"):
+                op_key = "core_op"; break
+            if seg.get("ebit"):
+                op_key = "ebit"; break
+
+        op_periods = set()
+        for seg in segs:
+            for p in (seg.get(op_key) or {}).keys():
+                op_periods.add(str(p))
+        op_periods_sorted = sorted(op_periods, reverse=True)
+
+        lines.append(f"**Segment {op_key.replace('_', ' ').title()}**")
+        lines.append("")
+        header = "| Segment | " + " | ".join(_short_period(p) for p in op_periods_sorted) + " |"
+        sep = "|---:|---:|" + "|".join("---:" for _ in range(len(op_periods_sorted)-1))
+        lines.extend([header, sep])
+        for seg in segs:
+            name = seg.get("segment", "?")
+            op = seg.get(op_key, {})
+            cells = [_format_value(op.get(p)) for p in op_periods_sorted]
+            lines.append(f"| {name} | " + " | ".join(cells) + " |")
+        lines.append("")
+
     return "\n".join(lines)
 
 
 def _render_market_data(data: dict) -> str:
-    """Render market data key-value."""
+    """Render market data key-value pairs."""
     md = data.get("market_data", {})
     if not md:
         return ""
 
-    lines = ["### Market Data", "", "| Metric | Value | As-of |", "|---|---|---|"]
-    for key, label in _MKT_FIELDS:
+    fields = [
+        ("price", "Share Price"), ("market_cap", "Market Cap"),
+        ("pe_ttm", "P/E (TTM)"), ("pe_ntm", "P/E (NTM)"),
+        ("pb", "P/B"), ("ps_ttm", "P/S (TTM)"),
+        ("ev_ebitda", "EV/EBITDA"), ("ev_sales", "EV/Sales"),
+        ("dividend_yield_pct", "Dividend Yield"), ("beta", "Beta"),
+    ]
+
+    lines = ["### Market Data", ""]
+    for key, label in fields:
         v = md.get(key)
         if v is None:
             continue
-        detail = ""
-        if isinstance(v, dict):
-            detail = v.get("source_detail", "")[:60]
-            v = v.get("value")
-        if v is None:
-            continue
         if isinstance(v, (int, float)):
-            if key == "dividend_yield_pct":
+            if key == "price":
+                v = f"{v:,.2f}"
+            elif key == "market_cap":
+                v = f"{v/1e9:,.1f}bn" if abs(v) >= 1e9 else f"{v/1e6:,.0f}m"
+            elif "yield" in key:
                 v = f"{v:.2f}%"
             elif key == "beta":
                 v = f"{v:.2f}"
-            elif key == "total_shares":
-                v = f"{v/1e6:,.0f}m"
-            elif key == "price":
-                v = f"{v:,.2f}"
-            elif key == "market_cap":
-                v = f"{v/1e9:,.1f}bn" if v >= 1e9 else f"{v/1e6:,.0f}m"
             else:
-                v = f"{v:,.1f}"
-        lines.append(f"| {label} | {v} | {detail} |")
+                v = f"{v:,.1f}x"
+        lines.append(f"- **{label}**: {v}")
     lines.append("")
     return "\n".join(lines)
 
 
-def _normalize_split_rows(rows: list) -> list:
-    """Convert supplement/split-type rows → segments format {type, name, periods[], revenue: {}}.
-
-    Input: [{split_type, member_label, concept, values: {FY2025: 100}}]
-    Output: [{type, name, periods[], revenue: {FY2025: 100}}]
-    """
-    result = []
-    for row in rows:
-        st = row.get("split_type", "business_line")
-        name = row.get("member_label", row.get("member", "?"))
-        values = row.get("values", {})
-        if not values:
-            continue
-        if name not in {s["name"] for s in result}:
-            result.append({"type": st, "name": name, "periods": [], "revenue": {}})
-        entry = next(s for s in result if s["name"] == name)
-        for p, v in values.items():
-            if p not in entry["periods"]:
-                entry["periods"].append(p)
-            entry["revenue"][p] = v
-    return result
-
-
-def _render_segments(data: dict) -> str:
-    """Render segment/revenue split breakdown tables.
-
-    Accepts both formats:
-    - SEC format: data["segments"]["segments"] with {type, name, periods[list], revenue: {period: val}}
-    - Supplement format: data["revenue_split"] with {split_type, member_label, concept: "revenue", values: {period: val}}
-    """
-    segments = data.get("segments", {}).get("segments", [])
-    if not segments:
-        # Fallback: supplement revenue_split → normalize to segments format
-        split_rows = data.get("revenue_split") or []
-        if split_rows:
-            segments = _normalize_split_rows(split_rows)
-    if not segments:
-        return ""
-
-    lines = ["### Segments", ""]
-    by_type: dict[str, list] = {}
-    for s in segments:
-        t = s.get("type") or "business_line"
-        by_type.setdefault(t, []).append(s)
-
-    for seg_type, items in by_type.items():
-        type_label = {"business_line": "Business Line", "geography": "Geography",
-                      "end_market": "End Market"}.get(seg_type, seg_type.title())
-        lines.append(f"**{type_label}**")
+def _render_commentary(data: dict) -> str:
+    """Render commentary and outlook if present."""
+    lines = []
+    commentary = data.get("commentary", "")
+    if commentary and isinstance(commentary, str) and len(commentary) > 5:
+        lines.append("### Management Commentary")
+        lines.append("")
+        lines.append(commentary)
         lines.append("")
 
-        all_periods = set()
-        for item in items:
-            for p in item.get("periods", []):
-                all_periods.add(p)
-        period_labels = {}
-        for p in sorted(all_periods):
-            if p.startswith("fy_"):
-                period_labels[p] = "FY" + p[3:]
-            elif p.startswith("sub_"):
-                period_labels[p] = p[4:].replace("q", "Q").replace("h", "H").replace("_", " ")
-            elif p.startswith("q") and "_20" in p:
-                # q2_2025 -> Q2 2025
-                parts = p.split("_")
-                period_labels[p] = parts[0].upper() + " " + parts[1]
-            else:
-                period_labels[p] = p
-        periods = sorted(all_periods)
-
-        if periods:
-            header = "| Segment | " + " | ".join(period_labels[p] for p in periods) + " |"
-            sep = "|---|" + "|".join("---:" for _ in periods) + "|"
-            lines.extend([header, sep])
-            for item in items:
-                name = item.get("name", "?")
-                rev = item.get("revenue", {})
-                cells = []
-                for p in periods:
-                    v = _extract_val(rev.get(p)) if isinstance(rev, dict) else None
-                    cells.append(_fmt_val(v))
-                lines.append("| " + name + " | " + " | ".join(cells) + " |")
-            lines.append("")
-        else:
-            for item in items:
-                name = item.get("name", "?")
-                desc = item.get("description", "")[:60]
-                lines.append(f"- **{name}**: {desc}")
-            lines.append("")
+    outlook = data.get("outlook", {})
+    if outlook and isinstance(outlook, dict):
+        lines.append("### Outlook / Guidance")
+        lines.append("")
+        lines.append("```json")
+        lines.append(json.dumps(outlook, indent=2, ensure_ascii=False))
+        lines.append("```")
+        lines.append("")
 
     return "\n".join(lines)
 
 
-def _render_consensus(data: dict) -> str:
-    """Render consensus estimates."""
-    cons = data.get("consensus", {})
-    if not cons:
-        return ""
-
-    lines = ["### Consensus", "", "| Metric | Value |", "|---|---|"]
-    for key, label in _CONSENSUS_FIELDS:
-        v = _extract_val(cons.get(key))
-        if v is not None:
-            if key in ("current_year_revenue",):
-                lines.append(f"| {label} | {v/1e6:,.0f}m |")
-            else:
-                lines.append(f"| {label} | {v:,.2f} |")
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _render_data_availability(data: dict) -> str:
-    """Render data availability from completeness array (all actuals data items)."""
-    completeness = data.get("completeness") or []
-    if not completeness:
-        return ""
-
-    status_icon = {
-        "model-ready": "[OK]",
-        "evidence-ready": "[OK]",
-        "provider-normalized-review": "[REVIEW]",
-        "partial": "[PARTIAL]",
-        "provider-gap": "[GAP]",
-        "unavailable": "-",
-        "failed": "[FAIL]",
-    }
-
-    lines = ["### Data Availability", ""]
-    lines.append("| Data Item | Status | Provider | Note |")
-    lines.append("|---|---|---|---|")
-    for item in completeness:
-        data_item = item.get("data_item", "?")
-        status = item.get("status", "unknown")
-        provider = item.get("source_provider", "—")
-        caveat = item.get("caveat", "")
-        icon = status_icon.get(status, "❓")
-        lines.append(f"| {data_item} | {icon} {status} | {provider} | {caveat} |")
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _render_fill_rate(data: dict) -> str:
-    """Render fill rate summary."""
-    total = 0
-    filled = 0
-    missing_fields = []
-
-    for section in ["income_statement", "balance_sheet", "cash_flow"]:
-        section_data = data.get(section, {})
-        periods = _read_fy_periods(data, section)
-        for p in periods:
-            pdata = section_data.get(p, {})
-            for key in pdata:
-                if key == "period":
-                    continue
-                total += 1
-                v = _extract_val(pdata.get(key))
-                if v is not None:
-                    filled += 1
-                else:
-                    missing_fields.append(f"{section}.{p}.{key}")
-
-    for key, _ in _MKT_FIELDS:
-        v = _extract_val(data.get("market_data", {}).get(key))
-        total += 1
-        if v is not None:
-            filled += 1
-        else:
-            missing_fields.append(f"market_data.{key}")
-
-    if total == 0:
-        return ""
-
-    fill_pct = (filled / total * 100) if total > 0 else 0
-    lines = [f"> Source: actuals-resolved.json | Fill: {filled}/{total} ({fill_pct:.0f}%)"]
-    if missing_fields and len(missing_fields) <= 10:
-        lines.append(f"> Missing: {', '.join(missing_fields)}")
-    elif missing_fields:
-        lines.append(f"> Missing: {len(missing_fields)} fields ({', '.join(missing_fields[:3])}...)")
-    lines.append("")
-    return "\n".join(lines)
-
-
-def _pivot_statements(rows: list) -> dict:
-    """Convert [{concept, values: {FY2024: 100}}] → {fy_y0: {revenue: 100, period: 'FY2024'}}.
-
-    Handles both provider rows and _supplement rows — same format.
-    Replaces the old appendix_statements intermediate layer.
-    """
-    result = {}
-    import re as _re
-
-    for row in rows:
-        values = row.get("values") or {}
-        if not values:
-            continue
-        concept = row.get("concept") or row.get("label") or row.get("member_label") or ""
-        if not concept:
-            continue
-        for period, value in values.items():
-            for slot, slot_data in result.items():
-                if slot_data.get("period") == period:
-                    slot_data[concept] = value
-                    break
-            else:
-                result[f"_pivot_{period}"] = {"period": period, concept: value}
-
-    if not result:
-        return {}
-
-    # Reassign slots to standard naming sorted by period
-    def _period_sort_key(item):
-        p = str(item[1].get("period", ""))
-        m = _re.search(r'FY(\d{4})', p)
-        return m.group(1) if m else p
-    sorted_items = sorted(result.items(), key=_period_sort_key, reverse=True)
-    new_data = {}
-    for idx, (_, entry) in enumerate(sorted_items):
-        new_data[f"fy_y{idx}" if idx < 4 else f"sub_{idx - 4}"] = entry
-    return new_data
-
-
-# ── single ticker ───────────────────────────────────────
+# ── Single ticker ───────────────────────────────────────────
 
 def render_single(workspace: Path, ticker: str) -> str:
     actuals_path = _find_actuals(workspace, ticker)
     if not actuals_path:
-        return f"\n> Appendix skipped - no actuals-resolved.json found for {ticker}\n"
+        return f"\n> Appendix skipped — no actuals-resolved.json found for {ticker}\n"
 
-    d = _load_actuals(actuals_path)
-    stmts = d.get("statements") or {}
+    d = json.loads(actuals_path.read_text(encoding="utf-8"))
+    stmts = d.get("statements", {})
+    identity = d.get("identity", {})
+    co_name = identity.get("name_en", ticker)
+    actual_ticker = identity.get("ticker", ticker)
+    currency = d.get("market_data", {}).get("currency", "")
 
-    # Pivot provider + supplement rows directly into period-keyed format
-    supplement = d.get("_supplement") or {}
-    for section in ("income_statement", "balance_sheet", "cash_flow"):
-        provider_rows = stmts.get(section) or []
-        supp_rows = supplement.get(section) or []
-        all_rows = list(provider_rows) + (list(supp_rows) if isinstance(supp_rows, list) else [])
-        if all_rows:
-            d[section] = _pivot_statements(all_rows)
+    periods = _discover_periods(stmts)
+    if not periods:
+        return f"\n> Appendix skipped — no period data in actuals for {ticker}\n"
 
-    # _supplement revenue_split as fallback
-    if not stmts.get("revenue_split") and not d.get("revenue_split"):
-        supp_split = supplement.get("revenue_split") or []
-        if supp_split:
-            d["revenue_split"] = supp_split
+    lines = [f"\n## Appendix: Financial Data — {co_name} ({actual_ticker})", ""]
+    unit_note = f" ({currency})" if currency else ""
 
-    currency = d.get("currency", "")
-    co_name = d.get("company", ticker)
-    actual_ticker = d.get("ticker", ticker)
+    # Segments first — most important for quickread
+    seg_t = _render_segments(stmts, periods)
+    if seg_t:
+        lines.append(seg_t)
 
-    lines = [f"\n## Appendix: Financial Data - {co_name} ({actual_ticker})", ""]
-
-    unit_note = f" ({currency} m)" if currency else " (m)"
-
-    is_t = _render_section(d, "income_statement", _IS_FIELDS, f"Income Statement{unit_note}")
+    # Income Statement
+    is_t = _render_statement(stmts, "income_statement",
+                             f"Income Statement{unit_note}", periods)
     if is_t:
         lines.append(is_t)
 
-    bs_t = _render_section(d, "balance_sheet", _BS_FIELDS, f"Balance Sheet{unit_note}")
+    # Balance Sheet
+    bs_t = _render_statement(stmts, "balance_sheet",
+                             f"Balance Sheet{unit_note}", periods)
     if bs_t:
         lines.append(bs_t)
 
-    cf_t = _render_section(d, "cash_flow", _CF_FIELDS, f"Cash Flow{unit_note}")
+    # Cash Flow
+    cf_t = _render_statement(stmts, "cash_flow",
+                             f"Cash Flow{unit_note}", periods)
     if cf_t:
         lines.append(cf_t)
 
+    # Market Data
     mkt_t = _render_market_data(d)
     if mkt_t:
         lines.append(mkt_t)
 
-    seg_t = _render_segments(d)
-    if seg_t:
-        lines.append(seg_t)
-
-    cons_t = _render_consensus(d)
-    if cons_t:
-        lines.append(cons_t)
-
-    avail_t = _render_data_availability(d)
-    if avail_t:
-        lines.append(avail_t)
-
-    fr_t = _render_fill_rate(d)
-    if fr_t:
-        lines.append(fr_t)
+    # Commentary & Outlook
+    comm_t = _render_commentary(d)
+    if comm_t:
+        lines.append(comm_t)
 
     return "\n".join(lines)
 
 
-# ── multi ticker ─────────────────────────────────────────
+# ── Multi ticker ────────────────────────────────────────────
 
-_KEY_METRICS_FIELDS = [
+_PEER_KEY_METRICS = [
     ("market_cap", "Market Cap"),
-    ("revenue", "Revenue (FY)"),
+    ("revenue", "Revenue"),
     ("gross_profit", "Gross Profit"),
-    ("ebit", "EBIT"),
+    ("operating_income", "EBIT"),
     ("net_income", "Net Income"),
 ]
 
 
 def render_multi(workspace: Path, tickers: list[str]) -> str:
-    lines = ["\n## Appendix: Comparative Financial Data", ""]
-
-    data_map: dict[str, dict] = {}
+    data_map = {}
     for t in tickers:
         p = _find_actuals(workspace, t)
         if p:
-            d = _load_actuals(p)
-            stmts = d.get("statements") or {}
-            supp = d.get("_supplement") or {}
-            for section in ("income_statement", "balance_sheet", "cash_flow"):
-                provider_rows = stmts.get(section) or []
-                supp_rows = supp.get(section) or []
-                all_rows = list(provider_rows) + (list(supp_rows) if isinstance(supp_rows, list) else [])
-                if all_rows:
-                    d[section] = _pivot_statements(all_rows)
-            data_map[t] = d
+            data_map[t] = json.loads(p.read_text(encoding="utf-8"))
 
     if not data_map:
-        return "\n> Appendix skipped - no actuals found for any ticker\n"
+        return "\n> Appendix skipped — no actuals found for any ticker\n"
 
-    lines.append("### Key Metrics - All Peers")
+    lines = ["\n## Appendix: Comparative Financial Data", ""]
+
+    # Key metrics table
+    lines.append("### Key Metrics — All Peers")
     lines.append("")
-    lines.append("| Ticker | " + " | ".join(lbl for _, lbl in _KEY_METRICS_FIELDS) + " | EV/EBITDA | P/E (TTM) |")
-    lines.append("|---|" + "|".join("---:" for _ in _KEY_METRICS_FIELDS) + "|---:| ---:|")
+    headers = ["Ticker"] + [lbl for _, lbl in _PEER_KEY_METRICS] + ["EV/EBITDA", "P/E (TTM)"]
+    lines.append("| " + " | ".join(headers) + " |")
+    lines.append("|---|" + "|".join("---:" for _ in range(len(headers)-1)) + "|")
 
     for t, d in data_map.items():
         cells = []
-        is_data = d.get("income_statement", {})
-        latest_fy = is_data.get("fy_y0", is_data.get("latest_fy", {}))
-        for key, _ in _KEY_METRICS_FIELDS:
-            if key == "market_cap":
-                v = _extract_val(d.get("market_data", {}).get(key))
-            else:
-                v = _extract_val(latest_fy.get(key))
-            cells.append(_fmt_val(v) if v is not None else "-")
+        md = d.get("market_data", {})
+        is_rows = d.get("statements", {}).get("income_statement", [])
 
-        ev_ebitda = _extract_val(d.get("market_data", {}).get("ev_ebitda"))
-        pe_ttm = _extract_val(d.get("market_data", {}).get("pe_ttm"))
+        for key, _ in _PEER_KEY_METRICS:
+            if key == "market_cap":
+                v = md.get(key)
+                cells.append(f"{v/1e9:,.1f}bn" if v and abs(v) >= 1e9 else f"{v/1e6:,.0f}m" if v else "-")
+            else:
+                # Find the concept row and get the latest FY value
+                v = None
+                for row in is_rows:
+                    if row.get("concept") == key:
+                        vals = row.get("values", {})
+                        # Take the latest FY period
+                        fy_keys = sorted([k for k in vals if "FY" in str(k) or re.match(r'^\d{4}$', str(k))], reverse=True)
+                        if fy_keys:
+                            v = vals[fy_keys[0]]
+                        elif vals:
+                            v = list(vals.values())[-1]
+                        break
+                cells.append(_format_value(v))
+
+        ev_ebitda = md.get("ev_ebitda")
+        pe_ttm = md.get("pe_ttm")
         cells.append(f"{ev_ebitda:,.1f}x" if ev_ebitda else "-")
         cells.append(f"{pe_ttm:,.1f}x" if pe_ttm else "-")
         lines.append("| " + t + " | " + " | ".join(cells) + " |")
 
     lines.append("")
 
+    # Individual statements
     for t, d in data_map.items():
-        currency = d.get("currency", "")
-        unit_note = f" ({currency} m)" if currency else " (m)"
-        is_t = _render_section(d, "income_statement", _IS_FIELDS, f"Income Statement - {t}{unit_note}")
+        stmts = d.get("statements", {})
+        currency = d.get("market_data", {}).get("currency", "")
+        unit_note = f" ({currency})" if currency else ""
+        periods = _discover_periods(stmts)
+
+        seg_t = _render_segments(stmts, periods)
+        if seg_t:
+            lines.append(seg_t)
+
+        is_t = _render_statement(stmts, "income_statement",
+                                 f"Income Statement — {t}{unit_note}", periods)
         if is_t:
             lines.append(is_t)
 
-    lines.append("### Market Data - All")
-    lines.append("")
-    mkt_header = "| Ticker | " + " | ".join(lbl for _, lbl in _MKT_FIELDS[:8]) + " |"
-    mkt_sep = "|---|" + "|".join("---:" for _ in range(8)) + "|"
-    lines.extend([mkt_header, mkt_sep])
+        bs_t = _render_statement(stmts, "balance_sheet",
+                                 f"Balance Sheet — {t}{unit_note}", periods)
+        if bs_t:
+            lines.append(bs_t)
 
+        cf_t = _render_statement(stmts, "cash_flow",
+                                 f"Cash Flow — {t}{unit_note}", periods)
+        if cf_t:
+            lines.append(cf_t)
+
+    # Market data comparison
+    mkt_fields = [
+        ("price", "Price"), ("pe_ntm", "P/E NTM"), ("pb", "P/B"),
+        ("ev_ebitda", "EV/EBITDA"), ("dividend_yield_pct", "Div Yield"),
+    ]
+    lines.append("### Market Data — All")
+    lines.append("")
+    lines.append("| Ticker | " + " | ".join(lbl for _, lbl in mkt_fields) + " |")
+    lines.append("|---|" + "|".join("---:" for _ in mkt_fields) + "|")
     for t, d in data_map.items():
         md = d.get("market_data", {})
         cells = []
-        for key, _ in _MKT_FIELDS[:8]:
-            v = _extract_val(md.get(key))
-            cells.append(_fmt_mkt_val(key, v) if v is not None else "-")
+        for key, _ in mkt_fields:
+            v = md.get(key)
+            if v is None:
+                cells.append("-")
+            elif key == "price":
+                cells.append(f"{v:,.2f}")
+            elif key == "dividend_yield_pct":
+                cells.append(f"{v:.2f}%")
+            else:
+                cells.append(f"{v:,.1f}x" if isinstance(v, (int, float)) else str(v))
         lines.append("| " + t + " | " + " | ".join(cells) + " |")
     lines.append("")
+
+    # Commentary & Outlook (first ticker only)
+    first = list(data_map.values())[0] if data_map else {}
+    comm_t = _render_commentary(first)
+    if comm_t:
+        lines.append(comm_t)
 
     return "\n".join(lines)
 
 
-# ── CLI ─────────────────────────────────────────────────
+# ── CLI ─────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(description="Render actuals-resolved.json as appendix markdown")
     parser.add_argument("ticker", nargs="?", help="Single ticker (e.g. MYCR.ST)")
-    parser.add_argument("--tickers", help="Comma-separated multi-ticker (e.g. BESI.NA,ASML.NA)")
-    parser.add_argument("--workspace", default=None, help="Workspace root path (default: cwd)")
+    parser.add_argument("--tickers", help="Comma-separated multi-ticker (e.g. 4183.T,2327.TW)")
+    parser.add_argument("--workspace", help="Workspace root path (default: cwd)")
     args = parser.parse_args()
 
     workspace = Path(args.workspace) if args.workspace else Path.cwd()

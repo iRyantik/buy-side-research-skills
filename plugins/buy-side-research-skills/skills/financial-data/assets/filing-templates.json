@@ -3,6 +3,11 @@
     "market": "jp",
     "filing_name": "決算短信〔IFRS〕(連結)",
     "note": "TDnet/kabupro 下载的 PDF，MarkItDown 转换后的 MD。单位不完全统一——摘要表用億円、详细表用百万円。",
+    "table_headers": {
+      "income_statement": ["連結損益計算書", "連結損益計算書及び連結包括利益計算書"],
+      "balance_sheet": ["連結財政状態計算書"],
+      "cash_flow": ["連結キャッシュ・フロー計算書"]
+    },
     "fields": {
       "income_statement": [
         {
@@ -186,6 +191,11 @@
     "market": "kr",
     "filing_name": "사업보고서 (Annual Business Report)",
     "note": "DART에서 다운로드한 PDF. K-IFRS 연결 기준.",
+    "table_headers": {
+      "income_statement": ["연결 포괄손익계산서"],
+      "balance_sheet": ["연결 재무상태표"],
+      "cash_flow": ["연결 현금흐름표"]
+    },
     "fields": {
       "income_statement": [
         {
@@ -283,6 +293,11 @@
     "market": "eu",
     "filing_name": "Annual Report / Year-End Report",
     "note": "Company IR page에서 다운로드. IFRS 기준. 영어.",
+    "table_headers": {
+      "income_statement": ["PROFIT AND LOSS ACCOUNTS", "Consolidated income statement", "CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME", "CONSOLIDATED INCOME STATEMENT"],
+      "balance_sheet": ["STATEMENTS OF FINANCIAL POSITION", "Consolidated balance sheet", "CONSOLIDATED BALANCE SHEETS"],
+      "cash_flow": ["STATEMENTS OF CASH FLOW", "Consolidated cash flow", "CONSOLIDATED STATEMENTS OF CASH FLOWS"]
+    },
     "fields": {
       "income_statement": [
         {
@@ -368,19 +383,31 @@
     "commentary": {
       "section_header": "Business review",
       "alt_headers": [
-        "Performance review"
+        "Performance review",
+        "Management Discussion and Analysis",
+        "Operating Review",
+        "Financial Review",
+        "Business and Financial Review"
       ]
     },
     "outlook": {
       "section_header": "Outlook",
       "alt_headers": [
-        "Guidance"
+        "Guidance",
+        "Future Prospects",
+        "Looking Ahead"
       ]
     }
   },
   "tw_financial_report": {
     "market": "tw",
     "filing_name": "合併財務報告 / 財務報告",
+    "note": "English MOPS PDF (TWSE doc server). pymupdf4llm preserves full IS/BS tables in single-cell format.",
+    "table_headers": {
+      "income_statement": ["CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME", "CONSOLIDATED INCOME STATEMENT"],
+      "balance_sheet": ["CONSOLIDATED BALANCE SHEETS", "STATEMENTS OF FINANCIAL POSITION"],
+      "cash_flow": ["CONSOLIDATED STATEMENTS OF CASH FLOWS", "STATEMENTS OF CASH FLOW"]
+    },
     "fields": {
       "income_statement": [
         {

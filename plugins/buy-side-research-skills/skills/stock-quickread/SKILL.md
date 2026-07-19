@@ -32,7 +32,7 @@ Step 1: python .scripts/financial-data/financial_data.py
         ★ 产出: .cache/financial-data/actuals-resolved.json
         ★ 先执行 CLI，等待 actuals-resolved.json 就绪
         ★ CLI 参数是 --identifier，不是 --ticker
-        ★ market: us/cn/hk/jp/kr/tw/eu
+        ★ market: us/cn/hk/jp/kr/tw/eu/se/fr/de/uk/sg/my/in/au
         ★ Verify: Read 确认文件存在且 "statements" 非空
         ★ Fail → STOP. 没有 actuals 不得继续.
         ★ 如果 lite 模式缺 market_data，用 yfinance 补:

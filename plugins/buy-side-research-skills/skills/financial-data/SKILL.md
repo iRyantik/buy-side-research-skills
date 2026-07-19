@@ -59,7 +59,7 @@ description: Fetch or parse source-tracked company financial data by market and 
 | `output_scope` | `canonical_company` / `current_topic_snapshot` | 默认 `canonical_company` |
 | `company_slug` | 公司 canonical topic slug | canonical 输出必填 |
 | `topic` | 当前 topic slug | snapshot 输出必填 |
-| `market` | `us` / `cn` / `hk` / `jp` / `kr` / `tw` / `eu` | 必填 |
+| `market` | `us` / `cn` / `hk` / `jp` / `kr` / `tw` / `eu` / `se` / `fr` / `de` / `uk` / `sg` / `my` / `in` / `au` | 必填 |
 | `identifier` | ticker、CIK、EDINET code、DART corp code、LEI、filing URL 等 | 必填 |
 | `identifier_type` | `ticker` / `isin` / `lei` / `cik` / `edinet_code` / `dart_corp_code` / `filing_url` / `local_esef_package` | 默认 `ticker` |
 | `periods` | `latest`、`FY2021-FY2025`、`quarterly` 等 | 默认 `latest` |
@@ -137,8 +137,8 @@ Lite 模式不做 full filing 解析，不建 evidence pack。只抓三表核心
 
 | 模式 | CLI | 期间 | 字段 | yfinance |
 |---|---|---|---|---|
-| **Lite**（默认） | `/financial-data <ticker>` | latest FY + latest Q/H | ~46 字段（LITE_FIELDS） | 市场快照自动填充 |
-| **Full** | `--mode full` | 5 FY + 4 Q/H | ~72 字段（全部） | yfinance 补 provider 缺口 |
+| **Lite**（默认） | `/financial-data <ticker>` | latest FY + latest Q/H | 全部字段（不裁减） | 市场快照自动填充 |
+| **Full** | `--mode full` | 5 FY + 4 Q/H | 全部字段（同 lite） | yfinance 补 provider 缺口 |
 | **灵活** | `--periods FY2020-FY2025` | 指定范围 | full 字段 | — |
 
 - 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`、`"Q1 FY2026"`、`"H1 FY2025"`），不硬编码 `fy_y2/y1/y0`。

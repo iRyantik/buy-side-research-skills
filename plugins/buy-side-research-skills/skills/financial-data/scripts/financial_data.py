@@ -68,41 +68,9 @@ SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "s
 THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
 OFFICIAL_EVIDENCE_PROVIDERS = {"edgartools", "dart-fss", "edinet-tools", "openesef"}
 
-# Lite/full field boundaries
-LITE_FIELDS = {
-    "income_statement": {
-        "revenue", "cogs", "gross_profit", "sg_and_a", "r_and_d",
-        "operating_income", "ebit", "ebitda", "interest_expense",
-        "income_tax", "net_income", "eps",
-    },
-    "balance_sheet": {
-        "cash", "accounts_receivable", "inventory",
-        "total_assets", "total_equity", "total_debt",
-    },
-    "cash_flow": {
-        "operating_cf", "capex", "dividends_paid",
-    },
-    "supplementary": {
-        "order_backlog", "orders", "employees",
-    },
-}
-
-FULL_EXTRA_FIELDS = {
-    "income_statement": {
-        "pre_tax_income", "sbc", "d_and_a", "amortization",
-    },
-    "balance_sheet": {
-        "short_term_debt", "long_term_debt", "goodwill", "intangible_assets",
-        "total_current_assets", "total_current_liabilities", "bonds_payable",
-    },
-    "cash_flow": {
-        "d_and_a", "buybacks", "free_cash_flow",
-    },
-    "supplementary": {
-        "installed_base", "arr", "nrr", "grr", "churn",
-        "customer_count", "production_volume", "utilization_pct",
-    },
-}
+# Field schema is now in .references/policy/statement-line-items.md.
+# No more LITE/FULL field caps — extract everything the filing has.
+# Mode difference: lite = latest period only, full = 5Y periods.
 
 # ---------------------------------------------------------------------------
 # Concept mapping: parse statement-line-items.md → {concept_alias: standard_field}
@@ -185,9 +153,459 @@ _FIELD_ALIASES = {
     "当期純利益": "net_income", "親会社株主に帰属する当期純利益": "net_income",
     "総資産": "total_assets", "純資産": "total_equity", "負債": "total_liabilities",
     "営業活動によるキャッシュ・フロー": "operating_cf",
+    # HK concept names (AKShare — auto-generated from API, 97 items)
+    "保留溢利(累计亏损)": "retained_earnings",
+    "储备": "other_equity",
+    "全面收益总额": "total_comprehensive_income",
+    "其他储备": "other_equity",
+    "其他全面收益": "other_comprehensive_income",
+    "其他全面收益其他项目": "other_comprehensive_income",
+    "其他支出": "other_operating_expenses",
+    "其他收入": "other_operating_income",
+    "其他收益": "other_operating_income",
+    "其他营业收入": "other_operating_income",
+    "其他非流动资产": "other_non_current_assets",
+    "净资产": "total_equity",
+    "减:出售资产之溢利": "gain_loss_on_disposal",
+    "减:利息收入": "interest_income",
+    "减:汇兑收益": "fx_gain_loss",
+    "出售附属公司": "sale_of_subsidiaries",
+    "利息收入": "interest_income",
+    "加:利息支出": "interest_expense",
+    "加:折旧及摊销": "depreciation",
+    "发行债券": "bond_issuance",
+    "发行股份": "share_issuance",
+    "合营公司权益": "equity_method_investments",
+    "回购股份": "buybacks",
+    "固定资产": "ppe",
+    "土地使用权": "right_of_use_assets",
+    "在建工程": "construction_in_progress",
+    "存货": "inventories",
+    "存货(增加)减少": "change_in_inventory",
+    "少数股东损益": "net_income_non_controlling",
+    "少数股东权益": "non_controlling_interests",
+    "已付利息(经营)": "interest_paid",
+    "已付税项": "income_tax_paid",
+    "已付股息(融资)": "dividends_paid",
+    "库存股": "treasury_shares",
+    "应付帐款": "payables",
+    "应付票据": "notes_payable",
+    "应付税项": "income_tax_payable",
+    "应占合营公司溢利": "equity_method_income",
+    "应占联营公司溢利": "equity_method_income",
+    "应收帐款": "receivables",
+    "应收帐款减少": "change_in_receivables",
+    "总权益": "total_equity",
+    "总负债": "total_liabilities",
+    "总资产": "total_assets",
+    "投资业务现金净额": "investing_cf",
+    "投资物业": "investment_properties",
+    "持续经营业务税后利润": "net_income",
+    "收购附属公司": "acquisition_of_subsidiaries",
+    "无形资产": "intangible_assets",
+    "期初现金": "cash_beginning",
+    "期末现金": "cash_ending",
+    "本公司拥有人应占全面收益总额": "total_comprehensive_income_parent",
+    "每股基本盈利": "eps_basic",
+    "每股摊薄盈利": "eps_diluted",
+    "每股股息": "dps",
+    "毛利": "gross_profit",
+    "流动负债合计": "current_liabilities",
+    "流动资产合计": "current_assets",
+    "溢利其他项目": "other_profit_items",
+    "物业厂房及设备": "ppe",
+    "现金净额": "change_in_cash",
+    "现金及等价物": "cash",
+    "短期贷款": "short_term_debt",
+    "税项": "income_tax",
+    "经营业务现金净额": "operating_cf",
+    "经营产生现金": "cash_generated_from_operations",
+    "经营溢利": "operating_income",
+    "联营公司权益": "equity_method_investments",
+    "股东应占溢利": "net_income",
+    "股东权益": "total_equity_parent",
+    "股息": "dps",
+    "股本": "share_capital",
+    "股本溢价": "capital_surplus",
+    "营业额": "revenue",
+    "营运支出": "cogs",
+    "营运收入": "revenue",
+    "融资业务现金净额": "financing_cf",
+    "融资成本": "interest_expense",
+    "融资租赁负债(流动)": "lease_liabilities_current",
+    "融资租赁负债(非流动)": "lease_liabilities_non_current",
+    "行政开支": "admin_expenses",
+    "购建固定资产": "capex",
+    "赎回债券": "bond_redemption",
+    "递延收入(流动)": "contract_liabilities",
+    "递延税项负债": "deferred_tax_liabilities",
+    "递延税项资产": "deferred_tax_assets",
+    "销售及分销费用": "sg_and_a",
+    "长期贷款": "long_term_debt",
+    "除税前溢利": "pretax_income",
+    "除税前溢利(业务利润)": "profit_before_tax_cf",
+    "除税后溢利": "net_income_total",
+    "非控股权益应占全面收益总额": "total_comprehensive_income_nci",
+    "非流动负债合计": "non_current_liabilities",
+    "非流动资产合计": "non_current_assets",
+    "非运算项目": "elimination_items",
+    "预付款按金及其他应收款": "other_receivables",
+    "预付款项": "prepayments",
+
+# AKShare HK label count:97 AKShare HK label mappings added above
+
+    # HK concept names (AKShare — auto-generated from API, 130 items)
+    "中长期存款": "short_term_investments",
+    "保留溢利(累计亏损)": "retained_earnings",
+    "偿还借款": "repayment_of_borrowings",
+    "储备": "other_equity",
+    "全面收益总额": "total_comprehensive_income",
+    "其他储备": "other_equity",
+    "其他全面收益": "other_comprehensive_income",
+    "其他全面收益其他项目": "other_comprehensive_income",
+    "其他投资": "long_term_investments",
+    "其他支出": "other_operating_expenses",
+    "其他收入": "other_operating_income",
+    "其他收益": "other_operating_income",
+    "其他营业收入": "other_operating_income",
+    "其他金融资产(流动)": "other_current_assets",
+    "其他金融资产(非流动)": "other_non_current_assets",
+    "其他非流动资产": "other_non_current_assets",
+    "净流动资产": "net_current_assets",
+    "净资产": "total_equity",
+    "减:出售资产之溢利": "gain_loss_on_disposal",
+    "减:利息收入": "interest_income",
+    "减:汇兑收益": "fx_gain_loss",
+    "出售附属公司": "sale_of_subsidiaries",
+    "利息收入": "interest_income",
+    "加:利息支出": "interest_expense",
+    "加:折旧及摊销": "depreciation",
+    "发行债券": "bond_issuance",
+    "发行股份": "share_issuance",
+    "受限制存款及现金": "cash",
+    "可转换可赎回优先股": "other_equity",
+    "合营公司权益": "equity_method_investments",
+    "回购股份": "buybacks",
+    "固定资产": "ppe",
+    "土地使用权": "right_of_use_assets",
+    "在建工程": "construction_in_progress",
+    "存货": "inventories",
+    "存货(增加)减少": "change_in_inventory",
+    "少数股东损益": "net_income_non_controlling",
+    "少数股东权益": "non_controlling_interests",
+    "已付利息(经营)": "interest_paid",
+    "已付税项": "income_tax_paid",
+    "已付股息(融资)": "dividends_paid",
+    "已收利息(投资)": "interest_received",
+    "已收股息(投资)": "dividend_received",
+    "库存股": "treasury_shares",
+    "应付关联方款项(流动)": "other_payables",
+    "应付帐款": "payables",
+    "应付票据": "notes_payable",
+    "应付税项": "income_tax_payable",
+    "应占合营公司溢利": "equity_method_income",
+    "应占联营公司溢利": "equity_method_income",
+    "应收关联方款项": "other_receivables",
+    "应收帐款": "receivables",
+    "应收帐款减少": "change_in_receivables",
+    "总权益": "total_equity",
+    "总权益及总负债": "total_assets",
+    "总权益及非流动负债": "total_equity_and_ncl",
+    "总负债": "total_liabilities",
+    "总资产": "total_assets",
+    "总资产减流动负债": "net_assets",
+    "投资业务现金净额": "investing_cf",
+    "投资物业": "investment_properties",
+    "拟派股息": "dps",
+    "拨备(流动)": "provisions",
+    "持作出售的负债(流动)": "other_current_liabilities",
+    "持作出售的资产(流动)": "short_term_investments",
+    "持续经营业务税后利润": "net_income",
+    "收购附属公司": "acquisition_of_subsidiaries",
+    "新增借款": "new_borrowings",
+    "无形资产": "intangible_assets",
+    "期初现金": "cash_beginning",
+    "期末现金": "cash_ending",
+    "本公司拥有人应占全面收益总额": "total_comprehensive_income_parent",
+    "每股基本盈利": "eps_basic",
+    "每股摊薄盈利": "eps_diluted",
+    "每股股息": "dps",
+    "毛利": "gross_profit",
+    "流动负债合计": "current_liabilities",
+    "流动资产合计": "current_assets",
+    "溢利其他项目": "other_profit_items",
+    "物业厂房及设备": "ppe",
+    "现金净额": "change_in_cash",
+    "现金及等价物": "cash",
+    "短期存款": "short_term_investments",
+    "短期贷款": "short_term_debt",
+    "税项": "income_tax",
+    "经营业务现金净额": "operating_cf",
+    "经营产生现金": "cash_generated_from_operations",
+    "经营溢利": "operating_income",
+    "职工薪酬及福利(非流动)": "retirement_benefit_liabilities",
+    "联营公司权益": "equity_method_investments",
+    "股东应占溢利": "net_income",
+    "股东权益": "total_equity_parent",
+    "股息": "dps",
+    "股本": "share_capital",
+    "股本溢价": "capital_surplus",
+    "营业额": "revenue",
+    "营运支出": "cogs",
+    "营运收入": "revenue",
+    "融资业务现金净额": "financing_cf",
+    "融资前现金净额": "net_cash_before_financing",
+    "融资成本": "interest_expense",
+    "融资租赁负债(流动)": "lease_liabilities_current",
+    "融资租赁负债(非流动)": "lease_liabilities_non_current",
+    "行政开支": "admin_expenses",
+    "衍生金融工具-负债": "other_non_current_liabilities",
+    "衍生金融工具-负债(流动)": "other_current_liabilities",
+    "衍生金融工具-资产": "other_non_current_assets",
+    "衍生金融工具-资产(流动)": "short_term_investments",
+    "购建固定资产": "capex",
+    "赎回债券": "bond_redemption",
+    "递延收入(流动)": "contract_liabilities",
+    "递延税项负债": "deferred_tax_liabilities",
+    "递延税项资产": "deferred_tax_assets",
+    "销售及分销费用": "sg_and_a",
+    "长期应付款": "other_non_current_liabilities",
+    "长期应收款": "other_non_current_assets",
+    "长期贷款": "long_term_debt",
+    "除税前溢利": "pretax_income",
+    "除税前溢利(业务利润)": "profit_before_tax_cf",
+    "除税后溢利": "net_income_total",
+    "非控股权益应占全面收益总额": "total_comprehensive_income_nci",
+    "非流动负债合计": "non_current_liabilities",
+    "非流动资产其他项目": "other_non_current_assets",
+    "非流动资产合计": "non_current_assets",
+    "非运算项目": "elimination_items",
+    "预付款按金及其他应收款": "other_receivables",
+    "预付款项": "prepayments",
+    "预收款项": "advance_payments",
+    "预缴及应收税项": "other_current_assets",
+
+# AKShare HK label count:129 AKShare HK label mappings added above
+
+    # HK concept names (AKShare, auto-generated from API)
+    "中长期存款": "short_term_investments",
+    "保留溢利(累计亏损)": "retained_earnings",
+    "偿还借款": "repayment_of_borrowings",
+    "偿还融资租赁": "lease_repayments",
+    "储备": "other_equity",
+    "全面收益总额": "total_comprehensive_income",
+    "其他储备": "other_equity",
+    "其他全面收益": "other_comprehensive_income",
+    "其他全面收益其他项目": "other_comprehensive_income",
+    "其他投资": "long_term_investments",
+    "其他支出": "other_operating_expenses",
+    "其他收入": "other_operating_income",
+    "其他收益": "other_operating_income",
+    "其他营业收入": "other_operating_income",
+    "其他金融资产(流动)": "other_current_assets",
+    "其他金融资产(非流动)": "other_non_current_assets",
+    "其他非流动资产": "other_non_current_assets",
+    "净流动资产": "net_current_assets",
+    "净资产": "total_equity",
+    "减:出售资产之溢利": "gain_loss_on_disposal",
+    "减:利息收入": "interest_income",
+    "减:应占附属公司溢利": "equity_method_income",
+    "减:汇兑收益": "fx_gain_loss",
+    "减:重估盈余": "revaluation_surplus",
+    "出售附属公司": "sale_of_subsidiaries",
+    "利息收入": "interest_income",
+    "加:减值及拨备": "impairment_cf",
+    "加:利息支出": "interest_expense",
+    "加:折旧及摊销": "depreciation",
+    "加:经营调整其他项目": "other_cf_adjustments",
+    "加:购股权开支": "sbc",
+    "发行债券": "bond_issuance",
+    "发行股份": "share_issuance",
+    "受限制存款及现金": "cash",
+    "可转换可赎回优先股": "other_equity",
+    "合营公司权益": "equity_method_investments",
+    "吸收投资所得": "proceeds_from_equity",
+    "回购股份": "buybacks",
+    "固定资产": "ppe",
+    "土地使用权": "right_of_use_assets",
+    "在建工程": "construction_in_progress",
+    "处置固定资产": "sale_of_ppe",
+    "存款(增加)减少": "change_in_deposits",
+    "存款减少(增加)": "change_in_deposits",
+    "存货": "inventories",
+    "存货(增加)减少": "change_in_inventory",
+    "少数股东损益": "net_income_non_controlling",
+    "少数股东权益": "non_controlling_interests",
+    "已付利息(经营)": "interest_paid",
+    "已付利息(融资)": "interest_paid_fin",
+    "已付税项": "income_tax_paid",
+    "已付股息(融资)": "dividends_paid",
+    "已收利息(投资)": "interest_received",
+    "已收股息(投资)": "dividend_received",
+    "库存股": "treasury_shares",
+    "应付关联方款项(流动)": "other_payables",
+    "应付帐款": "payables",
+    "应付帐款及应计费用增加(减少)": "change_in_payables",
+    "应付票据": "notes_payable",
+    "应付税项": "income_tax_payable",
+    "应占合营公司溢利": "equity_method_income",
+    "应占联营公司溢利": "equity_method_income",
+    "应收关联方款项": "other_receivables",
+    "应收关联方款项(增加)减少": "change_in_related_party",
+    "应收帐款": "receivables",
+    "应收帐款减少": "change_in_receivables",
+    "总权益": "total_equity",
+    "总权益及总负债": "total_assets",
+    "总权益及非流动负债": "total_equity_and_ncl",
+    "总负债": "total_liabilities",
+    "总资产": "total_assets",
+    "总资产减流动负债": "net_assets",
+    "投资业务其他项目": "other_investing_items",
+    "投资业务现金净额": "investing_cf",
+    "投资支付现金": "payments_for_investments",
+    "投资物业": "investment_properties",
+    "拟派股息": "dps",
+    "拨备(流动)": "provisions",
+    "持作出售的负债(流动)": "other_current_liabilities",
+    "持作出售的资产(流动)": "short_term_investments",
+    "持续经营业务税后利润": "net_income",
+    "收购附属公司": "acquisition_of_subsidiaries",
+    "新增借款": "new_borrowings",
+    "无形资产": "intangible_assets",
+    "期初现金": "cash_beginning",
+    "期末现金": "cash_ending",
+    "期间变动其他项目": "other_cash_changes",
+    "本公司拥有人应占全面收益总额": "total_comprehensive_income_parent",
+    "每股基本盈利": "eps_basic",
+    "每股摊薄盈利": "eps_diluted",
+    "每股股息": "dps",
+    "毛利": "gross_profit",
+    "流动负债合计": "current_liabilities",
+    "流动资产合计": "current_assets",
+    "溢利其他项目": "other_profit_items",
+    "物业厂房及设备": "ppe",
+    "现金净额": "change_in_cash",
+    "现金及等价物": "cash",
+    "短期存款": "short_term_investments",
+    "短期贷款": "short_term_debt",
+    "税项": "income_tax",
+    "经营业务现金净额": "operating_cf",
+    "经营产生现金": "cash_generated_from_operations",
+    "经营溢利": "operating_income",
+    "职工薪酬及福利(非流动)": "retirement_benefit_liabilities",
+    "联营公司权益": "equity_method_investments",
+    "股东应占溢利": "net_income",
+    "股东权益": "total_equity_parent",
+    "股息": "dps",
+    "股本": "share_capital",
+    "股本溢价": "capital_surplus",
+    "营业额": "revenue",
+    "营运支出": "cogs",
+    "营运收入": "revenue",
+    "营运资本变动其他项目": "change_in_working_capital_other",
+    "营运资金变动前经营溢利": "operating_profit_before_wc",
+    "融资业务其他项目": "other_financing_items",
+    "融资业务现金净额": "financing_cf",
+    "融资前现金净额": "net_cash_before_financing",
+    "融资成本": "interest_expense",
+    "融资租赁负债(流动)": "lease_liabilities_current",
+    "融资租赁负债(非流动)": "lease_liabilities_non_current",
+    "行政开支": "admin_expenses",
+    "衍生金融工具-负债": "other_non_current_liabilities",
+    "衍生金融工具-负债(流动)": "other_current_liabilities",
+    "衍生金融工具-资产": "other_non_current_assets",
+    "衍生金融工具-资产(流动)": "short_term_investments",
+    "购买子公司少数股权而支付的现金": "acquisition_of_nci",
+    "购建固定资产": "capex",
+    "购建无形资产及其他资产": "purchase_of_intangibles",
+    "赎回债券": "bond_redemption",
+    "递延收入(流动)": "contract_liabilities",
+    "递延税项负债": "deferred_tax_liabilities",
+    "递延税项资产": "deferred_tax_assets",
+    "销售及分销费用": "sg_and_a",
+    "长期应付款": "other_non_current_liabilities",
+    "长期应收款": "other_non_current_assets",
+    "长期贷款": "long_term_debt",
+    "除税前溢利": "pretax_income",
+    "除税前溢利(业务利润)": "profit_before_tax_cf",
+    "除税后溢利": "net_income_total",
+    "非控股权益应占全面收益总额": "total_comprehensive_income_nci",
+    "非流动负债合计": "non_current_liabilities",
+    "非流动资产其他项目": "other_non_current_assets",
+    "非流动资产合计": "non_current_assets",
+    "非运算项目": "elimination_items",
+    "预付款按金及其他应收款": "other_receivables",
+    "预付款项": "prepayments",
+    "预付款项、按金及其他应收款项减少(增加)": "change_in_prepayments",
+    "预收款项": "advance_payments",
+    "预缴及应收税项": "other_current_assets",
+
+# AKShare HK label count:151 AKShare HK label mappings
+
     # Korean KR concept names (DART)
     "매출액": "revenue", "영업이익": "operating_income", "당기순이익": "net_income",
     "자산총계": "total_assets", "부채총계": "total_liabilities", "자본총계": "total_equity",
+    # HK concept names (AKShare — Traditional Chinese)
+    "營業額": "revenue", "营业额": "revenue", "收益": "revenue",
+    "營運收入": "revenue", "营运收入": "revenue", "營業收入": "revenue",
+    "銷售成本": "cogs", "销售成本": "cogs",
+    "毛利": "gross_profit",
+    "其他收入": "other_operating_income", "其他收益": "other_operating_income",
+    "銷售及分銷費用": "sg_and_a", "销售及分销费用": "sg_and_a",
+    "行政開支": "admin_expenses", "行政开支": "admin_expenses",
+    "研發費用": "r_and_d", "研发费用": "r_and_d", "研究及開發費用": "r_and_d",
+    "出售資產之溢利": "gain_loss_on_disposal",
+    "經營溢利": "operating_income", "经营溢利": "operating_income", "經營利潤": "operating_income",
+    "其他支出": "other_operating_expenses",
+    "應佔合營公司溢利": "equity_method_income", "应佔合营公司溢利": "equity_method_income",
+    "持續經營業務稅後利潤": "net_income", "持续经营业务税后利润": "net_income",
+    "終止或非持續業務溢利": "net_income_discontinued",
+    "除稅後溢利": "net_income_total", "除税后溢利": "net_income_total",
+    "少數股東損益": "net_income_non_controlling", "少数股东损益": "net_income_non_controlling",
+    "其他全面收益": "other_comprehensive_income",
+    "其他全面收益其他項目": "other_comprehensive_income",
+    "全面收益總額": "total_comprehensive_income", "全面收益总额": "total_comprehensive_income",
+    "非控股權益應佔全面收益總額": "total_comprehensive_income_nci",
+    "本公司擁有人應佔全面收益總額": "total_comprehensive_income_parent",
+    "非運算項目": "elimination_items", "非运算项目": "elimination_items",
+    "溢利其他項目": "other_profit_items",
+    "融資成本": "interest_expense", "融资成本": "interest_expense",
+    "融資收入": "finance_income", "融资收入": "finance_income",
+    "利息收入": "interest_income",
+    "利息支出": "interest_expense",
+    "應佔聯營公司溢利": "equity_method_income", "应佔联营公司溢利": "equity_method_income",
+    "除稅前溢利": "pretax_income", "除税前溢利": "pretax_income", "除稅前利潤": "pretax_income",
+    "稅項": "income_tax", "税项": "income_tax", "所得稅開支": "income_tax",
+    "股東應佔溢利": "net_income", "股东应佔溢利": "net_income", "股東應佔利潤": "net_income",
+    "本公司擁有人應佔溢利": "net_income_parent",
+    "非控股權益應佔溢利": "net_income_non_controlling",
+    "每股基本盈利": "eps_basic", "每股基本收益": "eps_basic",
+    "每股攤薄盈利": "eps_diluted", "每股攤薄收益": "eps_diluted",
+    "股息": "dps", "每股股息": "dps",
+    "現金及現金等價物": "cash", "现金及现金等价物": "cash", "現金及銀行存款": "cash",
+    "存貨": "inventories", "存货": "inventories",
+    "應收賬款": "receivables", "应收账款": "receivables", "應收賬款及票據": "receivables",
+    "流動資產": "current_assets", "流动资产": "current_assets",
+    "物業廠房及設備": "ppe", "物业厂房及设备": "ppe", "固定資產": "ppe",
+    "商譽": "goodwill", "商誉": "goodwill",
+    "無形資產": "intangible_assets", "无形资产": "intangible_assets",
+    "資產總額": "total_assets", "资产总额": "total_assets", "總資產": "total_assets",
+    "應付賬款": "payables", "应付账款": "payables", "應付賬": "payables",
+    "短期借款": "short_term_debt",
+    "長期借款": "long_term_debt",
+    "流動負債": "current_liabilities", "流动负债": "current_liabilities",
+    "負債總額": "total_liabilities", "负债总额": "total_liabilities", "總負債": "total_liabilities",
+    "本公司擁有人應佔權益": "total_equity_parent",
+    "非控股權益": "non_controlling_interests", "非控股权益": "non_controlling_interests",
+    "權益總額": "total_equity", "权益总额": "total_equity", "總權益": "total_equity",
+    "經營活動現金流量": "operating_cf", "经营活动现金流量": "operating_cf",
+    "投資活動現金流量": "investing_cf",
+    "融資活動現金流量": "financing_cf",
+    "資本開支": "capex", "资本开支": "capex", "購置物業廠房設備": "capex",
+    "折舊": "depreciation", "折旧": "depreciation", "折舊及攤銷": "depreciation",
+    "攤銷": "amortization", "摊销": "amortization",
+    "已付股息": "dividends_paid", "已付股利": "dividends_paid",
+    "股份回購": "buybacks", "股份回购": "buybacks",
 }
 
 # Common SEC US GAAP XBRL concept → standard field mappings
@@ -387,6 +805,11 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
     if not concept or not isinstance(concept, str):
         return concept.lower().replace(" ", "_") if concept else ""
 
+    # _FIELD_ALIASES first — direct label→standard mapping wins over concept_map
+    lower_concept = concept.lower()
+    if lower_concept in _FIELD_ALIASES:
+        return _FIELD_ALIASES[lower_concept]
+
     # Try raw concept first (provider concepts like net_sales, operating_income)
     raw_key = concept.lower()
     if raw_key in concept_map:
@@ -420,12 +843,6 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
             if key_clean[:-1] in concept_map:
                 return concept_map[key_clean[:-1]]
 
-    # Fallback: check _FIELD_ALIASES for local-language labels / provider codes
-    lower_concept = concept.lower()
-    if lower_concept in _FIELD_ALIASES:
-        return _FIELD_ALIASES[lower_concept]
-    if key in _FIELD_ALIASES:
-        return _FIELD_ALIASES[key]
     # Last resort: return normalized concept name
     return concept.lower().replace(" ", "_").replace("/", "_")
 
@@ -434,47 +851,13 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
 # Consumer helper: filter statements to lite/full field sets
 # ---------------------------------------------------------------------------
 def get_fields(statements: dict, mode: str = "lite") -> dict:
-    """Filter provider statements to lite or full field set.
+    """Pass-through: all fields are kept regardless of mode.
 
-    Lite mode: keeps only fields in LITE_FIELDS (~46 fields).
-    Full mode: passes through all fields.
-    Consumer skills call this before reading actuals.
+    Previously filtered to LITE_FIELDS / FULL_EXTRA_FIELDS sets.
+    Now: extract everything. Mode only affects period depth (lite=latest, full=5Y).
+    Field schema is in .references/policy/statement-line-items.md.
     """
-    if mode == "full":
-        return statements
-
-    # Build flat allowed set from LITE_FIELDS
-    allowed = set()
-    for field_set in LITE_FIELDS.values():
-        allowed.update(field_set)
-
-    concept_map = _load_concept_map()
-
-    filtered = {}
-    for stmt_name, rows in statements.items():
-        kept_rows = []
-        for row in rows:
-            if not isinstance(row, dict):
-                kept_rows.append(row)
-                continue
-            concept = (row.get("concept") or "").lower()
-            label = (row.get("label") or "").lower()
-            if not concept and not label:
-                kept_rows.append(row)
-                continue
-
-            # Try concept first (works for SEC concepts + language labels)
-            std_name = _map_concept(concept, concept_map) if concept else ""
-            if not std_name or std_name not in allowed:
-                # Fallback: try matching via human-readable label field
-                if label:
-                    label_key = re.sub(r'[^a-z0-9]', '', label)
-                    std_name = _map_concept(label_key, concept_map)
-            if std_name in allowed:
-                kept_rows.append(row)
-        if kept_rows:
-            filtered[stmt_name] = kept_rows
-    return filtered
+    return statements
 
 
 PROVIDER_MODULES = {
@@ -511,6 +894,8 @@ def slugify(value: str) -> str:
 _YF_SUFFIX = {
     "hk": "HK", "sh": "SS", "sz": "SZ",
     "jp": "T", "kr": "KS", "tw": "TW", "sg": "SI",
+    "se": "ST", "fr": "PA", "de": "DE", "uk": "L",
+    "my": "KL", "in": "NS", "au": "AX",
 }
 
 
@@ -570,7 +955,7 @@ def ensure_company_topic(workspace: Path, company_slug: str, industry_slug: str 
 
     # Determine company directory name
     if ticker and market:
-        suffix = market.upper() if market != "sh" and market != "sz" else market.upper()
+        suffix = _YF_SUFFIX.get(market.lower(), market.upper())
         dir_name = f"{ticker.split('.')[0]}.{suffix}-{company_slug}"
     else:
         dir_name = company_slug
@@ -1554,7 +1939,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--company-slug")
     p.add_argument("--industry", help="Industry slug (e.g. 'optical-module-equipment') — auto-creates directory if new")
     p.add_argument("--topic")
-    p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu"), help="Market route")
+    p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu", "se", "fr", "de", "uk", "sg", "my", "in", "au"), help="Market route")
     p.add_argument("--identifier", help="Ticker, CIK, filing URL, or market-specific identifier")
     p.add_argument("--identifier-type", default="ticker", choices=("ticker", "isin", "lei", "cik", "edinet_code", "dart_corp_code", "filing_url", "local_esef_package"))
     p.add_argument("--canonical-id")
@@ -1567,31 +1952,276 @@ def parse_args() -> argparse.Namespace:
 
 
 def _route_ir(args) -> int:
-    """IR market route: Playwright → pdf-to-md → extract-actuals."""
+    """IR market route: WebSearch → Playwright → download → convert → extract → validate.
+
+    Prints actionable step-by-step instructions. Agent executes each step.
+    Checks for existing intermediate files to avoid re-work.
+    """
     import subprocess
     workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
     ticker = args.identifier
     market = args.market.lower()
     mode = getattr(args, 'mode', 'lite')
+    company_slug = args.company_slug
+    industry = getattr(args, 'industry', '') or ''
 
-    print(f"""=== Financial-Data IR Route ===
-  Market: {market} ({'Lite' if mode == 'lite' else 'Full'} mode)
-  Ticker: {ticker}
+    # Resolve company directory and paths
+    try:
+        company_dir = ensure_company_topic(workspace, company_slug, industry,
+                                           ticker=ticker, market=market)
+    except RuntimeError:
+        company_dir = workspace / "industry" / industry / "companies" / f"{ticker}-{company_slug}"
+        company_dir.mkdir(parents=True, exist_ok=True)
 
-## Chain
-  1. Search: WebSearch IR page for {ticker}
-  2. Playwright: navigate → find PDF links
-  3. Download PDFs to .cache/raw/
-  4. pdf-to-md.py each PDF → .cache/financial-data/filings/
-  5. extract-actuals.py --scan → check coverage
-  6. Agent: LLM extract IS/BS/CF/segments → actuals-resolved.json
-  7. extract-actuals.py --validate → verify all values in source
-""")
+    raw_dir = company_dir / ".cache" / "raw"
+    filings_md_dir = company_dir / ".cache" / "financial-data" / "filings"
+    actuals_path = company_dir / ".cache" / "financial-data" / "actuals-resolved.json"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    filings_md_dir.mkdir(parents=True, exist_ok=True)
 
-    ir_cmd = [sys.executable, str(workspace / ".scripts/ingest/ir_download.py"),
-              "--ticker", ticker, "--market", market, "--mode", mode]
-    subprocess.run(ir_cmd)
+    # Determine filing template
+    template_map = {"jp": "jp_kessan_tanshin", "kr": "kr_saup_bogoseo",
+                    "tw": "tw_financial_report", "eu": "eu_annual_report",
+                    "se": "eu_annual_report", "fr": "eu_annual_report",
+                    "de": "eu_annual_report", "uk": "eu_annual_report",
+                    "sg": "eu_annual_report", "my": "eu_annual_report",
+                    "in": "eu_annual_report", "au": "eu_annual_report"}
+    filing_type = template_map.get(market, "eu_annual_report")
+
+    ticker_num = ticker.split(".")[0]
+
+    # Check existing progress
+    existing_pdfs = sorted(raw_dir.glob("*.pdf")) if raw_dir.is_dir() else []
+    existing_mds = sorted(filings_md_dir.glob("*.md")) if filings_md_dir.is_dir() else []
+    has_actuals = actuals_path.exists()
+
+    print(f"=== IR Download Chain: {ticker} ({market.upper()}, {mode}) ===")
+    print(f"  Company dir: {company_dir}")
+    print(f"  Raw PDFs:    {raw_dir} ({len(existing_pdfs)} existing)")
+    print(f"  Filing MDs:  {filings_md_dir} ({len(existing_mds)} existing)")
+    print(f"  Actuals:     {actuals_path} {'✓ exists' if has_actuals else '✗ missing'}")
+    print()
+
+    # ── Step 0: Check if actuals already exist ──
+    if has_actuals and actuals_path.stat().st_size > 100:
+        try:
+            actuals = json.loads(actuals_path.read_text(encoding="utf-8"))
+            stmts = actuals.get("statements", {})
+            has_is = bool(stmts.get("income_statement"))
+            has_seg = bool(stmts.get("revenue_split"))
+            if has_is:
+                print(f"✅ actuals-resolved.json exists (IS: {len(stmts.get('income_statement',[]))} rows, "
+                      f"segments: {len(stmts.get('revenue_split',[]))} segments)")
+                md = actuals.get("market_data", {})
+                if not md or not md.get("price"):
+                    print("▶ Market data missing — filling from yfinance:")
+                    yf_id = _yf_ticker(ticker, market)
+                    print(f"   python -c \"import yfinance as yf; t=yf.Ticker('{yf_id}'); info=t.info; ...\"")
+                else:
+                    print(f"   Market data: price={md.get('price')}, mcap={md.get('market_cap')}")
+                print()
+                print("✅ IR chain complete. actuals-resolved.json ready for stock-quickread.")
+                return 0
+        except Exception:
+            pass  # corrupt file, fall through to normal chain
+
+    # ── Step 1: Download PDFs ──
+    if existing_pdfs:
+        print(f"✅ Step 1 SKIP — {len(existing_pdfs)} PDF(s) already downloaded:")
+        for p in existing_pdfs:
+            print(f"     {p.name} ({p.stat().st_size/1024:.0f}KB)")
+    else:
+        print("▶ Step 1: Download IR filing PDFs")
+        print()
+        # Print market-specific download plan from ir_download.py
+        ir_script = workspace / ".scripts" / "ingest" / "ir_download.py"
+        subprocess.run([sys.executable, str(ir_script),
+                        "--ticker", ticker, "--market", market, "--mode", mode,
+                        "--dest-dir", str(raw_dir)])
+        print()
+        print("   Agent actions:")
+        print(f"   a. WebSearch → find IR page / filing page for {ticker}")
+        print(f"   b. Playwright navigate → locate PDF links (annual report / 決算短信 / 사업보고서)")
+        print(f"   c. Download PDF → {raw_dir}")
+        print(f"   d. Re-run this command to continue to Step 2")
+        return 0
+
+    # ── Step 2: Convert PDFs to MD ──
+    unprocessed = [p for p in existing_pdfs
+                   if not (filings_md_dir / f"{p.stem}.md").exists()]
+    if not unprocessed and existing_mds:
+        print(f"✅ Step 2 SKIP — {len(existing_mds)} MD(s) already converted:")
+        for m in existing_mds:
+            print(f"     {m.name} ({m.stat().st_size/1024:.0f} chars)")
+    elif unprocessed:
+        print(f"▶ Step 2: Convert {len(unprocessed)} PDF(s) to markdown")
+        pdf_to_md = workspace / ".scripts" / "ingest" / "pdf-to-md.py"
+        for pdf in unprocessed:
+            print(f"   python {pdf_to_md} \"{pdf}\" --output \"{filings_md_dir / (pdf.stem + '.md')}\"")
+        print()
+        print("   Agent: run the pdf-to-md.py command(s) above, then re-run this command.")
+        return 0
+
+    # ── Step 3: Extract actuals (guided) ──
+    if has_actuals:
+        print(f"✅ Step 3-4 SKIP — actuals-resolved.json exists")
+    else:
+        print(f"▶ Step 3: Extract structured actuals (table-dump mode)")
+        print(f"   Filing type: {filing_type}")
+        print()
+        extract_script = workspace / ".scripts" / "financial-data" / "extract-actuals.py"
+        cmd = (f'python "{extract_script}" --filings-dir "{filings_md_dir}" '
+               f'--filing-type {filing_type} --table-dump')
+        print(f"   {cmd}")
+        print()
+        print("   Agent: run the above command. IS/BS/CF tables will be dumped in full.")
+        print("   Read each table region, extract every line item with value + period,")
+        print(f"   write actuals-resolved.json to: {actuals_path}")
+        print()
+        print("   Template for actuals-resolved.json:")
+        print(f"   python \"{extract_script}\" --ticker {ticker} --template")
+        return 0
+
+    # ── Step 4: Validate ──
+    print(f"▶ Step 4: Validate actuals against source filings")
+    extract_script = workspace / ".scripts" / "financial-data" / "extract-actuals.py"
+    print(f"   python \"{extract_script}\" --validate \"{actuals_path}\" --filings-dir \"{filings_md_dir}\"")
+    print()
+
+    # ── Step 5: Market data fill ──
+    print(f"▶ Step 5: Market data (yfinance)")
+    yf_id = _yf_ticker(ticker, market)
+    print(f"   python -c \"import yfinance as yf; t=yf.Ticker('{yf_id}');")
+    print(f"   info=t.info; print('price:', info.get('currentPrice'), 'mcap:', info.get('marketCap'))\"")
+    print()
+    print("───")
+    print("Agent: execute Steps 4-5 above. When done, actuals-resolved.json is ready for stock-quickread.")
     return 0
+
+
+# ── API market filing types ─────────────────────────────────
+
+_API_FILING_TYPES = {
+    "us": {
+        "name": "United States (SEC EDGAR)",
+        "provider": "edgartools",
+        "lite": ["10-K (annual) + latest 10-Q (quarterly) — ~30 fields IS/BS/CF from XBRL"],
+        "full": ["10-K + 10-Q × 3 — 5Y annual + 4Q quarterly data"],
+        "simpler_filing": "8-K Exhibit 99.1 (Earnings Release) — 20-30 page PDF with IS/BS + segment + commentary",
+        "simpler_use": "API XBRL covers IS/BS/CF. Download Earnings Release PDF only if segment detail or management commentary is needed.",
+    },
+    "cn": {
+        "name": "China A-Share",
+        "provider": "akshare / eastmoney",
+        "lite": ["年报 + 最新季报 — ~20 fields from standardized financial tables"],
+        "full": ["年报 + 季报×3 + 半年报 — 5Y annual + 4Q + H1 data"],
+        "simpler_filing": "业绩快报 (Earnings Flash) — 1-2 page summary with key metrics",
+        "simpler_use": "API already provides structured IS/BS/CF with segment data. PDF only for verification.",
+    },
+    "hk": {
+        "name": "Hong Kong",
+        "provider": "akshare / finmind",
+        "lite": ["Annual Report + latest Interim Report — ~20 fields IS/BS/CF from API", "PLUS: 全年業績公告 PDF from HKEXnews → segment data (API lacks this)"],
+        "full": ["Annual + Interim×2 — 5Y annual + H1 data via API", "PLUS: Results Announcement PDFs for segment + commentary"],
+        "simpler_filing": "全年業績公告 / 中期業績公告 (Results Announcement) — 30-40 page PDF on HKEXnews with full IS/BS/CF + segment + commentary",
+        "simpler_use": "API (AKShare) does NOT return segment data for HK stocks. Download Results Announcement PDF from HKEXnews → pymupdf4llm → table-dump to fill segment/commentary.",
+    },
+}
+
+_API_MARKETS = {"us", "cn", "hk"}
+
+
+def _route_api(args) -> int:
+    """API market route: provider → normalize → actuals-resolved.json.
+
+    US/CN/HK markets use structured API data (XBRL/standardized tables).
+    No PDF→MD chain needed unless segment/commentary supplement is required.
+    """
+    import subprocess
+    workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()
+    ticker = args.identifier
+    market = args.market.lower()
+    mode = getattr(args, 'mode', 'lite')
+    filing_info = _API_FILING_TYPES.get(market, {})
+
+    # Check if actuals already exist
+    try:
+        company_dir = ensure_company_topic(workspace, args.company_slug,
+                                           getattr(args, 'industry', '') or '',
+                                           ticker=ticker, market=market)
+    except RuntimeError:
+        company_dir = workspace / "industry" / (getattr(args, 'industry', '') or 'unknown')
+    actuals_path = company_dir / ".cache" / "financial-data" / "actuals-resolved.json"
+
+    print(f"=== API Data Route: {ticker} ({filing_info.get('name', market.upper())}, {mode}) ===")
+    print(f"  Provider: {filing_info.get('provider', 'unknown')}")
+    print(f"  Company dir: {company_dir}")
+    print()
+
+    # Show plan
+    print(f"## Filing types ({mode} mode)")
+    for f in filing_info.get(mode, filing_info.get("lite", [])):
+        print(f"  - {f}")
+    print()
+
+    # Check existing actuals
+    if actuals_path.exists():
+        try:
+            actuals = json.loads(actuals_path.read_text(encoding="utf-8"))
+            stmts = actuals.get("statements", {})
+            has_is = bool(stmts.get("income_statement"))
+            if has_is:
+                print(f"✅ actuals-resolved.json exists (IS: {len(stmts.get('income_statement',[]))} rows)")
+                md = actuals.get("market_data", {})
+                if md.get("price"):
+                    print(f"   Market data: price={md.get('price')}, mcap={md.get('market_cap')}")
+                print()
+                print("✅ API chain complete.")
+                return 0
+        except Exception:
+            pass
+
+    # Step 1: API fetch
+    print("▶ Step 1: API provider fetch")
+    print(f"   Provider: {filing_info.get('provider')}")
+    print(f"   Periods: {args.periods}")
+    print()
+
+    # Step 2: Normalize + write
+    print("▶ Step 2: Normalize provider output → actuals-resolved.json")
+    print("   (IS/BS/CF rows extracted from structured API data)")
+    print()
+
+    # Step 3: Market data
+    print("▶ Step 3: Market data (yfinance)")
+    yf_id = _yf_ticker(ticker, market)
+    print(f"   Ticker: {yf_id}")
+    print()
+
+    # Step 4: Optional PDF supplement
+    simpler = filing_info.get("simpler_filing", "")
+    if market == "hk":
+        print(f"▶ Step 4: HK segment PDF (REQUIRED — AKShare API returns SEG=0)")
+        print(f"   Downloading company IR annual results PDF for segment data.")
+        ir_script = workspace / ".scripts" / "ingest" / "ir_download.py"
+        subprocess.run([sys.executable, str(ir_script), "--ticker", ticker, "--market", "hk", "--mode", mode])
+        print(f"   After PDF downloaded:")
+        print(f"   python .scripts/ingest/pdf-to-md.py <pdf> --output <md>")
+        print(f"   python .scripts/financial-data/extract-actuals.py --filings-dir <md_dir> --filing-type eu_annual_report --table-dump")
+        print()
+    elif simpler:
+        print(f"▶ Step 4 (optional): Segment/Commentary supplement")
+        print(f"   {simpler}")
+        print(f"   {filing_info.get('simpler_use', '')}")
+        print()
+
+    print("───")
+    print("Agent: Steps 1-3 run automatically via provider API.")
+    print("Step 4 only needed if segment data or management commentary is missing from API output.")
+    print()
+
+    # Actually run the provider
+    return 2  # signal to main() to continue with provider path
 
 
 def main() -> int:
@@ -1614,6 +2244,12 @@ def main() -> int:
 
     if args.market.lower() in IR_MARKETS:
         return _route_ir(args)
+
+    if args.market.lower() in _API_MARKETS:
+        api_signal = _route_api(args)
+        if api_signal == 0:
+            return 0
+        # api_signal == 2 means: continue with provider path below
 
     try:
         workspace = Path(args.workspace).expanduser().resolve() if args.workspace else discover_workspace()

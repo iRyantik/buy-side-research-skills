@@ -9,7 +9,7 @@
     "actuals.cache": {
       "type": "local",
       "description": "Structured financial actuals + market data snapshot written by financial-data CLI",
-      "markets": ["US", "HK", "SH", "SZ", "JP", "KR", "TW", "EU"],
+      "markets": ["US", "CN", "HK", "JP", "KR", "TW", "EU", "SE", "FR", "DE", "UK", "SG", "MY", "IN", "AU"],
       "capabilities": [
         "income_statement", "balance_sheet", "cash_flow", "revenue_split",
         "market_quote", "valuation_snapshot", "valuation_history",
