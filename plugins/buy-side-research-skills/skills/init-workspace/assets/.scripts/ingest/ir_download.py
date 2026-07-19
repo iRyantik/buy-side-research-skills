@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
-"""ir_download.py — Download IR filings from company investor relations pages.
+"""ir_download.py — Download IR filings with market-specific fallback chains.
 
 Usage:
-    python ir_download.py --ticker 5334.T --market jp --mode lite
-    python ir_download.py --ticker MILDEF.ST --market se --mode lite
+    python ir_download.py --ticker 6777.T --market jp --mode lite   (prints plan)
+    python ir_download.py --ticker 6777.T --market jp --url <URL> --type annual --dest-dir <path>
+    python ir_download.py --ticker 6777.T --market jp --status        (check progress)
 
-Flow:
-    1. Print market-specific search queries for WebSearch
-    2. Print IR page URL discovery instructions for Playwright
-    3. Download PDFs when --url is provided (agent-extracted links)
-
-Design:
-    - Agent does WebSearch + Playwright (browser interaction)
-    - This script handles search strategy, file naming, and downloads
+The script prints a numbered checklist for the agent. Each market has a chain of
+strategies tried in order until PDFs are obtained. Agent reports success/failure
+after each step.
 """
 from __future__ import annotations
 
@@ -21,227 +17,206 @@ import sys
 import urllib.request
 from pathlib import Path
 
-# ── Market config ─────────────────────────────────────────────
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-MARKET_CONFIG = {
+# ── Market chains ─────────────────────────────────────────────
+
+CHAINS = {
     "jp": {
         "name": "Japan",
-        "language": "ja",
-        "prefer_english": False,
-        "lite_files": [
-            {"type": "annual", "keywords": ["決算短信", "kessan tanshin", "financial results"], "format": "FY{year}-annual-tanshin.pdf"},
-            {"type": "quarterly", "keywords": ["四半期決算短信", "quarterly", "Q1", "Q2", "Q3"], "format": "Q{quarter}-FY{year}-tanshin.pdf"},
+        "lite_files": ["決算短信 (kessan tanshin) — ~20 pages, concise"],
+        "full_files": ["決算短信 + 有価証券報告書 — annual + quarterly"],
+        "steps": [
+            {
+                "id": "tdnet_direct",
+                "title": "TDnet/kabupro direct URL",
+                "action": "WebSearch '{ticker_number} 決算短信 TDnet PDF' → find PDF URL → download with curl/Python",
+                "note": "TDnet PDFs are publicly accessible. If URL found, use --url to download.",
+            },
+            {
+                "id": "company_ir_playwright",
+                "title": "Company IR page (Playwright)",
+                "action": "WebSearch company IR page → Playwright navigate → find 決算短信 PDF link → download",
+                "note": "Many JP companies host PDFs on their IR library page.",
+            },
+            {
+                "id": "edinet_api",
+                "title": "EDINET API",
+                "action": "Use edinet-tools or EDINET API to find filing → get URL → download",
+                "note": "Requires EDINET_API_KEY. Gets 有価証券報告書 not 決算短信.",
+            },
+            {
+                "id": "yfinance_fallback",
+                "title": "yfinance (last resort)",
+                "action": "No PDF — use yfinance for basic market data + financials",
+                "note": "No segment detail. Mark source_layer=yfinance.",
+            },
         ],
-        "full_extra": [
-            {"type": "annual_report", "keywords": ["有価証券報告書", "annual securities report"], "format": "FY{year}-annual-securities-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_ja} IRライブラリ 決算短信",
-            "{company_en} investor relations financial results",
-        ],
-        "ir_url_hints": ["/ir/library/", "/ir/financial/", "/investors/"],
     },
     "kr": {
         "name": "Korea",
-        "language": "ko",
-        "prefer_english": False,
-        "lite_files": [
-            {"type": "annual", "keywords": ["사업보고서", "business report", "annual report", "감사보고서"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["분기보고서", "quarterly", "IR자료"], "format": "Q{quarter}-FY{year}-report.pdf"},
+        "lite_files": ["분기보고서 (quarterly) — ~40 pages", "사업보고서 (annual) — ~100 pages"],
+        "full_files": ["사업보고서 + 분기보고서 × 4"],
+        "steps": [
+            {
+                "id": "dart_playwright",
+                "title": "DART — Playwright search",
+                "action": "Playwright → dart.fss.or.kr → search '{ticker_number}' or '{name_ko}' → filter 사업보고서/분기보고서 → click download",
+                "note": "DART is the official disclosure system. Search by ticker (e.g. '000660') not company name.",
+            },
+            {
+                "id": "dart_api",
+                "title": "DART API fallback",
+                "action": "Use DART_API_KEY to find filing rcp_no → Playwright viewer → download PDF",
+                "note": "DART API returns ZIP with XML, not PDF. Need viewer for actual PDF.",
+            },
+            {
+                "id": "company_ir",
+                "title": "Company IR page",
+                "action": "WebSearch → Playwright company IR page → find PDF",
+                "note": "Large KR companies may have IR pages with presentations.",
+            },
+            {
+                "id": "yfinance_fallback",
+                "title": "yfinance (last resort)",
+                "action": "No PDF — use yfinance for basic financials. No segment detail.",
+            },
         ],
-        "search_queries": [
-            "{company_ko} IR 자료 사업보고서",
-            "{company_en} investor relations annual report",
-        ],
-        "ir_url_hints": ["/ir/", "/investors/", "dart.fss.or.kr"],
-        "fallback": "dart.fss.or.kr",
     },
     "tw": {
         "name": "Taiwan",
-        "language": "zh",
-        "prefer_english": False,
-        "lite_files": [
-            {"type": "annual", "keywords": ["合併財務報告", "年報", "annual report", "財務報告"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["季報", "quarterly", "合併季報"], "format": "Q{quarter}-FY{year}-report.pdf"},
+        "lite_files": ["合併財務報告 — quarterly/annual financial report"],
+        "steps": [
+            {
+                "id": "mops_playwright",
+                "title": "MOPS — Playwright search",
+                "action": "Playwright → mops.twse.com.tw → search '{ticker_number}' → find 財務報告 PDF → download",
+                "note": "MOPS is the official TW disclosure platform.",
+            },
+            {
+                "id": "company_ir",
+                "title": "Company IR page",
+                "action": "WebSearch company IR page → Playwright → find PDF → download",
+                "note": "Some TW companies host PDFs on their own IR pages.",
+            },
+            {
+                "id": "yfinance_fallback",
+                "title": "yfinance (last resort)",
+                "action": "No PDF — use yfinance for basic financials.",
+            },
         ],
-        "search_queries": [
-            "{company_zh} 投資人關係 財務報告 年報",
-            "{company_en} investor relations annual report",
-        ],
-        "ir_url_hints": ["/invest/", "/investor/", "mops.twse.com.tw"],
-        "fallback": "mops.twse.com.tw",
     },
-    "se": {
-        "name": "Sweden",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["bokslutskommuniké", "year-end report", "full-year report", "Q4 report"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["delårsrapport", "interim report", "quarterly report", "Q1", "Q2", "Q3"], "format": "Q{quarter}-FY{year}-report.pdf"},
+    "eu": {
+        "name": "Europe",
+        "lite_files": ["Year-end report (bokslutskommunike / full-year results / annual report) — 20-40 pages"],
+        "steps": [
+            {
+                "id": "company_ir_playwright",
+                "title": "Company IR page — Playwright (English)",
+                "action": "WebSearch '{company_en} investor relations annual report' → Playwright → find English PDF → download",
+                "note": "EU companies almost always have English IR pages. Prefer year-end report over full annual report.",
+            },
+            {
+                "id": "websearch_direct",
+                "title": "WebSearch direct PDF URL",
+                "action": "WebSearch '{ticker} annual report PDF filetype:pdf' → find direct URL → download",
+                "note": "Some EU companies post PDFs to Cision/EQS with direct links.",
+            },
+            {
+                "id": "yfinance_fallback",
+                "title": "yfinance (last resort)",
+                "action": "No PDF — use yfinance for basic financials.",
+            },
         ],
-        "search_queries": [
-            "{company_en} year-end report 2025 PDF",
-            "{company_en} bokslutskommuniké helår 2025",
-        ],
-        "ir_url_hints": ["/investors/", "/ir/", "/financial-reports/"],
-    },
-    "fr": {
-        "name": "France",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["full-year results", "résultats annuels", "annual results", "year-end results"], "format": "FY{year}-annual-results.pdf"},
-            {"type": "quarterly", "keywords": ["half-year results", "semestriel", "quarterly", "Q1", "Q2"], "format": "Q{quarter}-FY{year}-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_en} full-year results 2025 PDF",
-            "{company_en} résultats annuels 2025 PDF",
-        ],
-        "ir_url_hints": ["/investors/", "/finance/", "/publications/"],
-    },
-    "de": {
-        "name": "Germany",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["annual report", "annual financial report", "Jahresabschluss", "Geschäftsbericht"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["quarterly statement", "half-year report", "Q1", "Q2", "Q3", "Quartalsmitteilung"], "format": "Q{quarter}-FY{year}-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_en} annual report 2025 PDF",
-            "{company_en} Geschäftsbericht 2025 PDF",
-        ],
-        "ir_url_hints": ["/investors/", "/investor-relations/", "/financial-reports/"],
-    },
-    "uk": {
-        "name": "United Kingdom",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["preliminary results", "final results", "annual report", "full-year results"], "format": "FY{year}-annual-results.pdf"},
-            {"type": "quarterly", "keywords": ["interim results", "half-year report", "trading update"], "format": "Q{quarter}-FY{year}-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_en} preliminary results annual report 2025 PDF",
-            "{company_en} final results 2025 PDF",
-        ],
-        "ir_url_hints": ["/investors/", "/results-reports/", "/financial-information/"],
-    },
-    "sg": {
-        "name": "Singapore",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["annual report", "results announcement", "full-year results"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["quarterly", "half-year", "Q1", "Q2", "Q3"], "format": "Q{quarter}-FY{year}-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_en} annual report FY2025 PDF Singapore",
-            "{company_en} results announcement 2025",
-        ],
-        "ir_url_hints": ["/investors/", "links.sgx.com", "listedcompany.com"],
-    },
-    "my": {
-        "name": "Malaysia",
-        "language": "en",
-        "prefer_english": True,
-        "lite_files": [
-            {"type": "annual", "keywords": ["annual report", "year ended", "financial statements"], "format": "FY{year}-annual-report.pdf"},
-            {"type": "quarterly", "keywords": ["quarterly report", "quarterly results", "Q1", "Q2", "Q3"], "format": "Q{quarter}-FY{year}-report.pdf"},
-        ],
-        "search_queries": [
-            "{company_en} annual report 2025 PDF",
-            "{company_en} Bursa Malaysia annual report",
-        ],
-        "ir_url_hints": ["/investor-relations/", "disclosure.bursamalaysia.com"],
     },
 }
 
+# EU sub-markets all use the same chain (deep copy)
+EU_NAMES = {"se": "Sweden", "fr": "France", "de": "Germany", "uk": "UK",
+            "sg": "Singapore", "my": "Malaysia", "in": "India", "au": "Australia"}
+for m in EU_NAMES:
+    import copy
+    CHAINS[m] = copy.deepcopy(CHAINS["eu"])
+    CHAINS[m]["name"] = EU_NAMES[m]
 
-def get_config(market: str) -> dict:
-    cfg = MARKET_CONFIG.get(market)
-    if not cfg:
-        print(f"ERROR: unsupported market '{market}'. Supported: {list(MARKET_CONFIG)}", file=sys.stderr)
-        sys.exit(1)
-    return cfg
 
+# ── Download ──────────────────────────────────────────────────
 
 def download_pdf(url: str, dest: Path) -> bool:
-    """Download a PDF from URL to dest. Returns True on success."""
+    """Download a PDF from URL to dest."""
     dest.parent.mkdir(parents=True, exist_ok=True)
-    req = urllib.request.Request(url, headers={"User-Agent": "ir_download/1.0 (buy-side-research)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "ir_download/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             data = resp.read()
     except Exception as e:
-        print(f"  FAIL download: {e}", file=sys.stderr)
+        print(f"  FAIL: {e}", file=sys.stderr)
         return False
-
-    # Verify it's actually a PDF
     if not data[:4] == b"%PDF":
-        print(f"  WARN: not a PDF ({len(data)} bytes, starts with {data[:50]!r})", file=sys.stderr)
+        print(f"  WARN: not a PDF ({len(data)} bytes)", file=sys.stderr)
         return False
-
     dest.write_bytes(data)
-    mb = len(data) / (1024 * 1024)
-    print(f"  OK  {mb:.1f}MB -> {dest}")
+    print(f"  OK {len(data)/1024/1024:.1f}MB -> {dest}")
     return True
 
 
-def cmd_search(args):
-    """Print WebSearch queries and Playwright instructions for finding PDF links."""
-    cfg = get_config(args.market)
-
-    print(f"=== IR Download Plan: {args.ticker} ({cfg['name']}) ===\n")
-
-    lang_hint = "English" if cfg["prefer_english"] else cfg["language"]
-    print(f"Language preference: {lang_hint}\n")
-
-    print("## Step 1: Search for IR page")
-    for q in cfg["search_queries"]:
-        print(f"  WebSearch: \"{q}\"")
-
-    print(f"\n  URL hints to look for: {cfg['ir_url_hints']}")
-    if cfg.get("fallback"):
-        print(f"  Fallback: {cfg['fallback']}")
-
-    print(f"\n## Step 2: Playwright navigate IR page -> find PDF links")
-    print(f"  Look for filenames containing:")
-    for f in cfg["lite_files"]:
-        print(f"    [{f['type']}] keywords: {f['keywords']}")
-
-    print(f"\n## Step 3: Download PDFs with --url")
-    print(f"  For each PDF link found, run:")
-    for f in cfg["lite_files"]:
-        print(f"  python ir_download.py --ticker {args.ticker} --market {args.market} --url \"<PDF_URL>\" --type {f['type']} --dest-dir <path>")
-
+# ── Main ─────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="IR filing downloader for buy-side-research-skills")
-    parser.add_argument("--ticker", required=True, help="Ticker symbol (e.g. 5334.T, MILDEF.ST)")
-    parser.add_argument("--market", required=True, help="Market code: jp, kr, tw, se, fr, de, uk, sg, my")
-    parser.add_argument("--mode", default="lite", choices=["lite", "full"], help="Lite=1 annual+1 quarterly, Full=5 annual+4 quarterly")
-    parser.add_argument("--url", help="PDF download URL (from agent-extracted links)")
-    parser.add_argument("--type", help="Filing type: annual, quarterly")
-    parser.add_argument("--dest-dir", help="Destination directory for downloaded PDF")
+    parser = argparse.ArgumentParser(description="IR filing downloader")
+    parser.add_argument("--ticker", required=True)
+    parser.add_argument("--market", required=True, choices=sorted(CHAINS.keys()))
+    parser.add_argument("--mode", default="lite", choices=["lite", "full"])
+    parser.add_argument("--url", help="Direct PDF URL to download")
+    parser.add_argument("--type", help="Filing type for --url: annual, quarterly")
+    parser.add_argument("--dest-dir", help="Destination directory for --url download")
+    parser.add_argument("--status", action="store_true", help="Check what PDFs exist")
     args = parser.parse_args()
 
-    cfg = get_config(args.market)
+    chain = CHAINS[args.market]
+    ticker_num = args.ticker.split(".")[0]
 
     # --url mode: download a single PDF
     if args.url:
         if not args.dest_dir:
             print("ERROR: --dest-dir required with --url", file=sys.stderr)
             sys.exit(1)
-        dest_dir = Path(args.dest_dir)
         ftype = args.type or "filing"
-        ticker_slug = args.ticker.replace(".", "-").replace(":", "-").lower()
-        dest = dest_dir / f"20260717-{ftype}-{ticker_slug}.pdf"
+        dest = Path(args.dest_dir) / f"20260719-{ftype}-{ticker_num}.pdf"
         ok = download_pdf(args.url, dest)
         sys.exit(0 if ok else 1)
 
-    # Search mode: print plan
-    cmd_search(args)
+    # --status mode: check existing PDFs
+    if args.status:
+        if not args.dest_dir:
+            print("ERROR: --dest-dir required with --status", file=sys.stderr)
+            sys.exit(1)
+        pdfs = sorted(Path(args.dest_dir).glob("*.pdf"))
+        print(f"PDFs: {len(pdfs)}")
+        for p in pdfs:
+            print(f"  {p.name} ({p.stat().st_size/1024:.0f}KB)")
+        sys.exit(0 if pdfs else 1)
+
+    # Plan mode: print chain
+    print(f"=== IR Download: {args.ticker} ({chain['name']}, {args.mode}) ===")
+    print()
+    print(f"Target files ({args.mode}):")
+    for f in chain[args.mode + "_files"]:
+        print(f"  - {f}")
+    print()
+    print("## Download chain")
+    print("  Try each step in order. Stop when PDFs are obtained.")
+    print()
+    for i, step in enumerate(chain["steps"], 1):
+        print(f"### Step {i}: {step['title']}")
+        action = step["action"].replace("{ticker_number}", ticker_num).replace("{ticker}", args.ticker)
+        print(f"  {action}")
+        print(f"  Note: {step['note']}")
+        print()
+    print("When PDFs are downloaded, run /financial-data to continue the chain.")
+    print(f"  /financial-data {args.ticker} --market {args.market} --mode {args.mode} --company-slug <slug> --industry <industry>")
 
 
 if __name__ == "__main__":
