@@ -1,9 +1,0 @@
-docling
-edgartools
-pymupdf4llm
-openpyxl
-python-pptx
-python-docx
-pdfplumber
-pypdf
-Pillow
