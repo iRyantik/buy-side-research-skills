@@ -5,30 +5,145 @@
     "note": "TDnet/kabupro 下载的 PDF，MarkItDown 转换后的 MD。单位不完全统一——摘要表用億円、详细表用百万円。",
     "fields": {
       "income_statement": [
-        {"concept": "revenue",           "label_ja": "売上収益",        "search_terms": ["売上収益", "売上高"], "unit": "億円 or 百万円"},
-        {"concept": "operating_profit",  "label_ja": "営業利益",        "search_terms": ["営業利益"], "unit": "億円 or 百万円"},
-        {"concept": "core_op_profit",    "label_ja": "コア営業利益",    "search_terms": ["コア営業利益"], "unit": "億円 or 百万円"},
-        {"concept": "pretax_income",     "label_ja": "税引前利益",      "search_terms": ["税引前利益"], "unit": "億円 or 百万円"},
-        {"concept": "net_income",        "label_ja": "当期利益",        "search_terms": ["当期利益"], "unit": "億円 or 百万円"},
-        {"concept": "net_income_parent", "label_ja": "親会社の所有者に帰属する当期利益", "search_terms": ["親会社の所有者に帰属する当期利益", "帰属する当期利益"], "unit": "億円 or 百万円"},
-        {"concept": "eps_basic",         "label_ja": "基本的１株当たり当期利益", "search_terms": ["基本的１株当たり当期利益", "１株当たり当期利益"], "unit": "円"},
-        {"concept": "dps",              "label_ja": "配当金",           "search_terms": ["配当金", "年間配当金"], "unit": "円"}
+        {
+          "concept": "revenue",
+          "label_ja": "売上収益",
+          "search_terms": [
+            "売上収益",
+            "売上高"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "operating_profit",
+          "label_ja": "営業利益",
+          "search_terms": [
+            "営業利益"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "core_op_profit",
+          "label_ja": "コア営業利益",
+          "search_terms": [
+            "コア営業利益"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "pretax_income",
+          "label_ja": "税引前利益",
+          "search_terms": [
+            "税引前利益"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "net_income",
+          "label_ja": "当期利益",
+          "search_terms": [
+            "当期利益"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "net_income_parent",
+          "label_ja": "親会社の所有者に帰属する当期利益",
+          "search_terms": [
+            "親会社の所有者に帰属する当期利益",
+            "帰属する当期利益"
+          ],
+          "unit": "億円 or 百万円"
+        },
+        {
+          "concept": "eps_basic",
+          "label_ja": "基本的１株当たり当期利益",
+          "search_terms": [
+            "基本的１株当たり当期利益",
+            "１株当たり当期利益"
+          ],
+          "unit": "円"
+        },
+        {
+          "concept": "dps",
+          "label_ja": "配当金",
+          "search_terms": [
+            "配当金",
+            "年間配当金"
+          ],
+          "unit": "円"
+        }
       ],
       "balance_sheet": [
-        {"concept": "total_assets",     "label_ja": "資産合計",        "search_terms": ["資産合計"], "unit": "百万円"},
-        {"concept": "total_equity",     "label_ja": "資本合計",        "search_terms": ["資本合計"], "unit": "百万円"},
-        {"concept": "equity_parent",    "label_ja": "親会社の所有者に帰属する持分", "search_terms": ["親会社の所有者に帰属する持分"], "unit": "百万円"}
+        {
+          "concept": "total_assets",
+          "label_ja": "資産合計",
+          "search_terms": [
+            "資産合計"
+          ],
+          "unit": "百万円"
+        },
+        {
+          "concept": "total_equity",
+          "label_ja": "資本合計",
+          "search_terms": [
+            "資本合計"
+          ],
+          "unit": "百万円"
+        },
+        {
+          "concept": "equity_parent",
+          "label_ja": "親会社の所有者に帰属する持分",
+          "search_terms": [
+            "親会社の所有者に帰属する持分"
+          ],
+          "unit": "百万円"
+        }
       ],
       "cash_flow": [
-        {"concept": "operating_cf",     "label_ja": "営業活動によるキャッシュ・フロー", "search_terms": ["営業活動によるキャッシュ・フロー", "営業ＣＦ"], "unit": "百万円"},
-        {"concept": "investing_cf",     "label_ja": "投資活動によるキャッシュ・フロー", "search_terms": ["投資活動によるキャッシュ・フロー"], "unit": "百万円"},
-        {"concept": "depreciation",     "label_ja": "減価償却費",      "search_terms": ["減価償却費"], "unit": "百万円"},
-        {"concept": "capex",            "label_ja": "設備投資額",      "search_terms": ["設備投資額", "設備投資", "有形固定資産の取得"], "unit": "百万円"}
+        {
+          "concept": "operating_cf",
+          "label_ja": "営業活動によるキャッシュ・フロー",
+          "search_terms": [
+            "営業活動によるキャッシュ・フロー",
+            "営業ＣＦ"
+          ],
+          "unit": "百万円"
+        },
+        {
+          "concept": "investing_cf",
+          "label_ja": "投資活動によるキャッシュ・フロー",
+          "search_terms": [
+            "投資活動によるキャッシュ・フロー"
+          ],
+          "unit": "百万円"
+        },
+        {
+          "concept": "depreciation",
+          "label_ja": "減価償却費",
+          "search_terms": [
+            "減価償却費"
+          ],
+          "unit": "百万円"
+        },
+        {
+          "concept": "capex",
+          "label_ja": "設備投資額",
+          "search_terms": [
+            "設備投資額",
+            "設備投資",
+            "有形固定資産の取得"
+          ],
+          "unit": "百万円"
+        }
       ]
     },
     "segment": {
       "section_header": "セグメント情報",
-      "alt_headers": ["セグメント別の状況", "セグメント別"],
+      "alt_headers": [
+        "セグメント別の状況",
+        "セグメント別"
+      ],
       "note": "有两种形式——1) 正文 prose（経営成績等の概況内），有 segment 名+收入+利润叙述；2) 正式表格（セグメント情報注記），有完整分表。两种都要读。",
       "prose_section": {
         "header": "当期のセグメント別の状況",
@@ -41,15 +156,317 @@
     "commentary": {
       "section_header": "経営成績等の概況",
       "subsections": [
-        {"label": "当期の経営成績の概況", "purpose": "business segment commentary"},
-        {"label": "当期のセグメント別の状況", "purpose": "segment revenue + profit narrative"},
-        {"label": "当期の財政状態の概況", "purpose": "balance sheet changes"},
-        {"label": "当期のキャッシュ・フローの概況", "purpose": "cash flow analysis"}
+        {
+          "label": "当期の経営成績の概況",
+          "purpose": "business segment commentary"
+        },
+        {
+          "label": "当期のセグメント別の状況",
+          "purpose": "segment revenue + profit narrative"
+        },
+        {
+          "label": "当期の財政状態の概況",
+          "purpose": "balance sheet changes"
+        },
+        {
+          "label": "当期のキャッシュ・フローの概況",
+          "purpose": "cash flow analysis"
+        }
       ]
     },
     "outlook": {
       "section_header": "今後の見通し",
-      "sub_sections": ["次期の業績予想", "次期のセグメント別の見通し"]
+      "sub_sections": [
+        "次期の業績予想",
+        "次期のセグメント別の見通し"
+      ]
+    }
+  },
+  "kr_saup_bogoseo": {
+    "market": "kr",
+    "filing_name": "사업보고서 (Annual Business Report)",
+    "note": "DART에서 다운로드한 PDF. K-IFRS 연결 기준.",
+    "fields": {
+      "income_statement": [
+        {
+          "concept": "revenue",
+          "label_ko": "매출액",
+          "search_terms": [
+            "매출액",
+            "매출"
+          ],
+          "unit": "백만원 or 억원"
+        },
+        {
+          "concept": "operating_profit",
+          "label_ko": "영업이익",
+          "search_terms": [
+            "영업이익",
+            "영업이익(손실)"
+          ],
+          "unit": "백만원 or 억원"
+        },
+        {
+          "concept": "net_income",
+          "label_ko": "당기순이익",
+          "search_terms": [
+            "당기순이익",
+            "당기순이익(손실)"
+          ],
+          "unit": "백만원 or 억원"
+        },
+        {
+          "concept": "eps_basic",
+          "label_ko": "주당순이익",
+          "search_terms": [
+            "주당순이익",
+            "기본주당이익"
+          ],
+          "unit": "원"
+        }
+      ],
+      "balance_sheet": [
+        {
+          "concept": "total_assets",
+          "label_ko": "자산총계",
+          "search_terms": [
+            "자산총계"
+          ],
+          "unit": "백만원 or 억원"
+        },
+        {
+          "concept": "total_equity",
+          "label_ko": "자본총계",
+          "search_terms": [
+            "자본총계"
+          ],
+          "unit": "백만원 or 억원"
+        }
+      ],
+      "cash_flow": [
+        {
+          "concept": "operating_cf",
+          "label_ko": "영업활동 현금흐름",
+          "search_terms": [
+            "영업활동",
+            "영업활동현금흐름"
+          ],
+          "unit": "백만원"
+        },
+        {
+          "concept": "depreciation",
+          "label_ko": "감가상각비",
+          "search_terms": [
+            "감가상각비"
+          ],
+          "unit": "백만원"
+        }
+      ]
+    },
+    "segment": {
+      "section_header": "영업부문",
+      "alt_headers": [
+        "사업부문별",
+        "사업부문",
+        "부문별"
+      ],
+      "note": "K-IFRS 주석 후반부. 사업보고서는 사업의 내용 섹션에 prose로도 기술."
+    },
+    "commentary": {
+      "section_header": "사업의 개요"
+    },
+    "outlook": {
+      "note": "사업보고서에 없는 경우가 많음"
+    }
+  },
+  "eu_annual_report": {
+    "market": "eu",
+    "filing_name": "Annual Report / Year-End Report",
+    "note": "Company IR page에서 다운로드. IFRS 기준. 영어.",
+    "fields": {
+      "income_statement": [
+        {
+          "concept": "revenue",
+          "search_terms": [
+            "Revenue",
+            "Net sales",
+            "Total revenue"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "operating_profit",
+          "search_terms": [
+            "Operating profit",
+            "Operating income",
+            "EBIT"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "net_income",
+          "search_terms": [
+            "Net income",
+            "Net profit",
+            "Profit for the year"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "eps_basic",
+          "search_terms": [
+            "Basic earnings per share",
+            "Basic EPS"
+          ],
+          "unit": "currency"
+        }
+      ],
+      "balance_sheet": [
+        {
+          "concept": "total_assets",
+          "search_terms": [
+            "Total assets"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "total_equity",
+          "search_terms": [
+            "Total equity",
+            "Shareholders equity"
+          ],
+          "unit": "millions or billions"
+        }
+      ],
+      "cash_flow": [
+        {
+          "concept": "operating_cf",
+          "search_terms": [
+            "Operating activities",
+            "Cash flow from operating"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "depreciation",
+          "search_terms": [
+            "Depreciation",
+            "D&A"
+          ],
+          "unit": "millions or billions"
+        }
+      ]
+    },
+    "segment": {
+      "section_header": "Segment",
+      "alt_headers": [
+        "Segment information",
+        "Operating segments",
+        "Revenue by segment"
+      ]
+    },
+    "commentary": {
+      "section_header": "Business review",
+      "alt_headers": [
+        "Performance review"
+      ]
+    },
+    "outlook": {
+      "section_header": "Outlook",
+      "alt_headers": [
+        "Guidance"
+      ]
+    }
+  },
+  "tw_financial_report": {
+    "market": "tw",
+    "filing_name": "合併財務報告 / 財務報告",
+    "fields": {
+      "income_statement": [
+        {
+          "concept": "revenue",
+          "search_terms": [
+            "Revenue",
+            "Net sales",
+            "Total revenue"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "operating_profit",
+          "search_terms": [
+            "Operating profit",
+            "Operating income",
+            "EBIT"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "net_income",
+          "search_terms": [
+            "Net income",
+            "Net profit",
+            "Profit for the year"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "eps_basic",
+          "search_terms": [
+            "Basic earnings per share",
+            "Basic EPS"
+          ],
+          "unit": "currency"
+        }
+      ],
+      "balance_sheet": [
+        {
+          "concept": "total_assets",
+          "search_terms": [
+            "Total assets"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "total_equity",
+          "search_terms": [
+            "Total equity",
+            "Shareholders equity"
+          ],
+          "unit": "millions or billions"
+        }
+      ],
+      "cash_flow": [
+        {
+          "concept": "operating_cf",
+          "search_terms": [
+            "Operating activities",
+            "Cash flow from operating"
+          ],
+          "unit": "millions or billions"
+        },
+        {
+          "concept": "depreciation",
+          "search_terms": [
+            "Depreciation",
+            "D&A"
+          ],
+          "unit": "millions or billions"
+        }
+      ]
+    },
+    "segment": {
+      "section_header": "部門別資訊",
+      "alt_headers": [
+        "部門別",
+        "收入部門別"
+      ]
+    },
+    "commentary": {
+      "section_header": "營運概況"
+    },
+    "outlook": {
+      "section_header": "未來展望"
     }
   }
 }
