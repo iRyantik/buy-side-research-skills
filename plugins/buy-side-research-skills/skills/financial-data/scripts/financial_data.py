@@ -24,11 +24,10 @@ Output contract:
   .cache/.../source-map.json
   .cache/.../cross-check.json
 
-Modeling input aliases:
-  industry/<industry>/companies/<ticker>/.cache/financial-data/financial-data-summary.md
-  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/evidence-pack.json
-  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/actuals-resolved.json
-  industry/<industry>/companies/<ticker>/.cache/financial-data/internal/full-filing.md
+Consumer outputs:
+  industry/<industry>/companies/<ticker>/.cache/financial-data/actuals-resolved.json
+  industry/<industry>/companies/<ticker>/.cache/financial-data/evidence-pack.json
+  industry/<industry>/companies/<ticker>/.cache/financial-data/full-filing.md
 """
 
 from __future__ import annotations
@@ -77,7 +76,7 @@ OFFICIAL_EVIDENCE_PROVIDERS = {"edgartools", "dart-fss", "edinet-tools", "openes
 # ---------------------------------------------------------------------------
 _concept_map_cache = None
 
-# Standard field name aliases: canonical name / variant → LITE_FIELDS-compatible key
+# Standard field name aliases: canonical name / variant → standard concept key
 _FIELD_ALIASES = {
     "revenue": "revenue", "sales": "revenue", "cogs": "cogs",
     "cost_of_revenue": "cogs", "cost_of_goods_sold": "cogs",
@@ -851,12 +850,7 @@ def _map_concept(concept: str, concept_map: dict = None) -> str:
 # Consumer helper: filter statements to lite/full field sets
 # ---------------------------------------------------------------------------
 def get_fields(statements: dict, mode: str = "lite") -> dict:
-    """Pass-through: all fields are kept regardless of mode.
-
-    Previously filtered to LITE_FIELDS / FULL_EXTRA_FIELDS sets.
-    Now: extract everything. Mode only affects period depth (lite=latest, full=5Y).
-    Field schema is in .references/policy/statement-line-items.md.
-    """
+    """Pass-through: all fields kept regardless of mode. Mode only affects period depth (lite=latest, full=5Y). Schema: .references/policy/statement-line-items.md."""
     return statements
 
 
@@ -1924,7 +1918,7 @@ def write_snapshot(args: argparse.Namespace, normalized: dict[str, Any],
         "status": normalized["status"],
     }
     write_json(sd / "peer-completeness.json", summary)
-    write_md(sd / "snapshot-index.md", f"# Financial Data Snapshot\n\nmarket: {args.market}\nidentifier: {args.identifier}\n")
+    write_md(sd / "snapshot-RESEARCH.md", f"# Financial Data Snapshot\n\nmarket: {args.market}\nidentifier: {args.identifier}\n")
     return {"cache": str(sd)}
 
 

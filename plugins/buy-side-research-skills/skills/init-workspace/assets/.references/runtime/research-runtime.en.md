@@ -1,7 +1,5 @@
 # Research Runtime
 
-> **命名、路径、工具链、workflow 规则以 workspace CLAUDE.md §3-§4 为准。** 本文件仅补充该 skill/领域的专属细节。
-
 所有研究 skill 的共享运行时基线。每个 research skill 的 `## Research Runtime Capsule` 引用本文件，不再各自重复声明。
 
 Hook-enforced 规则（source boundary、structure floor、table render、mermaid syntax）由 workspace hooks 强制执行，不在本文重复。
@@ -15,8 +13,8 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
   → .cache/financial-data/actuals-resolved.json
 ```
 
-- 默认 Lite：`/financial-data <ticker>` → latest FY + latest Q/H（全字段）
-- Full 模式：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（全字段）
+- 默认 Lite：`/financial-data <ticker>` → latest FY + latest Q/H（全部字段）
+- Full 模式：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（全部字段）
 - 灵活期间：`/financial-data <ticker> --periods FY2020-FY2025`
 - 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`），不硬编码 `fy_y2/y1/y0`
 - 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行

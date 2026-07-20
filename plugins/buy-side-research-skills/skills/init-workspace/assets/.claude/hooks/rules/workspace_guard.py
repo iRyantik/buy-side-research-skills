@@ -60,10 +60,10 @@ def check(ctx: dict):
             else:
                 warn(f"Warning: {msg}")
 
-        # Rule 4: Topic root artifacts must be date-prefixed (except index.md)
+        # Rule 4: Topic root artifacts must be date-prefixed (except RESEARCH.md)
         if is_topic_artifact_root_file(path, root):
             leaf = Path(path).name
-            if leaf.lower() == "index.md":
+            if leaf.lower() == "research.md":
                 continue
             if not DATE_PREFIX_RE.match(leaf):
                 block(f"Blocked by workspace_guard: topic root artifact must be date-prefixed ({rel})")
