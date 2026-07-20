@@ -1,6 +1,6 @@
 # Unified Data Routing
 
-> 从 CLAUDE.md §4 引用的数据路由细则。
+> **命名、路径、工具链、workflow 规则以 workspace CLAUDE.md §3-§4 为准。** 本文件仅补充该 skill/领域的专属细节。
 
 ## 路由决策
 

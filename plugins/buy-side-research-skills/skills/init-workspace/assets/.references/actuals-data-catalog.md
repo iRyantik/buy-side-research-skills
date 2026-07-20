@@ -1,6 +1,7 @@
 # actuals-resolved.json Data Catalog
 
-> 本文件是 `.cache/financial-data/actuals-resolved.json` 的字段清单。
+> **命名、路径、工具链、workflow 规则以 workspace CLAUDE.md §3-§4 为准。** 本文件仅补充该 skill/领域的专属细节。
+
 > 由 `/financial-data` 生成。字段存在与否取决于 provider 覆盖和公司披露。
 > Field schema 唯一来源：`.references/policy/statement-line-items.md`（117 concepts）。
 

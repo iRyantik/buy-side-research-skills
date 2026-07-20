@@ -1,5 +1,7 @@
 # Cache Contract
 
+> **命名、路径、工具链、workflow 规则以 workspace CLAUDE.md §3-§4 为准。** 本文件仅补充该 skill/领域的专属细节。
+
 > Who writes what to which cache, what can be deleted, what must be preserved.
 
 ## Visibility Rules
@@ -16,7 +18,7 @@
 
 ```
 .cache/                                    ← workspace root: coverage-monitor state (hidden)
-  coverage-monitor/                         ← daily-state.json, enrichment-YYYY-MM-DD.json
+  coverage-monitor/                         ← daily-state.json, enrichment-YYYYMMDD.json
   images/                                   ← shared product/logo cache (download-image.py)
 
 industry/<slug>/

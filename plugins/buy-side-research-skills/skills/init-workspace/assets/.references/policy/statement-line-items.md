@@ -1,5 +1,7 @@
 # 跨市场报表科目对照 — Field Registry
 
+> **命名、路径、工具链、workflow 规则以 workspace CLAUDE.md §3-§4 为准。** 本文件仅补充专属细节。
+
 > **这是唯一的 field schema。** extract、validate、provider filter、Excel model 都从这里查。
 > 原则：**有啥拿啥**——不在本章的表里也照存，concept 用原生 label。
 
