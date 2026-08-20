@@ -19,6 +19,12 @@ ROOT_WHITELIST = frozenset({
     ".references", "COVERAGE.md", "CLAUDE.md", "AGENTS.md", ".env", ".gitignore",
 })
 
+# External dev roots explicitly allowed for writes (plugin dev repo).
+# Keep in sync with the installed workspace copy of this file.
+ALLOWED_EXTERNAL_ROOTS = (
+    r"C:\Users\yuzhe\dev\buy-side-research-skills",
+)
+
 
 def _check_root_whitelist(path: str, root: str) -> bool:
     """Check if path is allowed at workspace root level. Returns True if OK."""
@@ -43,6 +49,11 @@ def check(ctx: dict):
         if not path:
             continue
         rel = get_relative_display(path, root)
+
+        # Rule 0: Explicitly allowed external dev roots (plugin dev repo)
+        # bypass workspace-root and naming rules entirely.
+        if any(is_under(path, r) for r in ALLOWED_EXTERNAL_ROOTS):
+            continue
 
         # Rule 1: Must be inside workspace root
         if not is_under(path, root):
