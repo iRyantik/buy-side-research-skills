@@ -105,6 +105,25 @@ def _period_basis(period: str) -> str:
     return "annual"
 
 
+def _segment_rows(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """FMP segmentation records → {segment: {date: {basis: value}}}.
+
+    Record shape: {date, fiscalYear, period, data: {segment_name: amount}}.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for rec in records or []:
+        date = str(rec.get("date") or "").strip()
+        period = str(rec.get("period") or "FY").strip()
+        basis = _period_basis(period)
+        data = rec.get("data") or {}
+        for seg, value in data.items():
+            if value is None:
+                continue
+            row = out.setdefault(str(seg).strip(), {})
+            row.setdefault(date, {})[basis] = value
+    return out
+
+
 def _rows_from_statements(records: list[dict[str, Any]], field_map: dict[str, str]) -> dict[str, dict[str, Any]]:
     """FMP statement rows (one row per period) → {concept: {period: {basis: value}}}.
 
@@ -209,6 +228,24 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"estimates: {e}")
 
+        if "revenue_split" in items:
+            # FMP stable segments 端点（实测 CRS 全通）：产品线 + 地理
+            try:
+                split: dict[str, Any] = {}
+                for key, ep in (("product", "/revenue-product-segmentation"),
+                                ("geographic", "/revenue-geographic-segmentation")):
+                    recs = _api(ep, {"symbol": fmp_ticker})
+                    rows = _segment_rows(recs)
+                    if rows:
+                        split[key] = rows
+                if split:
+                    result["revenue_split"] = split
+                    result["items_extracted"].append("revenue_split")
+                else:
+                    result["data_gaps"].append("revenue_split: FMP segmentation empty")
+            except Exception as e:
+                result["errors"].append(f"revenue_split: {e}")
+
         if "historical_price" in items:
             # Known gap: historical-price-eod returns empty for this key.
             # 1m/YTD/1y moves fall back to yfinance in lite closeout.
@@ -223,5 +260,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
-    "cash_flow", "estimates", "historical_price",
+    "cash_flow", "estimates", "revenue_split", "historical_price",
 ]
