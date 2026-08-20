@@ -1945,6 +1945,24 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _fmp_has_quote(args) -> bool:
+    """FMP 探路：拉数前检测 FMP 是否有该 ticker 行情（决定 provider 路径 vs PDF 链）。"""
+    try:
+        import importlib as _il
+        pdir = Path(__file__).resolve().parent / "providers"
+        if str(pdir) not in sys.path:
+            sys.path.insert(0, str(pdir))
+        fmp_mod = _il.import_module("fmp_provider")
+        fr = fmp_mod.fetch({
+            "identifier": args.identifier, "market": args.market,
+            "items": ["market_data"], "periods": "latest",
+        })
+        md = fr.get("market_data") or {}
+        return bool(md.get("price"))
+    except Exception:
+        return False
+
+
 def _route_ir(args) -> int:
     """IR market route: WebSearch → Playwright → download → convert → extract → validate.
 
@@ -2237,7 +2255,10 @@ def main() -> int:
         args.periods = '5Y'
 
     if args.market.lower() in IR_MARKETS:
-        return _route_ir(args)
+        # FMP 探路：有行情 → 走 provider 路径（三表官方 provider，行情由 FMP closeout fill）；
+        # 无 FMP 覆盖 → 原 PDF 链（_route_ir fallback）
+        if not _fmp_has_quote(args):
+            return _route_ir(args)
 
     if args.market.lower() in _API_MARKETS:
         api_signal = _route_api(args)
@@ -2277,9 +2298,26 @@ def main() -> int:
             except Exception:
                 actuals = {}
 
-            # 1. market_data fill: yfinance → Bridge fields
+            # 1. market_data fill: FMP → yfinance → Bridge fields
             md = actuals.get("market_data") or {}
+            fmp_filled = False
             if not md or not md.get("pe_ttm") or not md.get("market_cap"):
+                # 优先 FMP（全市场行情，stable API）
+                try:
+                    import importlib as _il
+                    fmp_mod = _il.import_module("fmp_provider")
+                    fr = fmp_mod.fetch({
+                        "identifier": args.identifier, "market": args.market,
+                        "items": ["market_data"], "periods": args.periods,
+                    })
+                    fmd = fr.get("market_data") or {}
+                    if fmd.get("price"):
+                        md.update({k: v for k, v in fmd.items() if v is not None})
+                        actuals["market_data"] = md
+                        fmp_filled = True
+                except Exception:
+                    fmp_filled = False
+            if not fmp_filled and (not md or not md.get("pe_ttm") or not md.get("market_cap")):
                 try:
                     import yfinance as yf
                     yf_id = _yf_ticker(args.identifier, args.market)
