@@ -246,6 +246,18 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"revenue_split: {e}")
 
+        if "price_change" in items:
+            # 涨跌一站式：1D/5D/1M/3M/6M/ytd/1Y/3Y/5Y —— 日报 Movers/估值表涨跌列
+            try:
+                pc = _api("/stock-price-change", {"symbol": fmp_ticker})
+                if pc:
+                    result["price_change"] = pc[0]
+                    result["items_extracted"].append("price_change")
+                else:
+                    result["data_gaps"].append("price_change: FMP stock-price-change empty")
+            except Exception as e:
+                result["errors"].append(f"price_change: {e}")
+
         if "historical_price" in items:
             # Correct path: /historical-price-eod/light (subpath required).
             # Feeds 1m/YTD/1y moves for the daily brief — no yfinance fallback needed.
@@ -268,5 +280,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
-    "cash_flow", "estimates", "revenue_split", "historical_price",
+    "cash_flow", "estimates", "revenue_split", "historical_price", "price_change",
 ]
