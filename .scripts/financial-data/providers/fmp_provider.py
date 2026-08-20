@@ -283,15 +283,20 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                 result["errors"].append(f"price_target: {e}")
 
         if "earnings_calendar" in items:
-            # 单公司财报日历（next earnings date）——日报 Review Queue 财报触发
-            # 全市场日期范围扫：/earnings-calendar?from=YYYY-MM-DD&to=YYYY-MM-DD（日报专用）
+            # 单股下次财报日：/stable/earnings 第一条 epsActual=None 的 date（= 还没公布 = 下次）
+            # 全市场批量扫用 /earnings-calendar?from=&to=（日报 Review Queue 用，4000 条封顶）
             try:
-                ec = _api("/earnings-calendar", {"symbol": fmp_ticker})
-                if ec:
-                    result["earnings_calendar"] = ec
+                ec = _api("/earnings", {"symbol": fmp_ticker, "limit": 6})
+                next_dt = None
+                for x in ec or []:
+                    if x.get("epsActual") is None and x.get("date"):
+                        next_dt = x["date"]
+                        break
+                if next_dt:
+                    result["next_earnings_date"] = next_dt
                     result["items_extracted"].append("earnings_calendar")
                 else:
-                    result["data_gaps"].append("earnings_calendar: FMP earnings-calendar empty")
+                    result["data_gaps"].append("earnings_calendar: no next earnings date found")
             except Exception as e:
                 result["errors"].append(f"earnings_calendar: {e}")
 
