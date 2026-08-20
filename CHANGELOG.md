@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.6 | disclosure_fact_source_boundary rewrite: 3-track logic (strict / information-impact / unregistered-token backstop), URL-stripped paragraph windows, per-row table split, line-numbered block messages, format warns (false-positive class fixed, rename dodge closed) |
 | v8.8.5 | workspace-validate-names: TICKERS_WITHOUT_CN_NAME exemption (0522.HK ASMPT - English-only brand, no registered Chinese name); TW company dirs renamed to Chinese (1590.TW-亞德客, 2327.TW-國巨) |
 | v8.8.4 | verify-claim --ledger staging + evidence_ledger apply-staging (two-layer fix, batch backfill gone); workspace-validate-names company dir check (CN/HK/TW must be Chinese); quickread SKILL Step 4/7 updated |
 
