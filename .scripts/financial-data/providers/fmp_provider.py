@@ -308,6 +308,18 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"earnings_calendar: {e}")
 
+        if "news" in items:
+            # 公司新闻（仅美股覆盖；韩/日/中返回空 → Core Watch 走搜索链 fallback）
+            try:
+                nw = _api("/news/stock", {"symbols": fmp_ticker, "limit": 5})
+                if nw:
+                    result["news"] = nw
+                    result["items_extracted"].append("news")
+                else:
+                    result["data_gaps"].append("news: FMP news empty (非美股覆盖——搜索链 fallback)")
+            except Exception as e:
+                result["errors"].append(f"news: {e}")
+
         if "dividends" in items:
             # 股息历史（capital allocation / 股息能力）
             try:
@@ -343,5 +355,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
     "cash_flow", "estimates", "revenue_split", "historical_price", "price_change",
-    "key_metrics", "price_target", "earnings_calendar", "dividends",
+    "key_metrics", "price_target", "earnings_calendar", "dividends", "news",
 ]
