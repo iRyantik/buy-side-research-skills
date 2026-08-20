@@ -247,9 +247,17 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                 result["errors"].append(f"revenue_split: {e}")
 
         if "historical_price" in items:
-            # Known gap: historical-price-eod returns empty for this key.
-            # 1m/YTD/1y moves fall back to yfinance in lite closeout.
-            result["data_gaps"].append("historical_price: FMP historical-price-eod empty (premium/coverage) — use yfinance fallback")
+            # Correct path: /historical-price-eod/light (subpath required).
+            # Feeds 1m/YTD/1y moves for the daily brief — no yfinance fallback needed.
+            try:
+                hist = _api("/historical-price-eod/light", {"symbol": fmp_ticker, "limit": 260})
+                if hist:
+                    result["historical_price"] = hist
+                    result["items_extracted"].append("historical_price")
+                else:
+                    result["data_gaps"].append("historical_price: FMP history empty")
+            except Exception as e:
+                result["errors"].append(f"historical_price: {e}")
 
     except Exception as exc:
         result["errors"].append(str(exc))
