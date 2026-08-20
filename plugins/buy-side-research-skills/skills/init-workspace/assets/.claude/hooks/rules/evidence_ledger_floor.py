@@ -21,8 +21,31 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
 
 _ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
-ANCHOR_RE = re.compile(r'\[(?:S|I|LBG|P)\d+\]\([^)]+\)')
 IMAGE_RE = re.compile(r'!\[[^\]]*\]\(([^)]+)\)')
+
+# Anchor extraction: single source of truth shared with evidence_ledger.py
+# (auto/lint/scan scan the SAME full content — code blocks + Resources — so
+# Rule 0 and the CLI can never drift apart again; the old per-file strip logic
+# is exactly how anchors inside a tone-tracker code block went missing).
+try:
+    sys.path.insert(0, os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        ".scripts"))
+    from evidence_ledger import extract_anchors as _extract_anchors
+except ImportError:
+    _extract_anchors = None
+
+
+def _anchor_map(text: str) -> dict:
+    """Canonical anchor map; emergency inline fallback keeps full-scan semantics."""
+    if _extract_anchors is not None:
+        return _extract_anchors(text)
+    anchor_map = {}
+    for m in re.finditer(r'\[(S\d+|I\d+)\]\(([^)]+)\)', text):
+        code, url = m.group(1), m.group(2)
+        if code not in anchor_map:
+            anchor_map[code] = url
+    return anchor_map
 
 LEDGER_DIR = ".cache/evidence"
 
@@ -93,13 +116,10 @@ def check(ctx):
         if not text:
             continue
 
-        # Strip code blocks for anchor extraction
-        body = re.sub(r'```[^\n]*\n.*?```', '', text, flags=re.DOTALL)
-        body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-        body = body.split('## Resources')[0] if '## Resources' in body else body
-
-        anchors = ANCHOR_RE.findall(body)
-        if not anchors:
+        # Full-content anchor scan (code blocks + Resources included — same
+        # semantics as evidence_ledger.py auto/lint/scan)
+        anchor_map = _anchor_map(text)
+        if not anchor_map:
             continue
 
         # Rule 1: Image audit (checked first — independent of ledger)
@@ -123,9 +143,7 @@ def check(ctx):
 
         # Rule 0: Artifact-Ledger alignment — every [S#]/[I#] must be in ledger
         ledger_codes = {c.get("source", "") for c in claims}
-        artifact_codes = set()
-        for m in re.finditer(r'\[(S\d+|I\d+)\]', body):
-            artifact_codes.add(m.group(1))
+        artifact_codes = set(anchor_map.keys())
         missing = artifact_codes - ledger_codes
         if missing:
             block(f"Blocked by evidence_ledger_floor: {display} references "
@@ -147,8 +165,15 @@ def check(ctx):
             if not c.get("source", "").startswith("I"):
                 continue  # [S#] company disclosure may have actuals fallback
             attempts = c.get("attempts", [])
-            has_tier1 = any(a.get("tier") == 1 and a.get("result") != "failed" for a in attempts)
-            has_tier2 = any(a.get("tier") == 2 and a.get("result") != "failed" for a in attempts)
+
+            def _int_tier(a):
+                t = a.get("tier")
+                if isinstance(t, str):
+                    return int(t) if t.isdigit() else None
+                return t if isinstance(t, int) else None
+
+            has_tier1 = any(_int_tier(a) == 1 and a.get("result") != "failed" for a in attempts)
+            has_tier2 = any(_int_tier(a) == 2 and a.get("result") != "failed" for a in attempts)
             if not (has_tier1 or has_tier2):
                 tier_gap_claims.append(c["id"])
         if tier_gap_claims:

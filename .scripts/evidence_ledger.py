@@ -14,6 +14,7 @@ Usage:
     python evidence_ledger.py lint  <artifact.md> -t <TICKER>
     python evidence_ledger.py scan  <artifact.md> -t <TICKER>
     python evidence_ledger.py batch <TICKER> <json_payload>
+    python evidence_ledger.py delete <TICKER> <claim_id>
 
   Artifact-scoped (legacy):
     python evidence_ledger.py init  <artifact.md>      # deprecated — use ticker
@@ -36,8 +37,50 @@ LEDGER_DIRNAME = ".cache"
 
 CLAIM_TYPES = {"factual", "statistical", "citation", "entity", "causal", "temporal"}
 STATUSES = {"verified", "plausible", "unverified", "disputed", "fabrication_risk"}
-ANCHOR_RE = re.compile(r'\[(?:S|I)\d+\]\(([^)]+)\)')
+ANCHOR_RE = re.compile(r'\[(S\d+|I\d+)\]\(([^)]+)\)')
 LEDGER_SCHEMA_VERSION = 3
+
+
+def extract_anchors(content: str) -> dict:
+    """Full-content anchor scan: code blocks and ## Resources included.
+
+    Single source of truth, shared with the evidence_ledger_floor hook (Rule 0),
+    so auto/lint/scan and the hook can never drift apart again. The old code
+    stripped ``` / ~~~ blocks and the Resources section before scanning — that
+    is how anchors living only in a tone-tracker code block (the S12 class)
+    went missing.
+    """
+    anchor_map = {}
+    for m in ANCHOR_RE.finditer(content):
+        code, url = m.group(1), m.group(2)
+        if code not in anchor_map:
+            anchor_map[code] = url
+    return anchor_map
+
+
+def _anchor_contexts(content: str) -> dict:
+    """Map anchor code → (first-pass text, nearest preceding heading).
+
+    Gives auto-created claims raw material for quote-matching in
+    verify-claim.py --claim-text.
+    """
+    contexts = {}
+    current_heading = ""
+    for line in content.splitlines():
+        m = re.match(r'^\s{0,3}#{1,6}\s+(.*)$', line)
+        if m:
+            current_heading = m.group(1).strip()
+        for code in re.findall(r'\[(S\d+|I\d+)\]', line):
+            if code not in contexts:
+                contexts[code] = (_anchor_sentence(line, code), current_heading)
+    return contexts
+
+
+def _anchor_sentence(line: str, code: str) -> str:
+    """First-pass claim text: the line around the anchor, cleaned, ≤200 chars."""
+    s = re.sub(r'\[(?:S\d+|I\d+)\]\([^)]+\)', code, line)
+    s = re.sub(r'[#*_`>|\[\]]', '', s).strip()
+    return s[:200]
 
 # Method → tier mapping (lower tier = higher trust)
 METHOD_TIERS = {
@@ -186,9 +229,22 @@ def cmd_add(path: str, payload: str, ticker: str = ""):
     existing = [c for c in ledger["claims"] if c["id"] == entry["id"]]
     if existing:
         idx = ledger["claims"].index(existing[0])
-        ledger["claims"][idx] = entry
+        old = ledger["claims"][idx]
+        old_provs = list(old.get("provenances", []))  # capture before payload keys overwrite
+        for k, v in entry.items():
+            old[k] = v
+        # merge semantics: attempts are history (keep unless payload replaces);
+        # provenances are membership tags — always union with what's tracked
+        # (whole-claim replace used to drop attempts + provenances)
+        old.setdefault("attempts", [])
+        merged_prov = old_provs + entry.get("provenances", [])
+        old["provenances"] = []
+        for p in merged_prov:
+            if p not in old["provenances"]:
+                old["provenances"].append(p)
         print(f"Updated claim {entry['id']}")
     else:
+        entry.setdefault("attempts", [])
         ledger["claims"].append(entry)
         ledger["claims"].sort(key=lambda c: c.get("id", ""))
         print(f"Added claim {entry['id']}")
@@ -223,11 +279,7 @@ def cmd_lint(artifact_path: str, ticker: str = ""):
         sys.exit(1)
     with open(artifact_path, "r", encoding="utf-8") as f:
         content = f.read()
-    body = content.split("## Resources")[0] if "## Resources" in content else content
-    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
-    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-    anchors = re.findall(r'\[((?:S|I)\d+)\]', body)
-    artifact_codes = {f"{code}" for code in anchors}
+    artifact_codes = set(extract_anchors(content).keys())
 
     if not artifact_codes:
         print("WARNING: No [S#] or [I#] anchors found in artifact body.")
@@ -275,16 +327,7 @@ def cmd_scan(artifact_path: str, ticker: str):
         sys.exit(1)
     with open(artifact_path, "r", encoding="utf-8") as f:
         content = f.read()
-    body = content.split("## Resources")[0] if "## Resources" in content else content
-    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
-    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-
-    # Extract all [S#](url) and [I#](url) anchors
-    anchors = re.findall(r'\[(S\d+|I\d+)\]\(([^)]+)\)', body)
-    anchor_map = {}
-    for code, url in anchors:
-        if code not in anchor_map:
-            anchor_map[code] = url
+    anchor_map = extract_anchors(content)
 
     ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
     ledger = _load_ledger(ledger_path) if ledger_path.exists() else None
@@ -334,6 +377,7 @@ def cmd_batch(ticker_path: str, ticker: str, payload: str):
             updated += 1
         else:
             entry.setdefault("provenances", [])
+            entry.setdefault("attempts", [])
             if provenance and provenance not in entry["provenances"]:
                 entry["provenances"].append(provenance)
             ledger["claims"].append(entry)
@@ -343,21 +387,21 @@ def cmd_batch(ticker_path: str, ticker: str, payload: str):
 
 
 def cmd_auto(artifact_path: str, ticker: str):
-    """Scan artifact, auto-create pending entries for new anchors."""
+    """Scan artifact, auto-create pending entries for new anchors.
+
+    Full-content scan (code blocks + Resources included — anchors in a tone
+    tracker or Resources-only sources are evidence too). New claim IDs continue
+    from the highest existing ID, never colliding and never reusing. Each new
+    claim gets a first-pass text (anchor line) + section (nearest heading) so
+    quote-matching in verify-claim.py --claim-text has raw material.
+    """
     if not os.path.exists(artifact_path):
         print(f"ERROR: artifact not found: {artifact_path}", file=sys.stderr)
         sys.exit(1)
     with open(artifact_path, "r", encoding="utf-8") as f:
         content = f.read()
-    body = content.split("## Resources")[0] if "## Resources" in content else content
-    body = re.sub(r'```[^\n]*\n.*?```', '', body, flags=re.DOTALL)
-    body = re.sub(r'~~~[^\n]*\n.*?~~~', '', body, flags=re.DOTALL)
-
-    anchors = re.findall(r'\[(S\d+|I\d+)\]\(([^)]+)\)', body)
-    anchor_map = {}
-    for code, url in anchors:
-        if code not in anchor_map:
-            anchor_map[code] = url
+    anchor_map = extract_anchors(content)
+    contexts = _anchor_contexts(content)
 
     ledger_path = _ticker_to_ledger_path(artifact_path, ticker)
     ledger = _load_ledger(ledger_path) if ledger_path.exists() else None
@@ -365,15 +409,20 @@ def cmd_auto(artifact_path: str, ticker: str):
         print(f"ERROR: No ledger for {ticker}. Run init first.", file=sys.stderr)
         sys.exit(1)
 
-    existing = {c["source"] for c in ledger["claims"]}
+    existing_sources = {c["source"] for c in ledger["claims"]}
+    # next ID = max existing numeric ID + 1 — immune to prior ID collisions
+    ids = [int(m.group(1)) for c in ledger["claims"]
+           if (m := re.match(r'^C(\d+)$', c.get("id", "")))]
+    next_id = max(ids) + 1 if ids else 1
     new_count = 0
     for code, url in anchor_map.items():
-        if code in existing:
+        if code in existing_sources:
             continue
-        cid = f"C{len(ledger['claims']) + new_count + 1}"
+        text, section = contexts.get(code, ("", ""))
+        cid = f"C{next_id}"
         entry = {
-            "id": cid, "source": code, "url": url, "text": "",
-            "section": "", "type": "factual", "status": "unverified",
+            "id": cid, "source": code, "url": url, "text": text,
+            "section": section, "type": "factual", "status": "unverified",
             "method": None, "tier": None, "quote": "",
             "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "provenances": [os.path.basename(artifact_path)],
@@ -381,6 +430,7 @@ def cmd_auto(artifact_path: str, ticker: str):
         }
         ledger["claims"].append(entry)
         new_count += 1
+        next_id += 1
 
     if new_count:
         ledger["claims"].sort(key=lambda c: c.get("id", ""))
@@ -413,8 +463,13 @@ def cmd_attempt(artifact_path: str, ticker: str, payload: str):
         print(f"ERROR: claim {cid} not found", file=sys.stderr)
         sys.exit(1)
 
+    tier = att.get("tier")
+    if tier is not None and (not isinstance(tier, int) or tier < 0):
+        print(f"ERROR: tier must be an int (0-4), got: {tier!r}", file=sys.stderr)
+        sys.exit(1)
+
     claim.setdefault("attempts", []).append({
-        "tier": att.get("tier"),
+        "tier": tier,
         "method": att.get("method"),
         "result": att.get("result", "unknown"),
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -436,7 +491,11 @@ def cmd_apply_staging(path: str, ticker: str):
     """Merge .cache/evidence/<TICKER>.verify-staging.json into the ticker ledger.
 
     For each claim, if a staging entry matches its URL:
-      - verified → upgrade status/method/tier/text + log a tier attempt
+      - matched (page text substantiates the claim) → upgrade status/method/tier/
+        text + log a tier attempt
+      - reachable only (page up, claim text not found — verify-claim --claim-text)
+        → keep unverified, log result "reachable_no_match" (tier counts, coverage
+        floor still gates)
       - unverified/error → keep status, log the failed attempt
     Unmatched staging entries are reported as unreferenced (verified URLs not used
     in the artifact). Claims with no staging entry stay untouched — coverage floor
@@ -464,10 +523,18 @@ def cmd_apply_staging(path: str, ticker: str):
         if not entry:
             untouched += 1
             continue
-        tier = _STAGING_TIER_MAP.get(entry.get("method", ""), None)
-        if entry.get("status") == "verified" and tier:
+        # schema 2 stores tier as int; schema 1 falls back to the method label map
+        tier = entry.get("tier")
+        if not isinstance(tier, int):
+            tier = _STAGING_TIER_MAP.get(entry.get("method", ""), None)
+        # matched: verified entry whose page text substantiates the claim.
+        # Legacy entries (no matched key) count as matched — reachable-only is
+        # the new strict path that must stay unverified.
+        status = entry.get("status")
+        claim_matched = status == "verified" and entry.get("matched") is not False
+        if claim_matched and tier is not None:
             claim["status"] = "verified"
-            claim["method"] = "verify-claim.py"
+            claim["method"] = entry.get("method") or "verify-claim.py"
             claim["tier"] = tier
             if entry.get("text"):
                 claim["text"] = entry["text"]
@@ -477,7 +544,12 @@ def cmd_apply_staging(path: str, ticker: str):
             failed_attempts += 1
         # log/refresh the attempt entry (dedup by method+tier+result)
         attempts = claim.setdefault("attempts", [])
-        result_label = "ok" if entry.get("status") == "verified" else (entry.get("error") or "failed")[:80]
+        if claim_matched and tier is not None:
+            result_label = "ok"
+        elif status == "reachable":
+            result_label = "reachable_no_match"
+        else:
+            result_label = (entry.get("error") or "failed")[:80]
         attempt = {"tier": tier, "method": "verify-claim.py", "result": result_label,
                    "at": entry.get("checked_at", "")}
         if not any(a.get("method") == "verify-claim.py" and a.get("tier") == tier
@@ -513,9 +585,14 @@ def cmd_verify(artifact_path: str, ticker: str, payload: str):
         print(f"ERROR: claim {cid} not found", file=sys.stderr)
         sys.exit(1)
 
+    tier = v.get("tier", claim.get("tier"))
+    if tier is not None and (not isinstance(tier, int) or tier < 0):
+        print(f"ERROR: tier must be an int (0-4), got: {tier!r}", file=sys.stderr)
+        sys.exit(1)
+
     claim["status"] = "verified"
     claim["method"] = v.get("method", claim.get("method"))
-    claim["tier"] = v.get("tier", claim.get("tier"))
+    claim["tier"] = tier
     if v.get("text"):
         claim["text"] = v["text"]
     if v.get("quote"):
@@ -524,8 +601,37 @@ def cmd_verify(artifact_path: str, ticker: str, payload: str):
         claim["section"] = v["section"]
     claim["checked_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+    # log the verification attempt — hook Rule 4 requires tier 1-2 attempts
+    # for [I#] claims; verify alone used to leave attempts empty and the hook
+    # kept blocking even after a successful verify
+    attempts = claim.setdefault("attempts", [])
+    attempt = {"tier": tier, "method": claim.get("method") or "verify",
+               "result": "ok", "at": claim["checked_at"]}
+    if not any(a.get("tier") == tier and a.get("method") == attempt["method"]
+               and a.get("result") == "ok" for a in attempts):
+        attempts.append(attempt)
+
     _save_ledger(ledger_path, ledger)
     print(f"[{cid}] verified — tier={claim['tier']} method={claim['method']}")
+
+
+def cmd_delete(path: str, claim_id: str, ticker: str = ""):
+    """Delete a claim from the ledger by ID (no more hand-editing JSON)."""
+    if ticker:
+        ledger_path = _ticker_to_ledger_path(path, ticker)
+    else:
+        ledger_path = _artifact_path_to_ledger_path(path)
+    if not ledger_path.exists():
+        print(f"ERROR: No ledger found at {ledger_path}", file=sys.stderr)
+        sys.exit(1)
+    ledger = _load_ledger(ledger_path)
+    claim = next((c for c in ledger["claims"] if c["id"] == claim_id), None)
+    if not claim:
+        print(f"ERROR: claim {claim_id} not found", file=sys.stderr)
+        sys.exit(1)
+    ledger["claims"].remove(claim)
+    _save_ledger(ledger_path, ledger)
+    print(f"Deleted {claim_id}: [{claim['source']}]({claim['url'][:60]}...)")
 
 
 def _infer_ticker(path_s: str) -> str:
@@ -587,6 +693,11 @@ def main():
     p_apply.add_argument("path", help="Artifact path or company dir")
     p_apply.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
 
+    p_delete = sub.add_parser("delete", help="Delete a claim from the ledger")
+    p_delete.add_argument("path", help="Ticker or artifact path")
+    p_delete.add_argument("claim_id", help="Claim ID, e.g. C19")
+    p_delete.add_argument("-t", "--ticker", help="Ticker override")
+
     args = parser.parse_args()
     ticker = getattr(args, "ticker", None) or ""
     if not ticker:
@@ -613,6 +724,8 @@ def main():
         cmd_verify(args.path, ticker, args.payload)
     elif args.command == "apply-staging":
         cmd_apply_staging(args.path, ticker)
+    elif args.command == "delete":
+        cmd_delete(args.path, args.claim_id, ticker)
     else:
         parser.print_help()
         sys.exit(1)

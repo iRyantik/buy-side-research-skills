@@ -12,6 +12,9 @@ Usage:
   python verify-claim.py <url> --json --ledger <artifact-or-dir> -t <TICKER>
                                                   # also stage the result for evidence ledger
                                                   # (.cache/evidence/<TICKER>.verify-staging.json)
+  python verify-claim.py <url> --claim-text "<quote>" --ledger <dir> -t <TICKER> --apply
+                                                  # require page text to substantiate the
+                                                  # claim; apply-staging immediately after
 
 Tier chain:
   Tier 1 — HTTP GET (urllib, no auth, 30s timeout)
@@ -84,6 +87,26 @@ class _TextExtractor(HTMLParser):
         raw = re.sub(r'<style[^>]*>.*?</style>', '', raw, flags=re.DOTALL | re.IGNORECASE)
         raw = re.sub(r'<[^>]+>', '', raw)  # strip any remaining HTML tags
         return raw.strip()
+
+
+def _text_matches(page_text: str, claim_text: str) -> bool:
+    """Does the page text substantiate the claim?
+
+    Whole-claim containment after normalization; for short claims fall back to
+    token majority (≥60% of significant tokens present). Strip markdown noise
+    from both sides so a claim copied from an artifact line still matches.
+    """
+    norm = lambda s: re.sub(r'\s+', ' ', re.sub(r'[#*_`>|\[\]()]', '', s or '')).lower()
+    page, claim = norm(page_text), norm(claim_text)
+    if not claim:
+        return False
+    if claim in page:
+        return True
+    tokens = [t for t in claim.split() if len(t) > 2]
+    if not tokens:
+        return False
+    hits = sum(1 for t in tokens if t in page)
+    return hits / len(tokens) >= 0.6
 
 
 def _tier1_http(url: str) -> tuple[str | None, str | None]:
@@ -179,6 +202,10 @@ def _tier4_curl(url: str) -> tuple[str | None, str | None]:
 
 # ── Evidence ledger staging ─────────────────────────────
 
+# Tier label → int (single int tier in the ledger; strings only in CLI output)
+_TIER_INT = {"WebFetch": 1, "curl": 1, "browser-harness CDP": 2, "Playwright": 2}
+
+
 def _resolve_staging_path(ledger_arg: str, ticker: str) -> "Path":
     """Resolve .cache/evidence/<TICKER>.verify-staging.json next to the ticker ledger.
 
@@ -199,7 +226,7 @@ def stage_result(ledger_arg: str, ticker: str, result: dict) -> str:
     """
     staging_path = _resolve_staging_path(ledger_arg, ticker)
     staging_path.parent.mkdir(parents=True, exist_ok=True)
-    staging = {"schema": 1, "ticker": ticker, "entries": []}
+    staging = {"schema": 2, "ticker": ticker, "entries": []}
     if staging_path.exists():
         try:
             with open(staging_path, "r", encoding="utf-8") as f:
@@ -209,8 +236,10 @@ def stage_result(ledger_arg: str, ticker: str, result: dict) -> str:
     entry = {
         "url": result.get("url", ""),
         "status": result.get("status", "unverified"),
-        "tier": result.get("tier"),
+        # schema 2: int tier + human label; schema 1 used the label as tier
+        "tier": _TIER_INT.get(result.get("tier")),
         "method": result.get("tier") or "unknown",
+        "matched": result.get("matched"),
         "text": (result.get("text") or "")[:2000],
         "error": (result.get("error") or result.get("next_action") or "")[:200],
         "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -224,10 +253,29 @@ def stage_result(ledger_arg: str, ticker: str, result: dict) -> str:
 
 # ── main ────────────────────────────────────────────────
 
+def _finish(result: dict, text: str, tier_label: str, claim_text: str | None):
+    """Fill a successful tier result; with --claim-text verify substantiation."""
+    result["status"] = "verified"
+    result["tier"] = tier_label
+    result["text"] = text[:10000]
+    if claim_text:
+        result["matched"] = _text_matches(text, claim_text)
+        if not result["matched"]:
+            # page reachable but claim not found — distinct from verified
+            result["status"] = "reachable"
+    return result
+
+
 def verify(url: str, max_tier: int = 4,
            playwright_text: str | None = None,
-           cdp_text: str | None = None) -> dict:
-    """Run the verification chain. Returns structured result."""
+           cdp_text: str | None = None,
+           claim_text: str | None = None) -> dict:
+    """Run the verification chain. Returns structured result.
+
+    With claim_text, status is "verified" only when the page text substantiates
+    the claim; a reachable page that does not is "reachable" (applied to the
+    ledger as a non-matching attempt, never an upgrade).
+    """
     result: dict = {
         "url": url,
         "status": "unverified",
@@ -235,20 +283,15 @@ def verify(url: str, max_tier: int = 4,
         "text": None,
         "error": None,
         "next_action": None,
+        "matched": None,
     }
 
     # If text was provided from a previous retry
     if playwright_text:
-        result["status"] = "verified"
-        result["tier"] = "Playwright"
-        result["text"] = playwright_text[:10000]
-        return result
+        return _finish(result, playwright_text, "Playwright", claim_text)
 
     if cdp_text:
-        result["status"] = "verified"
-        result["tier"] = "browser-harness CDP"
-        result["text"] = cdp_text[:10000]
-        return result
+        return _finish(result, cdp_text, "browser-harness CDP", claim_text)
 
     # Tier 1: HTTP (skip if known 403 domain)
     if max_tier >= 1:
@@ -257,20 +300,14 @@ def verify(url: str, max_tier: int = 4,
         else:
             text, err = _tier1_http(url)
             if text:
-                result["status"] = "verified"
-                result["tier"] = "WebFetch"
-                result["text"] = text[:10000]
-                return result
+                return _finish(result, text, "WebFetch", claim_text)
             result["tier1_error"] = err
 
     # Tier 2: browser-harness CDP (auto, no agent intervention needed)
     if max_tier >= 2:
         text, err = _tier2_cdp(url)
         if text:
-            result["status"] = "verified"
-            result["tier"] = "browser-harness CDP"
-            result["text"] = text[:10000]
-            return result
+            return _finish(result, text, "browser-harness CDP", claim_text)
         result["tier2_error"] = err
 
     # Tier 3: Playwright MCP (requires agent)
@@ -282,10 +319,7 @@ def verify(url: str, max_tier: int = 4,
     if max_tier >= 4:
         text, err = _tier4_curl(url)
         if text:
-            result["status"] = "verified"
-            result["tier"] = "curl"
-            result["text"] = text[:10000]
-            return result
+            return _finish(result, text, "curl", claim_text)
         result["tier4_error"] = err
 
     # Tier 5: nothing worked
@@ -308,9 +342,15 @@ def cli():
                        help="Playwright snapshot text (from Tier 3 retry)")
     parser.add_argument("--cdp-text", default=None,
                        help="browser-harness CDP extracted text (from Tier 2 retry)")
+    parser.add_argument("--claim-text", default=None,
+                       help="Expected claim text/quote — page text must contain "
+                            "it to count as matched; reachable-but-not-matched "
+                            "is reported as status 'reachable' (exit 1)")
     parser.add_argument("--ledger", default=None,
                        help="Evidence ledger target: artifact path or company dir. "
                             "Stages the result to .cache/evidence/<TICKER>.verify-staging.json")
+    parser.add_argument("--apply", action="store_true",
+                       help="With --ledger: run apply-staging immediately after staging")
     parser.add_argument("-t", "--ticker", default=None,
                        help="Ticker for ledger staging (required with --ledger)")
     args = parser.parse_args()
@@ -321,19 +361,27 @@ def cli():
 
     result = verify(args.url, max_tier=args.tier,
                     playwright_text=args.playwright_text,
-                    cdp_text=args.cdp_text)
+                    cdp_text=args.cdp_text,
+                    claim_text=args.claim_text)
 
     if args.ledger:
         staging_path = stage_result(args.ledger, args.ticker, result)
         print(f"[staged] {staging_path}", file=sys.stderr)
+        if args.apply:
+            from evidence_ledger import cmd_apply_staging
+            cmd_apply_staging(args.ledger, args.ticker)
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         if result["status"] == "verified":
-            print(f"✅ Verified via {result['tier']}")
+            ok = " ✅ matched claim" if args.claim_text and result.get("matched") else ""
+            print(f"✅ Verified via {result['tier']}{ok}")
             print(f"---")
             print(result["text"])
+        elif result["status"] == "reachable":
+            print(f"⚠️  Page reachable via {result['tier']} but claim text NOT found "
+                  f"(--claim-text). Check the quote or the URL — do NOT mark verified.")
         elif result.get("next_action"):
             print(f"⚠️  Tier 1-2 exhausted. {result['next_action']}")
         else:

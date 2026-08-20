@@ -3,6 +3,7 @@
 ## v8.x (2026-07)
 
 | Version | Changes |
+| v8.8.8 | evidence_ledger fixes + claim-quote verification: auto max-ID+1 (no collisions), full-content anchor scan via shared extract_anchors (code-block/Resources anchors no longer missed — S12 class; hook Rule 0 aligned), verify writes attempts (hook Rule 4 gate), add/batch merge preserve attempts + provenances union, new delete subcommand, tier validation; verify-claim --claim-text matched/reachable semantics + staging schema 2 (int tier) + --apply, schema 1 compat |
 |---|---|
 | v8.8.7 | image-path integrity: single root image pool (workspace .cache/images) — new image-path-check.py (scan + --fix migrate/rewrite refs, 122 refs fixed on real workspace), image_path_integrity hook (PostToolUse warn-only), download-image.py --artifact prints artifact-relative ref; skills aligned (quickread / mechanism-insight / teach-in), research-runtime §2.5 |
 | v8.8.6 | disclosure_fact_source_boundary rewrite: 3-track logic (strict / information-impact / unregistered-token backstop), URL-stripped paragraph windows, per-row table split, line-numbered block messages, format warns (false-positive class fixed, rename dodge closed) |
@@ -20,6 +21,7 @@
 ## v7.x (2026-07)
 
 | Version | Changes |
+| v8.8.8 | evidence_ledger fixes + claim-quote verification: auto max-ID+1 (no collisions), full-content anchor scan via shared extract_anchors (code-block/Resources anchors no longer missed — S12 class; hook Rule 0 aligned), verify writes attempts (hook Rule 4 gate), add/batch merge preserve attempts + provenances union, new delete subcommand, tier validation; verify-claim --claim-text matched/reachable semantics + staging schema 2 (int tier) + --apply, schema 1 compat |
 |---|---|
 | v7.6.35 | P0-P2 bug fixes: pdf_auto_cache typo, subagent_protocol dispatch, merge conflicts, pip --user, tempfile |
 | v7.6.30 | Version bump + install.md rewrite |
@@ -43,6 +45,7 @@
 ## v6.x (2026-06)
 
 | Version | Changes |
+| v8.8.8 | evidence_ledger fixes + claim-quote verification: auto max-ID+1 (no collisions), full-content anchor scan via shared extract_anchors (code-block/Resources anchors no longer missed — S12 class; hook Rule 0 aligned), verify writes attempts (hook Rule 4 gate), add/batch merge preserve attempts + provenances union, new delete subcommand, tier validation; verify-claim --claim-text matched/reachable semantics + staging schema 2 (int tier) + --apply, schema 1 compat |
 |---|---|
 | v6.7.0 | driver-map v1.4.0: CF/HL/BOLD helpers, yoy module |
 | v6.5.14 | RAG 4-tier fallback, Evidence Ledger, sentence-end anchors |
@@ -51,6 +54,7 @@
 ## v5.x (2026-05—06)
 
 | Version | Changes |
+| v8.8.8 | evidence_ledger fixes + claim-quote verification: auto max-ID+1 (no collisions), full-content anchor scan via shared extract_anchors (code-block/Resources anchors no longer missed — S12 class; hook Rule 0 aligned), verify writes attempts (hook Rule 4 gate), add/batch merge preserve attempts + provenances union, new delete subcommand, tier validation; verify-claim --claim-text matched/reachable semantics + staging schema 2 (int tier) + --apply, schema 1 compat |
 |---|---|
 | v5.4.0 | Source contract injection (27 skill output tables + Ev column) |
 | v5.3.0 | Actuals-only ratio constraint |
