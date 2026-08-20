@@ -113,6 +113,38 @@ def dependency_available() -> bool:
     return bool(os.getenv("FMP_API_KEY"))
 
 
+def _search_fmp_ticker(query: str, name: str = "") -> str | None:
+    """search-symbol 词典兜底：规则映射查不到时，按 ticker/公司名搜 FMP 正确 symbol。
+
+    例：`SAAB.B FP` → `SAAB-B.ST`（修正 COVERAGE 标错的 FP 后缀）。
+    优先带交易所后缀的 symbol（避免 ADR 如 SAABY 误命中）；query 用 base ticker。
+    """
+    try:
+        base = str(query).split(".")[0].split(" ")[0].strip().upper()
+        if not base:
+            return None
+        d = _api("/search-symbol", {"query": base, "limit": 10})
+        if not d:
+            return None
+        # 1) 交易所后缀（含 "." 的非 ADR）
+        for x in d:
+            if "." in str(x.get("symbol", "")):
+                return x["symbol"]
+        # 2) 精确 symbol
+        for x in d:
+            if str(x.get("symbol", "")).upper() == base:
+                return x["symbol"]
+        # 3) 名称匹配
+        if name:
+            n = name.lower()
+            for x in d:
+                if n in (x.get("name") or "").lower():
+                    return x["symbol"]
+        return d[0].get("symbol")
+    except Exception:
+        return None
+
+
 def _api(path: str, params: dict[str, Any]) -> Any:
     key = os.getenv("FMP_API_KEY")
     if not key:
@@ -207,6 +239,13 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 
         if "market_data" in items:
             quote = _api("/quote", {"symbol": fmp_ticker})
+            if not quote:
+                # 词典自修正：规则映射查不到 → search-symbol 按 ticker+名称找 FMP symbol
+                alt = _search_fmp_ticker(identifier, str(request.get("name") or ""))
+                if alt and alt != fmp_ticker:
+                    fmp_ticker = alt
+                    result["fmp_ticker"] = alt
+                    quote = _api("/quote", {"symbol": alt})
             if quote:
                 q = quote[0]
                 md = {

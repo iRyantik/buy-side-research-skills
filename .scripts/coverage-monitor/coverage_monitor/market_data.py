@@ -25,7 +25,7 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
     """
     try:
         fmp = _load_fmp()
-        r = fmp.fetch({"identifier": entry.ticker,
+        r = fmp.fetch({"identifier": entry.ticker, "name": entry.company,
                        "items": ["market_data", "price_change", "historical_price", "news",
                                  "estimates", "key_metrics", "ratios", "earnings_calendar"],
                        "periods": "latest"})
