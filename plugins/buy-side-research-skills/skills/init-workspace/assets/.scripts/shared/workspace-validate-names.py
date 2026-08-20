@@ -20,6 +20,9 @@ CJK_RE = re.compile(r'[一-鿿]')
 # Markets where the directory name must be Chinese (CLAUDE.md §3.3)
 CJK_REQUIRED_MARKETS = {"SH", "SZ", "BJ", "CN", "HK", "TT", "TW"}
 COMPANY_DIR_RE = re.compile(r'^([^.]+)\.([A-Z]{2})-')
+# Exemptions: companies with no registered Chinese name (English-only brand,
+# COVERAGE.md registers them under the English name). Verified 2026-08-20.
+TICKERS_WITHOUT_CN_NAME = {"0522.HK"}
 
 
 def find_workspace_root():
@@ -106,8 +109,11 @@ def scan_violations(workspace):
             if not m:
                 continue  # nonstandard (private-*, legacy single-letter market) — not covered
             market = m.group(2).upper()
+            ticker_key = f"{m.group(1)}.{market}"
             name_part = d.name[m.end():]
             if market in CJK_REQUIRED_MARKETS and not CJK_RE.search(name_part):
+                if ticker_key in TICKERS_WITHOUT_CN_NAME:
+                    continue  # no registered Chinese name — English dir is correct
                 violations.append(("DIR_CN_NAME_MISSING", rel, d.name,
                                    f"Market {market} requires Chinese company name (CLAUDE.md §3.3)"))
             elif market not in CJK_REQUIRED_MARKETS and CJK_RE.search(name_part):
