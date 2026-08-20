@@ -61,7 +61,7 @@ FINANCIAL_OUTPUT_KEYS = (
     "cash_flow_quarterly_derived",
 )
 
-SUPPORTED_MODES = ("latest_core", "five_years", "filing_only", "cross_check", "snapshot", "lite", "full")
+SUPPORTED_MODES = ("scan", "lite", "full")
 
 # Third-party normalized-data providers: their output is never model-ready
 THIRD_PARTY_PROVIDERS = {"akshare", "finmind"}
@@ -1652,7 +1652,7 @@ def write_canonical_pack(args: argparse.Namespace, normalized: dict[str, Any],
         "output_scope": args.output_scope, "market": args.market,
         "identifier": args.identifier, "identifier_type": args.identifier_type,
         "company_slug": args.company_slug, "canonical_id": canonical_id,
-        "periods": args.periods, "mode": getattr(args, "mode", "latest_core"),
+        "periods": args.periods, "mode": getattr(args, "mode", "lite"),
         "provider": provider, "provider_status": normalized["provider_status"], "status": status,
     }
     identity_payload = company if company else {"identifier": args.identifier, "ticker": args.identifier}
@@ -1939,7 +1939,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--canonical-id")
     p.add_argument("--periods", default="latest")
     p.add_argument("--items", default=",".join(DEFAULT_ITEMS), help=f"Comma-separated. Default: {','.join(DEFAULT_ITEMS)}")
-    p.add_argument("--mode", choices=SUPPORTED_MODES, default="latest_core")
+    p.add_argument("--mode", choices=SUPPORTED_MODES, default="lite")
     p.add_argument("--source-mode", choices=("auto", "filing_only", "provider_normalized"), default="auto")
     p.add_argument("--financial-data-pack-path")
     return p.parse_args()
@@ -2260,7 +2260,7 @@ def main() -> int:
             output = write_snapshot(args, normalized, workspace, rid)
 
         # Lite mode: unified closeout (market_data fill + revenue_split persist + FY supplement)
-        if getattr(args, "mode", "latest_core") == "lite":
+        if getattr(args, "mode", "lite") == "lite":
             actuals_path = None
             try:
                 data_dir = output.get("financial_data_dir", "")
