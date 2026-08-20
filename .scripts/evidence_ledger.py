@@ -423,6 +423,75 @@ def cmd_attempt(artifact_path: str, ticker: str, payload: str):
     print(f"[{cid}] attempt logged: tier={att.get('tier')} method={att.get('method')} result={att.get('result')}")
 
 
+# verify-claim tier label → ledger attempt tier (hook Rule 4 accepts tier 1 or 2)
+_STAGING_TIER_MAP = {
+    "WebFetch": 1,
+    "curl": 1,
+    "browser-harness CDP": 2,
+    "Playwright": 2,
+}
+
+
+def cmd_apply_staging(path: str, ticker: str):
+    """Merge .cache/evidence/<TICKER>.verify-staging.json into the ticker ledger.
+
+    For each claim, if a staging entry matches its URL:
+      - verified → upgrade status/method/tier/text + log a tier attempt
+      - unverified/error → keep status, log the failed attempt
+    Unmatched staging entries are reported as unreferenced (verified URLs not used
+    in the artifact). Claims with no staging entry stay untouched — coverage floor
+    still gates honest completeness.
+    """
+    ledger_path = _ticker_to_ledger_path(path, ticker)
+    if not ledger_path.exists():
+        print(f"ERROR: No ledger for {ticker}. Run init first.", file=sys.stderr)
+        sys.exit(1)
+    staging_path = ledger_path.with_name(ticker + ".verify-staging.json")
+    if not staging_path.exists():
+        print(f"ERROR: No staging file at {staging_path}. Run verify-claim.py --ledger first.", file=sys.stderr)
+        sys.exit(1)
+    with open(staging_path, "r", encoding="utf-8") as f:
+        staging = json.load(f)
+
+    ledger = _load_ledger(ledger_path)
+    by_url = {e["url"]: e for e in staging.get("entries", [])}
+    upgraded = failed_attempts = untouched = 0
+    unreferenced = [e for e in staging.get("entries", [])
+                    if not any(c.get("url") == e["url"] for c in ledger["claims"])]
+
+    for claim in ledger["claims"]:
+        entry = by_url.get(claim.get("url", ""))
+        if not entry:
+            untouched += 1
+            continue
+        tier = _STAGING_TIER_MAP.get(entry.get("method", ""), None)
+        if entry.get("status") == "verified" and tier:
+            claim["status"] = "verified"
+            claim["method"] = "verify-claim.py"
+            claim["tier"] = tier
+            if entry.get("text"):
+                claim["text"] = entry["text"]
+            claim["checked_at"] = entry.get("checked_at", claim.get("checked_at"))
+            upgraded += 1
+        else:
+            failed_attempts += 1
+        # log/refresh the attempt entry (dedup by method+tier+result)
+        attempts = claim.setdefault("attempts", [])
+        result_label = "ok" if entry.get("status") == "verified" else (entry.get("error") or "failed")[:80]
+        attempt = {"tier": tier, "method": "verify-claim.py", "result": result_label,
+                   "at": entry.get("checked_at", "")}
+        if not any(a.get("method") == "verify-claim.py" and a.get("tier") == tier
+                   and a.get("result") == result_label for a in attempts):
+            attempts.append(attempt)
+
+    _save_ledger(ledger_path, ledger)
+    print(f"apply-staging {ticker}: {upgraded} upgraded, {failed_attempts} failed-attempt logged, {untouched} untouched")
+    if unreferenced:
+        print(f"  {len(unreferenced)} staged URL(s) not referenced by any claim:")
+        for e in unreferenced[:5]:
+            print(f"    {e['url'][:90]} — {e['status']}")
+
+
 def cmd_verify(artifact_path: str, ticker: str, payload: str):
     """Mark a claim as verified after successful tier verification.
     payload: {"claim_id": "C4", "tier": 2, "method": "Playwright", "text": "...", "quote": "...", "section": "§3"}
@@ -513,6 +582,11 @@ def main():
     p_verify.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
     p_verify.add_argument("payload", help='JSON: {"claim_id":"C4","tier":2,"method":"Playwright","text":"...","quote":"..."}')
 
+    p_apply = sub.add_parser("apply-staging",
+                             help="Merge verify-claim staging file into ledger (by URL)")
+    p_apply.add_argument("path", help="Artifact path or company dir")
+    p_apply.add_argument("-t", "--ticker", help="Ticker (inferred from path if omitted)")
+
     args = parser.parse_args()
     ticker = getattr(args, "ticker", None) or ""
     if not ticker:
@@ -537,6 +611,8 @@ def main():
         cmd_attempt(args.path, ticker, args.payload)
     elif args.command == "verify":
         cmd_verify(args.path, ticker, args.payload)
+    elif args.command == "apply-staging":
+        cmd_apply_staging(args.path, ticker)
     else:
         parser.print_help()
         sys.exit(1)

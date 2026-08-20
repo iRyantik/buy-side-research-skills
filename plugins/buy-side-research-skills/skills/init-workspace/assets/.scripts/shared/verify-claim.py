@@ -9,6 +9,9 @@ Usage:
   python verify-claim.py <url>                    # auto-tier, plain text
   python verify-claim.py <url> --json             # structured JSON output
   python verify-claim.py <url> --tier 1           # HTTP only, no fallback
+  python verify-claim.py <url> --json --ledger <artifact-or-dir> -t <TICKER>
+                                                  # also stage the result for evidence ledger
+                                                  # (.cache/evidence/<TICKER>.verify-staging.json)
 
 Tier chain:
   Tier 1 — HTTP GET (urllib, no auth, 30s timeout)
@@ -27,6 +30,7 @@ import sys
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -173,6 +177,51 @@ def _tier4_curl(url: str) -> tuple[str | None, str | None]:
         return None, f"curl error: {e}"
 
 
+# ── Evidence ledger staging ─────────────────────────────
+
+def _resolve_staging_path(ledger_arg: str, ticker: str) -> "Path":
+    """Resolve .cache/evidence/<TICKER>.verify-staging.json next to the ticker ledger.
+
+    Reuses evidence_ledger._ticker_to_ledger_path's directory resolution so the
+    staging file always lands in the same .cache/evidence/ dir as the ledger.
+    """
+    script_dir = Path(__file__).resolve().parent
+    sys.path.insert(0, str(script_dir.parent))
+    from evidence_ledger import _ticker_to_ledger_path  # noqa: E402
+    ledger_path = _ticker_to_ledger_path(ledger_arg, ticker)
+    return ledger_path.with_name(ticker + ".verify-staging.json")
+
+
+def stage_result(ledger_arg: str, ticker: str, result: dict) -> str:
+    """Append/merge a verification result into the ticker's staging file.
+
+    Dedups by URL — re-verifying the same URL replaces its staging entry.
+    """
+    staging_path = _resolve_staging_path(ledger_arg, ticker)
+    staging_path.parent.mkdir(parents=True, exist_ok=True)
+    staging = {"schema": 1, "ticker": ticker, "entries": []}
+    if staging_path.exists():
+        try:
+            with open(staging_path, "r", encoding="utf-8") as f:
+                staging = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass  # corrupted staging — start fresh, honest rebuild
+    entry = {
+        "url": result.get("url", ""),
+        "status": result.get("status", "unverified"),
+        "tier": result.get("tier"),
+        "method": result.get("tier") or "unknown",
+        "text": (result.get("text") or "")[:2000],
+        "error": (result.get("error") or result.get("next_action") or "")[:200],
+        "checked_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    staging["entries"] = [e for e in staging.get("entries", []) if e.get("url") != entry["url"]]
+    staging["entries"].append(entry)
+    with open(staging_path, "w", encoding="utf-8") as f:
+        json.dump(staging, f, indent=2, ensure_ascii=False)
+    return str(staging_path)
+
+
 # ── main ────────────────────────────────────────────────
 
 def verify(url: str, max_tier: int = 4,
@@ -259,11 +308,24 @@ def cli():
                        help="Playwright snapshot text (from Tier 3 retry)")
     parser.add_argument("--cdp-text", default=None,
                        help="browser-harness CDP extracted text (from Tier 2 retry)")
+    parser.add_argument("--ledger", default=None,
+                       help="Evidence ledger target: artifact path or company dir. "
+                            "Stages the result to .cache/evidence/<TICKER>.verify-staging.json")
+    parser.add_argument("-t", "--ticker", default=None,
+                       help="Ticker for ledger staging (required with --ledger)")
     args = parser.parse_args()
+
+    if args.ledger and not args.ticker:
+        print("ERROR: --ledger requires -t/--ticker", file=sys.stderr)
+        sys.exit(1)
 
     result = verify(args.url, max_tier=args.tier,
                     playwright_text=args.playwright_text,
                     cdp_text=args.cdp_text)
+
+    if args.ledger:
+        staging_path = stage_result(args.ledger, args.ticker, result)
+        print(f"[staged] {staging_path}", file=sys.stderr)
 
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))

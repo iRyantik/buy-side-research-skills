@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Validate workspace artifact naming against CLAUDE.md section 10.
+"""Validate workspace artifact + company directory naming against CLAUDE.md §3.2/§3.3.
+
+Company directory rule (CLAUDE.md §3.3):
+    <TICKER.MARKET>-<Company-Name>
+    CN/HK/TW tickers → Chinese name; all other markets → English name.
 
 Usage:
     python workspace-validate-names.py          # list violations
@@ -11,6 +15,11 @@ import argparse, json, os, re, sys
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+CJK_RE = re.compile(r'[一-鿿]')
+# Markets where the directory name must be Chinese (CLAUDE.md §3.3)
+CJK_REQUIRED_MARKETS = {"SH", "SZ", "BJ", "CN", "HK", "TT", "TW"}
+COMPANY_DIR_RE = re.compile(r'^([^.]+)\.([A-Z]{2})-')
 
 
 def find_workspace_root():
@@ -83,6 +92,27 @@ def scan_violations(workspace):
             if not re.match(r'\d{8}-', name):
                 violations.append(("PANORAMA_DATE", rel, name,
                                    "Panorama artifact should start with YYYYMMDD"))
+
+    # Rule: company directory = <TICKER.MARKET>-<Company-Name> (CLAUDE.md §3.2/§3.3)
+    # CN/HK/TW (SH/SZ/BJ/CN/HK/TT/TW) must use a Chinese name; other markets English.
+    for root in sorted(ind_dir.glob("*/companies")):
+        if not root.is_dir():
+            continue
+        for d in sorted(p for p in root.iterdir() if p.is_dir()):
+            if d.name.startswith("."):
+                continue
+            rel = str(d.relative_to(workspace))
+            m = COMPANY_DIR_RE.match(d.name)
+            if not m:
+                continue  # nonstandard (private-*, legacy single-letter market) — not covered
+            market = m.group(2).upper()
+            name_part = d.name[m.end():]
+            if market in CJK_REQUIRED_MARKETS and not CJK_RE.search(name_part):
+                violations.append(("DIR_CN_NAME_MISSING", rel, d.name,
+                                   f"Market {market} requires Chinese company name (CLAUDE.md §3.3)"))
+            elif market not in CJK_REQUIRED_MARKETS and CJK_RE.search(name_part):
+                violations.append(("DIR_CN_NAME_UNEXPECTED", rel, d.name,
+                                   f"Market {market} should use English company name (CLAUDE.md §3.3)"))
 
     return violations
 

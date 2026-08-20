@@ -94,6 +94,8 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Tier 2: Playwright browser_navigate → success? → ledger method=Playwright, attempt logged
 │  Tier 3: curl → success? → ledger method=curl, attempt logged
 │  Tier 4: [UNVERIFIED] → only if ALL tiers failed, attempt logged as failed
+│  Run every verify-claim.py <url> --json --ledger <artifact-path> -t <TICKER> so the
+│  result is staged to .cache/evidence/<TICKER>.verify-staging.json (verify + record, atomic)
 │  Gate: Each [I#]'s attempts[] array has ≥1 Tier 1-2 entry
 │
 ├─ Step 5: Image download (HARD GATE — each sub-step must execute, cannot skip)
@@ -108,7 +110,9 @@ Tier 4  Mark [UNVERIFIED] + record attempted URLs in Resources  — honest degra
 │  Pre-write checklist: _cache/images/<product>.* file exists ✅ | [IMAGE MISSING] has attempt record ✅ | [UNVERIFIED] ≤8 ✅
 │
 ├─ Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
-│  → Auto-create ledger pending claims → agent fills text/quote/section → verify
+│  + apply-staging <artifact> -t <TICKER>  → merges Step 4 staging by URL:
+│    verified → status/tier/attempt upgraded; unverified stays — coverage floor gates, no faking
+│  + lint <artifact> -t <TICKER>
 │
 ├─ Step 8: python .scripts/evidence_ledger.py lint + status
 │  → anchors aligned ✅ + 0 fabrication_risk + coverage >80%

@@ -45,6 +45,11 @@ python .scripts/shared/verify-claim.py <url> --json
 
 # 如果 Tier 1 失败 → 脚本输出 Playwright 指令 → agent 执行 → 回传
 python .scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
+
+# 记录到 evidence ledger（验证与记录原子化）:
+# 结果写入 .cache/evidence/<TICKER>.verify-staging.json，Step 7 用
+# evidence_ledger.py apply-staging <artifact> -t <TICKER> 按 URL 合并进 ledger
+python .scripts/shared/verify-claim.py <url> --json --ledger <artifact路径> -t <TICKER>
 ```
 
 skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证（hook: `evidence_ledger_floor`）。

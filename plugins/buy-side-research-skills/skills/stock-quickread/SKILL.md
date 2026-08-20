@@ -48,8 +48,9 @@ Step 3: Discovery — WebSearch 找候选 source URL
         ★ 目标: ≥ 8 条候选 URL
         ★ Fail → 有多少用多少，但必须报告缺少多少.
 
-Step 4: python .scripts/shared/verify-claim.py <url> --json（Tier 1→2→3）
+Step 4: python .scripts/shared/verify-claim.py <url> --json --ledger <artifact路径> -t <TICKER>
         ★ 每条候选 URL 至少尝试 Tier 1 HTTP
+        ★ --ledger 把验证结果即时落盘到 .cache/evidence/<TICKER>.verify-staging.json（验证与记录原子化）
         ★ Fail per URL → 标 [UNVERIFIED]. 全部 fail → STOP.
 
 Step 5: python .scripts/shared/download-image.py <url> --output <slug>（产品图）
@@ -61,8 +62,11 @@ Step 6: Write artifact
         ★ 文件在 → 放行. 文件不在 → block + 给你补全命令
 
 Step 7: python .scripts/evidence_ledger.py auto <artifact> -t <TICKER>
+        + python .scripts/evidence_ledger.py apply-staging <artifact> -t <TICKER>
         + python .scripts/evidence_ledger.py lint <artifact> -t <TICKER>
-        ★ auto 先跑，lint 再跑。两步 -t TICKER 都必填.
+        ★ auto 先生成 pending claims，apply-staging 把 Step 4 的验证结果按 URL 合并进 ledger
+          （已验证的直接升级 status/tier/attempt，未验证的保留 unverified——由 coverage floor 把关，不造假）
+        ★ 三步 -t TICKER 都必填. lint 无报错为止.
         ★ Verify: 所有 [S#] 在 ledger 中有 entry，lint 无报错
         ★ Fail → STOP. 不得手动编辑 ledger.
 
