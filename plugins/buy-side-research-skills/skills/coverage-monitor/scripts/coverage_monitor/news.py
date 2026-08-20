@@ -170,8 +170,25 @@ def collect_company_news(
 
         items: list[NewsItem] = []
 
-        # DDG bilingual search
-        if ddg_enabled:
+        # FMP news 首层（美股覆盖；非美股返回空 → DDG fallback）
+        try:
+            import sys as _sys, os as _os
+            _fd = _os.path.join(_os.path.dirname(__file__), "..", "..", "financial-data", "providers")
+            if _fd not in _sys.path:
+                _sys.path.insert(0, _os.path.abspath(_fd))
+            from fmp_provider import fetch as _fmp_fetch
+            fr = _fmp_fetch({"identifier": entry.ticker, "items": ["news"], "periods": "latest"})
+            for n in fr.get("news", [])[:5]:
+                items.append(NewsItem(
+                    title=str(n.get("title") or ""), url=str(n.get("url") or n.get("site") or ""),
+                    source="fmp", summary=str(n.get("text") or ""),
+                    published_at=str(n.get("publishedDate") or ""),
+                ))
+        except Exception:
+            pass  # FMP news unavailable → DDG
+
+        # DDG bilingual search（FMP 已有新闻则不搜，省一次搜索成本）
+        if ddg_enabled and not items:
             try:
                 import sys, os
                 _shared = os.path.join(os.path.dirname(__file__), "..", "..", "shared")

@@ -7,7 +7,77 @@ from .coverage import CoverageEntry
 from .tickers import build_ticker_runtime
 
 
+def _load_fmp():
+    """Load financial-data fmp_provider (reused for quote/price_change/news)."""
+    import importlib
+    import sys
+    from pathlib import Path
+    pdir = Path(__file__).resolve().parents[2] / "financial-data" / "providers"
+    if str(pdir) not in sys.path:
+        sys.path.insert(0, str(pdir))
+    return importlib.import_module("fmp_provider")
+
+
+def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, Any] | None:
+    """FMP-first quote: price/1D/1M/ytd/1Y/cap/pe + 美股 news headline.
+
+    Returns None on any failure → caller falls back to yfinance.
+    """
+    try:
+        fmp = _load_fmp()
+        r = fmp.fetch({"identifier": entry.ticker,
+                       "items": ["market_data", "price_change", "historical_price", "news"],
+                       "periods": "latest"})
+        md = r.get("market_data", {})
+        if not md.get("price"):
+            return None
+        pc = r.get("price_change", {})
+        hist = r.get("historical_price", [])
+        snap: dict[str, Any] = {
+            "provider": "fmp",
+            "quote_ticker": r.get("fmp_ticker"),
+            "last_price": md["price"],
+            "price_move_pct": pc.get("1D"),
+            "ret_1m": pc.get("1M"),
+            "ret_ytd": pc.get("ytd"),
+            "ret_1y": pc.get("1Y"),
+            "market_cap": md.get("market_cap"),
+            "pe_trailing": md.get("pe_ttm"),
+            "market_time": today or str(date.today()),
+            "volume_ratio": None,
+            "gap_pct": None,
+            "near_20d_high": None,
+            "near_20d_low": None,
+        }
+        # 20 日均量 + 20d 高低（从历史价 light 算）
+        if len(hist) >= 5:
+            try:
+                prices = [float(h["price"]) for h in hist[:20] if h.get("price")]
+                volumes = [float(h["volume"]) for h in hist[:20] if h.get("volume")]
+                if prices:
+                    snap["near_20d_high"] = snap["last_price"] >= max(prices)
+                    snap["near_20d_low"] = snap["last_price"] <= min(prices)
+                if volumes and len(volumes) >= 2:
+                    snap["volume_ratio"] = round(volumes[0] / (sum(volumes[1:]) / max(len(volumes) - 1, 1)), 2)
+            except Exception:
+                pass
+        nw = r.get("news", [])
+        if nw:
+            snap["headline"] = nw[0].get("title") or ""
+            snap["url"] = nw[0].get("url") or nw[0].get("site") or ""
+            snap["published_at"] = str(nw[0].get("publishedDate") or "")
+        snap["quote_status"] = "OK"
+        return snap
+    except Exception:
+        return None
+
+
 def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, dict[str, Any], str]:
+    key = entry.ticker or entry.company
+    # FMP 优先：行情/涨跌/市值/PE/新闻 headline
+    fmp_snap = _fetch_fmp_snapshot(entry, today)
+    if fmp_snap is not None:
+        return key, fmp_snap, ""
     import yfinance as yf
     ticker_runtime = build_ticker_runtime(entry.ticker, entry.company)
     key = entry.ticker or entry.company
