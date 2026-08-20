@@ -4,6 +4,9 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.3 | market_snapshot_source_boundary rewrite: paragraph-window scan, URL-stripped keyword match, line-numbered block messages, PE/20x/市值 allowed terms, format checks demoted to warn (484->49 blocks on real artifacts) |
+
+
 | v8.2.1 | Tool alias table, CLAUDE.md section 11 agent behavior rules |
 | v8.2.0 | workspace-summary + workspace-validate-names scripts, remove dcf-model/comps-analysis/3-statement-model |
 | v8.1.0 | workspace-locate.py, transcribe encoding fix, meeting-minutes workspace awareness + naming enforcement |
