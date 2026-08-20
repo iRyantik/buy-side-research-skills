@@ -258,6 +258,43 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"price_change: {e}")
 
+        if "key_metrics" in items:
+            # TTM 关键指标（EV/EBITDA、EV/FCF 等）——估值表
+            try:
+                km = _api("/key-metrics-ttm", {"symbol": fmp_ticker})
+                if km:
+                    result["key_metrics"] = km[0]
+                    result["items_extracted"].append("key_metrics")
+                else:
+                    result["data_gaps"].append("key_metrics: FMP key-metrics-ttm empty")
+            except Exception as e:
+                result["errors"].append(f"key_metrics: {e}")
+
+        if "price_target" in items:
+            # 目标价共识（high/low/consensus/median）——consensus-map
+            try:
+                pt = _api("/price-target-consensus", {"symbol": fmp_ticker})
+                if pt:
+                    result["price_target"] = pt[0]
+                    result["items_extracted"].append("price_target")
+                else:
+                    result["data_gaps"].append("price_target: FMP price-target-consensus empty")
+            except Exception as e:
+                result["errors"].append(f"price_target: {e}")
+
+        if "earnings_calendar" in items:
+            # 单公司财报日历（next earnings date）——日报 Review Queue 财报触发
+            # 全市场日期范围扫：/earnings-calendar?from=YYYY-MM-DD&to=YYYY-MM-DD（日报专用）
+            try:
+                ec = _api("/earnings-calendar", {"symbol": fmp_ticker})
+                if ec:
+                    result["earnings_calendar"] = ec
+                    result["items_extracted"].append("earnings_calendar")
+                else:
+                    result["data_gaps"].append("earnings_calendar: FMP earnings-calendar empty")
+            except Exception as e:
+                result["errors"].append(f"earnings_calendar: {e}")
+
         if "historical_price" in items:
             # Correct path: /historical-price-eod/light (subpath required).
             # Feeds 1m/YTD/1y moves for the daily brief — no yfinance fallback needed.
@@ -281,4 +318,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
     "cash_flow", "estimates", "revenue_split", "historical_price", "price_change",
+    "key_metrics", "price_target", "earnings_calendar",
 ]
