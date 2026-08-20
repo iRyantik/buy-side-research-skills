@@ -427,7 +427,7 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     return cleaned
 
 
-def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False) -> int:
+def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am") -> int:
     from concurrent.futures import ThreadPoolExecutor
 
     if skip_fetch:
@@ -478,18 +478,18 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     # Clean gaps based on enrichment coverage
     gaps = _clean_gaps_for_enrichment(gaps, enrichment, entries, snapshots)
 
-    markdown_text = render_daily_markdown(
-        entries, snapshots, run_day, gaps, merged_company_news, industry_readthroughs,
-        mover_explainers, industry_summaries, industry_searches, core_watch_summaries,
+    from .brief import render_brief_markdown
+    from .brief_html import render_brief_html
+    markdown_text = render_brief_markdown(
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
     )
-    html_text = render_dashboard_html(
-        entries, snapshots, run_day, gaps, merged_company_news, industry_readthroughs,
-        mover_explainers, industry_summaries, industry_searches, core_watch_summaries,
+    html_text = render_brief_html(
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
     )
     if dry_run:
         print(markdown_text)
         return 0
-    stem = f"{run_day}-brief"
+    stem = f"{run_day}-brief-{report_type}"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
     email_body = render_email_body(
@@ -581,6 +581,8 @@ def build_parser() -> argparse.ArgumentParser:
     daily.add_argument("--enrichment", default="", help="Path to agent enrichment JSON (mover explainers, core watch news, industry summaries).")
     daily.add_argument("--explainers", default="", help="(deprecated) Use --enrichment instead.")
     daily.add_argument("--skip-fetch", action="store_true", help="Skip data fetching; re-render from cached daily state.")
+    daily.add_argument("--report-type", default="am", choices=("am", "asia", "eu"),
+                       help="Report coverage: am=盘前全量 / asia=亚盘盘后 / eu=欧盘盘后.")
 
     intraday = subparsers.add_parser("intraday", parents=[workspace_parent], help="Run intraday alert monitoring.")
     intraday.add_argument("--dry-run", action="store_true", help="Evaluate alerts without sending.")
@@ -605,7 +607,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "daily":
             enrichment_file = Path(args.enrichment or args.explainers) if (args.enrichment or args.explainers) else None
             return _run_daily(workspace, today=args.today or None, dry_run=args.dry_run,
-                              enrichment_path=enrichment_file, skip_fetch=args.skip_fetch)
+                              enrichment_path=enrichment_file, skip_fetch=args.skip_fetch,
+                              report_type=args.report_type)
         if args.command == "intraday":
             return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes)
     except UnicodeDecodeError:
