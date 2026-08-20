@@ -320,6 +320,18 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"news: {e}")
 
+        if "ratios" in items:
+            # 历史估值倍数（5y 中位用）：enterpriseValueMultiple 等
+            try:
+                rr = _api("/ratios", {"symbol": fmp_ticker, "period": "annual", "limit": 8})
+                if rr:
+                    result["ratios"] = rr
+                    result["items_extracted"].append("ratios")
+                else:
+                    result["data_gaps"].append("ratios: FMP ratios empty")
+            except Exception as e:
+                result["errors"].append(f"ratios: {e}")
+
         if "dividends" in items:
             # 股息历史（capital allocation / 股息能力）
             try:
@@ -355,5 +367,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
     "cash_flow", "estimates", "revenue_split", "historical_price", "price_change",
-    "key_metrics", "price_target", "earnings_calendar", "dividends", "news",
+    "key_metrics", "price_target", "earnings_calendar", "dividends", "news", "ratios",
 ]
