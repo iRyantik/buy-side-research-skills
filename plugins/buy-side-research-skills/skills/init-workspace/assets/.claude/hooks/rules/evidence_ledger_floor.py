@@ -10,7 +10,7 @@ Also checks: tier-gap (WebSearch-only → play missing Playwright) and image aud
 | ledger_corrupted | goto_step_2_init_ledger | Delete and re-init the ledger |
 | fabrication_risk | goto_step_4_verify | Verify or delete the flagged claim |
 | tier_gap | goto_step_4_verify | Each [I#] must have ≥1 WebFetch/Playwright/curl attempt |
-| low_coverage | goto_step_4_verify | Verify unverified claims until coverage ≥ 80% |
+| unprocessed_claim | goto_step_4_verify | Every anchored claim needs non-unverified status + attempt record ([S#]: WebFetch/actuals cross-check; [I#]: tier 1-2). Dead sources: corroborate or remove anchor+claim |
 
 If the ledger is missing or contains fabrication_risk claims without override, block.
 Also checks: tier-gap (WebSearch-only → play missing Playwright) and image audit.
@@ -128,7 +128,7 @@ def check(ctx):
         # Rule 2: Ledger must exist
         ledger_path = _find_ledger(path)
         if not ledger_path:
-            block(f"Blocked by evidence_ledger_floor: {display} has {len(anchors)} source anchor(s) "
+            block(f"Blocked by evidence_ledger_floor: {display} has {len(anchor_map)} source anchor(s) "
                   f"but no evidence ledger found at {os.path.dirname(path)}/{LEDGER_DIR}/. "
                   f"Run: evidence_ledger.py init <artifact> to create one.")
 
@@ -183,18 +183,25 @@ def check(ctx):
                   f"Must try WebFetch + Playwright before accepting any [I#] source. "
                   f"Run: evidence_ledger.py auto + attempt + verify")
 
-        # Rule 5: Coverage floor — block if < 80% verified
-        stats = ledger.get("stats", {})
-        total = stats.get("total_claims", 0)
-        verified = stats.get("verified", 0)
-        plausible = stats.get("plausible", 0)
-        if total > 5:
-            coverage = (verified + plausible) / total if total > 0 else 0
-            MIN_COVERAGE = 0.80
-            if coverage < MIN_COVERAGE:
-                block(f"Blocked by evidence_ledger_floor: {display} has {verified + plausible}/{total} "
-                      f"verified+plausible ({int(coverage*100)}%, minimum {int(MIN_COVERAGE*100)}%). "
-                      f"Verify more claims using verify-claim.py / download-image.py / actuals-to-appendix.py "
-                      f"before writing.")
+        # Rule 5: Disposition gate — every claim this artifact anchors must have
+        # left 'unverified' AND carry an attempt record. Replaces the old coverage
+        # quota (≥80% verified+plausible): a quota could be met by mass-marking
+        # claims plausible with zero evidence, and it punished honest dead-link
+        # handling. Scoped to this artifact's codes — stale claims from other
+        # artifacts of the same ticker do not gate this write.
+        artifact_claims = [c for c in claims if c.get("source", "") in artifact_codes]
+        unprocessed = [c.get("id", "?") for c in artifact_claims if c.get("status") == "unverified"]
+        no_attempt = [c.get("id", "?") for c in artifact_claims if not c.get("attempts")]
+        if unprocessed or no_attempt:
+            parts = []
+            if unprocessed:
+                parts.append(f"{len(unprocessed)} unverified: {', '.join(unprocessed[:5])}")
+            if no_attempt:
+                parts.append(f"{len(no_attempt)} no attempt record: {', '.join(no_attempt[:5])}")
+            block(f"Blocked by evidence_ledger_floor: {display} — {'; '.join(parts)}. "
+                  f"Every anchored claim needs a non-unverified status AND an attempt record "
+                  f"([S#]: one WebFetch/actuals cross-check; [I#]: tier 1-2, Rule 4). "
+                  f"Dead sources: corroborate or remove the anchor + claim. "
+                  f"Run: evidence_ledger.py verify <dir> -t <TICKER> (per-claim JSON).")
 
     sys.exit(0)

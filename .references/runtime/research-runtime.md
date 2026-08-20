@@ -10,16 +10,16 @@ Hook-enforced 规则（source boundary、structure floor、table render、mermai
 
 ```
 /financial-data <TICKER>
-  → .cache/financial-data/internal/actuals-resolved.json
+  → .cache/financial-data/actuals-resolved.json
 ```
 
-- 默认 Lite：`/financial-data <ticker>` → latest FY + latest Q/H（~46 字段）
-- Full 模式：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（~72 字段）
+- 默认 Lite：`/financial-data <ticker>` → latest FY + latest Q/H（全部字段）
+- Full 模式：`/financial-data <ticker> --mode full` → 5 FY + 4 Q/H（全部字段）
 - 灵活期间：`/financial-data <ticker> --periods FY2020-FY2025`
 - 期间 key 从 provider values dict 动态读取（如 `"FY 2025"`），不硬编码 `fy_y2/y1/y0`
 - 所有 provider 路由、trust 排序、市场数据降级链均在 financial-data 内部执行
 - 消费 skill 直接从 `actuals-resolved.json` 取数，不重复声明 provider/tier
-- **actuals 更新后必须同步 artifact**：任何字段被修改 → 找到所有引用该 ticker 的 artifact → 同步数字、结论、估值（规则详见 workspace `CLAUDE.md` §5.5）
+- **actuals 更新后必须同步 artifact**：任何字段被修改 → 找到所有引用该 ticker 的 artifact → 同步数字、结论、估值（详见 `CLAUDE.md` §3.5 做完就记）
 
 ---
 
@@ -45,6 +45,11 @@ python .scripts/shared/verify-claim.py <url> --json
 
 # 如果 Tier 1 失败 → 脚本输出 Playwright 指令 → agent 执行 → 回传
 python .scripts/shared/verify-claim.py <url> --playwright-text "<snapshot>"
+
+# 记录到 evidence ledger（验证与记录原子化）:
+# 结果写入 .cache/evidence/<TICKER>.verify-staging.json，Step 7 用
+# evidence_ledger.py apply-staging <artifact> -t <TICKER> 按 URL 合并进 ledger
+python .scripts/shared/verify-claim.py <url> --json --ledger <artifact路径> -t <TICKER>
 ```
 
 skill 的 artifact 中，每个 [I#] source 必须至少经过 Tier 1-2 验证（hook: `evidence_ledger_floor`）。
@@ -218,7 +223,7 @@ python .scripts/shared/download-image.py <url> --output <slug>   # 产品/设备
 | `table_render_integrity` | 列数一致性、separator row 存在 |
 | `mermaid_syntax` | diagram type 合法性 |
 | `skill_structure_contract` | 必填 section 存在 |
-| `evidence_ledger_floor` | Tier 2 验证覆盖 ≥80% |
+| `evidence_ledger_floor` | [I#] 须有 tier 1-2 attempt；每条锚定 claim 非 unverified 且带 attempt 记录 |
 
 ### 4.3 Appendix
 
@@ -235,8 +240,8 @@ python .scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
 ### 5.1 路径
 
 ```
-industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md     # 公司级
-industry/<industry>/YYYY-MM-DD-<artifact>.md                        # 行业级
+industry/<industry>/companies/<ticker>/YYYYMMDD-[skill]-[Company-Name][-variant].md    # 公司级
+industry/<industry>/YYYYMMDD-[skill]-[Topic-Name][-variant].md                       # 行业级
 ```
 
 ### 5.2 自动脚手架
@@ -267,4 +272,24 @@ Agent 保存 artifact 前完成：
 □ 10. Mermaid 图用了合法类型（quadrantChart 不是 scatterchart）（hook: mermaid_syntax）
 □ 11. `## Resources` 节格式正确，每个 label 是 [S#] 或 [I#]
 □ 12. `## Appendix: Financial Data` 已嵌入（actuals-to-appendix.py 先跑，不留占位符）
+
+---
+
+## Standard Research Capsule
+
+新 skill 的 `## Research Runtime Capsule` 统一写：
+
+```markdown
+## Research Runtime Capsule
+
+**执行本 skill 前必须先读取以下文件：**
+- workspace `CLAUDE.md` §3（Agent Rules）§4（Source Stance）§5（Output Style）§6（Pipeline Contract）
+- `.references/runtime/research-runtime.md` §1（数据获取链）§2（来源验证链）§4（产出合约）§5（保存合约）
+- `.references/style/language-guide.md`（语言规则）
+- `.references/routing/data-routing.md`（数据路由，需要外部数据时）
+
+**自动 Hook 防御：** `pre_write_gate` `source_contract` `table_render_integrity` `mermaid_syntax` `skill_structure_contract` `evidence_ledger_floor`
+
+**GATE**: Read all referenced files BEFORE any action. Capsule only states what is unique to this skill.
+```
 ```

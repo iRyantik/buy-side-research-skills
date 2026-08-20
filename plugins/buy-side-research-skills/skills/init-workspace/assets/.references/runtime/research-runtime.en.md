@@ -216,7 +216,7 @@ python .scripts/shared/download-image.py <url> --output <slug>   # 产品/设备
 | `table_render_integrity` | 列数一致性、separator row 存在 |
 | `mermaid_syntax` | diagram type 合法性 |
 | `skill_structure_contract` | 必填 section 存在 |
-| `evidence_ledger_floor` | Tier 2 验证覆盖 ≥80% |
+| `evidence_ledger_floor` | [I#] 须有 tier 1-2 attempt；每条锚定 claim 非 unverified 且带 attempt 记录 |
 
 ### 4.3 Appendix
 
