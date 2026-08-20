@@ -1935,6 +1935,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--topic")
     p.add_argument("--market", choices=("us", "cn", "hk", "jp", "kr", "tw", "eu", "se", "fr", "de", "uk", "sg", "my", "in", "au"), help="Market route")
     p.add_argument("--identifier", help="Ticker, CIK, filing URL, or market-specific identifier")
+    p.add_argument("--tickers", help="Comma-separated tickers for scan mode (batch FMP pull, no PDF)")
     p.add_argument("--identifier-type", default="ticker", choices=("ticker", "isin", "lei", "cik", "edinet_code", "dart_corp_code", "filing_url", "local_esef_package"))
     p.add_argument("--canonical-id")
     p.add_argument("--periods", default="latest")
@@ -1943,6 +1944,42 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--source-mode", choices=("auto", "filing_only", "provider_normalized"), default="auto")
     p.add_argument("--financial-data-pack-path")
     return p.parse_args()
+
+
+def _run_scan(args) -> int:
+    """scan mode：批量 FMP 拉数（行情/涨跌/三表/estimates），不触 PDF、不建 evidence-pack。
+
+    输出批量 JSON summary（每家 status/extracted/price/gaps），不写 canonical pack。
+    供日报估值表全量刷新 + candidate-screener 选股批量用。
+    """
+    import importlib as _il
+    pdir = Path(__file__).resolve().parent / "providers"
+    if str(pdir) not in sys.path:
+        sys.path.insert(0, str(pdir))
+    fmp_mod = _il.import_module("fmp_provider")
+    tickers = [t.strip() for t in str(args.tickers).split(",") if t.strip()]
+    items = ["identity", "market_data", "price_change", "income_statement",
+             "balance_sheet", "cash_flow", "estimates", "earnings_calendar"]
+    out = []
+    for t in tickers:
+        try:
+            r = fmp_mod.fetch({"identifier": t, "market": args.market, "items": items, "periods": args.periods})
+            md = r.get("market_data", {})
+            out.append({
+                "ticker": t,
+                "fmp_ticker": r.get("fmp_ticker"),
+                "status": r["status"],
+                "extracted": r["items_extracted"],
+                "price": md.get("price"),
+                "next_earnings": r.get("next_earnings_date"),
+                "errors": r["errors"][:2],
+                "gaps": r["data_gaps"][:2],
+            })
+        except Exception as e:
+            out.append({"ticker": t, "status": "failed", "error": str(e)[:100]})
+    print(json.dumps({"mode": "scan", "market": args.market,
+                      "count": len(out), "results": out}, ensure_ascii=True, indent=2))
+    return 0
 
 
 def _fmp_has_quote(args) -> bool:
@@ -2242,8 +2279,17 @@ def main() -> int:
         print(json.dumps(dependency_matrix(), ensure_ascii=True, indent=2))
         return 0
 
-    if not args.market or not args.identifier:
-        print(json.dumps({"status": "failed", "error": "--market and --identifier required"}, ensure_ascii=True, indent=2))
+    if not args.market:
+        print(json.dumps({"status": "failed", "error": "--market required"}, ensure_ascii=True, indent=2))
+        return 1
+    if getattr(args, "mode", "lite") == "scan":
+        # scan 模式：批量 FMP 拉数，不触 PDF、不建 evidence-pack
+        if not args.tickers:
+            print(json.dumps({"status": "failed", "error": "--tickers required for scan mode"}, ensure_ascii=True, indent=2))
+            return 1
+        return _run_scan(args)
+    if not args.identifier:
+        print(json.dumps({"status": "failed", "error": "--identifier required (or use --mode scan --tickers for batch)"}, ensure_ascii=True, indent=2))
         return 1
     if args.output_scope == "canonical_company" and not args.company_slug:
         print(json.dumps({"status": "failed", "error": "--company-slug required for canonical_company"}, ensure_ascii=True, indent=2))
