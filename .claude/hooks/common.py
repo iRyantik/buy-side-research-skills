@@ -126,6 +126,16 @@ def is_artifact_like(text: str) -> bool:
         return False
     return bool(re.search(r'(?m)^##\s+', text))
 
+def is_research_artifact(display_or_path: str) -> bool:
+    """True only for dated research markdown under industry/ (research artifacts).
+    Operations artifacts (daily/ briefs, reports/, root files) are exempt from
+    research-only hooks (source_contract, evidence_ledger_floor, ...)."""
+    rel = (display_or_path or "").replace("\\", "/")
+    if not (rel.startswith("industry/") or "/industry/" in rel):
+        return False
+    leaf = rel.rsplit("/", 1)[-1]
+    return bool(re.match(r'^\d{8}-.+\.md$', leaf))
+
 def get_body_without_resources(text: str) -> str:
     """Remove ## Resources section and everything after."""
     m = re.search(r'(?im)^##\s*Resources\b.*', text)
@@ -330,6 +340,33 @@ def get_markdown_targets(payload: dict) -> list[dict]:
             })
     return targets
 
+
+
+def scan_recent_mtime(workspace_root: str, since_seconds: float = 15.0) -> list[str]:
+    """Scan workspace for files modified in the last N seconds.
+    Only checks root level + industry/ tree (1 level deep for speed).
+    Returns list of full paths."""
+    import time, os
+    root = Path(workspace_root)
+    recent = []
+    cutoff = time.time() - since_seconds
+    try:
+        for entry in os.scandir(str(root)):
+            try:
+                if entry.is_file() and entry.stat().st_mtime > cutoff:
+                    recent.append(str(root / entry.name))
+                elif entry.is_dir() and entry.name in ('industry', '.cache', '.scripts', '.references', '.claude', '.codex'):
+                    for sub in os.scandir(entry.path):
+                        try:
+                            if sub.is_file() and sub.stat().st_mtime > cutoff:
+                                recent.append(str(root / entry.name / sub.name))
+                        except OSError:
+                            pass
+            except OSError:
+                pass
+    except OSError:
+        pass
+    return recent
 
 def block(msg: str):
     sys.stderr.write(f"{msg}\n")

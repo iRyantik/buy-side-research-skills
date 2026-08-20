@@ -126,6 +126,16 @@ def is_artifact_like(text: str) -> bool:
         return False
     return bool(re.search(r'(?m)^##\s+', text))
 
+def is_research_artifact(display_or_path: str) -> bool:
+    """True only for dated research markdown under industry/ (research artifacts).
+    Operations artifacts (daily/ briefs, reports/, root files) are exempt from
+    research-only hooks (source_contract, evidence_ledger_floor, ...)."""
+    rel = (display_or_path or "").replace("\\", "/")
+    if not (rel.startswith("industry/") or "/industry/" in rel):
+        return False
+    leaf = rel.rsplit("/", 1)[-1]
+    return bool(re.match(r'^\d{8}-.+\.md$', leaf))
+
 def get_body_without_resources(text: str) -> str:
     """Remove ## Resources section and everything after."""
     m = re.search(r'(?im)^##\s*Resources\b.*', text)

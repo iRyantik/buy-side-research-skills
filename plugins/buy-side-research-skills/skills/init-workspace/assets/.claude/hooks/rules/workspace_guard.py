@@ -17,6 +17,7 @@ DATE_PREFIX_RE = re.compile(r'^\d{8}-[a-z0-9A-Z\[\]][a-z0-9A-Z\[\]\-_]*\.(md|htm
 ROOT_WHITELIST = frozenset({
     "industry", ".cache", ".scripts", ".claude", ".codex",
     ".references", "COVERAGE.md", "CLAUDE.md", "AGENTS.md", ".env", ".gitignore",
+    "daily",
 })
 
 # External dev roots explicitly allowed for writes (plugin dev repo).

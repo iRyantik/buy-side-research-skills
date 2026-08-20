@@ -49,6 +49,10 @@ ANNOTATION_PREFIXES = ('ND', '推算', '未披露', '缺图', '估算', '需查�
 
 def _is_artifact_path(filepath: str) -> bool:
     leaf = os.path.basename(filepath) if filepath else ""
+    rel = (filepath or "").replace("\\", "/")
+    # Research artifacts only — daily/ briefs and other operations files are exempt
+    if not (rel.startswith("industry/") or "/industry/" in rel):
+        return False
     return bool(_ARTIFACT_RE.match(leaf))
 
 

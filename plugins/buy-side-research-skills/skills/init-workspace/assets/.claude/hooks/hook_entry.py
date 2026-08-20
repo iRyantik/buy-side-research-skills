@@ -7,7 +7,7 @@ Usage:
 import sys, os, argparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import load_stdin_payload
+from common import load_stdin_payload, is_research_artifact
 
 RUNTIMES = {"claude", "codex"}
 
@@ -49,6 +49,36 @@ STOP_RULES = [
     "pdf_auto_cache",
     "session_conflict_clean",
 ]
+# Rules that only apply to research artifacts (industry/ dated md).
+# Operations artifacts (daily/ briefs, reports/) are filtered out before dispatch.
+# viz_delivery_contract is NOT in this set — it enforces html naming for all html.
+RESEARCH_ARTIFACT_RULES = frozenset({
+    "source_contract",
+    "table_render_integrity",
+    "mermaid_syntax",
+    "data_claim_cross_check",
+    "skill_structure_contract",
+    "provider.market_snapshot_source_boundary",
+    "provider.disclosure_fact_source_boundary",
+    "provider.social_clue_only",
+    "provider.image_path_integrity",
+    "fact_provenance",
+    "claim_source_proximity",
+    "evidence_ledger_floor",
+    "research_memory_gate",
+    "subagent_protocol",
+})
+
+
+def _research_targets_only(ctx: dict) -> dict:
+    """Filter ctx targets to research artifacts (industry/ dated md).
+    Non-file targets pass through — rules skip them themselves."""
+    return {**ctx, "targets": [
+        t for t in ctx.get("targets", [])
+        if t.get("kind") != "file" or is_research_artifact(t.get("display", ""))
+    ]}
+
+
 # Modeling rules — xlsx-only, standalone pattern (use model dispatch, not check(ctx))
 MODELING_RULES = [
     "model_checks_result",
@@ -141,7 +171,8 @@ def main():
     for name in rule_names:
         import importlib
         mod = importlib.import_module(f"rules.{name}")
-        mod.check(ctx)
+        rule_ctx = _research_targets_only(ctx) if name in RESEARCH_ARTIFACT_RULES else ctx
+        mod.check(rule_ctx)
 
     # Modeling dispatch: run standalone xlsx rules when xlsx targets present
     if args.event == "PostToolUse" and _has_xlsx_targets(payload):
