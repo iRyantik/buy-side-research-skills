@@ -28,6 +28,8 @@ POST_TOOL_USE_RULES = [
     "provider.market_snapshot_source_boundary",
     "provider.disclosure_fact_source_boundary",
     "provider.social_clue_only",
+    # Provider: image path integrity (warn-only)
+    "provider.image_path_integrity",
     # Viz: delivery contract
     "viz.viz_delivery_contract",
     # Fact governance: provenance + claim proximity

@@ -189,7 +189,7 @@ Example: `TSMC SoIC uses hybrid bonding for 3D stacking [S1](url). BESI D2W bond
 
 **What It Looks Like** (1–2 focus product images)
 
-| ![Product](../../../../_cache/images/<slug>-<product>.png) |
+| ![Product](../../../../.cache/images/<slug>-<product>.png) |
 |---|
 | *Product Name — Function (≤15 words)* |
 
@@ -207,7 +207,7 @@ flowchart LR
 
 (Same structure — why it matters / what it looks like / where it sits / how it makes money. Focus segments must include images — mark [IMAGE MISSING] if unavailable; do not skip.)
 
-> Images only for focus segments. Other segments do not get images. ① Company website Media Kit → ② web search product image → ③ industry representative image if unavailable → ④ mark [IMAGE MISSING] as last resort. Download to `_cache/images/<slug>-<product>.png`.
+> Images only for focus segments. Other segments do not get images. ① Company website Media Kit → ② web search product image → ③ industry representative image if unavailable → ④ mark [IMAGE MISSING] as last resort. All images live in workspace `.cache/images/` (download-image.py saves there; cross-skill shared). Compute the artifact-relative ref mechanically: `download-image.py --artifact <target.md>` prints it ready-to-paste, or `image-path-check.py --fix` rewrites it. Never hand-write `../` depth; run `image-path-check.py` after writing; mark `[缺图]` if unavailable.
 
 #### Other Businesses
 

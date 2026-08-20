@@ -4,9 +4,13 @@
 Usage:
   python download-image.py <url> --output <slug>            # download + cache
   python download-image.py <url> --output <slug> --base64   # from base64 (Tier 2)
+  python download-image.py <url> --output <slug> --artifact <md>  # print ref relative to artifact
   python download-image.py --check <slug>                    # check cache only
 
 Cache: workspace .cache/images/ + .cache.json index. Cross-skill shared.
+The printed "Artifact 引用" is ready-to-paste: with --artifact it is computed
+relative to the artifact file (never hand-write ../ depth). Without it, the ref
+is workspace-root-relative — for an artifact deep in industry/ use --artifact.
 """
 
 from __future__ import annotations
@@ -131,6 +135,7 @@ def main():
     p.add_argument("--output", required=True, help="Output slug (e.g. 'my-product')")
     p.add_argument("--base64", help="Base64 image data (Tier 2 fallback)")
     p.add_argument("--check", action="store_true", help="Check cache only")
+    p.add_argument("--artifact", help="Target artifact md — print ref relative to it")
     p.add_argument("--workspace", help="Workspace path (default: auto-detect)")
     args = p.parse_args()
 
@@ -154,6 +159,12 @@ def main():
     print(json.dumps(result, ensure_ascii=False, indent=2))
     ref = result.get("ref", "")
     if ref and result["status"] in ("downloaded", "cached"):
+        if args.artifact:
+            import os as _os
+            art = Path(args.artifact).resolve()
+            abs_img = workspace / CACHE_DIR / result["filename"]
+            rel = _os.path.relpath(str(abs_img), str(art.parent)).replace("\\", "/")
+            ref = rel
         print(f"\nArtifact 引用: ![描述]({ref})")
     return 0 if result["status"] != "error" else 1
 

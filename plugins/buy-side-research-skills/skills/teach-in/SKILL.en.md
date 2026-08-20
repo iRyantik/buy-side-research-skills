@@ -122,7 +122,7 @@ Closing trio (after Layer 6, required):
 
 **Product photo download priority**: Company website Media Kit → Product page hero image → web search product image → industry representative image → `[Image missing]`
 
-Download to `_cache/images/`; embed in artifact as `![Description](relative path)`.
+All images live in workspace `.cache/images/` (download-image.py saves there; cross-skill shared). Compute the artifact-relative ref mechanically: `download-image.py --artifact <target.md>` prints it ready-to-paste, or `image-path-check.py --fix` rewrites it. Never hand-write `../` depth; run `image-path-check.py` after writing; mark `[缺图]` if unavailable.
 
 **Download method**: `python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail.
 

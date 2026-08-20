@@ -142,10 +142,10 @@ Phase 6: WHO — 谁在做（纯事实，不判断）
 
 **实物图下载优先级**：公司官网 Media Kit → 产品页 hero image → web search 产品图 → 行业代表性图 → `[缺图]`
 
-下载到行业 `.cache/images/teach-in/`。
+图片统一存 workspace `.cache/images/`（download-image.py 自动落盘，跨 skill 共享；禁止搬进 topic 目录）。
 
-**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --topic teach-in` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-artifact 引用：`![描述](.cache/images/teach-in/<slug>.png)`
+**下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+artifact 引用：相对路径机械计算：`download-image.py --artifact <目标md>` 直接输出成品，或 `image-path-check.py --fix` 自动重写。**禁止手写 `../` 深度**；写完跑 `image-path-check.py` 确认 0 问题；缺图标 `[缺图]`。
 
 **ASCII 架构图**：我来画。每层至少 1 张。
 

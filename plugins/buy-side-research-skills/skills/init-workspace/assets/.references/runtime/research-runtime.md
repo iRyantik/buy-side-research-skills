@@ -200,6 +200,8 @@ python .scripts/shared/download-image.py <url> --output <slug>   # 产品/设备
 
 产品图命名：`<slug>.{ext}`（手动 `--output` 指定）。
 
+**artifact 引用**：相对路径机械计算——`download-image.py --artifact <目标md>` 直接输出成品；历史/已有 artifact 用 `python .scripts/shared/image-path-check.py --fix` 自动迁移重写。禁止手写 `../` 深度。写完 artifact 跑 `image-path-check.py` 确认 0 问题；hook `image_path_integrity`（PostToolUse warn-only）写时提醒。
+
 **禁止** `browser_take_screenshot` 代替下载——hook `pre_write_gate` CHECK 6a 直接 block。
 
 ---

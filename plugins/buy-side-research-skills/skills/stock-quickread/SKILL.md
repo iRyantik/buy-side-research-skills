@@ -132,7 +132,7 @@ Step 8: python .scripts/financial-data/actuals-to-appendix.py --tickers <TICKER>
 
 **长这样**（焦点产品图 1-2 张）
 
-| ![产品](.cache/images/<slug>-<product>.png) |
+| ![产品](../../../../.cache/images/<slug>-<product>.png) |
 |---|
 | *产品名 — 功能（≤15字）* |
 
@@ -152,10 +152,10 @@ flowchart LR
 
 （同上结构——为什么重要 / 长这样 / 在什么位置 / 怎么收钱。焦点业务必须放图——找不到标 [缺图]，不能跳过。）
 
-> 图片只放焦点业务的。其他业务不配图。下载到公司 `.cache/images/`。
+> 图片只放焦点业务的。其他业务不配图。统一存 workspace `.cache/images/`（download-image.py 自动，跨 skill 共享）。
 >
-> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug> --company <ticker>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
-> artifact 引用：`![产品](.cache/images/<slug>.png)`
+> **下载方法**：`python .scripts/shared/download-image.py <url> --output <slug>` — HTTP Tier 1 → Playwright Tier 2 `--base64` → `[缺图]` if all tiers fail。
+> artifact 引用：相对路径机械计算：`download-image.py --artifact <目标md>` 直接输出成品，或 `image-path-check.py --fix` 自动重写。**禁止手写 `../` 深度**；写完跑 `image-path-check.py` 确认 0 问题；缺图标 `[缺图]`。
 
 #### 其他业务
 

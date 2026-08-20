@@ -56,6 +56,12 @@ hooks:
     events: [PostToolUse]
     scope: [reddit-sentiment]
     severity: block
+  - name: image_path_integrity
+    file: rules/provider/image_path_integrity.py
+    layer: provider
+    events: [PostToolUse]
+    scope: [research_artifact]
+    severity: warn
 
   # === Modeling ===
   - name: model_checks_result
