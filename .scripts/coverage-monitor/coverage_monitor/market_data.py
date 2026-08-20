@@ -26,7 +26,8 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
     try:
         fmp = _load_fmp()
         r = fmp.fetch({"identifier": entry.ticker,
-                       "items": ["market_data", "price_change", "historical_price", "news"],
+                       "items": ["market_data", "price_change", "historical_price", "news",
+                                 "estimates", "key_metrics", "ratios", "earnings_calendar"],
                        "periods": "latest"})
         md = r.get("market_data", {})
         if not md.get("price"):
@@ -66,6 +67,13 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
             snap["headline"] = nw[0].get("title") or ""
             snap["url"] = nw[0].get("url") or nw[0].get("site") or ""
             snap["published_at"] = str(nw[0].get("publishedDate") or "")
+        # 估值 + 下次财报（日报估值表原料）
+        try:
+            from .valuation import compute_valuation_row
+            snap["valuation"] = compute_valuation_row(entry, r)
+        except Exception:
+            pass
+        snap["next_earnings"] = r.get("next_earnings_date")
         snap["quote_status"] = "OK"
         return snap
     except Exception:
@@ -203,7 +211,7 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
 
 
 def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
-                      max_workers: int = 8) -> tuple[dict[str, dict[str, Any]], list[str]]:
+                      max_workers: int = 16) -> tuple[dict[str, dict[str, Any]], list[str]]:
     from concurrent.futures import ThreadPoolExecutor, as_completed
     try:
         import yfinance as yf  # type: ignore

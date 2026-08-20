@@ -1,0 +1,231 @@
+"""日报 5 区块渲染（盘前 am 全量 / 亚盘 asia / 欧盘 eu）。
+
+区块：① Review Queue ② 估值表 ③ Movers ④ Core Watch ⑤ Data Health。
+数据全部来自 FMP（行情/涨跌/估值/财报日/news），snapshot 里已含估值原料。
+"""
+
+from __future__ import annotations
+
+import datetime
+from typing import Any
+
+from .coverage import CoverageEntry
+from .valuation import fmt_cell, rich_class
+
+# 市场 → report_type 归属
+_MARKET_OF = {
+    ".SZ": "asia", ".SH": "asia", ".CN": "asia", ".T": "asia", ".JP": "asia",
+    ".KS": "asia", ".KQ": "asia", ".TW": "asia", ".TT": "asia", ".HK": "asia",
+    ".DE": "eu", ".MI": "eu", ".MC": "eu", ".LN": "eu", ".FR": "eu",
+    ".HE": "eu", ".PA": "eu", ".ST": "eu", ".OL": "eu", ".AS": "eu",
+    ".KL": "eu", ".MY": "eu", ".NS": "eu", ".AX": "eu", ".CA": "eu",
+    ".SS": "eu", ".US": "us", "": "us",
+}
+
+
+def _market_of(ticker: str) -> str:
+    for suffix, mkt in _MARKET_OF.items():
+        if suffix and ticker.endswith(suffix):
+            return mkt
+    return "us"
+
+
+def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[CoverageEntry]:
+    """am 全量；asia 只亚盘；eu 只欧股。"""
+    if report_type == "am":
+        return entries
+    return [e for e in entries if _market_of(e.ticker or "") == report_type]
+
+
+def _display_name(entry: CoverageEntry) -> str:
+    """中文名公司显示中文名，非中文显示 EN 名（Company_Native 不显示）。"""
+    mkt = _market_of(entry.ticker or "")
+    if mkt == "asia" and entry.company_native:
+        return entry.company_native
+    return entry.company or entry.ticker or ""
+
+
+def _fmt_pct(v: Any, digits: int = 1) -> str:
+    if v is None:
+        return "—"
+    try:
+        return f"{float(v):.{digits}f}%"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _fmt_price(snap: dict[str, Any]) -> str:
+    p = snap.get("last_price")
+    if p is None:
+        return "—"
+    try:
+        f = float(p)
+        if f >= 1000:
+            return f"{f:,.0f}"
+        return f"{f:.2f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _fmt_cap(v: Any) -> str:
+    if not v:
+        return "—"
+    try:
+        f = float(v)
+        if f >= 1e12:
+            return f"{f / 1e12:.1f}tn"
+        if f >= 1e9:
+            return f"{f / 1e9:.1f}bn"
+        if f >= 1e6:
+            return f"{f / 1e6:.1f}m"
+        return f"{f:.0f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def render_brief_markdown(
+    entries: list[CoverageEntry],
+    snapshots: dict[str, dict[str, Any]],
+    today: str,
+    gaps: list[str],
+    news_map: dict[str, list[Any]],
+    report_type: str = "am",
+) -> str:
+    """渲染 5 区块 markdown。"""
+    ents = filter_entries(entries, report_type)
+    lines: list[str] = []
+    today_dt = datetime.date.fromisoformat(today) if today else datetime.date.today()
+
+    # ── 头部 ──
+    rt_label = {"am": "盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    lines.append(f"# Daily Brief · {today}（{rt_label}）")
+    lines.append("")
+    lines.append(f"**覆盖 {len(ents)} 家 · 数据源 FMP**")
+    lines.append("")
+
+    # ── ① Review Queue：财报临近 <14d ──
+    lines.append("## ① Review Queue —— 今天 2 件事")
+    lines.append("")
+    lines.append("| 触发 | Company | Ticker | Status | 触发详情 |")
+    lines.append("|---|---|---|---|---|")
+    rq_count = 0
+    for e in ents:
+        snap = snapshots.get(e.ticker or e.company, {})
+        nd = snap.get("next_earnings")
+        if nd:
+            try:
+                nd_dt = datetime.date.fromisoformat(str(nd)[:10])
+                days = (nd_dt - today_dt).days
+                if 0 <= days <= 14:
+                    rq_count += 1
+                    lines.append(f"| 财报 | {_display_name(e)} | {e.ticker} | {e.coverage_status or '—'} | ~{days} 天后财报（{nd}） |")
+            except (ValueError, TypeError):
+                pass
+    if rq_count == 0:
+        lines.append("| — | 无临近事件 | — | — | 未来 14 天无财报 |")
+    lines.append("")
+
+    # ── ② 估值表（全市场）──
+    lines.append("## ② 估值表 —— 全宇宙（按 Industry 分组）")
+    lines.append("")
+    lines.append("| Company | Ticker | Industry | Today | 1m | YTD | 1y | PE_TTM | PE_NTM | EV_TTM | EV_NTM | Next_Call | Status |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+    last_ind = None
+    for e in sorted(ents, key=lambda x: (x.industry or "", x.ticker or "")):
+        if e.industry != last_ind:
+            lines.append(f"| **{e.industry or 'Other'}** | | | | | | | | | | | | |")
+            last_ind = e.industry
+        snap = snapshots.get(e.ticker or e.company, {})
+        vrow = snap.get("valuation") or {}
+        pe_t = fmt_cell(vrow.get("pe_ttm"), vrow.get("pe_ttm_vs_5y"))
+        pe_n = fmt_cell(vrow.get("pe_ntm"),
+                        extra=(f"(你 {vrow['pe_fwd']}x)" if vrow.get("pe_fwd") else None))
+        ev_t = fmt_cell(vrow.get("ev_ttm"), vrow.get("ev_ttm_vs_5y"))
+        ev_n = fmt_cell(vrow.get("ev_ntm"))
+        # 贵/便宜染色（PE TTM vs 5y 优先，其次 EV）
+        if rich_class(vrow.get("pe_ttm_vs_5y")) == "rich":
+            pe_t = f"**{pe_t}**"
+        elif rich_class(vrow.get("ev_ttm_vs_5y")) == "rich":
+            ev_t = f"**{ev_t}**"
+        nd = snap.get("next_earnings") or ""
+        lines.append(
+            f"| {_display_name(e)} | {e.ticker} | {e.industry or '—'} | "
+            f"{_fmt_pct(snap.get('price_move_pct'))} | {_fmt_pct(vrow.get('ret_1m'))} | "
+            f"{_fmt_pct(vrow.get('ret_ytd'))} | {_fmt_pct(vrow.get('ret_1y'))} | "
+            f"{pe_t} | {pe_n} | {ev_t} | {ev_n} | {nd or '—'} | {e.coverage_status or '—'} |"
+        )
+    lines.append("")
+    lines.append("> **列口径**：PE_TTM=最近 4 季 trailing PE（FMP 现成）· PE_NTM=consensus 未来 12 月（价格÷epsAvg）· "
+                 "EV_TTM=企业价值÷EBITDA（消除资本结构，FMP 现成）· EV_NTM=(市值+净债)÷NTM EBITDA（estimates）。"
+                 "**括号 = 相对 5y 中位数**：`+36%` = 当前倍数比自身 5 年中位高 36%（贵）。"
+                 "**`(你 15x)`** = 你的研究 fwd 假设（driver-map/模型），与 consensus 差异即潜在 alpha。"
+                 "染色：**加粗**=贵（>+30% vs 5y 中位）· 绿=便宜（<-30%）。`—`=该口径无数据（缺 consensus/FMP 覆盖）。")
+    lines.append("")
+
+    # ── ③ Movers：重要 ±8% / 普通 ±5% ──
+    movers = [(e, snapshots.get(e.ticker or e.company, {})) for e in ents
+              if snapshots.get(e.ticker or e.company, {}).get("price_move_pct") is not None]
+    important = [(e, s) for e, s in movers if abs(float(s["price_move_pct"])) >= 8]
+    minor = [(e, s) for e, s in movers if 5 <= abs(float(s["price_move_pct"])) < 8]
+
+    lines.append("## ③ Movers —— 谁动了")
+    lines.append("")
+    if important:
+        lines.append("**重要（±8%）**")
+        lines.append("")
+        lines.append("| 公司 | Ticker | 涨跌 | Price | 一句话解释 |")
+        lines.append("|---|---|---|---|---|")
+        for e, s in important:
+            hd = (news_map.get(e.ticker or e.company, [{}])[0].get("title", "") if news_map.get(e.ticker or e.company) else "")
+            lines.append(f"| {_display_name(e)} | {e.ticker} | {_fmt_pct(s['price_move_pct'], 1)} | {_fmt_price(s)} | {hd[:40]} |")
+        lines.append("")
+    if minor:
+        lines.append("**普通（±5%）**")
+        lines.append("")
+        lines.append("| 公司 | Ticker | 涨跌 | Price | Cap | 1m | YTD | Vol |")
+        lines.append("|---|---|---|---|---|---|---|---|")
+        for e, s in minor:
+            lines.append(f"| {_display_name(e)} | {e.ticker} | {_fmt_pct(s['price_move_pct'], 1)} | {_fmt_price(s)} | "
+                         f"{_fmt_cap(s.get('market_cap'))} | {_fmt_pct(s.get('ret_1m'))} | {_fmt_pct(s.get('ret_ytd'))} | "
+                         f"{s.get('volume_ratio') or '—'} |")
+        lines.append("")
+    if not important and not minor:
+        lines.append("> 无 ±5% 异动。")
+        lines.append("")
+
+    # ── ④ Core Watch：Core 名单卡片 ──
+    core = [e for e in ents if e.monitor_status == "Core"]
+    lines.append("## ④ Core Watch —— 盯的公司")
+    lines.append("")
+    if core:
+        for e in sorted(core, key=lambda x: x.ticker or ""):
+            snap = snapshots.get(e.ticker or e.company, {})
+            vrow = snap.get("valuation") or {}
+            items = news_map.get(e.ticker or e.company, [])
+            head = items[0].title if items else "无新闻"
+            lines.append(f"### {_display_name(e)} · {e.ticker}（{e.coverage_status or '—'}）")
+            lines.append(f"- **Snapshot**：Price {_fmt_price(snap)} · Cap {_fmt_cap(snap.get('market_cap'))} · "
+                         f"1m {_fmt_pct(vrow.get('ret_1m'))} · YTD {_fmt_pct(vrow.get('ret_ytd'))} · 1y {_fmt_pct(vrow.get('ret_1y'))} · "
+                         f"Next {snap.get('next_earnings') or '—'}")
+            if items:
+                lines.append(f"- 📰 {head[:80]}")
+            else:
+                lines.append("- 无新闻")
+            lines.append("")
+    else:
+        lines.append("> 无 Core 名单。")
+        lines.append("")
+
+    # ── ⑤ Data Health ──
+    lines.append("## ⑤ Data Health —— 数据缺什么")
+    lines.append("")
+    if gaps:
+        lines.append(f"<details><summary>{len(gaps)} 项 gap · 点击展开</summary>")
+        lines.append("")
+        for g in gaps[:15]:
+            lines.append(f"- {g}")
+        lines.append("</details>")
+    else:
+        lines.append("> 数据完整。")
+    lines.append("")
+    return "\n".join(lines)

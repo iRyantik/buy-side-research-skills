@@ -1,10 +1,12 @@
 """估值纯函数：FMP 数据 → 日报估值表行。
 
-三口径：
-- **TTM**（trailing）：quote.pe_ttm + key-metrics evToEBITDATTM
-- **NTM**（consensus）：price ÷ analyst-estimates epsAvg（fwd 12 个月）
-- **fwd 用户假设**：COVERAGE Val_Anchor（driver-map/quickread 研究产出），预留字段
-主倍数优先序：用户 fwd > NTM > TTM。vs 5y 中位来自 ratios 历史（剔负）。
+估值表 4 列（每个口径单列）：
+- PE_TTM：ratios priceToEarningsRatio（FMP 现成）+ vs 5y 中位（ratios 历史）
+- PE_NTM：price ÷ consensus epsAvg；有用户 fwd 假设则并列显示
+- EV/EBITDA_TTM：key-metrics evToEBITDATTM（现成）+ vs 5y 中位（ratios 历史）
+- EV/EBITDA_NTM：EV（mcap+净债）÷ NTM EBITDA（estimates ebitdaAvg）
+
+次要倍数（PS/PB/P-FCF 等）→ 详情卡片用，不在主表。
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
     km = fr.get("key_metrics", {})
     ratios = fr.get("ratios", [])
     price = md.get("price")
+    mcap = md.get("market_cap")
 
     row: dict[str, Any] = {
         "ticker": entry.ticker,
@@ -33,33 +36,26 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
         "ret_1y": pc.get("1Y"),
         "next_call": fr.get("next_earnings_date"),
         "status": entry.coverage_status or entry.monitor_status or "",
-        # 三口径
-        "pe_ttm": md.get("pe_ttm"),          # fallback：4 季度 EPS 反推
-        "pe_ttm_ratio": None,                # FMP ratios priceToEarningsRatio（现成）
-        "ev_ebitda_ttm": km.get("evToEBITDATTM"),
-        "pe_ntm": None,
-        "fwd_multiple": None,   # 用户 fwd 假设（COVERAGE Val_Anchor，预留）
-        "fwd_multiple_type": None,
-        # 5y 中位 + vs（各自口径）
-        "pe_5y_median": None,
-        "pe_vs_5y": None,
-        "ev_5y_median": None,
-        "ev_vs_5y": None,
+        # PE
+        "pe_ttm": None, "pe_ttm_vs_5y": None, "pe_5y_median": None,
+        "pe_ntm": None, "pe_fwd": None,          # pe_fwd = 用户研究 fwd（COVERAGE Val_Anchor 预留）
+        # EV/EBITDA
+        "ev_ttm": None, "ev_ttm_vs_5y": None, "ev_5y_median": None,
+        "ev_ntm": None,
     }
 
-    # FMP ratios 现成 PE（priceToEarningsRatio）+ 5y PE 中位
+    # ── PE TTM + 5y 中位 ──
     if ratios:
-        row["pe_ttm_ratio"] = ratios[0].get("priceToEarningsRatio")
-        if row["pe_ttm_ratio"]:
-            row["pe_ttm"] = round(float(row["pe_ttm_ratio"]), 1)
-        pes = [float(x.get("priceToEarningsRatio")) for x in ratios
-               if x.get("priceToEarningsRatio")]
+        r0 = ratios[0]
+        if r0.get("priceToEarningsRatio"):
+            row["pe_ttm"] = round(float(r0["priceToEarningsRatio"]), 1)
+        pes = [float(x["priceToEarningsRatio"]) for x in ratios if x.get("priceToEarningsRatio")]
         pes = [v for v in pes if v > 0]
-        if len(pes) >= 3:
+        if len(pes) >= 3 and row["pe_ttm"]:
             row["pe_5y_median"] = round(statistics.median(pes), 1)
-            if row["pe_ttm"]:
-                row["pe_vs_5y"] = round((row["pe_ttm"] - row["pe_5y_median"]) / row["pe_5y_median"] * 100, 1)
+            row["pe_ttm_vs_5y"] = round((row["pe_ttm"] - row["pe_5y_median"]) / row["pe_5y_median"] * 100, 1)
 
+    # ── PE NTM（consensus fwd）──
     eps_avg = est[0].get("epsAvg") if est and isinstance(est[0], dict) else None
     if price and eps_avg:
         try:
@@ -67,63 +63,49 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
         except (TypeError, ValueError, ZeroDivisionError):
             pass
 
-    # EV/EBITDA 5y 中位（enterpriseValueMultiple 剔负）
-    if row["ev_ebitda_ttm"] and isinstance(row["ev_ebitda_ttm"], (int, float)):
-        evs = [float(x.get("enterpriseValueMultiple")) for x in ratios
-               if x.get("enterpriseValueMultiple")]
+    # ── EV/EBITDA TTM + 5y 中位 ──
+    ev_ttm = km.get("evToEBITDATTM")
+    if ev_ttm and isinstance(ev_ttm, (int, float)):
+        row["ev_ttm"] = round(float(ev_ttm), 1)
+        evs = [float(x["enterpriseValueMultiple"]) for x in ratios if x.get("enterpriseValueMultiple")]
         evs = [v for v in evs if v > 0]
         if len(evs) >= 3:
             row["ev_5y_median"] = round(statistics.median(evs), 1)
-            row["ev_vs_5y"] = round((float(row["ev_ebitda_ttm"]) - row["ev_5y_median"]) / row["ev_5y_median"] * 100, 1)
+            row["ev_ttm_vs_5y"] = round((row["ev_ttm"] - row["ev_5y_median"]) / row["ev_5y_median"] * 100, 1)
 
-    # 主倍数：fwd > NTM > TTM EV/EBITDA > TTM PE
-    if row["fwd_multiple"]:
-        row["val_multiple"] = f"fwd {row['fwd_multiple_type']}"
-        row["valuation"] = row["fwd_multiple"]
-    elif row["pe_ntm"]:
-        row["val_multiple"] = "P/E NTM"
-        row["valuation"] = row["pe_ntm"]
-    elif row["ev_ebitda_ttm"]:
-        row["val_multiple"] = "EV/EBITDA TTM"
-        row["valuation"] = round(float(row["ev_ebitda_ttm"]), 1)
-    elif row["pe_ttm"]:
-        row["val_multiple"] = "P/E TTM"
-        row["valuation"] = round(float(row["pe_ttm"]), 1)
-    else:
-        row["valuation"] = None
+    # ── EV/EBITDA NTM：EV = mcap + 净债；NTM EBITDA = estimates ebitdaAvg ──
+    ebitda_ntm = est[0].get("ebitdaAvg") if est and isinstance(est[0], dict) else None
+    if mcap and ebitda_ntm:
+        try:
+            ebitda_ntm_f = float(ebitda_ntm)
+            if ebitda_ntm_f > 0:
+                nd_ratio = km.get("netDebtToEBITDATTM")
+                if nd_ratio and row["ev_ttm"]:
+                    ebitda_ttm = float(mcap) / float(row["ev_ttm"])
+                    net_debt = float(nd_ratio) * ebitda_ttm
+                else:
+                    net_debt = 0.0
+                row["ev_ntm"] = round((float(mcap) + net_debt) / ebitda_ntm_f, 1)
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
 
     return row
 
 
-def format_valuation_cell(row: dict[str, Any]) -> str:
-    """估值列：多口径列出，主倍数 vs 5y。
-
-    `TTM 18.2x P/E · NTM 15.3x · fwd 12.5x (vs 中位 +22%)`
-    """
-    parts = []
-    if row.get("pe_ttm"):
-        pe_text = f"TTM {row['pe_ttm']}x P/E"
-        if row.get("pe_vs_5y") is not None:
-            pe_text += f" ({row['pe_vs_5y']:+.0f}% vs 中位 {row['pe_5y_median']})"
-        parts.append(pe_text)
-    if row.get("pe_ntm"):
-        parts.append(f"NTM {row['pe_ntm']}x P/E")
-    if row.get("ev_ebitda_ttm"):
-        ev_text = f"EV/EBITDA {round(float(row['ev_ebitda_ttm']), 1)}x"
-        if row.get("ev_vs_5y") is not None:
-            ev_text += f" ({row['ev_vs_5y']:+.0f}% vs 中位 {row['ev_5y_median']})"
-        parts.append(ev_text)
-    if row.get("fwd_multiple"):
-        parts.append(f"fwd {row['fwd_multiple']}x {row['fwd_multiple_type'] or ''}".rstrip())
-    if not parts:
+def fmt_cell(value: Any, vs: Any = None, extra: str | None = None) -> str:
+    """单列格式：`58.2x (+36%)` / `22.4x (你 15x)` / `—`。"""
+    if value is None:
         return "—"
-    return " · ".join(parts)
+    text = f"{value}x"
+    if extra:
+        text += f" {extra}"
+    elif vs is not None:
+        text += f" ({vs:+.0f}%)"
+    return text
 
 
-def valuation_class(row: dict[str, Any]) -> str:
-    vs = row.get("pe_vs_5y")
-    if vs is None:
-        vs = row.get("ev_vs_5y")
+def rich_class(vs: Any) -> str:
+    """贵/便宜染色：vs 5y 中位 ±30% → 贵红便宜绿。"""
     if vs is None:
         return ""
     if vs > 30:
