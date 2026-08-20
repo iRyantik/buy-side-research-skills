@@ -63,7 +63,8 @@ CANONICAL_HEADERS = [
     ("Company (EN)", "company"),
     ("Company (Native)", "company_native"),
     ("Industry", "industry"),
-    ("Coverage", "coverage_status"),
+    ("Status", "coverage_status"),
+    ("Coverage", "coverage_status"),  # 兼容旧表头
     ("Monitor", "monitor_status"),
     ("Last Review", "last_review"),
     ("Next Trigger", "next_trigger"),
@@ -82,12 +83,16 @@ def normalize_ticker(value: str) -> str:
 
 def normalize_coverage_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
-    if token in {"core coverage", "core"}:
-        return "Core"
-    if token in {"building coverage", "building", "coverage building"}:
-        return "Building"
-    if token in {"radar", "candidate"}:
-        return "Radar"
+    if token in {"screened", "radar", "candidate", "screen"}:
+        return "Screened"
+    if token in {"quickread", "building", "building coverage", "quick read", "coverage building"}:
+        return "Quickread"
+    if token in {"modeled", "model", "modelled", "core", "core coverage"}:
+        return "Modeled"
+    if token in {"thesis", "alpha thesis", "variant"}:
+        return "Thesis"
+    if token in {"terminated"}:
+        return "Terminated"
     return value.strip()
 
 
