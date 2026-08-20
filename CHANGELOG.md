@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.13 | **financial-data FMP 集成 + 日报自动化**：fmp_provider（stable API 行情/三表/estimates/segments/历史价/涨跌/财报日/news + ticker 词典自修正）；mode 收敛 scan/lite/full + scan 批量；FMP 路由探路 + closeout FMP 优先；日报 5 区块（Review Queue/估值表/Movers/Core Watch/Data Health）+ 估值表 4 列（PE_TTM/NTM/EV-EBITDA_TTM/NTM vs 5y 中位）+ COVERAGE v3 Status 列（Screened/Quickread/Modeled/Thesis/Terminated）；launchd 三时点调度 |
 | v8.8.11 | plugin.json (claude/codex) version synced to release tag: 8.8.9 → 8.8.11 — internal version always matches the release number (v8.8.10 shipped with stale 8.8.9 declaration) |
 | v8.8.10 | version bump: plugin.json (claude/codex) → 8.8.9; workspace_guard ALLOWED_EXTERNAL_ROOTS (plugin dev repo) added to workspace + init-workspace assets |
 | v8.8.9 | evidence_ledger_floor Rule 5 rewritten: coverage-quota (≥80%) replaced by disposition gate — every artifact-anchored claim must leave unverified AND carry an attempt record ([S#]: one WebFetch/actuals cross-check; [I#]: tier 1-2 via Rule 4); scoped to artifact codes (stale claims don't gate sibling writes); dead sources must be corroborated or removed, never faked plausible; fixed latent Rule 2 NameError (len(anchors) → anchor_map); hook tests rewritten as real check() invocations (7 cases) |
