@@ -190,7 +190,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             quote = _api("/quote", {"symbol": fmp_ticker})
             if quote:
                 q = quote[0]
-                result["market_data"] = {
+                md = {
                     "price": q.get("price"),
                     "market_cap": q.get("marketCap"),
                     "change_pct": q.get("changePercentage"),
@@ -201,10 +201,21 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                     "volume": q.get("volume"),
                     "price_avg_50": q.get("priceAvg50"),
                     "price_avg_200": q.get("priceAvg200"),
-                    "eps_ttm": q.get("eps"),
-                    "pe_ttm": q.get("pe"),
+                    "eps_ttm": None,
+                    "pe_ttm": None,
                     "as_of": q.get("date") or "live",
                 }
+                # TTM EPS + PE：quarter IS 最近 4 季（quote 无 pe/eps 字段）
+                try:
+                    qis = _api("/income-statement", {"symbol": fmp_ticker, "period": "quarter", "limit": 5})
+                    eps_vals = [x.get("eps") for x in qis if x.get("eps")]
+                    if len(eps_vals) >= 4 and md.get("price"):
+                        ttm_eps = sum(float(v) for v in eps_vals[:4])
+                        md["eps_ttm"] = round(ttm_eps, 2)
+                        md["pe_ttm"] = round(float(md["price"]) / ttm_eps, 1)
+                except Exception:
+                    pass
+                result["market_data"] = md
                 result["items_extracted"].append("market_data")
 
         for item, path, field_map in (
