@@ -31,6 +31,7 @@ _FMP_SUFFIX = {
     ".SH": ".SS",    # Shanghai
     ".SZ": ".SZ",    # Shenzhen
     ".CN": ".SZ",    # A-share (ChiNext/创业板)
+    ".CH": ".SS",    # COVERAGE 中国后缀（按数字前缀判沪深，见 _resolve_cn）
     ".TT": ".TW",    # Taiwan
     ".LN": ".L",     # London
     ".JP": ".T",     # Japan
@@ -38,6 +39,8 @@ _FMP_SUFFIX = {
     ".NA": ".AS",    # Amsterdam
     ".SS": ".ST",    # Stockholm (Mycronic)
     ".FR": ".PA",    # Paris
+    ".FP": ".PA",    # Paris (airbus 等法股)
+    ".NO": ".OL",    # Norway
     ".CA": ".TO",    # Toronto
     ".MY": ".KL",    # Malaysia
     ".HK": ".HK", ".TW": ".TW", ".T": ".T", ".KS": ".KS",
@@ -82,12 +85,28 @@ _CF_MAP = {
 }
 
 
+def _normalize_ticker(ws_ticker: str) -> str:
+    """COVERAGE.md ticker 是空格格式（`688295 CH`）→ 点号（`688295.CH`）。"""
+    return ws_ticker.strip().replace(" ", ".")
+
+
+def _resolve_cn(base: str) -> str:
+    """中国 A 股按数字前缀判交易所：上海(.SS) vs 深圳(.SZ)。"""
+    if base.startswith(("600", "601", "603", "605", "688", "689")):
+        return base + ".SS"
+    return base + ".SZ"
+
+
 def to_fmp_ticker(ws_ticker: str) -> str:
-    """Workspace ticker (e.g. 603067.SH, DPC.US) → FMP stable ticker."""
+    """Workspace/COVERAGE ticker（`603067.SH` 或 `688295 CH`）→ FMP stable ticker。"""
+    t = _normalize_ticker(ws_ticker)
     for suffix, fmp in _FMP_SUFFIX.items():
-        if ws_ticker.endswith(suffix):
-            return ws_ticker[: -len(suffix)] + fmp
-    return ws_ticker
+        if t.endswith(suffix):
+            base = t[: -len(suffix)]
+            if suffix == ".CH":
+                return _resolve_cn(base)
+            return base + fmp
+    return t
 
 
 def dependency_available() -> bool:
