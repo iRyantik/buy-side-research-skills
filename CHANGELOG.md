@@ -4,7 +4,7 @@
 
 | Version | Changes |
 |---|---|
-| v8.8.11 | plugin.json (claude/codex) version 8.8.9 → 8.8.10 — internal version synced to release tag (previous release shipped with stale 8.8.9 declaration) |
+| v8.8.11 | plugin.json (claude/codex) version synced to release tag: 8.8.9 → 8.8.11 — internal version always matches the release number (v8.8.10 shipped with stale 8.8.9 declaration) |
 | v8.8.10 | version bump: plugin.json (claude/codex) → 8.8.9; workspace_guard ALLOWED_EXTERNAL_ROOTS (plugin dev repo) added to workspace + init-workspace assets |
 | v8.8.9 | evidence_ledger_floor Rule 5 rewritten: coverage-quota (≥80%) replaced by disposition gate — every artifact-anchored claim must leave unverified AND carry an attempt record ([S#]: one WebFetch/actuals cross-check; [I#]: tier 1-2 via Rule 4); scoped to artifact codes (stale claims don't gate sibling writes); dead sources must be corroborated or removed, never faked plausible; fixed latent Rule 2 NameError (len(anchors) → anchor_map); hook tests rewritten as real check() invocations (7 cases) |
 | v8.8.8 | evidence_ledger fixes + claim-quote verification: auto max-ID+1 (no collisions), full-content anchor scan via shared extract_anchors (code-block/Resources anchors no longer missed — S12 class; hook Rule 0 aligned), verify writes attempts (hook Rule 4 gate), add/batch merge preserve attempts + provenances union, new delete subcommand, tier validation; verify-claim --claim-text matched/reachable semantics + staging schema 2 (int tier) + --apply, schema 1 compat |
