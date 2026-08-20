@@ -30,12 +30,20 @@ _FMP_SUFFIX = {
     ".US": "",       # US → bare ticker
     ".SH": ".SS",    # Shanghai
     ".SZ": ".SZ",    # Shenzhen
+    ".CN": ".SZ",    # A-share (ChiNext/创业板)
     ".TT": ".TW",    # Taiwan
     ".LN": ".L",     # London
+    ".JP": ".T",     # Japan
+    ".KQ": ".KQ",    # Korea KOSDAQ
+    ".NA": ".AS",    # Amsterdam
+    ".SS": ".ST",    # Stockholm (Mycronic)
+    ".FR": ".PA",    # Paris
+    ".CA": ".TO",    # Toronto
+    ".MY": ".KL",    # Malaysia
     ".HK": ".HK", ".TW": ".TW", ".T": ".T", ".KS": ".KS",
     ".DE": ".DE", ".PA": ".PA", ".MI": ".MI", ".MC": ".MC",
     ".ST": ".ST", ".OL": ".OL", ".SI": ".SI", ".KL": ".KL",
-    ".NS": ".NS", ".AX": ".AX",
+    ".NS": ".NS", ".AX": ".AX", ".HE": ".HE",
 }
 
 # FMP statement field → canonical concept key (snake_case, matches policy line items)
@@ -300,6 +308,18 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
             except Exception as e:
                 result["errors"].append(f"earnings_calendar: {e}")
 
+        if "dividends" in items:
+            # 股息历史（capital allocation / 股息能力）
+            try:
+                dv = _api("/dividends", {"symbol": fmp_ticker, "limit": 8})
+                if dv:
+                    result["dividends"] = dv
+                    result["items_extracted"].append("dividends")
+                else:
+                    result["data_gaps"].append("dividends: FMP dividends empty")
+            except Exception as e:
+                result["errors"].append(f"dividends: {e}")
+
         if "historical_price" in items:
             # Correct path: /historical-price-eod/light (subpath required).
             # Feeds 1m/YTD/1y moves for the daily brief — no yfinance fallback needed.
@@ -323,5 +343,5 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
 _EXTRACTABLE = [
     "identity", "market_data", "income_statement", "balance_sheet",
     "cash_flow", "estimates", "revenue_split", "historical_price", "price_change",
-    "key_metrics", "price_target", "earnings_calendar",
+    "key_metrics", "price_target", "earnings_calendar", "dividends",
 ]
