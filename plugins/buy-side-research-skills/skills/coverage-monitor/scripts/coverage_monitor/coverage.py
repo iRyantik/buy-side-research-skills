@@ -20,6 +20,7 @@ class CoverageEntry:
     last_review: str = ""
     next_trigger: str = ""
     notes: str = ""
+    val_anchor: str = ""
     source_path: str = ""
     latest_artifact: str = ""
     artifact_count: int = 0
@@ -48,6 +49,7 @@ HEADER_ALIASES = {
     "last review": "last_review",
     "next trigger": "next_trigger",
     "notes": "notes",
+    "val anchor": "val_anchor",
     "source path": "source_path",
     "latest artifact": "latest_artifact",
     "行业": "industry",
@@ -175,6 +177,7 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
             last_review=data["last_review"].strip(),
             next_trigger=data["next_trigger"].strip(),
             notes=data["notes"].strip(),
+            val_anchor=data.get("val_anchor", "").strip(),
             source_path=data["source_path"].strip(),
             latest_artifact=data["latest_artifact"].strip(),
         )

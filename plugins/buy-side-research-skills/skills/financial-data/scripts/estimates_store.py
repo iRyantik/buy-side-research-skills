@@ -96,6 +96,8 @@ def map_periods(rows: list) -> list:
             if v is not None:
                 p[ours] = v
         periods.append(p)
+    # FMP 返回顺序不稳定（实测 2030→2027 倒序）；统一按 date 升序（最近未来财年在前）
+    periods.sort(key=lambda p: p.get("date") or "")
     return periods
 
 

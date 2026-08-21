@@ -251,6 +251,7 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                 md = {
                     "price": q.get("price"),
                     "market_cap": q.get("marketCap"),
+                    "exchange": q.get("exchange"),
                     "change_pct": q.get("changePercentage"),
                     "day_low": q.get("dayLow"),
                     "day_high": q.get("dayHigh"),
@@ -273,6 +274,18 @@ def fetch(request: dict[str, Any]) -> dict[str, Any]:
                         md["pe_ttm"] = round(float(md["price"]) / ttm_eps, 1)
                 except Exception:
                     pass
+                # ── 单位归一化：FMP 对伦敦交易所（.L）quote 返回 pence price，
+                #    而 marketCap / income-statement eps / analyst-estimates eps 是 pound。
+                #    统一转 pound，否则 PE_NTM = price(pence) / eps(pound) 会错 100x
+                #    （BA.L 实测：price 2126pence vs 2027E EPS £0.958 → 2218x 假象）。
+                if fmp_ticker.upper().endswith(".L") and md.get("price"):
+                    for _k in ("price", "day_low", "day_high", "year_high", "year_low",
+                               "price_avg_50", "price_avg_200"):
+                        if md.get(_k) is not None:
+                            md[_k] = round(float(md[_k]) / 100, 2)
+                    # price 转 pound 后重算 PE（income-statement eps 本就是 pound）
+                    if md.get("eps_ttm"):
+                        md["pe_ttm"] = round(float(md["price"]) / float(md["eps_ttm"]), 1)
                 result["market_data"] = md
                 result["items_extracted"].append("market_data")
 

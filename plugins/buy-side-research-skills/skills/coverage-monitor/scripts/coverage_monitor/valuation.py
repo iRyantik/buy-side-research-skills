@@ -49,9 +49,28 @@ def _estimates_snapshot(ticker: str) -> tuple[float | None, float | None]:
         return fwd.get("eps"), fwd.get("ebitda")
     periods = (entry.get("consensus") or {}).get("periods") or []
     if periods:
-        p0 = periods[0]
-        return p0.get("eps_avg"), p0.get("ebitda_avg")
+        p0 = _pick_ntm_period(periods)
+        if p0:
+            return p0.get("eps_avg"), p0.get("ebitda_avg")
     return None, None
+
+
+def _pick_ntm_period(periods: list[dict]) -> dict | None:
+    """NTM 年度 = date ≥ 今天的最近未来财年；全部已过 → 取最近（最大 date）。
+
+    FMP analyst-estimates 的 periods 曾按 2030→2027 倒序返回，无脑取 periods[0]
+    会拿最远期年度的 EPS 算 PE_NTM（RHM 案例：€126 vs €54.5 → 9.1x 假象）。
+    """
+    today = datetime.date.today().isoformat()
+    future = [p for p in periods if (p.get("date") or "") >= today]
+    if future:
+        future.sort(key=lambda p: p.get("date") or "")
+        return future[0]
+    past = [p for p in periods if p.get("date")]
+    if past:
+        past.sort(key=lambda p: p.get("date") or "")
+        return past[-1]
+    return None
 
 
 def parse_val_anchor(text: str) -> tuple[str, float, datetime.date] | None:
