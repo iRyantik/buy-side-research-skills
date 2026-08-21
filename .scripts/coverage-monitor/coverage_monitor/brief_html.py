@@ -236,7 +236,7 @@ def render_brief_html(
     if not core_html:
         core_html = "<div class='health-line'>无 Core 名单。</div>"
 
-    # ── Review Queue：7 天内显示；7-14 天折叠 ──
+    # ── Review Queue：7 天内显示；7-30 天表格内折叠 ──
     rq_entries, rq_mid = [], []
     for e in ents:
         nd = snapshots.get(e.ticker or e.company, {}).get("next_earnings")
@@ -246,7 +246,7 @@ def render_brief_html(
                 days = (_d.fromisoformat(str(nd)[:10]) - _d.fromisoformat(today)).days
                 if 0 <= days <= 7:
                     rq_entries.append((days, nd, e))
-                elif 7 < days <= 14:
+                elif 7 < days <= 30:
                     rq_mid.append((days, nd, e))
             except ValueError:
                 pass
@@ -268,9 +268,9 @@ def render_brief_html(
             f"<td>{_h.escape(e.coverage_status or '—')}</td>"
             f"<td>~{days} 天后（{nd}）</td></tr>"
             for days, nd, e in rq_mid)
-        rq_fold = (f"<details><summary>7-14 天财报（{len(rq_mid)} 家）</summary>"
-                   f"<table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>详情</th></tr></thead>"
-                   f"<tbody>{mid_rows}</tbody></table></details>")
+        # 表格内折叠：td colspan 包 details，展开结构与 7 天内一致
+        rq_fold = (f"<tr><td colspan='5'><details><summary>7-30 天财报（{len(rq_mid)} 家）</summary>"
+                   f"<table><tbody>{mid_rows}</tbody></table></details></td></tr>")
 
     # ── Data Health ──
     health = ""
@@ -302,9 +302,9 @@ def render_brief_html(
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
 <div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
-<tbody>{rq_rows}</tbody></table></div>{rq_fold}</section>
+<tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
-<p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`(你 x)` = 你的 fwd 假设。</p></div>
+<p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
 <div class="table-card"><table><thead><tr><th>Company</th><th>Ticker</th><th>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th>Next_Call</th><th>Status</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>

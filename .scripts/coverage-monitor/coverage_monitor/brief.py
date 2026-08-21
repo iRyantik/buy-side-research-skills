@@ -163,7 +163,7 @@ def render_brief_markdown(
                 days = (nd_dt - today_dt).days
                 if 0 <= days <= 7:
                     rq_entries.append((days, nd, e))
-                elif 7 < days <= 14:
+                elif 7 < days <= 30:
                     rq_mid.append((days, nd, e))
             except (ValueError, TypeError):
                 pass
@@ -173,7 +173,7 @@ def render_brief_markdown(
         lines.append("| — | 无临近事件 | — | — | 未来 7 天无财报 |")
     if rq_mid:
         lines.append("")
-        lines.append(f"<details><summary>7-14 天财报（{len(rq_mid)} 家）</summary>")
+        lines.append(f"<details><summary>7-30 天财报（{len(rq_mid)} 家）</summary>")
         lines.append("")
         lines.append("| 触发 | Company | Ticker | Status | 触发详情 |")
         lines.append("|---|---|---|---|---|")
@@ -215,7 +215,7 @@ def render_brief_markdown(
     lines.append("> **列口径**：PE_TTM=最近 4 季 trailing PE · PE_NTM=consensus 未来 12 月（价格÷epsAvg）· "
                  "EV/EBITDA_TTM=企业价值÷EBITDA · EV/EBITDA_NTM=(市值+净债)÷NTM EBITDA。"
                  "**括号 = 相对 5y 中位**：`+36%` = 比自身 5 年中位高 36%。"
-                 "**`(你 15x)`** = 你的研究 fwd 假设（driver-map/模型），与 consensus 差异即潜在 alpha。"
+                 "**`fwd 15x`** = 你的研究 fwd 假设（driver-map/模型），与 consensus 差异即潜在 alpha。"
                  "`—`=该口径无数据。")
     lines.append("")
 
