@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 from typing import Any
 
 from .coverage import CoverageEntry
@@ -38,10 +39,10 @@ def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[Cover
 
 
 def _display_name(entry: CoverageEntry) -> str:
-    """中文名公司显示中文名，非中文显示 EN 名（Company_Native 不显示）。"""
-    mkt = _market_of(entry.ticker or "")
-    if mkt == "asia" and entry.company_native:
-        return entry.company_native
+    """公司有中文名（Company_Native 含汉字）显示中文名；否则英文名（韩文/日文母语不算中文）。"""
+    native = (entry.company_native or "").strip()
+    if native and re.search(r"[一-鿿]", native):
+        return native
     return entry.company or entry.ticker or ""
 
 
