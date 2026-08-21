@@ -49,6 +49,21 @@ def _display_name(entry: CoverageEntry) -> str:
 _STATUS_ORDER = {"Thesis": 0, "Modeled": 1, "Quickread": 2, "Screened": 3, "Terminated": 4}
 
 
+def _health_summary(gaps: list[str]) -> str:
+    """Data Health 一行汇总：按类别统计 gap。"""
+    n_quote = sum(1 for g in gaps if "quote" in g.lower() or "no data" in g.lower())
+    n_news = sum(1 for g in gaps if "news" in g.lower())
+    n_val = sum(1 for g in gaps if any(k in g.lower() for k in ("estimates", "valuation", "consensus", "key_metrics", "ratios")))
+    parts = []
+    if n_quote:
+        parts.append(f"{n_quote} 家行情拉不到")
+    if n_news:
+        parts.append(f"{n_news} 家无新闻")
+    if n_val:
+        parts.append(f"{n_val} 家缺估值/consensus")
+    return " · ".join(parts) if parts else "数据完整"
+
+
 def _universe_sorted(entries: list[CoverageEntry],
                      snapshots: dict[str, dict[str, Any]]) -> list[CoverageEntry]:
     """估值表排序：行业 → Status 核心到边缘 → Today/1m/YTD/1y 降序（先涨后跌，同则比更右列）
@@ -136,7 +151,7 @@ def render_brief_markdown(
     lines.append("")
     lines.append("| 触发 | Company | Ticker | Status | 触发详情 |")
     lines.append("|---|---|---|---|---|")
-    rq_entries = []
+    rq_entries, rq_mid = [], []
     for e in ents:
         snap = snapshots.get(e.ticker or e.company, {})
         nd = snap.get("next_earnings")
@@ -146,12 +161,23 @@ def render_brief_markdown(
                 days = (nd_dt - today_dt).days
                 if 0 <= days <= 7:
                     rq_entries.append((days, nd, e))
+                elif 7 < days <= 14:
+                    rq_mid.append((days, nd, e))
             except (ValueError, TypeError):
                 pass
     for days, nd, e in sorted(rq_entries, key=lambda x: x[0]):  # 从近到远
         lines.append(f"| 财报 | {_display_name(e)} | {e.ticker} | {e.coverage_status or '—'} | ~{days} 天后财报（{nd}） |")
     if not rq_entries:
         lines.append("| — | 无临近事件 | — | — | 未来 7 天无财报 |")
+    if rq_mid:
+        lines.append("")
+        lines.append(f"<details><summary>7-14 天财报（{len(rq_mid)} 家）</summary>")
+        lines.append("")
+        lines.append("| 触发 | Company | Ticker | Status | 触发详情 |")
+        lines.append("|---|---|---|---|---|")
+        for days, nd, e in sorted(rq_mid, key=lambda x: x[0]):
+            lines.append(f"| 财报 | {_display_name(e)} | {e.ticker} | {e.coverage_status or '—'} | ~{days} 天后财报（{nd}） |")
+        lines.append("</details>")
     lines.append("")
 
     # ── ② 估值表（全市场）──
@@ -228,7 +254,11 @@ def render_brief_markdown(
     lines.append("## ④ Core Watch")
     lines.append("")
     if core:
-        for e in sorted(core, key=lambda x: x.ticker or ""):
+        def _core_key(e):
+            _snap = snapshots.get(e.ticker or e.company, {})
+            return (_STATUS_ORDER.get((e.coverage_status or "").strip(), 9),
+                    str(_snap.get("next_earnings") or "9999-99-99"))
+        for e in sorted(core, key=_core_key):
             snap = snapshots.get(e.ticker or e.company, {})
             vrow = snap.get("valuation") or {}
             items = news_map.get(e.ticker or e.company, [])
@@ -250,7 +280,7 @@ def render_brief_markdown(
     lines.append("## ⑤ Data Health")
     lines.append("")
     if gaps:
-        lines.append(f"<details><summary>{len(gaps)} 项 gap · 点击展开</summary>")
+        lines.append(f"<details><summary>{_health_summary(gaps)}</summary>")
         lines.append("")
         for g in gaps[:15]:
             lines.append(f"- {g}")

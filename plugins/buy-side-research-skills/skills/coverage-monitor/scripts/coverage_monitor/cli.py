@@ -245,7 +245,8 @@ def _normalize_coverage(workspace: Path, today: str | None, dry_run: bool) -> in
 
 
 def _write_report_files(workspace: Path, stem: str, markdown_text: str, html_text: str) -> tuple[Path, Path]:
-    report_dir = workspace / "reports" / "coverage-monitor"
+    # 日报归 daily/，html 命名 YYYYMMDD-*.html（viz hook 要求 8 位日期前缀）
+    report_dir = workspace / "daily"
     report_dir.mkdir(parents=True, exist_ok=True)
     markdown_path = report_dir / f"{stem}.md"
     html_path = report_dir / f"{stem}.html"
@@ -489,7 +490,7 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     if dry_run:
         print(markdown_text)
         return 0
-    stem = f"{run_day}-brief-{report_type}"
+    stem = f"{run_day.replace('-', '')}-brief-{report_type}"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
     email_body = render_email_body(

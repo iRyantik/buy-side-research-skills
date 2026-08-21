@@ -42,6 +42,10 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
         # EV/EBITDA
         "ev_ttm": None, "ev_ttm_vs_5y": None, "ev_5y_median": None,
         "ev_ntm": None,
+        # 次要倍数（详情卡片）：PS/PB/P-FCF + 5y 中位
+        "ps": None, "ps_5y": None,
+        "pb": None, "pb_5y": None,
+        "pfcf": None, "pfcf_5y": None,
     }
 
     # ── PE TTM + 5y 中位 ──
@@ -54,6 +58,20 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
         if len(pes) >= 3 and row["pe_ttm"]:
             row["pe_5y_median"] = round(statistics.median(pes), 1)
             row["pe_ttm_vs_5y"] = round((row["pe_ttm"] - row["pe_5y_median"]) / row["pe_5y_median"] * 100, 1)
+
+    # ── 次要倍数（详情卡片）：PS/PB/P-FCF + 5y 中位 ──
+    if ratios:
+        r0 = ratios[0]
+        for fld, key in (("priceToSalesRatio", "ps"),
+                         ("priceToBookRatio", "pb"),
+                         ("priceToFreeCashFlowRatio", "pfcf")):
+            v = r0.get(fld)
+            if v:
+                row[key] = round(float(v), 1)
+            hist = [float(x.get(fld)) for x in ratios if x.get(fld)]
+            hist = [h for h in hist if h > 0]
+            if len(hist) >= 3:
+                row[f"{key}_5y"] = round(statistics.median(hist), 1)
 
     # ── PE NTM（consensus fwd）──
     eps_avg = est[0].get("epsAvg") if est and isinstance(est[0], dict) else None

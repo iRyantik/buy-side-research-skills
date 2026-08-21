@@ -10,7 +10,7 @@ import html as _h
 from typing import Any
 
 from .coverage import CoverageEntry
-from .brief import _display_name, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted
+from .brief import _display_name, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary
 from .valuation import fmt_cell, rich_class
 
 _CSS = """
@@ -62,6 +62,7 @@ tr.industry-row td{background:rgba(37,99,235,.06);font-weight:950;color:#1e3a8a;
 .core-quote-item span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .core-quote-item b{display:block;margin-top:4px;font-size:15px}
 .news-line{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(248,250,252,.7);font-size:13px;color:#334155}
+.minor-multiples{margin-top:10px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(248,250,252,.6);font-size:12px;color:var(--muted)}
 .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .mover-card{border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
@@ -182,15 +183,28 @@ def render_brief_html(
     if not important and not minor:
         mover_html = "<div class='health-line'>无 ±5% 异动。</div>"
 
-    # ── Core Watch ──
+    # ── Core Watch：Status 核心到边缘 + 财报临近置顶 ──
     core_html = ""
-    for e in sorted([e for e in ents if e.monitor_status == "Core"], key=lambda x: x.ticker or ""):
+    core_ents = [e for e in ents if e.monitor_status == "Core"]
+
+    def _core_key(e):
+        _snap = snapshots.get(e.ticker or e.company, {})
+        _st = _STATUS_ORDER.get((e.coverage_status or "").strip(), 9)
+        _nc = str(_snap.get("next_earnings") or "9999-99-99")
+        return (_st, _nc)
+
+    for e in sorted(core_ents, key=_core_key):
         snap = snapshots.get(e.ticker or e.company, {})
         vrow = snap.get("valuation") or {}
         day_cls = "core-day pos" if (snap.get("price_move_pct") or 0) >= 0 else "core-day neg"
         items = news_map.get(e.ticker or e.company, [])
         head = (f"<div class='news-line'>📰 <a href='{_h.escape(items[0].url or '#')}' target='_blank'>{_h.escape(items[0].title[:100])}</a></div>"
                 if items else "<div class='news-line'>无新闻</div>")
+        minor = ""
+        if vrow.get("ps") or vrow.get("pb") or vrow.get("pfcf"):
+            minor = (f"<div class='minor-multiples'>PS {vrow.get('ps')}x (5y {vrow.get('ps_5y')}) · "
+                     f"PB {vrow.get('pb')}x (5y {vrow.get('pb_5y')}) · "
+                     f"P/FCF {vrow.get('pfcf')}x (5y {vrow.get('pfcf_5y')})</div>")
         core_html += (
             f"<div class='core-watch-card'><div class='core-title-line'><div class='core-title-left'>"
             f"<span class='core-ticker'>{_h.escape(e.ticker or '')}</span>"
@@ -205,13 +219,13 @@ def render_brief_html(
             f"<div class='core-quote-item'><span>YTD</span><b>{_fmt_pct(vrow.get('ret_ytd'))}</b></div>"
             f"<div class='core-quote-item'><span>1y</span><b>{_fmt_pct(vrow.get('ret_1y'))}</b></div>"
             f"<div class='core-quote-item'><span>Next</span><b>{_h.escape(str(snap.get('next_earnings') or '—'))}</b></div>"
-            f"</div>{head}</div>"
+            f"</div>{minor}{head}</div>"
         )
     if not core_html:
         core_html = "<div class='health-line'>无 Core 名单。</div>"
 
-    # ── Review Queue：未来 7 天财报，从近到远 ──
-    rq_entries = []
+    # ── Review Queue：7 天内显示；7-14 天折叠 ──
+    rq_entries, rq_mid = [], []
     for e in ents:
         nd = snapshots.get(e.ticker or e.company, {}).get("next_earnings")
         if nd:
@@ -220,6 +234,8 @@ def render_brief_html(
                 days = (_d.fromisoformat(str(nd)[:10]) - _d.fromisoformat(today)).days
                 if 0 <= days <= 7:
                     rq_entries.append((days, nd, e))
+                elif 7 < days <= 14:
+                    rq_mid.append((days, nd, e))
             except ValueError:
                 pass
     rq_entries.sort(key=lambda x: x[0])  # 财报日从近到远
@@ -231,12 +247,24 @@ def render_brief_html(
         for days, nd, e in rq_entries)
     if not rq_rows:
         rq_rows = "<tr><td>—</td><td>无临近事件</td><td>—</td><td>—</td><td>未来 7 天无财报</td></tr>"
+    rq_fold = ""
+    if rq_mid:
+        rq_mid.sort(key=lambda x: x[0])
+        mid_rows = "".join(
+            f"<tr><td>财报</td><td>{_h.escape(_display_name(e))}</td>"
+            f"<td>{_h.escape(e.ticker or '')}</td>"
+            f"<td>{_h.escape(e.coverage_status or '—')}</td>"
+            f"<td>~{days} 天后（{nd}）</td></tr>"
+            for days, nd, e in rq_mid)
+        rq_fold = (f"<details><summary>7-14 天财报（{len(rq_mid)} 家）</summary>"
+                   f"<table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>详情</th></tr></thead>"
+                   f"<tbody>{mid_rows}</tbody></table></details>")
 
     # ── Data Health ──
     health = ""
     if gaps:
         items = "".join(f"<li>{_h.escape(g[:90])}</li>" for g in gaps[:15])
-        health = f"<details><summary>{len(gaps)} 项 gap · 点击展开</summary><ul>{items}</ul></details>"
+        health = f"<details><summary>{_health_summary(gaps)}</summary><ul>{items}</ul></details>"
     else:
         health = "<div class='health-line'>数据完整。</div>"
 
@@ -250,7 +278,7 @@ def render_brief_html(
   <span class="hero-stat">{len(ents)} names</span>
   <span class="hero-stat">{core_count} Core Watch</span>
   <span class="hero-stat">{len(important)} movers</span>
-  <span class="hero-stat">0 actions</span>
+  <span class="hero-stat">{len(rq_entries)} actions</span>
 </section>
 <nav class="tab-nav">
   <a class="tab-button" href="#review">Review Queue</a>
@@ -262,7 +290,7 @@ def render_brief_html(
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
 <div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
-<tbody>{rq_rows}</tbody></table></div></section>
+<tbody>{rq_rows}</tbody></table></div>{rq_fold}</section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`(你 x)` = 你的 fwd 假设。</p></div>
 <div class="table-card"><table><thead><tr><th>Company</th><th>Ticker</th><th>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th>Next_Call</th><th>Status</th></tr></thead>
