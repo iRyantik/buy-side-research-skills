@@ -51,15 +51,25 @@ _STATUS_ORDER = {"Thesis": 0, "Modeled": 1, "Quickread": 2, "Screened": 3, "Term
 
 def _universe_sorted(entries: list[CoverageEntry],
                      snapshots: dict[str, dict[str, Any]]) -> list[CoverageEntry]:
-    """估值表排序：行业分组 → Status 核心到边缘 → 市值降序。"""
-    def _key(e: CoverageEntry) -> tuple:
-        st = _STATUS_ORDER.get((e.coverage_status or "").strip(), 9)
-        cap = snapshots.get(e.ticker or e.company, {}).get("market_cap") or 0
+    """估值表排序：行业 → Status 核心到边缘 → Today/1m/YTD/1y 降序（先涨后跌，同则比更右列）
+    → 估值升序（PE_NTM 正数小到大，无/负垫底）→ next call 从近到远。"""
+    def _num(v: Any) -> float:
         try:
-            cap = float(cap)
+            f = float(v)
+            return f if f == f else 0.0  # NaN → 0
         except (TypeError, ValueError):
-            cap = 0
-        return (e.industry or "", st, -cap)
+            return 0.0
+
+    def _key(e: CoverageEntry) -> tuple:
+        snap = snapshots.get(e.ticker or e.company, {})
+        vrow = snap.get("valuation") or {}
+        st = _STATUS_ORDER.get((e.coverage_status or "").strip(), 9)
+        today = _num(snap.get("price_move_pct"))
+        r1m, rytd, r1y = _num(vrow.get("ret_1m")), _num(vrow.get("ret_ytd")), _num(vrow.get("ret_1y"))
+        val = _num(vrow.get("pe_ntm"))
+        val_key = val if val > 0 else 1e18  # 正数升序；无/负 PE 垫底
+        nc = str(snap.get("next_earnings") or "9999-99-99")
+        return (e.industry or "", st, -today, -r1m, -rytd, -r1y, val_key, nc)
     return sorted(entries, key=_key)
 
 
