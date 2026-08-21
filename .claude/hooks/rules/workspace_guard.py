@@ -24,6 +24,8 @@ ROOT_WHITELIST = frozenset({
 # Keep in sync with the installed workspace copy of this file.
 ALLOWED_EXTERNAL_ROOTS = (
     r"C:\Users\yuzhe\dev\buy-side-research-skills",
+    # Claude memory / session 目录（各 workspace 的 memory 都在下面，放行合理）
+    str(Path.home() / ".claude" / "projects"),
 )
 
 
