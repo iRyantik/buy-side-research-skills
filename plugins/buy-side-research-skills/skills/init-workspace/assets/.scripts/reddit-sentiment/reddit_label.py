@@ -391,7 +391,7 @@ def main() -> int:
     topic_terms = parse_terms(args.topic_terms) or [args.subject]
 
     raw_dir = args.topic / "_raw" / "datasets" / "reddit-sentiment" / run_id
-    cache_dir = args.topic / ".cache" / "datasets" / "reddit-sentiment" / run_id
+    cache_dir = args.topic / "_cache" / "datasets" / "reddit-sentiment" / run_id
     comment_cache_dir = raw_dir / "comments-cache"
     raw_dir.mkdir(parents=True, exist_ok=True)
     cache_dir.mkdir(parents=True, exist_ok=True)

@@ -7,7 +7,107 @@ from .coverage import CoverageEntry
 from .tickers import build_ticker_runtime
 
 
+def _load_fmp():
+    """Load financial-data fmp_provider (reused for quote/price_change/news).
+
+    fmp_provider reads FMP_API_KEY from os.environ only — the workspace .env
+    must be loaded here or every FMP call fails and everything degrades to
+    yfinance (quote ok, valuation empty).
+    """
+    import importlib
+    import os
+    import sys
+    from pathlib import Path
+    _load_workspace_env()
+    pdir = Path(__file__).resolve().parents[2] / "financial-data" / "providers"
+    if str(pdir) not in sys.path:
+        sys.path.insert(0, str(pdir))
+    return importlib.import_module("fmp_provider")
+
+
+def _load_workspace_env() -> None:
+    """Load workspace root .env into os.environ (setdefault — never override real env)."""
+    import os
+    from pathlib import Path
+    env_path = Path(__file__).resolve().parents[3] / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, Any] | None:
+    """FMP-first quote: price/1D/1M/ytd/1Y/cap/pe + 美股 news headline.
+
+    Returns None on any failure → caller falls back to yfinance.
+    """
+    try:
+        fmp = _load_fmp()
+        r = fmp.fetch({"identifier": entry.ticker, "name": entry.company,
+                       "items": ["market_data", "price_change", "historical_price", "news",
+                                 "key_metrics", "ratios", "earnings_calendar"],
+                       "periods": "latest"})
+        md = r.get("market_data", {})
+        if not md.get("price"):
+            return None
+        pc = r.get("price_change", {})
+        hist = r.get("historical_price", [])
+        snap: dict[str, Any] = {
+            "provider": "fmp",
+            "quote_ticker": r.get("fmp_ticker"),
+            "last_price": md["price"],
+            "price_move_pct": pc.get("1D"),
+            "ret_1m": pc.get("1M"),
+            "ret_ytd": pc.get("ytd"),
+            "ret_1y": pc.get("1Y"),
+            "market_cap": md.get("market_cap"),
+            "pe_trailing": md.get("pe_ttm"),
+            "market_time": today or str(date.today()),
+            "volume_ratio": None,
+            "gap_pct": None,
+            "near_20d_high": None,
+            "near_20d_low": None,
+        }
+        # 20 日均量 + 20d 高低（从历史价 light 算）
+        if len(hist) >= 5:
+            try:
+                prices = [float(h["price"]) for h in hist[:20] if h.get("price")]
+                volumes = [float(h["volume"]) for h in hist[:20] if h.get("volume")]
+                if prices:
+                    snap["near_20d_high"] = snap["last_price"] >= max(prices)
+                    snap["near_20d_low"] = snap["last_price"] <= min(prices)
+                if volumes and len(volumes) >= 2:
+                    snap["volume_ratio"] = round(volumes[0] / (sum(volumes[1:]) / max(len(volumes) - 1, 1)), 2)
+            except Exception:
+                pass
+        nw = r.get("news", [])
+        if nw:
+            snap["headline"] = nw[0].get("title") or ""
+            snap["url"] = nw[0].get("url") or nw[0].get("site") or ""
+            snap["published_at"] = str(nw[0].get("publishedDate") or "")
+        # 估值 + 下次财报（日报估值表原料）
+        try:
+            from .valuation import compute_valuation_row
+            snap["valuation"] = compute_valuation_row(entry, r)
+        except Exception:
+            pass
+        snap["next_earnings"] = r.get("next_earnings_date")
+        snap["quote_status"] = "OK"
+        return snap
+    except Exception:
+        return None
+
+
 def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, dict[str, Any], str]:
+    key = entry.ticker or entry.company
+    # FMP 优先：行情/涨跌/市值/PE/新闻 headline
+    fmp_snap = _fetch_fmp_snapshot(entry, today)
+    if fmp_snap is not None:
+        return key, fmp_snap, ""
     import yfinance as yf
     ticker_runtime = build_ticker_runtime(entry.ticker, entry.company)
     key = entry.ticker or entry.company
@@ -109,10 +209,30 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
             snapshot["pe_trailing"] = round(float(info["trailingPE"]), 1)
     except Exception:
         pass
-    gap = ""
+    # Valuation row for FMP-blind tickers: only ret fields are available here
+    # (PE/EV need FMP ratios/estimates). Build the same row shape so the brief
+    # renderer reads one consistent structure.
+    from .valuation import compute_valuation_row
+    val_row = compute_valuation_row(entry, {})
+    val_row.update({
+        "today": round(price_move_pct, 1),
+        "ret_1m": ret_1m,
+        "ret_ytd": ret_ytd,
+        "ret_1y": ret_1y,
+    })
+    snapshot["valuation"] = val_row
+    # AKShare 兜底（best-effort）：FMP 盲区 A 股（2023 年科创板批次）补
+    # PE_TTM + 5y 中位；失败静默，仅 gap 里留痕，不阻塞行情
+    ak_gap = ""
+    try:
+        from .akshare_valuation import enrich_valuation_row
+        ak_gap = enrich_valuation_row(entry, val_row)
+    except Exception:
+        pass
+    gap = ak_gap
     if len(closes) < 2 or volume_ratio == 0.0 or gap_pct == 0.0:
         snapshot["quote_status"] = "Partial"
-        gap = f"{entry.ticker}: quote_status:Partial"
+        gap = f"{entry.ticker}: quote_status:Partial" + (f"; {ak_gap}" if ak_gap else "")
     if today:
         try:
             if (date.fromisoformat(today) - history.index[-1].date()).days > 5:
@@ -133,7 +253,7 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
 
 
 def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
-                      max_workers: int = 8) -> tuple[dict[str, dict[str, Any]], list[str]]:
+                      max_workers: int = 16) -> tuple[dict[str, dict[str, Any]], list[str]]:
     from concurrent.futures import ThreadPoolExecutor, as_completed
     try:
         import yfinance as yf  # type: ignore

@@ -36,6 +36,13 @@ def _convert_single_ticker(display_ticker: str) -> str:
         return ""
     compact = re.sub(r"\s+", " ", value.upper())
     if "." in compact and " " not in compact:
+        # COVERAGE v3 点号格式（688146.SH / 002475.SZ）→ 转 yfinance 后缀
+        sym, _, suf = compact.rpartition(".")
+        _yf = {".SH": ".SS", ".SZ": ".SZ", ".US": "", ".JP": ".T", ".TT": ".TW",
+               ".LN": ".L", ".FP": ".PA", ".FR": ".PA", ".KQ": ".KQ", ".NA": ".AS",
+               ".NL": ".AS", ".CA": ".TO", ".MY": ".KL"}.get("." + suf)
+        if _yf is not None and sym:
+            return sym + _yf
         return compact
     pieces = compact.split(" ")
     if len(pieces) == 1:

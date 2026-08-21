@@ -22,6 +22,7 @@ PROVIDER_ENV_VARS = {
     "DART_API_KEY": "DART (韩股) — 免费申请: https://opendart.fss.or.kr/",
     "EDINET_API_KEY": "EDINET (日股) — 免费申请: https://disclosure2.edinet-fsa.go.jp/",
     "FINMIND_TOKEN": "FinMind (台股) — 免费申请: https://finmindtrade.com/",
+    "FMP_API_KEY": "FMP (全市场行情/三表/estimates) — workspace .env; news 仅美股",
 }
 
 def find_python():
@@ -124,7 +125,7 @@ def main():
     print(f"[..] Running: {' '.join(pip_cmd)}")
     result = subprocess.run(pip_cmd)
     if result.returncode != 0:
-        print("ERROR: pip install --user failed", file=sys.stderr)
+        print("ERROR: pip install failed", file=sys.stderr)
         sys.exit(1)
 
     print("[OK] financial-data dependencies ready.")

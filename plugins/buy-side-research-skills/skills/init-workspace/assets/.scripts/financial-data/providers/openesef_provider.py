@@ -25,7 +25,7 @@ def dependency_available() -> bool:
 
 def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not dependency_available():
-        return _err("dependency-gap", "Missing openesef. Run: pip install --user openesef")
+        return _err("dependency-gap", "Missing openesef. Run: pip install openesef")
 
     identifier = request["identifier"]
     identifier_type = request.get("identifier_type", "ticker")

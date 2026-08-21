@@ -119,7 +119,7 @@ def dependency_available() -> bool:
 
 def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not dependency_available():
-        return _err("dependency-gap", "Missing edgartools. Run: pip install --user edgartools")
+        return _err("dependency-gap", "Missing edgartools. Run: pip install edgartools")
     identity = os.getenv("EDGAR_IDENTITY")
     if not identity:
         return _err("credential-gap", "Missing EDGAR_IDENTITY")

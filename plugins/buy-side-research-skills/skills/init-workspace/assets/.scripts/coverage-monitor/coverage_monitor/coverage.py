@@ -20,6 +20,7 @@ class CoverageEntry:
     last_review: str = ""
     next_trigger: str = ""
     notes: str = ""
+    val_anchor: str = ""
     source_path: str = ""
     latest_artifact: str = ""
     artifact_count: int = 0
@@ -42,11 +43,13 @@ HEADER_ALIASES = {
     "industry": "industry",
     "coverage": "coverage_status",
     "coverage status": "coverage_status",
+    "status": "coverage_status",
     "monitor": "monitor_status",
     "monitor status": "monitor_status",
     "last review": "last_review",
     "next trigger": "next_trigger",
     "notes": "notes",
+    "val anchor": "val_anchor",
     "source path": "source_path",
     "latest artifact": "latest_artifact",
     "行业": "industry",
@@ -63,7 +66,8 @@ CANONICAL_HEADERS = [
     ("Company (EN)", "company"),
     ("Company (Native)", "company_native"),
     ("Industry", "industry"),
-    ("Coverage", "coverage_status"),
+    ("Status", "coverage_status"),
+    ("Coverage", "coverage_status"),  # 兼容旧表头
     ("Monitor", "monitor_status"),
     ("Last Review", "last_review"),
     ("Next Trigger", "next_trigger"),
@@ -82,12 +86,16 @@ def normalize_ticker(value: str) -> str:
 
 def normalize_coverage_status(value: str) -> str:
     token = re.sub(r"\s+", " ", value.strip()).lower()
-    if token in {"core coverage", "core"}:
-        return "Core"
-    if token in {"building coverage", "building", "coverage building"}:
-        return "Building"
-    if token in {"radar", "candidate"}:
-        return "Radar"
+    if token in {"screened", "radar", "candidate", "screen"}:
+        return "Screened"
+    if token in {"quickread", "building", "building coverage", "quick read", "coverage building"}:
+        return "Quickread"
+    if token in {"modeled", "model", "modelled", "core", "core coverage"}:
+        return "Modeled"
+    if token in {"thesis", "alpha thesis", "variant"}:
+        return "Thesis"
+    if token in {"terminated"}:
+        return "Terminated"
     return value.strip()
 
 
@@ -169,6 +177,7 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
             last_review=data["last_review"].strip(),
             next_trigger=data["next_trigger"].strip(),
             notes=data["notes"].strip(),
+            val_anchor=data.get("val_anchor", "").strip(),
             source_path=data["source_path"].strip(),
             latest_artifact=data["latest_artifact"].strip(),
         )

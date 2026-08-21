@@ -53,7 +53,7 @@ def dependency_available() -> bool:
 
 def fetch(request: dict[str, Any]) -> dict[str, Any]:
     if not dependency_available():
-        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing akshare. Run: pip install --user akshare"}
+        return {"status": "dependency-gap", "provider": PROVIDER, "error": "Missing akshare. Run: pip install akshare"}
 
     identifier = request["identifier"]
     market = request.get("market", "cn")
