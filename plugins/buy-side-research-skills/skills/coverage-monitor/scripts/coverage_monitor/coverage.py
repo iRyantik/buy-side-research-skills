@@ -42,6 +42,7 @@ HEADER_ALIASES = {
     "industry": "industry",
     "coverage": "coverage_status",
     "coverage status": "coverage_status",
+    "status": "coverage_status",
     "monitor": "monitor_status",
     "monitor status": "monitor_status",
     "last review": "last_review",
