@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from html import unescape
 from pathlib import Path
+import json
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 from urllib.request import Request, urlopen
+import xml.etree.ElementTree as ET
 
 from .coverage import CoverageEntry
 from .signals import assess_snapshot
@@ -48,6 +50,204 @@ def _dedupe_news(items: list[NewsItem], max_results: int | None = None) -> list[
 
 def _source_host(url: str) -> str:
     return urlparse(url).netloc.lower()
+
+# ── Google News RSS（免费无 key，韩/日/台/A 股覆盖主力层）──
+_GN_LOCALE = {
+    (".SS", ".SZ", ".SH", ".CN"): ("zh-CN", "CN", "CN:zh-Hans"),
+    (".TW", ".TT"): ("zh-TW", "TW", "TW:zh-Hant"),
+    (".HK",): ("zh-HK", "HK", "HK:zh-Hant"),
+    (".KS", ".KQ"): ("ko", "KR", "KR:ko"),
+    (".T", ".JP"): ("ja", "JP", "JP:ja"),
+}
+_GN_DEFAULT = ("en-US", "US", "US:en")
+
+
+def _gn_locale_for(ticker: str) -> tuple[str, str, str]:
+    for suffixes, loc in _GN_LOCALE.items():
+        if any(ticker.endswith(s) for s in suffixes):
+            return loc
+    return _GN_DEFAULT
+
+
+def _strip_gn_source(title: str) -> str:
+    """Google News 标题格式 `标题 - 来源 - 来源`：剥掉尾部重复/来源段。"""
+    parts = [p.strip() for p in title.split(" - ")]
+    while len(parts) >= 2 and parts[-1] == parts[-2]:
+        parts.pop()
+    if len(parts) >= 2 and len(parts[-1]) <= 14 and " " not in parts[-1]:
+        parts.pop()
+    return " - ".join(parts)
+
+
+def _gn_news(query: str, ticker: str, max_items: int = 8, timeout: int = 12) -> list[NewsItem]:
+    """Google News RSS search；query 自动 URL-encode，限 7 天内。"""
+    from urllib.parse import quote
+    hl, gl, ceid = _gn_locale_for(ticker)
+    url = (f"https://news.google.com/rss/search?q={quote(query)}%20when%3A7d"
+           f"&hl={hl}&gl={gl}&ceid={ceid}")
+    req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urlopen(req, timeout=timeout) as resp:
+        data = resp.read(500_000).decode("utf-8", errors="ignore")
+    root = ET.fromstring(data)
+    items: list[NewsItem] = []
+    for it in root.findall(".//item")[:max_items]:
+        title = (it.findtext("title") or "").strip()
+        if not title:
+            continue
+        link = (it.findtext("link") or "").strip()
+        if not link:
+            continue
+        pub = (it.findtext("pubDate") or "")[:16]
+        items.append(NewsItem(
+            title=_strip_gn_source(title), url=link,
+            source="google-news", summary="", published_at=pub))
+    return items
+
+
+def _gn_company_queries(entry: CoverageEntry) -> list[str]:
+    """GN 查询：native 名 + EN 名，均不带 ticker 后缀（`012450.KS` 会拖垮命中）。
+
+    Google News 会把 `代码.交易所` 当实体/噪音做 AND 匹配，实测 `한화에어로스페이스 012450.KS`
+    0 条 vs 纯名 8 条。名字全空时才退化用裸 ticker 代码。
+    """
+    native = (entry.company_native or "").strip()
+    en = (entry.company or "").strip()
+    ticker = (entry.ticker or "").strip()
+    queries = []
+    if native:
+        queries.append(native)
+    if en and en != native:
+        queries.append(en)
+    if not queries:
+        queries.append(ticker.split(".")[0] if "." in ticker else ticker)
+    return queries
+
+
+# ── 新闻标签（财报/订单/股价/分析师/并购；无匹配 → ""）──
+_NEWS_TAG_RULES = [
+    ("财报", r"earnings|실적|결산|业绩|财报|中报|半年报|年报|季报|盈喜|盈警|guidance|profit"),
+    ("订单", r"수주|contract|订单|合同|中标|签约|签订|award|order"),
+    ("股价", r"주가|특징주|股价|stock|share price"),
+    ("分析师", r"analyst|목표주가|target price|目标价|rating"),
+    ("并购", r"인수|acquisition|merger|并购|합병|takeover"),
+]
+
+
+def tag_news_title(title: str) -> str:
+    """标题关键词打标签；无匹配返回空串。"""
+    for tag, pat in _NEWS_TAG_RULES:
+        if re.search(pat, title, re.I):
+            return tag
+    return ""
+
+
+_KANA = re.compile(r"[぀-ヿ]")       # 平/片假名 → 日文
+_HANGUL = re.compile(r"[가-힯]")   # 谚文 → 韩文
+_ZH_HAN = re.compile(r"[一-鿿]")   # 汉字
+_TR_CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".cache" / "coverage-monitor" / "translation-cache.json"
+_tr_cache: dict[str, str] = {}
+
+
+def _load_tr_cache() -> dict[str, dict]:
+    global _tr_cache
+    if not _tr_cache:
+        try:
+            if _TR_CACHE_PATH.exists():
+                raw = json.loads(_TR_CACHE_PATH.read_text(encoding="utf-8"))
+                # 兼容旧格式 {text: str} → {text: {"t": ..., "src": "gtx"}}
+                _tr_cache = {k: ({"t": v, "src": "gtx"} if isinstance(v, str) else v)
+                             for k, v in raw.items()}
+        except Exception:
+            _tr_cache = {}
+    return _tr_cache
+
+
+def _save_tr_cache() -> None:
+    try:
+        _TR_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _TR_CACHE_PATH.write_text(json.dumps(_tr_cache, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+# ── 翻译：agent 注入（src=ai 缓存）优先 → Google Translate gtx 机械兜底 ──
+
+def _gtx_translate(text: str, timeout: int = 10) -> str:
+    """Google Translate 免费 gtx 接口（机械翻译 fallback）。"""
+    try:
+        url = ("https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t"
+               f"&q={quote(text)}")
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=timeout) as resp:
+            data = resp.read(500_000).decode("utf-8", errors="ignore")
+        parts = json.loads(data)[0]
+        out = "".join(p[0] for p in parts if p and p[0])
+        if out and out.strip():
+            return out.strip()
+    except Exception:
+        pass
+    return text
+
+
+def protect_names(entries) -> tuple[str, ...]:
+    """从 entries 提取公司名保护名单（native + EN，长名优先）。
+
+    翻译前占位保护、翻译后还原，防止 AI/机械翻译把公司名音译错乱
+    （如 Kencoa Aerospace → Kencore）。"""
+    names = set()
+    for e in entries or []:
+        for n in (getattr(e, "company_native", ""), getattr(e, "company", "")):
+            n = (n or "").strip()
+            if len(n) >= 3:
+                names.add(n)
+    return tuple(sorted(names, key=len, reverse=True))
+
+
+def _protect_text(text: str, protect: tuple) -> str:
+    for i, n in enumerate(protect):
+        if n in text:
+            text = text.replace(n, "{{N%d}}" % i)
+    return text
+
+
+def _restore_text(text: str, protect: tuple) -> str:
+    for i, n in enumerate(protect):
+        text = text.replace("{{N%d}}" % i, n)
+    return text
+
+
+def translate_zh(text: str, timeout: int = 10, protect: tuple = ()) -> str:
+    """标题 → 简体中文。agent 翻译（src=ai 缓存）优先 → Google Translate gtx 机械兜底。
+
+    agent 翻译通过 `daily --ai-review-input` 导出任务包 → claude CLI/主 agent 翻译 →
+    `daily --ai-review <out>` 写入缓存（src=ai，按原文 key）。
+    公司名（protect 名单）翻译前占位保护、翻译后还原，避免音译错乱。
+    日文（含假名）/ 韩文（含谚文）/ 英文 → 翻译；已是中文（含汉字且无假名谚文）→ 原样。
+    失败降级返回原文（honest degrade）。带磁盘缓存避免重复请求（ai 条目优先于 gtx）。"""
+    text = (text or "").strip()
+    if not text:
+        return text
+    if _ZH_HAN.search(text) and not _KANA.search(text) and not _HANGUL.search(text):
+        return text  # 已含汉字且无日/韩特征 → 视为中文，不翻
+    key = _protect_text(text, protect)
+    cache = _load_tr_cache()
+    entry = cache.get(key) or cache.get(text)  # 兼容 agent 按原文写入的 AI 翻译
+    if entry is not None:
+        return _restore_text(entry.get("t", "") if isinstance(entry, dict) else entry, protect)
+    t = _gtx_translate(key, timeout)
+    cache[key] = {"t": t, "src": "gtx"}
+    _save_tr_cache()
+    return _restore_text(t, protect)
+
+
+def pick_lead_news(items: list) -> NewsItem:
+    """主新闻 = 第一条带标签的（财报/订单等信号强）；没有则取第一条。"""
+    if not items:
+        raise ValueError("pick_lead_news called with empty list")
+    for it in items:
+        if tag_news_title(it.title):
+            return it
+    return items[0]
 
 
 def _fetch_text(url: str, timeout: int = 12) -> str:
@@ -163,7 +363,7 @@ def collect_company_news(
 
         snapshot = snapshots.get(key, {})
         assessment = assess_snapshot(snapshot) if snapshot else None
-        needs_news = entry.monitor_status == "Core" or (assessment and assessment.is_important)
+        needs_news = entry.monitor_status == "Core" or (assessment and assessment.is_mover)
 
         if not needs_news:
             continue
@@ -187,7 +387,15 @@ def collect_company_news(
         except Exception:
             pass  # FMP news unavailable → DDG
 
-        # DDG bilingual search（FMP 已有新闻则不搜，省一次搜索成本）
+        # Google News RSS（FMP 无新闻时主力层：韩/日/台/A 股覆盖好，免费无 key）
+        if ddg_enabled and not items:
+            try:
+                for q in _gn_company_queries(entry):
+                    items.extend(_gn_news(q, entry.ticker or ""))
+            except Exception as _gn_e:
+                gaps.append(f"{key}: gn_failed — {type(_gn_e).__name__}: {_gn_e}")  # honest fail → DDG
+
+        # DDG bilingual search（GN 已有新闻则不搜）
         if ddg_enabled and not items:
             try:
                 import sys, os
@@ -195,7 +403,7 @@ def collect_company_news(
                 if _shared not in sys.path:
                     sys.path.insert(0, os.path.abspath(_shared))
                 from search import ddg_multi_search
-                queries = _ddg_company_queries(entry)
+                queries = build_company_search_queries(entry, today) or _ddg_company_queries(entry)
                 if queries:
                     raw = ddg_multi_search(queries, max_results_per=20, dedup=True)
                     for r in raw:
@@ -207,7 +415,25 @@ def collect_company_news(
             except Exception:
                 pass  # DDG unavailable → honest gap
 
-        # yfinance headline fallback
+        # yfinance news 列表 fallback（比 headline 单条覆盖好）
+        if not items and entry.ticker:
+            try:
+                from .tickers import build_ticker_runtime
+                import yfinance as yf
+                ytr = build_ticker_runtime(entry.ticker, entry.company)
+                if ytr.is_quoteable:
+                    yf_items = yf.Ticker(ytr.quote_ticker).news or []
+                    for n in yf_items[:6]:
+                        t = str(n.get("title") or "")
+                        u = str(n.get("link") or "")
+                        if t and u:
+                            items.append(NewsItem(
+                                title=t, url=u, source="yfinance",
+                                summary="", published_at=str(n.get("providerPublishTime") or ""),
+                            ))
+            except Exception:
+                pass
+        # 单条 headline 最后兜底
         if not items and snapshot.get("headline") and snapshot.get("url"):
             items.append(NewsItem(
                 title=str(snapshot["headline"]), url=str(snapshot["url"]),
@@ -215,10 +441,11 @@ def collect_company_news(
                 published_at=str(snapshot.get("published_at") or ""),
             ))
 
+        items = _dedupe_news(items, max_results=10)
         if items:
             agent_needed.append(key)  # still needs agent to write Chinese summary
         else:
-            gaps.append(f"{key}: no_news_found — DDG and yfinance both empty")
+            gaps.append(f"{key}: no_news_found — GN/DDG/yfinance all empty")
 
         result[key] = items
 

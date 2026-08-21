@@ -8,14 +8,36 @@ from .tickers import build_ticker_runtime
 
 
 def _load_fmp():
-    """Load financial-data fmp_provider (reused for quote/price_change/news)."""
+    """Load financial-data fmp_provider (reused for quote/price_change/news).
+
+    fmp_provider reads FMP_API_KEY from os.environ only — the workspace .env
+    must be loaded here or every FMP call fails and everything degrades to
+    yfinance (quote ok, valuation empty).
+    """
     import importlib
+    import os
     import sys
     from pathlib import Path
+    _load_workspace_env()
     pdir = Path(__file__).resolve().parents[2] / "financial-data" / "providers"
     if str(pdir) not in sys.path:
         sys.path.insert(0, str(pdir))
     return importlib.import_module("fmp_provider")
+
+
+def _load_workspace_env() -> None:
+    """Load workspace root .env into os.environ (setdefault — never override real env)."""
+    import os
+    from pathlib import Path
+    env_path = Path(__file__).resolve().parents[3] / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
 
 
 def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, Any] | None:
@@ -27,7 +49,7 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
         fmp = _load_fmp()
         r = fmp.fetch({"identifier": entry.ticker, "name": entry.company,
                        "items": ["market_data", "price_change", "historical_price", "news",
-                                 "estimates", "key_metrics", "ratios", "earnings_calendar"],
+                                 "key_metrics", "ratios", "earnings_calendar"],
                        "periods": "latest"})
         md = r.get("market_data", {})
         if not md.get("price"):
@@ -187,10 +209,30 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
             snapshot["pe_trailing"] = round(float(info["trailingPE"]), 1)
     except Exception:
         pass
-    gap = ""
+    # Valuation row for FMP-blind tickers: only ret fields are available here
+    # (PE/EV need FMP ratios/estimates). Build the same row shape so the brief
+    # renderer reads one consistent structure.
+    from .valuation import compute_valuation_row
+    val_row = compute_valuation_row(entry, {})
+    val_row.update({
+        "today": round(price_move_pct, 1),
+        "ret_1m": ret_1m,
+        "ret_ytd": ret_ytd,
+        "ret_1y": ret_1y,
+    })
+    snapshot["valuation"] = val_row
+    # AKShare 兜底（best-effort）：FMP 盲区 A 股（2023 年科创板批次）补
+    # PE_TTM + 5y 中位；失败静默，仅 gap 里留痕，不阻塞行情
+    ak_gap = ""
+    try:
+        from .akshare_valuation import enrich_valuation_row
+        ak_gap = enrich_valuation_row(entry, val_row)
+    except Exception:
+        pass
+    gap = ak_gap
     if len(closes) < 2 or volume_ratio == 0.0 or gap_pct == 0.0:
         snapshot["quote_status"] = "Partial"
-        gap = f"{entry.ticker}: quote_status:Partial"
+        gap = f"{entry.ticker}: quote_status:Partial" + (f"; {ak_gap}" if ak_gap else "")
     if today:
         try:
             if (date.fromisoformat(today) - history.index[-1].date()).days > 5:

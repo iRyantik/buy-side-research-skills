@@ -93,6 +93,16 @@ Recalculate valuation with updated estimates:
 - New price target (if changed) with methodology
 - Upside/downside to current price
 
+**Forward 回写（estimates 层，L1）：** 模型更新后，把新 FY1 关键数字回写到 estimates-resolved.json，让日报估值列显示更新后的假设（`L1 fwd`）：
+
+```bash
+python3 .scripts/financial-data/estimates_store.py set-forward <TICKER> \
+  --basis model --source model-update --currency <币种> \
+  --eps <FY1 EPS> --revenue <FY1 Rev> --ebitda <FY1 EBITDA> --net-income <FY1 NI> ...
+```
+
+必写 `--eps` 或 `--revenue` 至少一个；拿不到的字段不传（null 不硬凑）。新值覆盖旧值，旧值自动进 `history`（append-only）。跑完留一行：`Forward 已回写 estimates-resolved.json（FY1 eps=… basis=model）`。
+
 ### Step 6: Output
 
 - Updated Excel model (if user provides the existing model)

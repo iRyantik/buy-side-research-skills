@@ -900,6 +900,64 @@ def _yf_ticker(identifier: str, market: str) -> str:
     return identifier
 
 
+def _yf_market_data(yf_id: str) -> dict:
+    """yfinance market_data fill — history-first, fast_info supplement.
+
+    Yahoo's heavy quoteSummary endpoint (`Ticker.info`) is rate-limited on
+    some networks (returns 429 / empty price), while the chart history
+    endpoint is stable. Use history() for price, and only try fast_info for
+    extra fields — never fabricate PE-like values, leave them as gaps.
+    """
+    import yfinance as yf
+
+    md: dict = {}
+    t = yf.Ticker(yf_id)
+
+    # 1. price from history (stable endpoint)
+    try:
+        h = t.history(period="1mo")
+        if h is not None and not h.empty:
+            close = h["Close"].dropna()
+            if not close.empty:
+                price = float(close.iloc[-1])
+                md["price"] = round(price, 2) if price >= 10 else round(price, 4)
+                if len(close) >= 2:
+                    md["change_1d_pct"] = float(round(
+                        (close.iloc[-1] / close.iloc[-2] - 1) * 100, 2))
+                md["change_1m_pct"] = float(round(
+                    (close.iloc[-1] / close.iloc[0] - 1) * 100, 2))
+                try:
+                    cur = h.attrs.get("currency")
+                    if cur:
+                        md["currency"] = cur
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # 2. supplement from fast_info (may itself be rate-limited; non-fatal)
+    try:
+        fi = t.fast_info
+        fi_price = fi.get("last_price")
+        if fi_price is not None:
+            md["price"] = round(float(fi_price), 2)
+        for src, dst in (
+            ("market_cap", "market_cap"),
+            ("year_high", "fifty_two_week_high"),
+            ("year_low", "fifty_two_week_low"),
+        ):
+            v = fi.get(src)
+            if v is not None:
+                md[dst] = v
+        cur = fi.get("currency")
+        if cur:
+            md["currency"] = cur
+    except Exception:
+        pass
+
+    return md
+
+
 def sha256_file(path: Path) -> str:
     d = hashlib.sha256()
     with path.open("rb") as f:
@@ -1964,6 +2022,16 @@ def _run_scan(args) -> int:
     for t in tickers:
         try:
             r = fmp_mod.fetch({"identifier": t, "market": args.market, "items": items, "periods": args.periods})
+            # scan 同步写 estimates consensus 槽（L2，fmp:analyst-estimates）
+            try:
+                est_rows = r.get("estimates") or []
+                if isinstance(est_rows, list) and est_rows:
+                    from estimates_store import WS as _ews, map_periods, upsert_consensus
+                    _pers = map_periods(est_rows)
+                    if _pers:
+                        upsert_consensus(_ews, t, _pers, "fmp:analyst-estimates")
+            except Exception:
+                pass
             md = r.get("market_data", {})
             out.append({
                 "ticker": t,
@@ -2365,25 +2433,11 @@ def main() -> int:
                     fmp_filled = False
             if not fmp_filled and (not md or not md.get("pe_ttm") or not md.get("market_cap")):
                 try:
-                    import yfinance as yf
                     yf_id = _yf_ticker(args.identifier, args.market)
-                    t = yf.Ticker(yf_id)
-                    info = t.info
-                    md.update({k: v for k, v in {
-                        "price": info.get("currentPrice"),
-                        "market_cap": info.get("marketCap"),
-                        "pe_ttm": info.get("trailingPE"),
-                        "pe_ntm": info.get("forwardPE"),
-                        "pb": info.get("priceToBook"),
-                        "ps_ttm": info.get("priceToSalesTrailing12Months"),
-                        "ev_ebitda": info.get("enterpriseToEbitda"),
-                        "ev_sales": info.get("enterpriseToRevenue"),
-                        "dividend_yield_pct": info.get("dividendYield"),
-                        "beta": info.get("beta"),
-                        "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
-                        "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
-                    }.items() if v is not None})
-                    actuals["market_data"] = md
+                    yf_md = _yf_market_data(yf_id)
+                    if yf_md.get("price"):
+                        md.update({k: v for k, v in yf_md.items() if v is not None})
+                        actuals["market_data"] = md
                 except Exception:
                     if not md:
                         actuals["market_data"] = {}

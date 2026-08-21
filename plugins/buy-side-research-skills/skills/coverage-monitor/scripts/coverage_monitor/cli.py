@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import replace
+import json
 from datetime import datetime
 import os
 from pathlib import Path
@@ -372,6 +373,84 @@ def _load_daily_state(workspace: Path) -> dict | None:
         "industry_readthroughs": _deserialize_news_items(raw.get("industry_readthroughs", {})),
         "gaps": raw.get("gaps", []),
     }
+def _apply_ai_review(workspace: Path, path: str, review_map: dict, entries: list) -> None:
+    """注入 agent AI 审查输出：translations → 翻译缓存（src=ai，按原文 key）；review_map → AI 优先覆盖。"""
+    try:
+        out = json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[ai_review] 读取失败 {path}: {e} → 跳过", file=sys.stderr)
+        return
+    tr = out.get("translations") or {}
+    if tr:
+        cache_path = workspace / ".cache" / "coverage-monitor" / "translation-cache.json"
+        cache: dict = {}
+        try:
+            if cache_path.exists():
+                cache = json.loads(cache_path.read_text(encoding="utf-8"))
+        except Exception:
+            cache = {}
+        n = 0
+        for orig, zh in tr.items():
+            orig = (orig or "").strip()
+            zh = (zh or "").strip()
+            if orig and zh:
+                cache[orig] = {"t": zh, "src": "ai"}
+                n += 1
+        try:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+            print(f"[ai_review] 翻译缓存写入 {n} 条（src=ai）")
+        except Exception as e:
+            print(f"[ai_review] 翻译缓存写入失败: {e}", file=sys.stderr)
+    ai_rm = out.get("review_map") or {}
+    if isinstance(ai_rm, dict):
+        for k, v in ai_rm.items():
+            if isinstance(v, dict):
+                review_map[k] = v
+        print(f"[ai_review] review_map 覆盖 {len(ai_rm)} 家（AI 优先）")
+
+
+def _write_ai_review_input(workspace: Path, mover_entries: list, company_news: dict,
+                           review_map: dict, run_day: str, entries: list | None = None) -> None:
+    """导出 AI 审查任务包：movers（新闻候选 + 当前 review）+ 全部待翻译标题（movers + Core Watch）。"""
+    pack: dict = {"today": run_day, "movers": []}
+    seen_titles: set = set()
+    titles: list = []
+    for ticker, company, snap in mover_entries:
+        items = company_news.get(ticker, []) or []
+        news = []
+        for it in items[:12]:
+            t = (it.title or "").strip()
+            if t and t not in seen_titles:
+                seen_titles.add(t)
+                titles.append(t)
+            news.append({"title": t, "url": it.url, "source": getattr(it, "source", ""),
+                         "snippet": (getattr(it, "summary", "") or "")[:160]})
+        pack["movers"].append({
+            "ticker": ticker, "company": company,
+            "price_move_pct": (snap or {}).get("price_move_pct"),
+            "market_cap": (snap or {}).get("market_cap"),
+            "current_summary": (review_map.get(ticker) or {}).get("summary", ""),
+            "news": news,
+        })
+    # Core Watch 新闻标题也纳入翻译（展示给用户）
+    for e in entries or []:
+        if getattr(e, "monitor_status", "") == "Core":
+            for it in (company_news.get(e.ticker or e.company, []) or [])[:6]:
+                t = (it.title or "").strip()
+                if t and t not in seen_titles:
+                    seen_titles.add(t)
+                    titles.append(t)
+    pack["titles_to_translate"] = titles
+    out_path = workspace / ".cache" / "coverage-monitor" / "ai-review-input.json"
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(pack, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"[ai_review] 任务包已导出: {out_path}（{len(pack['movers'])} 家 movers，{len(titles)} 条待翻译标题）")
+    except Exception as e:
+        print(f"[ai_review] 任务包导出失败: {e}", file=sys.stderr)
+
+
 def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[CoverageEntry], snapshots: dict) -> list[str]:
     """Remove gaps that enrichment has resolved, add agent work summary."""
     core_news = set(enrichment.get("core_watch_news", {}).keys())
@@ -428,7 +507,7 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     return cleaned
 
 
-def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am") -> int:
+def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am", ai_review: str = "", ai_review_input: bool = False) -> int:
     from concurrent.futures import ThreadPoolExecutor
 
     if skip_fetch:
@@ -479,20 +558,54 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     # Clean gaps based on enrichment coverage
     gaps = _clean_gaps_for_enrichment(gaps, enrichment, entries, snapshots)
 
+    # estimates 覆盖健康（integration plan §6）：缺 estimate = 无 forward 且无 consensus
+    try:
+        _est_path = workspace / ".cache" / "estimates" / "estimates-resolved.json"
+        if _est_path.exists():
+            _ed = json.loads(_est_path.read_text(encoding="utf-8"))
+            _n_missing = 0
+            for _e in entries:
+                _en = _ed.get(_e.ticker or _e.company) or {}
+                _has = bool(_en.get("forward")) or bool((_en.get("consensus") or {}).get("periods"))
+                if not _has:
+                    _n_missing += 1
+            if _n_missing:
+                gaps.insert(0, f"estimates_missing: {_n_missing} 家缺 estimate（无 forward 且无 consensus）")
+    except Exception:
+        pass
+
     from .brief import render_brief_markdown
     from .brief_html import render_brief_html
     from .mover_review import review_movers
 
     # Movers Agent review：重要/普通异动股，Agent 读 news 筛噪音 + 总结原因 + 挑高相关链接
+    from .signals import assess_snapshot as _assess
     mover_entries = [(e.ticker or e.company, e.company, snapshots.get(e.ticker or e.company, {}))
-                     for e in entries if snapshots.get(e.ticker or e.company, {}).get("price_move_pct") is not None]
-    review_map = review_movers(mover_entries, merged_company_news, run_day)
+                     for e in entries if _assess(snapshots.get(e.ticker or e.company, {}))]
+    review_map = review_movers(mover_entries, merged_company_news, run_day, entries)
+
+    # ── Agent AI 审查/翻译注入：--ai-review <file> 优先覆盖，--ai-review-input 导出任务包 ──
+    if ai_review:
+        _apply_ai_review(workspace, ai_review, review_map, entries)
+    if ai_review_input:
+        _write_ai_review_input(workspace, mover_entries, merged_company_news, review_map, run_day, entries)
+
+    # estimates-resolved.json（L1 forward / L2 consensus）→ 估值列 L1 优先
+    _estimates: dict = {}
+    try:
+        _ep = workspace / ".cache" / "estimates" / "estimates-resolved.json"
+        if _ep.exists():
+            _estimates = json.loads(_ep.read_text(encoding="utf-8"))
+    except Exception:
+        _estimates = {}
 
     markdown_text = render_brief_markdown(
         entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type, review_map=review_map,
+        estimates=_estimates,
     )
     html_text = render_brief_html(
         entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type, review_map=review_map,
+        estimates=_estimates,
     )
     if dry_run:
         print(markdown_text)
@@ -589,8 +702,10 @@ def build_parser() -> argparse.ArgumentParser:
     daily.add_argument("--enrichment", default="", help="Path to agent enrichment JSON (mover explainers, core watch news, industry summaries).")
     daily.add_argument("--explainers", default="", help="(deprecated) Use --enrichment instead.")
     daily.add_argument("--skip-fetch", action="store_true", help="Skip data fetching; re-render from cached daily state.")
+    daily.add_argument("--ai-review-input", action="store_true", help="Write .cache/coverage-monitor/ai-review-input.json (movers + news + titles) for agent review.")
+    daily.add_argument("--ai-review", default="", help="Path to agent AI review output JSON {review_map, translations}.")
     daily.add_argument("--report-type", default="am", choices=("am", "asia", "eu"),
-                       help="Report coverage: am=盘前全量 / asia=亚盘盘后 / eu=欧盘盘后.")
+                       help="Report coverage: am=亚洲盘前全量 / asia=亚盘盘后 / eu=欧盘盘后.")
 
     intraday = subparsers.add_parser("intraday", parents=[workspace_parent], help="Run intraday alert monitoring.")
     intraday.add_argument("--dry-run", action="store_true", help="Evaluate alerts without sending.")
@@ -616,7 +731,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             enrichment_file = Path(args.enrichment or args.explainers) if (args.enrichment or args.explainers) else None
             return _run_daily(workspace, today=args.today or None, dry_run=args.dry_run,
                               enrichment_path=enrichment_file, skip_fetch=args.skip_fetch,
-                              report_type=args.report_type)
+                              report_type=args.report_type,
+                              ai_review=args.ai_review, ai_review_input=args.ai_review_input)
         if args.command == "intraday":
             return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes)
     except UnicodeDecodeError:

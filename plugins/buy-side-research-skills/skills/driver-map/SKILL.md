@@ -387,6 +387,25 @@ FY+1 增速路径：
 保存至 `industry/<industry>/companies/<ticker>/`。
 路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
 
+## Forward 回写（estimates 层，L1）
+
+产出 driver map 后，把 FY1 关键 forward 数字回写到 estimates-resolved.json
+（`.cache/estimates/`，全局单文件），让日报估值列显示**你的假设（`L1 fwd`）**而非
+consensus——差异即潜在 alpha：
+
+```bash
+python3 .scripts/financial-data/estimates_store.py set-forward <TICKER> \
+  --basis model --source driver-map --currency <币种> \
+  --eps <FY1 EPS> --revenue <FY1 Rev> --ebitda <FY1 EBITDA> --net-income <FY1 NI> ...
+```
+
+- **数字来源**：模型 build 输出三表取 FY1；未 build 则 actuals 最近 FY × (1 + FY1 增速) 推算
+- **必写**：`--eps` 或 `--revenue` 至少一个（日报 PE_NTM 用 eps；拿不到的字段不传，null 不硬凑）
+- **覆盖**：新 forward 覆盖旧值，旧值自动进 `history`（append-only）；写必须带 source + updated_at
+- 跑完在产出里留一行：`Forward 已回写 estimates-resolved.json（FY1 eps=… basis=model）`
+
+
+
 ## Growth Quality（200 字）
 
 基于上述 driver 拆解，回答三个增长质量问题：

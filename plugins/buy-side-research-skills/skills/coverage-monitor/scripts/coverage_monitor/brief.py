@@ -11,16 +11,18 @@ import re
 from typing import Any
 
 from .coverage import CoverageEntry
-from .valuation import fmt_cell, rich_class
+from .news import pick_lead_news, protect_names, tag_news_title, translate_zh
+from .valuation import fmt_cell, fwd_extra, rich_class
 
 # 市场 → report_type 归属
 _MARKET_OF = {
     ".SZ": "asia", ".SH": "asia", ".CN": "asia", ".T": "asia", ".JP": "asia",
     ".KS": "asia", ".KQ": "asia", ".TW": "asia", ".TT": "asia", ".HK": "asia",
     ".DE": "eu", ".MI": "eu", ".MC": "eu", ".LN": "eu", ".FR": "eu",
-    ".HE": "eu", ".PA": "eu", ".ST": "eu", ".OL": "eu", ".AS": "eu",
-    ".KL": "eu", ".MY": "eu", ".NS": "eu", ".AX": "eu", ".CA": "eu",
-    ".SS": "eu", ".US": "us", "": "us",
+    ".L": "eu", ".HE": "eu", ".PA": "eu", ".ST": "eu", ".OL": "eu",
+    ".AS": "eu", ".KL": "eu", ".MY": "eu", ".NS": "eu", ".AX": "eu",
+    ".CA": "eu", ".TO": "eu",
+    ".SS": "asia", ".US": "us", "": "us",
 }
 
 
@@ -38,12 +40,37 @@ def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[Cover
     return [e for e in entries if _market_of(e.ticker or "") == report_type]
 
 
+_ZH_SUFFIXES = (".SS", ".SZ", ".SH", ".HK", ".TW", ".TT", ".CN")
+
+
+def _fwd_ntm_pe(snap: dict, estimates: dict | None, ticker: str) -> float | None:
+    """L1 forward EPS → PE_NTM（price ÷ forward.eps）；无 forward/eps 返回 None。
+
+    调用方 fallback 到现有 vrow.pe_ntm（已是 consensus epsAvg 口径）。"""
+    fwd = None
+    if estimates:
+        fwd = (estimates.get(ticker) or {}).get("forward")
+    eps = (fwd or {}).get("metrics", {}).get("eps") if fwd else None
+    price = snap.get("last_price")
+    if not eps or not price:
+        return None
+    try:
+        return round(float(price) / float(eps), 1)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None
+
+
 def _display_name(entry: CoverageEntry) -> str:
-    """公司有中文名（Company_Native 含汉字）显示中文名；否则英文名（韩文/日文母语不算中文）。"""
-    native = (entry.company_native or "").strip()
-    if native and re.search(r"[一-鿿]", native):
-        return native
-    return entry.company or entry.ticker or ""
+    """中文市场（CN/HK/TW）显示中文名；其他市场显示 EN 名。
+
+    不能用"含汉字"判断——日文公司名（ニッポン高度紙工業、三井化学）也是汉字，
+    会误当中文。按 ticker 市场后缀 + 多 ticker 的 CH/HK 标记判定。
+    """
+    t = (entry.ticker or "").strip().upper()
+    zh = any(t.endswith(s) for s in _ZH_SUFFIXES) or " CH " in f" {t} " or " HK " in f" {t} "
+    if zh:
+        return (entry.company_native or "").strip() or entry.company or t
+    return entry.company or t
 
 
 _STATUS_ORDER = {"Thesis": 0, "Modeled": 1, "Quickread": 2, "Screened": 3, "Terminated": 4}
@@ -134,6 +161,7 @@ def render_brief_markdown(
     news_map: dict[str, list[Any]],
     report_type: str = "am",
     review_map: dict[str, dict] | None = None,
+    estimates: dict | None = None,
 ) -> str:
     """渲染 5 区块 markdown。"""
     ents = filter_entries(entries, report_type)
@@ -142,7 +170,7 @@ def render_brief_markdown(
     review_map = review_map or {}
 
     # ── 头部 ──
-    rt_label = {"am": "盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    rt_label = {"am": "亚洲盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     lines.append(f"# Daily Brief · {today}（{rt_label}）")
     lines.append("")
     lines.append(f"**覆盖 {len(ents)} 家 · 数据源 FMP**")
@@ -195,10 +223,12 @@ def render_brief_markdown(
         snap = snapshots.get(e.ticker or e.company, {})
         vrow = snap.get("valuation") or {}
         pe_t = fmt_cell(vrow.get("pe_ttm"), vrow.get("pe_ttm_vs_5y"))
-        pe_n = fmt_cell(vrow.get("pe_ntm"),
-                        extra=(f"fwd {vrow['pe_fwd']}x" if vrow.get("pe_fwd") else None))
+        pe_n = fmt_cell(vrow.get("pe_ntm"), extra=fwd_extra(vrow, "PE"))
+        _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
+        if _fwd_pe is not None:
+            pe_n = fmt_cell(_fwd_pe, extra="L1 fwd")
         ev_t = fmt_cell(vrow.get("ev_ttm"), vrow.get("ev_ttm_vs_5y"))
-        ev_n = fmt_cell(vrow.get("ev_ntm"))
+        ev_n = fmt_cell(vrow.get("ev_ntm"), extra=fwd_extra(vrow, "EV/EBITDA"))
         # 贵/便宜染色（PE TTM vs 5y 优先，其次 EV）
         if rich_class(vrow.get("pe_ttm_vs_5y")) == "rich":
             pe_t = f"**{pe_t}**"
@@ -236,7 +266,7 @@ def render_brief_markdown(
             rv = review_map.get(e.ticker or e.company) or {}
             if rv.get("summary"):
                 links = " ".join(f"[[{i + 1}]]({l['url']})" for i, l in enumerate(rv.get("links", [])[:4]))
-                expl = f"{rv['summary']} {links}"
+                expl = f"{rv['summary']} {links}" if links else rv["summary"]
             else:
                 _items = news_map.get(e.ticker or e.company, [])
                 expl = f"[{_items[0].title[:35]}]({_items[0].url})" if _items else "原因未明"
@@ -260,7 +290,8 @@ def render_brief_markdown(
         lines.append("> 无 ±5% 异动。")
         lines.append("")
 
-    # ── ④ Core Watch：Core 名单卡片 ──
+    # ── ④ Core Watch：Core 名单（一行两家） ──
+    _protect = protect_names(entries)
     core = [e for e in ents if e.monitor_status == "Core"]
     lines.append("## ④ Core Watch")
     lines.append("")
@@ -269,20 +300,57 @@ def render_brief_markdown(
             _snap = snapshots.get(e.ticker or e.company, {})
             return (_STATUS_ORDER.get((e.coverage_status or "").strip(), 9),
                     str(_snap.get("next_earnings") or "9999-99-99"))
-        for e in sorted(core, key=_core_key):
+
+        def _core_cell(e):
             snap = snapshots.get(e.ticker or e.company, {})
             vrow = snap.get("valuation") or {}
             items = news_map.get(e.ticker or e.company, [])
-            head = f"[{items[0].title[:60]}]({items[0].url})" if items else "无新闻"
-            lines.append(f"### {_display_name(e)} · {e.ticker}（{e.coverage_status or '—'}）")
-            lines.append(f"- **Snapshot**：Price {_fmt_price(snap)} · Cap {_fmt_cap(snap.get('market_cap'))} · "
-                         f"1m {_fmt_pct(vrow.get('ret_1m'))} · YTD {_fmt_pct(vrow.get('ret_ytd'))} · 1y {_fmt_pct(vrow.get('ret_1y'))} · "
-                         f"Next {snap.get('next_earnings') or '—'}")
+            parts = [f"**{_display_name(e)} · {e.ticker}（{e.coverage_status or '—'}）**"]
+            snap_parts = [f"Price {_fmt_price(snap)}", f"Cap {_fmt_cap(snap.get('market_cap'))}",
+                          f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
+                          f"1y {_fmt_pct(vrow.get('ret_1y'))}", f"Next {snap.get('next_earnings') or '—'}"]
+            parts.append("Snapshot：" + " · ".join(snap_parts))
+            # 主估值行（universe 同口径），全空不显示
+            if any(vrow.get(f) is not None for f in ("pe_ttm", "pe_ntm", "ev_ttm", "ev_ntm")):
+                pe_t = fmt_cell(vrow.get("pe_ttm"), vrow.get("pe_ttm_vs_5y"))
+                pe_n = fmt_cell(vrow.get("pe_ntm"), extra=fwd_extra(vrow, "PE"))
+                _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
+                if _fwd_pe is not None:
+                    pe_n = fmt_cell(_fwd_pe, extra="L1 fwd")
+                ev_t = fmt_cell(vrow.get("ev_ttm"), vrow.get("ev_ttm_vs_5y"))
+                ev_n = fmt_cell(vrow.get("ev_ntm"), extra=fwd_extra(vrow, "EV/EBITDA"))
+                parts.append(f"Valuation：PE_TTM {pe_t} · PE_NTM {pe_n} · EV/EBITDA_TTM {ev_t} · EV/EBITDA_NTM {ev_n}")
+            # 次要倍数（None 跳过；P/FCF 口径注记）
+            minor_parts = []
+            for lbl, k, k5 in (("PS", "ps", "ps_5y"), ("PB", "pb", "pb_5y"), ("P/FCF", "pfcf", "pfcf_5y")):
+                v = vrow.get(k)
+                if v is None:
+                    continue
+                v5 = vrow.get(k5)
+                note = " [OCF]" if (k == "pfcf" and vrow.get("pfcf_note")) else ""
+                minor_parts.append(f"{lbl} {v}x{note}" + (f" (5y {v5})" if v5 is not None else ""))
+            if minor_parts:
+                parts.append("Multiples：" + " · ".join(minor_parts))
             if items:
-                lines.append(f"- 📰 {head[:80]}")
+                _tag = tag_news_title(pick_lead_news(items).title)
+                _tag_s = f"【{_tag}】" if _tag else ""
+                _t = translate_zh(pick_lead_news(items).title, protect=_protect).replace("|", "\\|").replace("<br>", " ")
+                parts.append(f"📰 {_tag_s}[{_t[:60]}]({pick_lead_news(items).url})")
             else:
-                lines.append("- 无新闻")
-            lines.append("")
+                parts.append("无新闻")
+            return "<br>".join(parts)
+
+        _ordered = sorted(core, key=_core_key)
+        lines.append("| | |")
+        lines.append("|---|---|")
+        for _i in range(0, len(_ordered), 2):
+            _row = [f"<br>{_core_cell(_ordered[_i])}<br>"]
+            if _i + 1 < len(_ordered):
+                _row.append(f"<br>{_core_cell(_ordered[_i + 1])}<br>")
+            else:
+                _row.append("")
+            lines.append("| " + " | ".join(_row) + " |")
+        lines.append("")
     else:
         lines.append("> 无 Core 名单。")
         lines.append("")

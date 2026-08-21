@@ -13,6 +13,11 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+
+# agent_session（固定会话）是 coverage_monitor 的上层模块，注入路径后绝对导入
+_PKG_ROOT = Path(__file__).resolve().parent.parent
+if str(_PKG_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PKG_ROOT))
 from typing import Any
 
 # 发布者参考权重（仅作 Agent 初始排序提示，Agent 最终判断）
@@ -29,21 +34,51 @@ def _claude_available() -> bool:
     return shutil.which("claude") is not None
 
 
-def review_movers(movers: list[tuple[str, str, dict]], news_map: dict[str, list],
-                  today: str) -> dict[str, dict]:
-    """Agent review 所有 Movers。movers = [(ticker, company, snapshot)]。
+def _source_rank(item) -> int:
+    """发布者权重：high 来源 0，low 来源 2，其他 1。"""
+    s = (getattr(item, "source", "") or "").lower()
+    host = s
+    for hint in SOURCE_HINTS["high"]:
+        if hint in host:
+            return 0
+    for hint in SOURCE_HINTS["low"]:
+        if hint in host:
+            return 2
+    return 1
 
-    Agent 不可用 → 返回 {}（渲染 fallback：只列脚本 news，原因标待人工）。
+
+def _rule_review(movers: list[tuple[str, str, dict]], news_map: dict[str, list], protect: tuple = ()) -> dict[str, dict]:
+    """无 claude CLI 时的规则 fallback：来源权重排序 + 关键词标签 + 候选链接。
+
+    summary 质量粗（low confidence），但保证每天有输出，不再"原因未明"。
     """
-    if not movers:
-        return {}
-    if not _claude_available():
-        print("[mover_review] claude CLI 不可用 → 跳过 Agent review", file=sys.stderr)
-        return {}
-
-    # 组装输入：每家的 news 候选（title + url + source + snippet）
-    payload = {}
+    from .news import protect_names, tag_news_title, translate_zh
+    out: dict[str, dict] = {}
     for ticker, company, snap in movers:
+        items = news_map.get(ticker, [])
+        if not items:
+            out[ticker] = {"summary": "无当日新闻候选", "confidence": "low",
+                           "links": [], "reason": "no news"}
+            continue
+        ranked = sorted(items, key=_source_rank)
+        top = ranked[:3]
+        tag = tag_news_title(top[0].title)
+        label = f"（{tag}）" if tag else ""
+        summary = f"候选：{translate_zh(top[0].title, protect=protect)[:52]}{label}"
+        out[ticker] = {
+            "summary": summary, "confidence": "low",
+            "links": [{"title": it.title, "url": it.url} for it in top[:2]],
+        }
+    return out
+
+
+def _claude_review_chunk(chunk: list[tuple[str, str, dict]], news_map: dict[str, list], today: str, sid: str) -> dict | None:
+    """claude CLI 审查一个分块（≤8 家）；成功返回 dict，失败/超时返回 None。
+
+    sid: 固定 session-id，让所有分块落入同一个会话（不新建文件）。
+    """
+    payload = {}
+    for ticker, company, snap in chunk:
         items = news_map.get(ticker, [])
         if not items:
             payload[ticker] = {"company": company, "price_move_pct": snap.get("price_move_pct"),
@@ -55,7 +90,6 @@ def review_movers(movers: list[tuple[str, str, dict]], news_map: dict[str, list]
             "news": [{"title": it.title, "url": it.url, "source": getattr(it, "source", ""),
                       "snippet": (getattr(it, "summary", "") or "")[:160]} for it in items[:12]],
         }
-
     prompt = f"""你是买方研究员。今天是 {today}。下面是今天异动股（Movers）的新闻候选。
 对每只股票：
 1. 筛掉噪音（持仓变动/机构买入卖出/推广/聚合站重复标题/SEO 标题）
@@ -68,27 +102,46 @@ def review_movers(movers: list[tuple[str, str, dict]], news_map: dict[str, list]
 
 输入：
 {json.dumps(payload, ensure_ascii=False, indent=1)}"""
-
     try:
         env = dict(os.environ)
         env["PATH"] = f"{Path.home()}/.local/bin:/opt/homebrew/bin:" + env.get("PATH", "")
+        from agent_session import claude_args
         proc = subprocess.run(
-            ["claude", "-p", "--output-format", "text", prompt],
+            claude_args(sid) + [prompt],
             capture_output=True, text=True, timeout=180, env=env,
         )
         out = (proc.stdout or "").strip()
-        # 提取 JSON（可能被 claude 包在代码块里）
         j = _extract_json(out)
-        if not isinstance(j, dict):
-            print(f"[mover_review] Agent 输出非 JSON: {out[:200]}", file=sys.stderr)
-            return {}
-        return j
-    except subprocess.TimeoutExpired:
-        print("[mover_review] Agent 超时", file=sys.stderr)
+        return j if isinstance(j, dict) else None
+    except Exception:
+        return None
+
+
+def review_movers(movers: list[tuple[str, str, dict]], news_map: dict[str, list],
+                  today: str, entries: list | None = None) -> dict[str, dict]:
+    """Agent review 所有 Movers（claude CLI 分块，≤8 家/块，块失败局部规则 fallback）。"""
+    from .news import protect_names
+
+    if not movers:
         return {}
-    except Exception as e:
-        print(f"[mover_review] Agent 调用失败: {e}", file=sys.stderr)
-        return {}
+    _prot = protect_names(entries) if entries else tuple(c for _, c, _ in movers)
+    if not _claude_available():
+        print("[mover_review] claude CLI 不可用 → 规则 fallback", file=sys.stderr)
+        return _rule_review(movers, news_map, _prot)
+
+    from agent_session import get_session_id
+    sid = get_session_id()  # 固定 session-id：所有分块落入同一个会话
+    combined: dict = {}
+    CHUNK = 8
+    for i in range(0, len(movers), CHUNK):
+        chunk = movers[i:i + CHUNK]
+        j = _claude_review_chunk(chunk, news_map, today, sid)
+        if j:
+            combined.update(j)
+        else:
+            print(f"[mover_review] chunk {i // CHUNK} 失败 → 规则 fallback", file=sys.stderr)
+            combined.update(_rule_review(chunk, news_map, _prot))
+    return combined
 
 
 def _extract_json(text: str) -> Any:
