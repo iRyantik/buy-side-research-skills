@@ -133,11 +133,13 @@ def render_brief_markdown(
     gaps: list[str],
     news_map: dict[str, list[Any]],
     report_type: str = "am",
+    review_map: dict[str, dict] | None = None,
 ) -> str:
     """渲染 5 区块 markdown。"""
     ents = filter_entries(entries, report_type)
     lines: list[str] = []
     today_dt = datetime.date.fromisoformat(today) if today else datetime.date.today()
+    review_map = review_map or {}
 
     # ── 头部 ──
     rt_label = {"am": "盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
@@ -228,22 +230,31 @@ def render_brief_markdown(
     if important:
         lines.append("**重要（±8%）**")
         lines.append("")
-        lines.append("| 公司 | Ticker | 涨跌 | Price | 一句话解释 |")
+        lines.append("| 公司 | Ticker | 涨跌 | Price | 涨跌原因 + 证据 |")
         lines.append("|---|---|---|---|---|")
         for e, s in important:
-            _items = news_map.get(e.ticker or e.company, [])
-            hd = f"[{_items[0].title[:35]}]({_items[0].url})" if _items else ""
-            lines.append(f"| {_display_name(e)} | {e.ticker} | {_fmt_pct(s['price_move_pct'], 1)} | {_fmt_price(s)} | {hd} |")
+            rv = review_map.get(e.ticker or e.company) or {}
+            if rv.get("summary"):
+                links = " ".join(f"[[{i + 1}]]({l['url']})" for i, l in enumerate(rv.get("links", [])[:4]))
+                expl = f"{rv['summary']} {links}"
+            else:
+                _items = news_map.get(e.ticker or e.company, [])
+                expl = f"[{_items[0].title[:35]}]({_items[0].url})" if _items else "原因未明"
+            lines.append(f"| {_display_name(e)} | {e.ticker} | {_fmt_pct(s['price_move_pct'], 1)} | {_fmt_price(s)} | {expl} |")
         lines.append("")
     if minor:
         lines.append("**普通（±5%）**")
         lines.append("")
-        lines.append("| 公司 | Ticker | 涨跌 | Price | Cap | 1m | YTD | Vol |")
+        lines.append("| 公司 | Ticker | 涨跌 | Price | Cap | 1m | YTD | 原因/证据 |")
         lines.append("|---|---|---|---|---|---|---|---|")
         for e, s in minor:
+            rv = review_map.get(e.ticker or e.company) or {}
+            expl = rv.get("summary") or ""
+            if rv.get("links"):
+                expl += " " + " ".join(f"[[{i + 1}]]({l['url']})" for i, l in enumerate(rv["links"][:2]))
             lines.append(f"| {_display_name(e)} | {e.ticker} | {_fmt_pct(s['price_move_pct'], 1)} | {_fmt_price(s)} | "
                          f"{_fmt_cap(s.get('market_cap'))} | {_fmt_pct(s.get('ret_1m'))} | {_fmt_pct(s.get('ret_ytd'))} | "
-                         f"{s.get('volume_ratio') or '—'} |")
+                         f"{expl or '—'} |")
         lines.append("")
     if not important and not minor:
         lines.append("> 无 ±5% 异动。")

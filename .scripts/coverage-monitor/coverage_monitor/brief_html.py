@@ -71,6 +71,9 @@ tr.industry-row td{background:rgba(37,99,235,.06);font-weight:950;color:#1e3a8a;
 .mover-card.minor .core-ticker,.mover-card.minor .core-name,.mover-card.minor .core-industry,.mover-card.minor .core-day{font-size:16px}
 .mover-card.minor .core-quote-item b{font-size:13px}
 .mover-detail{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.mover-reason{margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink)}
+.mover-links{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.7;color:#334155}
+.mover-links a{color:var(--blue);text-decoration:none}
 details{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.72);padding:10px 12px;margin-top:8px}
 summary{cursor:pointer;font-weight:950;color:#1e3a8a}
 ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
@@ -108,10 +111,12 @@ def render_brief_html(
     gaps: list[str],
     news_map: dict[str, list[Any]],
     report_type: str = "am",
+    review_map: dict[str, dict] | None = None,
 ) -> str:
     ents = filter_entries(entries, report_type)
     rt_label = {"am": "盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     core_count = sum(1 for e in ents if e.monitor_status == "Core")
+    review_map = review_map or {}
 
     # ── 估值表 ──
     uni_rows = []
@@ -150,12 +155,19 @@ def render_brief_html(
     def _mover_card(e: CoverageEntry, s: dict, imp: bool) -> str:
         vrow = s.get("valuation") or {}
         day_cls = "core-day pos" if float(s["price_move_pct"]) >= 0 else "core-day neg"
-        items = news_map.get(e.ticker or e.company, [])
-        head = (f"<div class='news-line'>📰 <a href='{_h.escape(items[0].url or '#')}' target='_blank'>{_h.escape(items[0].title[:80])}</a></div>"
-                if items else "")
+        rv = review_map.get(e.ticker or e.company) or {}
         det = ""
-        if imp:
-            det = f"<div class='mover-detail'>{head}</div>"
+        if rv.get("summary"):
+            links_html = "".join(
+                f"<li><a href='{_h.escape(l['url'])}' target='_blank'>{_h.escape(l['title'][:60])}</a></li>"
+                for l in rv.get("links", [])[:5])
+            det = (f"<div class='mover-detail'><div class='mover-reason'>📌 {_h.escape(rv['summary'])}</div>"
+                   + (f"<ul class='mover-links'>{links_html}</ul>" if links_html else "") + "</div>")
+        elif imp:
+            items = news_map.get(e.ticker or e.company, [])
+            if items:
+                det = (f"<div class='mover-detail'><a href='{_h.escape(items[0].url or '#')}' target='_blank'>"
+                       f"{_h.escape(items[0].title[:80])}</a></div>")
         return (
             f"<div class='mover-card {'important' if imp else 'minor'}'>"
             f"<div class='core-title-line'><div class='core-title-left'>"

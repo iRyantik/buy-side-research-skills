@@ -481,11 +481,18 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
 
     from .brief import render_brief_markdown
     from .brief_html import render_brief_html
+    from .mover_review import review_movers
+
+    # Movers Agent review：重要/普通异动股，Agent 读 news 筛噪音 + 总结原因 + 挑高相关链接
+    mover_entries = [(e.ticker or e.company, e.company, snapshots.get(e.ticker or e.company, {}))
+                     for e in entries if snapshots.get(e.ticker or e.company, {}).get("price_move_pct") is not None]
+    review_map = review_movers(mover_entries, merged_company_news, run_day)
+
     markdown_text = render_brief_markdown(
-        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type, review_map=review_map,
     )
     html_text = render_brief_html(
-        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type, review_map=review_map,
     )
     if dry_run:
         print(markdown_text)
