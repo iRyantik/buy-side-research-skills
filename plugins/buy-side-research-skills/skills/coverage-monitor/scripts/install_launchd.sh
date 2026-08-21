@@ -28,7 +28,14 @@ install_one() {
         <string>--workspace</string><string>$WS</string>
     </array>
     <key>StartCalendarInterval</key>
-    <dict><key>Hour</key><integer>$H</integer><key>Minute</key><integer>$M</integer></dict>
+    <dict>
+        <key>Hour</key><integer>$H</integer>
+        <key>Minute</key><integer>$M</integer>
+        <key>Weekday</key>
+        <array>
+            <integer>1</integer><integer>2</integer><integer>3</integer><integer>4</integer><integer>5</integer>
+        </array>
+    </dict>
     <key>StandardOutPath</key><string>$LOG_DIR/cron-$rt.log</string>
     <key>StandardErrorPath</key><string>$LOG_DIR/cron-$rt.err</string>
     <key>RunAtLoad</key><false/>
