@@ -46,6 +46,23 @@ def _display_name(entry: CoverageEntry) -> str:
     return entry.company or entry.ticker or ""
 
 
+_STATUS_ORDER = {"Thesis": 0, "Modeled": 1, "Quickread": 2, "Screened": 3, "Terminated": 4}
+
+
+def _universe_sorted(entries: list[CoverageEntry],
+                     snapshots: dict[str, dict[str, Any]]) -> list[CoverageEntry]:
+    """估值表排序：行业分组 → Status 核心到边缘 → 市值降序。"""
+    def _key(e: CoverageEntry) -> tuple:
+        st = _STATUS_ORDER.get((e.coverage_status or "").strip(), 9)
+        cap = snapshots.get(e.ticker or e.company, {}).get("market_cap") or 0
+        try:
+            cap = float(cap)
+        except (TypeError, ValueError):
+            cap = 0
+        return (e.industry or "", st, -cap)
+    return sorted(entries, key=_key)
+
+
 def _fmt_pct(v: Any, digits: int = 1) -> str:
     if v is None:
         return "—"
@@ -133,7 +150,7 @@ def render_brief_markdown(
     lines.append("| Company | Ticker | Industry | Today | 1m | YTD | 1y | PE_TTM | PE_NTM | EV/EBITDA_TTM | EV/EBITDA_NTM | Next_Call | Status |")
     lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
     last_ind = None
-    for e in sorted(ents, key=lambda x: (x.industry or "", x.ticker or "")):
+    for e in _universe_sorted(ents, snapshots):
         if e.industry != last_ind:
             lines.append(f"| **{e.industry or 'Other'}** | | | | | | | | | | | | |")
             last_ind = e.industry

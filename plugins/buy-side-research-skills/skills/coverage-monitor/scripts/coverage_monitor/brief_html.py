@@ -10,7 +10,7 @@ import html as _h
 from typing import Any
 
 from .coverage import CoverageEntry
-from .brief import _display_name, _fmt_pct, _fmt_price, _fmt_cap, filter_entries
+from .brief import _display_name, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted
 from .valuation import fmt_cell, rich_class
 
 _CSS = """
@@ -115,7 +115,7 @@ def render_brief_html(
     # ── 估值表 ──
     uni_rows = []
     last_ind = None
-    for e in sorted(ents, key=lambda x: (x.industry or "", x.ticker or "")):
+    for e in _universe_sorted(ents, snapshots):
         if e.industry != last_ind:
             uni_rows.append(f'<tr class="industry-row"><td colspan="13">{_h.escape(e.industry or "Other")}</td></tr>')
             last_ind = e.industry
