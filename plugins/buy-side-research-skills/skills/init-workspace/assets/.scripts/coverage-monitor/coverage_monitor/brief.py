@@ -305,40 +305,12 @@ def render_brief_markdown(
             snap = snapshots.get(e.ticker or e.company, {})
             vrow = snap.get("valuation") or {}
             items = news_map.get(e.ticker or e.company, [])
-            _day = _fmt_pct(snap.get("price_move_pct"))
-            _vol = snap.get("volume_ratio")
-            # 主卡：名称+当日信号+Snapshot+财报倒计时+lead新闻
-            parts = [f"**{_display_name(e)} · {e.ticker}（{e.coverage_status or '—'}）** · 今日 {_day}"
-                     + (f" · 量比 {_vol}" if _vol else "")]
+            parts = [f"**{_display_name(e)} · {e.ticker}（{e.coverage_status or '—'}）**"]
             snap_parts = [f"Price {_fmt_price(snap)}", f"Cap {_fmt_cap(snap.get('market_cap'))}",
                           f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
-                          f"1y {_fmt_pct(vrow.get('ret_1y'))}"]
+                          f"1y {_fmt_pct(vrow.get('ret_1y'))}", f"Next {snap.get('next_earnings') or '—'}"]
             parts.append("Snapshot：" + " · ".join(snap_parts))
-            _nd = snap.get("next_earnings")
-            if _nd:
-                try:
-                    _days = (datetime.date.fromisoformat(str(_nd)) - datetime.date.today()).days
-                    _flag = " ⚠" if _days <= 5 else ""
-                    parts.append(f"财报：{_nd}（{_days} 天后{_flag}）")
-                except Exception:
-                    parts.append(f"财报：{_nd}")
-            if items:
-                _lead = pick_lead_news(items)
-                _tag = tag_news_title(_lead.title)
-                _tag_s = f"【{_tag}】" if _tag else ""
-                _t = translate_zh(_lead.title, protect=_protect).replace("|", "\|").replace("<br>", " ")
-                parts.append(f"📰 {_tag_s}[{_t[:60]}]({_lead.url})")
-            else:
-                parts.append("无新闻")
-            parts.append("—")
-            # 详情：位置 / Valuation / Multiples / 锚 / 催化剂 / 新闻2
-            pos = []
-            if snap.get("near_20d_high"):
-                pos.append("near 20d 高位")
-            if snap.get("near_20d_low"):
-                pos.append("near 20d 低位")
-            if pos:
-                parts.append("位置：" + " / ".join(pos))
+            # 主估值行（universe 同口径），全空不显示
             if any(vrow.get(f) is not None for f in ("pe_ttm", "pe_ntm", "ev_ttm", "ev_ntm")):
                 pe_t = fmt_cell(vrow.get("pe_ttm"), vrow.get("pe_ttm_vs_5y"))
                 pe_n = fmt_cell(vrow.get("pe_ntm"), extra=fwd_extra(vrow, "PE"))
@@ -348,6 +320,7 @@ def render_brief_markdown(
                 ev_t = fmt_cell(vrow.get("ev_ttm"), vrow.get("ev_ttm_vs_5y"))
                 ev_n = fmt_cell(vrow.get("ev_ntm"), extra=fwd_extra(vrow, "EV/EBITDA"))
                 parts.append(f"Valuation：PE_TTM {pe_t} · PE_NTM {pe_n} · EV/EBITDA_TTM {ev_t} · EV/EBITDA_NTM {ev_n}")
+            # 次要倍数（None 跳过；P/FCF 口径注记）
             minor_parts = []
             for lbl, k, k5 in (("PS", "ps", "ps_5y"), ("PB", "pb", "pb_5y"), ("P/FCF", "pfcf", "pfcf_5y")):
                 v = vrow.get(k)
@@ -358,16 +331,13 @@ def render_brief_markdown(
                 minor_parts.append(f"{lbl} {v}x{note}" + (f" (5y {v5})" if v5 is not None else ""))
             if minor_parts:
                 parts.append("Multiples：" + " · ".join(minor_parts))
-            _fwd_e = fwd_extra(vrow, "PE") or fwd_extra(vrow, "EV/EBITDA")
-            if _fwd_e:
-                parts.append(f"锚：{_fwd_e}")
-            _notes = (e.notes or "").strip()
-            if _notes:
-                parts.append(f"催化剂：{_notes[:80]}")
-            if len(items) >= 2:
-                _it2 = items[1]
-                _t2 = translate_zh(_it2.title, protect=_protect).replace("|", "\|").replace("<br>", " ")
-                parts.append(f"📰 [{_t2[:60]}]({_it2.url})")
+            if items:
+                _tag = tag_news_title(pick_lead_news(items).title)
+                _tag_s = f"【{_tag}】" if _tag else ""
+                _t = translate_zh(pick_lead_news(items).title, protect=_protect).replace("|", "\\|").replace("<br>", " ")
+                parts.append(f"📰 {_tag_s}[{_t[:60]}]({pick_lead_news(items).url})")
+            else:
+                parts.append("无新闻")
             return "<br>".join(parts)
 
         _ordered = sorted(core, key=_core_key)
