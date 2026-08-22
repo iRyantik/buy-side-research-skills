@@ -132,6 +132,50 @@ def _val_cell_html(row: dict[str, Any], field: str, vs_field: str) -> str:
     return f"<span>{text}</span>"
 
 
+def _market_grp(ticker: str) -> str:
+    '''ticker → 市场组（美股/亚盘/欧盘），用于时点摘要。'''
+    t = (ticker or "").upper()
+    if t.endswith((".US",)):
+        return "美股"
+    if t.endswith((".L", ".DE", ".PA", ".OL", ".ST", ".MI", ".MC", ".HE", ".AS", ".KL", ".TO")):
+        return "欧盘"
+    if t.endswith((".KS", ".KQ", ".T", ".JP", ".SS", ".SZ", ".SH", ".HK", ".TW", ".TT", ".CN")):
+        return "亚盘"
+    return ""
+
+
+def _tz_summary(ents, snapshots) -> str:
+    '''各市场最新行情时点摘要，如「美股 08-21 16:00 · 亚盘 08-22 15:30」。'''
+    _best: dict[str, str] = {}
+    for e in ents or []:
+        _s = snapshots.get(e.ticker or e.company, {}) or {}
+        _qt = (_s.get("quote_time") or "").strip()
+        if not _qt:
+            continue
+        _g = _market_grp(e.ticker or "")
+        if _g and _qt > _best.get(_g, ""):
+            _best[_g] = _qt
+    if not _best:
+        return ""
+    _parts = " · ".join(f"{g} {v[:16]}" for g, v in sorted(_best.items()))
+    return f"<span class='hero-stat'> · 时点：{_parts}</span>"
+
+
+def _quote_time_cell(snap: dict) -> str:
+    '''行情时间单元格：精简 MM-DD HH:MM；行情日期早于今天 → 标旧。'''
+    from datetime import date as _d
+    qt = (snap.get("quote_time") or "").strip()
+    if not qt:
+        return "—"
+    short = qt[:16]
+    try:
+        if qt[:10] < _d.today().isoformat():
+            return f"<span title='行情数据早于今日'>{short} 旧</span>"
+    except Exception:
+        pass
+    return short
+
+
 def _val_bubble(row: dict[str, Any], label: str, field: str,
                 vs_field: str | None = None, extra: str | None = None,
                 note: str | None = None) -> str:
@@ -200,6 +244,7 @@ def render_brief_html(
             f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
             f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
             f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
+            f"<td class='m'>{_quote_time_cell(snap)}</td>"
             "</tr>"
         )
 
@@ -367,7 +412,7 @@ def render_brief_html(
 <title>Daily Brief {today} · {rt_label}</title>
 <style>{_CSS}</style></head><body><main>
 <section class="hero">
-  <span class="hero-date">{today} · {rt_label} · 数据来源：FMP</span>
+  <span class="hero-date">{today} · {rt_label} · 数据来源：FMP</span>{_tz_summary(ents, snapshots)}
   <span class="hero-stat">{len(ents)} names</span>
   <span class="hero-stat">{core_count} Core Watch</span>
   <span class="hero-stat">{len(important)} movers</span>
@@ -386,7 +431,7 @@ def render_brief_html(
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th></tr></thead>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>

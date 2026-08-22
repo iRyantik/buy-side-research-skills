@@ -67,6 +67,7 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
             "market_cap": md.get("market_cap"),
             "pe_trailing": md.get("pe_ttm"),
             "market_time": today or str(date.today()),
+            "quote_time": md.get("as_of"),  # FMP quote 行情时间戳（精确到时分）
             "volume_ratio": None,
             "gap_pct": None,
             "near_20d_high": None,
