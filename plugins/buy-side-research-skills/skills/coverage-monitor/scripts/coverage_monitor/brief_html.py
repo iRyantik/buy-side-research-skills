@@ -150,6 +150,8 @@ def _tz_summary(ents, snapshots) -> str:
     for e in ents or []:
         _s = snapshots.get(e.ticker or e.company, {}) or {}
         _qt = (_s.get("quote_time") or "").strip()
+        if not _qt or _qt == "live":
+            _qt = (_s.get("market_time") or "").strip()
         if not _qt:
             continue
         _g = _market_grp(e.ticker or "")
@@ -162,9 +164,11 @@ def _tz_summary(ents, snapshots) -> str:
 
 
 def _quote_time_cell(snap: dict) -> str:
-    '''行情时间单元格：精简 MM-DD HH:MM；行情日期早于今天 → 标旧。'''
+    '''行情时间单元格：FMP quote 无精确时间(恒 live)，fallback 采集日；早于今天标旧。'''
     from datetime import date as _d
     qt = (snap.get("quote_time") or "").strip()
+    if not qt or qt == "live":
+        qt = (snap.get("market_time") or "").strip()
     if not qt:
         return "—"
     short = qt[:16]
