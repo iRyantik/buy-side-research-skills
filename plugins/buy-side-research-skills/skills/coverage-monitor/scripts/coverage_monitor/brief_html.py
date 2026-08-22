@@ -166,7 +166,7 @@ def render_brief_html(
     estimates: dict | None = None,
 ) -> str:
     ents = filter_entries(entries, report_type)
-    rt_label = {"am": "亚洲盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     core_count = sum(1 for e in ents if e.monitor_status == "Core")
     review_map = review_map or {}
     _protect = protect_names(entries)

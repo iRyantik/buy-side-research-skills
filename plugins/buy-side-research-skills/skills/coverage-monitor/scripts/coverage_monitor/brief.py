@@ -170,7 +170,7 @@ def render_brief_markdown(
     review_map = review_map or {}
 
     # ── 头部 ──
-    rt_label = {"am": "亚洲盘前", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     lines.append(f"# Daily Brief · {today}（{rt_label}）")
     lines.append("")
     lines.append(f"**覆盖 {len(ents)} 家 · 数据源 FMP**")
