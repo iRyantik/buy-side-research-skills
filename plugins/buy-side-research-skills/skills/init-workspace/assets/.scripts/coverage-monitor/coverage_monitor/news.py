@@ -5,6 +5,7 @@ from datetime import datetime
 from html import unescape
 from pathlib import Path
 import json
+import sys
 import re
 from urllib.parse import urlparse, quote
 from urllib.request import Request, urlopen
@@ -46,6 +47,51 @@ def _dedupe_news(items: list[NewsItem], max_results: int | None = None) -> list[
         if max_results is not None and len(deduped) >= max_results:
             break
     return deduped
+
+
+# ---- 页面/低信息量过滤（阶段1 新闻质量）----
+# 1A 标题黑名单：行情数据/异动提示/荐股/行情页等"股票网站页面"特征（多语言）
+_PAGE_TITLE_PATTERNS = (
+    r"主力资金", r"主力净", r"融资余额", r"融资净", r"大宗交易", r"龙虎榜",
+    r"异动快报", r"触及涨停板", r"触及跌停板", r"跌停", r"涨停",
+    r"行情快报", r"股票行情",
+    r"個股概覽", r"股價走勢", r"即時報價", r"盤後速報",
+    r"复盘", r"復盤", r"早评", r"早評",
+    r"投资分析", r"投資分析", r"투자분석",
+    r"e종목", r"討論牆", r"爆料",
+    r"限售股解禁", r"市盈率",
+    r"Stock Market Today", r"Dow Drops", r"Stocks to Buy", r"Should You Buy",
+    r"回顧",
+)
+_PAGE_TITLE_RE = re.compile("|".join(_PAGE_TITLE_PATTERNS))
+
+# 1B 来源黑名单：聚合/SEO 发布站（source 字段子串匹配）
+_PAGE_SOURCE_BLACKLIST = (
+    "investing.com", "investing", "seekingalpha", "seeking alpha", "benzinga",
+    "motley fool", "fool.com", "zacks", "marketscreener", "247wallst",
+    "marketbeat", "gurufocus", "insidermonkey", "tipranks", "stocktwits",
+    "yahoo", "longport",
+)
+
+
+def _is_page_item(item: NewsItem) -> bool:
+    """命中页面/低信息量特征则 True（应丢弃）：标题黑名单 + 来源黑名单。"""
+    if _PAGE_TITLE_RE.search(item.title or ""):
+        return True
+    src = (item.source or "").lower()
+    for bad in _PAGE_SOURCE_BLACKLIST:
+        if bad in src:
+            return True
+    return False
+
+
+def _filter_page_items(items: list[NewsItem]) -> list[NewsItem]:
+    """丢弃页面条目，保留真新闻；记录丢弃量。"""
+    kept = [it for it in items if not _is_page_item(it)]
+    dropped = len(items) - len(kept)
+    if dropped:
+        print(f"[news] 页面过滤丢弃 {dropped}/{len(items)} 条", file=sys.stderr)
+    return kept
 
 
 def _source_host(url: str) -> str:
@@ -98,9 +144,10 @@ def _gn_news(query: str, ticker: str, max_items: int = 8, timeout: int = 12) -> 
         if not link:
             continue
         pub = (it.findtext("pubDate") or "")[:16]
+        src = (it.findtext("source") or "").strip() or "google-news"
         items.append(NewsItem(
             title=_strip_gn_source(title), url=link,
-            source="google-news", summary="", published_at=pub))
+            source=src, summary="", published_at=pub))
     return items
 
 
@@ -442,6 +489,7 @@ def collect_company_news(
             ))
 
         items = _dedupe_news(items, max_results=10)
+        items = _filter_page_items(items)  # 阶段1：丢弃页面/低信息量（标题黑名单+来源黑名单）
         if items:
             agent_needed.append(key)  # still needs agent to write Chinese summary
         else:

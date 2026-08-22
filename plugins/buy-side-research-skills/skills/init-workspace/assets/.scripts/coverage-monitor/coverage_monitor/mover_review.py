@@ -74,8 +74,8 @@ def _rule_review(movers: list[tuple[str, str, dict]], news_map: dict[str, list],
     for ticker, company, snap in movers:
         items = news_map.get(ticker, [])
         if not items:
-            out[ticker] = {"summary": "无当日新闻候选", "confidence": "low",
-                           "links": [], "reason": "no news"}
+            out[ticker] = {"summary": "板块联动/无明确 news 驱动（当日无合格新闻）",
+                           "confidence": "low", "links": [], "reason": "no news"}
             continue
         ranked = sorted(items, key=_source_rank)
         top = ranked[:3]
