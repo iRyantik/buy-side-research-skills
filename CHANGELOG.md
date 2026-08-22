@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.19 | **邮件升级（HTML 正文）**：标题带市场（US Post-Market/Asia Close/Europe Close）；mover 附 claude 归因原因 + 证据链接（原用 enrichment 空数据导致无原因）；Upcoming Earnings（未来 7 天财报区块）；Core Watch 显示 1m/YTD/1y + PE/EV 估值 + lead 新闻；公司名中文优先（_display_name 与 html 一致）；正文改 HTML（<a> 链接文字，非裸 URL，支持邮件客户端）；mover/Core 每家空行分隔 |
 | v8.8.18 | **日报产物整理 + 命名修正**：md 收进 daily/md/ 子目录（根目录只留 html，用户只看 html）；report_type am→us（07:45 日报实为美股盘后），文件名 YYYYMMDD-brief-us.html、launchd 与显示标签同步 |
 | v8.8.17 | **HTML 日报响应式（手机 + 大屏兼顾）**：手机端 ≤640px 紧凑布局（字号/间距/卡片）+ Universe 表隐藏次要列保留核心列 + 卡片网格 auto-fill 自适应任意屏 + safe-area 适配；表格列距收紧 （company/ticker 贴紧，min-width 桌面 1250→1000 / 手机 640→420，列贴合内容不拉伸）；手机表头 sticky 冻结修复（容器滚动恢复 58vh）；Universe 列 class 修复（手机端公司名正确显示） |
 | v8.8.16 | **定时调度 + 新闻归因质量**：launchd 定时跑 claude 检测修复（已知路径兜底，不再因 PATH 缺 ~/.local/bin 退化为规则 fallback 机械复刻）；周末跳过（脚本层 datetime 判断，launchd Weekday 数组 macOS 实测不可靠）；新闻页面过滤（标题黑名单：资金流/异动/行情/荐股/散户页面 + 来源分层：investing/benzinga/seekingalpha 等聚合站）；归因质量（事件方向映射 利好/利空 + 逆向标注 + claude 审查 prompt 归因分「公司特定/板块联动/宏观」）；时间窗对齐（新闻影响交易日映射：盘前/盘中→当日、盘后→下一交易日，窗口 ±2 天过滤上周新闻） |

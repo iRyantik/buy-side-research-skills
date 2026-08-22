@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date
 from html import escape
 from typing import Any
 
 from .coverage import CoverageEntry
-from .news import ImportantMoverExplainer, NewsItem
+from .brief import _display_name
+from .news import ImportantMoverExplainer, NewsItem, pick_lead_news, translate_zh
 from .signals import assess_snapshot, quote_exception_status, summarize_data_health
 
 
@@ -373,11 +375,15 @@ def render_email_body(
     core_watch_summaries: dict[str, str] | None = None,
     industry_summaries: dict[str, str] | None = None,
     gaps: list[str] | None = None,
+    review_map: dict[str, dict] | None = None,
+    news_map: dict[str, list] | None = None,
 ) -> str:
-    """Plain-text email body — all movers with full explanation, all Core Watch, all industries."""
+    """Plain-text email body — movers(归因原因) + upcoming earnings + Core Watch(lead news) + industries."""
     mover_explainers = mover_explainers or {}
     core_watch_summaries = core_watch_summaries or {}
     industry_summaries = industry_summaries or {}
+    review_map = review_map or {}
+    news_map = news_map or {}
 
     movers = _mover_entries(entries, snapshots)
     core_entries = sorted(
@@ -396,24 +402,52 @@ def render_email_body(
         for entry, _snapshot, _assessment in movers:
             move = _today_return(entry, snapshots)
             ticker = entry.ticker or entry.company
-            expl = mover_explainers.get(ticker)
-            lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
-            if expl:
+            expl = review_map.get(ticker) or mover_explainers.get(ticker)
+            lines.append(f"{ticker} {_display_name(entry)} {_format_today_return(move)}")
+            if isinstance(expl, dict):
+                lines.append(f"  {expl.get('summary', '')}")
+                for l in (expl.get("links") or [])[:2]:
+                    _lt = translate_zh(l.get("title", ""))
+                    _lu = l.get("url", "")
+                    lines.append(f"  -> [{_lt}]({_lu})" if _lu else f"  -> {_lt}")
+            elif expl:
                 lines.append(f"  {expl.summary}")
                 if expl.evidence:
                     ev = expl.evidence[0]
                     lines.append(f"  -> {ev.title} ({ev.url})")
             lines.append("")
 
-    # All Core Watch with full summaries
-    core_with_news = [(e, core_watch_summaries.get(e.ticker or e.company, ""))
-                      for e in core_entries if core_watch_summaries.get(e.ticker or e.company)]
-    if core_with_news:
-        lines.append(f"━━━ Core Watch ({len(core_with_news)}) ━━━")
-        for entry, summary in core_with_news:
+    # Upcoming Earnings (next 7 days)
+    earn = []
+    for e in entries:
+        nd = (snapshots.get(e.ticker or e.company, {}) or {}).get("next_earnings")
+        if not nd:
+            continue
+        try:
+            _d = (date.fromisoformat(str(nd)) - date.fromisoformat(str(today))).days
+            if 0 <= _d <= 7:
+                earn.append((_d, str(nd), e))
+        except Exception:
+            continue
+    if earn:
+        lines.append(f"━━━ Upcoming Earnings (next 7 days) ━━━")
+        for _d, nd, e in sorted(earn, key=lambda x: (x[0], x[1])):
+            lines.append(f"{e.ticker or e.company} {_display_name(e)} — {nd} ({_d}d)")
+        lines.append("")
+
+    # All Core Watch with lead news（news_map 实时，非 enrichment）
+    if core_entries:
+        lines.append(f"━━━ Core Watch ({len(core_entries)}) ━━━")
+        for entry in core_entries:
             move = _today_return(entry, snapshots)
-            lines.append(f"{entry.ticker or entry.company} {entry.company} {_format_today_return(move)}")
-            lines.append(f"  {summary}")
+            ticker = entry.ticker or entry.company
+            lines.append(f"{ticker} {_display_name(entry)} {_format_today_return(move)}")
+            items = news_map.get(ticker, [])
+            if items:
+                _lead = pick_lead_news(items)
+                _t = translate_zh(_lead.title) if getattr(_lead, "title", "") else ""
+                _lu = getattr(_lead, "url", "") or ""
+                lines.append(f"  📰 [{_t}]({_lu})" if _lu else f"  📰 {_t}")
             lines.append("")
 
     # All industries with full summaries
@@ -428,6 +462,116 @@ def render_email_body(
 
     lines.append("Full dashboard HTML attached.")
     return "\n".join(lines)
+
+
+def render_email_body_html(
+    entries: list[CoverageEntry],
+    snapshots: dict[str, dict[str, Any]],
+    today: str,
+    mover_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    core_watch_summaries: dict[str, str] | None = None,
+    industry_summaries: dict[str, str] | None = None,
+    gaps: list[str] | None = None,
+    review_map: dict[str, dict] | None = None,
+    news_map: dict[str, list] | None = None,
+) -> str:
+    """HTML email body — 链接用 <a href>（邮件客户端渲染成文字链接，非裸 URL）。"""
+    from html import escape as _esc
+
+    mover_explainers = mover_explainers or {}
+    core_watch_summaries = core_watch_summaries or {}
+    industry_summaries = industry_summaries or {}
+    review_map = review_map or {}
+    news_map = news_map or {}
+
+    movers = _mover_entries(entries, snapshots)
+    core_entries = sorted(
+        [e for e in entries if e.monitor_status == "Core"],
+        key=lambda e: _core_watch_sort_key(e, snapshots),
+    )
+    grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
+    for entry in entries:
+        grouped[entry.industry or "unclassified"].append(entry)
+
+    out: list[str] = []
+    out.append(f"<b>Daily Coverage Brief — {_esc(today)}</b>")
+
+    if movers:
+        out.append("<br><b>━━━ Price Movers (" + str(len(movers)) + ") ━━━</b>")
+        for entry, _snapshot, _assessment in movers:
+            move = _today_return(entry, snapshots)
+            ticker = entry.ticker or entry.company
+            expl = review_map.get(ticker) or mover_explainers.get(ticker)
+            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}")
+            if isinstance(expl, dict):
+                out.append("&nbsp;&nbsp;" + _esc(expl.get("summary", "")))
+                for l in (expl.get("links") or [])[:2]:
+                    _lt = translate_zh(l.get("title", ""))
+                    _lu = l.get("url", "")
+                    if _lu:
+                        out.append(f"&nbsp;&nbsp;<a href=\"{_esc(_lu)}\">{_esc(_lt)}</a>")
+            elif expl:
+                out.append("&nbsp;&nbsp;" + _esc(expl.summary))
+                if expl.evidence:
+                    ev = expl.evidence[0]
+                    out.append(f"&nbsp;&nbsp;<a href=\"{_esc(ev.url)}\">{_esc(ev.title)}</a>")
+            out.append("<br>")  # 每家后空行分隔
+
+    earn = []
+    for e in entries:
+        nd = (snapshots.get(e.ticker or e.company, {}) or {}).get("next_earnings")
+        if not nd:
+            continue
+        try:
+            _d = (date.fromisoformat(str(nd)) - date.fromisoformat(str(today))).days
+            if 0 <= _d <= 7:
+                earn.append((_d, str(nd), e))
+        except Exception:
+            continue
+    if earn:
+        out.append("<br><b>━━━ Upcoming Earnings (next 7 days) ━━━</b>")
+        for _d, nd, e in sorted(earn, key=lambda x: (x[0], x[1])):
+            out.append(f"{_esc(e.ticker or e.company)} {_esc(_display_name(e))} — {_esc(nd)} ({_d}d)")
+
+    if core_entries:
+        out.append("<br><b>━━━ Core Watch (" + str(len(core_entries)) + ") ━━━</b>")
+        for entry in core_entries:
+            move = _today_return(entry, snapshots)
+            ticker = entry.ticker or entry.company
+            _vrow = (snapshots.get(ticker, {}) or {}).get("valuation") or {}
+            _r = []
+            for _lbl, _f in (("1m", "ret_1m"), ("YTD", "ret_ytd"), ("1y", "ret_1y")):
+                _v = _vrow.get(_f)
+                if _v is not None:
+                    _r.append(f"{_lbl} {_format_today_return(_v)}")
+            _val = []
+            if _vrow.get("pe_ntm"):
+                _val.append(f"PE_NTM {_vrow['pe_ntm']}x")
+            if _vrow.get("ev_ntm"):
+                _val.append(f"EV/EBITDA_NTM {_vrow['ev_ntm']}x")
+            _tail = (" | " + " ".join(_r)) if _r else ""
+            _val_s = (" | " + " ".join(_val)) if _val else ""
+            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}{_esc(_tail)}{_esc(_val_s)}")
+            items = news_map.get(ticker, [])
+            if items:
+                _lead = pick_lead_news(items)
+                _t = translate_zh(_lead.title) if getattr(_lead, "title", "") else ""
+                _lu = getattr(_lead, "url", "") or ""
+                if _lu:
+                    out.append(f"&nbsp;&nbsp;📰 <a href=\"{_esc(_lu)}\">{_esc(_t)}</a>")
+                else:
+                    out.append("&nbsp;&nbsp;📰 " + _esc(_t))
+            out.append("<br>")  # 每家公司后空行分隔
+
+    if industry_summaries:
+        out.append("<br><b>━━━ Industry (" + str(len(industry_summaries)) + ") ━━━</b>")
+        for industry in sorted(grouped):
+            s = industry_summaries.get(industry, "")
+            if s:
+                out.append(f"<b>{_esc(industry)}</b><br>&nbsp;&nbsp;{_esc(s)}")
+
+    out.append("<br>Full dashboard HTML attached.")
+    return "<div style='font-family:-apple-system,Segoe UI,Noto Sans SC,sans-serif;font-size:13px;line-height:1.7'>" + "<br>".join(out) + "</div>"
 
 
 def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]], now_label: str) -> str:
