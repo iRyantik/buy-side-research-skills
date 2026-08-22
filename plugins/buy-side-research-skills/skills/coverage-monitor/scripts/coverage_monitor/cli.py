@@ -23,7 +23,7 @@ from .coverage import (
 from .delivery import send_email, workspace_env
 from .market_data import collect_snapshots
 from .news import ImportantMoverExplainer, NewsItem, collect_company_news, collect_industry_readthroughs
-from .reports import render_alert_markdown, render_daily_markdown, render_dashboard_html, render_email_body, should_alert_intraday
+from .reports import render_alert_markdown, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
 from .state import build_event_id, load_state, save_state
 from .tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
 
@@ -630,10 +630,15 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
         mover_explainers, core_watch_summaries, industry_summaries, gaps,
         review_map=review_map, news_map=merged_company_news,
     )
+    email_body_html = render_email_body_html(
+        entries, snapshots, run_day,
+        mover_explainers, core_watch_summaries, industry_summaries, gaps,
+        review_map=review_map, news_map=merged_company_news,
+    )
     delivery_gaps.extend(
         send_email(
             f"Daily Coverage Brief — {_mkt} ({run_day})",
-            email_body,
+            email_body, email_body_html,
             None,
             env=workspace_env(workspace),
             attachments=[html_path],

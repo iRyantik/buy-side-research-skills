@@ -464,6 +464,101 @@ def render_email_body(
     return "\n".join(lines)
 
 
+def render_email_body_html(
+    entries: list[CoverageEntry],
+    snapshots: dict[str, dict[str, Any]],
+    today: str,
+    mover_explainers: dict[str, ImportantMoverExplainer] | None = None,
+    core_watch_summaries: dict[str, str] | None = None,
+    industry_summaries: dict[str, str] | None = None,
+    gaps: list[str] | None = None,
+    review_map: dict[str, dict] | None = None,
+    news_map: dict[str, list] | None = None,
+) -> str:
+    """HTML email body — 链接用 <a href>（邮件客户端渲染成文字链接，非裸 URL）。"""
+    from html import escape as _esc
+
+    mover_explainers = mover_explainers or {}
+    core_watch_summaries = core_watch_summaries or {}
+    industry_summaries = industry_summaries or {}
+    review_map = review_map or {}
+    news_map = news_map or {}
+
+    movers = _mover_entries(entries, snapshots)
+    core_entries = sorted(
+        [e for e in entries if e.monitor_status == "Core"],
+        key=lambda e: _core_watch_sort_key(e, snapshots),
+    )
+    grouped: dict[str, list[CoverageEntry]] = defaultdict(list)
+    for entry in entries:
+        grouped[entry.industry or "unclassified"].append(entry)
+
+    out: list[str] = []
+    out.append(f"<b>Daily Coverage Brief — {_esc(today)}</b>")
+
+    if movers:
+        out.append("<br><b>━━━ Price Movers (" + str(len(movers)) + ") ━━━</b>")
+        for entry, _snapshot, _assessment in movers:
+            move = _today_return(entry, snapshots)
+            ticker = entry.ticker or entry.company
+            expl = review_map.get(ticker) or mover_explainers.get(ticker)
+            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}")
+            if isinstance(expl, dict):
+                out.append("&nbsp;&nbsp;" + _esc(expl.get("summary", "")))
+                for l in (expl.get("links") or [])[:2]:
+                    _lt = translate_zh(l.get("title", ""))
+                    _lu = l.get("url", "")
+                    if _lu:
+                        out.append(f"&nbsp;&nbsp;<a href=\"{_esc(_lu)}\">{_esc(_lt)}</a>")
+            elif expl:
+                out.append("&nbsp;&nbsp;" + _esc(expl.summary))
+                if expl.evidence:
+                    ev = expl.evidence[0]
+                    out.append(f"&nbsp;&nbsp;<a href=\"{_esc(ev.url)}\">{_esc(ev.title)}</a>")
+
+    earn = []
+    for e in entries:
+        nd = (snapshots.get(e.ticker or e.company, {}) or {}).get("next_earnings")
+        if not nd:
+            continue
+        try:
+            _d = (date.fromisoformat(str(nd)) - date.fromisoformat(str(today))).days
+            if 0 <= _d <= 7:
+                earn.append((_d, str(nd), e))
+        except Exception:
+            continue
+    if earn:
+        out.append("<br><b>━━━ Upcoming Earnings (next 7 days) ━━━</b>")
+        for _d, nd, e in sorted(earn, key=lambda x: (x[0], x[1])):
+            out.append(f"{_esc(e.ticker or e.company)} {_esc(_display_name(e))} — {_esc(nd)} ({_d}d)")
+
+    if core_entries:
+        out.append("<br><b>━━━ Core Watch (" + str(len(core_entries)) + ") ━━━</b>")
+        for entry in core_entries:
+            move = _today_return(entry, snapshots)
+            ticker = entry.ticker or entry.company
+            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}")
+            items = news_map.get(ticker, [])
+            if items:
+                _lead = pick_lead_news(items)
+                _t = translate_zh(_lead.title) if getattr(_lead, "title", "") else ""
+                _lu = getattr(_lead, "url", "") or ""
+                if _lu:
+                    out.append(f"&nbsp;&nbsp;📰 <a href=\"{_esc(_lu)}\">{_esc(_t)}</a>")
+                else:
+                    out.append("&nbsp;&nbsp;📰 " + _esc(_t))
+
+    if industry_summaries:
+        out.append("<br><b>━━━ Industry (" + str(len(industry_summaries)) + ") ━━━</b>")
+        for industry in sorted(grouped):
+            s = industry_summaries.get(industry, "")
+            if s:
+                out.append(f"<b>{_esc(industry)}</b><br>&nbsp;&nbsp;{_esc(s)}")
+
+    out.append("<br>Full dashboard HTML attached.")
+    return "<div style='font-family:-apple-system,Segoe UI,Noto Sans SC,sans-serif;font-size:13px;line-height:1.7'>" + "<br>".join(out) + "</div>"
+
+
 def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]], now_label: str) -> str:
     lines = [f"# Intraday Coverage Alerts - {now_label}", ""]
     for entry in entries:
