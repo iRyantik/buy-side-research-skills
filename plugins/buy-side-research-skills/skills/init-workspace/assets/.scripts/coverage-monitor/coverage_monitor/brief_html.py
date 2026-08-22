@@ -33,7 +33,7 @@ h2{margin:0;font-size:18px;letter-spacing:-.03em}
 .card{border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
 .table-card{overflow-x:auto;overflow-y:auto;max-height:72vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.07)}
 .table-card table{min-width:1250px;width:100%;border-collapse:collapse;font-size:12px}
-th,td{padding:5px 8px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left;vertical-align:middle;height:30px}
+th,td{padding:5px 5px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left;vertical-align:middle;height:30px}
 th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:rgba(248,250,252,.82);position:sticky;top:0;z-index:3;box-shadow:0 1px 0 rgba(148,163,184,.25)}
 td:first-child,th:first-child{padding-left:12px}
 tr:last-child td{border-bottom:0}
@@ -103,7 +103,7 @@ h2{font-size:16px}
 .core-quote-item b{font-size:13px}
 .table-card{max-height:none;border-radius:16px}
 .table-card table{min-width:900px;font-size:11.5px}
-th,td{padding:4px 6px;height:28px}
+th,td{padding:4px 5px;height:28px}
 td.m,th.m{display:none}  /* 表格次要列：手机上隐藏（核心列保留） */
 .news-line{font-size:12px;padding:8px 10px}
 .health-line{font-size:13px;padding:12px 14px}
