@@ -94,6 +94,86 @@ def _filter_page_items(items: list[NewsItem]) -> list[NewsItem]:
     return kept
 
 
+# ── 2A 时间窗对齐：新闻发布时间 → 影响交易日（盘前/盘中→当日，盘后→下一交易日）──
+# 每市场交易时段（本地时间）；节假日简化不处理（业界 event study 主要映射周末）
+_MARKET_SESSION = {
+    (".KS", ".KQ"): ("Asia/Seoul", 9.0, 15.5),
+    (".SS", ".SZ", ".SH", ".CN"): ("Asia/Shanghai", 9.5, 15.0),
+    (".T", ".JP"): ("Asia/Tokyo", 9.0, 15.5),
+    (".TW", ".TT"): ("Asia/Taipei", 9.0, 13.5),
+    (".HK",): ("Asia/Hong_Kong", 9.5, 16.0),
+    (".US",): ("America/New_York", 9.5, 16.0),
+    (".L", ".DE", ".PA", ".OL", ".ST", ".MI", ".MC", ".HE", ".AS", ".KL"):
+        ("Europe/Berlin", 9.0, 17.5),
+}
+
+
+def _market_session_for(ticker: str):
+    for suffixes, sess in _MARKET_SESSION.items():
+        if any(ticker.upper().endswith(s) for s in suffixes):
+            return sess
+    return None  # 未知市场 → 不过滤
+
+
+def _news_impact_date(item: NewsItem, ticker: str):
+    """新闻发布时间 → 影响交易日；无法解析/未知市场 → None（保守保留）。"""
+    from datetime import date as _date, timezone
+    from datetime import timedelta
+    from email.utils import parsedate_to_datetime
+    from zoneinfo import ZoneInfo
+
+    raw = (getattr(item, "published_at", "") or "").strip()
+    if not raw:
+        return None
+    sess = _market_session_for(ticker)
+    if not sess:
+        return None
+    tz_name, open_h, close_h = sess
+    try:
+        dt = parsedate_to_datetime(raw)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        local = dt.astimezone(ZoneInfo(tz_name))
+    except Exception:
+        return None
+    hh = local.hour + local.minute / 60.0
+    if hh >= close_h:
+        # 盘后 → 下一交易日（跳过周末；节假日简化不处理）
+        nxt = local.date() + timedelta(days=1)
+        while nxt.weekday() >= 5:
+            nxt += timedelta(days=1)
+        return nxt
+    return local.date()
+
+
+def _filter_time_window(items: list[NewsItem], run_day: str | None, ticker: str, days: int = 2) -> list[NewsItem]:
+    """保留影响交易日在 [run_day-days, run_day] 窗口内的新闻；缺时间戳/未知市场 → 保留。
+
+    解决 Google News when:7d 把上周新闻混进当天 movers 归因的问题。
+    """
+    from datetime import date as _date, timedelta
+
+    try:
+        rd = _date.fromisoformat(str(run_day or ""))
+    except Exception:
+        return items
+    kept: list[NewsItem] = []
+    dropped = 0
+    for it in items:
+        impact = _news_impact_date(it, ticker)
+        if impact is None:
+            kept.append(it)  # 保守：无法判断不丢
+            continue
+        if rd - timedelta(days=days) <= impact <= rd:
+            kept.append(it)
+        else:
+            dropped += 1
+    if dropped:
+        print(f"[news] 时间窗过滤丢弃 {dropped}/{len(items)} 条（窗口 [{rd - timedelta(days=days)}..{rd}]）",
+              file=sys.stderr)
+    return kept
+
+
 def _source_host(url: str) -> str:
     return urlparse(url).netloc.lower()
 
@@ -143,7 +223,7 @@ def _gn_news(query: str, ticker: str, max_items: int = 8, timeout: int = 12) -> 
         link = (it.findtext("link") or "").strip()
         if not link:
             continue
-        pub = (it.findtext("pubDate") or "")[:16]
+        pub = (it.findtext("pubDate") or "").strip()
         src = (it.findtext("source") or "").strip() or "google-news"
         items.append(NewsItem(
             title=_strip_gn_source(title), url=link,
@@ -528,6 +608,7 @@ def collect_company_news(
 
         items = _dedupe_news(items, max_results=10)
         items = _filter_page_items(items)  # 阶段1：丢弃页面/低信息量（标题黑名单+来源黑名单）
+        items = _filter_time_window(items, today, key, days=2)  # 2A：影响交易日窗口（盘前盘后→交易日）
         if items:
             agent_needed.append(key)  # still needs agent to write Chinese summary
         else:
