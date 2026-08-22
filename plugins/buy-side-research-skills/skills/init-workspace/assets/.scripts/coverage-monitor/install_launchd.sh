@@ -47,7 +47,7 @@ EOF
     echo "已安装 $rt（${H}:${M}）→ $plist"
 }
 
-install_one am 7 45
+install_one us 7 45
 install_one asia 16 15
 install_one eu 23 45
 echo ""

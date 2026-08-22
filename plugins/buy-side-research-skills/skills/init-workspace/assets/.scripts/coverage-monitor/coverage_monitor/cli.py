@@ -509,7 +509,7 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     return cleaned
 
 
-def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am", ai_review: str = "", ai_review_input: bool = False, force_weekend: bool = False) -> int:
+def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "us", ai_review: str = "", ai_review_input: bool = False, force_weekend: bool = False) -> int:
     from concurrent.futures import ThreadPoolExecutor
 
     # 周末跳过：launchd 的 Weekday 数组在 macOS 上不可靠（实测周六仍触发），脚本层兜底。
@@ -716,7 +716,7 @@ def build_parser() -> argparse.ArgumentParser:
     daily.add_argument("--ai-review-input", action="store_true", help="Write .cache/coverage-monitor/ai-review-input.json (movers + news + titles) for agent review.")
     daily.add_argument("--ai-review", default="", help="Path to agent AI review output JSON {review_map, translations}.")
     daily.add_argument("--weekend", action="store_true", help="允许周末生成日报（默认周末跳过）")
-    daily.add_argument("--report-type", default="am", choices=("am", "asia", "eu"),
+    daily.add_argument("--report-type", default="us", choices=("us", "asia", "eu"),
                        help="Report coverage: am=亚洲盘前全量 / asia=亚盘盘后 / eu=欧盘盘后.")
 
     intraday = subparsers.add_parser("intraday", parents=[workspace_parent], help="Run intraday alert monitoring.")
