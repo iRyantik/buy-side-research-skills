@@ -507,8 +507,17 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     return cleaned
 
 
-def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am", ai_review: str = "", ai_review_input: bool = False) -> int:
+def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "am", ai_review: str = "", ai_review_input: bool = False, force_weekend: bool = False) -> int:
     from concurrent.futures import ThreadPoolExecutor
+
+    # 周末跳过：launchd 的 Weekday 数组在 macOS 上不可靠（实测周六仍触发），脚本层兜底。
+    # 周六/周日不生成日报（市场休市，数据不新鲜）；--weekend 可强制（手动补跑）。
+    if not force_weekend:
+        from datetime import date as _date
+        _c = _date.fromisoformat(today) if today else _date.today()
+        if _c.weekday() >= 5:
+            print(f"[coverage-monitor] {_c} 是周末（{_c.strftime('%A')}），跳过日报（交易日才发）")
+            return 0
 
     if skip_fetch:
         cached = _load_daily_state(workspace)
@@ -704,6 +713,7 @@ def build_parser() -> argparse.ArgumentParser:
     daily.add_argument("--skip-fetch", action="store_true", help="Skip data fetching; re-render from cached daily state.")
     daily.add_argument("--ai-review-input", action="store_true", help="Write .cache/coverage-monitor/ai-review-input.json (movers + news + titles) for agent review.")
     daily.add_argument("--ai-review", default="", help="Path to agent AI review output JSON {review_map, translations}.")
+    daily.add_argument("--weekend", action="store_true", help="允许周末生成日报（默认周末跳过）")
     daily.add_argument("--report-type", default="am", choices=("am", "asia", "eu"),
                        help="Report coverage: am=亚洲盘前全量 / asia=亚盘盘后 / eu=欧盘盘后.")
 
@@ -732,7 +742,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_daily(workspace, today=args.today or None, dry_run=args.dry_run,
                               enrichment_path=enrichment_file, skip_fetch=args.skip_fetch,
                               report_type=args.report_type,
-                              ai_review=args.ai_review, ai_review_input=args.ai_review_input)
+                              ai_review=args.ai_review, ai_review_input=args.ai_review_input,
+                              force_weekend=args.weekend)
         if args.command == "intraday":
             return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes)
     except UnicodeDecodeError:

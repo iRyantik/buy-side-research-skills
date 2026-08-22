@@ -30,8 +30,25 @@ SOURCE_HINTS = {
 
 
 def _claude_available() -> bool:
+    """claude CLI 可用性：PATH 优先，再查常见安装路径。
+
+    launchd 触发时进程 PATH 是最小环境（/usr/bin:/bin:...），不含 ~/.local/bin，
+    shutil.which 会漏判 → 定时日报退化为规则 fallback（机械复刻标题）。
+    已知路径兜底保证 launchd 定时跑也能走 claude 真实审查。
+    """
     import shutil
-    return shutil.which("claude") is not None
+    from pathlib import Path
+
+    if shutil.which("claude"):
+        return True
+    for cand in (
+        Path.home() / ".local" / "bin" / "claude",
+        Path("/opt/homebrew/bin/claude"),
+        Path("/usr/local/bin/claude"),
+    ):
+        if cand.exists():
+            return True
+    return False
 
 
 def _source_rank(item) -> int:
