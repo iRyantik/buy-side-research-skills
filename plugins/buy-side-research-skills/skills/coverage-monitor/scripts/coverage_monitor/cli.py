@@ -639,7 +639,6 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
         send_email(
             f"Daily Coverage Brief — {_mkt} ({run_day})",
             email_body, email_body_html,
-            None,
             env=workspace_env(workspace),
             attachments=[html_path],
         )
