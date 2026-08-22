@@ -101,7 +101,7 @@ h2{font-size:16px}
 .core-quote-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .core-quote-item{padding:7px 8px}
 .core-quote-item b{font-size:13px}
-.table-card{max-height:none;border-radius:16px}
+.table-card{max-height:58vh;border-radius:16px}  /* 保留容器滚动 → 表头 sticky 冻结 */
 .table-card table{min-width:640px;font-size:11.5px}
 th,td{padding:4px 5px;height:28px}
 td.m,th.m{display:none}  /* 表格次要列：手机上隐藏（核心列保留） */
