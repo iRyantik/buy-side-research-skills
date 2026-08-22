@@ -34,8 +34,8 @@ def _market_of(ticker: str) -> str:
 
 
 def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[CoverageEntry]:
-    """am 全量；asia 只亚盘；eu 只欧股。"""
-    if report_type == "am":
+    """us(美股盘后,全量)/am 显示全部；asia 只亚盘；eu 只欧股。"""
+    if report_type in ("us", "am"):
         return entries
     return [e for e in entries if _market_of(e.ticker or "") == report_type]
 
