@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.20 | **数据新鲜度 + universe 全量修复**：filter_entries us 视为全量（改 am→us 时漏改导致 universe/queue 只剩美股）；数据新鲜度（Universe 加行情时间列显示数据日期 + 早于今天标旧；hero 各市场时点摘要；FMP quote 无精确时间戳，fallback 采集日） |
 | v8.8.19 | **邮件升级（HTML 正文）**：标题带市场（US Post-Market/Asia Close/Europe Close）；mover 附 claude 归因原因 + 证据链接（原用 enrichment 空数据导致无原因）；Upcoming Earnings（未来 7 天财报区块）；Core Watch 显示 1m/YTD/1y + PE/EV 估值 + lead 新闻；公司名中文优先（_display_name 与 html 一致）；正文改 HTML（<a> 链接文字，非裸 URL，支持邮件客户端）；mover/Core 每家空行分隔 |
 | v8.8.18 | **日报产物整理 + 命名修正**：md 收进 daily/md/ 子目录（根目录只留 html，用户只看 html）；report_type am→us（07:45 日报实为美股盘后），文件名 YYYYMMDD-brief-us.html、launchd 与显示标签同步 |
 | v8.8.17 | **HTML 日报响应式（手机 + 大屏兼顾）**：手机端 ≤640px 紧凑布局（字号/间距/卡片）+ Universe 表隐藏次要列保留核心列 + 卡片网格 auto-fill 自适应任意屏 + safe-area 适配；表格列距收紧 （company/ticker 贴紧，min-width 桌面 1250→1000 / 手机 640→420，列贴合内容不拉伸）；手机表头 sticky 冻结修复（容器滚动恢复 58vh）；Universe 列 class 修复（手机端公司名正确显示） |
