@@ -246,10 +246,12 @@ def _normalize_coverage(workspace: Path, today: str | None, dry_run: bool) -> in
 
 
 def _write_report_files(workspace: Path, stem: str, markdown_text: str, html_text: str) -> tuple[Path, Path]:
-    # 日报归 daily/，html 命名 YYYYMMDD-*.html（viz hook 要求 8 位日期前缀）
+    # 日报归 daily/：html 留根目录（用户只看 html），md 收进 daily/md/ 子目录保持根目录干净
     report_dir = workspace / "daily"
+    md_dir = report_dir / "md"
     report_dir.mkdir(parents=True, exist_ok=True)
-    markdown_path = report_dir / f"{stem}.md"
+    md_dir.mkdir(parents=True, exist_ok=True)
+    markdown_path = md_dir / f"{stem}.md"
     html_path = report_dir / f"{stem}.html"
     markdown_path.write_text(markdown_text, encoding="utf-8")
     html_path.write_text(html_text, encoding="utf-8")
