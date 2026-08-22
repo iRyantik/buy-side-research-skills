@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date
 from html import escape
 from typing import Any
 
 from .coverage import CoverageEntry
-from .news import ImportantMoverExplainer, NewsItem
+from .news import ImportantMoverExplainer, NewsItem, pick_lead_news, translate_zh
 from .signals import assess_snapshot, quote_exception_status, summarize_data_health
 
 
@@ -373,11 +374,15 @@ def render_email_body(
     core_watch_summaries: dict[str, str] | None = None,
     industry_summaries: dict[str, str] | None = None,
     gaps: list[str] | None = None,
+    review_map: dict[str, dict] | None = None,
+    news_map: dict[str, list] | None = None,
 ) -> str:
-    """Plain-text email body — all movers with full explanation, all Core Watch, all industries."""
+    """Plain-text email body — movers(归因原因) + upcoming earnings + Core Watch(lead news) + industries."""
     mover_explainers = mover_explainers or {}
     core_watch_summaries = core_watch_summaries or {}
     industry_summaries = industry_summaries or {}
+    review_map = review_map or {}
+    news_map = news_map or {}
 
     movers = _mover_entries(entries, snapshots)
     core_entries = sorted(
@@ -396,24 +401,50 @@ def render_email_body(
         for entry, _snapshot, _assessment in movers:
             move = _today_return(entry, snapshots)
             ticker = entry.ticker or entry.company
-            expl = mover_explainers.get(ticker)
+            expl = review_map.get(ticker) or mover_explainers.get(ticker)
             lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
-            if expl:
+            if isinstance(expl, dict):
+                lines.append(f"  {expl.get('summary', '')}")
+                for l in (expl.get("links") or [])[:2]:
+                    _lt = translate_zh(l.get("title", ""))
+                    lines.append(f"  -> {_lt} ({l.get('url', '')})")
+            elif expl:
                 lines.append(f"  {expl.summary}")
                 if expl.evidence:
                     ev = expl.evidence[0]
                     lines.append(f"  -> {ev.title} ({ev.url})")
             lines.append("")
 
-    # All Core Watch with full summaries
-    core_with_news = [(e, core_watch_summaries.get(e.ticker or e.company, ""))
-                      for e in core_entries if core_watch_summaries.get(e.ticker or e.company)]
-    if core_with_news:
-        lines.append(f"━━━ Core Watch ({len(core_with_news)}) ━━━")
-        for entry, summary in core_with_news:
+    # Upcoming Earnings (next 7 days)
+    earn = []
+    for e in entries:
+        nd = (snapshots.get(e.ticker or e.company, {}) or {}).get("next_earnings")
+        if not nd:
+            continue
+        try:
+            _d = (date.fromisoformat(str(nd)) - date.fromisoformat(str(today))).days
+            if 0 <= _d <= 7:
+                earn.append((_d, str(nd), e))
+        except Exception:
+            continue
+    if earn:
+        lines.append(f"━━━ Upcoming Earnings (next 7 days) ━━━")
+        for _d, nd, e in sorted(earn, key=lambda x: (x[0], x[1])):
+            lines.append(f"{e.ticker or e.company} {e.company} — {nd} ({_d}d)")
+        lines.append("")
+
+    # All Core Watch with lead news（news_map 实时，非 enrichment）
+    if core_entries:
+        lines.append(f"━━━ Core Watch ({len(core_entries)}) ━━━")
+        for entry in core_entries:
             move = _today_return(entry, snapshots)
-            lines.append(f"{entry.ticker or entry.company} {entry.company} {_format_today_return(move)}")
-            lines.append(f"  {summary}")
+            ticker = entry.ticker or entry.company
+            lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
+            items = news_map.get(ticker, [])
+            if items:
+                _lead = pick_lead_news(items)
+                _t = translate_zh(_lead.title) if getattr(_lead, "title", "") else ""
+                lines.append(f"  📰 {_t}")
             lines.append("")
 
     # All industries with full summaries
