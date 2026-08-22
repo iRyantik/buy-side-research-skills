@@ -187,19 +187,19 @@ def render_brief_html(
         _pe_ntm_extra = "L1 fwd" if _fwd_pe is not None else pe_n_extra
         uni_rows.append(
             "<tr>"
-            f"<td class='m'>{_h.escape(_display_name(e))}</td>"
+            f"<td>{_h.escape(_display_name(e))}</td>"
             f"<td class='m'>{_h.escape(e.ticker or '')}</td>"
-            f"<td>{_h.escape(e.industry or '—')}</td>"
+            f"<td class='m'>{_h.escape(e.industry or '—')}</td>"
             f'<td class="{_ret_class(snap.get("price_move_pct"))}">{_fmt_pct(snap.get("price_move_pct"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1m"))}">{_fmt_pct(vrow.get("ret_1m"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_ytd"))}">{_fmt_pct(vrow.get("ret_ytd"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
-            f"<td>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
-            f"<td class='m'>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
-            f"<td>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
-            f"<td class='m'>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+            f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
+            f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
+            f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
+            f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
             f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
-            f"<td>{_h.escape(e.coverage_status or '—')}</td>"
+            f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
             "</tr>"
         )
 
