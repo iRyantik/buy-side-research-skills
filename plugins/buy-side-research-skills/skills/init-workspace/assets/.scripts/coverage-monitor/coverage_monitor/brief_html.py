@@ -72,8 +72,8 @@ tr.industry-row td{background:rgba(37,99,235,.06);font-weight:950;color:#1e3a8a;
 .val-bubble .val-note{color:var(--amber);font-weight:800;font-size:10px}
 .val-bubble.val-rich{border-color:rgba(211,59,59,.5);background:var(--red-soft);color:var(--red)}
 .val-bubble.val-cheap{border-color:rgba(15,159,110,.5);background:var(--green-soft);color:var(--green)}
-.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .mover-card{border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
 .mover-card.important{border-left:4px solid var(--amber)}
 .mover-card.minor{border-left:4px solid rgba(100,116,139,.35)}
@@ -89,8 +89,26 @@ ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
 .health-line{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);padding:14px 18px;font-size:14px;font-weight:700}
 .health-line .bad{color:var(--amber)}
 .grid-2 .core-watch-card{margin-bottom:0}
-@media(max-width:1280px){.grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:960px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
+/* ── 响应式：手机（≤640px）紧凑 + 表格隐藏次要列 + 安全区 ── */
+@media(max-width:640px){
+main{width:calc(100vw - 20px);margin:16px auto 32px}
+h2{font-size:16px}
+.hero{font-size:12px;padding:6px 10px}
+.tab-nav{margin:12px 0 20px;padding:6px 8px;gap:8px}
+.tab-button{padding:7px 11px;font-size:12px}
+.card,.core-watch-card,.mover-card{padding:12px;border-radius:18px}
+.core-ticker,.core-name,.core-industry{font-size:16px}
+.core-quote-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.core-quote-item{padding:7px 8px}
+.core-quote-item b{font-size:13px}
+.table-card{max-height:none;border-radius:16px}
+.table-card table{min-width:900px;font-size:11.5px}
+th,td{padding:4px 6px;height:28px}
+td.m,th.m{display:none}  /* 表格次要列：手机上隐藏（核心列保留） */
+.news-line{font-size:12px;padding:8px 10px}
+.health-line{font-size:13px;padding:12px 14px}
+body{padding-bottom:env(safe-area-inset-bottom)}
+}
 """
 
 
@@ -169,18 +187,18 @@ def render_brief_html(
         _pe_ntm_extra = "L1 fwd" if _fwd_pe is not None else pe_n_extra
         uni_rows.append(
             "<tr>"
-            f"<td>{_h.escape(_display_name(e))}</td>"
-            f"<td>{_h.escape(e.ticker or '')}</td>"
+            f"<td class='m'>{_h.escape(_display_name(e))}</td>"
+            f"<td class='m'>{_h.escape(e.ticker or '')}</td>"
             f"<td>{_h.escape(e.industry or '—')}</td>"
             f'<td class="{_ret_class(snap.get("price_move_pct"))}">{_fmt_pct(snap.get("price_move_pct"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1m"))}">{_fmt_pct(vrow.get("ret_1m"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_ytd"))}">{_fmt_pct(vrow.get("ret_ytd"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
             f"<td>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
+            f"<td class='m'>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
             f"<td>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
-            f"<td>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
+            f"<td class='m'>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+            f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
             f"<td>{_h.escape(e.coverage_status or '—')}</td>"
             "</tr>"
         )
@@ -368,7 +386,7 @@ def render_brief_html(
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th>Ticker</th><th>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th>Next_Call</th><th>Status</th></tr></thead>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>
