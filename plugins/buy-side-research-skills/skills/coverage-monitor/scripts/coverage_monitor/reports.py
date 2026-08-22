@@ -561,6 +561,7 @@ def render_email_body_html(
                     out.append(f"&nbsp;&nbsp;📰 <a href=\"{_esc(_lu)}\">{_esc(_t)}</a>")
                 else:
                     out.append("&nbsp;&nbsp;📰 " + _esc(_t))
+            out.append("<br>")  # 每家公司后空行分隔
 
     if industry_summaries:
         out.append("<br><b>━━━ Industry (" + str(len(industry_summaries)) + ") ━━━</b>")
