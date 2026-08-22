@@ -6,6 +6,7 @@ from html import escape
 from typing import Any
 
 from .coverage import CoverageEntry
+from .brief import _display_name
 from .news import ImportantMoverExplainer, NewsItem, pick_lead_news, translate_zh
 from .signals import assess_snapshot, quote_exception_status, summarize_data_health
 
@@ -402,12 +403,13 @@ def render_email_body(
             move = _today_return(entry, snapshots)
             ticker = entry.ticker or entry.company
             expl = review_map.get(ticker) or mover_explainers.get(ticker)
-            lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
+            lines.append(f"{ticker} {_display_name(entry)} {_format_today_return(move)}")
             if isinstance(expl, dict):
                 lines.append(f"  {expl.get('summary', '')}")
                 for l in (expl.get("links") or [])[:2]:
                     _lt = translate_zh(l.get("title", ""))
-                    lines.append(f"  -> {_lt} ({l.get('url', '')})")
+                    _lu = l.get("url", "")
+                    lines.append(f"  -> [{_lt}]({_lu})" if _lu else f"  -> {_lt}")
             elif expl:
                 lines.append(f"  {expl.summary}")
                 if expl.evidence:
@@ -430,7 +432,7 @@ def render_email_body(
     if earn:
         lines.append(f"━━━ Upcoming Earnings (next 7 days) ━━━")
         for _d, nd, e in sorted(earn, key=lambda x: (x[0], x[1])):
-            lines.append(f"{e.ticker or e.company} {e.company} — {nd} ({_d}d)")
+            lines.append(f"{e.ticker or e.company} {_display_name(e)} — {nd} ({_d}d)")
         lines.append("")
 
     # All Core Watch with lead news（news_map 实时，非 enrichment）
@@ -439,12 +441,13 @@ def render_email_body(
         for entry in core_entries:
             move = _today_return(entry, snapshots)
             ticker = entry.ticker or entry.company
-            lines.append(f"{ticker} {entry.company} {_format_today_return(move)}")
+            lines.append(f"{ticker} {_display_name(entry)} {_format_today_return(move)}")
             items = news_map.get(ticker, [])
             if items:
                 _lead = pick_lead_news(items)
                 _t = translate_zh(_lead.title) if getattr(_lead, "title", "") else ""
-                lines.append(f"  📰 {_t}")
+                _lu = getattr(_lead, "url", "") or ""
+                lines.append(f"  📰 [{_t}]({_lu})" if _lu else f"  📰 {_t}")
             lines.append("")
 
     # All industries with full summaries
