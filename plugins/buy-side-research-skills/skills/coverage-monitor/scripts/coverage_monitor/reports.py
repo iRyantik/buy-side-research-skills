@@ -515,6 +515,7 @@ def render_email_body_html(
                 if expl.evidence:
                     ev = expl.evidence[0]
                     out.append(f"&nbsp;&nbsp;<a href=\"{_esc(ev.url)}\">{_esc(ev.title)}</a>")
+            out.append("<br>")  # 每家后空行分隔
 
     earn = []
     for e in entries:
@@ -537,7 +538,20 @@ def render_email_body_html(
         for entry in core_entries:
             move = _today_return(entry, snapshots)
             ticker = entry.ticker or entry.company
-            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}")
+            _vrow = (snapshots.get(ticker, {}) or {}).get("valuation") or {}
+            _r = []
+            for _lbl, _f in (("1m", "ret_1m"), ("YTD", "ret_ytd"), ("1y", "ret_1y")):
+                _v = _vrow.get(_f)
+                if _v is not None:
+                    _r.append(f"{_lbl} {_format_today_return(_v)}")
+            _val = []
+            if _vrow.get("pe_ntm"):
+                _val.append(f"PE_NTM {_vrow['pe_ntm']}x")
+            if _vrow.get("ev_ntm"):
+                _val.append(f"EV/EBITDA_NTM {_vrow['ev_ntm']}x")
+            _tail = (" | " + " ".join(_r)) if _r else ""
+            _val_s = (" | " + " ".join(_val)) if _val else ""
+            out.append(f"{_esc(ticker)} {_esc(_display_name(entry))} {_format_today_return(move)}{_esc(_tail)}{_esc(_val_s)}")
             items = news_map.get(ticker, [])
             if items:
                 _lead = pick_lead_news(items)
