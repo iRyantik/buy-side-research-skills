@@ -257,8 +257,29 @@ def render_brief_html(
             head = (f"<div class='news-line'>📰 {_tag_s}<a href='{_h.escape(_lead.url or '#')}' target='_blank'>"
                     f"{_h.escape(_tl[:100])}</a></div>")
         else:
-            head = "<div class='news-line'>无新闻</div>" 
-        # 估值气泡（全口径，universe 同源）：None 段自动跳过，贵/便宜染色，P/FCF OCF 注记
+            head = "<div class='news-line'>无新闻</div>"
+        # 财报倒计时（主卡）
+        _nd = snap.get("next_earnings")
+        if _nd:
+            try:
+                from datetime import date as _d
+                _days = (_d.fromisoformat(str(_nd)) - _d.today()).days
+                _warn = "⚠" if _days <= 5 else ""
+                _earn = f"<div class='core-earn'>财报：{_h.escape(str(_nd))}（{_days} 天后{_warn}）</div>"
+            except Exception:
+                _earn = f"<div class='core-earn'>财报：{_h.escape(str(_nd))}</div>"
+        else:
+            _earn = ""
+        _vol = snap.get("volume_ratio")
+        # 详情（<details> 折叠）：位置 / 估值 / 倍数 / 锚 / 催化剂 / 新闻2
+        det = "<details class='core-details'><summary>▸ 详情</summary>"
+        pos = []
+        if snap.get("near_20d_high"):
+            pos.append("near 20d 高位")
+        if snap.get("near_20d_low"):
+            pos.append("near 20d 低位")
+        if pos:
+            det += "<div class='core-pos'>位置：" + _h.escape(" / ".join(pos)) + "</div>"
         _vrow_c = vrow
         _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
         if _fwd_pe is not None:
@@ -276,8 +297,30 @@ def render_brief_html(
                         note="OCF" if vrow.get("pfcf_note") else None),
         ]
         bubbles = [b for b in bubbles if b]
-        val_line = f"<div class='core-valuation'>{''.join(bubbles)}</div>" if bubbles else ""
-        minor = ""
+        if bubbles:
+            det += f"<div class='core-valuation'>{''.join(bubbles)}</div>"
+        minor_parts = []
+        for lbl, k, k5 in (("PS", "ps", "ps_5y"), ("PB", "pb", "pb_5y"), ("P/FCF", "pfcf", "pfcf_5y")):
+            v = vrow.get(k)
+            if v is None:
+                continue
+            v5 = vrow.get(k5)
+            note = " [OCF]" if (k == "pfcf" and vrow.get("pfcf_note")) else ""
+            minor_parts.append(f"{lbl} {v}x{note}" + (f" (5y {v5})" if v5 is not None else ""))
+        if minor_parts:
+            det += "<div class='core-pos'>Multiples：" + _h.escape(" · ".join(minor_parts)) + "</div>"
+        _fwd_e = fwd_extra(vrow, "PE") or fwd_extra(vrow, "EV/EBITDA")
+        if _fwd_e:
+            det += "<div class='core-pos'>锚：" + _h.escape(_fwd_e) + "</div>"
+        _notes = (e.notes or "").strip()
+        if _notes:
+            det += "<div class='core-pos'>催化剂：" + _h.escape(_notes[:100]) + "</div>"
+        if len(items) >= 2:
+            _it2 = items[1]
+            _t2 = translate_zh(_it2.title, protect=_protect)
+            det += (f"<div class='news-line'>📰 <a href='{_h.escape(_it2.url or '#')}' target='_blank'>"
+                    f"{_h.escape(_t2[:100])}</a></div>")
+        det += "</details>"
         core_html += (
             f"<div class='core-watch-card'><div class='core-title-line'><div class='core-title-left'>"
             f"<span class='core-ticker'>{_h.escape(e.ticker or '')}</span>"
@@ -291,9 +334,10 @@ def render_brief_html(
             f"<div class='core-quote-item'><span>1m</span><b>{_fmt_pct(vrow.get('ret_1m'))}</b></div>"
             f"<div class='core-quote-item'><span>YTD</span><b>{_fmt_pct(vrow.get('ret_ytd'))}</b></div>"
             f"<div class='core-quote-item'><span>1y</span><b>{_fmt_pct(vrow.get('ret_1y'))}</b></div>"
-            f"<div class='core-quote-item'><span>Next</span><b>{_h.escape(str(snap.get('next_earnings') or '—'))}</b></div>"
-            f"</div>{val_line}{minor}{head}</div>"
+            + (f"<div class='core-quote-item'><span>量比</span><b>{_vol}</b></div>" if _vol else "")
+            + f"</div>{_earn}{head}{det}</div>"
         )
+
     if core_html:
         core_html = f"<div class='grid-2'>{core_html}</div>"
     else:
