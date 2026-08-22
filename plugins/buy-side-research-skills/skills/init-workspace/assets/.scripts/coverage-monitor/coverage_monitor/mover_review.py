@@ -81,7 +81,15 @@ def _rule_review(movers: list[tuple[str, str, dict]], news_map: dict[str, list],
         top = ranked[:3]
         tag = tag_news_title(top[0].title)
         label = f"（{tag}）" if tag else ""
+        from .news import event_direction
         summary = f"候选：{translate_zh(top[0].title, protect=protect)[:52]}{label}"
+        # 2C 方向一致性：标题事件方向 vs 价格涨跌；相反 → 标注「逆向」
+        direction = event_direction(top[0].title, tag)
+        move = float(snap.get("price_move_pct") or 0)
+        if direction == "positive" and move < 0:
+            summary += "（⚠ 逆向：标题利好但股价下跌）"
+        elif direction == "negative" and move > 0:
+            summary += "（⚠ 逆向：标题利空但股价上涨）"
         out[ticker] = {
             "summary": summary, "confidence": "low",
             "links": [{"title": it.title, "url": it.url} for it in top[:2]],
@@ -113,6 +121,8 @@ def _claude_review_chunk(chunk: list[tuple[str, str, dict]], news_map: dict[str,
 2. 总结这次涨跌的原因（1-2 句，中文；若判断为板块联动或无明确 news 驱动，明确说"板块联动/无明确 news 驱动"）
 3. 只挑 2-4 条【真正解释涨跌】的链接（宁缺毋滥；没有就空数组）
 4. confidence: high/medium/low
+5. 归因分类：summary 开头写明「公司特定」或「板块联动」或「宏观」（例：板块联动：SpaceX 解禁冲击波...）
+6. 方向一致性：若标题事件方向（利好/利空）与价格涨跌相反，在 summary 里明确标注「逆向」
 
 只输出 JSON，格式：
 {{"TICKER": {{"summary": "...", "confidence": "high", "links": [{{"title":"...","url":"..."}}]}}}}

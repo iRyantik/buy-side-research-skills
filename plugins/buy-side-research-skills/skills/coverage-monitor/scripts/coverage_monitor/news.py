@@ -188,6 +188,44 @@ def tag_news_title(title: str) -> str:
     return ""
 
 
+# ── 2B 事件方向映射：标题 → 利好/利空/中性（供 2C 方向一致性校验）──
+_POSITIVE_PATTERNS = re.compile(
+    r"净利.*增|利润.*增|同比.*增|增长|上扬|飙升|暴增|大增|创纪录|新高|上调|超预期"
+    r"|beat|raised|upgrade|outperform|盈喜"
+    r"|수주|계약|증가|급증|호조|확대|수출|신규|대규모|상승|기대|공급계약"
+    r"|订单|中标|合同|签约|签订|获批|放量"
+)
+_NEGATIVE_PATTERNS = re.compile(
+    r"下调|目标价.*下调|下调至|诉讼|公诉|기소|뇌물|혐의|하향|급락|부진|적자|손실|해지|취소|조정|우려|악재"
+    r"|리콜|제재|과징금|규제|lawsuit|probe|investigation|cut|downgrade|withdraw|cancel|delay|검토"
+    r"|下滑|亏损|暴跌|跌停|解禁|盈警|净利.*减|利润.*减|减持|终止|不及预期"
+)
+_TAG_DIRECTION = {
+    "财报": None,
+    "订单": "positive",
+    "分析师": None,
+    "股价": None,
+    "并购": None,
+}
+
+
+def event_direction(title: str, tag: str = "") -> str | None:
+    """事件方向：positive / negative / neutral。
+
+    先扫方向关键词（正负都有 → neutral 混合），无关键词时按 tag 默认（订单=利好）。
+    """
+    title = title or ""
+    pos = _POSITIVE_PATTERNS.search(title)
+    neg = _NEGATIVE_PATTERNS.search(title)
+    if pos and neg:
+        return "neutral"
+    if neg:
+        return "negative"
+    if pos:
+        return "positive"
+    return _TAG_DIRECTION.get(tag or "") or "neutral"
+
+
 _KANA = re.compile(r"[぀-ヿ]")       # 平/片假名 → 日文
 _HANGUL = re.compile(r"[가-힯]")   # 谚文 → 韩文
 _ZH_HAN = re.compile(r"[一-鿿]")   # 汉字
