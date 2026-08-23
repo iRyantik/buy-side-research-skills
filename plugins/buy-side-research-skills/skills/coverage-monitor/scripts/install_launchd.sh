@@ -11,7 +11,7 @@ LOG_DIR="$WS/reports/coverage-monitor"
 mkdir -p "$LA" "$LOG_DIR"
 
 install_one() {
-    local rt="$1" H="$2" M="$3"
+    local rt="$1" H="$2" M="$3" WD="$4"
     local plist="$LA/com.cc.daily-brief-$rt.plist"
     cat > "$plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -33,7 +33,7 @@ install_one() {
         <key>Minute</key><integer>$M</integer>
         <key>Weekday</key>
         <array>
-            <integer>1</integer><integer>2</integer><integer>3</integer><integer>4</integer><integer>5</integer>
+            $(for w in $WD; do echo "<integer>$w</integer>"; done)
         </array>
     </dict>
     <key>StandardOutPath</key><string>$LOG_DIR/cron-$rt.log</string>
@@ -47,8 +47,8 @@ EOF
     echo "已安装 $rt（${H}:${M}）→ $plist"
 }
 
-install_one us 7 45
-install_one asia 16 15
-install_one eu 23 45
+install_one us 7 45 "1 2 3 4 5 6"
+install_one asia 16 15 "1 2 3 4 5"
+install_one eu 23 45 "1 2 3 4 5"
 echo ""
 echo "日志：$LOG_DIR/cron-*.log"
