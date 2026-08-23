@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.21 | **调度调整（收盘逻辑）**：us（美股盘后）扩展周一~周六——周六早上发周五美股盘后（一周收官，最后一封），周一早上发周末后开盘前瞻；asia/eu 保持周一~周五；脚本层周末跳过只跳周日（launchd Weekday 参数化） |
 | v8.8.20 | **数据新鲜度 + universe 全量修复**：filter_entries us 视为全量（改 am→us 时漏改导致 universe/queue 只剩美股）；数据新鲜度（Universe 加行情时间列显示数据日期 + 早于今天标旧；hero 各市场时点摘要；FMP quote 无精确时间戳，fallback 采集日） |
 | v8.8.19 | **邮件升级（HTML 正文）**：标题带市场（US Post-Market/Asia Close/Europe Close）；mover 附 claude 归因原因 + 证据链接（原用 enrichment 空数据导致无原因）；Upcoming Earnings（未来 7 天财报区块）；Core Watch 显示 1m/YTD/1y + PE/EV 估值 + lead 新闻；公司名中文优先（_display_name 与 html 一致）；正文改 HTML（<a> 链接文字，非裸 URL，支持邮件客户端）；mover/Core 每家空行分隔 |
 | v8.8.18 | **日报产物整理 + 命名修正**：md 收进 daily/md/ 子目录（根目录只留 html，用户只看 html）；report_type am→us（07:45 日报实为美股盘后），文件名 YYYYMMDD-brief-us.html、launchd 与显示标签同步 |
