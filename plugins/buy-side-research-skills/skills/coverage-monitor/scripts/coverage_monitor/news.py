@@ -55,7 +55,7 @@ def _dedupe_news(items: list[NewsItem], max_results: int | None = None) -> list[
 _PAGE_TITLE_PATTERNS = (
     r"主力资金", r"主力净", r"融资余额", r"融资净", r"大宗交易", r"龙虎榜",
     r"异动快报", r"触及涨停板", r"触及跌停板", r"跌停", r"涨停",
-    r"行情快报", r"股票行情",
+    r"行情快报", r"股票行情", r"股价行情", r"股票股价", r"讨论_资讯_财报",
     r"個股概覽", r"股價走勢", r"即時報價", r"盤後速報",
     r"复盘", r"復盤", r"早评", r"早評",
     r"投资分析", r"投資分析", r"투자분석",
@@ -63,6 +63,12 @@ _PAGE_TITLE_PATTERNS = (
     r"限售股解禁", r"市盈率",
     r"Stock Market Today", r"Dow Drops", r"Stocks to Buy", r"Should You Buy",
     r"回顧",
+    # 个股页/行情页模板（东方财富/同花顺/富途/雪球系，2026-08-24 扩充）
+    r"实时行情", r"个股资料", r"行情中心", r"股票频道", r"股市直播",
+    r"個股報價", r"即時股價", r"資金流向", r"走勢分析", r"個股資料",
+    r"_数据报告", r"_资讯_财报", r"_财报_数据", r"_讨论_",
+    r"Stock Quote", r"Stock Quotes", r"Stock Price -", r"Stock Analysis",
+    r"Quotes &", r"Interactive Chart", r"Stock Overview", r"Live Stock Price",
 )
 _PAGE_TITLE_RE = re.compile("|".join(_PAGE_TITLE_PATTERNS))
 
