@@ -93,8 +93,21 @@ def _row_key(line: str) -> bytes:
     return hashlib.sha256(line.encode("utf-8", "replace")).digest() + b"\x00" + str(len(line)).encode()
 
 
+def _is_meta_row(obj) -> bool:
+    """元数据行（可忽略）：type=last-prompt 且无 message 内容——无对话内容，
+    不参与子集/合并判定（副本只多这类行也视为子集，直接删）。"""
+    if not isinstance(obj, dict):
+        return False
+    if obj.get("type") != "last-prompt":
+        return False
+    msg = obj.get("message") or {}
+    return not (msg.get("content") if isinstance(msg, dict) else None)
+
+
 def _build_index(path: Path) -> set:
-    """Row-hash set of a JSONL file. Torn lines (invalid JSON) are skipped."""
+    """Row-hash set of a JSONL file. Torn lines (invalid JSON) and empty
+    last-prompt meta rows are skipped — a meta-only difference never forces
+    a merge (2026-08-24: empty last-prompt treated as subset)."""
     idx = set()
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as fh:
@@ -103,9 +116,11 @@ def _build_index(path: Path) -> set:
                 if not line.strip():
                     continue
                 try:
-                    json.loads(line)
+                    obj = json.loads(line)
                 except Exception:
                     continue  # truncated tail line — ignore
+                if _is_meta_row(obj):
+                    continue  # empty last-prompt — no conversation content
                 idx.add(_row_key(line))
     except OSError:
         pass
