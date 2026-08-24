@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.23 | **DeepSeek 翻译 + 日报布局**：翻译链加 DeepSeek（OpenAI 兼容，Windows/Mac 通用——渲染前批量预翻 + 单条兜底，init-workspace 引导配置 DEEPSEEK_API_KEY/DEEPSEEK_API_BASE/DEEPSEEK_MODEL）；gtx 失败不再误缓存原文（清理 7 条污染条目，标题不再被"原文缓存"卡死）；hook：空 last-prompt 元数据行视为子集（副本只多这类行直接删，实测 skip → delete-copy）；HTML 布局：卡片等比缩小 + quote 3×2 + Core Watch 按行业分组（可折叠、公司数降序）+ 内容顺序调整（Movers→Core Watch→Review Queue→Valuation Universe）；邮件正文 = email 模式完整日报（无 hero/tab/Data Health，mover/core 单列卡片内联样式，手机邮件客户端兼容）；手机 Universe 只留 5 核心列（Company/Today/1m/YTD/1y）无横向溢出 |
 | v8.8.22 | **session_conflict_clean hook 修复**：8-21 重写的 Syncthing 冲突自动解析版从未进入 release（plugin cache 全为 OneDrive 旧版 → 每次 update-agent-runtime 覆盖回退，Syncthing 冲突弹窗只能人工选）；本次打包进 init-workspace assets；移除 50MB 合并阈值（互有独有超大 transcript 也自动合并，tmp+os.replace 原子写，hook 超时不会损坏 base）；活跃会话：子集副本直接删除（不碰正在写的 base）、非子集留到会话结束；合并改 tuple 存储降内存；测试 25 项 |
 | v8.8.21 | **调度调整（收盘逻辑）**：us（美股盘后）扩展周一~周六——周六早上发周五美股盘后（一周收官，最后一封），周一早上发周末后开盘前瞻；asia/eu 保持周一~周五；脚本层周末跳过只跳周日（launchd Weekday 参数化） |
 | v8.8.20 | **数据新鲜度 + universe 全量修复**：filter_entries us 视为全量（改 am→us 时漏改导致 universe/queue 只剩美股）；数据新鲜度（Universe 加行情时间列显示数据日期 + 早于今天标旧；hero 各市场时点摘要；FMP quote 无精确时间戳，fallback 采集日） |
