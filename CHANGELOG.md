@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.26 | **intraday 实时异动监控**：`intraday --market-aware` 只扫开市市场（复用日报时段表，全休市跳过）；告警邮件升级 HTML 卡片（涨跌红绿 + Price/Vol + 当天新闻佐证"为什么动"，正文无附件）；配合 Mac launchd 每 5 分钟轮询（com.cc.intraday，StartInterval 300） |
 | v8.8.25 | **Research Candidates + 负估值修复**：日报新增"研究推荐"区块（Movers 前）——数据信号打分（重要异动 ±8% +2 / 普通异动 +1 / 深度低估（估值 vs 5y ≤-30%）+2 / 深度贵 +1 / 财报 7 天内 +1 / 重大新闻 +1 / 放量 ≥2x +1），总分 ≥3 入选 Top 5，评分规则注明；信号卡片（分数徽章 + 染色胶囊 + 新闻锚点）；负估值清 NA（亏损公司 PE/EV·EBITDA/PS/PB/PFCF ≤0 → None，vs 5y 不再出假对比）；邮件版红绿内联染色（Universe 涨跌/估值——邮件客户端 class 样式不可靠）；邮件 quote 行改 label/value 小格子（inline-block 3×2 涨跌红绿，不依赖 media query）；页面过滤库扩充 15 条（股价行情/实时行情/个股资料/Stock Quote 等个股页模板）；cli import sys 修复（v8.8.23 潜伏 NameError） |
 | v8.8.24 | **手机 Universe 修复**：恢复 PE_NTM / EV·EBITDA_NTM 列（手机 6 列：Company/Today/1m/YTD/PE_NTM/EV·EBITDA_NTM，1y 隐藏，无横向溢出）；表格完整展开（邮件版 email-flat + 手机 media 去容器高度限制，页面滚动——邮件客户端容器滚动不可靠导致手机只能看到表格开头） |
 | v8.8.23 | **DeepSeek 翻译 + 日报布局**：翻译链加 DeepSeek（OpenAI 兼容，Windows/Mac 通用——渲染前批量预翻 + 单条兜底，init-workspace 引导配置 DEEPSEEK_API_KEY/DEEPSEEK_API_BASE/DEEPSEEK_MODEL）；gtx 失败不再误缓存原文（清理 7 条污染条目，标题不再被"原文缓存"卡死）；hook：空 last-prompt 元数据行视为子集（副本只多这类行直接删，实测 skip → delete-copy）；HTML 布局：卡片等比缩小 + quote 3×2 + Core Watch 按行业分组（可折叠、公司数降序）+ 内容顺序调整（Movers→Core Watch→Review Queue→Valuation Universe）；邮件正文 = email 模式完整日报（无 hero/tab/Data Health，mover/core 单列卡片内联样式，手机邮件客户端兼容）；手机 Universe 只留 5 核心列（Company/Today/1m/YTD/1y）无横向溢出 |
