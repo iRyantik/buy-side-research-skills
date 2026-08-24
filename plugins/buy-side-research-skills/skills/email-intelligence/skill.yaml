@@ -1,0 +1,45 @@
+metadata_schema_version: 1
+name: 'email-intelligence'
+id: 'email-intelligence'
+display_name: 'Email Intelligence'
+version: '1.0.0'
+system_generation: '5.38.0'
+author: 'buy-side-research-system'
+namespace: 'research.equity'
+category: 'operations'
+summary: 'Review preserved sell-side email into a lightweight five-section attention brief.'
+description: 'Review preserved sell-side emails and generate a lightweight buy-side brief of updates, ideas, signals, and meetings.'
+tags:
+  - 'email-intelligence'
+  - 'sell-side-email'
+  - 'meeting-triage'
+  - 'new-ideas'
+  - 'operations'
+trigger:
+  type: 'keyword'
+  keywords:
+    - 'email intelligence'
+    - 'email brief'
+    - 'review sell-side email'
+    - 'review 卖方邮件'
+    - '筛邮件'
+    - '会议邮件'
+  description: 'Trigger when the user wants preserved sell-side emails filtered into a research-attention brief.'
+capabilities:
+  modes:
+    - 'review'
+    - 'dry-run'
+    - 'full-replay'
+  requirements:
+    - 'treat the Power Automate preservation layer as read-only'
+    - 'use COVERAGE.md for coverage membership and monitor priority'
+    - "use COVERAGE.md's ## Focus section for current lens and New Idea fit when available"
+    - 'extract every meeting in a multi-meeting email'
+    - 'do not equate sell-side initiation with a New Idea'
+    - 'retain relevant same-industry company updates even when outside coverage'
+    - 'mark only successfully reviewed emails as seen'
+artifact_policy:
+  save_policy: 'cache_artifact'
+  default_artifact: 'email-brief.html'
+  canonical_location: 'daily/email/YYYYMMDD-email-brief-HHMM.html'
+  save_trigger: 'write an HTML brief after at least one email is successfully reviewed'
