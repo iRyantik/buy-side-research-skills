@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.9.1 | **coverage-monitor 补齐**：手机 Universe 重构（7 列 / 估值两行 / th-td 列对齐 / 括号染色）；新闻 4 源 publish 日期（yfinance unix→ISO / DDG snippet 提取）；intraday 当天新闻触发（published_at==today，排除旧新闻误报）；email 模式 section→div + 注释小字；产物目录迁移 daily/market/ + daily/logs/ |
 | v8.9.0 | **Email Intelligence + Focus 层**：新增 email-intelligence skill（轻量 5-section sell-side 邮件情报——Core Watch / Other Coverage / New Ideas / Industry & Sell-side Signals / Meetings + Worth Your Time，DeepSeek 结构化提取（多公司 items + 多会议 meetings）+ 确定性 routing（New Idea gate 非 initiation）+ 增量 state）；Focus 合并进 COVERAGE.md 顶部 `## Focus` 区（Current Lens / Theme Book / Theme→Industry→Company / Research Feedback / Maintenance Rule），candidate-screener 读作默认 lens、research-journal earned change 反馈；init-workspace / update-agent-runtime 部署（copy-if-missing 不覆盖用户 Focus）；workspace_guard 允许 macOS dev repo |
 | v8.8.26 | **intraday 实时异动监控**：`intraday --market-aware` 只扫开市市场（复用日报时段表，全休市跳过）；告警邮件升级 HTML 卡片（涨跌红绿 + Price/Vol + 当天新闻佐证"为什么动"，正文无附件）；配合 Mac launchd 每 5 分钟轮询（com.cc.intraday，StartInterval 300） |
 | v8.8.25 | **Research Candidates + 负估值修复**：日报新增"研究推荐"区块（Movers 前）——数据信号打分（重要异动 ±8% +2 / 普通异动 +1 / 深度低估（估值 vs 5y ≤-30%）+2 / 深度贵 +1 / 财报 7 天内 +1 / 重大新闻 +1 / 放量 ≥2x +1），总分 ≥3 入选 Top 5，评分规则注明；信号卡片（分数徽章 + 染色胶囊 + 新闻锚点）；负估值清 NA（亏损公司 PE/EV·EBITDA/PS/PB/PFCF ≤0 → None，vs 5y 不再出假对比）；邮件版红绿内联染色（Universe 涨跌/估值——邮件客户端 class 样式不可靠）；邮件 quote 行改 label/value 小格子（inline-block 3×2 涨跌红绿，不依赖 media query）；页面过滤库扩充 15 条（股价行情/实时行情/个股资料/Stock Quote 等个股页模板）；cli import sys 修复（v8.8.23 潜伏 NameError） |
