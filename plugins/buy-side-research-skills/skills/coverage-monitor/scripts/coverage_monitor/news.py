@@ -202,6 +202,40 @@ def _gn_locale_for(ticker: str) -> tuple[str, str, str]:
     return _GN_DEFAULT
 
 
+def _ts_to_iso(ts) -> str:
+    """unix 时间戳 → ISO 日期（yfinance providerPublishTime）。失败返回空。"""
+    try:
+        from datetime import datetime, timezone
+        return datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError, OSError):
+        return ""
+
+
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+def _ddg_snippet_date(snippet: str) -> str:
+    """从 DDG snippet 提取发布日（'Aug 21, 2026 —' 或 '2026-08-21'）。无则空。"""
+    s = (snippet or "").strip()
+    if not s:
+        return ""
+    m = re.search(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    m = re.search(r"([A-Za-z]{3,9})\s+(\d{1,2}),\s+(\d{4})", s)
+    if m:
+        mo = _MONTHS.get(m.group(1)[:3].lower())
+        if mo:
+            return f"{m.group(3)}-{mo:02d}-{int(m.group(2)):02d}"
+    m = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", s)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    return ""
+
+
 def _strip_gn_source(title: str) -> str:
     """Google News 标题格式 `标题 - 来源 - 来源`：剥掉尾部重复/来源段。"""
     parts = [p.strip() for p in title.split(" - ")]
@@ -600,6 +634,8 @@ def collect_company_news(
                             title=r["title"], url=r["url"],
                             source=r.get("source", "ddg"),
                             summary=r.get("snippet", ""),
+                            # DDG 搜索无 publish 字段 → 从 snippet 尽力提取发布日（如 "Aug 21, 2026 —"）
+                            published_at=_ddg_snippet_date(r.get("snippet", "")),
                         ))
             except Exception:
                 pass  # DDG unavailable → honest gap
@@ -618,7 +654,7 @@ def collect_company_news(
                         if t and u:
                             items.append(NewsItem(
                                 title=t, url=u, source="yfinance",
-                                summary="", published_at=str(n.get("providerPublishTime") or ""),
+                                summary="", published_at=_ts_to_iso(n.get("providerPublishTime")),
                             ))
             except Exception:
                 pass

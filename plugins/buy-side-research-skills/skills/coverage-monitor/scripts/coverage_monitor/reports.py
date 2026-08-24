@@ -198,9 +198,19 @@ def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> boo
         return False
     assessment = assess_snapshot(snapshot)
     if assessment and assessment.is_important:
-        return True
+        return True  # 涨跌异动仍触发
+    # 新闻标题触发：必须命中关键字 AND 是当天新闻（排除旧新闻误报）
     headline = str(snapshot.get("headline") or "").lower()
-    return any(keyword in headline for keyword in ALERT_KEYWORDS)
+    if not headline or not any(keyword in headline for keyword in ALERT_KEYWORDS):
+        return False
+    pa = str(snapshot.get("published_at") or "")
+    if not pa:
+        return False  # 无发布时间 → 不触发（可能是缓存旧新闻）
+    try:
+        from datetime import date as _date
+        return _date.fromisoformat(pa[:10]) == _date.today()
+    except Exception:
+        return False
 
 
 def _mover_entries(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]]) -> list[tuple[CoverageEntry, dict[str, Any], Any]]:

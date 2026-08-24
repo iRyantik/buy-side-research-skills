@@ -30,7 +30,7 @@ h2{margin:0;font-size:18px;letter-spacing:-.03em}
 .tab-button{display:inline-block;border-radius:12px;padding:8px 14px;color:var(--muted);font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap}
 .tab-button:hover{background:rgba(19,34,56,.06);color:var(--ink)}
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:18px 2px 12px}
-.section-head p{margin:6px 0 0;max-width:840px;color:var(--muted);line-height:1.68}
+.section-head p{margin:6px 0 0;max-width:840px;color:var(--muted);line-height:1.68;font-size:11.5px}
 .card{border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
 .table-card{overflow-x:auto;overflow-y:auto;max-height:72vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.07)}
 /* 邮件版表格：完整展开（邮件客户端容器滚动不可靠），页面滚动查看 */
@@ -135,9 +135,12 @@ h2{font-size:16px}
 .table-card table{min-width:330px;font-size:11.5px;table-layout:auto}
 .table-card td:first-child,.table-card th:first-child{min-width:0}
 .table-card td:nth-child(2),.table-card th:nth-child(2){min-width:0}
+.table-card td,.table-card th{width:14.3%}  /* 手机 7 列均等 */
 th,td{padding:4px 2px;height:28px}
 td.m,th.m{display:none}  /* 表格次要列：手机上隐藏（核心列保留） */
 .news-line{font-size:12px;padding:8px 10px}
+/* 行情时间"旧"标记：左边蓝条 + 浅蓝底（Universe 行情时间列） */
+.qt-old{display:inline-block;background:rgba(59,130,246,.1);border-left:3px solid #2563eb;color:#1d4ed8;border-radius:0 6px 6px 0;padding:0 5px;font-weight:750;white-space:nowrap}
 .health-line{font-size:13px;padding:12px 14px}
 body{padding-bottom:env(safe-area-inset-bottom)}
 }
@@ -148,6 +151,25 @@ def _ret_class(v: Any) -> str:
     if v is None:
         return "ret na"
     return "ret pos" if float(v) >= 0 else "ret neg"
+
+
+def _val_2line(val, note: str = "", rich: str = "", email: bool = False) -> str:
+    """估值单元格两行显示：第一行值，第二行 vs5y/标注（均等列宽下容纳完整信息）。"""
+    if val is None and not note:
+        return "—"
+    v = f"{val}x" if isinstance(val, (int, float)) else (val or "—")
+    color = "#d33b3b" if rich == "rich" else ("#0f9f6e" if rich == "cheap" else "#132238")
+    note_color = "#d33b3b" if rich == "rich" else ("#0f9f6e" if rich == "cheap" else "#94a3b8")
+    _note = f"<span style='display:block;font-size:9px;color:{note_color};font-weight:600'>{_h.escape(note)}</span>" \
+        if note else "<span style='display:block;font-size:9px;color:#94a3b8'>&nbsp;</span>"
+    return (f"<span style='display:block;font-size:11px;font-weight:650;color:{color};white-space:nowrap'>{v}</span>"
+            f"{_note}")
+
+
+def _vs_note(row: dict, vs_field: str) -> str:
+    """vs5y 对比 → 第二行小字括号文本（对齐 PC 版，如 '(+187%)'）。"""
+    v = row.get(vs_field)
+    return f"({v:+.0f}%)" if v is not None else ""
 
 
 def _val_cell_html(row: dict[str, Any], field: str, vs_field: str, email: bool = False) -> str:
@@ -212,7 +234,7 @@ def _quote_time_cell(snap: dict) -> str:
     short = qt[:16]
     try:
         if qt[:10] < _d.today().isoformat():
-            return f"<span title='行情数据早于今日'>{short} 旧</span>"
+            return f"<span class='qt-old' title='行情数据早于今日'>{short} 旧</span>"
     except Exception:
         pass
     return short
@@ -264,7 +286,7 @@ def render_brief_html(
         last_ind = None
         for e in _universe_sorted(ents, snapshots):
             if e.industry != last_ind:
-                rows.append(f'<tr class="industry-row"><td colspan="13">{_h.escape(e.industry or "Other")}</td></tr>')
+                rows.append(f'<tr class="industry-row"><td colspan="14">{_h.escape(e.industry or "Other")}</td></tr>')
                 last_ind = e.industry
             snap = snapshots.get(e.ticker or e.company, {})
             vrow = snap.get("valuation") or {}
@@ -280,7 +302,8 @@ def render_brief_html(
                     if v is None:
                         return f"<td>{_t}</td>"
                     c = "#0f9f6e" if float(v) >= 0 else "#d33b3b"
-                    return f"<td style='color:{c};font-weight:650'>{_t}</td>"
+                    _m = " class='m'" if m_cls else ""
+                    return f"<td{_m} style='color:{c};font-weight:650'>{_t}</td>"
                 return f'<td class="{m_cls}{_ret_class(v)}">{_t}</td>'
 
             rows.append(
@@ -291,11 +314,9 @@ def render_brief_html(
                 + _ret_td(snap.get("price_move_pct"))
                 + _ret_td(vrow.get("ret_1m"))
                 + _ret_td(vrow.get("ret_ytd"))
-                + _ret_td(vrow.get("ret_1y"), m_cls="m " if not email_mode else "")
-                + f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y', email=email_mode)}</td>"
-                + f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
-                + f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y', email=email_mode)}</td>"
-                + f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+                + _ret_td(vrow.get("ret_1y"))
+                + f"<td>{_val_2line(vrow.get('pe_ttm'), _vs_note(vrow, 'pe_ttm_vs_5y'), rich_class(vrow.get('pe_ttm_vs_5y')), email_mode)}</td>"
+                + f"<td>{_val_2line(_pe_ntm_val, _pe_ntm_extra, '', email_mode)}</td>"
                 + f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
                 + f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
                 + f"<td class='m'>{_quote_time_cell(snap)}</td>"
@@ -652,19 +673,19 @@ def render_brief_html(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Brief {today} · {rt_label}</title>
 <style>{_CSS}</style></head><body><main>
-<section id="candidates" class="tab-panel"><div class="section-head"><h2>Research Candidates</h2></div>
+<div id="candidates" style="margin-bottom:24px"><div class="section-head"><h2>Research Candidates</h2></div>
 <p style='color:#64748b;font-size:11px;margin:2px 0 8px'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
-{_cands_html(True)}</section>
-<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{em_movers}</section>
-<section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</section>
-<section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
+{_cands_html(True)}</div>
+<div id="movers" style="margin-bottom:24px"><div class="section-head"><h2>Movers</h2></div>{em_movers}</div>
+<div id="core" style="margin-bottom:24px"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</div>
+<div id="review" style="margin-bottom:24px"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
 <div class="table-card email-flat"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
-<tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
-<section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
-<p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card email-flat"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th class='m'>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
-<tbody>{''.join(_uni_rows_html(True))}</tbody></table></div></section>
+<tbody>{rq_rows}{rq_fold}</tbody></table></div></div>
+<div id="universe" style="margin-bottom:24px"><div class="section-head"><h2>Valuation Universe</h2>
+<p>括号 = 相对 5y 中位%。红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）· fwd = 前瞻假设</p></div>
+<div class="table-card email-flat"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<tbody>{''.join(_uni_rows_html(True))}</tbody></table></div></div>
 </main></body></html>"""
     else:
         body = f"""
@@ -697,8 +718,8 @@ def render_brief_html(
 <div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
-<p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th class='m'>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<p>括号 = 相对 5y 中位%。红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）· fwd = 前瞻假设</p></div>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="health" class="tab-panel"><div class="section-head"><h2>Data Health</h2></div>{health}</section>
 </main></body></html>"""
