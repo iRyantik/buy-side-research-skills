@@ -24,7 +24,7 @@ from .coverage import (
 from .delivery import send_email, workspace_env
 from .market_data import collect_snapshots
 from .news import ImportantMoverExplainer, NewsItem, collect_company_news, collect_industry_readthroughs
-from .reports import render_alert_markdown, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
+from .reports import render_alert_markdown, render_alert_html, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
 from .state import build_event_id, load_state, save_state
 from .tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
 
@@ -749,20 +749,58 @@ def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, 
     return alert_entries, new_event_ids
 
 
-def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: int) -> int:
+def _open_market_suffixes() -> set:
+    """当前开市的市场后缀组（复用 news._MARKET_SESSION 时段表，各市场本地时间判断）。"""
+    from datetime import timezone
+    from zoneinfo import ZoneInfo
+
+    from .news import _MARKET_SESSION
+    now = datetime.now(timezone.utc)
+    open_suffixes: set = set()
+    for suffixes, (tz_name, open_h, close_h) in _MARKET_SESSION.items():
+        try:
+            local = now.astimezone(ZoneInfo(tz_name))
+        except Exception:
+            continue
+        if local.weekday() >= 5:
+            continue  # 周末休市
+        hh = local.hour + local.minute / 60.0
+        if open_h <= hh < close_h:
+            open_suffixes.update(suffixes)
+    return open_suffixes
+
+
+def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: int, market_aware: bool = False) -> int:
     while True:
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
-        universe = build_universe(workspace, today=datetime.now().date().isoformat())
-        snapshots, snapshot_gaps = collect_snapshots(universe.entries, today=datetime.now().date().isoformat())
+        entries = build_universe(workspace, today=datetime.now().date().isoformat()).entries
+        if market_aware:
+            # 只扫开市市场（复用日报时段表）；全休市 → 跳过本轮
+            open_sfx = _open_market_suffixes()
+            if not open_sfx:
+                print("all_markets_closed — skip")
+                if dry_run or once:
+                    return 0
+                time.sleep(max(interval_minutes, 1) * 60)
+                continue
+            entries = [e for e in entries
+                       if any((e.ticker or "").upper().endswith(s) for s in open_sfx)]
+            print(f"open_markets={sorted(open_sfx)} scan={len(entries)}")
+        snapshots, snapshot_gaps = collect_snapshots(entries, today=datetime.now().date().isoformat())
         state = load_state(workspace)
         sent_event_ids = set(state.get("sent_event_ids", []))
-        alert_entries, new_event_ids = _collect_intraday_alerts(universe.entries, snapshots, sent_event_ids)
+        alert_entries, new_event_ids = _collect_intraday_alerts(entries, snapshots, sent_event_ids)
         if alert_entries:
             markdown_text = render_alert_markdown(alert_entries, snapshots, now)
             if dry_run:
                 print(markdown_text)
             else:
-                send_email(f"Intraday Coverage Alerts {now}", markdown_text, env=workspace_env(workspace))
+                # 拉告警公司的当天新闻佐证"为什么动"，HTML 卡片邮件
+                news_map, _ng, _ag = collect_company_news(
+                    alert_entries, snapshots, today=datetime.now().date().isoformat())
+                alert_html = render_alert_html(alert_entries, snapshots, news_map, now)
+                send_email(f"Intraday Coverage Alerts {now}", markdown_text, body_html=alert_html,
+                           env=workspace_env(workspace))
                 state["sent_event_ids"] = sorted(sent_event_ids.union(new_event_ids))
                 state["last_intraday_run_at"] = now
                 save_state(workspace, state)
@@ -803,6 +841,7 @@ def build_parser() -> argparse.ArgumentParser:
     intraday = subparsers.add_parser("intraday", parents=[workspace_parent], help="Run intraday alert monitoring.")
     intraday.add_argument("--dry-run", action="store_true", help="Evaluate alerts without sending.")
     intraday.add_argument("--once", action="store_true", help="Run one pass and exit.")
+    intraday.add_argument("--market-aware", action="store_true", help="Only scan markets currently open (uses news session table; all closed → skip).")
     intraday.add_argument("--interval-minutes", type=int, default=15, help="Polling interval for looping mode.")
     return parser
 
@@ -828,7 +867,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                               ai_review=args.ai_review, ai_review_input=args.ai_review_input,
                               force_weekend=args.weekend)
         if args.command == "intraday":
-            return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes)
+            return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes, market_aware=args.market_aware)
     except UnicodeDecodeError:
         return 2
     return 0

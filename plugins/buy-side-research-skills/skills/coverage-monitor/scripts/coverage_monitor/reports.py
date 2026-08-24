@@ -584,6 +584,47 @@ def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dic
     return "\n".join(lines) + "\n"
 
 
+def render_alert_html(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]],
+                      news_map: dict[str, list[NewsItem]], now_label: str) -> str:
+    """intraday 告警 HTML（内联样式，邮件客户端兼容）：涨跌卡片 + 当天新闻佐证"为什么动"。"""
+    cards = []
+    for entry in entries:
+        snap = snapshots.get(entry.ticker or entry.company, {})
+        try:
+            pct = float(snap.get("price_move_pct") or 0)
+        except (TypeError, ValueError):
+            pct = 0.0
+        color = "#0f9f6e" if pct >= 0 else "#d33b3b"
+        meta = []
+        price = snap.get("last_price")
+        vol = snap.get("volume_ratio")
+        if price is not None:
+            meta.append(f"Price {price}")
+        if vol is not None:
+            meta.append(f"Vol {vol}x")
+        meta_line = (f"<div style='color:#475569;font-size:12px;margin-top:4px'>{' · '.join(meta)}</div>"
+                     if meta else "")
+        items = news_map.get(entry.ticker or entry.company, [])[:3]
+        news_html = "".join(
+            f"<div style='margin-top:3px;font-size:12px'><a style='color:#2563eb;text-decoration:none' "
+            f"href='{escape(it.url)}' target='_blank'>📰 {escape(translate_zh(it.title)[:60])}</a></div>"
+            for it in items)
+        cards.append(
+            f"<div style='border:1px solid #d8dee9;border-radius:12px;padding:12px;margin-bottom:12px;background:#ffffff'>"
+            f"<div><b style='font-size:14px'>{escape(_display_name(entry))}</b> "
+            f"<span style='color:#64748b;font-size:12px'>{escape(entry.ticker or '')}</span> "
+            f"<span style='font-size:14px;font-weight:800;color:{color}'>{pct:+.1f}%</span></div>"
+            f"{meta_line}{news_html}</div>")
+    return f"""<!doctype html><html lang="zh-Hans"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intraday Coverage Alerts {escape(now_label)}</title></head>
+<body style="margin:0;padding:16px;background:#f1f5f9;font-family:-apple-system,'Segoe UI',sans-serif">
+<div style="max-width:640px;margin:0 auto">
+<div style="font-size:13px;font-weight:800;color:#1e3a8a;margin-bottom:12px">⚡ Intraday Coverage Alerts — {escape(now_label)}</div>
+{''.join(cards)}
+</div></body></html>"""
+
+
 def render_dashboard_html(
     entries: list[CoverageEntry],
     snapshots: dict[str, dict[str, Any]],
