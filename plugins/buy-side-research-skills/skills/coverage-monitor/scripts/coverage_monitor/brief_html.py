@@ -32,7 +32,10 @@ h2{margin:0;font-size:18px;letter-spacing:-.03em}
 .section-head p{margin:6px 0 0;max-width:840px;color:var(--muted);line-height:1.68}
 .card{border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
 .table-card{overflow-x:auto;overflow-y:auto;max-height:72vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.07)}
-.table-card table{min-width:1000px;width:100%;border-collapse:collapse;font-size:12px}
+.table-card table{min-width:1100px;width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.table-card th,.table-card td{overflow-wrap:anywhere}
+.table-card td:first-child,.table-card th:first-child{min-width:92px}
+.table-card td:nth-child(2),.table-card th:nth-child(2){min-width:110px}
 th,td{padding:5px 5px;border-bottom:1px solid rgba(148,163,184,.18);text-align:left;vertical-align:middle;height:30px}
 th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;background:rgba(248,250,252,.82);position:sticky;top:0;z-index:3;box-shadow:0 1px 0 rgba(148,163,184,.25)}
 td:first-child,th:first-child{padding-left:8px}
@@ -44,65 +47,79 @@ tr.industry-row td{background:rgba(37,99,235,.06);font-weight:950;color:#1e3a8a;
 .val-rich{color:var(--red);font-weight:850}
 .val-cheap{color:var(--green);font-weight:850}
 .val-na{color:var(--muted)}
-.core-watch-card{border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px;margin-bottom:14px}
-.core-title-line{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.core-title-left{display:contents}
+.core-watch-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:12px;margin-bottom:12px}
+.core-title-line{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.core-title-left{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
 .core-day{flex-shrink:0}
-.core-ticker{font-size:19px;font-weight:950;letter-spacing:-.045em}
-.core-name{color:var(--ink);font-size:19px;font-weight:800;letter-spacing:-.02em}
-.core-industry{color:var(--muted);font-size:19px;font-weight:950;letter-spacing:-.045em}
+.core-ticker{font-size:13px;font-weight:950;letter-spacing:-.045em;min-width:0;overflow-wrap:anywhere}
+.core-name{color:var(--ink);font-size:13px;font-weight:800;letter-spacing:-.02em;min-width:0;overflow-wrap:anywhere}
+.core-industry{color:var(--muted);font-size:13px;font-weight:950;letter-spacing:-.045em;min-width:0;overflow-wrap:anywhere}
 .core-day.pos{color:var(--green)}
 .core-day.neg{color:var(--red)}
-.pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:950;border:1px solid rgba(99,102,241,.18)}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:950;border:1px solid rgba(99,102,241,.18)}
 .pill.status.thesis{background:var(--blue-soft);color:#1d4ed8}
 .pill.status.modeled{background:var(--green-soft);color:var(--green)}
 .pill.status.quickread{background:var(--amber-soft);color:var(--amber)}
 .pill.status.screened{background:var(--slate-soft);color:var(--slate)}
-.core-quote-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:14px}
-.core-quote-item{border:1px solid var(--line);border-radius:14px;background:rgba(248,250,252,.8);padding:10px 11px}
-.core-quote-item span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-.core-quote-item b{display:block;margin-top:4px;font-size:15px}
-.news-line{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(248,250,252,.7);font-size:13px;color:#334155}
+.core-quote-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:10px}
+.core-quote-item{border:1px solid var(--line);border-radius:10px;background:rgba(248,250,252,.8);padding:6px 8px}
+.core-quote-item span{display:block;color:var(--muted);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.core-quote-item b{display:block;margin-top:4px;font-size:12px;overflow-wrap:anywhere}
+.news-line{margin-top:8px;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:rgba(248,250,252,.7);font-size:11px;color:#334155;overflow-wrap:anywhere}
+.news-line a,.mover-links a,.mover-detail a{word-break:break-word;overflow-wrap:anywhere}
 .minor-multiples{margin-top:8px;font-size:12px;color:var(--muted)}
 /* Core Watch 估值气泡：每个口径一个胶囊，贵/便宜染色 */
-.core-valuation{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
-.news-line{font-size:12.5px}.news-tag{display:inline-block;padding:1px 7px;border-radius:8px;background:rgba(59,130,246,.12);color:#2563eb;font-size:11px;font-weight:800;margin-right:2px}
-.val-bubble{display:inline-flex;align-items:baseline;gap:5px;border-radius:999px;padding:3px 11px;border:1px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap;font-weight:650}
-.val-bubble-label{color:var(--muted);font-size:10.5px;font-weight:800;letter-spacing:.3px}
+.core-valuation{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:5px;font-size:10.5px}
+.news-line{font-size:11px}.news-tag{display:inline-block;padding:1px 6px;border-radius:6px;background:rgba(59,130,246,.12);color:#2563eb;font-size:9.5px;font-weight:800;margin-right:2px}
+.val-bubble{display:inline-flex;align-items:baseline;gap:4px;border-radius:999px;padding:2px 8px;border:1px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap;font-weight:650;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.val-bubble-label{color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.3px}
 .val-bubble .val-note{color:var(--amber);font-weight:800;font-size:10px}
 .val-bubble.val-rich{border-color:rgba(211,59,59,.5);background:var(--red-soft);color:var(--red)}
 .val-bubble.val-cheap{border-color:rgba(15,159,110,.5);background:var(--green-soft);color:var(--green)}
 .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
 .grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.mover-card{border:1px solid var(--line);border-radius:24px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
+.mover-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:12px}
 .mover-card.important{border-left:4px solid var(--amber)}
 .mover-card.minor{border-left:4px solid rgba(100,116,139,.35)}
-.mover-card.minor .core-ticker,.mover-card.minor .core-name,.mover-card.minor .core-industry,.mover-card.minor .core-day{font-size:16px}
-.mover-card.minor .core-quote-item b{font-size:13px}
-.mover-detail{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.mover-reason{margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink)}
-.mover-links{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.7;color:#334155}
+.mover-card.minor .core-ticker,.mover-card.minor .core-name,.mover-card.minor .core-industry,.mover-card.minor .core-day{font-size:13px}
+.mover-card.minor .core-quote-item b{font-size:11px}
+.mover-detail{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.mover-reason{margin-bottom:5px;font-size:11px;font-weight:700;color:var(--ink)}
+.mover-links{margin:5px 0 0;padding-left:14px;font-size:10.5px;line-height:1.7;color:#334155}
 .mover-links a{color:var(--blue);text-decoration:none}
 details{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.72);padding:10px 12px;margin-top:8px}
 summary{cursor:pointer;font-weight:950;color:#1e3a8a}
+/* Core Watch 行业分组头：扁平 + 折叠箭头 + 计数徽章 */
+.industry-group{border:0;background:none;padding:0;margin-top:12px;border-top:1px dashed var(--line)}
+.industry-group summary{display:flex;align-items:center;gap:8px;padding:8px 2px;list-style:none}
+.industry-group summary::-webkit-details-marker{display:none}
+.industry-group summary::before{content:"▸";color:var(--blue);font-size:11px;transition:transform .15s}
+.industry-group[open] summary::before{transform:rotate(90deg)}
+.industry-group .ig-name{font-weight:950;color:#1e3a8a;font-size:13px;text-transform:uppercase;letter-spacing:.04em;overflow-wrap:anywhere}
+.industry-group .ig-count{color:var(--muted);font-size:10.5px;font-weight:800;background:var(--slate-soft);padding:1px 8px;border-radius:999px}
+.industry-group .grid-2{margin-top:4px}
 ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
 .health-line{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);padding:14px 18px;font-size:14px;font-weight:700}
 .health-line .bad{color:var(--amber)}
 .grid-2 .core-watch-card{margin-bottom:0}
 /* ── 响应式：手机（≤640px）紧凑 + 表格隐藏次要列 + 安全区 ── */
 @media(max-width:640px){
+/* 邮件版 Core Watch 两列 grid：手机上单列 */
+.em-grid,.em-grid tbody,.em-grid tr,.em-grid td{display:block;width:100%!important;padding:0!important}
 main{width:calc(100vw - 20px);margin:16px auto 32px}
 h2{font-size:16px}
 .hero{font-size:12px;padding:6px 10px}
 .tab-nav{margin:12px 0 20px;padding:6px 8px;gap:8px}
 .tab-button{padding:7px 11px;font-size:12px}
 .card,.core-watch-card,.mover-card{padding:12px;border-radius:18px}
-.core-ticker,.core-name,.core-industry{font-size:16px}
+.core-ticker,.core-name,.core-industry{font-size:13px}
 .core-quote-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .core-quote-item{padding:7px 8px}
 .core-quote-item b{font-size:13px}
 .table-card{max-height:58vh;border-radius:16px}  /* 保留容器滚动 → 表头 sticky 冻结 */
-.table-card table{min-width:420px;font-size:11.5px}
+.table-card table{min-width:330px;font-size:11.5px;table-layout:auto}
+.table-card td:first-child,.table-card th:first-child{min-width:0}
+.table-card td:nth-child(2),.table-card th:nth-child(2){min-width:0}
 th,td{padding:4px 2px;height:28px}
 td.m,th.m{display:none}  /* 表格次要列：手机上隐藏（核心列保留） */
 .news-line{font-size:12px;padding:8px 10px}
@@ -212,6 +229,7 @@ def render_brief_html(
     report_type: str = "am",
     review_map: dict[str, dict] | None = None,
     estimates: dict | None = None,
+    email: bool = False,
 ) -> str:
     ents = filter_entries(entries, report_type)
     rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
@@ -243,9 +261,9 @@ def render_brief_html(
             f'<td class="{_ret_class(vrow.get("ret_ytd"))}">{_fmt_pct(vrow.get("ret_ytd"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
             f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
+            f"<td class='m'>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
             f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+            f"<td class='m'>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
             f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
             f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
             f"<td class='m'>{_quote_time_cell(snap)}</td>"
@@ -301,7 +319,7 @@ def render_brief_html(
     if not important and not minor:
         mover_html = "<div class='health-line'>无 ±5% 异动。</div>"
 
-    # ── Core Watch：Status 核心到边缘 + 财报临近置顶 ──
+    # ── Core Watch：按行业分组（组内 Status 核心到边缘 + 财报临近置顶，组间公司数降序）──
     core_html = ""
     core_ents = [e for e in ents if e.monitor_status == "Core"]
 
@@ -311,7 +329,7 @@ def render_brief_html(
         _nc = str(_snap.get("next_earnings") or "9999-99-99")
         return (_st, _nc)
 
-    for e in sorted(core_ents, key=_core_key):
+    def _core_card(e) -> str:
         snap = snapshots.get(e.ticker or e.company, {})
         vrow = snap.get("valuation") or {}
         day_cls = "core-day pos" if (snap.get("price_move_pct") or 0) >= 0 else "core-day neg"
@@ -324,7 +342,7 @@ def render_brief_html(
             head = (f"<div class='news-line'>📰 {_tag_s}<a href='{_h.escape(_lead.url or '#')}' target='_blank'>"
                     f"{_h.escape(_tl[:100])}</a></div>")
         else:
-            head = "<div class='news-line'>无新闻</div>" 
+            head = "<div class='news-line'>无新闻</div>"
         # 估值气泡（全口径，universe 同源）：None 段自动跳过，贵/便宜染色，P/FCF OCF 注记
         _vrow_c = vrow
         _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
@@ -344,12 +362,10 @@ def render_brief_html(
         ]
         bubbles = [b for b in bubbles if b]
         val_line = f"<div class='core-valuation'>{''.join(bubbles)}</div>" if bubbles else ""
-        minor = ""
-        core_html += (
+        return (
             f"<div class='core-watch-card'><div class='core-title-line'><div class='core-title-left'>"
             f"<span class='core-ticker'>{_h.escape(e.ticker or '')}</span>"
             f"<span class='core-name'>{_h.escape(_display_name(e))}</span>"
-            f"<span class='core-industry'>{_h.escape(e.industry or '')}</span>"
             f"<span class='pill status {str(e.coverage_status or '').lower()}'>{_h.escape(e.coverage_status or '')}</span>"
             f"</div><span class='{day_cls}'>{_fmt_pct(snap.get('price_move_pct'))}</span></div>"
             f"<div class='core-quote-grid'>"
@@ -359,11 +375,20 @@ def render_brief_html(
             f"<div class='core-quote-item'><span>YTD</span><b>{_fmt_pct(vrow.get('ret_ytd'))}</b></div>"
             f"<div class='core-quote-item'><span>1y</span><b>{_fmt_pct(vrow.get('ret_1y'))}</b></div>"
             f"<div class='core-quote-item'><span>Next</span><b>{_h.escape(str(snap.get('next_earnings') or '—'))}</b></div>"
-            f"</div>{val_line}{minor}{head}</div>"
+            f"</div>{val_line}{head}</div>"
         )
-    if core_html:
-        core_html = f"<div class='grid-2'>{core_html}</div>"
-    else:
+
+    groups: dict[str, list] = {}
+    for e in core_ents:
+        groups.setdefault(e.industry or "Other", []).append(e)
+    for ind in sorted(groups, key=lambda k: -len(groups[k])):
+        ents_sorted = sorted(groups[ind], key=_core_key)
+        cards = "".join(_core_card(e) for e in ents_sorted)
+        core_html += (f"<details class='industry-group' open>"
+                      f"<summary><span class='ig-name'>{_h.escape(ind)}</span>"
+                      f"<span class='ig-count'>{len(ents_sorted)} 家</span></summary>"
+                      f"<div class='grid-2'>{cards}</div></details>")
+    if not groups:
         core_html = "<div class='health-line'>无 Core 名单。</div>"
 
     # ── Review Queue：7 天内显示；7-30 天表格内折叠 ──
@@ -410,7 +435,129 @@ def render_brief_html(
     else:
         health = "<div class='health-line'>数据完整。</div>"
 
-    body = f"""
+    if email:
+        # ── 邮件版：无 hero/tab/Data Health；mover/core 用简单块级 + 内联样式（邮件客户端 CSS 兼容）──
+        def _em_two_col(cards: list) -> str:
+            """两列 table 布局（邮件客户端兼容），手机 media 转单列。"""
+            _rows = []
+            for i in range(0, len(cards), 2):
+                _pair = cards[i:i + 2]
+                _tds = "".join(f"<td width='50%' valign='top' style='padding:4px'>{c}</td>" for c in _pair)
+                if len(_pair) == 1:
+                    _tds += "<td width='50%' valign='top' style='padding:4px'></td>"
+                _rows.append(f"<tr>{_tds}</tr>")
+            return (f"<table role='presentation' width='100%' cellpadding='0' cellspacing='0' class='em-grid'>"
+                    f"<tbody>{''.join(_rows)}</tbody></table>") if _rows else ""
+
+        def _em_mover_card(e: CoverageEntry, s: dict, imp: bool) -> str:
+            vrow = s.get("valuation") or {}
+            day_color = "#0f9f6e" if float(s["price_move_pct"]) >= 0 else "#d33b3b"
+            rv = review_map.get(e.ticker or e.company) or {}
+            quote = " · ".join(x for x in [
+                f"Price {_fmt_price(s)}", f"Cap {_fmt_cap(s.get('market_cap'))}",
+                f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
+                f"Vol {s.get('volume_ratio') or '—'}", f"Gap {s.get('gap_pct') or '—'}",
+            ] if x)
+            det = ""
+            if rv.get("summary"):
+                links = "".join(
+                    f"<li style='margin:2px 0'><a style='color:#2563eb' href='{_h.escape(l['url'])}'>{_h.escape(translate_zh(l['title'], protect=_protect)[:50])}</a></li>"
+                    for l in rv.get("links", [])[:4])
+                det = (f"<div style='margin-top:8px;font-size:12px;color:#132238'><b>📌 {_h.escape(rv['summary'])}</b></div>"
+                       + (f"<ul style='margin:6px 0 0;padding-left:16px;font-size:12px'>{links}</ul>" if links else ""))
+            elif imp:
+                items = news_map.get(e.ticker or e.company, [])
+                if items:
+                    det = (f"<div style='margin-top:8px;font-size:12px'><a style='color:#2563eb' href='{_h.escape(items[0].url or '#')}'>"
+                           f"{_h.escape(items[0].title[:70])}</a></div>")
+            return (f"<div style='border:1px solid #d8dee9;border-radius:12px;padding:12px;margin-bottom:12px;background:#ffffff'>"
+                    f"<div><b style='font-size:14px'>{_h.escape(_display_name(e))}</b> "
+                    f"<span style='color:#64748b;font-size:12px'>{_h.escape(e.ticker or '')}</span> "
+                    f"<span style='color:#94a3b8;font-size:12px'>{_h.escape(e.industry or '')}</span> "
+                    f"<span style='font-size:13px;font-weight:700;color:{day_color}'>{_fmt_pct(s['price_move_pct'])}</span></div>"
+                    f"<div style='color:#475569;font-size:12px;margin-top:6px'>{quote}</div>{det}</div>")
+
+        def _em_val_bubble(row: dict, label: str, field: str,
+                           vs_field: str | None = None, extra: str | None = None) -> str:
+            """邮件版估值胶囊（内联样式，不依赖 flex）。"""
+            val = row.get(field)
+            if val is None:
+                return ""
+            text = f"{label} {val}x"
+            if extra:
+                text += f" {extra}"
+            elif vs_field and row.get(vs_field) is not None:
+                text += f" ({row.get(vs_field)}%)"
+            _vs = row.get(vs_field)
+            color = "#d33b3b" if _vs is not None and _vs > 30 else ("#0f9f6e" if _vs is not None and _vs < -30 else "#132238")
+            return (f"<span style='display:inline-block;border:1px solid #d8dee9;border-radius:999px;"
+                    f"padding:1px 7px;font-size:11px;background:#f8fafc;color:{color};margin:0 4px 4px 0'>{_h.escape(text)}</span>")
+
+        def _em_core_card(e: CoverageEntry) -> str:
+            snap = snapshots.get(e.ticker or e.company, {})
+            vrow = snap.get("valuation") or {}
+            day_color = "#0f9f6e" if (snap.get("price_move_pct") or 0) >= 0 else "#d33b3b"
+            # 行情行：价格 / 市值 / 1m / YTD（文本流式，邮件安全）
+            quote = " · ".join(x for x in [
+                f"Price {_fmt_price(snap)}", f"Cap {_fmt_cap(snap.get('market_cap'))}",
+                f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
+            ] if x)
+            # 估值行：关键口径胶囊（L1 fwd 优先）
+            _vrow_c = vrow
+            _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
+            if _fwd_pe is not None:
+                _vrow_c = dict(vrow)
+                _vrow_c["pe_ntm"] = _fwd_pe
+            est = "".join(x for x in [
+                _em_val_bubble(_vrow_c, "PE_TTM", "pe_ttm", "pe_ttm_vs_5y"),
+                _em_val_bubble(_vrow_c, "PE_NTM", "pe_ntm",
+                               extra=("L1 fwd" if _fwd_pe is not None else None)),
+                _em_val_bubble(_vrow_c, "EV/EBITDA_TTM", "ev_ttm", "ev_ttm_vs_5y"),
+                _em_val_bubble(_vrow_c, "EV/EBITDA_NTM", "ev_ntm"),
+            ] if x)
+            est_line = f"<div style='margin-top:5px;font-size:0'>{est}</div>" if est else ""
+            items = news_map.get(e.ticker or e.company, [])
+            if items:
+                _lead = pick_lead_news(items)
+                _tl = translate_zh(_lead.title, protect=_protect)
+                head = (f"<div style='margin-top:4px;font-size:12px;color:#334155'><a style='color:#2563eb' href='{_h.escape(_lead.url or '#')}'>"
+                        f"{_h.escape(_tl[:80])}</a></div>")
+            else:
+                head = "<div style='margin-top:4px;font-size:12px;color:#94a3b8'>无新闻</div>"
+            return (f"<div style='border:1px solid #d8dee9;border-radius:12px;padding:12px;margin-bottom:12px;background:#ffffff'>"
+                    f"<b style='font-size:13px'>{_h.escape(_display_name(e))}</b> "
+                    f"<span style='color:#64748b;font-size:12px'>{_h.escape(e.ticker or '')}</span> "
+                    f"<span style='font-size:11px;background:#e2e8f0;border-radius:8px;padding:1px 7px;color:#475569'>{_h.escape(e.coverage_status or '')}</span> "
+                    f"<span style='font-size:12px;font-weight:700;color:{day_color}'>{_fmt_pct(snap.get('price_move_pct'))}</span>"
+                    f"<div style='margin-top:5px;font-size:12px;color:#475569'>{quote}</div>"
+                    f"{est_line}{head}</div>")
+
+        # 邮件版：mover 单列（内容长，两列在手机邮件客户端不可靠）；core 两列（用户验证 OK）
+        em_movers = "".join(
+            [_em_mover_card(e, s, True) for e, s in important] +
+            [_em_mover_card(e, s, False) for e, s in minor])
+        if not em_movers:
+            em_movers = "<div class='health-line'>无 ±5% 异动。</div>"
+        em_core = "".join(_em_core_card(e) for e in sorted(core_ents, key=_core_key))
+        if not em_core:
+            em_core = "<div class='health-line'>无 Core 名单。</div>"
+        body = f"""<!doctype html><html lang="zh-Hans"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Brief {today} · {rt_label}</title>
+<style>{_CSS}</style></head><body><main>
+<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{em_movers}</section>
+<section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</section>
+<section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
+<p>财报临近（&lt;7 天）。</p></div>
+<div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
+<tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
+<section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
+<p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th class='m'>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th class='m'>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<tbody>{''.join(uni_rows)}</tbody></table></div></section>
+</main></body></html>"""
+    else:
+        body = f"""
 <!doctype html><html lang="zh-Hans"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Brief {today} · {rt_label}</title>
@@ -423,22 +570,22 @@ def render_brief_html(
   <span class="hero-stat">{len(rq_entries)} actions</span>
 </section>
 <nav class="tab-nav">
-  <a class="tab-button" href="#review">Review Queue</a>
-  <a class="tab-button" href="#universe">Valuation Universe</a>
   <a class="tab-button" href="#movers">Movers</a>
   <a class="tab-button" href="#core">Core Watch</a>
+  <a class="tab-button" href="#review">Review Queue</a>
+  <a class="tab-button" href="#universe">Valuation Universe</a>
   <a class="tab-button" href="#health">Data Health</a>
 </nav>
+<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
+<section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
 <div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th class='m'>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th class='m'>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
-<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
-<section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>
 <section id="health" class="tab-panel"><div class="section-head"><h2>Data Health</h2></div>{health}</section>
 </main></body></html>"""
     return body
