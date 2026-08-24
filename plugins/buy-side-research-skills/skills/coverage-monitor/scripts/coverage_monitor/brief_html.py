@@ -10,6 +10,7 @@ import html as _h
 from typing import Any
 
 from .coverage import CoverageEntry
+from .candidates import score_candidates
 from .brief import _display_name, _fwd_ntm_pe, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary
 from .news import pick_lead_news, protect_names, tag_news_title, translate_zh
 from .valuation import fmt_cell, fwd_extra, rich_class
@@ -102,6 +103,17 @@ summary{cursor:pointer;font-weight:950;color:#1e3a8a}
 .industry-group .grid-2{margin-top:4px}
 ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
 .health-line{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);padding:14px 18px;font-size:14px;font-weight:700}
+/* Research Candidates：信号卡片（分数徽章 + 信号胶囊 + 新闻锚点） */
+.cand-note{color:var(--muted);font-size:11.5px;margin:2px 0 10px}
+.cand-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:12px}
+.cand-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cand-head b{font-size:14px}
+.cand-score{background:var(--blue-soft);color:#1d4ed8;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:900}
+.cand-ticker{color:var(--muted);font-size:12px}
+.cand-pills{margin-top:6px;font-size:0}
+.cand-pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:650;margin:0 4px 4px 0}
+.cand-news{margin-top:4px;font-size:12px}
+.cand-news a{color:var(--blue);text-decoration:none}
 .health-line .bad{color:var(--amber)}
 .grid-2 .core-watch-card{margin-bottom:0}
 /* ── 响应式：手机（≤640px）紧凑 + 表格隐藏次要列 + 安全区 ── */
@@ -138,13 +150,19 @@ def _ret_class(v: Any) -> str:
     return "ret pos" if float(v) >= 0 else "ret neg"
 
 
-def _val_cell_html(row: dict[str, Any], field: str, vs_field: str) -> str:
+def _val_cell_html(row: dict[str, Any], field: str, vs_field: str, email: bool = False) -> str:
     val = row.get(field)
     if val is None:
-        return '<span class="val-na">—</span>'
+        if email:
+            return "<span>NA</span>"
+        return '<span class="val-na">NA</span>'
     vs = row.get(vs_field)
     cls = rich_class(vs)
     text = fmt_cell(val, vs)
+    if email:
+        # 邮件版：内联颜色（邮件客户端 class 样式不可靠）
+        color = "#d33b3b" if cls == "rich" else ("#0f9f6e" if cls == "cheap" else "#132238")
+        return f'<span style="color:{color};font-weight:650">{text}</span>'
     if cls == "rich":
         return f'<span class="val-rich">{text}</span>'
     if cls == "cheap":
@@ -240,38 +258,52 @@ def render_brief_html(
     review_map = review_map or {}
     _protect = protect_names(entries)
 
-    # ── 估值表 ──
-    uni_rows = []
-    last_ind = None
-    for e in _universe_sorted(ents, snapshots):
-        if e.industry != last_ind:
-            uni_rows.append(f'<tr class="industry-row"><td colspan="13">{_h.escape(e.industry or "Other")}</td></tr>')
-            last_ind = e.industry
-        snap = snapshots.get(e.ticker or e.company, {})
-        vrow = snap.get("valuation") or {}
-        pe_n_extra = fwd_extra(vrow, "PE")
-        ev_n_extra = fwd_extra(vrow, "EV/EBITDA")
-        _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
-        _pe_ntm_val = _fwd_pe if _fwd_pe is not None else vrow.get("pe_ntm")
-        _pe_ntm_extra = "L1 fwd" if _fwd_pe is not None else pe_n_extra
-        uni_rows.append(
-            "<tr>"
-            f"<td>{_h.escape(_display_name(e))}</td>"
-            f"<td class='m'>{_h.escape(e.ticker or '')}</td>"
-            f"<td class='m'>{_h.escape(e.industry or '—')}</td>"
-            f'<td class="{_ret_class(snap.get("price_move_pct"))}">{_fmt_pct(snap.get("price_move_pct"))}</td>'
-            f'<td class="{_ret_class(vrow.get("ret_1m"))}">{_fmt_pct(vrow.get("ret_1m"))}</td>'
-            f'<td class="{_ret_class(vrow.get("ret_ytd"))}">{_fmt_pct(vrow.get("ret_ytd"))}</td>'
-            f'<td class="m {_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
-            f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
-            f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
-            f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
-            f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
-            f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
-            f"<td class='m'>{_quote_time_cell(snap)}</td>"
-            "</tr>"
-        )
+    # ── 估值表（email 版涨跌/估值用内联颜色，邮件客户端 class 样式不可靠）──
+    def _uni_rows_html(email_mode: bool = False) -> list:
+        rows: list = []
+        last_ind = None
+        for e in _universe_sorted(ents, snapshots):
+            if e.industry != last_ind:
+                rows.append(f'<tr class="industry-row"><td colspan="13">{_h.escape(e.industry or "Other")}</td></tr>')
+                last_ind = e.industry
+            snap = snapshots.get(e.ticker or e.company, {})
+            vrow = snap.get("valuation") or {}
+            pe_n_extra = fwd_extra(vrow, "PE")
+            ev_n_extra = fwd_extra(vrow, "EV/EBITDA")
+            _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
+            _pe_ntm_val = _fwd_pe if _fwd_pe is not None else vrow.get("pe_ntm")
+            _pe_ntm_extra = "L1 fwd" if _fwd_pe is not None else pe_n_extra
+
+            def _ret_td(v: Any, m_cls: str = "") -> str:
+                _t = _fmt_pct(v)
+                if email_mode:
+                    if v is None:
+                        return f"<td>{_t}</td>"
+                    c = "#0f9f6e" if float(v) >= 0 else "#d33b3b"
+                    return f"<td style='color:{c};font-weight:650'>{_t}</td>"
+                return f'<td class="{m_cls}{_ret_class(v)}">{_t}</td>'
+
+            rows.append(
+                "<tr>"
+                f"<td>{_h.escape(_display_name(e))}</td>"
+                f"<td class='m'>{_h.escape(e.ticker or '')}</td>"
+                f"<td class='m'>{_h.escape(e.industry or '—')}</td>"
+                + _ret_td(snap.get("price_move_pct"))
+                + _ret_td(vrow.get("ret_1m"))
+                + _ret_td(vrow.get("ret_ytd"))
+                + _ret_td(vrow.get("ret_1y"), m_cls="m " if not email_mode else "")
+                + f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y', email=email_mode)}</td>"
+                + f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
+                + f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y', email=email_mode)}</td>"
+                + f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+                + f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
+                + f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
+                + f"<td class='m'>{_quote_time_cell(snap)}</td>"
+                + "</tr>"
+            )
+        return rows
+
+    uni_rows = _uni_rows_html(False)
 
     # ── Movers ──
     movers = [(e, snapshots.get(e.ticker or e.company, {})) for e in ents
@@ -321,6 +353,64 @@ def render_brief_html(
             _mover_card(e, s, False) for e, s in minor) + "</div>"
     if not important and not minor:
         mover_html = "<div class='health-line'>无 ±5% 异动。</div>"
+
+    # ── Research Candidates：数据信号驱动的研究优先级（Movers 后）──
+    cands = score_candidates(ents, snapshots, news_map, today)
+
+    def _cand_pill(text: str, email_mode: bool) -> str:
+        """信号胶囊：按信号类型染色（异动跟涨跌、低估绿、贵红、财报蓝、新闻琥珀、放量灰）。"""
+        color = "#475569"
+        bg = "#f1f5f9"
+        if text.startswith("异动"):
+            pos = "+" in text
+            color = "#0f9f6e" if pos else "#d33b3b"
+            bg = "#dff7eb" if pos else "#ffe4e6"
+        elif text.startswith("深度低估"):
+            color, bg = "#0f9f6e", "#dff7eb"
+        elif text.startswith("深度贵"):
+            color, bg = "#d33b3b", "#ffe4e6"
+        elif text.startswith("财报"):
+            color, bg = "#1d4ed8", "#dbeafe"
+        elif text.startswith("重大新闻"):
+            color, bg = "#b7791f", "#fff7d6"
+        if email_mode:
+            return (f"<span style='display:inline-block;border-radius:999px;padding:1px 8px;"
+                    f"font-size:11px;color:{color};background:{bg};margin:0 4px 4px 0'>{_h.escape(text)}</span>")
+        return (f"<span class='cand-pill' style='color:{color};background:{bg}'>{_h.escape(text)}</span>")
+
+    def _cands_html(email_mode: bool) -> str:
+        if not cands:
+            return "<div class='health-line'>今日无强信号标的。</div>"
+        cards = []
+        for c in cands:
+            e = c["entry"]
+            pills = "".join(_cand_pill(t, email_mode) for _, t in c["signals"])
+            news = ""
+            if c["news"]:
+                tl = translate_zh(c["news"].title, protect=_protect)
+                news = (f"<a href='{_h.escape(c['news'].url)}' target='_blank'>📰 {_h.escape(tl[:60])}</a>")
+            if email_mode:
+                cards.append(
+                    f"<div style='border:1px solid #d8dee9;border-radius:12px;padding:12px;margin-bottom:12px;background:#ffffff'>"
+                    f"<div><b style='font-size:14px'>{_h.escape(_display_name(e))}</b> "
+                    f"<span style='color:#64748b;font-size:12px'>{_h.escape(e.ticker or '')}</span> "
+                    f"<span style='display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;"
+                    f"color:#1d4ed8;background:#dbeafe;margin-left:4px'>{c['score']}</span></div>"
+                    f"<div style='margin-top:6px;font-size:0'>{pills}</div>"
+                    + (f"<div style='margin-top:4px;font-size:12px'>{news}</div>" if news else "")
+                    + "</div>")
+            else:
+                cards.append(
+                    f"<div class='cand-card'>"
+                    f"<div class='cand-head'><span class='cand-score'>{c['score']}</span>"
+                    f"<b>{_h.escape(_display_name(e))}</b> "
+                    f"<span class='cand-ticker'>{_h.escape(e.ticker or '')}</span></div>"
+                    f"<div class='cand-pills'>{pills}</div>"
+                    + (f"<div class='cand-news'>{news}</div>" if news else "")
+                    + "</div>")
+        if email_mode:
+            return "".join(cards)
+        return f"<div class='grid-3'>{''.join(cards)}</div>"
 
     # ── Core Watch：按行业分组（组内 Status 核心到边缘 + 财报临近置顶，组间公司数降序）──
     core_html = ""
@@ -440,6 +530,27 @@ def render_brief_html(
 
     if email:
         # ── 邮件版：无 hero/tab/Data Health；mover/core 用简单块级 + 内联样式（邮件客户端 CSS 兼容）──
+        def _em_quote_cell(label: str, value: str, color: str = "#132238") -> str:
+            """邮件版行情小格子（inline-block 3 个一行自动换行，不依赖 media query）。"""
+            return (f"<span style='display:inline-block;width:32%;border:1px solid #e2e8f0;border-radius:8px;"
+                    f"padding:4px 6px;margin:2px;box-sizing:border-box;text-align:center'>"
+                    f"<span style='display:block;font-size:9px;color:#64748b;font-weight:800;letter-spacing:.05em'>{_h.escape(label)}</span>"
+                    f"<span style='font-size:12px;font-weight:700;color:{color}'>{value}</span></span>")
+
+        def _em_quote_grid(snap: dict, vrow: dict) -> str:
+            """邮件版行情格（3×2，涨跌红绿）：Price/Cap/1m/YTD(+Vol/Gap for movers)。"""
+            cells = [_em_quote_cell("Price", _fmt_price(snap)),
+                     _em_quote_cell("Cap", _fmt_cap(snap.get("market_cap")))]
+            for label, val in (("1m", vrow.get("ret_1m")), ("YTD", vrow.get("ret_ytd"))):
+                if val is None:
+                    continue
+                c = "#0f9f6e" if float(val) >= 0 else "#d33b3b"
+                cells.append(_em_quote_cell(label, _fmt_pct(val), c))
+            for label, val in (("Vol", snap.get("volume_ratio")), ("Gap", snap.get("gap_pct"))):
+                if val is not None:
+                    cells.append(_em_quote_cell(label, _h.escape(str(val))))
+            return f"<div style='margin-top:6px;font-size:0'>{''.join(cells)}</div>"
+
         def _em_two_col(cards: list) -> str:
             """两列 table 布局（邮件客户端兼容），手机 media 转单列。"""
             _rows = []
@@ -456,11 +567,7 @@ def render_brief_html(
             vrow = s.get("valuation") or {}
             day_color = "#0f9f6e" if float(s["price_move_pct"]) >= 0 else "#d33b3b"
             rv = review_map.get(e.ticker or e.company) or {}
-            quote = " · ".join(x for x in [
-                f"Price {_fmt_price(s)}", f"Cap {_fmt_cap(s.get('market_cap'))}",
-                f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
-                f"Vol {s.get('volume_ratio') or '—'}", f"Gap {s.get('gap_pct') or '—'}",
-            ] if x)
+            quote = _em_quote_grid(s, vrow)
             det = ""
             if rv.get("summary"):
                 links = "".join(
@@ -478,7 +585,7 @@ def render_brief_html(
                     f"<span style='color:#64748b;font-size:12px'>{_h.escape(e.ticker or '')}</span> "
                     f"<span style='color:#94a3b8;font-size:12px'>{_h.escape(e.industry or '')}</span> "
                     f"<span style='font-size:13px;font-weight:700;color:{day_color}'>{_fmt_pct(s['price_move_pct'])}</span></div>"
-                    f"<div style='color:#475569;font-size:12px;margin-top:6px'>{quote}</div>{det}</div>")
+                    f"{quote}{det}</div>")
 
         def _em_val_bubble(row: dict, label: str, field: str,
                            vs_field: str | None = None, extra: str | None = None) -> str:
@@ -501,10 +608,7 @@ def render_brief_html(
             vrow = snap.get("valuation") or {}
             day_color = "#0f9f6e" if (snap.get("price_move_pct") or 0) >= 0 else "#d33b3b"
             # 行情行：价格 / 市值 / 1m / YTD（文本流式，邮件安全）
-            quote = " · ".join(x for x in [
-                f"Price {_fmt_price(snap)}", f"Cap {_fmt_cap(snap.get('market_cap'))}",
-                f"1m {_fmt_pct(vrow.get('ret_1m'))}", f"YTD {_fmt_pct(vrow.get('ret_ytd'))}",
-            ] if x)
+            quote = _em_quote_grid(snap, vrow)
             # 估值行：关键口径胶囊（L1 fwd 优先）
             _vrow_c = vrow
             _fwd_pe = _fwd_ntm_pe(snap, estimates, e.ticker or e.company)
@@ -532,7 +636,7 @@ def render_brief_html(
                     f"<span style='color:#64748b;font-size:12px'>{_h.escape(e.ticker or '')}</span> "
                     f"<span style='font-size:11px;background:#e2e8f0;border-radius:8px;padding:1px 7px;color:#475569'>{_h.escape(e.coverage_status or '')}</span> "
                     f"<span style='font-size:12px;font-weight:700;color:{day_color}'>{_fmt_pct(snap.get('price_move_pct'))}</span>"
-                    f"<div style='margin-top:5px;font-size:12px;color:#475569'>{quote}</div>"
+                    f"{quote}"
                     f"{est_line}{head}</div>")
 
         # 邮件版：mover 单列（内容长，两列在手机邮件客户端不可靠）；core 两列（用户验证 OK）
@@ -548,6 +652,9 @@ def render_brief_html(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Brief {today} · {rt_label}</title>
 <style>{_CSS}</style></head><body><main>
+<section id="candidates" class="tab-panel"><div class="section-head"><h2>Research Candidates</h2></div>
+<p style='color:#64748b;font-size:11px;margin:2px 0 8px'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
+{_cands_html(True)}</section>
 <section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{em_movers}</section>
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</section>
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
@@ -557,7 +664,7 @@ def render_brief_html(
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
 <div class="table-card email-flat"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th class='m'>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
-<tbody>{''.join(uni_rows)}</tbody></table></div></section>
+<tbody>{''.join(_uni_rows_html(True))}</tbody></table></div></section>
 </main></body></html>"""
     else:
         body = f"""
@@ -573,12 +680,16 @@ def render_brief_html(
   <span class="hero-stat">{len(rq_entries)} actions</span>
 </section>
 <nav class="tab-nav">
+  <a class="tab-button" href="#candidates">Candidates</a>
   <a class="tab-button" href="#movers">Movers</a>
   <a class="tab-button" href="#core">Core Watch</a>
   <a class="tab-button" href="#review">Review Queue</a>
   <a class="tab-button" href="#universe">Valuation Universe</a>
   <a class="tab-button" href="#health">Data Health</a>
 </nav>
+<section id="candidates" class="tab-panel"><div class="section-head"><h2>Research Candidates</h2></div>
+<p class='cand-note'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
+{_cands_html(False)}</section>
 <section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
