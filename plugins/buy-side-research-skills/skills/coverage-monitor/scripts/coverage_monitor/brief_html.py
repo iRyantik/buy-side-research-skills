@@ -32,6 +32,8 @@ h2{margin:0;font-size:18px;letter-spacing:-.03em}
 .section-head p{margin:6px 0 0;max-width:840px;color:var(--muted);line-height:1.68}
 .card{border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:18px}
 .table-card{overflow-x:auto;overflow-y:auto;max-height:72vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.07)}
+/* 邮件版表格：完整展开（邮件客户端容器滚动不可靠），页面滚动查看 */
+.email-flat{max-height:none!important;overflow:visible!important}
 .table-card table{min-width:1100px;width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 .table-card th,.table-card td{overflow-wrap:anywhere}
 .table-card td:first-child,.table-card th:first-child{min-width:92px}
@@ -116,7 +118,8 @@ h2{font-size:16px}
 .core-quote-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .core-quote-item{padding:7px 8px}
 .core-quote-item b{font-size:13px}
-.table-card{max-height:58vh;border-radius:16px}  /* 保留容器滚动 → 表头 sticky 冻结 */
+.table-card{max-height:none;overflow:visible}  /* 手机：表格完整展开，页面滚动（容器滚动在移动端邮件不可靠） */
+.table-card.email-flat{max-height:none!important;overflow:visible!important}
 .table-card table{min-width:330px;font-size:11.5px;table-layout:auto}
 .table-card td:first-child,.table-card th:first-child{min-width:0}
 .table-card td:nth-child(2),.table-card th:nth-child(2){min-width:0}
@@ -259,11 +262,11 @@ def render_brief_html(
             f'<td class="{_ret_class(snap.get("price_move_pct"))}">{_fmt_pct(snap.get("price_move_pct"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_1m"))}">{_fmt_pct(vrow.get("ret_1m"))}</td>'
             f'<td class="{_ret_class(vrow.get("ret_ytd"))}">{_fmt_pct(vrow.get("ret_ytd"))}</td>'
-            f'<td class="{_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
+            f'<td class="m {_ret_class(vrow.get("ret_1y"))}">{_fmt_pct(vrow.get("ret_1y"))}</td>'
             f"<td class='m'>{_val_cell_html(vrow, 'pe_ttm', 'pe_ttm_vs_5y')}</td>"
-            f"<td class='m'>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
+            f"<td>{_h.escape(fmt_cell(_pe_ntm_val, extra=_pe_ntm_extra))}</td>"
             f"<td class='m'>{_val_cell_html(vrow, 'ev_ttm', 'ev_ttm_vs_5y')}</td>"
-            f"<td class='m'>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
+            f"<td>{_h.escape(fmt_cell(vrow.get('ev_ntm'), extra=ev_n_extra)) or '—'}</td>"
             f"<td class='m'>{_h.escape(str(snap.get('next_earnings') or '—'))}</td>"
             f"<td class='m'>{_h.escape(e.coverage_status or '—')}</td>"
             f"<td class='m'>{_quote_time_cell(snap)}</td>"
@@ -549,11 +552,11 @@ def render_brief_html(
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</section>
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
-<div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
+<div class="table-card email-flat"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th class='m'>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th class='m'>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<div class="table-card email-flat"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th class='m'>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 </main></body></html>"""
     else:
@@ -584,7 +587,7 @@ def render_brief_html(
 <tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。加粗/红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）。`fwd x` = 你的 fwd 假设。</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th class='m'>PE_TTM</th><th class='m'>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th class='m'>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th class='m'>1y</th><th class='m'>PE_TTM</th><th>PE_NTM</th><th class='m'>EV/EBITDA_TTM</th><th>EV/EBITDA_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="health" class="tab-panel"><div class="section-head"><h2>Data Health</h2></div>{health}</section>
 </main></body></html>"""
