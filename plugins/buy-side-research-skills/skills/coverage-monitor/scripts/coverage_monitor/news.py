@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 from .coverage import CoverageEntry
+from .deepseek_translate import translate as deepseek_translate
 from .signals import assess_snapshot
 
 
@@ -355,16 +356,21 @@ def _gtx_translate(text: str, timeout: int = 10) -> str:
 
 
 def protect_names(entries) -> tuple[str, ...]:
-    """从 entries 提取公司名保护名单（native + EN，长名优先）。
+    """从 entries 提取公司名保护名单。
 
-    翻译前占位保护、翻译后还原，防止 AI/机械翻译把公司名音译错乱
-    （如 Kencoa Aerospace → Kencore）。"""
+    只保护不需要翻译/会被音译错的：
+    - EN 名（company）：防机械翻译音译错乱（Kencoa→Kencore）
+    - 中文 native：已是中文不翻
+    韩文/日文 native 不保护——让 AI/机械翻译成中文（用户要求非中文都翻译）。"""
     names = set()
     for e in entries or []:
-        for n in (getattr(e, "company_native", ""), getattr(e, "company", "")):
-            n = (n or "").strip()
-            if len(n) >= 3:
-                names.add(n)
+        en = (getattr(e, "company", "") or "").strip()
+        if len(en) >= 3:
+            names.add(en)
+        nat = (getattr(e, "company_native", "") or "").strip()
+        if nat and _ZH_HAN.search(nat) and not _KANA.search(nat) and not _HANGUL.search(nat):
+            if len(nat) >= 2:
+                names.add(nat)
     return tuple(sorted(names, key=len, reverse=True))
 
 
@@ -382,13 +388,15 @@ def _restore_text(text: str, protect: tuple) -> str:
 
 
 def translate_zh(text: str, timeout: int = 10, protect: tuple = ()) -> str:
-    """标题 → 简体中文。agent 翻译（src=ai 缓存）优先 → Google Translate gtx 机械兜底。
+    """标题 → 简体中文。缓存（deepseek/ai/gtx）→ DeepSeek 单条 → Google Translate gtx 兜底。
 
-    agent 翻译通过 `daily --ai-review-input` 导出任务包 → claude CLI/主 agent 翻译 →
-    `daily --ai-review <out>` 写入缓存（src=ai，按原文 key）。
+    DeepSeek（`deepseek_translate.py`，workspace .env 的 DEEPSEEK_API_KEY）是运行时
+    第一条 AI 路径——Windows/Mac 通用，launchd 定时环境也能走真 AI。
+    批量预翻由 `cli._ensure_translations` 渲染前完成（src=deepseek 缓存）；
+    这里是渲染期兜底：缓存 miss → DeepSeek 单条 → gtx。
     公司名（protect 名单）翻译前占位保护、翻译后还原，避免音译错乱。
     日文（含假名）/ 韩文（含谚文）/ 英文 → 翻译；已是中文（含汉字且无假名谚文）→ 原样。
-    失败降级返回原文（honest degrade）。带磁盘缓存避免重复请求（ai 条目优先于 gtx）。"""
+    失败降级返回原文（honest degrade）。带磁盘缓存避免重复请求（deepseek/ai 条目优先于 gtx）。"""
     text = (text or "").strip()
     if not text:
         return text
@@ -399,10 +407,20 @@ def translate_zh(text: str, timeout: int = 10, protect: tuple = ()) -> str:
     entry = cache.get(key) or cache.get(text)  # 兼容 agent 按原文写入的 AI 翻译
     if entry is not None:
         return _restore_text(entry.get("t", "") if isinstance(entry, dict) else entry, protect)
+    try:
+        t = deepseek_translate(key)
+    except Exception:
+        t = None
+    if t:
+        cache[key] = {"t": t, "src": "deepseek"}
+        _save_tr_cache()
+        return _restore_text(t, protect)
     t = _gtx_translate(key, timeout)
-    cache[key] = {"t": t, "src": "gtx"}
-    _save_tr_cache()
-    return _restore_text(t, protect)
+    if t and t != key:
+        cache[key] = {"t": t, "src": "gtx"}
+        _save_tr_cache()
+        return _restore_text(t, protect)
+    return _restore_text(key, protect)  # gtx 失败（返回原文）→ 不缓存，下次再试 DeepSeek
 
 
 def pick_lead_news(items: list) -> NewsItem:

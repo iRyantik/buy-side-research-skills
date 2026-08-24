@@ -211,7 +211,7 @@ Agent uses `sys.platform`:
 
 ## Provider Configuration
 
-After file deployment, display a single table and ask the user to configure data providers:
+After file deployment, display a single table and ask the user to configure data providers (DeepSeek 翻译是推荐项——日报标题翻译质量依赖它):
 
 ```
 [Provider 配置]
@@ -237,6 +237,10 @@ After file deployment, display a single table and ask the user to configure data
 │ 5    │ Whisper   │ WHISPER_API_KEY               │ 用户自备 OpenAI 兼容端点        │
 │      │ (转录)    │ WHISPER_API_BASE              │ 如有默认 key 直接贴入 .env       │
 │      │           │ WHISPER_MODEL                 │                                │
+├──────┼───────────┼──────────────────────────────┼────────────────────────────────┤
+│ 6    │ DeepSeek  │ DEEPSEEK_API_KEY              │ https://platform.deepseek.com   │
+│      │ (翻译)    │ DEEPSEEK_API_BASE（可选）      │ 注册获取 API Key                │
+│      │           │ DEEPSEEK_MODEL（可选）         │ 推荐：日报标题翻译质量依赖它      │
 └──────┴───────────┴──────────────────────────────┴────────────────────────────────┘
 
 还没有 key 的去对应地址申请，有 key 的直接贴给我。
@@ -263,6 +267,11 @@ EDINET_API_KEY=your_key_here
 # WHISPER_API_KEY=sk-xxx
 # WHISPER_API_BASE=https://api.vveai.com/v1
 # WHISPER_MODEL=whisper-large-v3-turbo
+
+# DeepSeek 翻译（日报标题翻译，OpenAI 兼容 API。推荐配置）
+DEEPSEEK_API_KEY=sk-xxx
+# DEEPSEEK_API_BASE=https://api.deepseek.com/v1
+# DEEPSEEK_MODEL=deepseek-v4-flash
 ```
 
 `.gitignore` already includes `.env` — the file stays local and is never committed.

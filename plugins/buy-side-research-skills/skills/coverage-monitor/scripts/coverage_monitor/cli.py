@@ -435,14 +435,13 @@ def _write_ai_review_input(workspace: Path, mover_entries: list, company_news: d
             "current_summary": (review_map.get(ticker) or {}).get("summary", ""),
             "news": news,
         })
-    # Core Watch 新闻标题也纳入翻译（展示给用户）
-    for e in entries or []:
-        if getattr(e, "monitor_status", "") == "Core":
-            for it in (company_news.get(e.ticker or e.company, []) or [])[:6]:
-                t = (it.title or "").strip()
-                if t and t not in seen_titles:
-                    seen_titles.add(t)
-                    titles.append(t)
+    # 全量兜底：收集所有 news_map 标题（数据变化后渲染展示的任何标题都能命中 AI 翻译缓存）
+    for _items in (company_news or {}).values():
+        for it in (_items or []):
+            t = (it.title or "").strip()
+            if t and t not in seen_titles:
+                seen_titles.add(t)
+                titles.append(t)
     pack["titles_to_translate"] = titles
     out_path = workspace / ".cache" / "coverage-monitor" / "ai-review-input.json"
     try:
@@ -507,6 +506,79 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     cleaned.append(f"agent_work: {', '.join(parts) if parts else 'none'}")
 
     return cleaned
+
+
+def _ensure_translations(workspace: Path, entries: list, company_news: dict) -> None:
+    """渲染前补全翻译：收集未翻译的非中文标题，DeepSeek 批量 → claude CLI 兜底 → 缓存。
+
+    定时 daily 自动执行，避免新采集标题走 gtx（429 限流）残留非中文。
+    DeepSeek（workspace .env 的 DEEPSEEK_API_KEY）Windows/Mac 通用；
+    无 key 或失败 → 剩余标题走 claude CLI（Mac）；再失败 → 渲染期 gtx 兜底。
+    """
+    from .news import _HANGUL, _KANA, _ZH_HAN, protect_names
+
+    cache_p = workspace / ".cache" / "coverage-monitor" / "translation-cache.json"
+    cache: dict = {}
+    try:
+        if cache_p.exists():
+            cache = json.loads(cache_p.read_text(encoding="utf-8"))
+    except Exception:
+        cache = {}
+    need: list[str] = []
+    for _items in (company_news or {}).values():
+        for it in (_items or []):
+            t = (getattr(it, "title", "") or "").strip()
+            if not t:
+                continue
+            if _ZH_HAN.search(t) and not _KANA.search(t) and not _HANGUL.search(t):
+                continue  # 纯中文不翻
+            if t in cache:
+                continue  # 已翻
+            if t not in need:
+                need.append(t)
+    if not need:
+        return
+    names = protect_names(entries)
+    name_list = ", ".join(sorted(names, key=len, reverse=True)[:80])
+    CHUNK = 30
+    new_tr: dict = {}
+    # 1) DeepSeek 批量（Windows/Mac 通用，launchd 环境可用）
+    from .deepseek_translate import translate_batch as _ds_batch
+    ds_map = _ds_batch(need, names=names, workspace=workspace)
+    new_tr.update(ds_map)
+    # 2) claude CLI 批量（Mac 兜底，处理 DeepSeek 未覆盖的）
+    left = [t for t in need if t not in new_tr]
+    for i in range(0, len(left), CHUNK):
+        chunk = left[i:i + CHUNK]
+        prompt = (f"逐条把下面 {len(chunk)} 条新闻标题翻译成简体中文。规则：\n"
+                  f"1. 每行一条，只输出译文本身，不加编号、引号、解释或空行。\n"
+                  f"2. 以下英文公司名保留原文；韩文/日文公司名翻译成中文（音译或通行译名）：{name_list}\n"
+                  f"3. 人名地名保留原文，除非有通行中文译名。\n"
+                  f"4. 财经术语用标准中文。\n原文：\n" + "\n".join(chunk))
+        try:
+            proc = subprocess.run(
+                ["claude", "-p", "--output-format", "text", prompt],
+                capture_output=True, text=True, timeout=240,
+                env={"PATH": f"{Path.home()}/.local/bin:/opt/homebrew/bin:" + os.environ.get("PATH", "")},
+            )
+            lines = [l.strip() for l in (proc.stdout or "").splitlines() if l.strip()]
+            for j, line in enumerate(lines):
+                if j >= len(chunk):
+                    continue
+                line = re.sub(r"^\d+[.、):]\s*", "", line).strip()
+                if line and line != chunk[j]:
+                    new_tr[chunk[j]] = line
+        except Exception:
+            continue
+    if new_tr:
+        for k, v in new_tr.items():
+            cache[k] = {"t": v, "src": "deepseek" if k in ds_map else "ai"}
+        try:
+            cache_p.parent.mkdir(parents=True, exist_ok=True)
+            cache_p.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+        print(f"[translate] AI 补翻 {len(new_tr)} 条标题（deepseek {len(ds_map)} / claude {len(new_tr) - len(ds_map)}）", file=sys.stderr)
 
 
 def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "us", ai_review: str = "", ai_review_input: bool = False, force_weekend: bool = False) -> int:
@@ -593,6 +665,8 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     from .signals import assess_snapshot as _assess
     mover_entries = [(e.ticker or e.company, e.company, snapshots.get(e.ticker or e.company, {}))
                      for e in entries if _assess(snapshots.get(e.ticker or e.company, {}))]
+    # 翻译补全（在 review_movers 前）：规则 fallback 的 translate_zh 命中缓存，避免 gtx 限流残留
+    _ensure_translations(workspace, entries, merged_company_news)
     review_map = review_movers(mover_entries, merged_company_news, run_day, entries)
 
     # ── Agent AI 审查/翻译注入：--ai-review <file> 优先覆盖，--ai-review-input 导出任务包 ──
@@ -630,10 +704,10 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
         mover_explainers, core_watch_summaries, industry_summaries, gaps,
         review_map=review_map, news_map=merged_company_news,
     )
-    email_body_html = render_email_body_html(
-        entries, snapshots, run_day,
-        mover_explainers, core_watch_summaries, industry_summaries, gaps,
-        review_map=review_map, news_map=merged_company_news,
+    # 邮件正文 = email 模式完整日报（无 hero/tab/Data Health；mover/core 块级内联样式，邮件客户端兼容）
+    email_body_html = render_brief_html(
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
+        review_map=review_map, estimates=_estimates, email=True,
     )
     delivery_gaps.extend(
         send_email(
