@@ -1,8 +1,8 @@
-﻿# Release
+# Release
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `8.8.11`.
+Current release version: `8.9.0`.
 
 > Version discipline: the plugin's internal version (`.claude-plugin/plugin.json` / `.codex-plugin/plugin.json`) **must always equal** the release tag. Never ship a release whose tag and plugin.json disagree.
 

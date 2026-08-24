@@ -2,7 +2,7 @@
 
 中文版 → [README_zh.md](README_zh.md)
 
-35 skills for buy-side equity research: triage, foundation, deep-work, and operations. Source-tracked, evidence-gated, cross-market.
+33 skills for buy-side equity research: triage, foundation, deep-work, and operations. Source-tracked, evidence-gated, cross-market.
 
 ---
 
@@ -57,7 +57,7 @@ Copy this into Claude Code:
 
 ---
 
-## 3. Full Skill List (39 skills)
+## 3. Full Skill List (33 skills)
 
 ### Triage Layer
 
@@ -67,6 +67,7 @@ Copy this into Claude Code:
 | `information-impact` | Verify and assess impact of a piece of news |
 | `post-earnings-quick` | 5-min post-earnings judgment |
 | `reddit-sentiment` | Social media sentiment analysis |
+| `question-sharpener` | Sharpen vague research questions into precise answerable questions by clarifying intent and surfacing hidden assumptions. |
 
 ### Foundation Layer
 
@@ -96,6 +97,16 @@ Copy this into Claude Code:
 | `bear-pre-mortem` | Short-side pre-mortem |
 | `pair-trade` | Long-short pair |
 | `primary-research-plan` | Primary research fieldwork plan |
+| `model-update` | Update a financial model for earnings guidance new data or revised assumptions. |
+
+### Operations
+
+| `coverage-monitor` | Generate four-tab dashboard daily coverage briefs with stricter mover rules, shared news runtime, important-mover explainers, and optional intraday alerts. |
+| `email-intelligence` | Review preserved sell-side email into a lightweight five-section attention brief. |
+| `init-workspace` | Initialize or repair a buy-side research workspace root scaffold and helper scripts. |
+| `update-agent-runtime` | Update the current host plugin runtime to the latest GitHub release and sync the current workspace scaffold. |
+| `meta-skill` | Create review or update buy-side research skills metadata docs manifests and governance. |
+| `meeting-minutes` | Turn audio or transcripts into briefing (external email) and qa (external Q&A) with layered appendix for flexible sharing. Bilingual output (ZH/EN). Full pipeline: mp3 → verbatim → scratchpad → briefing/qa. |
 
 ### Supporting
 

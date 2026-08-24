@@ -2,7 +2,7 @@
 
 English → [README.md](README.md)
 
-35 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
+33 个 skill 覆盖 triage、foundation、deep-work、operations 四层。source-tracked、evidence-gated、跨市场。
 
 ---
 
@@ -54,7 +54,7 @@ English → [README.md](README.md)
 
 ---
 
-## 3. 完整 Skill 清单（35 个）
+## 3. 完整 Skill 清单（33 个）
 
 ### Triage 层
 
@@ -64,6 +64,7 @@ English → [README.md](README.md)
 | `information-impact` | 信息真伪和影响评估 |
 | `post-earnings-quick` | 财报后 5 分钟判断 |
 | `reddit-sentiment` | 社交媒体情绪分析 |
+| `question-sharpener` | 澄清模糊研究问题 |
 
 ### Foundation 层
 
@@ -93,6 +94,16 @@ English → [README.md](README.md)
 | `bear-pre-mortem` | 空头 pre-mortem |
 | `pair-trade` | LS 对 |
 | `primary-research-plan` | 一手研究计划 |
+| `model-update` | 更新财务模型 |
+
+### Operations
+
+| `coverage-monitor` | 覆盖监控日报与盘中提醒 |
+| `email-intelligence` | 卖方邮件情报简报 |
+| `init-workspace` | 初始化研究工作区 |
+| `update-agent-runtime` | 更新宿主插件运行时 |
+| `meta-skill` | skill 治理规范 |
+| `meeting-minutes` | 会议纪要结构化 |
 
 ### Supporting
 
@@ -132,6 +143,6 @@ English → [README.md](README.md)
 
 | Version | Date | Changes |
 |---|---|---|
-| v8.3.0 | 2026-07 | 文档重构：CLAUDE 197 行，3 个新 reference 文件，35 skills |
+| v8.3.0 | 2026-07 | 文档重构：CLAUDE 197 行，3 个新 reference 文件，33 skills |
 | v8.0.0 | 2026-07 | 同事版：Python 自动安装，PreToolUse hooks，全部硬编码路径移除 |
 | v7.6.35 | 2026-07 | P0-P2 修复：hook 激活、pip --user、路径清理 |
