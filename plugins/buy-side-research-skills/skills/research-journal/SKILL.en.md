@@ -167,6 +167,15 @@ Recommended structure:
 - [Questions still needing research]
 ```
 
+## Mode D: Focus Feedback
+
+the `## Focus` section of COVERAGE.md is a research-selection lens, not a journal substitute. After saving the journal, check whether the work genuinely changed a long-term theme assumption, medium-term narrative, current fact/sentiment, or the next company-search direction.
+
+- If nothing changed, do not touch the `## Focus` section of COVERAGE.md.
+- If something changed, append one source-linked delta to `Research Feedback` and update one relevant place in `Current Lens`, `Theme Book`, or `Theme → Industry → Company`.
+- Raw ideas, isolated noise, unverified speculation, and short-term price moves stay in the journal or open questions.
+- The user's explicit current view overrides the agent's preferences.
+
 ## Primitive Consumption Rules
 
 ### Consuming `mechanism-insight`
@@ -260,6 +269,7 @@ Only `Confirmed`, `Likely`, or clearly tagged `Plausible but unconfirmed` claims
 File naming follows workspace `CLAUDE.md` §3.2: `YYYYMMDD-[skill]-[Company-Name][-variant].ext`.
 Save to `industry/<industry>/companies/<ticker>/`.
 If the path is unclear, the agent resolves the industry per CLAUDE.md §3.4.
+When Mode D applies, minimally update root the `## Focus` section of COVERAGE.md as well; it never replaces the dated journal artifact.
 
 ## Anti-Pattern Self-Check
 

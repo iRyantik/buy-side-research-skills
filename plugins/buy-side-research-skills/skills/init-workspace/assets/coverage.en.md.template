@@ -2,7 +2,41 @@
 
 > This is the English translation of [coverage.md.template](./coverage.md.template). The Chinese version is the source of truth.
 >
-> This file is the workspace coverage source of truth. Researched companies belong here; `coverage-monitor` consumes it for daily briefs and intraday alerts.
+> This file is the workspace coverage source of truth. The `## Coverage` table lists researched companies; `coverage-monitor` consumes it for daily briefs and intraday alerts. The `## Focus` section (top) is the research lens — read by email-intelligence, candidate-screener and general research; research-journal updates it only on earned change.
+
+## Focus
+
+> The `## Coverage` table lists companies in coverage; `## Focus` records why we are looking now and where to look next. Keep it short — only what changes research choices.
+
+### Current Lens
+
+- **More interested in**：
+- **De-emphasize for now**：
+- **What would change the lens**：
+
+### Theme Book
+
+| Theme | Long-term assumption | Medium-term narrative | Current facts / sentiment | What would change it | Updated |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+
+### Theme → Industry → Company
+
+| Theme | Relevant industries | Current coverage / candidates | What to look for next |
+|---|---|---|---|
+|  |  |  |  |
+
+### Research Feedback
+
+| Date | Research / source | What changed | Focus implication |
+|---|---|---|---|
+|  |  |  |  |
+
+### Maintenance Rule
+
+- Email Intelligence, candidate screening and general research read this section as the screening lens; the user's explicit request for this round always takes precedence.
+- Only append a Research Feedback row when completed and saved research truly changes long-term assumptions, medium-term narrative, current facts or selection direction — and sync the corresponding content above.
+- Do not record daily todo, positions, trade state, raw ideas or per-news items.
 
 ## Coverage Contract
 

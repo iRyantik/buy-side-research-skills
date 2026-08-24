@@ -65,6 +65,8 @@ If the user's input is sufficiently unambiguous, declare default assumptions and
 | **Discovery Edge** | Why the market may not have priced it in | Use proxies, do not state as fact |
 | **Liquidity / Size** | Minimum ADV / market cap | Greater China >= 100M USD ADV; US >= 50M USD ADV; small-caps listed separately with risk noted |
 
+When the workspace contains the `## Focus` section of COVERAGE.md, read it before screening. Use `Current Lens` and `Theme Book` as the default selection lens and `Theme → Industry → Company` to expand value-chain pockets. the `## Focus` section of COVERAGE.md does not restrict the universe or require processing every company in a covered industry; the user's current request always overrides it. If the current lens rotates from AI toward non-AI, do not silently reuse the historical AI-exposure preference.
+
 ## Candidate Mining / Stock Discovery
 
 A unified approach for themes, events, screens, and hybrid conditions. Internally, decompose the input into three signal types — do not ask the user to choose a mode:
@@ -350,5 +352,4 @@ Do not confuse:
 - "Does the optical module equipment chain have high-purity, fast-growing, cheap, undiscovered stocks" -> `candidate-screener`
 - "I heard X is an NVIDIA optical module supplier — is that reliable?" -> `information-impact`
 - "This news is true, and I want to find beneficiary stocks following the news logic" -> first `information-impact`, then `candidate-screener`
-
 

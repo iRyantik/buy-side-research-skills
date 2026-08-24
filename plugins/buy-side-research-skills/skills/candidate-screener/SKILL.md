@@ -65,6 +65,8 @@ AI 的优势不是做完整 universe screen。Bloomberg / FactSet / Longbridge �
 | **Discovery edge** | 为什么可能没被 market price | 用 proxy，不写成事实 |
 | **流动性 / size** | 最小 ADV / market cap | 大中华 >= 100M USD ADV；美股 >= 50M USD ADV；小票另列风险 |
 
+如果 `COVERAGE.md` 存在 `## Focus` 区（顶部），开始筛选前先读：用 `Current Lens` 和 `Theme Book` 作为默认选股 lens，用 `Theme → Industry → Company` 扩展 value-chain pockets。`## Focus` 不限制 universe，也不意味着覆盖某行业就必须处理；用户本轮明确条件始终优先。当前 lens 明确要求从 AI 转向 non-AI 时，不得继续沿用历史 AI exposure 偏好。
+
 ## Candidate Mining / 挖票 [→ Bridge: market_screen, market_temperature]
 
 统一处理主题、事件、screen 和混合条件。内部把输入拆成三种信号，而不是让用户选择 mode：
@@ -350,5 +352,4 @@ Top Ideas 必须给下一步验证路线：
 - "光模块设备链有没有纯度高、增长快、估值便宜、没被发现的票" -> `candidate-screener`
 - "听说 X 是 NVIDIA 光模块供应商，靠谱吗" -> `information-impact`
 - "这个新闻是真的，而且想按新闻逻辑找受益股" -> 先 `information-impact`，再 `candidate-screener`
-
 

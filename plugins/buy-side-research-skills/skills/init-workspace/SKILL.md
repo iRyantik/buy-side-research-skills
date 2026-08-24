@@ -42,7 +42,7 @@ The invariant is separation of concerns:
 | `.vscode/settings.json` | `.vscode/settings.json` | Overwrite |
 | `CLAUDE.md.template` or `CLAUDE.en.md.template` | `CLAUDE.md` | 按语言：中文→ZH 模板，English→EN 模板，Copy if missing |
 | `AGENTS.md.template` or `AGENTS.en.md.template` | `AGENTS.md` | 同上 |
-| `coverage.md.template` or `coverage.en.md.template` | `COVERAGE.md` | 同上 |
+| `coverage.md.template` or `coverage.en.md.template` | `COVERAGE.md` | 同上（模板已含 `## Focus` 区） |
 | `.env.template` or `.env.en.template` | `.env.template` | 同上 |
 | `.env.template` | `.env.template` | Copy if missing |
 

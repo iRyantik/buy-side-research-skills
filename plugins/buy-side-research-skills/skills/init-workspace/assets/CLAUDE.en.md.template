@@ -27,7 +27,9 @@ This workspace is for buy-side equity research. Goals: traceable, edge-driven, s
 
 ### 3.1 New Session Entry
 
-On first contact, explore the workspace: read `COVERAGE.md` for coverage, read `CLAUDE.md` for rules. `workspace-summary.py` can help with a quick overview but does not replace reading key files.
+On first contact, explore the workspace: read `COVERAGE.md` for coverage, read COVERAGE.md 的 `## Focus` 区 when present for the current research lens, theme assumptions, and selection direction, and read `CLAUDE.md` for rules. `workspace-summary.py` can help with a quick overview but does not replace reading key files.
+
+`COVERAGE.md` answers “what is already being watched”; COVERAGE.md 的 `## Focus` 区 answers “why the workspace is looking and where it wants to search next.” An explicit user request always overrides COVERAGE.md 的 `## Focus` 区. Update it only when completed, saved research changes a theme assumption, narrative, fact, or selection direction; do not turn it into a task, position, or trade-state tracker.
 
 ### 3.2 File Naming
 

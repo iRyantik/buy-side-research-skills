@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: candidate-screener
 id: candidate-screener
 display_name: Candidate Screener
-version: 1.4.0
+version: 1.5.0
 system_generation: 4.6.0
 author: buy-side-research-system
 namespace: research.equity
@@ -81,6 +81,7 @@ capabilities:
   - score candidates on purity growth valuation discovery edge and tradability
   - separate Top Ideas Watchlist Already Priced and Rejects/Value Traps
   - treat market-undiscovered claims as proxy-based hypotheses not facts
+  - read `## Focus` 区 when present and treat the current user request as the overriding lens
   - separate outbound screening from inbound claim checking
   - parallel_evidence_spawn_default for source collection
   - sub-agent outputs must be evidence_cards_only

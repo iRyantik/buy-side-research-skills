@@ -1,6 +1,40 @@
 # Coverage Map
 
-> 本文件是 workspace coverage source of truth。研究过的公司进入表；`coverage-monitor` 消费本表生成日报和盘中提醒。
+> 本文件是 workspace coverage source of truth。`## Coverage` 表记录研究过的公司，`coverage-monitor` 消费它生成日报和盘中提醒。顶部 `## Focus` 区是研究 lens——email-intelligence（New Idea fit）、candidate-screener（默认筛选方向）和普通研究读取；research-journal 只在 earned change 时更新它。
+
+## Focus
+
+> `## Coverage` 表记录已经在看的公司；`## Focus` 记录当前为什么看、下一步想往哪里找。保持短，只写会改变研究选择的内容。
+
+### Current Lens
+
+- **More interested in**：
+- **De-emphasize for now**：
+- **What would change the lens**：
+
+### Theme Book
+
+| Theme | Long-term assumption | Medium-term narrative | Current facts / sentiment | What would change it | Updated |
+|---|---|---|---|---|---|
+|  |  |  |  |  |  |
+
+### Theme → Industry → Company
+
+| Theme | Relevant industries | Current coverage / candidates | What to look for next |
+|---|---|---|---|
+|  |  |  |  |
+
+### Research Feedback
+
+| Date | Research / source | What changed | Focus implication |
+|---|---|---|---|
+|  |  |  |  |
+
+### Maintenance Rule
+
+- Email Intelligence、candidate screening 和普通研究读取本区，用它做筛选 lens；用户本轮明确要求优先于本区。
+- 只有完成并保存的研究真正改变了长期假设、中期 narrative、当前事实或选股方向时，才追加一行 Research Feedback，并同步上面的对应内容。
+- 不记录 daily todo、持仓、交易状态、raw idea 或逐条新闻。
 
 ## Coverage Contract
 

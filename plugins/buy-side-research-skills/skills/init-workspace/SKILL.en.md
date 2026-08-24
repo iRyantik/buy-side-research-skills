@@ -38,15 +38,12 @@ The invariant is separation of concerns:
 | `.claude/mcp.json` | `.claude/mcp.json` | Merge (ensure `playwright` key exists; preserve user's other MCP config; if invalid JSON, backup then overwrite) |
 | `.codex/hooks.json` | `.codex/hooks.json` | Overwrite |
 | `.codex/mcp.example.json` | `.codex/mcp.example.json` | Overwrite |
-| `references/` | `references/` | Overwrite |
-| `references/` (full tree) | `references/` | Overwrite |
+| `.references/` (full tree) | `.references/` | Overwrite |
 | `.scripts/shared/` (full tree) | `.scripts/shared/` | Overwrite |
 | `.scripts/verify-runtime.py` | `.scripts/verify-runtime.py` | Overwrite |
 | `CLAUDE.md.template` | `CLAUDE.md` | Copy if missing (patch managed sections only) |
 | `AGENTS.md.template` | `AGENTS.md` | Copy if missing |
-| `
 | `coverage.md.template` | `COVERAGE.md` | Copy if missing |
-| `
 | `.env.template` | `.env.template` | Copy if missing |
 
 **Class B — Skill workspace assets** (auto-discovered; formal spec in `meta-skill` Skill Directory Spec):
@@ -263,7 +260,7 @@ EDINET_API_KEY=your_key_here
 ## File Safety
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
-- Do not overwrite `COVERAGE.md` or `
+- Do not overwrite `COVERAGE.md` or the `## Focus` section of COVERAGE.md when already present.
 - `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
 - Do not overwrite `.scripts/` files that are not in the Class B source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.

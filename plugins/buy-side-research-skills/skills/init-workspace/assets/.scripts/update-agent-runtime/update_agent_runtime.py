@@ -258,7 +258,17 @@ def sync_workspace(payload: Path, workspace: Path):
 
     _log(".references/ synced")
 
-    # E. Root docs — everything else via templates
+    # E. User-owned root state — seed from templates only when missing.
+    # COVERAGE.md template 已含 `## Focus` 区（顶部），无需单独部署 Focus。
+    root_templates = {
+        "COVERAGE.md": "coverage.md.template",
+    }
+    for destination, template in root_templates.items():
+        dst = workspace / destination
+        src = assets / template
+        if not dst.exists() and src.is_file():
+            shutil.copy2(src, dst)
+            _log(f"{destination} created")
 
 
 def run_verify(workspace: Path) -> bool:

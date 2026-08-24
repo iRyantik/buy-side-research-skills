@@ -165,6 +165,15 @@ industry/<industry>/companies/<ticker>/index.md
 - [仍需研究的问题]
 ```
 
+## Mode D: Focus Feedback
+
+`COVERAGE.md` 顶部的 `## Focus` 区是研究选择 lens，不是 journal 的替代品。完成并保存本轮 research journal 后，检查它是否真正改变了：长期主题假设、中期 narrative、当前事实 / sentiment，或“下一步该找什么公司”。
+
+- 没改变：不触碰 `## Focus` 区。
+- 有改变：在 `Research Feedback` 追加一行 source-linked delta，并同步 `Current Lens`、`Theme Book` 或 `Theme → Industry → Company` 中对应的一处。
+- 只是 raw idea、单条噪音、未验证推测或短期价格波动：留在 journal/open question，不升级到 Focus。
+- 用户本轮明确观点优先；不要用 agent 自己的偏好改写 Focus。
+
 ## Primitive Consumption Rules
 
 ### Consuming `mechanism-insight`
@@ -258,6 +267,7 @@ industry/<industry>/companies/<ticker>/index.md
 文件命名按 workspace `CLAUDE.md` §3.2：`YYYYMMDD-[skill]-[Company-Name][-variant].ext`。
 保存至 `industry/<industry>/companies/<ticker>/`。
 路径不明 → agent 按 CLAUDE.md §3.4 确认行业归属。
+如触发 Mode D，可同时最小更新 workspace 根目录 `## Focus` 区；它不替代本轮 dated journal artifact。
 
 ## 反模式自查
 

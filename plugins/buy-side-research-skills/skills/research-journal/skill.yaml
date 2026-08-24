@@ -2,7 +2,7 @@ metadata_schema_version: 1
 name: 'research-journal'
 id: 'research-journal'
 display_name: 'Research Journal'
-version: '1.2.0'
+version: '1.3.0'
 system_generation: '3.10.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
@@ -37,11 +37,13 @@ capabilities:
     - 'Private Research Journal'
     - 'Boss Brief'
     - 'Topic Index Update'
+    - 'Focus Feedback'
   writes:
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
     - 'industry/<industry>/companies/<ticker>/YYYY-MM-DD-<artifact>.md'
   updates:
     - 'industry/<industry>/companies/<ticker>/index.md'
+    - '`## Focus` 区 when saved research changes the current lens or theme book'
   requirements:
     - 'preserve solved research insight, not raw reminders'
     - 'apply Earned Insight Gate before writing'
@@ -51,6 +53,7 @@ capabilities:
     - 'route unresolved source or claim gaps to information-impact'
     - 'route unresolved company foundation or disclosure evolution gaps to company-history'
     - 'maintain topic index as an evolutionary map, not a state tracker'
+    - 'update `## Focus` 区 only for earned changes to theme assumptions narratives facts or selection direction'
     - 'boss brief is high-density, not simplified'
     - 'follow Global Rules Capsule source policy'
     - 'sub-agent outputs must be evidence_cards_only'

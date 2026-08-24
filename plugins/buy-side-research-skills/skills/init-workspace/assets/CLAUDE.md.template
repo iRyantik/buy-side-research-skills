@@ -27,7 +27,9 @@
 
 ### 3.1 新 Session 大门
 
-首次对话先去了解 workspace：读 `COVERAGE.md` 知道覆盖了哪些行业/公司，读 `CLAUDE.md` 了解规则。`workspace-summary.py` 可以辅助快速概览，但不替代自己读关键文件。
+首次对话先去了解 workspace：读 `COVERAGE.md` 知道覆盖了哪些行业/公司，读 COVERAGE.md 的 `## Focus` 区（如存在）了解当前研究 lens、主题假设和选股方向，读 `CLAUDE.md` 了解规则。`workspace-summary.py` 可以辅助快速概览，但不替代自己读关键文件。
+
+`COVERAGE.md` 回答“已经在看什么”，COVERAGE.md 的 `## Focus` 区 回答“当前为什么看、接下来往哪里找”。用户本轮明确要求始终优先于 COVERAGE.md 的 `## Focus` 区。只有完成并保存的研究真正改变了主题假设、narrative、事实或选股方向时，才更新 COVERAGE.md 的 `## Focus` 区；不要把它写成 daily todo、持仓或交易状态库。
 
 ### 3.2 文件命名
 
