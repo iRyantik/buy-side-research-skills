@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.8.22 | **session_conflict_clean hook 修复**：8-21 重写的 Syncthing 冲突自动解析版从未进入 release（plugin cache 全为 OneDrive 旧版 → 每次 update-agent-runtime 覆盖回退，Syncthing 冲突弹窗只能人工选）；本次打包进 init-workspace assets；移除 50MB 合并阈值（互有独有超大 transcript 也自动合并，tmp+os.replace 原子写，hook 超时不会损坏 base）；活跃会话：子集副本直接删除（不碰正在写的 base）、非子集留到会话结束；合并改 tuple 存储降内存；测试 25 项 |
 | v8.8.21 | **调度调整（收盘逻辑）**：us（美股盘后）扩展周一~周六——周六早上发周五美股盘后（一周收官，最后一封），周一早上发周末后开盘前瞻；asia/eu 保持周一~周五；脚本层周末跳过只跳周日（launchd Weekday 参数化） |
 | v8.8.20 | **数据新鲜度 + universe 全量修复**：filter_entries us 视为全量（改 am→us 时漏改导致 universe/queue 只剩美股）；数据新鲜度（Universe 加行情时间列显示数据日期 + 早于今天标旧；hero 各市场时点摘要；FMP quote 无精确时间戳，fallback 采集日） |
 | v8.8.19 | **邮件升级（HTML 正文）**：标题带市场（US Post-Market/Asia Close/Europe Close）；mover 附 claude 归因原因 + 证据链接（原用 enrichment 空数据导致无原因）；Upcoming Earnings（未来 7 天财报区块）；Core Watch 显示 1m/YTD/1y + PE/EV 估值 + lead 新闻；公司名中文优先（_display_name 与 html 一致）；正文改 HTML（<a> 链接文字，非裸 URL，支持邮件客户端）；mover/Core 每家空行分隔 |
