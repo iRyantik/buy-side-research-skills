@@ -37,6 +37,7 @@ def _chat(prompt: str, workspace: Path, timeout: int = 180) -> str:
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.1,
         "max_tokens": 8_000,
+        "reasoning_effort": "none",  # 关闭 reasoning：快 + content 不被 reasoning 吃空
     }
     request = urllib.request.Request(
         f"{base}/chat/completions",

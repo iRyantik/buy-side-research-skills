@@ -75,6 +75,7 @@ def _chat(prompt: str, *, api_key: str, api_base: str, model: str,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.2,
         "max_tokens": max_tokens,
+        "reasoning_effort": "none",  # 关闭 reasoning：更快 + content 不被 reasoning 吃空
     }
     req = urllib.request.Request(
         f"{api_base}/chat/completions",
