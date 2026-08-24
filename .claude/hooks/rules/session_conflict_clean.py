@@ -1,22 +1,53 @@
-"""Hook: merge OneDrive session conflict copies on Stop.
+"""Hook: auto-resolve session transcript conflicts on Stop.
 
-Triggers on Claude Code Stop event.
-Pure Python, no external dependencies — works on Windows, macOS, Linux.
+Triggers on Claude Code Stop event. Pure Python, no external dependencies —
+works on Windows, macOS, Linux.
 
-Detects OneDrive conflict copies by the pattern:
-  <BASE>-<MACHINE_NAME>.jsonl  or  <BASE>-<MACHINE_NAME>-<N>.jsonl
-where <BASE> is an existing file or directory in .sessions/.
+Detects conflict copies by both naming schemes:
+  <BASE>.sync-conflict-YYYYMMDD-HHMMSS-<DEVICE>.jsonl  (Syncthing)
+  <BASE>-<MACHINE_NAME>[-<N>].jsonl                    (OneDrive-style, legacy)
 
-Merge logic: union of all unique non-empty lines from all copies into the
-base file, then delete the conflict copies.
+Resolution rule — subsumption-first, so the common case never pays for a full
+merge (2026-08-21: rewritten for Syncthing naming + fast path;
+2026-08-24: size threshold removed — huge transcripts merge too):
+  1. copy rows ⊆ base rows  → delete the copy          (~instant, lossless)
+  2. base rows ⊂ copy rows  → copy is FULLER (Syncthing picked the wrong
+                              winner): replace base with copy
+  3. both have unique rows  → full merge (timestamp-sorted, uuid-dedup) —
+                              any size (no threshold; merge is atomic
+                              via tmp + os.replace, so a hook timeout can
+                              never corrupt the base)
+Active sessions (listed in .sessions-manifests/) — the base is being written
+live, so it is NEVER rewritten; a subset copy is still safe to delete
+(doesn't touch base), a non-subset copy is left until the session ends.
+Best-effort: never raises, never blocks the CLI.
+
+Rows are compared by (sha256, length) — collision-safe for transcript lines,
+with no need to hold file contents in memory. Lines that fail JSON parsing
+(truncated by an in-flight sync) are ignored, so a torn tail line can never
+make us think a copy holds unique content.
 """
 
+import hashlib
+import json
 import os
+import re
+import shutil
 from pathlib import Path
 
-
+SYNC_CONFLICT_RE = re.compile(
+    r"^(?P<base>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"
+    r"\.sync-conflict-\d{8}-\d{6}-[A-Za-z0-9]{7}\.jsonl$"
+)
+# OneDrive-style: <uuid>-<MACHINE>[-<N>].jsonl (legacy; machine names may
+# be mixed-case, e.g. "MacBook-Pro-1" — a suffix on a uuid is never a legit
+# transcript name, so this can't false-positive)
+MACHINE_SUFFIX_RE = re.compile(
+    r"^(?P<base>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"
+    r"-[A-Za-z0-9][A-Za-z0-9-]*(?:-\d+)?\.jsonl$"
+)
 def find_sessions_dir():
-    """Locate .sessions/ via the project hash directory symlink."""
+    """Locate .sessions/ via the project hash directory junction/symlink."""
     projects = Path.home() / ".claude" / "projects"
     if not projects.is_dir():
         return None
@@ -25,10 +56,8 @@ def find_sessions_dir():
     for hd_name in ("s--",):
         hd = projects / hd_name
         if hd.is_dir():
-            # If it's a symlink/junction, follow it
             if hd.is_symlink() or _is_junction(hd):
                 return hd.resolve()
-            # Otherwise check if it looks like .sessions/
             if (hd / "tool-results").is_dir() or list(hd.glob("*.jsonl")):
                 return hd
 
@@ -57,108 +86,210 @@ def _is_junction(path):
         return False
 
 
-def _iter_conflicts(sessions_dir):
-    """Yield (conflict_path, base_path) for each OneDrive conflict copy."""
-    conflict_patterns = []
+# ── row comparison ──────────────────────────────────────────────
 
-    # Collect all .jsonl files and directories for base-name matching
-    files_and_dirs = {}
+def _row_key(line: str) -> bytes:
+    """Stable key for a transcript row: (sha256, length)."""
+    return hashlib.sha256(line.encode("utf-8", "replace")).digest() + b"\x00" + str(len(line)).encode()
+
+
+def _build_index(path: Path) -> set:
+    """Row-hash set of a JSONL file. Torn lines (invalid JSON) are skipped."""
+    idx = set()
     try:
-        for entry in sessions_dir.iterdir():
-            files_and_dirs[entry.name] = entry
-    except (OSError, PermissionError):
-        return
-
-    for f in sorted(sessions_dir.glob("*.jsonl")):
-        base_name = _find_base(f.name, files_and_dirs)
-        if base_name:
-            base_path = sessions_dir / base_name
-            yield f, base_path
-
-
-def _find_base(filename, files_and_dirs):
-    """Try stripping -suffixes from filename to find an existing base.
-
-    E.g. "abc123-DEREK-2.jsonl" -> strip "-2" -> "abc123-DEREK.jsonl"
-         -> strip "-DEREK" -> "abc123.jsonl" (exists in files_and_dirs)
-    Returns base_name or None.
-    """
-    stem = filename.rsplit(".", 1)[0]  # Remove .jsonl
-    # Try up to 5 levels of suffix stripping
-    for _ in range(5):
-        last_dash = stem.rfind("-")
-        if last_dash <= 0:
-            return None
-        stem = stem[:last_dash]
-        # Check if this stem exists as .jsonl file
-        jsonl_name = stem + ".jsonl"
-        if jsonl_name in files_and_dirs:
-            return jsonl_name
-        # Check if this stem exists as a directory
-        if stem in files_and_dirs and files_and_dirs[stem].is_dir():
-            return jsonl_name
-    return None
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.rstrip("\r\n")
+                if not line.strip():
+                    continue
+                try:
+                    json.loads(line)
+                except Exception:
+                    continue  # truncated tail line — ignore
+                idx.add(_row_key(line))
+    except OSError:
+        pass
+    return idx
 
 
-def _union_merge(base_path, conflict_path):
-    """Read both files, union-merge unique non-empty lines, write to base."""
-    lines = []
+def _classify(base: Path, copy: Path):
+    """Return action: 'delete-copy' | 'replace-base' | 'merge' | 'skip'."""
+    idx_base = _build_index(base)
+    if not idx_base:
+        return "skip"  # base unreadable/empty — leave to manual fix
+    idx_copy = _build_index(copy)
+    if idx_copy <= idx_base:
+        return "delete-copy"
+    if idx_base <= idx_copy:
+        return "replace-base"
+    return "merge"  # mutual-unique — any size, merge is atomic
 
-    for path in (base_path, conflict_path):
-        try:
-            with open(path, "r", encoding="utf-8") as fh:
-                for line in fh:
-                    stripped = line.rstrip("\n\r")
-                    if stripped:
-                        lines.append(stripped)
-        except (OSError, UnicodeDecodeError):
+
+# ── full merge (rare path, small files only) ───────────────────
+
+def _read_rows(path: Path) -> list:
+    """Read JSONL rows into [(line, ts, uuid)] preserving order (tuple, low mem)."""
+    out = []
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.rstrip("\r\n")
+                if not line.strip():
+                    continue
+                ts, uuid = "", None
+                try:
+                    obj = json.loads(line)
+                    if isinstance(obj, dict):
+                        ts = obj.get("timestamp") or ""
+                        uuid = obj.get("uuid")
+                except Exception:
+                    pass
+                out.append((line, ts, uuid))
+    except OSError:
+        pass
+    return out
+
+
+def _merge_rows(base_rows: list, copy_rows: list) -> list:
+    """Union rows, dedup by uuid (fallback exact-line), sorted by timestamp."""
+    merged = list(base_rows)
+    seen = {r[2] for r in merged if r[2]}
+    for r in copy_rows:
+        if r[2]:
+            if r[2] in seen:
+                continue
+            seen.add(r[2])
+        else:
+            if any(o[0] == r[0] for o in merged):
+                continue
+        merged.append(r)
+    merged.sort(key=lambda r: (r[1] or "￿",))
+    return merged
+
+
+def _merge_into(base: Path, copy: Path) -> None:
+    """Merge copy rows into base (timestamp-sorted, uuid-dedup), atomic write."""
+    merged = _merge_rows(_read_rows(base), _read_rows(copy))
+    tmp = base.with_name(base.name + ".se-clean-tmp")
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+            for r in merged:
+                fh.write(r[0] + "\n")
+        os.replace(tmp, base)
+    finally:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+
+
+# ── active-session guard ────────────────────────────────────────
+
+def _active_session_ids(manifests_dir: Path) -> set:
+    """sessionIds currently registered in .sessions-manifests/."""
+    active = set()
+    if not manifests_dir.is_dir():
+        return active
+    for mf in manifests_dir.glob("*.json"):
+        if mf.name.startswith(".") or ".sync-conflict-" in mf.name:
             continue
-
-    # Preserve order within each source: seen set
-    seen = set()
-    deduped = []
-    for line in lines:
-        if line not in seen:
-            seen.add(line)
-            deduped.append(line)
-
-    if deduped:
         try:
-            with open(base_path, "w", encoding="utf-8", newline="\n") as fh:
-                for line in deduped:
-                    fh.write(line + "\n")
-        except OSError:
-            pass
+            data = json.loads(mf.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        sid = data.get("sessionId") or ""
+        if sid:
+            active.add(sid)
+    return active
 
+
+# ── main sweep ──────────────────────────────────────────────────
+
+def process_sessions(sessions_dir: Path, manifests_dir: Path, log=None) -> dict:
+    """Scan and auto-resolve conflicts. Returns {'deleted':n, 'replaced':n, 'merged':n, 'skipped':n}."""
+    out = {"deleted": 0, "replaced": 0, "merged": 0, "skipped": 0}
+    active = _active_session_ids(manifests_dir)
+
+    conflicts = []
+    try:
+        for f in sorted(sessions_dir.glob("*.jsonl")):
+            m = SYNC_CONFLICT_RE.match(f.name) or MACHINE_SUFFIX_RE.match(f.name)
+            if m:
+                conflicts.append((sessions_dir / (m.group("base") + ".jsonl"), f))
+    except OSError:
+        return out
+
+    for base, copy in conflicts:
+        if not base.is_file():
+            continue  # orphan — left for session-sync.py fix
+        if base.name[:-len(".jsonl")] in active:
+            # Active session: base is being written live — never rewrite it.
+            # A subset copy is still safe to delete (base untouched, lossless);
+            # a non-subset copy is left until the session ends.
+            try:
+                if _classify(base, copy) == "delete-copy":
+                    copy.unlink()
+                    out["deleted"] += 1
+                    if log:
+                        log(f"[session_conflict_clean] delete-copy (active): {copy.name}")
+            except Exception:
+                pass
+            continue
+        try:
+            action = _classify(base, copy)
+        except Exception:
+            action = "skip"
+        try:
+            if action == "delete-copy":
+                copy.unlink()
+                out["deleted"] += 1
+            elif action == "replace-base":
+                os.replace(copy, base)
+                out["replaced"] += 1
+            elif action == "merge":
+                _merge_into(base, copy)
+                copy.unlink()
+                out["merged"] += 1
+            else:
+                out["skipped"] += 1
+        except OSError:
+            out["skipped"] += 1
+        if log:
+            log(f"[session_conflict_clean] {action}: {copy.name}")
+    return out
+
+
+def check(ctx):
+    """Hook entry point. Best-effort: never raise."""
+    sessions_dir = find_sessions_dir()
+    if sessions_dir is None:
+        return
+    manifests_dir = sessions_dir.parent / ".sessions-manifests"
+    try:
+        process_sessions(sessions_dir, manifests_dir)
+    except Exception:
+        pass
+
+
+# ── legacy OneDrive deleted-session cleanup (kept for compatibility) ──
 
 def _clean_deleted_sessions(sessions_dir):
-    """Delete .jsonl files listed in .sessions/deleted.json.
-
-    Shared via OneDrive — when Machine A deletes a session, Machine B's
-    hook sees the same deleted.json and cleans the transcript file.
-    """
-    import json
-    import shutil
-
+    """Delete .jsonl files listed in .sessions/deleted.json (OneDrive era)."""
     deleted_file = sessions_dir / "deleted.json"
     if not deleted_file.is_file():
         return
-
     try:
         data = json.loads(deleted_file.read_text(encoding="utf-8"))
         deleted_ids = {item["sessionId"] for item in data.get("deleted", [])}
     except (json.JSONDecodeError, KeyError, OSError):
         return
-
     if not deleted_ids:
         return
-
-    # Delete matching .jsonl files and their subdirectories
     cleaned = []
     for sid in deleted_ids:
         jsonl = sessions_dir / f"{sid}.jsonl"
         subdir = sessions_dir / sid
-
         removed = False
         try:
             if jsonl.is_file():
@@ -172,11 +303,8 @@ def _clean_deleted_sessions(sessions_dir):
                 removed = True
         except OSError:
             pass
-
         if removed:
             cleaned.append(sid)
-
-    # Update deleted.json — remove entries that were cleaned
     remaining = [item for item in data.get("deleted", [])
                  if item["sessionId"] not in cleaned]
     if remaining:
@@ -191,25 +319,3 @@ def _clean_deleted_sessions(sessions_dir):
             deleted_file.unlink()
         except OSError:
             pass
-
-
-def check(ctx):
-    """Hook entry point. Best-effort: never raise."""
-    sessions_dir = find_sessions_dir()
-    if sessions_dir is None:
-        return
-
-    try:
-        for conflict_path, base_path in _iter_conflicts(sessions_dir):
-            try:
-                _union_merge(base_path, conflict_path)
-                conflict_path.unlink()
-            except Exception:
-                continue
-    except Exception:
-        pass
-
-    try:
-        _clean_deleted_sessions(sessions_dir)
-    except Exception:
-        pass
