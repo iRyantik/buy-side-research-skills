@@ -68,7 +68,8 @@ Workspace context：
     "focus_reason": "与 COVERAGE.md 的 ## Focus 区哪条假设/当前 lens 相关；没有则 null",
     "action": "read|watch|research|note|skip",
     "action_reason": "最多1句",
-    "merge_key": "同一事件跨 broker 共用的稳定键",
+    "merge_key": "同一事件跨 broker 共用的稳定键（不含日期——如 HWM-guidance-legacy-aftermarket，跨天可匹配）",
+    "delta_vs_last": "若 merge_key 已出现在 last_events 中（昨天/之前 broker 提过），列出相对该事件的实质新增信息；首次或无明显新增则 null",
     "priority": "high|medium|low"
   }}],
   "meetings": [{{
@@ -90,6 +91,7 @@ Workspace context：
 6. 会议保持轻量：列清信息、主题、推荐和一句理由，不写长分析。会议合集必须逐场提取。
 7. 只使用邮件正文和附件文件名能确认的信息；不补写正文没有的数字、日期、ticker 或结论。
 8. what_changed 为空的普通邮件放 filter_reason，不制造“变化”。
+9. last_events 提供历史事件基线（merge_key → 该事件上次 what_changed）。若本次 item 的 merge_key 已在 last_events，delta_vs_last 输出相对基线的实质新增（新数字/新角度/新结论/新推荐）；只是重复旧信息则 null。
 
 邮件输入：
 {input_json}
@@ -109,6 +111,8 @@ def review_batch(emails: list[Email], context: dict, workspace: Path,
         "coverage": context.get("coverage", []),
         "covered_industries": context.get("covered_industries", []),
         "focus": context.get("focus", ""),
+        # 跨天事件追踪：merge_key → 该事件最近一次 what_changed（AI 据此判断增量）
+        "last_events": context.get("last_events", {}),
     }
     for start in range(0, len(emails), chunk):
         block = emails[start:start + chunk]

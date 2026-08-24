@@ -88,7 +88,7 @@ def _merge_meetings(reviews: list[dict]) -> list[dict]:
     return sorted(meetings.values(), key=lambda item: (rank.get(str(item.get("recommendation")), 9), str(item.get("date") or "")))
 
 
-def _item_card(item: dict, emails: dict[str, Email], bar: str) -> str:
+def _item_card(item: dict, emails: dict[str, Email], bar: str, followup: bool = False) -> str:
     company = item.get("company") or item.get("industry") or "Signal"
     ticker = item.get("ticker") or item.get("coverage_ticker") or ""
     event = str(item.get("event_type") or item.get("kind") or "UPDATE").upper()
@@ -97,6 +97,12 @@ def _item_card(item: dict, emails: dict[str, Email], bar: str) -> str:
     sources = [_source_link(emails.get(key)) for key in item.get("_email_ids", [])]
     sources = [source for source in sources if source]
     meta = " &nbsp; ".join(part for part in [_pill(event, bar), _pill(action, bar), _pill(priority, bar)] if part)
+    followup_line = ""
+    if followup:
+        followup_line = f"<div style='margin-top:5px;color:{MUTED};font-size:11.5px'>↺ 该事件此前已有 broker 提及</div>"
+    delta_line = ""
+    if item.get("delta_vs_last"):
+        delta_line = f"<div style='margin-top:5px;font-size:12.5px;line-height:20px;color:#9a3412'><b>新增：</b>{_e(item['delta_vs_last'])}</div>"
     focus_line = ""
     if item.get("focus_reason"):
         focus_line = f"<div style='margin-top:5px;color:{MUTED}'><b>Focus：</b>{_e(item['focus_reason'])}</div>"
@@ -113,7 +119,7 @@ def _item_card(item: dict, emails: dict[str, Email], bar: str) -> str:
 <div style='font-size:14px;line-height:21px;font-weight:900;color:{INK}'>{_e(company)}{f" <span style='color:{MUTED};font-size:11px'>({_e(ticker)})</span>" if ticker else ""}</div>
 <div style='margin-top:4px'>{meta}</div>
 <div style='font-size:12.5px;line-height:20px;color:#334155;margin-top:7px'>{_e(item.get('what_changed') or '—')}</div>
-{impact_line}{focus_line}{reason_line}{source_line}
+{followup_line}{delta_line}{impact_line}{focus_line}{reason_line}{source_line}
 </td></tr></table>"""
 
 
@@ -137,10 +143,12 @@ def _meeting_card(meeting: dict, emails: dict[str, Email]) -> str:
 </td></tr></table>"""
 
 
-def render_brief_html(emails: list[Email], reviews: list[dict], now_label: str, window_label: str = "") -> str:
+def render_brief_html(emails: list[Email], reviews: list[dict], now_label: str, window_label: str = "",
+                      last_events: dict | None = None) -> str:
     email_by_id = _email_map(emails)
     items = _merge_items(reviews)
     meetings = _merge_meetings(reviews)
+    last_events = last_events or {}
     sections: dict[str, list[dict]] = defaultdict(list)
     for item in items:
         sections[item.get("bucket", "industry_signal")].append(item)
@@ -168,7 +176,8 @@ def render_brief_html(emails: list[Email], reviews: list[dict], now_label: str, 
         number, title, color = _SECTION_META[bucket]
         blocks.append(f"<tr><td style='padding:20px 28px 7px'>{_section_head(number, title)}</td></tr>")
         for item in rows:
-            blocks.append(f"<tr><td style='padding:6px 28px'>{_item_card(item, email_by_id, color)}</td></tr>")
+            followup = bool(item.get("merge_key") and item["merge_key"] in last_events)
+            blocks.append(f"<tr><td style='padding:6px 28px'>{_item_card(item, email_by_id, color, followup)}</td></tr>")
 
     if meetings:
         blocks.append(f"<tr><td style='padding:20px 28px 7px'>{_section_head('05', 'Meetings')}</td></tr>")

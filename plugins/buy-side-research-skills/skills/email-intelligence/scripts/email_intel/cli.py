@@ -13,7 +13,7 @@ from .brief import render_brief_html
 from .classify import normalize_reviews
 from .context import build_context
 from .parse import filter_new, scan_email_dirs
-from .state import load_state, mark_seen, save_state
+from .state import last_events, load_state, mark_seen, save_state, update_events
 
 
 def _workspace_from_script() -> Path:
@@ -48,6 +48,9 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
         return 0
 
     context = build_context(workspace)
+    # 跨天事件追踪：把历史事件基线传给 AI（判断 delta_vs_last），brief 用它标跟进
+    events_baseline = last_events(state)
+    context["last_events"] = events_baseline
     raw_reviews = review_batch(fresh, context, workspace)
     reviews = normalize_reviews(raw_reviews, context)
     print(f"reviewed={len(reviews)}")
@@ -62,6 +65,7 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
         reviews,
         now_label,
         f"覆盖窗口 {state.get('last_run') or '—'} → {now.strftime('%Y-%m-%d %H:%M')}",
+        last_events=events_baseline,
     )
     output = _brief_path(workspace, now)
     output.write_text(html, encoding="utf-8")
@@ -89,6 +93,7 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
 
     completed = {str(review.get("_email_id") or "") for review in reviews}
     mark_seen(state, [email.key for email in fresh if email.key in completed])
+    update_events(state, reviews, now_label)
     state["last_run"] = now_label
     save_state(workspace, state)
     if send and not dry_run and not delivery_ok:
