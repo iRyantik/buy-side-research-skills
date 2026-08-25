@@ -1,10 +1,14 @@
-"""Parse the folders written by the Power Automate email-preservation layer."""
+"""Parse the folders written by the Power Automate email-preservation layer (纯 body.txt)。
+
+邮件源即 Power Automate 保存的 body.txt（+meta.txt/outlook.link.txt）。
+不做任何 html 解析/内嵌图采集——只认 body.txt 纯文本；body.txt 缺失的邮件 body_text 为空，
+由 upstream（weak_signal/gate）自然跳过。图片仍认真实附件（.png/.jpg 文件）供 vision。
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-import base64
 import re
 
 
@@ -65,76 +69,6 @@ _SELF_EMAIL_RE = re.compile(
 _SELF_SENDER_SUFFIXES = ("@1292145106.qq.com", "@helvedcapital.com")
 
 
-def _harvest_inline_images(email: Email, html_path: Path, directory: Path, cache: Path | None = None) -> None:
-    """body.html 内嵌图：data:base64 直接解码；cid: 引用找目录内对应文件（ATT00001.jpg 等）。
-
-    提取结果 append 到 email.images（与附件图同一出口，review 前统一 base64 喂 vision）。
-    """
-    try:
-        html_text = html_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return
-    import re as _re
-    # 1) data:image/...;base64,XXXX
-    for m in _re.finditer(r'data:image/(\w+);base64,([A-Za-z0-9+/=]+)', html_text):
-        if len(email.images) >= 2:
-            break
-        ext = {"png": "png", "jpeg": "jpg", "jpg": "jpg", "gif": "gif"}.get(m.group(1).lower(), "png")
-        try:
-            raw = base64.b64decode(m.group(2))
-        except Exception:
-            continue
-        if not raw or len(raw) > 3_000_000:
-            continue
-        out = (cache or directory) / f"{html_path.stem}-inline-{len(email.images)}.{ext}"
-        try:
-            out.write_bytes(raw)
-            email.images.append((out.name, str(out)))
-        except OSError:
-            continue
-    # 2) cid:file
-    cids = set(_re.findall(r"(?:src|poster)=[\"']cid:([^\"']+)[\"']", html_text, _re.I))
-    for cid in cids:
-        if len(email.images) >= 2:
-            break
-        cands = list(directory.glob(cid)) + list(directory.glob(f"ATT*")) + [directory / cid]
-        for c in cands:
-            if c.is_file() and c.suffix.lower() in (".png", ".jpg", ".jpeg"):
-                email.images.append((c.name, str(c)))
-                break
-
-
-def _html_to_text(html_text: str) -> str:
-    """body.txt 缺失时的 fallback：body.html → 纯文本（stdlib 解析，零依赖）。"""
-    from html.parser import HTMLParser
-    from html import unescape
-
-    class _T(HTMLParser):
-        def __init__(self):
-            super().__init__()
-            self.parts = []
-
-        def handle_data(self, data):
-            self.parts.append(data)
-
-        def handle_starttag(self, tag, attrs):
-            if tag in ("br", "p", "div", "tr", "li", "hr", "h1", "h2", "h3", "h4", "table"):
-                self.parts.append(chr(10))
-
-        def handle_endtag(self, tag):
-            if tag in ("p", "div", "tr", "li", "h1", "h2", "h3", "h4"):
-                self.parts.append(chr(10))
-
-    parser = _T()
-    try:
-        parser.feed(html_text[:2_000_000])
-    except Exception:
-        pass
-    text = unescape("".join(parser.parts))
-    lines = [ln.strip() for ln in text.splitlines()]
-    return chr(10).join(ln for ln in lines if ln)
-
-
 def scan_email_dirs(base: str | Path) -> list[Email]:
     root = Path(base).expanduser()
     if not root.is_dir():
@@ -163,10 +97,6 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
                     email.body_text = path.read_text(encoding="utf-8", errors="replace")
                 elif _matches(name, "outlook.link.txt") or name.endswith(".link.txt"):
                     email.outlook_link = path.read_text(encoding="utf-8", errors="replace").strip()
-                elif _matches(name, "body.html"):
-                    _harvest_inline_images(email, path, directory)
-                    if not email.body_text:
-                        email.body_text = _html_to_text(path.read_text(encoding="utf-8", errors="replace"))
                 elif name.endswith(".eml"):
                     continue
                 elif path.suffix.lower() in (".png", ".jpg", ".jpeg"):

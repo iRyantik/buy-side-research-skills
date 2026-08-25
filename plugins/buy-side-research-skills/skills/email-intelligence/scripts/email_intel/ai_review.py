@@ -307,13 +307,13 @@ def review_batch(emails: list[Email], context: dict, workspace: Path,
             })
         try:
             raw = _llm(_PROMPT.format(input_json=json.dumps(inputs, ensure_ascii=False)),
-                       workspace, system=system_coverage, timeout=180)
+                       workspace, system=system_coverage, max_tokens=8192, timeout=120)
             parsed = _extract_json(raw)
             return parsed if isinstance(parsed, list) else [parsed] if isinstance(parsed, dict) else []
         except ValueError:
             raw2 = _llm((_PROMPT.format(input_json=json.dumps(inputs, ensure_ascii=False))
                          + "（注意：必须只输出 JSON 数组，数组可为空但必须为 JSON）"),
-                        workspace, system=system_coverage, timeout=180)
+                        workspace, system=system_coverage, max_tokens=8192, timeout=120)
             try:
                 parsed2 = _extract_json(raw2 or "")
                 return parsed2 if isinstance(parsed2, list) else [parsed2] if isinstance(parsed2, dict) else []
