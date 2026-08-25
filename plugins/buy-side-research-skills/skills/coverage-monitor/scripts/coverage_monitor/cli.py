@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import time
+import unicodedata
 from typing import Sequence
 
 from .coverage import (
@@ -79,6 +80,37 @@ def _artifact_inventory(company_dir: Path) -> tuple[int, str, str, int, int, boo
     )
 
 
+_ALNUM_CJK = re.compile(r"[^0-9A-Za-z一-鿿]+")
+
+
+def _dir_links_row(dir_slug: str, ticker: str, company: str, company_native: str) -> bool:
+    """公司目录是否归属某 COVERAGE 行：目录 = <主ticker归一> + <公司名/中文名归一>。
+
+    解决中文名公司目录匹配不到行的问题——normalize_company_token 用 [^a-z0-9] 会把中文剔成空串。
+    - ticker 前缀锚定（多 ticker 取首个，目录只放主上市地）；
+    - 目录公司名是行名的前缀/缩写（如 Indra vs Indra Sistemas、亞德客 vs 亞德客國際集團）也匹配；
+    - NFKC 归一吃掉 é 的 NFC/NFD 文件系统差异。
+    """
+    def _norm(v: str) -> str:
+        return _ALNUM_CJK.sub("", unicodedata.normalize("NFKC", v or "")).lower()
+
+    dir_norm = _norm(dir_slug)
+    if not dir_norm:
+        return False
+    primary = re.split(r"\s*/\s*", (ticker or "").strip())[0]
+    tick_norm = _norm(primary)
+    if not tick_norm or not dir_norm.startswith(tick_norm):
+        return False
+    dir_company = dir_norm[len(tick_norm):]  # 目录里 ticker 之后的公司名部分
+    if not dir_company:
+        return False
+    for cand in (company, company_native):
+        cn = _norm(cand)
+        if len(cn) >= 2 and (cn == dir_company or cn.startswith(dir_company) or dir_company.startswith(cn)):
+            return True
+    return False
+
+
 def build_universe(workspace: Path, today: str | None = None) -> CoverageUniverse:
     coverage_path = workspace / "COVERAGE.md"
     gaps: list[str] = []
@@ -113,6 +145,7 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             "ticker",
             "company",
             "industry",
+            "market",
             "coverage_status",
             "monitor_status",
             "last_review",
@@ -149,7 +182,9 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             normalized_slug = normalize_company_token(slug)
             normalized_company = normalize_company_token(entry.company)
             company_parts = {part for part in re.split(r"[^a-z0-9]+", normalized_company) if part}
-            if normalized_company == normalized_slug or normalized_slug in company_parts or normalized_company.endswith(f"-{normalized_slug}"):
+            if (normalized_company == normalized_slug or normalized_slug in company_parts
+                    or normalized_company.endswith(f"-{normalized_slug}")
+                    or _dir_links_row(slug, entry.ticker, entry.company, entry.company_native)):
                 matched_key = key
                 break
         if matched_key:

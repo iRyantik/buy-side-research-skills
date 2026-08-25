@@ -11,7 +11,7 @@ from typing import Any
 
 from .coverage import CoverageEntry
 from .candidates import score_candidates
-from .brief import _display_name, _fwd_ntm_pe, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary
+from .brief import _display_name, _fwd_ntm_pe, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary, scope_note, entry_market
 from .news import pick_lead_news, protect_names, tag_news_title, translate_zh
 from .valuation import fmt_cell, fwd_extra, rich_class
 
@@ -103,6 +103,8 @@ summary{cursor:pointer;font-weight:950;color:#1e3a8a}
 .industry-group .grid-2{margin-top:4px}
 ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
 .health-line{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);padding:14px 18px;font-size:14px;font-weight:700}
+/* 日报顶部作用域说明：前端=收盘市场，Universe/Review Queue=全量 */
+.scope-note{color:var(--muted);font-size:12px;line-height:1.65;border-left:3px solid var(--blue);background:rgba(37,99,235,.05);padding:8px 12px;margin:12px 0 0;border-radius:0 10px 10px 0}
 /* Research Candidates：信号卡片（分数徽章 + 信号胶囊 + 新闻锚点） */
 .cand-note{color:var(--muted);font-size:11.5px;margin:2px 0 10px}
 .cand-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:12px}
@@ -192,16 +194,9 @@ def _val_cell_html(row: dict[str, Any], field: str, vs_field: str, email: bool =
     return f"<span>{text}</span>"
 
 
-def _market_grp(ticker: str) -> str:
-    '''ticker → 市场组（美股/亚盘/欧盘），用于时点摘要。'''
-    t = (ticker or "").upper()
-    if t.endswith((".US",)):
-        return "美股"
-    if t.endswith((".L", ".DE", ".PA", ".OL", ".ST", ".MI", ".MC", ".HE", ".AS", ".KL", ".TO")):
-        return "欧盘"
-    if t.endswith((".KS", ".KQ", ".T", ".JP", ".SS", ".SZ", ".SH", ".HK", ".TW", ".TT", ".CN")):
-        return "亚盘"
-    return ""
+def _market_grp(entry: CoverageEntry) -> str:
+    '''entry → 市场组（美股/亚盘/欧盘），用于时点摘要。复用 entry_market：注册 market 优先，否则按首上市地推断。'''
+    return {"us": "美股", "asia": "亚盘", "eu": "欧盘"}.get(entry_market(entry), "")
 
 
 def _tz_summary(ents, snapshots) -> str:
@@ -214,7 +209,7 @@ def _tz_summary(ents, snapshots) -> str:
             _qt = (_s.get("market_time") or "").strip()
         if not _qt:
             continue
-        _g = _market_grp(e.ticker or "")
+        _g = _market_grp(e)
         if _g and _qt > _best.get(_g, ""):
             _best[_g] = _qt
     if not _best:
@@ -274,8 +269,20 @@ def render_brief_html(
     estimates: dict | None = None,
     email: bool = False,
 ) -> str:
+    # 作用域契约（全量 vs 部分）：本报告 = 刚收盘市场。
+    #   "部分" = 只显示收盘市场，走 filter_entries → ents；
+    #   "全量" = 跨所有市场，直接用完整 entries。
+    # 注意：`us` 也是部分（只美股），`am` 才是全量。
+    #   - Research Candidates → 部分（ents）：数据信号按收盘市场打分
+    #   - Movers             → 部分（ents）：只显示收盘市场的 ±5%/±8% 异动
+    #   - Core Watch         → 部分（ents）：只显示收盘市场的 Core 名单
+    #   - Review Queue       → 全量（entries）：财报是未来事件，跨市场
+    #   - Valuation Universe → 全量（entries）：估值参考表跨市场
+    #   - Data Health        → 全局（gaps，本身跨市场，不做市场过滤）
     ents = filter_entries(entries, report_type)
     rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    # 顶部作用域说明（前端=收盘市场，Universe/Review Queue=全量）
+    _scope = scope_note(report_type, "Candidates / Movers / Core Watch")
     core_count = sum(1 for e in ents if e.monitor_status == "Core")
     review_map = review_map or {}
     _protect = protect_names(entries)
@@ -284,7 +291,8 @@ def render_brief_html(
     def _uni_rows_html(email_mode: bool = False) -> list:
         rows: list = []
         last_ind = None
-        for e in _universe_sorted(ents, snapshots):
+        # Universe 全量（所有市场估值参考表）
+        for e in _universe_sorted(entries, snapshots):
             if e.industry != last_ind:
                 rows.append(f'<tr class="industry-row"><td colspan="14">{_h.escape(e.industry or "Other")}</td></tr>')
                 last_ind = e.industry
@@ -507,7 +515,8 @@ def render_brief_html(
 
     # ── Review Queue：7 天内显示；7-30 天表格内折叠 ──
     rq_entries, rq_mid = [], []
-    for e in ents:
+    # Review Queue 全量（财报是未来事件，跨市场）
+    for e in entries:
         nd = snapshots.get(e.ticker or e.company, {}).get("next_earnings")
         if nd:
             from datetime import date as _d
@@ -673,6 +682,7 @@ def render_brief_html(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Brief {today} · {rt_label}</title>
 <style>{_CSS}</style></head><body><main>
+<div style="border-left:3px solid #2563eb;background:#f4f8ff;color:#64748b;font-size:12px;line-height:1.65;padding:8px 12px;margin:0 0 18px;border-radius:0 10px 10px 0">{_h.escape(_scope)}</div>
 <div id="candidates" style="margin-bottom:24px"><div class="section-head"><h2>Research Candidates</h2></div>
 <p style='color:#64748b;font-size:11px;margin:2px 0 8px'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
 {_cands_html(True)}</div>
@@ -694,12 +704,13 @@ def render_brief_html(
 <title>Daily Brief {today} · {rt_label}</title>
 <style>{_CSS}</style></head><body><main>
 <section class="hero">
-  <span class="hero-date">{today} · {rt_label} · 数据来源：FMP</span>{_tz_summary(ents, snapshots)}
+  <span class="hero-date">{today} · {rt_label} · 数据来源：FMP</span>{_tz_summary(entries, snapshots)}
   <span class="hero-stat">{len(ents)} names</span>
   <span class="hero-stat">{core_count} Core Watch</span>
   <span class="hero-stat">{len(important)} movers</span>
   <span class="hero-stat">{len(rq_entries)} actions</span>
 </section>
+<div class="scope-note">{_h.escape(_scope)}</div>
 <nav class="tab-nav">
   <a class="tab-button" href="#candidates">Candidates</a>
   <a class="tab-button" href="#movers">Movers</a>

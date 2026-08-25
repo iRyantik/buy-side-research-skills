@@ -15,6 +15,7 @@ class CoverageEntry:
     company: str
     company_native: str = ""
     industry: str = ""
+    market: str = ""  # 上市主要市场: us|eu|asia（注册时记录，选最优/首上市地）
     coverage_status: str = ""
     monitor_status: str = ""
     last_review: str = ""
@@ -41,6 +42,10 @@ HEADER_ALIASES = {
     "company (en)": "company",
     "company (native)": "company_native",
     "industry": "industry",
+    "market": "market",
+    "上市市场": "market",
+    "主要市场": "market",
+    "市场": "market",
     "coverage": "coverage_status",
     "coverage status": "coverage_status",
     "status": "coverage_status",
@@ -66,6 +71,7 @@ CANONICAL_HEADERS = [
     ("Company (EN)", "company"),
     ("Company (Native)", "company_native"),
     ("Industry", "industry"),
+    ("Market", "market"),
     ("Status", "coverage_status"),
     ("Coverage", "coverage_status"),  # 兼容旧表头
     ("Monitor", "monitor_status"),
@@ -106,6 +112,18 @@ def normalize_monitor_status(value: str) -> str:
     if token in {"daily watch", "daily", "daily-only"}:
         return "Daily"
     return value.strip()
+
+
+def normalize_market(value: str) -> str:
+    """上市主要市场 → us|eu|asia。注册时记录；空/无法识别返回 ''（走 ticker 推断兜底）。"""
+    token = re.sub(r"\s+", " ", value.strip()).lower()
+    if token in {"us", "usa", "美国", "美股", "美", "us stock", "nyse", "nasdaq"}:
+        return "us"
+    if token in {"eu", "europe", "european", "欧洲", "欧股", "欧"}:
+        return "eu"
+    if token in {"asia", "apac", "asian", "亚太", "亚洲", "亚盘", "亚股", "亚", "cn", "hk", "jp", "kr", "tw"}:
+        return "asia"
+    return ""
 
 
 def _split_row(line: str) -> list[str]:
@@ -172,6 +190,7 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
             company=data["company"].strip(),
             company_native=data["company_native"].strip(),
             industry=data["industry"].strip(),
+            market=normalize_market(data.get("market", "")),
             coverage_status=normalize_coverage_status(data["coverage_status"]),
             monitor_status=normalize_monitor_status(data["monitor_status"]),
             last_review=data["last_review"].strip(),

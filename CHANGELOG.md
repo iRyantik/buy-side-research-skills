@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.9.4 | **日报作用域 + Market 上市地列 + 目录匹配**：日报前端（Candidates/Movers/Core Watch）只显刚收盘市场（us/asia/eu 各盘后），Universe / Review Queue 全量，顶部加可见作用域说明（不含技术词）；CoverageEntry 加 `market`（us/eu/asia 上市主要市场），COVERAGE 表加 Market 列（154 行回填）+ 注册时记录（§3.3）+ entry_market 显式优先否则 ticker 推断；大金重工多 ticker legacy（002487 CH / 1081 HK）市场误判修复——_market_of 先规范化（多 ticker 按首上市地）+ COVERAGE 改 canonical `002487.SZ / 1081.HK`；公司目录↔COVERAGE 匹配修复（_dir_links_row：中文名目录 + 缩写名 + é NFC/NFD 归一，unregistered gap 12→8）；CLAUDE.md §3.2 补 `.DE`(德国/XETRA) + 措辞校准"FMP 直通后缀" |
 | v8.9.3 | **email 跨天事件追踪 + 增量标注**：merge_key 跨天稳定（不含日期），事件库记录 first/last_seen + brokers + 最新 what_changed；跟进事件（昨日 broker 提过）AI 判断 delta_vs_last（相对上次基线的实质新增），brief 标「此前已有 broker 提及」+「新增」 |
 | v8.9.2 | **mover 归因 DeepSeek 化**：mover_review 从 claude CLI session 改为 DeepSeek 批量（无痕、Windows/Mac 通用，DeepSeek → claude fallback → 规则）；DeepSeek 关 reasoning（reasoning_effort:none——8 家 chunk 66s→11s 且 content 不空，translation/review 更快更稳） |
 | v8.9.1 | **coverage-monitor 补齐**：手机 Universe 重构（7 列 / 估值两行 / th-td 列对齐 / 括号染色）；新闻 4 源 publish 日期（yfinance unix→ISO / DDG snippet 提取）；intraday 当天新闻触发（published_at==today，排除旧新闻误报）；email 模式 section→div + 注释小字；产物目录迁移 daily/market/ + daily/logs/ |
