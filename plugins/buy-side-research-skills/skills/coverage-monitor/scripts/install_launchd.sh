@@ -8,7 +8,7 @@ WS="/Users/ryanxing/CC Research Workspace"
 PY="/opt/homebrew/bin/python3.12"
 SCRIPT="$WS/.scripts/coverage-monitor/run_coverage_monitor.py"
 LA="$HOME/Library/LaunchAgents"
-LOG_DIR="$WS/reports/coverage-monitor"
+LOG_DIR="$WS/daily/logs"
 mkdir -p "$LA" "$LOG_DIR"
 
 install_one() {
