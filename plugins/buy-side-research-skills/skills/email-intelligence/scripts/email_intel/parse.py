@@ -75,12 +75,13 @@ def _workspace_root() -> Path:
 
 
 def _is_self_sender(sender: str, workspace: Path | None = None) -> bool:
-    """自产物判据：公司域(@helvedcapital.com) 按后缀排除；外部发送邮箱(SMTP_USER, 1292145106@qq.com)
-    只精确排除（不拆 qq.com 域，避免误杀其他 qq 邮箱）。不含 COVERAGE_EMAIL_TO(收件人非自产)。"""
+    """自产物判据：**只看发送机器人（SMTP_USER=1292145106@qq.com）精确匹配**；
+    自产标题(self_subject)另在 scan 里单独判。**不按公司域排除**——同事(@helvedcapital.com)
+    转发的 sell-side 报告 sender 也是公司域，但不能当自产物丢掉。"""
     s = (sender or "").lower().strip()
     if not s:
         return False
-    if s.endswith("@helvedcapital.com"):
+    if s == "1292145106@qq.com":
         return True
     ws = workspace or _workspace_root()
     try:
@@ -89,12 +90,11 @@ def _is_self_sender(sender: str, workspace: Path | None = None) -> bool:
             if line and "=" in line and not line.startswith("#"):
                 k, _, v = line.partition("=")
                 if k.strip() == "SMTP_USER" and "@" in v:
-                    val = v.strip().strip('"').strip("'").lower()
-                    if s == val:
+                    if s == v.strip().strip('"').strip("'").lower():
                         return True
     except OSError:
         pass
-    return s == "1292145106@qq.com"
+    return False
 
 
 def scan_email_dirs(base: str | Path) -> list[Email]:
