@@ -267,7 +267,7 @@ _EXTRACT = """提取这封卖方邮件为 buy-side 结构化信息。只基于�
 
 邮件：{email}
 
-只输出 JSON：{{"broker":"发件机构名或 null","items":[{{"kind":"company_update|industry_signal|sell_side_view","company":..,"ticker":..,"industry":..,"company_en":..,"event_type":..,"summary":..,"what_changed":..,"evidence":..,"confidence":"high|medium|low","related_tickers":[..],"focus_fit":..,"action":..,"merge_key":..,"priority":..}}],"meetings":[{{"title":..,"industry":..,"company":..,"ticker":..,"date":..,"time":..(必须带时区，如"11:00 HKT"或"2pm-3pm HKT"),"host":..,"participants":..,"agenda_items":[看点关键词短语 1-2 条，每条≤14字，如"ABF膜涨价预期""国产替代测试进展"——不要完整问句],"related_tickers":[..],"language":..,"format":..,"registration":..,"recommendation":"recommend|consider|skip","reason":..}}],"filter_reason":null|"..."}}
+只输出 JSON：{{"broker":"发件机构名或 null","items":[{{"kind":"company_update|industry_signal|sell_side_view","company":..,"ticker":..,"industry":..,"company_en":..,"event_type":..,"summary":..,"what_changed":..,"evidence":..,"confidence":"high|medium|low","related_tickers":[..],"focus_fit":..,"action":..,"merge_key":..,"priority":..}}],"meetings":[{{"title":..,"industry":..,"company":..,"ticker":..,"date":..,"time":..(必须带时区，如"11:00 HKT"或"2pm-3pm HKT"),"host":..,"participants":..,"agenda_items":[看点关键词短语 1-2 条，每条≤14字，如"ABF膜涨价预期""国产替代测试进展"——不要完整问句],"related_tickers":[相关标的"公司名"数组——输出公司名(如 Sumitomo Electric、中际旭创)，不要 ticker(ticker可能未注册无法转] ,"language":..,"format":..,"registration":..,"recommendation":"recommend|consider|skip","reason":..}}],"filter_reason":null|"..."}}
 （items/meetings 字段无值时省略该 key；同事件只列最值得的一条。）
 
 要求：
@@ -291,7 +291,7 @@ _INTEGRATE_PROMPT = """下面是各邮件组提取的候选 items 与 meetings�
 - 标 priority/focus_fit/confidence（取各来源最高）
 - meetings 同理去重（同 title+company+date 合并），按 covered_industries 定 recommend/consider/skip
 - 每条保留 sources（来源邮件 key 数组）、broker
-只输出最终数组：{{"items":[{{"company":..,"ticker":..,"industry":..,"company_en":..,"event_type":..,"summary":..,"what_changed":..,"evidence":..,"confidence":..,"related_tickers":[..],"focus_fit":..,"focus_reason":..,"action":..,"bucket":..,"coverage_status":..,"priority":..,"merge_key":..,"delta_vs_last":..,"sources":[..],"broker":..}}],"meetings":[{{"title":..,"industry":..,"company":..,"ticker":..,"date":..,"time":..,"host":..,"participants":..,"agenda_items":[..],"related_tickers":[..],"language":..,"format":..,"registration":..,"recommendation":..,"reason":..,"sources":[..],"broker":..}}]}}
+只输出最终数组：{{"items":[{{"company":..,"ticker":..,"industry":..,"company_en":..,"event_type":..,"summary":..,"what_changed":..,"evidence":..,"confidence":..,"related_tickers":[..],"focus_fit":..,"focus_reason":..,"action":..,"bucket":..,"coverage_status":..,"priority":..,"merge_key":..,"delta_vs_last":..,"sources":[..],"broker":..}}],"meetings":[{{"title":..,"industry":..,"company":..,"ticker":..,"date":..,"time":..,"host":..,"participants":..,"agenda_items":[..],"related_tickers":[相关标的"公司名"数组——输出公司名(如 Sumitomo Electric、中际旭创)，不要 ticker(ticker可能未注册无法转] ,"language":..,"format":..,"registration":..,"recommendation":..,"reason":..,"sources":[..],"broker":..}}]}}
 
 候选：
 {summary}"""

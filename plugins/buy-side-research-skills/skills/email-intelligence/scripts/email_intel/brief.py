@@ -152,25 +152,25 @@ def _status_pill(tier: str) -> str:
 
 
 def _meeting_line_v2(m: dict, emails: dict, embed: bool = False) -> str:
-    """会议行统一制式：标题蓝链+形式语言席位 | 机构；讲者看点主持 | 时间黑粗；相关 chips。"""
+    """会议卡固定槽位：标题|机构 / 形式·语言|时间 / 讲者·看点·主持 / related chips。
+
+    每个字段有固定位置；字段缺失时该槽留白（不压缩/不上移其他字段），所有卡布局一致。
+    （不显示"限 N 位"席位，只保留 线上/线下 + 中文/英文。）
+    """
     title = m.get("title") or m.get("company") or "Meeting"
     em = emails.get(str(m.get("_email_id") or ""))
     reg = str(m.get("registration") or "")
     org = _e(_broker_label(em.sender, getattr(em, 'broker', ''))) if em else ''
-    # 标题链接：仅当有真实报名链接才可点；没有就不 fallback（保持纯文本）
-    if reg.startswith("http"):
-        link_title = f"<a class='src' style='font-weight:800;color:#2563eb' href='{_e(reg)}'>{_e(title)}</a>"
-    else:
-        link_title = f"<span style='font-weight:800;color:#2563eb'>{_e(title)}</span>"
-    extra = " · ".join(x for x in [m.get("format") or "", m.get("language") or "",
-                                   ("限 " + str(m["seats_limit"])) if m.get("seats_limit") else ""] if x)
-    org_link = (f"<a class='src' href='{_e(em.outlook_link)}'>{org}</a>"
+    link_title = (f"<a class='src' style='font-weight:800;color:#2563eb' href='{_e(reg)}'>{_e(title)}</a>"
+                  if reg.startswith("http") else
+                  f"<span style='font-weight:800;color:#2563eb'>{_e(title)}</span>")
+    org_html = (f"<a class='src' href='{_e(em.outlook_link)}'>{org}</a>"
                 if (em and em.outlook_link) else
                 (f"<span class='src' style='color:#94a3b8'>{org}</span>" if org else ""))
-    line1 = f"<div class='line'><div class='line-main'>· {link_title}"
-    if extra:
-        line1 += f" · {_e(extra)}"
-    line1 += f"</div><div class='line-links'>{org_link}</div></div>"
+    # 行2：形式(线上/线下) · 语言(中文/英文)——只这两个，去限席
+    fmt = " · ".join(x for x in [m.get("format") or "", m.get("language") or ""] if x)
+    time_s = _norm_time(m.get("time"))
+    # 行3：讲者·看点·主持
     parts = []
     if m.get("participants"):
         parts.append("讲者：" + _e(str(m["participants"])))
@@ -179,22 +179,17 @@ def _meeting_line_v2(m: dict, emails: dict, embed: bool = False) -> str:
         parts.append("看点：" + _e("·".join(str(x) for x in list(agenda)[:3])))
     if m.get("host_person"):
         parts.append("主持：" + _e(m["host_person"]))
-    time_s = " · ".join(x for x in [_norm_time(m.get("time")), _norm_time(m.get("time_end"))] if x)
-    # 行2：讲者/看点/主持 左 + 时间 右（黑粗）——时间**独立渲染**，不依赖讲者/看点（即使只有时间也显示）
-    line2 = ""
-    if parts or time_s:
-        left = " · ".join(parts) if parts else ""
-        time_cell = (f"<div class='line-links' style='font-weight:800;color:#132238;font-size:12px'>{_e(time_s)}</div>"
-                     if time_s else "")
-        line2 = (f"<div class='line' style='margin-top:0'><div class='line-main' "
-                 f"style='font-size:12px;color:#132238;margin:0;padding-left:14px'>{_e(left)}</div>"
-                 f"{time_cell}</div>")
+    ppl = " · ".join(parts)
+    # 行4：related chips
     rel = m.get("related_tickers") or []
-    line3 = ""
-    if rel:
-        chips = "".join(f"<span class='chip'>{_e(str(x))}</span>" for x in list(rel)[:6])
-        line3 = f"<div class='small' style='margin:2px 0 0;padding-left:14px;color:#132238'>{chips}</div>"
-    return line1 + line2 + line3
+    chips = "".join(f"<span class='chip'>{_e(str(x))}</span>" for x in list(rel)[:6])
+
+    return (
+        f"<div class='m-line'><span class='m-cell'>{link_title}</span><span class='m-cell m-end'>{org_html}</span></div>"
+        f"<div class='m-line'><span class='m-cell m-sub'>{_e(fmt)}</span><span class='m-cell m-end m-time'>{_e(time_s)}</span></div>"
+        f"<div class='m-line'><span class='m-cell m-sub'>{_e(ppl)}</span><span class='m-cell'></span></div>"
+        f"<div class='m-line'><span class='m-cell'>{chips}</span><span class='m-cell'></span></div>"
+    )
 
 
 def _industry_card_v2(industry: str, sec: dict, emails: dict) -> str:
@@ -385,6 +380,12 @@ main{margin:24px 0 40px}
 .grouplabel{color:#64748b;font-weight:750;margin-top:8px}
 .core-pill{display:inline-flex;align-items:center;height:19px;border-radius:999px;padding:0 7px;background:#7c3aed;color:#fff;font-size:10px;font-weight:950;line-height:1;margin:0 4px 4px 0}
 .card-meeting{margin-top:8px;padding:8px 0 2px;border-top:1px dashed #e2e8f0;color:#64748b}
+.m-line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:5px;flex-wrap:wrap}
+.m-cell{min-width:0;font-size:13.5px;line-height:1.6;color:#334155}
+.m-cell.m-end{text-align:right;flex-shrink:0;white-space:nowrap}
+.m-cell.m-sub{font-size:12px;color:#64748b;min-height:16px}
+.m-cell.m-time{font-weight:800;color:#132238;font-size:12px}
+
 @media (max-width:640px){
   .card{padding:10px}
 }
@@ -622,6 +623,12 @@ main{width:min(1440px,calc(100vw - 36px));margin:28px auto 48px}
 .grouplabel{color:var(--muted);font-weight:750;margin-top:8px}
 .sep{border:0;border-top:1px solid var(--line);margin:10px 0}
 .card-meeting{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);color:var(--muted)}
+.m-line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:5px;flex-wrap:wrap}
+.m-cell{min-width:0;font-size:13.5px;line-height:1.6;color:#334155}
+.m-cell.m-end{text-align:right;flex-shrink:0;white-space:nowrap}
+.m-cell.m-sub{font-size:12px;color:#64748b;min-height:16px}
+.m-cell.m-time{font-weight:800;color:#132238;font-size:12px}
+
 .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}
 .filter-label{font-size:12px;font-weight:800;color:var(--muted)}
 .filter-chip{display:inline-block;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--slate);cursor:pointer}
