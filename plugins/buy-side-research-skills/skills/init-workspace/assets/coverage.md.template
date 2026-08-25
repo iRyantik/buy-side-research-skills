@@ -40,10 +40,12 @@
 
 | Field | Values | Contract |
 |---|---|---|
-| Coverage | Core / Building / Radar | Core = sustained core workstream; Building = company-level coverage started; Radar = tracked candidate |
-| Monitor | Core / Daily | Core = daily company news + movers + industry tape; Daily = daily quote scan + industry tape, company news only on mover/trigger |
+| Status | Screened / Quickread / Modeled / Thesis | Screened = 筛过候选; Quickread = 快速看过; Modeled = 建了模型; Thesis = 有投资论点（研究产物自动派生） |
+| Monitor | Core / other | **Status 驱动**：Modeled/Thesis -- Core（自动）；Quickread/Screened -- other（默认）；focus 行业 / 人工点名可提 Core。Core = daily company news + movers + industry tape; other = daily quote scan + industry tape, company news only on mover/trigger |
+| Market | US/CA/GB/FR/DE/SE/NO/FI/IT/ES/NL/JP/KR/CN/HK/TW/MY | 上市国家/地区码（首上市地）；洲（us/eu/asia）由国家码派生；公司注册时记录（§3.3）；日报前端按收盘市场筛选，以派生结果为准 |
+| Val Anchor | `15x PE @ MM-DD` / `8.5x EV/EBITDA @ MM-DD` | 研究 fwd 假设锚（产出 fwd 的 skill 收尾时写：quickread/driver-map/model-update）；日报渲染 `fwd 15x`，>45 天标 `(旧)`；日报 touch 不更新此列 |
 
 ## Coverage
 
-| Ticker | Company (EN) | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |
-|---|---|---|---|---|---|---|---|---|
+| Ticker | Company (EN) | Company (Native) | Industry | Market | Status | Monitor | Last Review | Next Trigger | Val Anchor | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|
