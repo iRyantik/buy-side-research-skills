@@ -394,8 +394,23 @@ main{margin:24px 0 40px}
 @media (max-width:640px){.indust-grid,.indust-grid.cols-4,.indust-grid.cols-3{grid-template-columns:1fr}}"""
 
 
+
+def _industry_visible(ind: str, covered: list | None) -> bool:
+    """Industry 卡是否显示：ind ∈ covered_industries，或与某覆盖行业 token 重合（相关行业）。"""
+    if not covered:
+        return True
+    if ind in covered:
+        return True
+    ind_tokens = set(str(ind).lower().replace(" ", "-").split("-"))
+    for c in covered:
+        c_tokens = set(str(c).lower().split("-"))
+        if ind_tokens & c_tokens:
+            return True
+    return False
+
+
 def render_brief_html_v2(emails: list, reviews: list, now_label: str, window_label: str = "",
-                         last_events: dict | None = None) -> str:
+                         last_events: dict | None = None, covered_industries: list | None = None) -> str:
     email_by_id = _email_map(emails)
     # 从 deep 提取把 broker（机构名）挂到邮件对象，渲染来源标签用
     _broker_by_email = {}
@@ -427,6 +442,8 @@ def render_brief_html_v2(emails: list, reviews: list, now_label: str, window_lab
     blocks.append("<div class='section-head'><h2>02 · Industry</h2></div><div class='indust-grid'>")
     for ind, sec in sorted(by_industry.items(),
                            key=lambda kv: -sum(len(v) for v in kv[1].values())):
+        if not _industry_visible(ind, covered_industries):
+            continue   # 无关行业省略（只留覆盖 + 相关）
         blocks.append(_industry_card_v2(ind, sec, email_by_id))
     blocks.append("</div>")
 
@@ -626,7 +643,7 @@ def _meeting_card_panel(m: dict, emails: dict, skip: bool = False) -> str:
 
 
 def render_panel_html_v2(emails: list, reviews: list, now_label: str, window_label: str = "",
-                         last_events: dict | None = None) -> str:
+                         last_events: dict | None = None, covered_industries: list | None = None) -> str:
     email_by_id = _email_map(emails)
     # 从 deep 提取把 broker（机构名）挂到邮件对象，渲染来源标签用
     _broker_by_email = {}
@@ -671,6 +688,8 @@ def render_panel_html_v2(emails: list, reviews: list, now_label: str, window_lab
     blocks.append(f"<section class='tab-panel' id='t01'><div class='section-head'><h2>01 · Worth Your Time</h2></div>{_wyt_rows_v2(items, email_by_id)}</section>")
     blocks.append("<section class='tab-panel' id='t02'><div class='section-head'><h2>02 · Industry</h2></div><div class='indust-grid'>")
     for ind, sec in sorted(by_industry.items(), key=lambda kv: -sum(len(v) for v in kv[1].values())):
+        if not _industry_visible(ind, covered_industries):
+            continue
         blocks.append(_industry_card_v2(ind, sec, email_by_id))
     blocks.append("</div></section>")
     for bucket, (num, title) in _BUCKET_META.items():

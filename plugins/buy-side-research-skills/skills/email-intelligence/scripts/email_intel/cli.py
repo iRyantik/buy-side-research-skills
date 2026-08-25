@@ -87,6 +87,7 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
         now_label,
         f"覆盖窗口 {state.get('last_run') or '—'} → {now.strftime('%Y-%m-%d %H:%M')}",
         last_events=events_baseline,
+        covered_industries=context.get("covered_industries"),
     )
     output = _brief_path(workspace, now)
     output.write_text(html, encoding="utf-8")
@@ -95,6 +96,7 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
         fresh, reviews, now_label,
         f"覆盖窗口 {state.get('last_run') or '—'} → {now.strftime('%Y-%m-%d %H:%M')}",
         last_events=events_baseline,
+        covered_industries=context.get("covered_industries"),
     )
     panel_out = output.with_name(f"{now:%Y%m%d}-email-panel.html")
     panel_out.write_text(panel, encoding="utf-8")
