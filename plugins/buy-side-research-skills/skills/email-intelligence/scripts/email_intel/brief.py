@@ -654,6 +654,29 @@ def _meeting_card_panel(m: dict, emails: dict, skip: bool = False) -> str:
     return (f"<div class='{cls}' data-ind='{ind}'>" + _meeting_line_v2(m, emails) + "</div>")
 
 
+_PANEL_SCRIPT = """<script>
+(function(){
+  var chips=document.querySelectorAll('.filter-chip');
+  var cards=document.querySelectorAll('.meeting-card');
+  chips.forEach(function(chip){
+    chip.addEventListener('click',function(){
+      var ind=chip.getAttribute('data-ind');
+      chips.forEach(function(c){c.classList.remove('on')});
+      chip.classList.add('on');
+      cards.forEach(function(card){
+        card.classList.toggle('hidden', card.getAttribute('data-ind')!==ind);
+      });
+    });
+  });
+  var clear=document.getElementById('filterClear');
+  if(clear){clear.addEventListener('click',function(){
+    chips.forEach(function(c){c.classList.remove('on')});
+    cards.forEach(function(c){c.classList.remove('hidden')});
+  });}
+})();
+</script>"""
+
+
 def render_panel_html_v2(emails: list, reviews: list, now_label: str, window_label: str = "",
                          last_events: dict | None = None, covered_industries: list | None = None) -> str:
     email_by_id = _email_map(emails)
@@ -741,4 +764,6 @@ def render_panel_html_v2(emails: list, reviews: list, now_label: str, window_lab
 <title>Email Intelligence Panel · {_e(now_label)}</title>
 <style>{_CSS_PANEL}</style></head><body><main>
 {body}
-</main></body></html>"""
+</main>
+{_PANEL_SCRIPT}
+</body></html>"""
