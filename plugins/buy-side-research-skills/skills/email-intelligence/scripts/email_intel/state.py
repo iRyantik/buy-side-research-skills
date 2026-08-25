@@ -55,8 +55,9 @@ def update_events(state: dict, reviews: list[dict], now_label: str) -> None:
             ev = events.get(key, {})
             seen_days = ev.get("last_seen", "")[:10]
             today = now_label[:10]
-            ev["company"] = item.get("company") or ev.get("company")
-            ev["event_type"] = item.get("event_type") or ev.get("event_type")
+            # company/event_type 兜底链：item 级 → 邮件级 → 既有值（AI 偶漏 item.company）
+            ev["company"] = item.get("company") or r.get("company") or ev.get("company") or ""
+            ev["event_type"] = item.get("event_type") or ev.get("event_type") or ""
             if item.get("delta_vs_last"):
                 ev["what_changed"] = item["delta_vs_last"]  # 最新增量作为新基线
             elif item.get("what_changed") and seen_days != today:
