@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
 
 from .ai_review import review_batch
-from .brief import render_brief_html
+from .brief import render_brief_html, render_brief_html_v2, render_email_markdown, render_panel_html_v2
 from .classify import normalize_reviews
 from .context import build_context
 from .parse import filter_new, scan_email_dirs
@@ -27,14 +28,32 @@ def _default_base() -> str:
     return str(Path.home() / "OneDrive - Hel Ved Capital Management Limited" / "Email-AI")
 
 
-def _brief_path(workspace: Path, now: datetime) -> Path:
+def _brief_path(workspace: Path, now: datetime | None = None) -> Path:
+    """渲染输出固定为单一文件（覆盖，不生成时间戳变体）——as-of 已写入 scope-note。"""
     output_dir = workspace / "daily" / "email"
     output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir / f"{now:%Y%m%d}-email-brief-{now:%H%M}.html"
+    return output_dir / f"{now:%Y%m%d}-email-brief.html"
+
+
+def _archive_reviews(workspace: Path, now: datetime, fresh: list, raw: list, normalized: list) -> Path:
+    """结构化存储：review 原始输出 + 归一化结果 + 邮件元数据——可复现/审计/二次处理。"""
+    out = Path(workspace) / ".cache" / "email-intelligence" / "reviews"
+    out.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "run_at": now.isoformat(),
+        "emails": [{"key": e.key, "subject": e.subject, "sender": e.sender,
+                    "received_at": e.received_at, "outlook_link": e.outlook_link} for e in fresh],
+        "raw_reviews": raw,
+        "normalized": normalized,
+    }
+    f = out / f"{now.strftime('%Y%m%d-%H%M%S')}.json"
+    f.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    return f
 
 
 def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False,
            send: bool = True) -> int:
+    now = datetime.now().astimezone()
     emails = scan_email_dirs(base)
     if not emails:
         print(f"no emails found: {base}")
@@ -53,14 +72,16 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
     context["last_events"] = events_baseline
     raw_reviews = review_batch(fresh, context, workspace)
     reviews = normalize_reviews(raw_reviews, context)
+    archive = _archive_reviews(workspace, now, fresh, raw_reviews, reviews)
+    print(f"archive={archive}")
     print(f"reviewed={len(reviews)}")
     if not reviews:
         print("review failed: no email was classified; state was not advanced", file=sys.stderr)
         return 2
 
-    now = datetime.now().astimezone()
-    now_label = now.strftime("%Y-%m-%d %H:%M %Z")
-    html = render_brief_html(
+    # %Z 时区名在部分客户端/系统会有编码乱码（??????），改用偏移量
+    now_label = f"{now.strftime('%Y-%m-%d %H:%M')} ({now.strftime('%z')[:3]}:{now.strftime('%z')[3:]})"
+    html = render_brief_html_v2(
         fresh,
         reviews,
         now_label,
@@ -70,6 +91,14 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
     output = _brief_path(workspace, now)
     output.write_text(html, encoding="utf-8")
     print(f"brief={output} ({len(html)} bytes)")
+    panel = render_panel_html_v2(
+        fresh, reviews, now_label,
+        f"覆盖窗口 {state.get('last_run') or '—'} → {now.strftime('%Y-%m-%d %H:%M')}",
+        last_events=events_baseline,
+    )
+    panel_out = output.with_name(f"{now:%Y%m%d}-email-panel.html")
+    panel_out.write_text(panel, encoding="utf-8")
+    print(f"panel={panel_out} ({len(panel)} bytes)")
 
     delivery_ok = dry_run or not send
     if not dry_run and send:
@@ -78,9 +107,14 @@ def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False
             sys.path.insert(0, str(coverage_runtime))
         try:
             from coverage_monitor.delivery import send_email, workspace_env
+            # 正文 = markdown 摘要（与 coverage-monitor 日报同款）；完整面板 = body_html（本地留档，不挂附件）
+            text = render_email_markdown(
+                fresh, reviews, now_label,
+                f"覆盖窗口 {state.get('last_run') or '—'} → {now.strftime('%Y-%m-%d %H:%M')}",
+            )
             gaps = send_email(
                 f"Email Intelligence Brief — {now_label}",
-                "Email Intelligence Brief（HTML 正文）。",
+                text,
                 body_html=html,
                 env=workspace_env(workspace),
             )

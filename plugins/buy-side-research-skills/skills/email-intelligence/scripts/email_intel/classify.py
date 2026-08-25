@@ -17,11 +17,14 @@ def _coverage_match(item: dict, context: dict) -> dict | None:
     company = str(item.get("company") or "").strip().lower()
     if ticker and ticker in by_ticker:
         return by_ticker[ticker]
-    if company in by_name:
+    if company and company in by_name:
         return by_name[company]
-    for name, row in by_name.items():
-        if len(name) >= 4 and (name in company or company in name):
-            return row
+    # company 为空串时 "" in name 恒为 True（空串是任意串的子串）→ 无公司名的
+    # 行业级 item 会被错误命中首个覆盖公司。仅当 company 非空才做模糊匹配。
+    if company:
+        for name, row in by_name.items():
+            if len(name) >= 4 and (name in company or company in name):
+                return row
     return None
 
 
