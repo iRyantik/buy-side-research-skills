@@ -277,7 +277,10 @@ _EXTRACT = """提取这封卖方邮件为 buy-side 结构化信息。只基于�
   即使被 urldefense.proofpoint.com 包装也原样提取；无则 null) / recommendation / reason。
 - items：公司/个股/行业信号，含 company/ticker/industry/company_en/event_type/summary/what_changed/
   evidence/confidence/related_tickers/focus_fit/action/merge_key/priority。
-- broker：发件机构名（如 长江证券/广发证券/UBS/Jefferies/久谦）。"""
+- broker：发件机构名（如 长江证券/广发证券/UBS/Jefferies/久谦）。
+- 数量节制：每封 items 最多 3-4 条重点；同行业/同类聚合成一条（行业周报只出最重要 1-2 条行业要点，不要每个都提一点）。
+- 覆盖过滤：只提取覆盖行业/覆盖公司/触及 ## Focus 的 item；非覆盖行业（美妆、消费、零售等不在 covered_industries）不要列为 item（除非与覆盖行业强 read-through）。
+- 覆盖公司必拆：companies（coverage 名单）里的公司只要被实质提及（业绩/订单/评级/指引等），**必须拆成一个独立的 company item**（含 company/ticker/industry/summary/coverage 相关），不能只合并在行业面文本里。"""
 
 
 _INTEGRATE_PROMPT = """下面是各邮件组提取的候选 items 与 meetings。请结合研究覆盖融合成最终结果：
@@ -315,11 +318,11 @@ def _group_emails(emails, names, tickers):
     return [v for v in groups_map.values() if v]
 
 
-def _extract_group(emails, workspace):
-    """组 session（不带 coverage）：逐封 turn 提取，组内跨封记忆。coverage 物理不重传。"""
+def _extract_group(emails, workspace, system_coverage=None):
+    """组 session（带精简 coverage system）：逐封 turn 提取，组内跨封记忆。coverage 供按覆盖行业过滤/控件数量。"""
     sys.path.insert(0, _shared_dir())
     from llm import Session
-    sess = Session(workspace)             # system=None → 无 coverage
+    sess = Session(workspace, system=system_coverage)
     items, meetings = [], []
     for e in emails:
         body = (e.body_text or "")  # 读全文——报名链接/中段议程等靠筛选(deep)完整保留，不 crop
@@ -394,7 +397,7 @@ def review_batch(emails: list[Email], context: dict, workspace: Path,
     # Stage 2: 按公司/事件聚类分组 → 组 session 并行提取（不带 coverage）
     groups = _group_emails(related, names, tickers)
     with ThreadPoolExecutor(max_workers=4) as pool:
-        group_results = list(pool.map(lambda g: _extract_group(g, workspace), groups))
+        group_results = list(pool.map(lambda g: _extract_group(g, workspace, system_coverage), groups))
 
     # Stage 3: 整合（coverage 一次，只做去重/归并）——bucket/coverage/broker 程序化补
     from .classify import classify_item
@@ -407,7 +410,7 @@ def review_batch(emails: list[Email], context: dict, workspace: Path,
     _sender_of = {e.key: e.sender for e in emails}
     _key_to_email = {e.key: e for e in emails}
     for x in it:
-        classify_item(x, context)      # 确定性：bucket/coverage_status/coverage_ticker
+        x["bucket"] = classify_item(x, context)   # 确定性 bucket 存回（classify_item 返回 bucket）
         if not x.get("broker"):        # broker 从 sources 反查发送方
             for k in x.get("sources") or []:
                 em = _key_to_email.get(k)
