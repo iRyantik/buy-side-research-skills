@@ -105,7 +105,7 @@ def _extract_json(raw: str):
 
 
 def review_batch(emails: list[Email], context: dict, workspace: Path,
-                 max_body: int = 6_000, chunk: int = 12) -> list[dict]:
+                 max_body: int = 6_000, chunk: int = 6) -> list[dict]:
     out: list[dict] = []
     compact_context = {
         "coverage": context.get("coverage", []),
