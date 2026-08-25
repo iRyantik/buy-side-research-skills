@@ -66,7 +66,7 @@ _SELF_EMAIL_RE = re.compile(
     r"Daily Coverage Brief|Email Intelligence Brief|Intraday Coverage Alerts", re.I
 )
 # 自产物回环：daily/email 自己发出去的邮件（发送邮箱在 workspace .env 的 SMTP_USER /
-# COVERAGE_EMAIL_TO，如 1292145106@qq.com）不是 sell-side 邮件，忽略。
+# COVERAGE_EMAIL_TO）不是 sell-side 邮件，忽略。
 # 运行时从 .env 动态读取（而非硬编码），发送邮箱变化也生效。
 
 
@@ -75,14 +75,13 @@ def _workspace_root() -> Path:
 
 
 def _is_self_sender(sender: str, workspace: Path | None = None) -> bool:
-    """自产物判据：**只看发送机器人（SMTP_USER=1292145106@qq.com）精确匹配**；
+    """自产物判据：**只看发送机器人（env 的 SMTP_USER）精确匹配**；
     自产标题(self_subject)另在 scan 里单独判。**不按公司域排除**——同事(@helvedcapital.com)
     转发的 sell-side 报告 sender 也是公司域，但不能当自产物丢掉。"""
     s = (sender or "").lower().strip()
     if not s:
         return False
-    if s == "1292145106@qq.com":
-        return True
+    # daily 发送箱 = env 的 SMTP_USER（动态识别，不硬编码——发送邮箱变了也跟随）
     ws = workspace or _workspace_root()
     try:
         for line in (ws / ".env").read_text(encoding="utf-8").splitlines():
