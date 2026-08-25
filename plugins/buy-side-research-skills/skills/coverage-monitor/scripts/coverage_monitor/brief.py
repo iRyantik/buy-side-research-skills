@@ -10,7 +10,7 @@ import datetime
 import re
 from typing import Any
 
-from .coverage import CoverageEntry, normalize_market
+from .coverage import CoverageEntry, normalize_country, normalize_market
 from .news import pick_lead_news, protect_names, tag_news_title, translate_zh
 from .tickers import build_ticker_runtime
 from .valuation import fmt_cell, fwd_extra, rich_class
@@ -19,26 +19,53 @@ from .valuation import fmt_cell, fwd_extra, rich_class
 _MARKET_OF = {
     ".SZ": "asia", ".SH": "asia", ".CN": "asia", ".T": "asia", ".JP": "asia",
     ".KS": "asia", ".KQ": "asia", ".TW": "asia", ".TT": "asia", ".HK": "asia",
+    ".SS": "asia", ".KL": "asia", ".MY": "asia", ".AX": "asia",
     ".DE": "eu", ".MI": "eu", ".MC": "eu", ".LN": "eu", ".FR": "eu",
     ".L": "eu", ".HE": "eu", ".PA": "eu", ".ST": "eu", ".OL": "eu",
-    ".AS": "eu", ".KL": "eu", ".MY": "eu", ".NS": "eu", ".AX": "eu",
-    ".CA": "eu", ".TO": "eu",
-    ".SS": "asia", ".US": "us", "": "us",
+    ".AS": "eu",
+    ".US": "us", "": "us", ".TO": "us", ".CA": "us",
 }
+
+# ticker 后缀 → 国家/地区码（entry_market 的国家层；显式注册国家优先）
+_COUNTRY_OF = {
+    ".SS": "CN", ".SZ": "CN", ".HK": "HK", ".TW": "TW",
+    ".T": "JP", ".JP": "JP",
+    ".KS": "KR", ".KQ": "KR",
+    ".KL": "MY", ".MY": "MY",
+    ".L": "GB", ".PA": "FR", ".DE": "DE", ".ST": "SE", ".OL": "NO",
+    ".MI": "IT", ".MC": "ES", ".AS": "NL", ".HE": "FI",
+    ".TO": "CA", ".CA": "CA",
+    ".US": "US", "": "US",
+}
+
+
+def _norm_quote(ticker: str) -> str:
+    try:
+        return build_ticker_runtime(ticker or "").quote_ticker
+    except Exception:
+        return ""
 
 
 def _market_of(ticker: str) -> str:
     """ticker → 市场（us/asia/eu）。先规范化到点号后缀（处理 legacy "002487 CH"、多 ticker），按首上市地归属。"""
-    try:
-        norm = build_ticker_runtime(ticker or "").quote_ticker
-    except Exception:
-        norm = ""
+    norm = _norm_quote(ticker)
     if not norm:
         return ""  # 占位（private / IPO pending）→ 不归属任何市场
     for suffix, mkt in _MARKET_OF.items():
         if suffix and norm.endswith(suffix):
             return mkt
     return "us"
+
+
+def _country_of(ticker: str) -> str:
+    """ticker → 国家/地区码（US/CA/GB/...）。占位/无法识别返回 ''（走显式注册国家兜底）。"""
+    norm = _norm_quote(ticker)
+    if not norm:
+        return ""
+    for suffix, code in _COUNTRY_OF.items():
+        if suffix and norm.endswith(suffix):
+            return code
+    return "US"
 
 
 def entry_market(entry: CoverageEntry) -> str:
@@ -49,31 +76,42 @@ def entry_market(entry: CoverageEntry) -> str:
     return _market_of(entry.ticker or "")
 
 
-def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[CoverageEntry]:
-    """前端区块（Candidates/Movers/Core Watch）过滤：只显示本 report_type 所属市场（刚收盘市场）。
+def entry_country(entry: CoverageEntry) -> str:
+    """公司上市国家/地区码（US/CA/GB/...）。注册时显式记录的国家码优先，
+    否则按首上市地 ticker 后缀推断（见 _COUNTRY_OF）。"""
+    c = normalize_country(getattr(entry, "country", ""))
+    if c:
+        return c
+    return _country_of(entry.ticker or "")
 
-    us=美股盘后→只美股；asia=亚盘盘后→只亚市；eu=欧盘盘后→只欧股。
+
+def filter_entries(entries: list[CoverageEntry], report_type: str) -> list[CoverageEntry]:
+    """前端区块（Candidates/Movers/Core Watch）过滤：只显示刚收盘市场。
+
+    us=欧美盘后（早上看，美股+欧盘都在睡觉期间收盘）→ 前端显 us+eu；
+    asia=亚盘盘后 → 只亚市；eu=欧盘盘后（手动，不再定时）→ 只欧股。
     am（亚洲盘前全量，legacy）→ 全量。
     Universe / Review Queue 是全量视图，不走本函数（调用处直接用完整 entries）。
     """
     if report_type == "am":
         return entries
     if report_type == "us":
-        return [e for e in entries if entry_market(e) == "us"]
+        return [e for e in entries if entry_market(e) in ("us", "eu")]
     return [e for e in entries if entry_market(e) == report_type]
 
 
 # 日报顶部作用域说明：各报表对应的"刚收盘市场"称呼
-_SCOPE_MKT = {"us": "美股", "asia": "亚盘", "eu": "欧股"}
+_SCOPE_MKT = {"us": "美股+欧盘", "asia": "亚盘", "eu": "欧盘"}
 
 
 def scope_note(report_type: str, front_sections: str = "Movers / Core Watch") -> str:
-    """日报顶部可见说明：顶部区块只列本市场，估值表/财报队列列全市场。"""
+    """日报顶部可见说明：顶部区块只列刚收盘市场，估值表/财报队列列全市场。"""
     if report_type == "am":
         return "本报告为全量视图：所有区块覆盖所有市场。"
     mkt = _SCOPE_MKT.get(report_type, report_type)
     return (f"本报告 = {mkt} 盘后。{front_sections} 仅覆盖 {mkt}；"
-            f"Valuation Universe / Review Queue 覆盖所有市场。")
+            f"Valuation Universe / Review Queue 覆盖所有市场"
+            f"（网页版含全局市场筛选器，可切换查看所有区块）。")
 
 
 _ZH_SUFFIXES = (".SS", ".SZ", ".SH", ".HK", ".TW", ".TT", ".CN")
@@ -216,7 +254,7 @@ def render_brief_markdown(
     review_map = review_map or {}
 
     # ── 头部 ──
-    rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    rt_label = {"us": "欧美盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     lines.append(f"# Daily Brief · {today}（{rt_label}）")
     lines.append("")
     lines.append(f"> 作用域：{scope_note(report_type)}")

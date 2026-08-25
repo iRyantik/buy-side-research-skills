@@ -1,5 +1,6 @@
 #!/bin/bash
-# 日报三时点自动触发（macOS launchd）：07:45 盘前 / 16:15 亚盘 / 23:45 欧盘
+# 日报两时点自动触发（macOS launchd）：07:45 欧美盘后(us=美+欧) / 16:15 亚盘盘后(asia)
+# 欧盘异动并入次早 us 邮件（23:45 eu 时点已废弃）
 # 用法：bash install_launchd.sh
 set -e
 
@@ -49,6 +50,5 @@ EOF
 
 install_one us 7 45 "1 2 3 4 5 6"
 install_one asia 16 15 "1 2 3 4 5"
-install_one eu 23 45 "1 2 3 4 5"
 echo ""
 echo "日志：$LOG_DIR/cron-*.log"

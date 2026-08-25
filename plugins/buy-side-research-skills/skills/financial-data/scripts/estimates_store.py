@@ -70,9 +70,14 @@ def _now() -> str:
 
 
 def fmp_consensus(ticker: str, key: str, limit: int = 4) -> list | None:
-    """FMP analyst-estimates → 映射后的 periods 列表；失败/空返回 None。"""
+    """FMP analyst-estimates → 映射后的 periods 列表；失败/空返回 None。
+
+    FMP 美股 symbol 是裸码（KEYS），不接受直通后缀（KEYS.US → 空结果）；
+    非美股必须带后缀（012450.KS）。这里对 .US 做归一化，其余原样。
+    """
+    sym = ticker[:-3] if ticker.endswith(".US") else ticker
     url = ("https://financialmodelingprep.com/stable/analyst-estimates"
-           f"?symbol={urllib.parse.quote(ticker)}&period=annual&limit={limit}&apikey={key}")
+           f"?symbol={urllib.parse.quote(sym)}&period=annual&limit={limit}&apikey={key}")
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "estimates-store/1.0"})
         with urllib.request.urlopen(req, timeout=25) as r:
