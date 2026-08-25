@@ -205,8 +205,8 @@ def _industry_card_v2(industry: str, sec: dict, emails: dict) -> str:
                 body = item.get("summary")
             if not body:
                 continue  # 无内容的行业面行不渲染空行
-            blocks.append(f"<div class='line'><div class='line-main'>· {_e(str(body))}</div>"
-                          f"<div class='line-links'>{src}</div></div>")
+            blocks.append(f"<div class='m-line'><span class='m-cell'>· {_e(str(body))}</span>"
+                          f"<span class='m-cell m-end'>{src}</span></div>")
     if sec["company"]:
         blocks.append("<div class='small grouplabel'>公司变化</div>")
         for item in sec["company"]:
@@ -220,8 +220,8 @@ def _industry_card_v2(industry: str, sec: dict, emails: dict) -> str:
             if str(body or "").startswith("首次出现"):
                 body = item.get("summary")
             brief = _e(str(body or ""))
-            blocks.append(f"<div class='line'><div class='line-main'>· {tick} {_st}{core} {brief}</div>"
-                          f"<div class='line-links'>{src}</div></div>")
+            blocks.append(f"<div class='m-line'><span class='m-cell'>· {tick} {_st}{core} {brief}</span>"
+                          f"<span class='m-cell m-end'>{src}</span></div>")
     if sec["meeting"]:
         blocks.append("<div class='small grouplabel'>会议</div>")
         for m in sec["meeting"]:
@@ -240,8 +240,10 @@ def _company_card_v2(item: dict, emails: dict, meeting: dict | None, light: bool
     src = _links_group(item.get("_email_ids", []), emails)
     summary = _e(str(item.get("summary") or item.get("what_changed") or ""))
     meeting_block = _meeting_line_v2(meeting, emails) if meeting else ""
-    return (f"<div class='card ind-card'><div class='card-title'><b>{_e(name)}</b> {st}{core} "
-            f"<span style='float:right'>{src}</span></div><div class='txt'>{summary}</div>"
+    return (f"<div class='card ind-card'>"
+            f"<div class='m-line'><span class='m-cell'><b>{_e(name)}</b> {st}{core}</span>"
+            f"<span class='m-cell m-end'>{src}</span></div>"
+            f"<div class='m-line'><span class='m-cell'>{summary}</span><span class='m-cell'></span></div>"
             f"{meeting_block}</div>")
 
 
@@ -257,8 +259,8 @@ def _wyt_rows_v2(items: list, emails: dict) -> str:
         body = _e(str(item.get("summary") or item.get("what_changed")))
         rows.append(
             f"<div class='wyt-row'><div class='wyt-head'>{seq[i]} {_e(name)}</div>"
-            f"<div class='line'><div class='line-main'>{body}</div>"
-            f"<div class='line-links'>{src}</div></div></div>")
+            f"<div class='m-line'><span class='m-cell'>{body}</span>"
+            f"<span class='m-cell m-end'>{src}</span></div></div>")
     return "<div class='card'>" + "<hr class='sep'>".join(rows) + "</div>"
 
 
