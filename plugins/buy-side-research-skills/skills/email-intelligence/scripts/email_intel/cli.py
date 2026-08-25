@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from datetime import datetime
+import zoneinfo
 from pathlib import Path
 
 from .ai_review import review_batch
@@ -53,7 +54,8 @@ def _archive_reviews(workspace: Path, now: datetime, fresh: list, raw: list, nor
 
 def review(base: str, workspace: Path, dry_run: bool = False, all_: bool = False,
            send: bool = True) -> int:
-    now = datetime.now().astimezone()
+    # 报告时区配置化（REPORT_TZ env / 默认 Asia/Shanghai 东八）——不依赖运行机（Mac/UTC-7 vs 东八）
+    now = datetime.now(zoneinfo.ZoneInfo(os.environ.get("REPORT_TZ") or "Asia/Shanghai"))
     emails = scan_email_dirs(base)
     if not emails:
         print(f"no emails found: {base}")
