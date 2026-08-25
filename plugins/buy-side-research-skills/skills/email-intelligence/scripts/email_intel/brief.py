@@ -237,10 +237,13 @@ def _company_card_v2(item: dict, emails: dict, meeting: dict | None, light: bool
     name = item.get("company") or _company_text(item)
     if item.get("ticker"):
         name = f"{name} ({item['ticker']})"
+    tier = item.get("coverage_status") or ""
+    st = _status_pill(tier) if tier else ""
+    core = "<span class='core-pill'>Core</span>" if tier in ("Modeled", "Thesis") else ""
     src = _links_group(item.get("_email_ids", []), emails)
     summary = _e(str(item.get("summary") or item.get("what_changed") or ""))
     meeting_block = _meeting_line_v2(meeting, emails) if meeting else ""
-    return (f"<div class='card ind-card'><div class='card-title'><b>{_e(name)}</b> "
+    return (f"<div class='card ind-card'><div class='card-title'><b>{_e(name)}</b> {st}{core} "
             f"<span style='float:right'>{src}</span></div><div class='txt'>{summary}</div>"
             f"{meeting_block}</div>")
 
