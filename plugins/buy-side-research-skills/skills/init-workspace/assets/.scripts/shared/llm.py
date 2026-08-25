@@ -118,3 +118,67 @@ def chat_json(prompt: str, workspace: Path | None = None, **kwargs):
         return json.loads(match.group(0))
     except json.JSONDecodeError as exc:
         raise LLMError(f"JSON decode failed: {exc} | tail: {raw[-160:]}")
+
+
+class Session:
+    """多轮会话：system 一次 + messages 累积，turn() 逐轮发请求。
+
+    coverage 恒定为 system（物理只付一次——不是 0.1x 缓存，是根本没重复那份）。
+    每封邮件一 turn，模型在会话里记住前面邮件——跨封增量/去重更准。
+    历史由调用方通过 set_messages() 裁剪（事件板压缩），防上下文随轮次无限增长。
+    """
+
+    def __init__(self, workspace: Path | None = None, system: str | None = None,
+                 temperature: float = 0.1, timeout: int = 180):
+        self.cfg = config(workspace)
+        self.system = system
+        self.temperature = temperature
+        self.timeout = timeout
+        self.messages: list = []          # 不含 system；system 为顶层字段
+
+    def turn(self, prompt: str, images: list | None = None,
+             max_tokens: int = 8192, timeout: int | None = None) -> str | None:
+        """发一轮（1 封邮件）：返回 assistant 文本；失败 None（调用方降级）。"""
+        if not self.cfg["api_key"]:
+            return None
+        content: list = [{"type": "text", "text": prompt}]
+        for img in images or []:
+            content.append({"type": "image", "source": {
+                "type": "base64", "media_type": img.get("media_type", "image/png"),
+                "data": img.get("data", "")}})
+        msgs = self.messages + [{"role": "user", "content": content}]
+        payload = {
+            "model": self.cfg["model"],
+            "messages": msgs,
+            "max_tokens": max_tokens,
+            "temperature": self.temperature,
+        }
+        if self.system:
+            payload["system"] = self.system
+        request = urllib.request.Request(
+            f"{self.cfg['api_base']}/messages",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {self.cfg['api_key']}",
+                     "anthropic-version": "2023-06-01"},
+            method="POST",
+        )
+        for _attempt in range(RETRIES + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=timeout or self.timeout) as response:
+                    data = json.loads(response.read(6_000_000).decode("utf-8"))
+                out = "".join(b.get("text", "") for b in data.get("content", [])) or ""
+                self.messages.append({"role": "user", "content": prompt})
+                self.messages.append({"role": "assistant", "content": out})
+                return out
+            except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+                continue
+        return None
+
+    def set_messages(self, msgs: list) -> None:
+        """事件板压缩：由调用方裁剪历史（丢原始输出，保近 N 轮 + 事件板摘要）。"""
+        self.messages = list(msgs)
+
+    @property
+    def size(self) -> int:
+        return len(self.messages)

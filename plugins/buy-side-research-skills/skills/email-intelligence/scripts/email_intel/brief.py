@@ -93,19 +93,31 @@ def _company_text(e) -> str:
     return e.get("company") or e.get("ticker") or (e.get("industry") or "Signal")
 
 
+_BROKER_MAP = {
+    # 发件券商域 → 机构名（broker 配对）
+    "ubs.com": "UBS", "bernsteinsg.com": "Bernstein", "morganstanley.com": "Morgan Stanley",
+    "jefferies.com": "Jefferies", "nomura.com": "Nomura", "bofa.com": "BofA", "citi.com": "Citi",
+    "mailservice.cjsc.com.cn": "长江证券", "cjsc.com.cn": "长江证券", "cjsc.com.hk": "长江证券",
+    "guangfa.com.cn": "广发证券", "gfgroup.com.hk": "广发证券",
+    "gs.com": "Goldman Sachs", "mail.marquee.gs.com": "Goldman Sachs", "alerts.publishing.gs.com": "Goldman Sachs",
+    "clsa.com": "CLSA", "research.meritco-group.com": "久谦", "meritco-group.com": "久谦",
+    "thirdbridge.com": "Third Bridge", "eci.com": "ECI", "newsletter.cioe.cn": "CIOE",
+}
+
+
 def _broker_label(sender: str, broker: str = "") -> str:
-    """机构名：优先取 deep 提取的 broker 字段；缺失则 sender 域小规则兜底（不做大映射）。"""
+    """机构名：优先 deep 提取的 broker 字段；缺失则 sender 域精确配对（+子域兜底）。"""
     if broker:
         return broker.strip()
     s = (sender or "").strip()
     if "@" not in s:
         return s
     d = s.rsplit("@", 1)[1].lower()
-    for suf, name in (("guangfa", "广发证券"), ("cjsc", "长江证券"), ("jefferies", "Jefferies"),
-                      ("ubs.com", "UBS"), ("nomura", "Nomura"), ("morganstanley", "Morgan Stanley"),
-                      ("bernstein", "Bernstein"), ("meritco", "久谦")):
-        if suf in d:
-            return name
+    if d in _BROKER_MAP:
+        return _BROKER_MAP[d]
+    parts = d.split(".")
+    if len(parts) > 2 and ".".join(parts[-2:]) in _BROKER_MAP:
+        return _BROKER_MAP[".".join(parts[-2:])]
     return s
 
 
@@ -124,8 +136,8 @@ def _links_group(source_ids: list, emails: dict) -> str:
 
 
 def _status_pill(tier: str) -> str:
-    cls = {"Modeled": "st-modeled", "Quickread": "st-quickread",
-           "Screened": "st-screened", "Thesis": "st-modeled"}.get(tier or "", "st-screened")
+    cls = {"Modeled": "st-modeled", "Quickread": "st-quickread", "Screened": "st-screened",
+           "Uncovered": "st-uncovered", "Thesis": "st-modeled"}.get(tier or "", "st-screened")
     return f"<span class='st {cls}'>{_e(tier or 'Screened')}</span>"
 
 
@@ -135,10 +147,10 @@ def _meeting_line_v2(m: dict, emails: dict, embed: bool = False) -> str:
     em = emails.get(str(m.get("_email_id") or ""))
     reg = str(m.get("registration") or "")
     org = _e(_broker_label(em.sender, getattr(em, 'broker', ''))) if em else ''
+    # 标题链接：仅当有真实报名链接才可点；没有就不 fallback（保持纯文本）
     if reg.startswith("http"):
         link_title = f"<a class='src' style='font-weight:800;color:#2563eb' href='{_e(reg)}'>{_e(title)}</a>"
     else:
-        # 无报名链接 → 纯文本标题（不渲染 href='#' 死链接）
         link_title = f"<span style='font-weight:800;color:#2563eb'>{_e(title)}</span>"
     extra = " · ".join(x for x in [m.get("format") or "", m.get("language") or "",
                                    ("限 " + str(m["seats_limit"])) if m.get("seats_limit") else ""] if x)
@@ -272,9 +284,9 @@ def render_email_markdown(emails: list[Email], reviews: list[dict], now_label: s
         _b = _r.get("broker")
         if _b and _r.get("_email_id"):
             _broker_by_email.setdefault(_r["_email_id"], _b)
-    for _e in emails:
+    for _em in emails:
         try:
-            _e.broker = _broker_by_email.get(_e.key, "")
+            _em.broker = _broker_by_email.get(_em.key, "")
         except Exception:
             pass
     items = _merge_items(reviews)
@@ -378,9 +390,9 @@ def render_brief_html_v2(emails: list, reviews: list, now_label: str, window_lab
         _b = _r.get("broker")
         if _b and _r.get("_email_id"):
             _broker_by_email.setdefault(_r["_email_id"], _b)
-    for _e in emails:
+    for _em in emails:
         try:
-            _e.broker = _broker_by_email.get(_e.key, "")
+            _em.broker = _broker_by_email.get(_em.key, "")
         except Exception:
             pass
     items = _merge_items(reviews)
@@ -428,10 +440,10 @@ def render_brief_html_v2(emails: list, reviews: list, now_label: str, window_lab
         by_date: dict[str, list] = {}
         for m in kept:
             by_date.setdefault(str(m.get("date") or "TBD"), []).append(m)
-        for d in sorted(by_date):
-            blocks.append(f"<div class='small grouplabel' style='font-weight:800;color:#132238'>{_e(d)}</div>")
+        for date_key in sorted(by_date):
+            blocks.append(f"<div class='small grouplabel' style='font-weight:800;color:#132238'>{str(date_key)}</div>")
             blocks.append("<div class='indust-grid cols-4' style='gap:10px'>")
-            for m in by_date[d]:
+            for m in by_date[date_key]:
                 blocks.append("<div class='card ind-card'>" + _meeting_line_v2(m, email_by_id) + "</div>")
             blocks.append("</div>")
     blocks.append(f"<div class='small'>共 {len(meetings)} 场 · 已过滤 {len(filtered)} 场（行业不相关/无价值）· "
@@ -484,9 +496,9 @@ def render_brief_html(emails: list, reviews: list, now_label: str, window_label:
         _b = _r.get("broker")
         if _b and _r.get("_email_id"):
             _broker_by_email.setdefault(_r["_email_id"], _b)
-    for _e in emails:
+    for _em in emails:
         try:
-            _e.broker = _broker_by_email.get(_e.key, "")
+            _em.broker = _broker_by_email.get(_em.key, "")
         except Exception:
             pass
     items = _merge_items(reviews)
@@ -609,9 +621,9 @@ def render_panel_html_v2(emails: list, reviews: list, now_label: str, window_lab
         _b = _r.get("broker")
         if _b and _r.get("_email_id"):
             _broker_by_email.setdefault(_r["_email_id"], _b)
-    for _e in emails:
+    for _em in emails:
         try:
-            _e.broker = _broker_by_email.get(_e.key, "")
+            _em.broker = _broker_by_email.get(_em.key, "")
         except Exception:
             pass
     items = _merge_items(reviews)
