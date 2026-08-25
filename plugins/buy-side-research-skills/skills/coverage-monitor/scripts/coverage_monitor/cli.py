@@ -693,7 +693,7 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     except Exception:
         pass
 
-    from .brief import render_brief_markdown
+    from .brief import render_brief_markdown, filter_entries
     from .brief_html import render_brief_html
     from .mover_review import review_movers
 
@@ -734,9 +734,12 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     stem = f"{run_day.replace('-', '')}-brief-{report_type}"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
-    _mkt = {"us": "US Post-Market", "asia": "Asia Close", "eu": "Europe Close"}.get(report_type, report_type)
+    _mkt = {"us": "欧美盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    # 邮件正文 = 报告口径（us 报告=美股+欧盘），与 HTML 附件前端区块一致；
+    # 全市场 Universe/Review Queue 只存在于附件，正文列表用收盘市场，避免"主题说欧美早盘、正文列亚盘异动"。
+    body_entries = filter_entries(entries, report_type)
     email_body = render_email_body(
-        entries, snapshots, run_day,
+        body_entries, snapshots, run_day,
         mover_explainers, core_watch_summaries, industry_summaries, gaps,
         review_map=review_map, news_map=merged_company_news,
     )
@@ -747,7 +750,7 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     )
     delivery_gaps.extend(
         send_email(
-            f"Daily Coverage Brief — {_mkt} ({run_day})",
+            f"[{_mkt}] Daily Coverage Brief — {run_day}",
             email_body, email_body_html,
             env=workspace_env(workspace),
             attachments=[html_path],

@@ -7,11 +7,12 @@
 from __future__ import annotations
 
 import html as _h
+import json
 from typing import Any
 
 from .coverage import CoverageEntry
 from .candidates import score_candidates
-from .brief import _display_name, _fwd_ntm_pe, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary, scope_note, entry_market
+from .brief import _display_name, _fwd_ntm_pe, _fmt_pct, _fmt_price, _fmt_cap, filter_entries, _universe_sorted, _STATUS_ORDER, _health_summary, scope_note, entry_market, entry_country
 from .news import pick_lead_news, protect_names, tag_news_title, translate_zh
 from .valuation import fmt_cell, fwd_extra, rich_class
 
@@ -35,7 +36,7 @@ h2{margin:0;font-size:18px;letter-spacing:-.03em}
 .table-card{overflow-x:auto;overflow-y:auto;max-height:72vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:0 14px 44px rgba(15,23,42,.07)}
 /* 邮件版表格：完整展开（邮件客户端容器滚动不可靠），页面滚动查看 */
 .email-flat{max-height:none!important;overflow:visible!important}
-.table-card table{min-width:1100px;width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.table-card table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 .table-card th,.table-card td{overflow-wrap:anywhere}
 .table-card td:first-child,.table-card th:first-child{min-width:92px}
 .table-card td:nth-child(2),.table-card th:nth-child(2){min-width:110px}
@@ -105,6 +106,14 @@ ul{margin:10px 0 0;padding-left:18px;color:#334155;line-height:1.7}
 .health-line{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.9);padding:14px 18px;font-size:14px;font-weight:700}
 /* 日报顶部作用域说明：前端=收盘市场，Universe/Review Queue=全量 */
 .scope-note{color:var(--muted);font-size:12px;line-height:1.65;border-left:3px solid var(--blue);background:rgba(37,99,235,.05);padding:8px 12px;margin:12px 0 0;border-radius:0 10px 10px 0}
+/* 全局市场筛选器：toggle 按钮组（网页版；邮件版无 JS 不显示） */
+.mkt-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px;padding:6px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.9)}
+.mkt-filter-label{color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.mkt-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.mkt-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.mkt-country-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 4px;padding:4px 12px 6px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.85)}
+.mkt-country{padding:3px 10px;font-size:11px;font-weight:700}
+.mkt-country-clear{padding:3px 10px;font-size:11px;font-weight:700;border-color:var(--line);color:var(--muted);background:transparent;border-radius:999px;cursor:pointer;font-family:inherit}
 /* Research Candidates：信号卡片（分数徽章 + 信号胶囊 + 新闻锚点） */
 .cand-note{color:var(--muted);font-size:11.5px;margin:2px 0 10px}
 .cand-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 14px 44px rgba(15,23,42,.08);padding:12px}
@@ -280,9 +289,11 @@ def render_brief_html(
     #   - Valuation Universe → 全量（entries）：估值参考表跨市场
     #   - Data Health        → 全局（gaps，本身跨市场，不做市场过滤）
     ents = filter_entries(entries, report_type)
-    rt_label = {"us": "美股盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    rt_label = {"us": "欧美盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
     # 顶部作用域说明（前端=收盘市场，Universe/Review Queue=全量）
     _scope = scope_note(report_type, "Candidates / Movers / Core Watch")
+    # 筛选器默认市场集：us 报告=美股+欧盘；asia=亚盘；eu=欧盘；am=全部
+    _filter_default = {"us": ["us", "eu"], "asia": ["asia"], "eu": ["eu"], "am": ["us", "asia", "eu"]}.get(report_type, ["us", "eu"])
     core_count = sum(1 for e in ents if e.monitor_status == "Core")
     review_map = review_map or {}
     _protect = protect_names(entries)
@@ -294,7 +305,7 @@ def render_brief_html(
         # Universe 全量（所有市场估值参考表）
         for e in _universe_sorted(entries, snapshots):
             if e.industry != last_ind:
-                rows.append(f'<tr class="industry-row"><td colspan="14">{_h.escape(e.industry or "Other")}</td></tr>')
+                rows.append(f'<tr class="industry-row" data-market="all"><td colspan="12">{_h.escape(e.industry or "Other")}</td></tr>')
                 last_ind = e.industry
             snap = snapshots.get(e.ticker or e.company, {})
             vrow = snap.get("valuation") or {}
@@ -315,7 +326,7 @@ def render_brief_html(
                 return f'<td class="{m_cls}{_ret_class(v)}">{_t}</td>'
 
             rows.append(
-                "<tr>"
+                f"<tr data-market='{entry_market(e)}' data-country='{entry_country(e)}'>"
                 f"<td>{_h.escape(_display_name(e))}</td>"
                 f"<td class='m'>{_h.escape(e.ticker or '')}</td>"
                 f"<td class='m'>{_h.escape(e.industry or '—')}</td>"
@@ -335,10 +346,15 @@ def render_brief_html(
     uni_rows = _uni_rows_html(False)
 
     # ── Movers ──
+    # 报告口径（email / hero 统计）：本报告收盘市场；网页版全量（筛选器控制显示）
     movers = [(e, snapshots.get(e.ticker or e.company, {})) for e in ents
               if snapshots.get(e.ticker or e.company, {}).get("price_move_pct") is not None]
     important = [(e, s) for e, s in movers if abs(float(s["price_move_pct"])) >= 8]
     minor = [(e, s) for e, s in movers if 5 <= abs(float(s["price_move_pct"])) < 8]
+    movers_all = [(e, snapshots.get(e.ticker or e.company, {})) for e in entries
+                  if snapshots.get(e.ticker or e.company, {}).get("price_move_pct") is not None]
+    important_all = [(e, s) for e, s in movers_all if abs(float(s["price_move_pct"])) >= 8]
+    minor_all = [(e, s) for e, s in movers_all if 5 <= abs(float(s["price_move_pct"])) < 8]
 
     def _mover_card(e: CoverageEntry, s: dict, imp: bool) -> str:
         vrow = s.get("valuation") or {}
@@ -357,7 +373,7 @@ def render_brief_html(
                 det = (f"<div class='mover-detail'><a href='{_h.escape(items[0].url or '#')}' target='_blank'>"
                        f"{_h.escape(items[0].title[:80])}</a></div>")
         return (
-            f"<div class='mover-card {'important' if imp else 'minor'}'>"
+            f"<div class='mover-card {'important' if imp else 'minor'}' data-market='{entry_market(e)}' data-country='{entry_country(e)}'>"
             f"<div class='core-title-line'><div class='core-title-left'>"
             f"<span class='core-ticker'>{_h.escape(e.ticker or '')}</span>"
             f"<span class='core-name'>{_h.escape(_display_name(e))}</span>"
@@ -374,17 +390,20 @@ def render_brief_html(
         )
 
     mover_html = ""
-    if important:
-        mover_html += f"<div class='section-head'><h2>重要（±8%）</h2></div><div class='grid-2'>" + "".join(
-            _mover_card(e, s, True) for e, s in important) + "</div>"
-    if minor:
-        mover_html += f"<div class='section-head'><h2>普通（±5%）</h2></div><div class='grid-3'>" + "".join(
-            _mover_card(e, s, False) for e, s in minor) + "</div>"
-    if not important and not minor:
-        mover_html = "<div class='health-line'>无 ±5% 异动。</div>"
+    if important_all:
+        mover_html += (f"<div class='section-head' data-mkt-group='important'><h2>重要（±8%）</h2></div>"
+                       f"<div class='grid-2'>" + "".join(
+            _mover_card(e, s, True) for e, s in important_all) + "</div>")
+    if minor_all:
+        mover_html += (f"<div class='section-head' data-mkt-group='minor'><h2>普通（±5%）</h2></div>"
+                       f"<div class='grid-3'>" + "".join(
+            _mover_card(e, s, False) for e, s in minor_all) + "</div>")
+    # 空态行固定存在，JS 按当前筛选切换显示（全市场无异动时也会显示）
 
     # ── Research Candidates：数据信号驱动的研究优先级（Movers 后）──
+    # 报告口径（邮件）：收盘市场；网页版全量（筛选器控制显示）
     cands = score_candidates(ents, snapshots, news_map, today)
+    cands_web = score_candidates(entries, snapshots, news_map, today)
 
     def _cand_pill(text: str, email_mode: bool) -> str:
         """信号胶囊：按信号类型染色（异动跟涨跌、低估绿、贵红、财报蓝、新闻琥珀、放量灰）。"""
@@ -407,11 +426,13 @@ def render_brief_html(
                     f"font-size:11px;color:{color};background:{bg};margin:0 4px 4px 0'>{_h.escape(text)}</span>")
         return (f"<span class='cand-pill' style='color:{color};background:{bg}'>{_h.escape(text)}</span>")
 
-    def _cands_html(email_mode: bool) -> str:
-        if not cands:
-            return "<div class='health-line'>今日无强信号标的。</div>"
+    def _cands_html(email_mode: bool, data: list) -> str:
+        if not data:
+            if email_mode:
+                return "<div class='health-line'>今日无强信号标的。</div>"
+            return ""  # 网页空态由 [data-mkt-empty='cand'] JS 行控制
         cards = []
-        for c in cands:
+        for c in data:
             e = c["entry"]
             pills = "".join(_cand_pill(t, email_mode) for _, t in c["signals"])
             news = ""
@@ -430,7 +451,7 @@ def render_brief_html(
                     + "</div>")
             else:
                 cards.append(
-                    f"<div class='cand-card'>"
+                    f"<div class='cand-card' data-market='{entry_market(e)}' data-country='{entry_country(e)}'>"
                     f"<div class='cand-head'><span class='cand-score'>{c['score']}</span>"
                     f"<b>{_h.escape(_display_name(e))}</b> "
                     f"<span class='cand-ticker'>{_h.escape(e.ticker or '')}</span></div>"
@@ -443,7 +464,10 @@ def render_brief_html(
 
     # ── Core Watch：按行业分组（组内 Status 核心到边缘 + 财报临近置顶，组间公司数降序）──
     core_html = ""
-    core_ents = [e for e in ents if e.monitor_status == "Core"]
+    # Core Watch 渲染全量 Core 名单（所有市场），市场显示由全局筛选器 JS 控制；
+    # 默认筛选集 = 本报告收盘市场，视觉与旧"只渲染收盘市场"一致。
+    core_ents = [e for e in entries if e.monitor_status == "Core"]
+    core_ents_report = [e for e in ents if e.monitor_status == "Core"]  # email 口径
 
     def _core_key(e):
         _snap = snapshots.get(e.ticker or e.company, {})
@@ -485,7 +509,7 @@ def render_brief_html(
         bubbles = [b for b in bubbles if b]
         val_line = f"<div class='core-valuation'>{''.join(bubbles)}</div>" if bubbles else ""
         return (
-            f"<div class='core-watch-card'><div class='core-title-line'><div class='core-title-left'>"
+            f"<div class='core-watch-card' data-market='{entry_market(e)}' data-country='{entry_country(e)}'><div class='core-title-line'><div class='core-title-left'>"
             f"<span class='core-ticker'>{_h.escape(e.ticker or '')}</span>"
             f"<span class='core-name'>{_h.escape(_display_name(e))}</span>"
             f"<span class='pill status {str(e.coverage_status or '').lower()}'>{_h.escape(e.coverage_status or '')}</span>"
@@ -503,12 +527,17 @@ def render_brief_html(
     groups: dict[str, list] = {}
     for e in core_ents:
         groups.setdefault(e.industry or "Other", []).append(e)
-    for ind in sorted(groups, key=lambda k: -len(groups[k])):
+    def _group_key(ind):
+        # 组序按默认筛选集的可见数排（与旧"只渲染收盘市场"的组序一致）
+        _vis = sum(1 for e in groups[ind] if entry_market(e) in _filter_default)
+        return (-_vis, ind)
+
+    for ind in sorted(groups, key=_group_key):
         ents_sorted = sorted(groups[ind], key=_core_key)
         cards = "".join(_core_card(e) for e in ents_sorted)
         core_html += (f"<details class='industry-group' open>"
                       f"<summary><span class='ig-name'>{_h.escape(ind)}</span>"
-                      f"<span class='ig-count'>{len(ents_sorted)} 家</span></summary>"
+                      f"<span class='ig-count' data-total='{len(ents_sorted)}'>{len(ents_sorted)} 家</span></summary>"
                       f"<div class='grid-2'>{cards}</div></details>")
     if not groups:
         core_html = "<div class='health-line'>无 Core 名单。</div>"
@@ -530,7 +559,7 @@ def render_brief_html(
                 pass
     rq_entries.sort(key=lambda x: x[0])  # 财报日从近到远
     rq_rows = "".join(
-        f"<tr><td>财报</td><td>{_h.escape(_display_name(e))}</td>"
+        f"<tr data-market='{entry_market(e)}' data-country='{entry_country(e)}'><td>财报</td><td>{_h.escape(_display_name(e))}</td>"
         f"<td>{_h.escape(e.ticker or '')}</td>"
         f"<td>{_h.escape(e.coverage_status or '—')}</td>"
         f"<td>~{days} 天后（{nd}）</td></tr>"
@@ -541,13 +570,15 @@ def render_brief_html(
     if rq_mid:
         rq_mid.sort(key=lambda x: x[0])
         mid_rows = "".join(
-            f"<tr><td>财报</td><td>{_h.escape(_display_name(e))}</td>"
+            f"<tr data-market='{entry_market(e)}' data-country='{entry_country(e)}'><td>财报</td><td>{_h.escape(_display_name(e))}</td>"
             f"<td>{_h.escape(e.ticker or '')}</td>"
             f"<td>{_h.escape(e.coverage_status or '—')}</td>"
             f"<td>~{days} 天后（{nd}）</td></tr>"
             for days, nd, e in rq_mid)
         # 表格内折叠：td colspan 包 details，展开结构与 7 天内一致
-        rq_fold = (f"<tr><td colspan='5'><details><summary>7-30 天财报（{len(rq_mid)} 家）</summary>"
+        # class/marker 供 JS 按筛选同步计数与可见性
+        rq_fold = (f"<tr class='rq-fold'><td colspan='5'><details><summary>7-30 天财报"
+                   f"（<span data-rq-count>{len(rq_mid)}</span> 家）</summary>"
                    f"<table><tbody>{mid_rows}</tbody></table></details></td></tr>")
 
     # ── Data Health ──
@@ -675,7 +706,7 @@ def render_brief_html(
             [_em_mover_card(e, s, False) for e, s in minor])
         if not em_movers:
             em_movers = "<div class='health-line'>无 ±5% 异动。</div>"
-        em_core = "".join(_em_core_card(e) for e in sorted(core_ents, key=_core_key))
+        em_core = "".join(_em_core_card(e) for e in sorted(core_ents_report, key=_core_key))
         if not em_core:
             em_core = "<div class='health-line'>无 Core 名单。</div>"
         body = f"""<!doctype html><html lang="zh-Hans"><head><meta charset="utf-8">
@@ -685,7 +716,7 @@ def render_brief_html(
 <div style="border-left:3px solid #2563eb;background:#f4f8ff;color:#64748b;font-size:12px;line-height:1.65;padding:8px 12px;margin:0 0 18px;border-radius:0 10px 10px 0">{_h.escape(_scope)}</div>
 <div id="candidates" style="margin-bottom:24px"><div class="section-head"><h2>Research Candidates</h2></div>
 <p style='color:#64748b;font-size:11px;margin:2px 0 8px'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
-{_cands_html(True)}</div>
+{_cands_html(True, cands)}</div>
 <div id="movers" style="margin-bottom:24px"><div class="section-head"><h2>Movers</h2></div>{em_movers}</div>
 <div id="core" style="margin-bottom:24px"><div class="section-head"><h2>Core Watch</h2></div>{em_core}</div>
 <div id="review" style="margin-bottom:24px"><div class="section-head"><h2>Review Queue</h2>
@@ -696,6 +727,7 @@ def render_brief_html(
 <p>括号 = 相对 5y 中位%。红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）· fwd = 前瞻假设</p></div>
 <div class="table-card email-flat"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(_uni_rows_html(True))}</tbody></table></div></div>
+<div style="font-size:12px;color:#94a3b8;margin-top:16px;border-top:1px solid #e2e8f0;padding-top:8px">数据来源：FMP（行情/估值快照 {_h.escape(today)}）· 完整面板见附件 · 由 coverage-monitor 生成</div>
 </main></body></html>"""
     else:
         body = f"""
@@ -711,6 +743,14 @@ def render_brief_html(
   <span class="hero-stat">{len(rq_entries)} actions</span>
 </section>
 <div class="scope-note">{_h.escape(_scope)}</div>
+<div class="mkt-filter" id="mktFilter" data-default='{_h.escape(json.dumps(_filter_default, ensure_ascii=False))}'>
+  <span class="mkt-filter-label">市场筛选</span>
+  <button type="button" class="mkt-btn" data-mkt="us">美洲</button>
+  <button type="button" class="mkt-btn" data-mkt="asia">亚洲</button>
+  <button type="button" class="mkt-btn" data-mkt="eu">欧洲</button>
+  <button type="button" class="mkt-btn" id="mktAll">全部</button>
+</div>
+<div class="mkt-country-row" id="countryRow" style="display:none"></div>
 <nav class="tab-nav">
   <a class="tab-button" href="#candidates">Candidates</a>
   <a class="tab-button" href="#movers">Movers</a>
@@ -721,17 +761,124 @@ def render_brief_html(
 </nav>
 <section id="candidates" class="tab-panel"><div class="section-head"><h2>Research Candidates</h2></div>
 <p class='cand-note'>评分：异动 ±8% +2 · ±5% +1 · 深度低估（估值 vs 5y ≤-30%）+2 · 深度贵 +1 · 财报 7 天内 +1 · 重大新闻 +1 · 放量 ≥2x +1 ｜ 总分 ≥3 入选 Top 5</p>
-{_cands_html(False)}</section>
-<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}</section>
+{_cands_html(False, cands_web)}
+<div class='health-line' data-mkt-empty='cand' style='display:none'>当前市场无强信号标的。</div></section>
+<section id="movers" class="tab-panel"><div class="section-head"><h2>Movers</h2></div>{mover_html}
+<div class='health-line' data-mkt-empty='movers' style='display:none'>当前市场无 ±5% 异动。</div></section>
 <section id="core" class="tab-panel"><div class="section-head"><h2>Core Watch</h2></div>{core_html}</section>
 <section id="review" class="tab-panel"><div class="section-head"><h2>Review Queue</h2>
 <p>财报临近（&lt;7 天）。</p></div>
 <div class="table-card"><table><thead><tr><th>触发</th><th>Company</th><th>Ticker</th><th>Status</th><th>触发详情</th></tr></thead>
-<tbody>{rq_rows}{rq_fold}</tbody></table></div></section>
+<tbody>{rq_rows}{rq_fold}<tr class="rq-empty" style="display:none"><td>—</td><td>当前市场无临近财报</td><td>—</td><td>—</td><td>筛选下未来 7 天无财报</td></tr></tbody></table></div></section>
 <section id="universe" class="tab-panel"><div class="section-head"><h2>Valuation Universe</h2>
 <p>括号 = 相对 5y 中位%。红 = 贵（&gt;+30%）· 绿 = 便宜（&lt;-30%）· fwd = 前瞻假设</p></div>
-<div class="table-card"><table><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
+<div class="table-card"><table id="universeTable"><thead><tr><th>Company</th><th class='m'>Ticker</th><th class='m'>Industry</th><th>Today</th><th>1m</th><th>YTD</th><th>1y</th><th>PE_TTM</th><th>PE_NTM</th><th class='m'>Next_Call</th><th class='m'>Status</th><th class='m'>行情时间</th></tr></thead>
 <tbody>{''.join(uni_rows)}</tbody></table></div></section>
 <section id="health" class="tab-panel"><div class="section-head"><h2>Data Health</h2></div>{health}</section>
-</main></body></html>"""
+</main>
+<script>
+(function(){{
+  var active = new Set(JSON.parse(document.getElementById('mktFilter').getAttribute('data-default') || '["us","eu"]'));
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.mkt-btn[data-mkt]'));
+  var allBtn = document.getElementById('mktAll');
+  var countryRow = document.getElementById('countryRow');
+  var selCountries = new Set();
+  var COUNTRY_OF_MKT = {{us:['US','CA'], eu:['GB','FR','DE','SE','NO','FI','IT','ES','NL'], asia:['CN','HK','TW','JP','KR','MY']}};
+  var COUNTRY_LABEL = {{US:'美国',CA:'加拿大',GB:'英国',FR:'法国',DE:'德国',SE:'瑞典',NO:'挪威',FI:'芬兰',IT:'意大利',ES:'西班牙',NL:'荷兰',JP:'日本',KR:'韩国',CN:'中国',HK:'香港',TW:'台湾',MY:'马来西亚'}};
+  function renderCountryChips(){{
+    var mktSet = active.size >= 3 ? ['us','eu','asia'] : Array.from(active);
+    var codes = [];
+    mktSet.forEach(function(m){{ codes = codes.concat(COUNTRY_OF_MKT[m] || []); }});
+    var html = '<span class="mkt-filter-label">国家 / 地区</span>' + codes.map(function(c){{
+      return '<button type="button" class="mkt-btn mkt-country' + (selCountries.has(c) ? ' on' : '') + '" data-country="' + c + '">' + (COUNTRY_LABEL[c] || c) + '</button>';
+    }}).join('') + '<button type="button" class="mkt-country-clear" id="countryClear">清空国家</button>';
+    countryRow.innerHTML = html;
+    countryRow.style.display = codes.length ? '' : 'none';
+    countryRow.querySelectorAll('.mkt-country[data-country]').forEach(function(b){{
+      b.addEventListener('click', function(){{
+        if (selCountries.has(b.dataset.country)) selCountries.delete(b.dataset.country);
+        else selCountries.add(b.dataset.country);
+        renderCountryChips(); apply();
+      }});
+    }});
+    var clear = document.getElementById('countryClear');
+    if (clear) clear.addEventListener('click', function(){{ selCountries.clear(); renderCountryChips(); apply(); }});
+  }}
+  function apply(){{
+    btns.forEach(function(b){{ b.classList.toggle('on', active.has(b.dataset.mkt)); }});
+    allBtn.classList.toggle('on', active.size >= 3);
+    var showAll = active.size >= 3;
+    var countryOk = function(c){{ return selCountries.size === 0 || (c && selCountries.has(c)); }};
+    document.querySelectorAll('[data-market]').forEach(function(el){{
+      if (el.dataset.market === 'all') return;
+      el.style.display = (active.has(el.dataset.market) || showAll) && countryOk(el.dataset.country) ? '' : 'none';
+    }});
+    // 行业分隔行：其区块内无可见公司行则隐藏
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#universeTable tr'));
+    for (var i = 0; i < rows.length; i++){{
+      if (!rows[i].classList.contains('industry-row')) continue;
+      var visible = false;
+      for (var j = i + 1; j < rows.length; j++){{
+        if (rows[j].classList.contains('industry-row')) break;
+        if (rows[j].style.display !== 'none'){{ visible = true; break; }}
+      }}
+      rows[i].style.display = visible ? '' : 'none';
+    }}
+    // Core Watch 行业组：组内无可见卡片则整组隐藏；计数跟随可见数
+    document.querySelectorAll('.industry-group').forEach(function(g){{
+      var vis = 0;
+      g.querySelectorAll('.core-watch-card').forEach(function(c){{ if (c.style.display !== 'none') vis++; }});
+      g.style.display = vis ? '' : 'none';
+      var cnt = g.querySelector('.ig-count');
+      if (cnt) cnt.textContent = vis + ' 家';
+    }});
+    // Movers 分组标题：其网格下无可见卡片则组标题隐藏
+    document.querySelectorAll('[data-mkt-group]').forEach(function(hd){{
+      var box = hd.nextElementSibling;
+      var vis = 0;
+      if (box) box.querySelectorAll('.mover-card').forEach(function(c){{ if (c.style.display !== 'none') vis++; }});
+      hd.style.display = vis ? '' : 'none';
+    }});
+    // 7-30 天折叠行：计数跟随可见行；无可见行则整行隐藏
+    document.querySelectorAll('.rq-fold').forEach(function(f){{
+      var vis = 0;
+      f.querySelectorAll('tbody tr').forEach(function(tr){{ if (tr.style.display !== 'none') vis++; }});
+      var cnt = f.querySelector('[data-rq-count]');
+      if (cnt) cnt.textContent = vis;
+      f.style.display = vis ? '' : 'none';
+    }});
+    // Review Queue 空态行：7 天行 + 折叠行都无可见 → 显示
+    // (rq_empty 行本身无 data-market，不会参与上面的 display 循环)
+    var rqTbl = document.querySelector('#review .table-card');
+    if (rqTbl) {{
+      var visAny = false;
+      rqTbl.querySelectorAll('tbody tr').forEach(function(tr){{
+        if (tr.classList.contains('rq-empty')) return;
+        if (tr.style.display !== 'none') visAny = true;
+      }});
+      var rqEmpty = rqTbl.querySelector('.rq-empty');
+      if (rqEmpty) rqEmpty.style.display = visAny ? 'none' : '';
+    }}
+    // Candidates / Movers 空态行：本筛选下无可见卡 → 显示
+    [['#candidates', '.cand-card'], ['#movers', '.mover-card']].forEach(function(cfg){{
+      var sec = document.querySelector(cfg[0]);
+      var emptyEl = sec ? sec.querySelector('[data-mkt-empty]') : null;
+      if (!emptyEl) return;
+      var vis = 0;
+      sec.querySelectorAll(cfg[1]).forEach(function(c){{ if (c.style.display !== 'none') vis++; }});
+      emptyEl.style.display = vis ? 'none' : '';
+    }});
+  }}
+  btns.forEach(function(b){{
+    b.addEventListener('click', function(){{
+      if (active.has(b.dataset.mkt)) active.delete(b.dataset.mkt); else active.add(b.dataset.mkt);
+      renderCountryChips(); apply();
+    }});
+  }});
+  allBtn.addEventListener('click', function(){{ selCountries.clear(); active = new Set(['us','asia','eu']); renderCountryChips(); apply(); }});
+  renderCountryChips();
+  apply();
+}})();
+</script>
+</body></html>"""
     return body

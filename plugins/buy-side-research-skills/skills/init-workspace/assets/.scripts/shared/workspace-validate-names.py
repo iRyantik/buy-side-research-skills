@@ -18,7 +18,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 CJK_RE = re.compile(r'[一-鿿]')
 # Markets where the directory name must be Chinese (CLAUDE.md §3.3)
-CJK_REQUIRED_MARKETS = {"SH", "SZ", "BJ", "CN", "HK", "TT", "TW"}
+# FMP pass-through suffixes (2026-08+): SS/SZ/HK/TW. Legacy Bloomberg marks retained
+# (SH/SJ/TT/CN) so historical dirs are not mis-flagged.
+CJK_REQUIRED_MARKETS = {"SS", "SZ", "SH", "BJ", "CN", "HK", "TT", "TW"}
 COMPANY_DIR_RE = re.compile(r'^([^.]+)\.([A-Z]{2})-')
 # Exemptions: companies with no registered Chinese name (English-only brand,
 # COVERAGE.md registers them under the English name). Verified 2026-08-20.
