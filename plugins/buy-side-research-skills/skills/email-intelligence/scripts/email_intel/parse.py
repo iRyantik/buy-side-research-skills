@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 
 
 @dataclass
@@ -54,6 +55,9 @@ def _matches(name: str, canonical: str) -> bool:
     return name == canonical or name.endswith(f".{canonical}")
 
 
+_SELF_EMAIL_RE = re.compile(r"Daily Coverage Brief|Email Intelligence Brief", re.I)
+
+
 def scan_email_dirs(base: str | Path) -> list[Email]:
     root = Path(base).expanduser()
     if not root.is_dir():
@@ -90,6 +94,11 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
                 continue
 
         email.subject = email.subject or email.folder
+        # 自有产物回环：Power Automate 会把 coverage-monitor / email-intelligence
+        # 自己发出的邮件（[欧美盘后]/[亚盘盘后] Daily Coverage Brief / Email Intelligence
+        # Brief）也保存进来——不是 sell-side 邮件，不参与 review。
+        if _SELF_EMAIL_RE.search(email.subject or ""):
+            continue
         emails.append(email)
     return emails
 
