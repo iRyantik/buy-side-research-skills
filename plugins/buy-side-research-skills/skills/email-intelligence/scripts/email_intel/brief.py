@@ -105,6 +105,16 @@ _BROKER_MAP = {
 }
 
 
+
+def _norm_time(raw) -> str:
+    """会议时间规范化 → 保留带时区，去掉冗余秒/重复日期。"""
+    t = str(raw or "").strip()
+    if not t:
+        return ""
+    t = re.sub(r"(\d{1,2}):(\d{2}):(\d{2})", r"\1:\2", t)      # 去掉秒 19:00:00→19:00
+    return t
+
+
 def _broker_label(sender: str, broker: str = "") -> str:
     """机构名：优先 deep 提取的 broker 字段；缺失则 sender 域精确配对（+子域兜底）。"""
     if broker:
@@ -169,7 +179,7 @@ def _meeting_line_v2(m: dict, emails: dict, embed: bool = False) -> str:
         parts.append("看点：" + _e("·".join(str(x) for x in list(agenda)[:3])))
     if m.get("host_person"):
         parts.append("主持：" + _e(m["host_person"]))
-    time_s = " · ".join(x for x in [str(m.get("time") or ""), str(m.get("time_end") or "")] if x)
+    time_s = " · ".join(x for x in [_norm_time(m.get("time")), _norm_time(m.get("time_end"))] if x)
     line2 = ""
     if parts:
         time_cell = (f"<div class='line-links' style='font-weight:800;color:#132238;font-size:12px'>{_e(time_s)}</div>"

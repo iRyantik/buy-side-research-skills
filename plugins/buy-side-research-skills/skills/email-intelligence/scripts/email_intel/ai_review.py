@@ -280,7 +280,8 @@ _EXTRACT = """提取这封卖方邮件为 buy-side 结构化信息。只基于�
 - broker：发件机构名（如 长江证券/广发证券/UBS/Jefferies/久谦）。
 - 数量节制：每封 items 最多 3-4 条重点；同行业/同类聚合成一条（行业周报只出最重要 1-2 条行业要点，不要每个都提一点）。
 - 覆盖过滤：只提取覆盖行业/覆盖公司/触及 ## Focus 的 item；非覆盖行业（美妆、消费、零售等不在 covered_industries）不要列为 item（除非与覆盖行业强 read-through）。
-- 覆盖公司必拆：companies（coverage 名单）里的公司只要被实质提及（业绩/订单/评级/指引等），**必须拆成一个独立的 company item**（含 company/ticker/industry/summary/coverage 相关），不能只合并在行业面文本里。"""
+- 覆盖公司必拆：companies（coverage 名单）里的公司只要被实质提及（业绩/订单/评级/指引等），**必须拆成一个独立的 company item**（含 company/ticker/industry/summary/coverage 相关），不能只合并在行业面文本里。
+- 跨天增量：merge_key 若在 system 的 last_events 出现过（昨天/之前提过），delta_vs_last 必须输出相对基线的**实质新增**（具体数字/新事实/新变化）；若只是重复旧信息、无实质新增，则该条不产出（放 filter_reason），不要重复报旧事。"""
 
 
 _INTEGRATE_PROMPT = """下面是各邮件组提取的候选 items 与 meetings。请结合研究覆盖融合成最终结果：
@@ -393,12 +394,15 @@ def review_batch(emails: list[Email], context: dict, workspace: Path,
         verdicts = list(pool.map(lambda e: _llm_gate(e, system_coverage, workspace), maybes))
     related += [e for e, ok in zip(maybes, verdicts) if ok]
     excluded = [e for e in emails if e not in related]
+    print(f"[email-intel] gate: scan={len(emails)} related={len(related)} excluded={len(excluded)}"
+          f" (det=0token:{sum(1 for e in emails if _deterministic_gate(e, names, tickers))}, llm:{len(maybes)})")
 
-    # Stage 2: 按公司/事件聚类分组 → 组 session 并行提取（不带 coverage）
+    # Stage 2: 按公司/事件聚类分组 → 组 session 并行提取（带精简 coverage）
     groups = _group_emails(related, names, tickers)
     with ThreadPoolExecutor(max_workers=4) as pool:
         group_results = list(pool.map(lambda g: _extract_group(g, workspace, system_coverage), groups))
 
+    print(f"[email-intel] extract: groups={len(groups)} group_items={sum(len(g['items']) for g in group_results)} group_meets={sum(len(g['meetings']) for g in group_results)}")
     # Stage 3: 整合（coverage 一次，只做去重/归并）——bucket/coverage/broker 程序化补
     from .classify import classify_item
     from .brief import _broker_label
