@@ -60,7 +60,7 @@ Workspace context：
   "email_index": 0,
   "items": [{{
     "kind": "company_update|industry_signal|sell_side_view",
-    "company": "公司名或 null", "ticker": "ticker 或 null", "industry": "行业或 null",
+    "company": "公司名；公司/个股类信号必填（正文无法确定时取主题中最具体实体），行业/宏观类可为 null", "ticker": "ticker 或 null", "industry": "行业或 null",
     "event_type": "earnings|estimate_revision|order|guidance|initiation|product|management_change|capital_allocation|rating_change|macro|other",
     "what_changed": "真正新增的事实或卖方判断，1-2句中文",
     "why_it_matters": "投资含义，最多1句；没有则 null",
