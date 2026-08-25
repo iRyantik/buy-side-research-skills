@@ -147,7 +147,7 @@ def _links_group(source_ids: list, emails: dict) -> str:
 
 def _status_pill(tier: str) -> str:
     cls = {"Modeled": "st-modeled", "Quickread": "st-quickread", "Screened": "st-screened",
-           "Uncovered": "st-uncovered", "Thesis": "st-modeled"}.get(tier or "", "st-screened")
+           "Uncovered": "st-uncovered", "Thesis": "st-thesis"}.get(tier or "", "st-screened")
     return f"<span class='st {cls}'>{_e(tier or 'Screened')}</span>"
 
 
@@ -180,12 +180,14 @@ def _meeting_line_v2(m: dict, emails: dict, embed: bool = False) -> str:
     if m.get("host_person"):
         parts.append("主持：" + _e(m["host_person"]))
     time_s = " · ".join(x for x in [_norm_time(m.get("time")), _norm_time(m.get("time_end"))] if x)
+    # 行2：讲者/看点/主持 左 + 时间 右（黑粗）——时间**独立渲染**，不依赖讲者/看点（即使只有时间也显示）
     line2 = ""
-    if parts:
+    if parts or time_s:
+        left = " · ".join(parts) if parts else ""
         time_cell = (f"<div class='line-links' style='font-weight:800;color:#132238;font-size:12px'>{_e(time_s)}</div>"
                      if time_s else "")
         line2 = (f"<div class='line' style='margin-top:0'><div class='line-main' "
-                 f"style='font-size:12px;color:#132238;margin:0;padding-left:14px'>{' · '.join(parts)}</div>"
+                 f"style='font-size:12px;color:#132238;margin:0;padding-left:14px'>{_e(left)}</div>"
                  f"{time_cell}</div>")
     rel = m.get("related_tickers") or []
     line3 = ""
@@ -609,6 +611,7 @@ main{width:min(1440px,calc(100vw - 36px));margin:28px auto 48px}
 .st-quickread{background:var(--amber-soft);color:var(--amber)}
 .st-screened{background:var(--slate-soft);color:var(--slate)}
 .st-uncovered{background:var(--red-soft);color:var(--red)}
+.st-thesis{background:var(--blue-soft);color:#1d4ed8}
 .core-pill{display:inline-flex;align-items:center;height:19px;border-radius:999px;padding:0 7px;background:#7c3aed;color:#fff;font-size:10px;font-weight:950;line-height:1;margin:0 4px 4px 0}
 .chip{display:inline-block;border-radius:8px;background:rgba(248,250,252,.9);border:1px solid var(--line);color:var(--slate);padding:1px 7px;font-size:11px;margin:2px 3px 2px 0}
 .indust-grid{display:flex;flex-wrap:wrap;gap:14px}
