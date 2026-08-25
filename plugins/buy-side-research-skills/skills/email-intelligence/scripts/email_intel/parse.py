@@ -65,8 +65,36 @@ def _matches(name: str, canonical: str) -> bool:
 _SELF_EMAIL_RE = re.compile(
     r"Daily Coverage Brief|Email Intelligence Brief|Intraday Coverage Alerts", re.I
 )
-# 自有发件域：SMTP 发件邮箱（qq）+ 公司域（内部邮件）——不是 sell-side 邮件
-_SELF_SENDER_SUFFIXES = ("@1292145106.qq.com", "@helvedcapital.com")
+# 自产物回环：daily/email 自己发出去的邮件（发送邮箱在 workspace .env 的 SMTP_USER /
+# COVERAGE_EMAIL_TO，如 1292145106@qq.com）不是 sell-side 邮件，忽略。
+# 运行时从 .env 动态读取（而非硬编码），发送邮箱变化也生效。
+
+
+def _workspace_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _is_self_sender(sender: str, workspace: Path | None = None) -> bool:
+    """自产物判据：公司域(@helvedcapital.com) 按后缀排除；外部发送邮箱(SMTP_USER, 1292145106@qq.com)
+    只精确排除（不拆 qq.com 域，避免误杀其他 qq 邮箱）。不含 COVERAGE_EMAIL_TO(收件人非自产)。"""
+    s = (sender or "").lower().strip()
+    if not s:
+        return False
+    if s.endswith("@helvedcapital.com"):
+        return True
+    ws = workspace or _workspace_root()
+    try:
+        for line in (ws / ".env").read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                if k.strip() == "SMTP_USER" and "@" in v:
+                    val = v.strip().strip('"').strip("'").lower()
+                    if s == val:
+                        return True
+    except OSError:
+        pass
+    return s == "1292145106@qq.com"
 
 
 def scan_email_dirs(base: str | Path) -> list[Email]:
@@ -116,7 +144,7 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
         if _SELF_EMAIL_RE.search(email.subject or ""):
             continue
         sender = (email.sender or "").lower()
-        if any(sender.endswith(sfx) for sfx in _SELF_SENDER_SUFFIXES):
+        if _is_self_sender(sender):
             continue
         emails.append(email)
     return emails
