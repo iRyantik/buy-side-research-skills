@@ -378,6 +378,7 @@ _EXTRACT = """提取这封卖方邮件为 buy-side 结构化信息。只基于�
 - 数量节制：每封 items 最多 3-4 条重点；同行业/同类聚合成一条（行业周报只出最重要 1-2 条行业要点，不要每个都提一点）。
 - 覆盖过滤：只提取覆盖行业/覆盖公司/触及 ## Focus 的 item；非覆盖行业（美妆、消费、零售等不在 covered_industries）不要列为 item（除非与覆盖行业强 read-through）。
 - 覆盖公司必拆：companies（coverage 名单）里的公司只要被实质提及（业绩/订单/评级/指引等），**必须拆成一个独立的 company item**（含 company/ticker/industry/summary/coverage 相关），不能只合并在行业面文本里。
+- 主标 scope：每条 item 的 summary/what_changed 只写**该 item 主标**（company）自身的变化。若邮件同时提到另一家公司的受益/read-through（如「为X提供下一增长点」「X的阀门采购于Y启动」），只留一句方向（如「为X带来增量」），不要把该标的的订单/目标价/指引等全套细节写进来；那家公司在 coverage 里就另拆一条独立 item，在其 own item 里写完整信息。
 - 跨天增量：merge_key 若在 system 的 last_events 出现过（昨天/之前提过），delta_vs_last 必须输出相对基线的**实质新增**（具体数字/新事实/新变化）；若只是重复旧信息、无实质新增，则该条不产出（放 filter_reason），不要重复报旧事。"""
 
 

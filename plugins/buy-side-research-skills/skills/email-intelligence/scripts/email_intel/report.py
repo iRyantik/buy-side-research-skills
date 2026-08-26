@@ -17,6 +17,14 @@ _BROKERS = {
     "mailservice.cjsc.com.cn": "长江证券", "guangfa.com.cn": "广发证券",
 }
 
+# 公司卡 read-through prun：主标的卡里出现「为<其他公司>提供/带来/贡献…增长点」这类
+# 把对手方/下游受益写进主标事实的从句，裁到该从句之前，只留主标的本身。
+_BENEFIT_RE = re.compile(
+    r"[，,；;。](?P<target>(?:为|给|向)[^，,；;。]{2,24}(?:提供|带来|贡献|创造)"
+    r"(?:下一|新的?|额外)?(?:增长点|增量|增长|空间|催化))"
+)
+_COMPANY_BUCKETS = {"core", "other_coverage", "new_idea"}
+
 
 def _clean(value: object) -> str:
     text = str(value or "").strip()
@@ -84,11 +92,38 @@ def _human_event(item: dict, last_events: dict) -> str:
     return f"重复事件｜此前：{prior}；本次仅为报告正文解读，无新增事实。"
 
 
+def _prune_readthrough(text: str, item: dict, all_company_keys: set[str]) -> str:
+    """只对单公司卡生效：若事实里是把另一家公司当受益主角的从句，则裁到该从句前。"""
+    bucket = _clean(item.get("bucket"))
+    if bucket not in _COMPANY_BUCKETS:
+        return text
+    primary = company_key(_clean(item.get("company") or item.get("company_en")))
+    if not primary:
+        return text
+    for m in _BENEFIT_RE.finditer(text):
+        target = _clean(m.group("target"))
+        # 提取受益主体（"为纽威股份提供…" → 纽威股份）
+        tm = re.match(r"(?:为|给|向)([^，,；;。]+?)(?:提供|带来|贡献|创造)", target)
+        if not tm:
+            continue
+        beneficiary = company_key(tm.group(1))
+        if beneficiary and beneficiary != primary and beneficiary in all_company_keys:
+            return text[: m.start()].rstrip("，,；;。 ").rstrip()
+    return text
+
+
 def build_report(emails: list[Email], reviews: list[dict], *, last_events: dict | None = None) -> dict:
     """Normalize, merge and freeze the semantic report consumed by all outputs."""
     last_events = last_events or {}
     email_map = {e.key: e for e in emails}
     review_brokers = {str(r.get("_email_id") or ""): _clean(r.get("broker")) for r in reviews}
+    all_company_keys: set[str] = set()
+    for review in reviews:
+        for raw in review.get("items") or []:
+            for name in (_clean(raw.get("company")), _clean(raw.get("company_en"))):
+                key = company_key(name)
+                if key:
+                    all_company_keys.add(key)
     merged: dict[str, dict] = {}
     sequence = 0
     for review in reviews:
@@ -102,7 +137,7 @@ def build_report(emails: list[Email], reviews: list[dict], *, last_events: dict 
             key = _item_key(item, email_id, sequence)
             broker = _broker(email.sender if email else "", _clean(item.get("broker")) or review_brokers.get(email_id, ""))
             fact = {
-                "text": _human_event(item, last_events),
+                "text": _prune_readthrough(_human_event(item, last_events), item, all_company_keys),
                 "why_it_matters": _clean(item.get("why_it_matters") or item.get("focus_reason")),
                 "action": _clean(item.get("action")),
                 "broker": broker,

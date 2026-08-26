@@ -13,7 +13,7 @@ import zoneinfo
 from pathlib import Path
 
 from .ai_review import review_batch
-from .brief import render_brief_html, render_brief_html_v2, render_email_markdown, render_panel_html_v2
+from .brief import render_brief_html_v2, render_email_markdown, render_panel_html_v2
 from .classify import normalize_reviews
 from .context import build_context
 from .parse import filter_new, scan_email_dirs
