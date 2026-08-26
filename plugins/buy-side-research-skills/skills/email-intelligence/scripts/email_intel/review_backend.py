@@ -25,7 +25,8 @@ def backend_name() -> str:
 
 class CodexBackend:
     def __init__(self, model: str | None = None):
-        self.model = model or os.environ.get("EMAIL_INTELLIGENCE_CODEX_MODEL", "gpt-5.6-terra")
+        # None = 用本机 codex 配置的默认模型（ChatGPT 或本地代理）；可用环境变量覆盖。
+        self.model = model or os.environ.get("EMAIL_INTELLIGENCE_CODEX_MODEL") or None
         self._auth_checked = False
 
     def check_auth(self) -> None:
@@ -33,8 +34,8 @@ class CodexBackend:
             raise ReviewBackendError("Codex CLI 未安装")
         result = subprocess.run(["codex", "login", "status"], capture_output=True, text=True, timeout=30)
         status = (result.stdout or "") + (result.stderr or "")
-        if result.returncode != 0 or "using ChatGPT" not in status:
-            raise ReviewBackendError("Codex 必须使用 ChatGPT 登录；已拒绝 API key 计费模式")
+        if result.returncode != 0 or "Logged in" not in status:
+            raise ReviewBackendError("Codex 未登录（需 ChatGPT 或 API key 登录）")
         self._auth_checked = True
 
     def complete(self, prompt: str, workspace: Path, *, schema: dict | None = None,
@@ -45,8 +46,10 @@ class CodexBackend:
             temp = Path(temp_dir)
             output = temp / "result.json"
             command = ["codex", "exec", "-", "--ephemeral", "--sandbox", "read-only",
-                       "--skip-git-repo-check", "--ignore-user-config", "--ignore-rules",
-                       "--model", self.model, "--cd", str(workspace), "-o", str(output)]
+                       "--skip-git-repo-check", "--ignore-rules",
+                       "--cd", str(workspace), "-o", str(output)]
+            if self.model:
+                command.extend(["--model", self.model])
             if schema:
                 schema_path = temp / "schema.json"
                 schema_path.write_text(json.dumps(schema, ensure_ascii=False), encoding="utf-8")

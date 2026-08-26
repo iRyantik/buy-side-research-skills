@@ -1,4 +1,4 @@
-# Email-Intelligence daily review scheduler (Windows Task Scheduler): 05:00 / 13:00 / 21:00 Mon-Sat.
+# Email-Intelligence daily review scheduler (Windows Task Scheduler): 05:30 / 12:10 / 20:50 Mon-Sat.
 # Usage: powershell -ExecutionPolicy Bypass -File install_windows.ps1
 # Uninstall: powershell -ExecutionPolicy Bypass -File install_windows.ps1 -Unregister
 param([switch]$Unregister)
@@ -49,12 +49,12 @@ $runnerLines = @(
 )
 $runnerLines | Set-Content -LiteralPath $Runner -Encoding ASCII
 
-# 05:00 / 13:00 / 21:00 Mon-Sat; catch up if missed; max 2 hours; ignore new if already running.
+# 05:30 / 12:10 / 20:50 Mon-Sat; catch up if missed; max 2 hours; ignore new if already running.
 $Days = @('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')
 $Trigger = @(
-    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 05:00
-    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 13:00
-    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 21:00
+    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 05:30
+    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 12:10
+    New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Days -At 20:50
 )
 $Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -MultipleInstances IgnoreNew
 $Action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument ('/c ""{0}""' -f $Runner) -WorkingDirectory $Root
@@ -62,7 +62,7 @@ $Principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" 
 
 Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description 'Email Intelligence daily review: scan email, generate brief/panel (09:30 Mon-Sat)' -Force | Out-Null
 
-Write-Output "Installed task $TaskName (05:00 / 13:00 / 21:00, Mon-Sat)"
+Write-Output "Installed task $TaskName (05:30 / 12:10 / 20:50, Mon-Sat)"
 Write-Output "Runner: $Runner"
 Write-Output "Log: $LogDir\email-intel-review.log"
 Write-Output "Manual trigger: Start-ScheduledTask -TaskName $TaskName"
