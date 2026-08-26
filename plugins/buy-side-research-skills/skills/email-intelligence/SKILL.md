@@ -127,7 +127,7 @@ Industry 与公司卡都显示全部匹配、尚未过期且 recommendation 为 
 - 产物：`daily/email/YYYYMMDD-email-brief.html`、`daily/email/YYYYMMDD-email-panel.html`
 - Canonical archive：`.cache/email-intelligence/reports/YYYYMMDD-HHMMSS-report.json`
 - 未送达队列：`.cache/email-intelligence/outbox/`（SMTP 失败时暂存，下次先重试）
-- 调度：macOS `install_cron.sh` / `install_launchd.sh`；Windows `install_windows.ps1`（09:30 周一~六，日志 `daily/logs/`）
+- 调度：macOS `install_cron.sh` / `install_launchd.sh`；Windows `install_windows.ps1`（05:00 / 13:00 / 21:00 周一~六，日志 `daily/logs/`）
 
 ## 文件安全
 

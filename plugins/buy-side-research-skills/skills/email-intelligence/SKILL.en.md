@@ -121,7 +121,7 @@ Industry and company cards show all matching, not-yet-expired meetings with reco
 - Output: `daily/email/YYYYMMDD-email-brief.html`, `daily/email/YYYYMMDD-email-panel.html`
 - Canonical archive: `.cache/email-intelligence/reports/YYYYMMDD-HHMMSS-report.json`
 - Undelivered queue: `.cache/email-intelligence/outbox/` (staged on SMTP failure, retried first next run)
-- Scheduling: macOS `install_cron.sh` / `install_launchd.sh`; Windows `install_windows.ps1` (09:30 Mon–Sat, logs to `daily/logs/`)
+- Scheduling: macOS `install_cron.sh` / `install_launchd.sh`; Windows `install_windows.ps1` (05:00 / 13:00 / 21:00 Mon–Sat, logs to `daily/logs/`)
 
 ## File Safety
 
