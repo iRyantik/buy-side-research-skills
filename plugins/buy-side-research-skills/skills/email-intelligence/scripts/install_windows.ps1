@@ -1,6 +1,6 @@
-# Email-Intelligence 每日 review 定时（Windows 计划任务）：09:30 周一~六
-# 用法：powershell -ExecutionPolicy Bypass -File install_windows.ps1
-# 卸载：powershell -ExecutionPolicy Bypass -File install_windows.ps1 -Unregister
+# Email-Intelligence daily review scheduler (Windows Task Scheduler): 09:30 Mon-Sat.
+# Usage: powershell -ExecutionPolicy Bypass -File install_windows.ps1
+# Uninstall: powershell -ExecutionPolicy Bypass -File install_windows.ps1 -Unregister
 param([switch]$Unregister)
 $ErrorActionPreference = 'Stop'
 
@@ -14,14 +14,14 @@ if ($Unregister) {
     $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($existing) {
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-        Write-Output "已卸载计划任务 $TaskName"
+        Write-Output "Unregistered task $TaskName"
     } else {
-        Write-Output "计划任务 $TaskName 不存在，无需卸载"
+        Write-Output "Task $TaskName does not exist."
     }
     exit 0
 }
 
-# 解析 Python（优先 py 启动器，其次 PATH 中的 python）
+# Resolve Python: prefer the py launcher, then the python on PATH.
 $Py = $null
 $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
 if ($pyLauncher) {
@@ -32,13 +32,13 @@ if (-not $Py) {
     if ($pythonCmd) { $Py = $pythonCmd.Source }
 }
 if (-not $Py -or -not (Test-Path $Py)) {
-    Write-Error '未找到 Python（需要 py -3 或 python 可用）。请先安装 Python 3.12 并加入 PATH。'
+    Write-Error 'Python not found (needs py -3 or python on PATH). Install Python 3.12 first.'
 }
 
-if (-not (Test-Path $Script)) { Write-Error "入口脚本不存在: $Script" }
+if (-not (Test-Path $Script)) { Write-Error "Entry script missing: $Script" }
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
 
-# 生成隐藏窗口的 cmd runner（绝对路径 + 日志重定向，避免计划任务可见窗口）
+# Generate a hidden-window cmd runner (absolute paths + log redirection).
 $runnerLines = @(
     '@echo off',
     "set ROOT=$Root",
@@ -49,15 +49,15 @@ $runnerLines = @(
 )
 $runnerLines | Set-Content -LiteralPath $Runner -Encoding ASCII
 
-# 09:30 周一~六；错过则补跑；最长 2 小时；同一时间不重复启动
+# 09:30 Mon-Sat; catch up if missed; max 2 hours; ignore new if already running.
 $Trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday,Saturday -At 09:30
 $Settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -MultipleInstances IgnoreNew
 $Action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument ('/c ""{0}""' -f $Runner) -WorkingDirectory $Root
 $Principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description 'Email Intelligence 每日 review：扫描邮件、生成 brief/panel（09:30 周一~六）' -Force | Out-Null
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description 'Email Intelligence daily review: scan email, generate brief/panel (09:30 Mon-Sat)' -Force | Out-Null
 
-Write-Output "已安装计划任务 $TaskName（09:30，周一~六）"
-Write-Output "入口：$Runner"
-Write-Output "日志：$LogDir\email-intel-review.log"
-Write-Output "手动触发：Start-ScheduledTask -TaskName $TaskName"
+Write-Output "Installed task $TaskName (09:30, Mon-Sat)"
+Write-Output "Runner: $Runner"
+Write-Output "Log: $LogDir\email-intel-review.log"
+Write-Output "Manual trigger: Start-ScheduledTask -TaskName $TaskName"
