@@ -102,7 +102,7 @@ Copy this into Claude Code:
 ### Operations
 
 | `coverage-monitor` | Generate four-tab dashboard daily coverage briefs with stricter mover rules, shared news runtime, important-mover explainers, and optional intraday alerts. |
-| `email-intelligence` | Review preserved sell-side email into a lightweight five-section attention brief. |
+| `email-intelligence` | Review preserved sell-side email into a lightweight six-section attention brief (Worth Your Time / Industry / Core Watch / Other Coverage / New Ideas / Meetings). |
 | `init-workspace` | Initialize or repair a buy-side research workspace root scaffold and helper scripts. |
 | `update-agent-runtime` | Update the current host plugin runtime to the latest GitHub release and sync the current workspace scaffold. |
 | `meta-skill` | Create review or update buy-side research skills metadata docs manifests and governance. |

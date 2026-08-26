@@ -1,6 +1,6 @@
 {
   "name": "buy-side-research-skills",
-  "version": "8.9.5",
+  "version": "8.9.5+codex.20260826063116",
   "description": "Journal-first buy-side equity research skill suite: research skills plus operations skills for workspace init, host runtime update, raw material ingest, structured financial-data evidence packs, topic setup, and skill authoring governance.",
   "author": {
     "name": "buy-side-research-system"
@@ -47,8 +47,8 @@
     "mispriced",
     "pure-play",
     "hidden-winners",
-    "鎸栫エ",
-    "鎵剧エ",
+    "\u93b8\u682b\u30a8",
+    "\u93b5\u5267\u30a8",
     "company-history",
     "company-foundation",
     "business-evolution",

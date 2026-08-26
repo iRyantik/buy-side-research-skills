@@ -10,6 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
+import time
+
+
+_STABLE_AGE_SECONDS = 30
 
 
 @dataclass
@@ -104,6 +108,7 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
     emails: list[Email] = []
     for directory in sorted((p for p in root.iterdir() if p.is_dir()), key=lambda p: p.name):
         email = Email(folder=directory.name, path=str(directory))
+        body_path: Path | None = None
         try:
             files = list(directory.iterdir())
         except OSError as exc:
@@ -122,6 +127,7 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
                         setattr(email, field_name, value)
                 elif _matches(name, "body.txt"):
                     email.body_text = path.read_text(encoding="utf-8", errors="replace")
+                    body_path = path
                 elif _matches(name, "outlook.link.txt") or name.endswith(".link.txt"):
                     email.outlook_link = path.read_text(encoding="utf-8", errors="replace").strip()
                 elif name.endswith(".eml"):
@@ -137,6 +143,22 @@ def scan_email_dirs(base: str | Path) -> list[Email]:
                 continue
 
         email.subject = email.subject or email.folder
+        # 保存层稳定性：body.txt 缺失/为空 = 尚未写完；mtime 太新 = Power Automate
+        # 或 OneDrive 仍在写入。这类邮件本轮不 review、也不标 seen，下次自动重试。
+        if not (email.body_text or "").strip():
+            email.parse_ok = False
+            email.parse_error = "missing or empty body.txt"
+        elif body_path is not None:
+            try:
+                if time.time() - body_path.stat().st_mtime < _STABLE_AGE_SECONDS:
+                    email.parse_ok = False
+                    email.parse_error = "body.txt still being written (mtime too recent)"
+            except OSError:
+                email.parse_ok = False
+                email.parse_error = "body.txt unreadable"
+        if not email.parse_ok:
+            emails.append(email)
+            continue
         # 自有产物回环：Power Automate 会把 coverage-monitor / email-intelligence
         # 自己发出的邮件（[欧美盘后]/[亚盘盘后] Daily Coverage Brief / Email Intelligence
         # Brief）也保存进来——不是 sell-side 邮件，不参与 review。

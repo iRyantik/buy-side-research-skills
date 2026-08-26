@@ -1,9 +1,15 @@
-"""Incremental email-review state."""
+"""Incremental email-review state (atomic writes, recency-capped seen list)."""
 
 from __future__ import annotations
 
 import json
+import os
+import sys
+from datetime import datetime
 from pathlib import Path
+
+
+_SEEN_CAP = 20_000
 
 
 def state_path(workspace: Path) -> Path:
@@ -15,18 +21,33 @@ def state_path(workspace: Path) -> Path:
 def load_state(workspace: Path) -> dict:
     try:
         return json.loads(state_path(workspace).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except FileNotFoundError:
+        return {"seen": [], "last_run": "", "last_sent": "", "events": {}}
+    except (OSError, json.JSONDecodeError) as exc:
+        # 损坏的 state 不能静默当全新状态继续（可能重扫旧邮件），先备份再重建。
+        corrupt = state_path(workspace)
+        try:
+            backup = corrupt.with_name(
+                f"state.corrupt-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json.bak"
+            )
+            corrupt.replace(backup)
+            print(f"[email-intel] state 损坏已备份到 {backup}: {exc.__class__.__name__}", file=sys.stderr)
+        except OSError:
+            pass
         return {"seen": [], "last_run": "", "last_sent": "", "events": {}}
 
 
 def save_state(workspace: Path, state: dict) -> None:
-    state_path(workspace).write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    target = state_path(workspace)
+    temp = target.with_name(target.name + ".tmp")
+    temp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(temp, target)
 
 
 def mark_seen(state: dict, keys: list[str]) -> None:
-    seen = set(state.get("seen", []))
-    seen.update(key for key in keys if key)
-    state["seen"] = sorted(seen)[-5_000:]
+    # 保持插入顺序，按“最近处理”截断；旧的按字典序截断会随机丢掉任意邮件。
+    seen = list(dict.fromkeys([*(state.get("seen") or []), *keys]))
+    state["seen"] = seen[-_SEEN_CAP:]
 
 
 def last_events(state: dict, max_events: int = 200) -> dict:
@@ -65,4 +86,4 @@ def update_events(state: dict, reviews: list[dict], now_label: str) -> None:
             ev["brokers"] = sorted(set(ev.get("brokers", [])) | {str(r.get("_email_id") or "")})
             ev.setdefault("first_seen", now_label)
             ev["last_seen"] = now_label
-        events[key] = ev
+            events[key] = ev

@@ -7,7 +7,7 @@ system_generation: '5.38.0'
 author: 'buy-side-research-system'
 namespace: 'research.equity'
 category: 'operations'
-summary: 'Review preserved sell-side email into a lightweight five-section attention brief.'
+summary: 'Review preserved sell-side email into a lightweight six-section attention brief.'
 description: 'Review preserved sell-side emails and generate a lightweight buy-side brief of updates, ideas, signals, and meetings.'
 tags:
   - 'email-intelligence'
@@ -36,10 +36,11 @@ capabilities:
     - "use COVERAGE.md's ## Focus section for current lens and New Idea fit when available"
     - 'extract every meeting in a multi-meeting email'
     - 'do not equate sell-side initiation with a New Idea'
-    - 'retain relevant same-industry company updates even when outside coverage'
+    - 'filter ## Focus-matched uncovered companies out of Industry unless they clear the New Idea bar'
+    - 'embed registration links in meeting titles instead of separate buttons or rows'
     - 'mark only successfully reviewed emails as seen'
 artifact_policy:
   save_policy: 'cache_artifact'
   default_artifact: 'email-brief.html'
-  canonical_location: 'daily/email/YYYYMMDD-email-brief-HHMM.html'
+  canonical_location: 'daily/email/YYYYMMDD-email-brief.html'
   save_trigger: 'write an HTML brief after at least one email is successfully reviewed'
