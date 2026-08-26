@@ -656,17 +656,15 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
 def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, dict], sent_event_ids: set[str]) -> tuple[list[CoverageEntry], list[str]]:
     alert_entries: list[CoverageEntry] = []
     new_event_ids: list[str] = []
+    # event_id 稳定键：同票 + 事件类型 + 当天日期 → 当天只弹一次（price 变动/时间不参与，
+    # 否则 market_time/百分比每轮变化 → id 永新 → 去重失效反复弹）。跨天自然重置。
+    today = datetime.now().strftime("%Y-%m-%d")
     for entry in entries:
         snapshot = snapshots.get(entry.ticker or entry.company, {})
         if not should_alert_intraday(entry, snapshot):
             continue
-        if snapshot.get("headline"):
-            event_type = "headline"
-            marker = str(snapshot.get("headline"))
-        else:
-            event_type = "price_move"
-            marker = f"{snapshot.get('market_time', '')}|{snapshot.get('price_move_pct', 0)}"
-        event_id = build_event_id(entry.ticker or entry.company, event_type, marker)
+        event_type = "headline" if snapshot.get("headline") else "price_move"
+        event_id = build_event_id(entry.ticker or entry.company, event_type, today)
         if event_id in sent_event_ids:
             continue
         alert_entries.append(entry)
