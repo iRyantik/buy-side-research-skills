@@ -101,7 +101,9 @@ class BriefTests(unittest.TestCase):
         markdown = render_email_markdown([email], reviews, "2026-08-26")
 
         escaped = "https://example.com/register?event=semis&amp;lang=zh"
-        linked_title = f"href='{escaped}' class='meeting-title-link'>Semiconductor Equipment Group Call</a>"
+        self.assertIn(f"href='{escaped}'", brief)
+        self.assertIn(f"href='{escaped}'", panel)
+        linked_title = f"class='meeting-title-link' target='_blank' rel='noopener'>Semiconductor Equipment Group Call</a>"
         self.assertIn(linked_title, brief)
         self.assertIn(linked_title, panel)
         self.assertNotIn(">报名</a>", brief)

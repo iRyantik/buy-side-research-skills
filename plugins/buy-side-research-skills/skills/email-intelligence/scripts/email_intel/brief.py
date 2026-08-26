@@ -51,7 +51,8 @@ def _source_v3(fact: dict) -> str:
     label = _e(fact.get("broker") or "来源邮件")
     url = str(fact.get("url") or "")
     if url:
-        return f"<a href='{_e(url)}' style='color:{_PALETTE_V3['link']};text-decoration:none;font-weight:700'>{label}</a>"
+        return (f"<a href='{_e(url)}' target='_blank' rel='noopener' "
+                f"style='color:{_PALETTE_V3['link']};text-decoration:none;font-weight:700'>{label}</a>")
     return f"<span style='color:{_PALETTE_V3['link']};font-weight:700'>{label}</span>"
 
 
@@ -67,7 +68,8 @@ def _meeting_title_v3(meeting: dict) -> str:
     url = _registration_url_v3(meeting)
     if not url:
         return title
-    return f"<a style='color:{_PALETTE_V3['link']};text-decoration:none' href='{_e(url)}' class='meeting-title-link'>{title}</a>"
+    return (f"<a style='color:{_PALETTE_V3['link']};text-decoration:none' "
+            f"href='{_e(url)}' class='meeting-title-link' target='_blank' rel='noopener'>{title}</a>")
 
 
 def _meeting_date_v3(value: object) -> date | None:
