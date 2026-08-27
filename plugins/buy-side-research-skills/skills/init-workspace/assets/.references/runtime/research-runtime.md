@@ -233,6 +233,21 @@ python .scripts/financial-data/actuals-to-appendix.py --tickers <T1>,<T2>,...
 
 **必须在写 artifact 正文之前执行**，输出嵌入 `## Appendix` 节。禁止留占位符。
 
+### 4.4 写前纪律（降低 hook 打回 / 减少全量重写）
+
+写 artifact 前先定三件事，能避免反复被 `source_contract` / `market_snapshot_source_boundary` 打回后整篇重写：
+
+| 数据类型 | 锚点 | 规则 |
+|---|---|---|
+| 公司披露事实（交付/backlog/订单/利润率/收入结构/产品） | `[S#]` | 用公司 disclosure（HKEX/SEC/IR/年报）做锚。`market_snapshot_source_boundary` hook **不接受** `[I#]` 出现在无市场关键词的「业务事实」段落 |
+| 第三方行业/市占/规模 | `[I#]` | 只放在带市场/估值关键词的段落（估值/市值/股价/P/E/倍数/折价/FCF yield），否则被判 business-fact + fallback |
+| 结构化财务数 | `[actuals]` | 从 actuals-resolved.json 取；跨币种公司用**公司报告币**呈现（akshare 的 CNY 折算会扭曲 YoY） |
+
+其余：
+- **图片 alt** 别用 `[S<数字>]` 打头——`ANCHOR_CODE_RE` 把 `![SR22T...]` 误判成 source anchor `[SR22]`，导致「无匹配 Resources entry」block。
+- `## Resources` 用 `##`（h2），不要 `###`。
+- **跨币种 HK 上市**（HKD 报价 × USD 报表）：FMP 的 `pe_ttm`/`market_cap` 混用币种会失真，P/E 需按报表币（USD）手动重算。
+
 ---
 
 ## 5. 保存合约

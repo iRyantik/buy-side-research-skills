@@ -986,6 +986,34 @@ def dependency_matrix() -> dict[str, Any]:
     }
 
 
+_MARKET_MODULE_HINT = {
+    "us": ("edgartools", "edgar", "pip install edgartools"),
+    "cn": ("akshare", "akshare", "pip install akshare"),
+    "hk": ("akshare", "akshare", "pip install akshare"),
+    "jp": ("edinet-tools", "edinet_tools", "pip install edinet-tools"),
+    "kr": ("dart-fss", "dart_fss", "pip install dart-fss"),
+    "eu": ("openesef", "openesef", "pip install openesef"),
+}
+
+
+def _dependency_hint(market: str, status: str) -> str | None:
+    """Return an actionable pip hint when a run failed on a missing provider module.
+
+    The default provider for a market has a package that may be uninstalled (e.g.
+    akshare for cn/hk). When that happens the CLI honestly reports provider-gap /
+    dependency-gap but gave no way to fix it. This surfaces the install command.
+    """
+    if status not in ("dependency-gap", "provider-gap", "failed"):
+        return None
+    entry = _MARKET_MODULE_HINT.get(market.lower())
+    if not entry:
+        return None
+    label, mod, hint = entry
+    if module_available(mod):
+        return None  # module present — gap is coverage/credentials, not install
+    return f"Missing dependency for market '{market}' — {hint}"
+
+
 def discover_workspace(source: Path | None = None) -> Path:
     candidates = [source or Path.cwd(), Path.cwd()]
     for candidate in candidates:
@@ -2129,6 +2157,10 @@ def _route_ir(args) -> int:
             if has_is:
                 print(f"✅ actuals-resolved.json exists (IS: {len(stmts.get('income_statement',[]))} rows, "
                       f"segments: {len(stmts.get('revenue_split',[]))} segments)")
+                # Auto-fill market_data from FMP /stable/ if missing — the closeout
+                # that normally does this is skipped on this early-return path.
+                if _fill_market_data_fmp(actuals, ticker, market):
+                    _safe_json_dump(actuals, actuals_path)
                 md = actuals.get("market_data", {})
                 if not md or not md.get("price"):
                     print("▶ Market data missing — filling from yfinance:")
@@ -2246,6 +2278,37 @@ _API_FILING_TYPES = {
 }
 
 _API_MARKETS = {"us", "cn", "hk"}
+
+
+def _fill_market_data_fmp(actuals: dict, identifier: str, market: str) -> bool:
+    """Fill actuals['market_data'] from FMP /stable/ quote when empty/incomplete.
+
+    Returns True if market_data now carries a price. FMP is source-of-record for
+    the market-snapshot track and uses the /stable/ API base (legacy /api/v3/
+    returns HTTP 403 "Legacy Endpoint no longer supported" since 2025-08-31).
+
+    Note: for cross-currency HK listings FMP's pe_ttm mixes an HKD market cap with
+    USD earnings and can be misleading — recompute P/E in the reporting currency.
+    """
+    import importlib as _il
+    md = actuals.get("market_data") or {}
+    if md.get("price") and md.get("market_cap"):
+        return True  # already adequate — don't clobber a good fill
+    try:
+        pdir = Path(__file__).resolve().parent / "providers"
+        if str(pdir) not in sys.path:
+            sys.path.insert(0, str(pdir))
+        fmp_mod = _il.import_module("fmp_provider")
+        fr = fmp_mod.fetch({"identifier": identifier, "market": market,
+                            "items": ["market_data"], "periods": "latest"})
+        fmd = fr.get("market_data") or {}
+        if fmd.get("price"):
+            md.update({k: v for k, v in fmd.items() if v is not None})
+            actuals["market_data"] = md
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def _route_api(args) -> int:
@@ -2388,6 +2451,9 @@ def main() -> int:
         request["items"] = items
         provider_result = provider.fetch(request)
         normalized = normalize_result(provider_result, request)
+        _hint = _dependency_hint(args.market, normalized.get("status", ""))
+        if _hint:
+            print(f"⚠ {_hint}")
         rid = run_id()
         if args.output_scope == "canonical_company":
             output = write_canonical_pack(args, normalized, workspace, rid)

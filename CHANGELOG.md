@@ -4,6 +4,7 @@
 
 | Version | Changes |
 |---|---|
+| v8.9.12 | **financial-data market_data 重跑补填 + FMP stable 客户端 + 写前纪律**：_route_api 早退曾跳过市场数据 closeout（actuals 已有三表时重跑 market_data 留空）→ 新增 _fill_market_data_fmp() 从 FMP /stable/ 自动回补且不覆盖已填；依赖缺失给可操作提示（pip install akshare）；新增 fmp.py（base 锁 /stable/，legacy /api/v3/ 2025-08-31 起 403）；research-runtime §4.4 写前纪律 |
 
 | v8.9.9 | **email-intelligence 定时 3 次/天**：默认排程 09:30 → `05:00 / 13:00 / 21:00`（周一~六，Asia/Hong_Kong）；`install_windows.ps1` 单任务三触发器，SKILL.md / SKILL.en.md 调度说明同步；进程增量（每次只 review `state.seen` 未处理的新邮件），每天 3 封 brief（标题带 `覆盖窗口 上次→本次`） |
 
