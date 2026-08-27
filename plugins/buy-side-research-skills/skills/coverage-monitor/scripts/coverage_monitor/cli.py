@@ -778,7 +778,9 @@ def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, 
             marker = str(snapshot.get("headline"))
         else:
             event_type = "price_move"
-            marker = f"{snapshot.get('market_time', '')}|{snapshot.get('price_move_pct', 0)}"
+            # 稳定键：同票同 type 当天只弹一次。用当天日期而非实时涨跌幅，
+            # 否则每轮 refresh 涨跌幅一变 event_id 就变，同票同天会反复重复弹。
+            marker = datetime.now().date().isoformat()
         event_id = build_event_id(entry.ticker or entry.company, event_type, marker)
         if event_id in sent_event_ids:
             continue
