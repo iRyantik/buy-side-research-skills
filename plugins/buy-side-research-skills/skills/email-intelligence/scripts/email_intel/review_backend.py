@@ -1,7 +1,7 @@
 """Selectable agent-backed review providers.
 
-Codex is the default and is deliberately restricted to ChatGPT authentication so a
-scheduled email review cannot silently fall back to API billing.
+Codex is the default; authentication accepts either ChatGPT login or an API key
+(no mandatory ChatGPT gate — see check_auth).
 """
 
 from __future__ import annotations
