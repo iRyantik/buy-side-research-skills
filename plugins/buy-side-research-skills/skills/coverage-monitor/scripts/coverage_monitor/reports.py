@@ -194,8 +194,9 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    if entry.monitor_status != "Core":
-        return False
+    # 盘中检测与 Monitor(Core/Other) 解耦：覆盖表所有票都参与异动评估，
+    # 不再因非 Core 提前跳过。是否触发仍由 assess_snapshot(±8%/4x量/10%gap)
+    # 与 ALERT_KEYWORDS 新闻阈值 + stable key 去重把关。
     assessment = assess_snapshot(snapshot)
     if assessment and assessment.is_important:
         return True  # 涨跌异动仍触发
