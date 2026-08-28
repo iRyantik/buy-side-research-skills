@@ -194,13 +194,17 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    # 盘中检测与 Monitor(Core/Other) 解耦：覆盖表所有票都参与异动评估，
-    # 不再因非 Core 提前跳过。是否触发仍由 assess_snapshot(±8%/4x量/10%gap)
-    # 与 ALERT_KEYWORDS 新闻阈值 + stable key 去重把关。
-    assessment = assess_snapshot(snapshot)
+    """盘中检测与 Monitor(Core/Other) 解耦：覆盖表所有票都参与。
+
+    只去掉"放量(volume_ratio)"触发(避免小涨+放量如 3%+4x 误报)；
+    涨跌幅(return)/跳空(gap)/新闻标题仍生效。触发后由 stable key 去重(同票同 type 当天一次)。
+    """
+    s = dict(snapshot)
+    s["volume_ratio"] = None  # 量不参与 intraday 触发
+    assessment = assess_snapshot(s)
     if assessment and assessment.is_important:
-        return True  # 涨跌异动仍触发
-    # 新闻标题触发：必须命中关键字 AND 是当天新闻（排除旧新闻误报）
+        return True
+    # 新闻标题触发：须命中关键字 AND 是当天新闻（排除旧新闻误报）
     headline = str(snapshot.get("headline") or "").lower()
     if not headline or not any(keyword in headline for keyword in ALERT_KEYWORDS):
         return False
