@@ -56,6 +56,17 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
             return None
         pc = r.get("price_change", {})
         hist = r.get("historical_price", [])
+        # FMP 对 A股 盘中行情有更新延迟：今日价未同步时 price 仍 == 最近一个已收盘价(昨收)，
+        # 此时 /stock-price-change 的 1D 实际是"昨收 vs 前收"(如 300285.SZ 9.19% vs 真实 +2.66%)，
+        # 会被 assess_snapshot 误判 +8% 重要异动。检测到"价=昨收(历史最新一根)"视为 stale，
+        # return None 回退 yfinance 自算(实时)，避免盘初误报。
+        if hist and md.get("price") is not None:
+            try:
+                last_hist_price = float(hist[0]["price"])  # historical_price 降序：最新在前=昨收
+                if last_hist_price and abs(float(md["price"]) - last_hist_price) < 1e-6:
+                    return None
+            except Exception:
+                pass
         snap: dict[str, Any] = {
             "provider": "fmp",
             "quote_ticker": r.get("fmp_ticker"),
