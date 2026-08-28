@@ -8,7 +8,7 @@ from typing import Any
 from .coverage import CoverageEntry
 from .brief import _display_name
 from .news import ImportantMoverExplainer, NewsItem, pick_lead_news, translate_zh
-from .signals import assess_snapshot, quote_exception_status, summarize_data_health
+from .signals import IMPORTANT_RETURN_PCT, assess_snapshot, quote_exception_status, summarize_data_health
 
 
 ALERT_KEYWORDS = (
@@ -194,28 +194,14 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
 
 
 def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    """盘中检测与 Monitor(Core/Other) 解耦：覆盖表所有票都参与。
+    """盘中检测只按涨跌幅：|当日涨跌幅| >= 8%(重要) 才触发。
 
-    只去掉"放量(volume_ratio)"触发(避免小涨+放量如 3%+4x 误报)；
-    涨跌幅(return)/跳空(gap)/新闻标题仍生效。触发后由 stable key 去重(同票同 type 当天一次)。
+    覆盖表所有票都参与(与 Monitor Core/Other 解耦)；仅按 price_move_pct 触发，
+    不再因放量(volume_ratio)/跳空(gap_pct)/新闻标题触发，避免误报。
+    触发后仍由 stable key 去重(同票同 type 当天一次)。
     """
-    s = dict(snapshot)
-    s["volume_ratio"] = None  # 量不参与 intraday 触发
-    assessment = assess_snapshot(s)
-    if assessment and assessment.is_important:
-        return True
-    # 新闻标题触发：须命中关键字 AND 是当天新闻（排除旧新闻误报）
-    headline = str(snapshot.get("headline") or "").lower()
-    if not headline or not any(keyword in headline for keyword in ALERT_KEYWORDS):
-        return False
-    pa = str(snapshot.get("published_at") or "")
-    if not pa:
-        return False  # 无发布时间 → 不触发（可能是缓存旧新闻）
-    try:
-        from datetime import date as _date
-        return _date.fromisoformat(pa[:10]) == _date.today()
-    except Exception:
-        return False
+    move = _float_metric(snapshot, "price_move_pct")
+    return move is not None and abs(move) >= IMPORTANT_RETURN_PCT
 
 
 def _mover_entries(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]]) -> list[tuple[CoverageEntry, dict[str, Any], Any]]:
