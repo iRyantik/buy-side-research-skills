@@ -625,8 +625,12 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     if not force_weekend:
         from datetime import date as _date
         _c = _date.fromisoformat(today) if today else _date.today()
-        if _c.weekday() >= 5:  # Python weekday(): 周六=5, 周日=6；>=5 拦周六+周日
-            print(f"[coverage-monitor] {_c} 周末，跳过日报（交易日才发）")
+        _wd = _c.weekday()
+        # asia: 周六/周日不发(周五亚盘盘后 16:15 已发，周六无新盘后)。
+        # us/eu: 周六发周五欧美盘后(时区跨夜，合理)，仅周日拦(周六欧美无开市)。
+        _cut = 5 if report_type == "asia" else 6
+        if _wd >= _cut:
+            print(f"[coverage-monitor] {_c} 周末(report={report_type})，跳过日报（交易日才发）")
             return 0
 
     if skip_fetch:
