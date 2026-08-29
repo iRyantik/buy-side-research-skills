@@ -625,8 +625,8 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     if not force_weekend:
         from datetime import date as _date
         _c = _date.fromisoformat(today) if today else _date.today()
-        if _c.weekday() >= 6:
-            print(f"[coverage-monitor] {_c} 是周日，跳过日报（交易日才发）")
+        if _c.weekday() >= 5:  # Python weekday(): 周六=5, 周日=6；>=5 拦周六+周日
+            print(f"[coverage-monitor] {_c} 周末，跳过日报（交易日才发）")
             return 0
 
     if skip_fetch:
