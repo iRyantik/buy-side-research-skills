@@ -66,6 +66,24 @@ class HookTest(unittest.TestCase):
         self.assertNotIn('[TSMC]', stripped)
         self.assertIn('[S1](url)', stripped)
 
+    def test_filename_labels_not_flagged(self):
+        """Single-token hyphenated filename labels (regression: the 9/1 teach-in
+        was blocked twice on [Semiconductor-Interconnects] / [Maxwell-Technology]
+        style references — those are names, not citations)."""
+        self.assertFalse(_looks_like_source_label('Semiconductor-Interconnects'))
+        self.assertFalse(_looks_like_source_label('Semiconductor-Testing-Full-Chain'))
+        self.assertFalse(_looks_like_source_label('Maxwell-Technology'))
+        self.assertFalse(_looks_like_source_label('Annual-Report'))
+        self.assertFalse(_looks_like_source_label('IR'))
+
+    def test_multiword_source_labels_still_flagged(self):
+        """Multi-word citation-shaped labels must remain detectable."""
+        self.assertTrue(_looks_like_source_label('BESI AGM 2026'))
+        self.assertTrue(_looks_like_source_label('Yahoo Finance'))
+        self.assertTrue(_looks_like_source_label('Q1 Earnings'))
+        self.assertTrue(_looks_like_source_label('Morgan Stanley'))
+        self.assertTrue(_looks_like_source_label('Annual Report Session'))
+
 
 if __name__ == '__main__':
     unittest.main()

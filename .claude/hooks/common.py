@@ -25,10 +25,42 @@ def get_hook_event(payload: dict) -> str:
     return (payload.get("hook_event_name") or payload.get("event") or "")
 
 def get_workspace_root(payload: dict) -> str:
-    cwd = payload.get("cwd", "")
-    if cwd:
-        return str(Path(cwd).resolve())
-    return str(Path.cwd().resolve())
+    """Resolve the workspace root robustly.
+
+    payload cwd is NOT trusted first — some harnesses (VSCode extension,
+    resumed sessions, shell cwd drift) send a cwd that resolves to a
+    subdirectory (e.g. .claude/hooks), which has been the cause of false
+    workspace_guard blocks. Candidates in order, first one carrying
+    workspace markers (industry/ + .claude/) wins:
+      1. CLAUDE_PROJECT_DIR env (Claude Code sets it to the project root)
+      2. payload cwd
+      3. hook-file location itself (<root>/.claude/hooks)
+    """
+    candidates = []
+    env_root = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if env_root:
+        candidates.append(env_root)
+    pcwd = payload.get("cwd", "")
+    if pcwd:
+        candidates.append(pcwd)
+    candidates.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    for c in candidates:
+        try:
+            r = str(Path(c).resolve())
+        except Exception:
+            continue
+        if r and os.path.isdir(r) and ws_markers(r):
+            return r
+    # Last resort: hook-file root without marker validation
+    return str(Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).resolve())
+
+
+def ws_markers(root: str) -> bool:
+    """Workspace root carries an industry/ dir + a .claude dir."""
+    try:
+        return os.path.isdir(os.path.join(root, "industry")) and os.path.isdir(os.path.join(root, ".claude"))
+    except Exception:
+        return False
 
 def resolve_path(path: str, cwd: str) -> Optional[str]:
     """Resolve relative or absolute path to absolute."""
@@ -50,8 +82,16 @@ def resolve_path(path: str, cwd: str) -> Optional[str]:
         return None
 
 def is_under(path: str, root: str) -> bool:
+    """Path containment check. Case-insensitive on Windows — drive letters and
+    directory case can arrive differently (C:/c:, CC research vs cc research)
+    from different payload sources."""
     try:
-        return Path(path).resolve().as_posix().startswith(Path(root).resolve().as_posix() + "/")
+        p = Path(path).resolve().as_posix()
+        r = Path(root).resolve().as_posix()
+        if sys.platform == "win32":
+            p = p.lower()
+            r = r.lower()
+        return p.startswith(r.rstrip("/") + "/")
     except Exception:
         return False
 
@@ -59,7 +99,16 @@ def get_relative_display(path: str, root: str) -> str:
     try:
         return str(Path(path).resolve().relative_to(Path(root).resolve()))
     except Exception:
-        return path
+        try:
+            # Case-insensitive fallback (Windows): relpath compares case-
+            # lenient; paths actually outside root surface as ../ and are
+            # returned raw so callers render the original path.
+            rel = os.path.relpath(path, root)
+            if rel.startswith(".." + os.sep):
+                return path
+            return rel
+        except Exception:
+            return path
 
 def get_last_assistant_message(payload: dict) -> str:
     return (payload.get("last_assistant_message") or payload.get("lastAssistantMessage") or "")

@@ -17,13 +17,15 @@ DATE_PREFIX_RE = re.compile(r'^\d{8}-[a-z0-9A-Z\[\]][a-z0-9A-Z\[\]\-_]*\.(md|htm
 ROOT_WHITELIST = frozenset({
     "industry", ".cache", ".scripts", ".claude", ".codex",
     ".references", "COVERAGE.md", "CLAUDE.md", "AGENTS.md", ".env", ".gitignore",
-    "daily",
+    "daily", ".sessions",
 })
 
 # External dev roots explicitly allowed for writes (plugin dev repo).
 # Keep in sync with the installed workspace copy of this file.
 ALLOWED_EXTERNAL_ROOTS = (
     r"C:\Users\yuzhe\dev\buy-side-research-skills",
+    # macOS dev repo（home/projects/...）
+    str(Path.home() / "projects" / "buy-side-research-skills"),
     # Claude memory / session 目录（各 workspace 的 memory 都在下面，放行合理）
     str(Path.home() / ".claude" / "projects"),
 )
@@ -60,7 +62,8 @@ def check(ctx: dict):
 
         # Rule 1: Must be inside workspace root
         if not is_under(path, root):
-            block(f"Blocked by workspace_guard: write target escapes workspace root ({rel})")
+            block(f"Blocked by workspace_guard: write target escapes workspace root ({rel}). "
+                  f"resolved target: {Path(path).resolve()} | resolved root: {Path(root).resolve()}")
 
         # Rule 2: No legacy root paths
         if LEGACY_ROOTS.match(rel.replace('\\', '/')):
