@@ -164,8 +164,11 @@ Scratchpad must include a  field where every fact is paired with a web search UR
 | ⑧ | Meta commentary on the meeting itself | "The analyst pressed with a key question" "The analyst used a jewelry metaphor" "The analyst gave an example" |
 | ⑨ | Emotional/colorful phrasing | "older than America" "insulting offers" "the most extreme proof" |
 | ⑩ | Intensifying adverbs and editorial qualifiers | "far exceeds" "near-monopoly" "inevitably low" "crushing leverage" |
+| ⑪ | "Interviewee / speaker" as sentence subject | "the interviewee gave full-year guidance" "per the speaker" "the team judged" |
+| ⑫ | Editorial emphasis labels | "important, judgment-core" "this is key" "the most informative/valuable section" "worth reading in full" |
+| ⑬ | Transcription meta-explanations in body | "the recording said 'Chen Wei' (recording)" "the transcript writes X" "whisper misheard Y" |
 
-Allowed: Neutral attribution of analyst/speaker views ("The analyst's view is" "Management believes"), buy-side question context.
+Allowed: Neutral attribution of analyst/speaker views ("The analyst's view is" "Management believes"), buy-side question context. Name/term transcription corrections ("Chen Wei" → Chenwei subsidiary) go ONLY in the appendix Name Corrections table, never in body text.
 
 ---
 
@@ -348,5 +351,8 @@ Industry-level (industry panel / sell-side call):
 - ❌ Separate "Key Takeaway" callout sections — weave into prose
 - ❌ Isolated cross-company judgment without context ("X is milder than Y" with no reasoning)
 - ❌ Fabricating company background — must cite cache or web source
+- ❌ "Interviewee / speaker" as sentence subject ("the interviewee gave" "per the speaker" "the team judged") — use neutral statements ("the company said", "noted")
+- ❌ Editorial emphasis labels ("important, judgment-core" "most informative section" "worth reading in full")
+- ❌ Transcription meta-explanations in body ("the recording said X", "transcript writes Y") — name/term corrections only in appendix Name Corrections table
 - ❌ Verification tags in body text — appendix only
 - ❌ Sensitive content published without flagging

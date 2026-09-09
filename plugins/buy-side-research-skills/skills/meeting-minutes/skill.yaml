@@ -92,6 +92,9 @@ quality_gates:
     - 'verification_tags_in_body_text'
     - 'fabricating_company_background'
     - 'publishing_sensitive_content'
+    - 'interviewee_speaker_as_subject'
+    - 'editorial_emphasis_labels'
+    - 'transcription_meta_in_body'
   data_requirements:
     - 'scratchpad_json_in_cache'
     - 'bilingual_briefing_with_appendix'
