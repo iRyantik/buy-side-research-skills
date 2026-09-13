@@ -7,7 +7,7 @@ import os, re, sys, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import warn
 
-ARTIFACT_RE = re.compile(r'^(\d{4}-\d{2}-\d{2})-[\w-]+\.md$')
+ARTIFACT_RE = re.compile(r'^(\d{8})-[\w\[\]-]+\.md$')
 
 
 def _find_research_md(artifact_path: str) -> str | None:
@@ -33,7 +33,7 @@ def check(ctx):
         display = t.get("display", "unknown")
         leaf = os.path.basename(path)
 
-        # Only match YYYY-MM-DD-skill-*.md artifacts
+        # Only match YYYYMMDD-skill-*.md artifacts
         if not ARTIFACT_RE.match(leaf):
             continue
 

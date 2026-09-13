@@ -652,7 +652,7 @@ def _yfinance_period_str(period):
     if period is None:
         return None
     text = str(period)
-    match = re.match(r'^(\d{4}-\d{2}-\d{2})', text)
+    match = re.match(r'^(\d{8})', text)
     return match.group(1) if match else text
 
 

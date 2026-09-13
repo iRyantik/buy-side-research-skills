@@ -172,7 +172,18 @@ def main():
         import importlib
         mod = importlib.import_module(f"rules.{name}")
         rule_ctx = _research_targets_only(ctx) if name in RESEARCH_ARTIFACT_RULES else ctx
-        mod.check(rule_ctx)
+        fn = getattr(mod, "check", None)
+        if fn is None:
+            # Standalone rules (modeling/*, xlsx-only) use module-level stdin;
+            # do not let a missing check() crash the rest of the chain.
+            sys.stderr.write(f"hook_entry: rule {name} has no check(ctx) — skipped (standalone pattern)\n")
+            continue
+        try:
+            fn(rule_ctx)
+        except SystemExit:
+            raise  # block() = exit 2 — must propagate
+        except Exception as e:
+            sys.stderr.write(f"hook_entry: rule {name} raised {type(e).__name__}: {e}\n")
 
     # Modeling dispatch: run standalone xlsx rules when xlsx targets present
     if args.event == "PostToolUse" and _has_xlsx_targets(payload):

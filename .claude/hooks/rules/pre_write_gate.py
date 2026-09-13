@@ -382,10 +382,7 @@ def _check_content(path: str, text: str, display: str):
 
     # --- CHECK 13: Table structure integrity ---
     TABLE_HEADER_RE = re.compile(r'^\s*\|.+\|\s*$')
-    # Allows 1-column tables (the workspace image-table convention: | img |
-    # + |:--:|). Must match table_render_integrity's validator — it accepts
-    # single-column separators; rejecting them here was a divergence.
-    TABLE_SEP_RE = re.compile(r'^\s*\|?(?:\s*:?-{2,}:?\s*\|)+\s*$')
+    TABLE_SEP_RE = re.compile(r'^\s*\|?(?:\s*:?-{2,}:?\s*\|)+(?:\s*:?-{2,}:?\s*)\|?\s*$')
 
     def _count_cols(line: str) -> int:
         clean = line.strip()

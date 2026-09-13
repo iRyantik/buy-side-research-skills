@@ -3,7 +3,7 @@ import re, sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
 import os as _os
-_ARTIFACT_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
+_ARTIFACT_RE = __import__("re").compile(r"^\d{8}-.+\.md$")
 def _is_artifact(fp): return bool(_ARTIFACT_RE.match(_os.path.basename(fp)))
 
 STRONG_CLAIM = re.compile(

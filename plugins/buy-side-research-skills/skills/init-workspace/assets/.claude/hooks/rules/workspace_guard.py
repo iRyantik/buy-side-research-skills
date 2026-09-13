@@ -17,7 +17,7 @@ DATE_PREFIX_RE = re.compile(r'^\d{8}-[a-z0-9A-Z\[\]][a-z0-9A-Z\[\]\-_]*\.(md|htm
 ROOT_WHITELIST = frozenset({
     "industry", ".cache", ".scripts", ".claude", ".codex",
     ".references", "COVERAGE.md", "CLAUDE.md", "AGENTS.md", ".env", ".gitignore",
-    "daily",
+    "daily", ".sessions",
 })
 
 # External dev roots explicitly allowed for writes (plugin dev repo).
@@ -62,7 +62,8 @@ def check(ctx: dict):
 
         # Rule 1: Must be inside workspace root
         if not is_under(path, root):
-            block(f"Blocked by workspace_guard: write target escapes workspace root ({rel})")
+            block(f"Blocked by workspace_guard: write target escapes workspace root ({rel}). "
+                  f"resolved target: {Path(path).resolve()} | resolved root: {Path(root).resolve()}")
 
         # Rule 2: No legacy root paths
         if LEGACY_ROOTS.match(rel.replace('\\', '/')):

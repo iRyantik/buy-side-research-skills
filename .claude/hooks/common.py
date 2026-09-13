@@ -24,6 +24,17 @@ def get_tool_input(payload: dict) -> dict:
 def get_hook_event(payload: dict) -> str:
     return (payload.get("hook_event_name") or payload.get("event") or "")
 
+def _hook_root() -> str:
+    """Workspace root from this file's location (<root>/.claude/hooks/common.py)."""
+    return str(Path(__file__).resolve().parents[2])
+
+def ws_markers(root: str) -> bool:
+    """Workspace root carries an industry/ dir + a .claude dir."""
+    try:
+        return os.path.isdir(os.path.join(root, "industry")) and os.path.isdir(os.path.join(root, ".claude"))
+    except Exception:
+        return False
+
 def get_workspace_root(payload: dict) -> str:
     """Resolve the workspace root robustly.
 
@@ -34,7 +45,7 @@ def get_workspace_root(payload: dict) -> str:
     workspace markers (industry/ + .claude/) wins:
       1. CLAUDE_PROJECT_DIR env (Claude Code sets it to the project root)
       2. payload cwd
-      3. hook-file location itself (<root>/.claude/hooks)
+      3. hook-file location itself (<root>/.claude/hooks/common.py)
     """
     candidates = []
     env_root = os.environ.get("CLAUDE_PROJECT_DIR", "")
@@ -43,7 +54,7 @@ def get_workspace_root(payload: dict) -> str:
     pcwd = payload.get("cwd", "")
     if pcwd:
         candidates.append(pcwd)
-    candidates.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    candidates.append(_hook_root())
     for c in candidates:
         try:
             r = str(Path(c).resolve())
@@ -52,15 +63,7 @@ def get_workspace_root(payload: dict) -> str:
         if r and os.path.isdir(r) and ws_markers(r):
             return r
     # Last resort: hook-file root without marker validation
-    return str(Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).resolve())
-
-
-def ws_markers(root: str) -> bool:
-    """Workspace root carries an industry/ dir + a .claude dir."""
-    try:
-        return os.path.isdir(os.path.join(root, "industry")) and os.path.isdir(os.path.join(root, ".claude"))
-    except Exception:
-        return False
+    return _hook_root()
 
 def resolve_path(path: str, cwd: str) -> Optional[str]:
     """Resolve relative or absolute path to absolute."""

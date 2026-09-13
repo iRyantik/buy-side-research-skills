@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import (
     block, warn, load_stdin_payload, get_tool_name, get_tool_input,
     get_body_without_resources, get_resources_entries, get_short_anchor_matches,
-    is_valid_source_target,
+    is_valid_source_target, resolve_path, get_relative_display,
 )
 
 _ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
@@ -567,6 +567,22 @@ def _find_company_actuals(artifact_path: str, slug: str) -> str | None:
             break
         d = parent
     return None
+
+
+def check(ctx: dict):
+    """hook_entry ctx entrypoint (PreToolUse dispatch). Replicates main()'s
+    stdin pattern against the unified ctx, so the 17 content CHECKs actually
+    run before Write/Edit instead of crashing with AttributeError."""
+    payload = ctx.get("raw_payload") or {}
+    tool = get_tool_name(payload)
+    if tool not in ("Write", "Edit", "MultiEdit", "apply_patch", "write_file"):
+        return
+    path, content = _extract_write_content(payload)
+    if not path or not content:
+        return
+    root = ctx.get("cwd") or os.getcwd()
+    path = resolve_path(path, root) or path
+    _check_content(path, content, get_relative_display(path, root))
 
 
 def main():

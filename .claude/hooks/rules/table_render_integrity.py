@@ -7,11 +7,11 @@ from common import get_markdown_tables, block, count_pipe_columns
 
 def check(ctx: dict):
     for target in ctx.get("targets", []):
-        # Only check dated research artifacts (YYYY-MM-DD-*.md files on disk)
+        # Only check dated research artifacts (YYYYMMDD-*.md files on disk)
         if target.get("kind") != "file":
             continue
         display = target.get("display", "unknown")
-        if not re.match(r'^\d{4}-\d{2}-\d{2}-.+\.md$', os.path.basename(display)):
+        if not re.match(r'^\d{8}-.+\.md$', os.path.basename(display)):
             continue
 
         text = target.get("text", "")

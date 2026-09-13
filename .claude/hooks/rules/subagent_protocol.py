@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import get_primary_heading, block
 
-_RESEARCH_ARTIFACT_RE = re.compile(r'^\d{4}-\d{2}-\d{2}-.+\.md$')
+_RESEARCH_ARTIFACT_RE = re.compile(r'^\d{8}-.+\.md$')
 
 def _is_research_artifact(filepath: str) -> bool:
     return bool(_RESEARCH_ARTIFACT_RE.match(os.path.basename(filepath)))

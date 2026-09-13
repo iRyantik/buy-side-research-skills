@@ -87,8 +87,8 @@ def _looks_like_source_label(label: str) -> bool:
     # like [BESI AGM 2026] / [Q1 Earnings] are citation-shaped.
     fragments = {'finance', 'investing', 'market', 'stock', 'analyst', 'earnings',
                  'report', 'annual', 'quarterly', 'presentation', 'agm', 'ir'}
-    token_words = label_clean.split()  # hyphenated names = 1 token
     words_in_label = set(re.findall(r'[a-zA-Z]{3,}', label_lower))
+    token_words = label_clean.split()  # hyphenated names = 1 token
     if words_in_label & fragments and len(token_words) >= 2:
         return True
     # Heuristic: multi-word title-case proper-noun groups (>=2 tokens) look

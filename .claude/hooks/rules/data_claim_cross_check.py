@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from common import block, warn
 import os as _os
-_ARTIFACT_RE = __import__("re").compile(r"^\d{4}-\d{2}-\d{2}-.+\.md$")
+_ARTIFACT_RE = __import__("re").compile(r"^\d{8}-.+\.md$")
 def _is_artifact(fp): return bool(_ARTIFACT_RE.match(_os.path.basename(fp)))
 
 # Only capture raw financial amounts: $1.23B, HK$45M, ¥500bn, HK$550M, 73.80亿, etc.
@@ -24,7 +24,7 @@ COMPANY_SKILLS = {
     "bear-pre-mortem", "comps-analysis",
 }
 SLUG_RE = re.compile(
-    r'^\d{4}-\d{2}-\d{2}-(?:' +
+    r'^\d{8}-(?:' +
     '|'.join(s.replace('-', r'\-') for s in COMPANY_SKILLS) +
     r')-([a-z0-9][a-z0-9\-]*)\.md$', re.IGNORECASE
 )

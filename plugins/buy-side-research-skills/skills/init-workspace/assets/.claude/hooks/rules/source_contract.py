@@ -81,13 +81,20 @@ def _looks_like_source_label(label: str) -> bool:
         # Also check if label contains a source word (for multi-word labels)
         if len(sw) >= 4 and label_lower in sw:
             return True
-    # Heuristic: label contains a known source word fragment
+    # Heuristic: label contains a known source word fragment.
+    # Requires >=2 whitespace tokens: single-token labels like [Annual-Report]
+    # or [IR] are filenames/product refs, not citations; multi-token labels
+    # like [BESI AGM 2026] / [Q1 Earnings] are citation-shaped.
     fragments = {'finance', 'investing', 'market', 'stock', 'analyst', 'earnings',
                  'report', 'annual', 'quarterly', 'presentation', 'agm', 'ir'}
     words_in_label = set(re.findall(r'[a-zA-Z]{3,}', label_lower))
-    if words_in_label & fragments:
+    token_words = label_clean.split()  # hyphenated names = 1 token
+    if words_in_label & fragments and len(token_words) >= 2:
         return True
-    # Heuristic: label starts with capital + doesn't look like normal prose
+    # Heuristic: multi-word title-case proper-noun groups (>=2 tokens) look
+    # citation-shaped ("BESI AGM 2026", "Morgan Stanley"). Single-token
+    # CamelCase/hyphenated labels ([Semiconductor-Interconnects], product
+    # names, industry slugs) are exempt: they are names, not citations.
     if label_clean[0].isupper() and len(label_clean) >= 4:
         # Exclude if it's just common English words
         common_words = {'the', 'and', 'for', 'with', 'from', 'this', 'that', 'have',
@@ -95,11 +102,11 @@ def _looks_like_source_label(label: str) -> bool:
                         'about', 'after', 'before', 'during', 'since', 'while'}
         if all(w.lower() in common_words for w in label_clean.split()):
             return False
-        # Has at least one proper-noun-like word (capitalized, not common)
-        proper_words = [w for w in label_clean.split()
-                        if w[0].isupper() and w.lower() not in common_words]
-        if proper_words:
-            return True
+        if len(token_words) >= 2:
+            proper_words = [w for w in label_clean.split()
+                            if w[0].isupper() and w.lower() not in common_words]
+            if proper_words:
+                return True
     return False
 
 

@@ -11,7 +11,7 @@ WACC_ITEMS = {
     "cost of debt": ["cost of debt", "pre-tax cost", "pre.tax cost"],
     "tax rate": ["tax rate", "marginal tax", "effective tax"],
 }
-SOURCE_PATTERN = re.compile(r'(?i)(source|from|as.of|as at|collected|bloomberg|yahoo|damodaran|fed|central bank|\d{4}-\d{2}-\d{2})')
+SOURCE_PATTERN = re.compile(r'(?i)(source|from|as.of|as at|collected|bloomberg|yahoo|damodaran|fed|central bank|\d{8})')
 
 payload = load_payload()
 for t in get_xlsx_targets(payload):

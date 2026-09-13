@@ -14,7 +14,7 @@ NO_SOURCE_PATTERNS = [
 ]
 
 # Check for numeric claims without source indicators
-SOURCE_INDICATORS = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|R\d+|SRC\d+)\]|\[.*?\|\s*(?:Bridge\|yfinance\|WebSearch\|Google Finance\|估算\|研究员假设|[a-z_]+\s*\|\s*\d{4}-\d{2}-\d{2})\]')
+SOURCE_INDICATORS = re.compile(r'\[(?:S\d+|I\d+|LBG\d+|P\d+|R\d+|SRC\d+)\]|\[.*?\|\s*(?:Bridge\|yfinance\|WebSearch\|Google Finance\|估算\|研究员假设|[a-z_]+\s*\|\s*\d{8})\]')
 
 TIER_LABEL = re.compile(r'\[(?:Tier\s*[0-3]|研究员假设|估算|verified|machine)\]', re.IGNORECASE)
 
@@ -26,7 +26,7 @@ def check(ctx):
         # Only check research artifacts (dated files) — not skill files
         path = t.get("path", "") or ""
         leaf = os.path.basename(path) if path else ""
-        if not re.match(r'^\d{4}-\d{2}-\d{2}-.+\.md$', leaf):
+        if not re.match(r'^\d{8}-.+\.md$', leaf):
             continue
 
         # Rule 1: Every standalone number claim should have a source anchor nearby
