@@ -25,7 +25,7 @@ from .coverage import (
 from .delivery import send_email, workspace_env
 from .market_data import collect_snapshots
 from .news import ImportantMoverExplainer, NewsItem, collect_company_news, collect_industry_readthroughs
-from .reports import render_alert_markdown, render_alert_html, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
+from .reports import intraday_alert_decision, render_alert_markdown, render_alert_html, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
 from .state import build_event_id, load_state, save_state
 from .tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
 
@@ -770,12 +770,22 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     return 0
 
 
-def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, dict], sent_event_ids: set[str]) -> tuple[list[CoverageEntry], list[str]]:
+def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, dict], sent_event_ids: set[str]) -> tuple[list[CoverageEntry], list[str], list[str]]:
+    """返回 (要推的 entries, 新增 event_ids, 因行情滞后被跳过的 ticker)。
+
+    第三个返回值用于日志可见性：数据源滞后导致的"没提醒"必须能看出来，
+    否则与"今天确实没动"无法区分。
+    """
     alert_entries: list[CoverageEntry] = []
     new_event_ids: list[str] = []
+    stale_skipped: list[str] = []
     for entry in entries:
         snapshot = snapshots.get(entry.ticker or entry.company, {})
-        if not should_alert_intraday(entry, snapshot):
+        decision = intraday_alert_decision(entry, snapshot)
+        if decision == "stale_quote":
+            stale_skipped.append(f"{entry.ticker or entry.company}@{snapshot.get('market_time')}")
+            continue
+        if decision != "alert":
             continue
         if snapshot.get("headline"):
             event_type = "headline"
@@ -790,7 +800,7 @@ def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, 
             continue
         alert_entries.append(entry)
         new_event_ids.append(event_id)
-    return alert_entries, new_event_ids
+    return alert_entries, new_event_ids, stale_skipped
 
 
 def _open_market_suffixes() -> set:
@@ -830,10 +840,16 @@ def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: 
             entries = [e for e in entries
                        if any((e.ticker or "").upper().endswith(s) for s in open_sfx)]
             print(f"open_markets={sorted(open_sfx)} scan={len(entries)}")
-        snapshots, snapshot_gaps = collect_snapshots(entries, today=datetime.now().date().isoformat())
+        # live_intraday=True：日线还没"今天"这根时用分钟线补实时，避免盘初只能拿到
+        # 上一交易日行情（那会推出"昨天的涨停"）。盘后日报不开这个开关。
+        snapshots, snapshot_gaps = collect_snapshots(entries, today=datetime.now().date().isoformat(),
+                                                     live_intraday=True)
         state = load_state(workspace)
         sent_event_ids = set(state.get("sent_event_ids", []))
-        alert_entries, new_event_ids = _collect_intraday_alerts(entries, snapshots, sent_event_ids)
+        alert_entries, new_event_ids, stale_skipped = _collect_intraday_alerts(entries, snapshots, sent_event_ids)
+        if stale_skipped:
+            # 数据源滞后（如 A 股 yfinance 落后数日）→ 不推旧数据，但要看得见
+            print("stale_quote_skipped=" + "; ".join(stale_skipped))
         if alert_entries:
             markdown_text = render_alert_markdown(alert_entries, snapshots, now)
             if dry_run:

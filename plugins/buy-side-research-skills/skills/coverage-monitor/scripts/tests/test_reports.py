@@ -1,3 +1,5 @@
+from datetime import date
+
 from coverage_monitor.coverage import CoverageEntry
 from coverage_monitor.news import ImportantMoverExplainer, NewsItem
 from coverage_monitor.reports import render_daily_markdown, render_dashboard_html, should_alert_intraday
@@ -195,3 +197,35 @@ def test_intraday_alert_only_for_core_watch_material_events():
     assert should_alert_intraday(entry, {"price_move_pct": 8.0, "volume_ratio": 4.0, "gap_pct": 10.0, "headline": "earnings released"})
     entry.monitor_status = "Daily Watch"
     assert not should_alert_intraday(entry, {"price_move_pct": 8.0, "volume_ratio": 4.0, "gap_pct": 10.0, "headline": "earnings released"})
+
+
+def _freeze_market_today(monkeypatch, per_tz: dict[str, date]):
+    """固定各市场"今天"，让新鲜度判断可确定性测试。"""
+    import coverage_monitor.reports as reports
+
+    monkeypatch.setattr(reports, "_market_today", lambda tz: per_tz.get(tz, date(2026, 9, 28)))
+
+
+def test_intraday_alert_skips_quote_from_previous_session(monkeypatch):
+    """行情 K 线不是该市场"今天"的 → 涨跌幅属于上一交易日，不能当盘中异动推。
+
+    盘前/数据未更新时 FMP/yfinance 返回上一交易日收盘，涨停股 ≈ +10% 必然越过
+    8% 阈值，就会出现"每天早上重复推昨天的涨停"。
+    """
+    _freeze_market_today(monkeypatch, {})
+    entry = CoverageEntry(ticker="603067.SS", company="振华股份", monitor_status="Core Watch")
+    assert not should_alert_intraday(entry, {"price_move_pct": 10.0, "market_time": "2026-09-24"})
+    assert should_alert_intraday(entry, {"price_move_pct": 10.0, "market_time": "2026-09-28"})
+
+
+def test_intraday_alert_uses_market_timezone_not_machine_date(monkeypatch):
+    """按市场本地日期判断，不是机器日期：美股盘中（台北已是次日）K 线日期=美国当天。"""
+    _freeze_market_today(monkeypatch, {"America/New_York": date(2026, 9, 27)})
+    entry = CoverageEntry(ticker="ATI.US", company="ATI", monitor_status="Core Watch")
+    assert should_alert_intraday(entry, {"price_move_pct": 9.0, "market_time": "2026-09-27"})
+
+
+def test_intraday_alert_allows_snapshot_without_market_time():
+    """无 market_time（未知市场/旧快照）→ 不拦，维持旧行为。"""
+    entry = CoverageEntry(ticker="MYCR SS", company="Mycronic", monitor_status="Core Watch")
+    assert should_alert_intraday(entry, {"price_move_pct": 9.0})
