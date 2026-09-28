@@ -13,8 +13,9 @@ def test_parse_coverage_table_uses_semantic_status_fields():
     rows = parse_coverage_markdown(text)
     assert len(rows) == 1
     assert rows[0].ticker == "SPCX US"
-    assert rows[0].coverage_status == "Core Coverage"
-    assert rows[0].monitor_status == "Core Watch"
+    # 当前契约：Status 收敛为 Modeled / Core（旧表头 Coverage/Monitor 语义合并进新字段）
+    assert rows[0].coverage_status == "Modeled"
+    assert rows[0].monitor_status == "Core"
     assert rows[0].company_native == "太空探索技术公司"
 
 
@@ -44,10 +45,11 @@ def test_render_normalized_columns_use_new_contract_only():
 | 6777 JP | Santec | サンテック | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |
 """)
     output = render_coverage_markdown(rows)
-    assert "| Ticker | Company (EN) | Company (Native) | Industry | Coverage | Monitor | Last Review | Next Trigger | Notes |" in output
+    # 当前 schema：Market=国家码（无则空）、Status/Monitor 语义值、Val Anchor 列保留
+    assert "| Ticker | Company (EN) | Company (Native) | Industry | Market | Status | Monitor | Last Review | Next Trigger | Val Anchor | Notes |" in output
     assert "Research Tier" not in output
     assert "Alert Tier" not in output
-    assert "| 6777 JP | Santec | サンテック | optical-module-equipment | Core Coverage | Core Watch | 2026-06-15 | earnings | core |" in output
+    assert "| 6777 JP | Santec | サンテック | optical-module-equipment |  | Modeled | Core | 2026-06-15 | earnings |  | core |" in output
 
 
 def test_coverage_status_defaults_to_building_and_core_requires_review_gate():
@@ -61,17 +63,17 @@ def test_coverage_status_defaults_to_building_and_core_requires_review_gate():
         deepwork_artifact_count=1,
         has_research_memory=True,
     )
-    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building Coverage"
+    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building"
     assert should_trigger_core_review(entry, today="2026-06-20")
 
     entry.notes = "High conviction"
     entry.next_trigger = ""
-    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building Coverage"
+    assert derive_coverage_status(entry, today="2026-06-20", artifact_count=3) == "Building"
     assert not should_trigger_core_review(entry, today="2026-06-20")
 
 
 def test_monitor_status_is_separate_from_coverage_status():
-    entry = CoverageEntry(ticker="6777 JP", company="Santec", coverage_status="Core Coverage")
-    assert derive_monitor_status(entry) == "Core Watch"
-    entry.coverage_status = "Building Coverage"
-    assert derive_monitor_status(entry) == "Daily Watch"
+    entry = CoverageEntry(ticker="6777 JP", company="Santec", coverage_status="Core")
+    assert derive_monitor_status(entry) == "Core"
+    entry.coverage_status = "Building"
+    assert derive_monitor_status(entry) == "Daily"

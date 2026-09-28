@@ -7,8 +7,8 @@ from typing import Any
 
 from .coverage import CoverageEntry
 from .brief import _display_name
-from .news import ImportantMoverExplainer, NewsItem, pick_lead_news, translate_zh
-from .signals import assess_snapshot, quote_exception_status, summarize_data_health
+from .news import ImportantMoverExplainer, NewsItem, _market_session_for, pick_lead_news, translate_zh
+from .signals import IMPORTANT_RETURN_PCT, assess_snapshot, quote_exception_status, summarize_data_health
 
 
 ALERT_KEYWORDS = (
@@ -193,14 +193,62 @@ def _mover_explanation(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
     return f"{label}——{entry.company} 今日触发 mover 阈值。"
 
 
-def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
-    if entry.monitor_status != "Core":
-        return False
-    assessment = assess_snapshot(snapshot)
-    if assessment and assessment.is_important:
+def _market_today(tz_name: str) -> date:
+    """该市场时区下的今天（盘中新鲜度判断用市场本地日期，不是机器日期）。"""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    return datetime.now(ZoneInfo(tz_name)).date()
+
+
+def _quote_bar_is_current(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
+    """行情最新一根 K 线是否属于该市场"今天"的交易日。
+
+    盘前/数据源未更新时，快照给的是上一交易日收盘，price_move_pct 就是**上一交易日**
+    的涨跌幅（A 股实测 yfinance 落后数日）。涨停股 ≈ +10% 必然越过 8% 阈值，若不拦
+    就会每个交易日早上重复推送昨天的涨停。
+    market_time 缺失或未知市场 → 不拦（保守，维持旧行为）。
+    """
+    raw = str(snapshot.get("market_time") or "").strip()[:10]
+    if not raw:
         return True
-    headline = str(snapshot.get("headline") or "").lower()
-    return any(keyword in headline for keyword in ALERT_KEYWORDS)
+    try:
+        bar_date = date.fromisoformat(raw)
+    except ValueError:
+        return True
+    session = _market_session_for(entry.ticker or "")
+    if not session:
+        return True
+    try:
+        market_today = _market_today(session[0])
+    except Exception:
+        return True
+    return bar_date >= market_today
+
+
+def intraday_alert_decision(entry: CoverageEntry, snapshot: dict[str, Any]) -> str:
+    """盘中提醒判定，返回 'alert' / 'below_threshold' / 'stale_quote'。
+
+    单独返回原因是为了可观测：'stale_quote'（数据源滞后）和 'below_threshold'
+    （今天确实没动）在只看"没提醒"时无法区分，前者必须能被看见。
+    """
+    move = _float_metric(snapshot, "price_move_pct")
+    if move is None or abs(move) < IMPORTANT_RETURN_PCT:
+        return "below_threshold"
+    return "alert" if _quote_bar_is_current(entry, snapshot) else "stale_quote"
+
+
+def should_alert_intraday(entry: CoverageEntry, snapshot: dict[str, Any]) -> bool:
+    """盘中检测只按涨跌幅：|当日涨跌幅| >= 8%(重要) 才触发。
+
+    覆盖表所有票都参与(与 Monitor Core/Other 解耦)；仅按 price_move_pct 触发，
+    不再因放量(volume_ratio)/跳空(gap_pct)/新闻标题触发，避免误报。
+    触发后仍由 stable key 去重(同票同 type 当天一次)。
+
+    另需行情来自该市场**当天**的 K 线（见 _quote_bar_is_current）——否则"涨跌幅"
+    是上一交易日的，推送出来就是重复昨天的数据。
+    """
+    return intraday_alert_decision(entry, snapshot) == "alert"
 
 
 def _mover_entries(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]]) -> list[tuple[CoverageEntry, dict[str, Any], Any]]:
@@ -582,6 +630,47 @@ def render_alert_markdown(entries: list[CoverageEntry], snapshots: dict[str, dic
             f"- `{entry.ticker or entry.company}` {entry.company}: {snapshot.get('price_move_pct', 0)}% | {snapshot.get('headline') or entry.next_trigger or 'material move'}"
         )
     return "\n".join(lines) + "\n"
+
+
+def render_alert_html(entries: list[CoverageEntry], snapshots: dict[str, dict[str, Any]],
+                      news_map: dict[str, list[NewsItem]], now_label: str) -> str:
+    """intraday 告警 HTML（内联样式，邮件客户端兼容）：涨跌卡片 + 当天新闻佐证"为什么动"。"""
+    cards = []
+    for entry in entries:
+        snap = snapshots.get(entry.ticker or entry.company, {})
+        try:
+            pct = float(snap.get("price_move_pct") or 0)
+        except (TypeError, ValueError):
+            pct = 0.0
+        color = "#0f9f6e" if pct >= 0 else "#d33b3b"
+        meta = []
+        price = snap.get("last_price")
+        vol = snap.get("volume_ratio")
+        if price is not None:
+            meta.append(f"Price {price}")
+        if vol is not None:
+            meta.append(f"Vol {vol}x")
+        meta_line = (f"<div style='color:#475569;font-size:12px;margin-top:4px'>{' · '.join(meta)}</div>"
+                     if meta else "")
+        items = news_map.get(entry.ticker or entry.company, [])[:3]
+        news_html = "".join(
+            f"<div style='margin-top:3px;font-size:12px'><a style='color:#2563eb;text-decoration:none' "
+            f"href='{escape(it.url)}' target='_blank'>📰 {escape(translate_zh(it.title)[:60])}</a></div>"
+            for it in items)
+        cards.append(
+            f"<div style='border:1px solid #d8dee9;border-radius:12px;padding:12px;margin-bottom:12px;background:#ffffff'>"
+            f"<div><b style='font-size:14px'>{escape(_display_name(entry))}</b> "
+            f"<span style='color:#64748b;font-size:12px'>{escape(entry.ticker or '')}</span> "
+            f"<span style='font-size:14px;font-weight:800;color:{color}'>{pct:+.1f}%</span></div>"
+            f"{meta_line}{news_html}</div>")
+    return f"""<!doctype html><html lang="zh-Hans"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intraday Coverage Alerts {escape(now_label)}</title></head>
+<body style="margin:0;padding:16px;background:#f1f5f9;font-family:-apple-system,'Segoe UI',sans-serif">
+<div style="max-width:640px;margin:0 auto">
+<div style="font-size:13px;font-weight:800;color:#1e3a8a;margin-bottom:12px">⚡ Intraday Coverage Alerts — {escape(now_label)}</div>
+{''.join(cards)}
+</div></body></html>"""
 
 
 def render_dashboard_html(

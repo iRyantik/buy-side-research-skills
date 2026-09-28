@@ -48,7 +48,9 @@ def _run_shared(script: str, args: list[str]) -> tuple[int, str, str]:
     """Run a shared script from the same directory as this script."""
     base = Path(__file__).parent
     cmd = [sys.executable, str(base / script)] + args
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
+                       errors="replace", timeout=120, env=env)
     return r.returncode, r.stdout, r.stderr
 
 

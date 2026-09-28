@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 from .coverage import CoverageEntry
+from .deepseek_translate import translate as deepseek_translate
 from .signals import assess_snapshot
 
 
@@ -54,7 +55,7 @@ def _dedupe_news(items: list[NewsItem], max_results: int | None = None) -> list[
 _PAGE_TITLE_PATTERNS = (
     r"主力资金", r"主力净", r"融资余额", r"融资净", r"大宗交易", r"龙虎榜",
     r"异动快报", r"触及涨停板", r"触及跌停板", r"跌停", r"涨停",
-    r"行情快报", r"股票行情",
+    r"行情快报", r"股票行情", r"股价行情", r"股票股价", r"讨论_资讯_财报",
     r"個股概覽", r"股價走勢", r"即時報價", r"盤後速報",
     r"复盘", r"復盤", r"早评", r"早評",
     r"投资分析", r"投資分析", r"투자분석",
@@ -62,6 +63,12 @@ _PAGE_TITLE_PATTERNS = (
     r"限售股解禁", r"市盈率",
     r"Stock Market Today", r"Dow Drops", r"Stocks to Buy", r"Should You Buy",
     r"回顧",
+    # 个股页/行情页模板（东方财富/同花顺/富途/雪球系，2026-08-24 扩充）
+    r"实时行情", r"个股资料", r"行情中心", r"股票频道", r"股市直播",
+    r"個股報價", r"即時股價", r"資金流向", r"走勢分析", r"個股資料",
+    r"_数据报告", r"_资讯_财报", r"_财报_数据", r"_讨论_",
+    r"Stock Quote", r"Stock Quotes", r"Stock Price -", r"Stock Analysis",
+    r"Quotes &", r"Interactive Chart", r"Stock Overview", r"Live Stock Price",
 )
 _PAGE_TITLE_RE = re.compile("|".join(_PAGE_TITLE_PATTERNS))
 
@@ -193,6 +200,40 @@ def _gn_locale_for(ticker: str) -> tuple[str, str, str]:
         if any(ticker.endswith(s) for s in suffixes):
             return loc
     return _GN_DEFAULT
+
+
+def _ts_to_iso(ts) -> str:
+    """unix 时间戳 → ISO 日期（yfinance providerPublishTime）。失败返回空。"""
+    try:
+        from datetime import datetime, timezone
+        return datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError, OSError):
+        return ""
+
+
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+def _ddg_snippet_date(snippet: str) -> str:
+    """从 DDG snippet 提取发布日（'Aug 21, 2026 —' 或 '2026-08-21'）。无则空。"""
+    s = (snippet or "").strip()
+    if not s:
+        return ""
+    m = re.search(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    m = re.search(r"([A-Za-z]{3,9})\s+(\d{1,2}),\s+(\d{4})", s)
+    if m:
+        mo = _MONTHS.get(m.group(1)[:3].lower())
+        if mo:
+            return f"{m.group(3)}-{mo:02d}-{int(m.group(2)):02d}"
+    m = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", s)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    return ""
 
 
 def _strip_gn_source(title: str) -> str:
@@ -355,16 +396,21 @@ def _gtx_translate(text: str, timeout: int = 10) -> str:
 
 
 def protect_names(entries) -> tuple[str, ...]:
-    """从 entries 提取公司名保护名单（native + EN，长名优先）。
+    """从 entries 提取公司名保护名单。
 
-    翻译前占位保护、翻译后还原，防止 AI/机械翻译把公司名音译错乱
-    （如 Kencoa Aerospace → Kencore）。"""
+    只保护不需要翻译/会被音译错的：
+    - EN 名（company）：防机械翻译音译错乱（Kencoa→Kencore）
+    - 中文 native：已是中文不翻
+    韩文/日文 native 不保护——让 AI/机械翻译成中文（用户要求非中文都翻译）。"""
     names = set()
     for e in entries or []:
-        for n in (getattr(e, "company_native", ""), getattr(e, "company", "")):
-            n = (n or "").strip()
-            if len(n) >= 3:
-                names.add(n)
+        en = (getattr(e, "company", "") or "").strip()
+        if len(en) >= 3:
+            names.add(en)
+        nat = (getattr(e, "company_native", "") or "").strip()
+        if nat and _ZH_HAN.search(nat) and not _KANA.search(nat) and not _HANGUL.search(nat):
+            if len(nat) >= 2:
+                names.add(nat)
     return tuple(sorted(names, key=len, reverse=True))
 
 
@@ -382,13 +428,15 @@ def _restore_text(text: str, protect: tuple) -> str:
 
 
 def translate_zh(text: str, timeout: int = 10, protect: tuple = ()) -> str:
-    """标题 → 简体中文。agent 翻译（src=ai 缓存）优先 → Google Translate gtx 机械兜底。
+    """标题 → 简体中文。缓存（deepseek/ai/gtx）→ DeepSeek 单条 → Google Translate gtx 兜底。
 
-    agent 翻译通过 `daily --ai-review-input` 导出任务包 → claude CLI/主 agent 翻译 →
-    `daily --ai-review <out>` 写入缓存（src=ai，按原文 key）。
+    DeepSeek（`deepseek_translate.py`，workspace .env 的 DEEPSEEK_API_KEY）是运行时
+    第一条 AI 路径——Windows/Mac 通用，launchd 定时环境也能走真 AI。
+    批量预翻由 `cli._ensure_translations` 渲染前完成（src=deepseek 缓存）；
+    这里是渲染期兜底：缓存 miss → DeepSeek 单条 → gtx。
     公司名（protect 名单）翻译前占位保护、翻译后还原，避免音译错乱。
     日文（含假名）/ 韩文（含谚文）/ 英文 → 翻译；已是中文（含汉字且无假名谚文）→ 原样。
-    失败降级返回原文（honest degrade）。带磁盘缓存避免重复请求（ai 条目优先于 gtx）。"""
+    失败降级返回原文（honest degrade）。带磁盘缓存避免重复请求（deepseek/ai 条目优先于 gtx）。"""
     text = (text or "").strip()
     if not text:
         return text
@@ -399,10 +447,20 @@ def translate_zh(text: str, timeout: int = 10, protect: tuple = ()) -> str:
     entry = cache.get(key) or cache.get(text)  # 兼容 agent 按原文写入的 AI 翻译
     if entry is not None:
         return _restore_text(entry.get("t", "") if isinstance(entry, dict) else entry, protect)
+    try:
+        t = deepseek_translate(key)
+    except Exception:
+        t = None
+    if t:
+        cache[key] = {"t": t, "src": "deepseek"}
+        _save_tr_cache()
+        return _restore_text(t, protect)
     t = _gtx_translate(key, timeout)
-    cache[key] = {"t": t, "src": "gtx"}
-    _save_tr_cache()
-    return _restore_text(t, protect)
+    if t and t != key:
+        cache[key] = {"t": t, "src": "gtx"}
+        _save_tr_cache()
+        return _restore_text(t, protect)
+    return _restore_text(key, protect)  # gtx 失败（返回原文）→ 不缓存，下次再试 DeepSeek
 
 
 def pick_lead_news(items: list) -> NewsItem:
@@ -576,6 +634,8 @@ def collect_company_news(
                             title=r["title"], url=r["url"],
                             source=r.get("source", "ddg"),
                             summary=r.get("snippet", ""),
+                            # DDG 搜索无 publish 字段 → 从 snippet 尽力提取发布日（如 "Aug 21, 2026 —"）
+                            published_at=_ddg_snippet_date(r.get("snippet", "")),
                         ))
             except Exception:
                 pass  # DDG unavailable → honest gap
@@ -594,7 +654,7 @@ def collect_company_news(
                         if t and u:
                             items.append(NewsItem(
                                 title=t, url=u, source="yfinance",
-                                summary="", published_at=str(n.get("providerPublishTime") or ""),
+                                summary="", published_at=_ts_to_iso(n.get("providerPublishTime")),
                             ))
             except Exception:
                 pass

@@ -144,22 +144,81 @@ def _claude_review_chunk(chunk: list[tuple[str, str, dict]], news_map: dict[str,
         return None
 
 
+def _deepseek_review_chunk(chunk: list[tuple[str, str, dict]], news_map: dict[str, list], today: str) -> dict | None:
+    """DeepSeek 批量审查一个分块（≤8 家），无痕（不走 claude CLI session）。成功 dict，失败 None。"""
+    from .deepseek_translate import _chat, get_config
+    cfg = get_config()
+    if not cfg["api_key"]:
+        return None
+    payload = {}
+    for ticker, company, snap in chunk:
+        items = news_map.get(ticker, [])
+        payload[ticker] = {
+            "company": company,
+            "price_move_pct": snap.get("price_move_pct"),
+            "news": [{"title": it.title, "url": it.url, "source": getattr(it, "source", ""),
+                      "snippet": (getattr(it, "summary", "") or "")[:160]} for it in items[:12]],
+        }
+    prompt = f"""你是买方研究员。今天是 {today}。下面是今天异动股（Movers）的新闻候选。
+对每只股票：
+1. 筛掉噪音（持仓变动/机构买入卖出/推广/聚合站重复标题/SEO 标题）
+2. 总结这次涨跌的原因（1-2 句，中文；若判断为板块联动或无明确 news 驱动，明确说"板块联动/无明确 news 驱动"）
+3. 只挑 2-4 条【真正解释涨跌】的链接（宁缺毋滥；没有就空数组）
+4. confidence: high/medium/low
+5. 归因分类：summary 开头写明「公司特定」或「板块联动」或「宏观」（例：板块联动：SpaceX 解禁冲击波...）
+6. 方向一致性：若标题事件方向（利好/利空）与价格涨跌相反，在 summary 里明确标注「逆向」
+
+只输出 JSON，格式：
+{{"TICKER": {{"summary": "...", "confidence": "high", "links": [{{"title":"...","url":"..."}}]}}}}
+
+输入：
+{json.dumps(payload, ensure_ascii=False, indent=1)}"""
+    try:
+        raw = _chat(prompt, api_key=cfg["api_key"], api_base=cfg["api_base"],
+                    model=cfg["model"], timeout=180, max_tokens=8192)
+        j = _extract_json(raw)
+        return j if isinstance(j, dict) else None
+    except Exception:
+        return None
+
+
 def review_movers(movers: list[tuple[str, str, dict]], news_map: dict[str, list],
                   today: str, entries: list | None = None) -> dict[str, dict]:
-    """Agent review 所有 Movers（claude CLI 分块，≤8 家/块，块失败局部规则 fallback）。"""
+    """Agent review 所有 Movers：DeepSeek 批量（无痕，Windows/Mac 通用）→ claude CLI fallback → 规则。"""
     from .news import protect_names
 
     if not movers:
         return {}
     _prot = protect_names(entries) if entries else tuple(c for _, c, _ in movers)
+    CHUNK = 8
+    combined: dict = {}
+
+    from .deepseek_translate import deepseek_available
+    if deepseek_available():
+        for i in range(0, len(movers), CHUNK):
+            chunk = movers[i:i + CHUNK]
+            j = _deepseek_review_chunk(chunk, news_map, today)
+            if j:
+                combined.update(j)
+                continue
+            # DeepSeek 失败 → claude fallback → 规则
+            print(f"[mover_review] deepseek chunk {i // CHUNK} 失败 → fallback", file=sys.stderr)
+            if _claude_available():
+                from agent_session import get_session_id
+                j2 = _claude_review_chunk(chunk, news_map, today, get_session_id())
+                if j2:
+                    combined.update(j2)
+                    continue
+            combined.update(_rule_review(chunk, news_map, _prot))
+        return combined
+
+    # 无 DeepSeek key → claude CLI → 规则（原逻辑）
     if not _claude_available():
         print("[mover_review] claude CLI 不可用 → 规则 fallback", file=sys.stderr)
         return _rule_review(movers, news_map, _prot)
 
     from agent_session import get_session_id
     sid = get_session_id()  # 固定 session-id：所有分块落入同一个会话
-    combined: dict = {}
-    CHUNK = 8
     for i in range(0, len(movers), CHUNK):
         chunk = movers[i:i + CHUNK]
         j = _claude_review_chunk(chunk, news_map, today, sid)

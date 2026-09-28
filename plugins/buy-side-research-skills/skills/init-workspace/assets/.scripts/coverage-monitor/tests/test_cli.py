@@ -3,6 +3,32 @@ from pathlib import Path
 from coverage_monitor.cli import build_universe
 
 
+def test_collect_intraday_alerts_skips_stale_quote(monkeypatch):
+    """回归：数据源给的 K 线不是该市场今天的 → 不进提醒列表（否则每天重复推昨天的涨停）。"""
+    from datetime import date
+
+    import coverage_monitor.reports as reports
+    from coverage_monitor.cli import _collect_intraday_alerts
+    from coverage_monitor.coverage import CoverageEntry
+
+    monkeypatch.setattr(reports, "_market_today", lambda tz: date(2026, 9, 28))
+    entry = CoverageEntry(ticker="603067.SS", company="振华股份")
+
+    stale = {entry.ticker: {"price_move_pct": 10.0, "market_time": "2026-09-24"}}
+    alerts, ids, skipped = _collect_intraday_alerts([entry], stale, set())
+    assert alerts == [] and ids == []
+    assert skipped == ["603067.SS@2026-09-24"]
+
+    fresh = {entry.ticker: {"price_move_pct": 10.0, "market_time": "2026-09-28"}}
+    alerts, ids, skipped = _collect_intraday_alerts([entry], fresh, set())
+    assert [e.ticker for e in alerts] == ["603067.SS"]
+    assert len(ids) == 1 and skipped == []
+
+    # 已推过（同票同天）→ 去重不再推
+    alerts, ids, _ = _collect_intraday_alerts([entry], fresh, set(ids))
+    assert alerts == [] and ids == []
+
+
 def test_build_universe_from_coverage_and_artifacts(tmp_path: Path):
     (tmp_path / "COVERAGE.md").write_text(
         """## Coverage

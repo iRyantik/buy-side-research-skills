@@ -7,6 +7,111 @@ from .coverage import CoverageEntry
 from .tickers import build_ticker_runtime
 
 
+def _market_session(ticker: str):
+    """该 ticker 所属市场的 (tz_name, open_h, close_h)；未知市场 → None。"""
+    from .news import _market_session_for
+
+    return _market_session_for(ticker)
+
+
+def _bar_date(ts, tz_name: str):
+    """K 线时间戳 → 该市场本地日期（分钟线 index 带 tz）。"""
+    from zoneinfo import ZoneInfo
+
+    try:
+        if getattr(ts, "tzinfo", None) is not None:
+            return ts.tz_convert(ZoneInfo(tz_name)).date()
+    except Exception:
+        pass
+    try:
+        return ts.date()
+    except Exception:
+        return None
+
+
+def _live_intraday_snapshot(quote_ticker: str, ticker: str, daily_history, now=None) -> dict[str, Any] | None:
+    """日线还没有"今天"这根时（盘初/数据源滞后），用分钟线补出当天实时涨跌幅。
+
+    只在市场**正在交易**时使用：非交易时段不存在"实时价"，硬取分钟线只会拿到上一
+    交易日的数据，那就又变成推旧数据了（这正是 2026-09-28 修的那个 bug）。
+    拿不到当天分钟线 → None（调用方保留日线结果，再由提醒端判断是否够新）。
+
+    now: 注入"当前时间"（测试用）；None = 真实当前时间。
+    """
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    import yfinance as yf
+
+    session = _market_session(ticker)
+    if not session:
+        return None
+    tz_name, open_h, close_h = session
+    try:
+        now_local = now.astimezone(ZoneInfo(tz_name)) if now is not None else datetime.now(ZoneInfo(tz_name))
+    except Exception:
+        return None
+    if now_local.weekday() >= 5:
+        return None
+    hh = now_local.hour + now_local.minute / 60.0
+    if not (open_h <= hh < close_h):
+        return None  # 非交易时段：没有实时价可取
+    market_today = now_local.date()
+
+    # 上一交易日收盘 = 日线里最后一根早于该市场今天的收盘
+    prev_close = None
+    try:
+        for ts, row in daily_history.iloc[::-1].iterrows():
+            d = _bar_date(ts, tz_name)
+            if d is not None and d < market_today:
+                prev_close = float(row["Close"])
+                break
+    except Exception:
+        return None
+    if not prev_close:
+        return None
+
+    for interval in ("1m", "5m"):
+        try:
+            bars = yf.Ticker(quote_ticker).history(period="1d", interval=interval, auto_adjust=False)
+        except Exception:
+            continue
+        if bars is None or bars.empty or "Close" not in bars:
+            continue
+        today_bars = bars[[_bar_date(ts, tz_name) == market_today for ts in bars.index]]
+        if today_bars.empty:
+            continue
+        closes_live = today_bars["Close"].dropna()
+        if closes_live.empty:
+            continue
+        live = float(closes_live.iloc[-1])
+        opens_live = today_bars["Open"].dropna()
+        # 日内累计量 / 20 日均量：盘初天然偏低（当日未走完），仅作参考；
+        # A 股分钟线 Volume 常为 0 → 返回 None，调用方保留日线口径
+        volume_ratio = None
+        try:
+            volumes_live = today_bars["Volume"].dropna()
+            daily_vol = daily_history["Volume"].dropna().tolist()[-21:-1]
+            intraday_vol = float(volumes_live.sum()) if not volumes_live.empty else 0.0
+            if intraday_vol > 0 and daily_vol:
+                avg_vol = sum(float(v) for v in daily_vol) / len(daily_vol)
+                if avg_vol > 0:
+                    volume_ratio = round(intraday_vol / avg_vol, 2)
+        except Exception:
+            volume_ratio = None
+        return {
+            "last_price": live,
+            "price_move_pct": round((live - prev_close) / prev_close * 100.0, 2),
+            "gap_pct": round((float(opens_live.iloc[0]) - prev_close) / prev_close * 100.0, 2)
+                       if not opens_live.empty else 0.0,
+            "volume_ratio": volume_ratio,
+            "market_time": market_today.isoformat(),
+            "prev_close": prev_close,
+            "interval": interval,
+        }
+    return None
+
+
 def _load_fmp():
     """Load financial-data fmp_provider (reused for quote/price_change/news).
 
@@ -114,7 +219,7 @@ def _fetch_fmp_snapshot(entry: CoverageEntry, today: str | None) -> dict[str, An
         return None
 
 
-def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, dict[str, Any], str]:
+def _fetch_one_snapshot(entry: CoverageEntry, today: str | None, live_intraday: bool = False) -> tuple[str, dict[str, Any], str]:
     key = entry.ticker or entry.company
     # FMP 优先：行情/涨跌/市值/PE/新闻 headline
     fmp_snap = _fetch_fmp_snapshot(entry, today)
@@ -193,6 +298,20 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
     gap_pct = 0.0
     if opens is not None and len(opens.dropna()) >= 1 and previous_price:
         gap_pct = ((float(opens.dropna().tolist()[-1]) - previous_price) / previous_price) * 100.0
+    # ── 盘初/数据源滞后：日线还没有"今天"这根 → 用分钟线补当天实时涨跌幅 ──
+    # 只在盘中调用方（intraday 扫描）开启：盘后日报要的是"该交易日的收盘"，不该拿实时价。
+    market_time = str(history.index[-1].date())
+    intraday_live = None
+    if live_intraday:
+        intraday_live = _live_intraday_snapshot(ticker_runtime.quote_ticker, entry.ticker, history)
+    if intraday_live:
+        last_price = intraday_live["last_price"]
+        price_move_pct = intraday_live["price_move_pct"]
+        gap_pct = intraday_live["gap_pct"]
+        if intraday_live.get("volume_ratio") is not None:
+            volume_ratio = intraday_live["volume_ratio"]
+        market_time = intraday_live["market_time"]
+
     high_low_window = closes[-20:] if len(closes) >= 20 else closes
     near_high = bool(high_low_window and last_price >= max(high_low_window))
     near_low = bool(high_low_window and last_price <= min(high_low_window))
@@ -208,10 +327,14 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
         "ret_1m": ret_1m,
         "ret_ytd": ret_ytd,
         "ret_1y": ret_1y,
-        "market_time": str(history.index[-1].date()),
+        "market_time": market_time,
         "market_cap": None,
         "pe_trailing": None,
     }
+    if intraday_live:
+        # 留痕：这根涨跌幅来自分钟线（日线还没今天），便于事后核对口径
+        snapshot["intraday_source"] = intraday_live["interval"]
+        snapshot["prev_close"] = intraday_live["prev_close"]
     # Fetch market cap + PE (lightweight info call)
     try:
         info = ticker.info
@@ -247,7 +370,8 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
         gap = f"{entry.ticker}: quote_status:Partial" + (f"; {ak_gap}" if ak_gap else "")
     if today:
         try:
-            if (date.fromisoformat(today) - history.index[-1].date()).days > 5:
+            # 用 market_time（可能已被分钟线补成今天）而非日线末根，否则补过的实时行情被误标 Stale
+            if (date.fromisoformat(today) - date.fromisoformat(market_time)).days > 5:
                 snapshot["quote_status"] = "Stale"
                 gap = f"{entry.ticker}: quote_status:Stale"
         except ValueError:
@@ -265,7 +389,9 @@ def _fetch_one_snapshot(entry: CoverageEntry, today: str | None) -> tuple[str, d
 
 
 def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
-                      max_workers: int = 16) -> tuple[dict[str, dict[str, Any]], list[str]]:
+                      max_workers: int = 16,
+                      live_intraday: bool = False) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    """抓快照。live_intraday=True（盘中扫描用）时，日线还没今天的票会用分钟线补实时。"""
     from concurrent.futures import ThreadPoolExecutor, as_completed
     try:
         import yfinance as yf  # type: ignore
@@ -280,7 +406,7 @@ def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
                if e.ticker and e.ticker.strip().lower() not in _SKIP_TICKER]
 
     with ThreadPoolExecutor(max_workers=min(max_workers, len(targets))) as pool:
-        futures = {pool.submit(_fetch_one_snapshot, e, today): e for e in targets}
+        futures = {pool.submit(_fetch_one_snapshot, e, today, live_intraday): e for e in targets}
         for future in as_completed(futures):
             key, snapshot, gap = future.result()
             snapshots[key] = snapshot

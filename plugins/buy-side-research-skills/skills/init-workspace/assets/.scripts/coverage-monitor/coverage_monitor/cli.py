@@ -3,11 +3,13 @@ from __future__ import annotations
 import argparse
 from dataclasses import replace
 import json
+import sys
 from datetime import datetime
 import os
 from pathlib import Path
 import re
 import time
+import unicodedata
 from typing import Sequence
 
 from .coverage import (
@@ -23,7 +25,7 @@ from .coverage import (
 from .delivery import send_email, workspace_env
 from .market_data import collect_snapshots
 from .news import ImportantMoverExplainer, NewsItem, collect_company_news, collect_industry_readthroughs
-from .reports import render_alert_markdown, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
+from .reports import intraday_alert_decision, render_alert_markdown, render_alert_html, render_daily_markdown, render_dashboard_html, render_email_body, render_email_body_html, should_alert_intraday
 from .state import build_event_id, load_state, save_state
 from .tiering import derive_coverage_status, derive_monitor_status, should_trigger_core_review
 
@@ -78,6 +80,37 @@ def _artifact_inventory(company_dir: Path) -> tuple[int, str, str, int, int, boo
     )
 
 
+_ALNUM_CJK = re.compile(r"[^0-9A-Za-z一-鿿]+")
+
+
+def _dir_links_row(dir_slug: str, ticker: str, company: str, company_native: str) -> bool:
+    """公司目录是否归属某 COVERAGE 行：目录 = <主ticker归一> + <公司名/中文名归一>。
+
+    解决中文名公司目录匹配不到行的问题——normalize_company_token 用 [^a-z0-9] 会把中文剔成空串。
+    - ticker 前缀锚定（多 ticker 取首个，目录只放主上市地）；
+    - 目录公司名是行名的前缀/缩写（如 Indra vs Indra Sistemas、亞德客 vs 亞德客國際集團）也匹配；
+    - NFKC 归一吃掉 é 的 NFC/NFD 文件系统差异。
+    """
+    def _norm(v: str) -> str:
+        return _ALNUM_CJK.sub("", unicodedata.normalize("NFKC", v or "")).lower()
+
+    dir_norm = _norm(dir_slug)
+    if not dir_norm:
+        return False
+    primary = re.split(r"\s*/\s*", (ticker or "").strip())[0]
+    tick_norm = _norm(primary)
+    if not tick_norm or not dir_norm.startswith(tick_norm):
+        return False
+    dir_company = dir_norm[len(tick_norm):]  # 目录里 ticker 之后的公司名部分
+    if not dir_company:
+        return False
+    for cand in (company, company_native):
+        cn = _norm(cand)
+        if len(cn) >= 2 and (cn == dir_company or cn.startswith(dir_company) or dir_company.startswith(cn)):
+            return True
+    return False
+
+
 def build_universe(workspace: Path, today: str | None = None) -> CoverageUniverse:
     coverage_path = workspace / "COVERAGE.md"
     gaps: list[str] = []
@@ -112,6 +145,7 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             "ticker",
             "company",
             "industry",
+            "market",
             "coverage_status",
             "monitor_status",
             "last_review",
@@ -148,7 +182,9 @@ def build_universe(workspace: Path, today: str | None = None) -> CoverageUnivers
             normalized_slug = normalize_company_token(slug)
             normalized_company = normalize_company_token(entry.company)
             company_parts = {part for part in re.split(r"[^a-z0-9]+", normalized_company) if part}
-            if normalized_company == normalized_slug or normalized_slug in company_parts or normalized_company.endswith(f"-{normalized_slug}"):
+            if (normalized_company == normalized_slug or normalized_slug in company_parts
+                    or normalized_company.endswith(f"-{normalized_slug}")
+                    or _dir_links_row(slug, entry.ticker, entry.company, entry.company_native)):
                 matched_key = key
                 break
         if matched_key:
@@ -246,8 +282,8 @@ def _normalize_coverage(workspace: Path, today: str | None, dry_run: bool) -> in
 
 
 def _write_report_files(workspace: Path, stem: str, markdown_text: str, html_text: str) -> tuple[Path, Path]:
-    # 日报归 daily/：html 留根目录（用户只看 html），md 收进 daily/md/ 子目录保持根目录干净
-    report_dir = workspace / "daily"
+    # 报告归 daily/market/：html 留根（用户只看 html），md 收进 md/ 子目录
+    report_dir = workspace / "daily" / "market"
     md_dir = report_dir / "md"
     report_dir.mkdir(parents=True, exist_ok=True)
     md_dir.mkdir(parents=True, exist_ok=True)
@@ -435,14 +471,13 @@ def _write_ai_review_input(workspace: Path, mover_entries: list, company_news: d
             "current_summary": (review_map.get(ticker) or {}).get("summary", ""),
             "news": news,
         })
-    # Core Watch 新闻标题也纳入翻译（展示给用户）
-    for e in entries or []:
-        if getattr(e, "monitor_status", "") == "Core":
-            for it in (company_news.get(e.ticker or e.company, []) or [])[:6]:
-                t = (it.title or "").strip()
-                if t and t not in seen_titles:
-                    seen_titles.add(t)
-                    titles.append(t)
+    # 全量兜底：收集所有 news_map 标题（数据变化后渲染展示的任何标题都能命中 AI 翻译缓存）
+    for _items in (company_news or {}).values():
+        for it in (_items or []):
+            t = (it.title or "").strip()
+            if t and t not in seen_titles:
+                seen_titles.add(t)
+                titles.append(t)
     pack["titles_to_translate"] = titles
     out_path = workspace / ".cache" / "coverage-monitor" / "ai-review-input.json"
     try:
@@ -509,6 +544,79 @@ def _clean_gaps_for_enrichment(gaps: list[str], enrichment: dict, entries: list[
     return cleaned
 
 
+def _ensure_translations(workspace: Path, entries: list, company_news: dict) -> None:
+    """渲染前补全翻译：收集未翻译的非中文标题，DeepSeek 批量 → claude CLI 兜底 → 缓存。
+
+    定时 daily 自动执行，避免新采集标题走 gtx（429 限流）残留非中文。
+    DeepSeek（workspace .env 的 DEEPSEEK_API_KEY）Windows/Mac 通用；
+    无 key 或失败 → 剩余标题走 claude CLI（Mac）；再失败 → 渲染期 gtx 兜底。
+    """
+    from .news import _HANGUL, _KANA, _ZH_HAN, protect_names
+
+    cache_p = workspace / ".cache" / "coverage-monitor" / "translation-cache.json"
+    cache: dict = {}
+    try:
+        if cache_p.exists():
+            cache = json.loads(cache_p.read_text(encoding="utf-8"))
+    except Exception:
+        cache = {}
+    need: list[str] = []
+    for _items in (company_news or {}).values():
+        for it in (_items or []):
+            t = (getattr(it, "title", "") or "").strip()
+            if not t:
+                continue
+            if _ZH_HAN.search(t) and not _KANA.search(t) and not _HANGUL.search(t):
+                continue  # 纯中文不翻
+            if t in cache:
+                continue  # 已翻
+            if t not in need:
+                need.append(t)
+    if not need:
+        return
+    names = protect_names(entries)
+    name_list = ", ".join(sorted(names, key=len, reverse=True)[:80])
+    CHUNK = 30
+    new_tr: dict = {}
+    # 1) DeepSeek 批量（Windows/Mac 通用，launchd 环境可用）
+    from .deepseek_translate import translate_batch as _ds_batch
+    ds_map = _ds_batch(need, names=names, workspace=workspace)
+    new_tr.update(ds_map)
+    # 2) claude CLI 批量（Mac 兜底，处理 DeepSeek 未覆盖的）
+    left = [t for t in need if t not in new_tr]
+    for i in range(0, len(left), CHUNK):
+        chunk = left[i:i + CHUNK]
+        prompt = (f"逐条把下面 {len(chunk)} 条新闻标题翻译成简体中文。规则：\n"
+                  f"1. 每行一条，只输出译文本身，不加编号、引号、解释或空行。\n"
+                  f"2. 以下英文公司名保留原文；韩文/日文公司名翻译成中文（音译或通行译名）：{name_list}\n"
+                  f"3. 人名地名保留原文，除非有通行中文译名。\n"
+                  f"4. 财经术语用标准中文。\n原文：\n" + "\n".join(chunk))
+        try:
+            proc = subprocess.run(
+                ["claude", "-p", "--output-format", "text", prompt],
+                capture_output=True, text=True, timeout=240,
+                env={"PATH": f"{Path.home()}/.local/bin:/opt/homebrew/bin:" + os.environ.get("PATH", "")},
+            )
+            lines = [l.strip() for l in (proc.stdout or "").splitlines() if l.strip()]
+            for j, line in enumerate(lines):
+                if j >= len(chunk):
+                    continue
+                line = re.sub(r"^\d+[.、):]\s*", "", line).strip()
+                if line and line != chunk[j]:
+                    new_tr[chunk[j]] = line
+        except Exception:
+            continue
+    if new_tr:
+        for k, v in new_tr.items():
+            cache[k] = {"t": v, "src": "deepseek" if k in ds_map else "ai"}
+        try:
+            cache_p.parent.mkdir(parents=True, exist_ok=True)
+            cache_p.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+        except Exception:
+            pass
+        print(f"[translate] AI 补翻 {len(new_tr)} 条标题（deepseek {len(ds_map)} / claude {len(new_tr) - len(ds_map)}）", file=sys.stderr)
+
+
 def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_path: Path | None = None, skip_fetch: bool = False, report_type: str = "us", ai_review: str = "", ai_review_input: bool = False, force_weekend: bool = False) -> int:
     from concurrent.futures import ThreadPoolExecutor
 
@@ -517,8 +625,12 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     if not force_weekend:
         from datetime import date as _date
         _c = _date.fromisoformat(today) if today else _date.today()
-        if _c.weekday() >= 6:
-            print(f"[coverage-monitor] {_c} 是周日，跳过日报（交易日才发）")
+        _wd = _c.weekday()
+        # asia: 周六/周日不发(周五亚盘盘后 16:15 已发，周六无新盘后)。
+        # us/eu: 周六发周五欧美盘后(时区跨夜，合理)，仅周日拦(周六欧美无开市)。
+        _cut = 5 if report_type == "asia" else 6
+        if _wd >= _cut:
+            print(f"[coverage-monitor] {_c} 周末(report={report_type})，跳过日报（交易日才发）")
             return 0
 
     if skip_fetch:
@@ -585,7 +697,7 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     except Exception:
         pass
 
-    from .brief import render_brief_markdown
+    from .brief import render_brief_markdown, filter_entries
     from .brief_html import render_brief_html
     from .mover_review import review_movers
 
@@ -593,6 +705,8 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     from .signals import assess_snapshot as _assess
     mover_entries = [(e.ticker or e.company, e.company, snapshots.get(e.ticker or e.company, {}))
                      for e in entries if _assess(snapshots.get(e.ticker or e.company, {}))]
+    # 翻译补全（在 review_movers 前）：规则 fallback 的 translate_zh 命中缓存，避免 gtx 限流残留
+    _ensure_translations(workspace, entries, merged_company_news)
     review_map = review_movers(mover_entries, merged_company_news, run_day, entries)
 
     # ── Agent AI 审查/翻译注入：--ai-review <file> 优先覆盖，--ai-review-input 导出任务包 ──
@@ -624,20 +738,23 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     stem = f"{run_day.replace('-', '')}-brief-{report_type}"
     markdown_path, html_path = _write_report_files(workspace, stem, markdown_text, html_text)
     delivery_gaps = []
-    _mkt = {"us": "US Post-Market", "asia": "Asia Close", "eu": "Europe Close"}.get(report_type, report_type)
+    _mkt = {"us": "欧美盘后", "asia": "亚盘盘后", "eu": "欧盘盘后"}.get(report_type, report_type)
+    # 邮件正文 = 报告口径（us 报告=美股+欧盘），与 HTML 附件前端区块一致；
+    # 全市场 Universe/Review Queue 只存在于附件，正文列表用收盘市场，避免"主题说欧美早盘、正文列亚盘异动"。
+    body_entries = filter_entries(entries, report_type)
     email_body = render_email_body(
-        entries, snapshots, run_day,
+        body_entries, snapshots, run_day,
         mover_explainers, core_watch_summaries, industry_summaries, gaps,
         review_map=review_map, news_map=merged_company_news,
     )
-    email_body_html = render_email_body_html(
-        entries, snapshots, run_day,
-        mover_explainers, core_watch_summaries, industry_summaries, gaps,
-        review_map=review_map, news_map=merged_company_news,
+    # 邮件正文 = email 模式完整日报（无 hero/tab/Data Health；mover/core 块级内联样式，邮件客户端兼容）
+    email_body_html = render_brief_html(
+        entries, snapshots, run_day, gaps, merged_company_news, report_type=report_type,
+        review_map=review_map, estimates=_estimates, email=True,
     )
     delivery_gaps.extend(
         send_email(
-            f"Daily Coverage Brief — {_mkt} ({run_day})",
+            f"[{_mkt}] Daily Coverage Brief — {run_day}",
             email_body, email_body_html,
             env=workspace_env(workspace),
             attachments=[html_path],
@@ -653,39 +770,97 @@ def _run_daily(workspace: Path, today: str | None, dry_run: bool, enrichment_pat
     return 0
 
 
-def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, dict], sent_event_ids: set[str]) -> tuple[list[CoverageEntry], list[str]]:
+def _collect_intraday_alerts(entries: list[CoverageEntry], snapshots: dict[str, dict], sent_event_ids: set[str]) -> tuple[list[CoverageEntry], list[str], list[str]]:
+    """返回 (要推的 entries, 新增 event_ids, 因行情滞后被跳过的 ticker)。
+
+    第三个返回值用于日志可见性：数据源滞后导致的"没提醒"必须能看出来，
+    否则与"今天确实没动"无法区分。
+    """
     alert_entries: list[CoverageEntry] = []
     new_event_ids: list[str] = []
-    # event_id 稳定键：同票 + 事件类型 + 当天日期 → 当天只弹一次（price 变动/时间不参与，
-    # 否则 market_time/百分比每轮变化 → id 永新 → 去重失效反复弹）。跨天自然重置。
-    today = datetime.now().strftime("%Y-%m-%d")
+    stale_skipped: list[str] = []
     for entry in entries:
         snapshot = snapshots.get(entry.ticker or entry.company, {})
-        if not should_alert_intraday(entry, snapshot):
+        decision = intraday_alert_decision(entry, snapshot)
+        if decision == "stale_quote":
+            stale_skipped.append(f"{entry.ticker or entry.company}@{snapshot.get('market_time')}")
             continue
-        event_type = "headline" if snapshot.get("headline") else "price_move"
-        event_id = build_event_id(entry.ticker or entry.company, event_type, today)
+        if decision != "alert":
+            continue
+        if snapshot.get("headline"):
+            event_type = "headline"
+            marker = str(snapshot.get("headline"))
+        else:
+            event_type = "price_move"
+            # 稳定键：同票同 type 当天只弹一次。用当天日期而非实时涨跌幅，
+            # 否则每轮 refresh 涨跌幅一变 event_id 就变，同票同天会反复重复弹。
+            marker = datetime.now().date().isoformat()
+        event_id = build_event_id(entry.ticker or entry.company, event_type, marker)
         if event_id in sent_event_ids:
             continue
         alert_entries.append(entry)
         new_event_ids.append(event_id)
-    return alert_entries, new_event_ids
+    return alert_entries, new_event_ids, stale_skipped
 
 
-def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: int) -> int:
+def _open_market_suffixes() -> set:
+    """当前开市的市场后缀组（复用 news._MARKET_SESSION 时段表，各市场本地时间判断）。"""
+    from datetime import timezone
+    from zoneinfo import ZoneInfo
+
+    from .news import _MARKET_SESSION
+    now = datetime.now(timezone.utc)
+    open_suffixes: set = set()
+    for suffixes, (tz_name, open_h, close_h) in _MARKET_SESSION.items():
+        try:
+            local = now.astimezone(ZoneInfo(tz_name))
+        except Exception:
+            continue
+        if local.weekday() >= 5:
+            continue  # 周末休市
+        hh = local.hour + local.minute / 60.0
+        if open_h <= hh < close_h:
+            open_suffixes.update(suffixes)
+    return open_suffixes
+
+
+def _run_intraday(workspace: Path, dry_run: bool, once: bool, interval_minutes: int, market_aware: bool = False) -> int:
     while True:
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
-        universe = build_universe(workspace, today=datetime.now().date().isoformat())
-        snapshots, snapshot_gaps = collect_snapshots(universe.entries, today=datetime.now().date().isoformat())
+        entries = build_universe(workspace, today=datetime.now().date().isoformat()).entries
+        if market_aware:
+            # 只扫开市市场（复用日报时段表）；全休市 → 跳过本轮
+            open_sfx = _open_market_suffixes()
+            if not open_sfx:
+                print("all_markets_closed — skip")
+                if dry_run or once:
+                    return 0
+                time.sleep(max(interval_minutes, 1) * 60)
+                continue
+            entries = [e for e in entries
+                       if any((e.ticker or "").upper().endswith(s) for s in open_sfx)]
+            print(f"open_markets={sorted(open_sfx)} scan={len(entries)}")
+        # live_intraday=True：日线还没"今天"这根时用分钟线补实时，避免盘初只能拿到
+        # 上一交易日行情（那会推出"昨天的涨停"）。盘后日报不开这个开关。
+        snapshots, snapshot_gaps = collect_snapshots(entries, today=datetime.now().date().isoformat(),
+                                                     live_intraday=True)
         state = load_state(workspace)
         sent_event_ids = set(state.get("sent_event_ids", []))
-        alert_entries, new_event_ids = _collect_intraday_alerts(universe.entries, snapshots, sent_event_ids)
+        alert_entries, new_event_ids, stale_skipped = _collect_intraday_alerts(entries, snapshots, sent_event_ids)
+        if stale_skipped:
+            # 数据源滞后（如 A 股 yfinance 落后数日）→ 不推旧数据，但要看得见
+            print("stale_quote_skipped=" + "; ".join(stale_skipped))
         if alert_entries:
             markdown_text = render_alert_markdown(alert_entries, snapshots, now)
             if dry_run:
                 print(markdown_text)
             else:
-                send_email(f"Intraday Coverage Alerts {now}", markdown_text, env=workspace_env(workspace))
+                # 拉告警公司的当天新闻佐证"为什么动"，HTML 卡片邮件
+                news_map, _ng, _ag = collect_company_news(
+                    alert_entries, snapshots, today=datetime.now().date().isoformat())
+                alert_html = render_alert_html(alert_entries, snapshots, news_map, now)
+                send_email(f"Intraday Coverage Alerts {now}", markdown_text, body_html=alert_html,
+                           env=workspace_env(workspace))
                 state["sent_event_ids"] = sorted(sent_event_ids.union(new_event_ids))
                 state["last_intraday_run_at"] = now
                 save_state(workspace, state)
@@ -726,6 +901,7 @@ def build_parser() -> argparse.ArgumentParser:
     intraday = subparsers.add_parser("intraday", parents=[workspace_parent], help="Run intraday alert monitoring.")
     intraday.add_argument("--dry-run", action="store_true", help="Evaluate alerts without sending.")
     intraday.add_argument("--once", action="store_true", help="Run one pass and exit.")
+    intraday.add_argument("--market-aware", action="store_true", help="Only scan markets currently open (uses news session table; all closed → skip).")
     intraday.add_argument("--interval-minutes", type=int, default=15, help="Polling interval for looping mode.")
     return parser
 
@@ -751,7 +927,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                               ai_review=args.ai_review, ai_review_input=args.ai_review_input,
                               force_weekend=args.weekend)
         if args.command == "intraday":
-            return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes)
+            return _run_intraday(workspace, dry_run=args.dry_run, once=args.once or args.dry_run, interval_minutes=args.interval_minutes, market_aware=args.market_aware)
     except UnicodeDecodeError:
         return 2
     return 0

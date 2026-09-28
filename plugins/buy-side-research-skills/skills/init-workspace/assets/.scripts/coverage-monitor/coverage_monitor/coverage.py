@@ -15,6 +15,8 @@ class CoverageEntry:
     company: str
     company_native: str = ""
     industry: str = ""
+    market: str = ""  # 上市主要市场（洲）: us|eu|asia（注册时记录，选最优/首上市地）
+    country: str = ""  # 上市国家/地区 ISO 码: US|CA|GB|FR|DE|SE|NO|FI|IT|ES|NL|JP|KR|CN|HK|TW|MY
     coverage_status: str = ""
     monitor_status: str = ""
     last_review: str = ""
@@ -41,6 +43,10 @@ HEADER_ALIASES = {
     "company (en)": "company",
     "company (native)": "company_native",
     "industry": "industry",
+    "market": "market",
+    "上市市场": "market",
+    "主要市场": "market",
+    "市场": "market",
     "coverage": "coverage_status",
     "coverage status": "coverage_status",
     "status": "coverage_status",
@@ -66,11 +72,12 @@ CANONICAL_HEADERS = [
     ("Company (EN)", "company"),
     ("Company (Native)", "company_native"),
     ("Industry", "industry"),
+    ("Market", "market"),
     ("Status", "coverage_status"),
-    ("Coverage", "coverage_status"),  # 兼容旧表头
     ("Monitor", "monitor_status"),
     ("Last Review", "last_review"),
     ("Next Trigger", "next_trigger"),
+    ("Val Anchor", "val_anchor"),
     ("Notes", "notes"),
 ]
 
@@ -106,6 +113,37 @@ def normalize_monitor_status(value: str) -> str:
     if token in {"daily watch", "daily", "daily-only"}:
         return "Daily"
     return value.strip()
+
+
+# 国家/地区码 → 洲（us/eu/asia）。范围对齐 coverage 表注册值（CLAUDE.md §3.3）。
+_COUNTRY_TO_MKT = {
+    "US": "us", "CA": "us",
+    "GB": "eu", "FR": "eu", "DE": "eu", "SE": "eu", "NO": "eu", "FI": "eu",
+    "IT": "eu", "ES": "eu", "NL": "eu",
+    "JP": "asia", "KR": "asia", "CN": "asia", "HK": "asia", "TW": "asia", "MY": "asia",
+}
+
+
+def normalize_market(value: str) -> str:
+    """上市主要市场 → us|eu|asia。接受洲名（us/europe/...）、国家码（US/GB/...）、
+    中文（美股/欧股/亚盘）等写法；空/无法识别返回 ''（走 ticker 推断兜底）。"""
+    token = re.sub(r"\s+", " ", value.strip()).lower()
+    if token in {"us", "usa", "美国", "美股", "美", "us stock", "nyse", "nasdaq"}:
+        return "us"
+    if token in {"eu", "europe", "european", "欧洲", "欧股", "欧"}:
+        return "eu"
+    if token in {"asia", "apac", "asian", "亚太", "亚洲", "亚盘", "亚股", "亚", "cn", "hk", "jp", "kr", "tw"}:
+        return "asia"
+    m = _COUNTRY_TO_MKT.get(value.strip().upper())
+    if m:
+        return m
+    return ""
+
+
+def normalize_country(value: str) -> str:
+    """上市国家/地区码（US/CA/GB/...）。只认白名单；旧三值(us/eu/asia)/空返回 ''（走 ticker 推断）。"""
+    v = value.strip().upper()
+    return v if v in _COUNTRY_TO_MKT else ""
 
 
 def _split_row(line: str) -> list[str]:
@@ -167,11 +205,14 @@ def parse_coverage_markdown(text: str) -> list[CoverageEntry]:
             cleaned = value.strip()
             if cleaned and not data.get(header):
                 data[header] = cleaned
+        raw_market = data.get("market", "")
         entry = CoverageEntry(
             ticker=normalize_ticker(data["ticker"]),
             company=data["company"].strip(),
             company_native=data["company_native"].strip(),
             industry=data["industry"].strip(),
+            market=normalize_market(raw_market),
+            country=normalize_country(raw_market),
             coverage_status=normalize_coverage_status(data["coverage_status"]),
             monitor_status=normalize_monitor_status(data["monitor_status"]),
             last_review=data["last_review"].strip(),
@@ -198,6 +239,11 @@ def render_coverage_markdown(entries: Iterable[CoverageEntry]) -> str:
     for entry in entries:
         cells = []
         for _, field_name in CANONICAL_HEADERS:
+            if field_name == "market":
+                # Market 列存国家码（country），无显式国家时回退洲值——确保 normalize
+                # 回写不把国家码降级成 us/eu/asia。
+                cells.append((entry.country or entry.market).strip())
+                continue
             cells.append(getattr(entry, field_name, "").strip())
         lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines) + "\n"

@@ -124,14 +124,14 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
         "pfcf_note": None,  # 口径注记：AKShare 兜底 = OCF（市值/经营现金流，非 FCF）
     }
 
-    # ── PE TTM + 5y 中位 ──
+    # ── PE TTM + 5y 中位（亏损公司 PE ≤ 0 无意义 → None → 渲染 NA）──
     if ratios:
         r0 = ratios[0]
-        if r0.get("priceToEarningsRatio"):
+        if r0.get("priceToEarningsRatio") and float(r0["priceToEarningsRatio"]) > 0:
             row["pe_ttm"] = round(float(r0["priceToEarningsRatio"]), 1)
         pes = [float(x["priceToEarningsRatio"]) for x in ratios if x.get("priceToEarningsRatio")]
         pes = [v for v in pes if v > 0]
-        if len(pes) >= 3 and row["pe_ttm"]:
+        if len(pes) >= 3 and row["pe_ttm"] and row["pe_ttm"] > 0:
             row["pe_5y_median"] = round(statistics.median(pes), 1)
             row["pe_ttm_vs_5y"] = round((row["pe_ttm"] - row["pe_5y_median"]) / row["pe_5y_median"] * 100, 1)
 
@@ -142,7 +142,7 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
                          ("priceToBookRatio", "pb"),
                          ("priceToFreeCashFlowRatio", "pfcf")):
             v = r0.get(fld)
-            if v:
+            if v and float(v) > 0:  # ≤ 0（亏损/负净资产）倍数无意义 → None
                 row[key] = round(float(v), 1)
             hist = [float(x.get(fld)) for x in ratios if x.get(fld)]
             hist = [h for h in hist if h > 0]
@@ -151,7 +151,7 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
 
     # ── PE NTM（estimates 层：L1 forward → L2 consensus eps_avg）──
     eps_avg, _ebitda_l2 = _estimates_snapshot(entry.ticker)
-    if price and eps_avg:
+    if price and eps_avg and float(eps_avg) > 0:  # 预期亏损 → PE_NTM 无意义 → None
         try:
             row["pe_ntm"] = round(float(price) / float(eps_avg), 1)
         except (TypeError, ValueError, ZeroDivisionError):
@@ -159,7 +159,7 @@ def compute_valuation_row(entry: CoverageEntry, fr: dict[str, Any]) -> dict[str,
 
     # ── EV/EBITDA TTM + 5y 中位 ──
     ev_ttm = km.get("evToEBITDATTM")
-    if ev_ttm and isinstance(ev_ttm, (int, float)):
+    if ev_ttm and isinstance(ev_ttm, (int, float)) and float(ev_ttm) > 0:  # 负 EBITDA → 无意义 → None
         row["ev_ttm"] = round(float(ev_ttm), 1)
         evs = [float(x["enterpriseValueMultiple"]) for x in ratios if x.get("enterpriseValueMultiple")]
         evs = [v for v in evs if v > 0]

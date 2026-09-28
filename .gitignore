@@ -11,11 +11,15 @@ __pycache__/
 *.pyc
 
 # Workspace artifacts (never committed to dev repo root)
-.references/
-.scripts/
-.cache/
-.claude/
-.codex/
-.vscode/
+# Anchored to the repo root on purpose: unanchored `.scripts/` also matched
+# `skills/init-workspace/assets/.scripts/` and silently dropped those files from
+# every release zipball (new modules never got committed → shipped asset tree
+# imported modules that did not exist). See docs/release.md release contents.
+/.references/
+/.scripts/
+/.cache/
+/.claude/
+/.codex/
+/.vscode/
 /buy-side-research-skills/
 .DS_Store

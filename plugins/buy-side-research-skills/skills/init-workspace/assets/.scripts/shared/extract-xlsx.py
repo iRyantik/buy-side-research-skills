@@ -14,6 +14,10 @@ import re
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 
 def extract(filepath: str, sheet: int | str | None = None) -> list[dict]:
     """Extract all sheets. Returns [{name, headers, rows}]."""
