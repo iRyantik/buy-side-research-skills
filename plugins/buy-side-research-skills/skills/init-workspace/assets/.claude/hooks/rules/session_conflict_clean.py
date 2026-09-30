@@ -219,10 +219,63 @@ def _active_session_ids(manifests_dir: Path) -> set:
     return active
 
 
+# ── resolving the session that just stopped ─────────────────────
+
+def _resolve_current(base: Path, copy: Path, action: str) -> bool:
+    """解析"刚 Stop 的那个会话"的冲突（本机刚停，此刻没有写入进程）。
+
+    2026-09-30 加：此前活跃会话一律不碰，于是"你正在用的这个会话"一旦冲突就永远
+    不会自动修 —— 而实测两次冲突里，冲突副本反而是**唯一完整那份**（主文件缺整天/
+    十几天的对话），只能人工合。Stop 时刻本会话是空闲的，可以安全写。
+
+    安全措施（任何一步不确定就放弃，留给下一轮）：
+      1. 写前复核 base 的整行指纹集合未变 —— 若已变（下一轮已开始写）则不写；
+      2. 内容只增不减：replace 取副本（base 行 ⊆ 副本行），merge 取并集；
+      3. 写临时文件后自检行数一致，才 os.replace 原子替换；成功后删副本。
+    """
+    try:
+        before = _build_index(base)
+        if action == "replace-base":
+            rows = _read_rows(copy)
+        else:
+            rows = _merge_rows(_read_rows(base), _read_rows(copy))
+        if not rows:
+            return False
+        if _build_index(base) != before:
+            return False  # 期间被追加 → 不动，下一轮再试
+        tmp = base.with_name(base.name + ".se-clean-tmp")
+        try:
+            with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+                for r in rows:
+                    fh.write(r[0] + "\n")
+            with open(tmp, "r", encoding="utf-8", errors="replace") as fh:
+                if sum(1 for _ in fh) != len(rows):
+                    return False  # 写出后自检失败 → 不替换
+            os.replace(tmp, base)
+        finally:
+            if tmp.exists():
+                try:
+                    tmp.unlink()
+                except OSError:
+                    pass
+        try:
+            copy.unlink()
+        except OSError:
+            pass
+        return True
+    except Exception:
+        return False
+
+
 # ── main sweep ──────────────────────────────────────────────────
 
-def process_sessions(sessions_dir: Path, manifests_dir: Path, log=None) -> dict:
-    """Scan and auto-resolve conflicts. Returns {'deleted':n, 'replaced':n, 'merged':n, 'skipped':n}."""
+def process_sessions(sessions_dir: Path, manifests_dir: Path, log=None,
+                     current_session_id: str = "") -> dict:
+    """Scan and auto-resolve conflicts. Returns {'deleted':n, 'replaced':n, 'merged':n, 'skipped':n}.
+
+    current_session_id: 触发本次 Stop 的会话 —— 它此刻空闲，可以安全解析（见 _resolve_current）。
+    其他活跃会话（别的机器在写）仍然不碰。
+    """
     out = {"deleted": 0, "replaced": 0, "merged": 0, "skipped": 0}
     active = _active_session_ids(manifests_dir)
 
@@ -238,8 +291,10 @@ def process_sessions(sessions_dir: Path, manifests_dir: Path, log=None) -> dict:
     for base, copy in conflicts:
         if not base.is_file():
             continue  # orphan — left for session-sync.py fix
-        if base.name[:-len(".jsonl")] in active:
-            # Active session: base is being written live — never rewrite it.
+        sid = base.name[:-len(".jsonl")]
+        is_current = bool(current_session_id) and sid == current_session_id
+        if sid in active and not is_current:
+            # Another machine is writing this session right now — never rewrite it.
             # A subset copy is still safe to delete (base untouched, lossless);
             # a non-subset copy is left until the session ends.
             try:
@@ -255,6 +310,17 @@ def process_sessions(sessions_dir: Path, manifests_dir: Path, log=None) -> dict:
             action = _classify(base, copy)
         except Exception:
             action = "skip"
+        if is_current and action in ("replace-base", "merge"):
+            # This session just stopped (idle right now) — resolve it, guarded.
+            if _resolve_current(base, copy, action):
+                out["replaced" if action == "replace-base" else "merged"] += 1
+                if log:
+                    log(f"[session_conflict_clean] {action} (just-stopped session): {copy.name}")
+            else:
+                out["skipped"] += 1
+                if log:
+                    log(f"[session_conflict_clean] deferred (busy/racing): {copy.name}")
+            continue
         try:
             if action == "delete-copy":
                 copy.unlink()
@@ -281,8 +347,13 @@ def check(ctx):
     if sessions_dir is None:
         return
     manifests_dir = sessions_dir.parent / ".sessions-manifests"
+    current = ""
+    if isinstance(ctx, dict):
+        raw = ctx.get("raw_payload") or {}
+        current = (ctx.get("session_id") or raw.get("session_id")
+                   or raw.get("sessionId") or "")
     try:
-        process_sessions(sessions_dir, manifests_dir)
+        process_sessions(sessions_dir, manifests_dir, current_session_id=current)
     except Exception:
         pass
 

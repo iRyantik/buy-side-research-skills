@@ -130,6 +130,20 @@ def scenario_5(sessions, manifests):
     got = base.read_text(encoding="utf-8").splitlines()
     check("base = 50 unique rows", len(got) == 50, str(len(got)))
 
+# ── Scenario 7: copy = subset + empty last-prompt meta row → delete ─
+def scenario_7(sessions, manifests):
+    print("\n[7] subset + empty last-prompt -> delete-copy")
+    base = sessions / "77777777-7777-7777-7777-777777777777.jsonl"
+    copy = sessions / "77777777-7777-7777-7777-777777777777.sync-conflict-20260821-120000-ABCDEFG.jsonl"
+    rows = [row(i, "h") for i in range(1, 21)]
+    meta = json.dumps({"type": "last-prompt", "timestamp": "2026-08-24T09:35:00.000Z"})
+    write_rows(base, rows)
+    write_rows(copy, rows[5:15] + [meta])  # subset + 1 empty last-prompt
+    res = scc.process_sessions(sessions, manifests)
+    check("deleted=1", res["deleted"] == 1, str(res))
+    check("copy gone", not copy.exists())
+    check("base intact 20 rows", len(base.read_text(encoding="utf-8").splitlines()) == 20)
+
 # ── Scenario 6: active session guard ─────────────────────────────
 def scenario_6(sessions, manifests):
     print("\n[6] active session -> subset copy deleted, base untouched; non-subset left")
@@ -158,6 +172,60 @@ def scenario_6(sessions, manifests):
     check("6b untouched", res["deleted"] == 0 and res["replaced"] == 0 and res["merged"] == 0, str(res))
     check("6b both exist", base2.exists() and copy2.exists())
 
+# ── Scenario 8: just-stopped session (active + is current) ───────
+def scenario_8(sessions, manifests):
+    print("\n[8] just-stopped session -> resolved even though active")
+    # 8a: superset copy -> base replaced with the fuller copy
+    sid = "88888888-8888-8888-8888-888888888888"
+    (manifests / "88001.json").write_text(json.dumps({"sessionId": sid}), encoding="utf-8")
+    base = sessions / f"{sid}.jsonl"
+    copy = sessions / f"{sid}.sync-conflict-20260821-120000-ABCDEFG.jsonl"
+    base_rows = [row(i, "j") for i in range(1, 11)]
+    fuller = base_rows + [row(100 + i, "j2") for i in range(1, 6)]
+    write_rows(base, base_rows)
+    write_rows(copy, fuller)
+    res = scc.process_sessions(sessions, manifests, current_session_id=sid)
+    check("8a replaced=1", res["replaced"] == 1, str(res))
+    check("8a copy gone", not copy.exists())
+    check("8a base = fuller copy", base.read_text(encoding="utf-8").splitlines() == fuller)
+
+    # 8b: mutual-unique -> merged (both sides kept)
+    sid2 = "88888888-8888-8888-8888-888888888889"
+    (manifests / "88002.json").write_text(json.dumps({"sessionId": sid2}), encoding="utf-8")
+    base2 = sessions / f"{sid2}.jsonl"
+    copy2 = sessions / f"{sid2}.sync-conflict-20260821-120000-ABCDEFG.jsonl"
+    write_rows(base2, [row(i, "k") for i in range(1, 21)])
+    write_rows(copy2, [row(i, "k2") for i in range(21, 31)])
+    res = scc.process_sessions(sessions, manifests, current_session_id=sid2)
+    check("8b merged=1", res["merged"] == 1, str(res))
+    got = base2.read_text(encoding="utf-8").splitlines()
+    check("8b base = 30 rows (union)", len(got) == 30, str(len(got)))
+    check("8b nothing lost", {json.loads(l)["uuid"] for l in got} ==
+          {f"k{i:06d}" for i in range(1, 21)} | {f"k2{i:06d}" for i in range(21, 31)})
+
+    # 8c: race guard — base gets appended to while we're resolving -> defer, keep the new row
+    sid3 = "88888888-8888-8888-8888-88888888888a"
+    (manifests / "88003.json").write_text(json.dumps({"sessionId": sid3}), encoding="utf-8")
+    base3 = sessions / f"{sid3}.jsonl"
+    copy3 = sessions / f"{sid3}.sync-conflict-20260821-120000-ABCDEFG.jsonl"
+    write_rows(base3, [row(i, "m") for i in range(1, 11)])
+    write_rows(copy3, [row(i, "m2") for i in range(11, 21)])
+    orig_read_rows = scc._read_rows
+    def racy_read_rows(p):
+        rows = orig_read_rows(p)
+        if Path(p) == base3:  # simulate the next turn starting to write
+            with open(base3, "a", encoding="utf-8") as fh:
+                fh.write(row(999, "zz") + "\n")
+        return rows
+    scc._read_rows = racy_read_rows
+    try:
+        res = scc.process_sessions(sessions, manifests, current_session_id=sid3)
+    finally:
+        scc._read_rows = orig_read_rows
+    check("8c deferred (skipped)", res["merged"] == 0 and res["replaced"] == 0, str(res))
+    check("8c copy kept", copy3.exists())
+    check("8c concurrent row survived", "zz000999" in base3.read_text(encoding="utf-8"))
+
 # ── Real-file timing: the 228MB transcript ───────────────────────
 def timing_real():
     real = Path(r"C:\Users\yuzhe\CC research workspace\.sessions\cbd158a5-741f-4b37-8d9b-4e4ce6a4c017.jsonl")
@@ -174,7 +242,8 @@ def timing_real():
 
 def main():
     print(f"hook file: {HOOK_DIR / 'session_conflict_clean.py'}")
-    for fn in (scenario_1, scenario_2, scenario_3, scenario_4, scenario_5, scenario_6):
+    for fn in (scenario_1, scenario_2, scenario_3, scenario_4, scenario_5, scenario_6,
+               scenario_7, scenario_8):
         tmp, sessions, manifests = setup()
         try:
             fn(sessions, manifests)

@@ -2,7 +2,7 @@
 
 This file is for maintainers of the plugin source repo. Normal plugin users do not need to read it.
 
-Current release version: `8.9.23`.
+Current release version: `8.9.24`.
 
 > Version discipline: the plugin's internal version (`.claude-plugin/plugin.json` / `.codex-plugin/plugin.json`) **must always equal** the release tag. Never ship a release whose tag and plugin.json disagree.
 
@@ -184,7 +184,7 @@ export GH_TOKEN="<token>"
 
 ### Procedure
 
-All steps are mandatory. Do not skip `gh release create` — the `update-agent-runtime` script fetches from the GitHub Releases API, not git tags.
+All steps are mandatory. Do not skip `gh release create` â€” the `update-agent-runtime` script fetches from the GitHub Releases API, not git tags.
 
 ```bash
 # 1. Commit all changes
@@ -199,7 +199,7 @@ git tag -a vX.Y.Z -m "vX.Y.Z: <one-line summary>"
 git push
 git push origin vX.Y.Z
 
-# 4. Create GitHub Release (REQUIRED — not optional)
+# 4. Create GitHub Release (REQUIRED â€” not optional)
 ~/.local/gh/bin/gh release create vX.Y.Z \
   --repo iRyantik/buy-side-research-skills \
   --title "vX.Y.Z" \
