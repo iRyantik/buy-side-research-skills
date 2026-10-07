@@ -397,14 +397,25 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
             failed = True
     print()
 
+    # Layer 4: User-owned state (must not be a raw template)
+    print("Layer 4 — User state")
+    ok, detail = check_user_state(workspace)
+    results["user_state"] = ok
+    if ok:
+        print(f"  {detail:<50} ✅")
+    else:
+        print(f"  {detail:<50} ❌")
+        failed = True
+    print()
+
     results["all_pass"] = not failed
 
     # Summary
-    total = 4 + len(CORE_PACKAGES) + 2  # 4 system + 8 packages + 2 config = 14
+    total = 4 + len(CORE_PACKAGES) + 3  # 4 system + 8 packages + 3 config/user-state = 15
     passed = (
         sum(1 for v in [results["python"], results["node_js"], results["npx"], results["curl"]] if v)
         + sum(1 for v in results["packages"].values() if v)
-        + sum(1 for v in [results["mcp_json"], results["hooks"]] if v)
+        + sum(1 for v in [results["mcp_json"], results["hooks"], results["user_state"]] if v)
     )
 
     if failed:
@@ -413,6 +424,51 @@ def verify(workspace: Path | None = None, auto_install: bool = True) -> dict:
         print(f"Result: {passed}/{total} ✅ — workspace ready.")
 
     return results
+
+
+def check_user_state(workspace: Path) -> tuple[bool, str]:
+    """用户拥有的根文件是否被模板/占位符覆盖。
+
+    2026-09-29 事故：`init-workspace/assets/CLAUDE.md`（一个**非 `.template`** 的宪法
+    副本）走了"平台资产 → 覆盖"分支，把用户的 CLAUDE.md 打回模板（`{{WORKSPACE_PATH}}`
+    占位符），并经 Syncthing 传染到所有机器；同日 COVERAGE.md 也被换成 16 行空壳，
+    coverage-monitor 随即"覆盖 0 家"、intraday 每 5 分钟崩一次（空 targets）。这道检查
+    让同类事故在装机自检时就暴露，而不是等日报变空才发现。
+    """
+    import re as _re
+
+    problems: list[str] = []
+    for name in ("CLAUDE.md", "AGENTS.md", "COVERAGE.md"):
+        p = workspace / name
+        if not p.is_file():
+            continue
+        try:
+            head = p.read_text(encoding="utf-8", errors="replace")[:8000]
+        except OSError:
+            continue
+        if "{{" in head:
+            problems.append(f"{name} 仍是模板（含 {{{{...}}}} 占位符）")
+
+    cov = workspace / "COVERAGE.md"
+    if cov.is_file():
+        rows = 0
+        try:
+            for line in cov.read_text(encoding="utf-8", errors="replace").splitlines():
+                if not line.startswith("|"):
+                    continue
+                for cell in (c.strip() for c in line.strip("|").split("|")):
+                    if cell and _re.search(r"[A-Z0-9]{2,6}(\.[A-Z]{1,2})?$", cell):
+                        rows += 1
+                        break
+        except OSError:
+            rows = 0
+        dirs = len(list(workspace.glob("industry/*/companies/*/")))
+        if dirs >= 20 and rows < 10:
+            problems.append(f"COVERAGE.md 疑似被覆盖（{rows} 行带 ticker vs {dirs} 个公司目录）")
+
+    if problems:
+        return False, "；".join(problems[:2]) + " —— 用备份恢复，勿再跑模板部署"
+    return True, "根文件完好（非模板、COVERAGE 行数正常）"
 
 
 def cli():

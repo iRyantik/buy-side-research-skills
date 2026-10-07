@@ -405,6 +405,11 @@ def collect_snapshots(entries: list[CoverageEntry], today: str | None = None,
     targets = [e for e in entries
                if e.ticker and e.ticker.strip().lower() not in _SKIP_TICKER]
 
+    # 空 targets 时 ThreadPoolExecutor(max_workers=0) 会抛 ValueError，把整轮 intraday
+    # 打挂（2026-09-29 起实测：只开欧盘时 scan=0 → 每 5 分钟崩一次，告警全失效）。
+    if not targets:
+        return {}, sorted(set(gaps))
+
     with ThreadPoolExecutor(max_workers=min(max_workers, len(targets))) as pool:
         futures = {pool.submit(_fetch_one_snapshot, e, today, live_intraday): e for e in targets}
         for future in as_completed(futures):

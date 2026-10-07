@@ -280,6 +280,8 @@ DEEPSEEK_API_KEY=sk-xxx
 
 - Do not overwrite whole workspace `CLAUDE.md` or `AGENTS.md` — copy from template only if missing.
 - Do not overwrite `COVERAGE.md` or `.references/edge-radar.md` if already present.
+- ★ **根文件只能来自 `*.template`，且仅当目标不存在**。`assets/` 里**禁止**出现与根文件同名的非模板副本（`CLAUDE.md` / `AGENTS.md` / `COVERAGE.md`）——2026-09-29 事故根因：`assets/CLAUDE.md`（无 `.template` 后缀）被当成"平台资产→覆盖"处理，把用户宪法打回带 `{{WORKSPACE_PATH}}` 占位符的模板，并经 Syncthing 传染全部机器；同日 `COVERAGE.md` 也被换成 16 行空壳，coverage-monitor 立刻"覆盖 0 家"、intraday 每 5 分钟崩溃。该文件已于 2026-09-30 删除，勿再添加。
+- 部署后自检：`python .scripts/verify-runtime.py` 的 **Layer 4** 会检查根文件是否被模板/占位符覆盖、COVERAGE 行数是否与公司目录数匹配；不通过就先恢复备份，不要继续跑部署。
 - `.claude/mcp.json`: merge strategy — preserve existing MCP server keys, ensure `playwright` key exists. If file is invalid JSON, backup to `.claude/mcp.json.bak` then overwrite.
 - Do not overwrite `.scripts/` files that are not in the B类 source list (user-added scripts are preserved).
 - Do not run inside the plugin dev repo or plugin install directory.
